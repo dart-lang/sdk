@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
-import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,9 +21,6 @@ main() {
 class InvalidExportOfInternalElement_BazelPackageTest
     extends BazelWorkspaceResolutionTest
     with InvalidExportOfInternalElementTest {
-  /// A cached analysis context for resolving sources via the same [Workspace].
-  AnalysisContext analysisContext;
-
   String get testPackageBazelBinPath => '$workspaceRootPath/bazel-bin/dart/my';
 
   String get testPackageGenfilesPath =>
@@ -35,13 +28,6 @@ class InvalidExportOfInternalElement_BazelPackageTest
 
   @override
   String get testPackageLibPath => myPackageLibPath;
-
-  @override
-  Future<ResolvedUnitResult> resolveFile(String path) {
-    analysisContext ??= contextFor(path);
-    assert(analysisContext.workspace is BazelWorkspace);
-    return analysisContext.currentSession.getResolvedUnit(path);
-  }
 
   @override
   void setUp() async {
@@ -59,14 +45,12 @@ class InvalidExportOfInternalElement_BazelPackageTest
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
-    await resolveFile2(testPackageImplementationFilePath);
 
-    newFile('$testPackageBazelBinPath/lib/bar.dart', content: r'''
+    await resolveFileCode('$testPackageBazelBinPath/lib/bar.dart', r'''
 export 'src/foo.dart';
 ''');
-    await resolveFile2('$testPackageBazelBinPath/lib/bar.dart');
 
-    assertErrorsInResolvedUnit(result, [
+    assertErrorsInResult([
       error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
@@ -76,14 +60,12 @@ export 'src/foo.dart';
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
-    await resolveFile2(testPackageImplementationFilePath);
 
-    newFile('$testPackageBazelBinPath/lib/src/bar.dart', content: r'''
+    await resolveFileCode('$testPackageBazelBinPath/lib/src/bar.dart', r'''
 export 'foo.dart';
 ''');
-    await resolveFile2('$testPackageBazelBinPath/lib/src/bar.dart');
 
-    assertErrorsInResolvedUnit(result, []);
+    assertNoErrorsInResult();
   }
 
   void test_exporterIsInGenfilesLib() async {
@@ -91,14 +73,12 @@ export 'foo.dart';
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
-    await resolveFile2(testPackageImplementationFilePath);
 
-    newFile('$testPackageGenfilesPath/lib/bar.dart', content: r'''
+    await resolveFileCode('$testPackageGenfilesPath/lib/bar.dart', r'''
 export 'src/foo.dart';
 ''');
-    await resolveFile2('$testPackageGenfilesPath/lib/bar.dart');
 
-    assertErrorsInResolvedUnit(result, [
+    assertErrorsInResult([
       error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
@@ -108,14 +88,12 @@ export 'src/foo.dart';
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
-    await resolveFile2(testPackageImplementationFilePath);
 
-    newFile('$testPackageGenfilesPath/lib/src/bar.dart', content: r'''
+    await resolveFileCode('$testPackageGenfilesPath/lib/src/bar.dart', r'''
 export 'foo.dart';
 ''');
-    await resolveFile2('$testPackageGenfilesPath/lib/src/bar.dart');
 
-    assertErrorsInResolvedUnit(result, []);
+    assertNoErrorsInResult();
   }
 
   void test_exporterIsInLib() async {
@@ -124,12 +102,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    newFile('$testPackageLibPath/bar.dart', content: r'''
+    await resolveFileCode('$testPackageLibPath/bar.dart', r'''
 export 'src/foo.dart';
 ''');
-    await resolveFile2('$testPackageLibPath/bar.dart');
 
-    assertErrorsInResolvedUnit(result, [
+    assertErrorsInResult([
       error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
@@ -140,12 +117,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    newFile('$testPackageLibPath/src/bar.dart', content: r'''
+    await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
 export 'foo.dart';
 ''');
-    await resolveFile2('$testPackageLibPath/src/bar.dart');
 
-    assertErrorsInResolvedUnit(result, []);
+    assertNoErrorsInResult();
   }
 
   void test_exporterIsInTest() async {
@@ -154,12 +130,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    newFile('$myPackageRootPath/test/foo_test.dart', content: r'''
+    await resolveFileCode('$myPackageRootPath/test/foo_test.dart', r'''
 export 'package:dart.my/src/foo.dart';
 ''');
-    await resolveFile2('$myPackageRootPath/test/foo_test.dart');
 
-    assertErrorsInResolvedUnit(result, []);
+    assertNoErrorsInResult();
   }
 
   void test_internalIsInBazelBin() async {
@@ -205,56 +180,43 @@ export 'package:dart.my/src/foo.dart';
 @reflectiveTest
 class InvalidExportOfInternalElement_PackageBuildPackageTest
     extends InvalidExportOfInternalElement_PubPackageTest {
-  /// A cached analysis context for resolving sources via the same [Workspace].
-  AnalysisContext analysisContext;
-
   String get testPackageDartToolPath =>
       '$testPackageRootPath/.dart_tool/build/generated/test';
 
-  @override
-  Future<ResolvedUnitResult> resolveFile(String path) {
-    analysisContext ??= contextFor(path);
-    assert(analysisContext.workspace is PackageBuildWorkspace);
-    return analysisContext.currentSession.getResolvedUnit(path);
-  }
-
-  @override
-  void setUp() async {
-    analysisContext = null;
-    super.setUp();
-    newFolder(testPackageDartToolPath);
-  }
-
+  @FailingTest(reason: r'''
+We try to analyze a file in .dart_tool, which is implicitly excluded from
+analysis. So, there is no context to analyze it.
+''')
   void test_exporterInGeneratedLib() async {
     newFile('$testPackageRootPath/lib/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
-    await resolveFile2('$testPackageRootPath/lib/src/foo.dart');
 
-    newFile('$testPackageDartToolPath/lib/bar.dart', content: r'''
+    await resolveFileCode('$testPackageDartToolPath/lib/bar.dart', r'''
 export 'package:test/src/foo.dart';
 ''');
-    await resolveFile2('$testPackageDartToolPath/lib/bar.dart');
 
-    assertErrorsInResolvedUnit(result, [
+    assertErrorsInResult([
       error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
     ]);
   }
 
+  @FailingTest(reason: r'''
+We try to analyze a file in .dart_tool, which is implicitly excluded from
+analysis. So, there is no context to analyze it.
+''')
   void test_exporterInGeneratedLibSrc() async {
     newFile('$testPackageRootPath/lib/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
-    await resolveFile2('$testPackageRootPath/lib/src/foo.dart');
 
-    newFile('$testPackageDartToolPath/lib/src/bar.dart', content: r'''
+    await resolveFileCode('$testPackageDartToolPath/lib/src/bar.dart', r'''
 export 'package:test/src/foo.dart';
 ''');
-    await resolveFile2('$testPackageDartToolPath/lib/src/bar.dart');
 
-    assertErrorsInResolvedUnit(result, []);
+    assertNoErrorsInResult();
   }
 
   void test_exporterInLib() async {
@@ -262,14 +224,12 @@ export 'package:test/src/foo.dart';
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
-    await resolveFile2('$testPackageRootPath/lib/src/foo.dart');
 
-    newFile('$testPackageRootPath/lib/bar.dart', content: r'''
+    await resolveFileCode('$testPackageRootPath/lib/bar.dart', r'''
 export 'package:test/src/foo.dart';
 ''');
-    await resolveFile2('$testPackageRootPath/lib/bar.dart');
 
-    assertErrorsInResolvedUnit(result, [
+    assertErrorsInResult([
       error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 35),
     ]);
   }
@@ -279,14 +239,12 @@ export 'package:test/src/foo.dart';
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
-    await resolveFile2('$testPackageRootPath/lib/src/foo.dart');
 
-    newFile('$testPackageRootPath/lib/src/bar.dart', content: r'''
+    await resolveFileCode('$testPackageRootPath/lib/src/bar.dart', r'''
 export 'package:test/src/foo.dart';
 ''');
-    await resolveFile2('$testPackageRootPath/lib/src/bar.dart');
 
-    assertErrorsInResolvedUnit(result, []);
+    assertNoErrorsInResult();
   }
 
   void test_internalIsInGeneratedLibSrc() async {
@@ -336,12 +294,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    newFile('$testPackageLibPath/bar.dart', content: r'''
+    await resolveFileCode('$testPackageLibPath/bar.dart', r'''
 export 'src/foo.dart';
 ''');
-    await resolveFile2('$testPackageLibPath/bar.dart');
 
-    assertErrorsInResolvedUnit(result, [
+    assertErrorsInResult([
       error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT, 0, 22),
     ]);
   }
@@ -352,12 +309,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    newFile('$testPackageLibPath/src/bar.dart', content: r'''
+    await resolveFileCode('$testPackageLibPath/src/bar.dart', r'''
 export 'foo.dart';
 ''');
-    await resolveFile2('$testPackageLibPath/src/bar.dart');
 
-    assertErrorsInResolvedUnit(result, []);
+    assertNoErrorsInResult();
   }
 
   void test_exporterIsInTest() async {
@@ -366,12 +322,11 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    newFile('$testPackageRootPath/test/foo_test.dart', content: r'''
+    await resolveFileCode('$testPackageRootPath/test/foo_test.dart', r'''
 export 'package:test/src/foo.dart';
 ''');
-    await resolveFile2('$testPackageRootPath/test/foo_test.dart');
 
-    assertErrorsInResolvedUnit(result, []);
+    assertNoErrorsInResult();
   }
 
   void test_internalIsLibSrc() async {

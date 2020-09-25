@@ -54,6 +54,11 @@ void main(List<String> args) async {
             'parameters are not null.',
         defaultsTo: false,
         negatable: true)
+    ..addFlag('native-null-assertions',
+        help: 'Run with assertions on non-nullable values returned from native '
+            'APIs.',
+        defaultsTo: true,
+        negatable: true)
     ..addFlag('observe',
         help:
             'Run the compiler in the Dart VM with --observe. Implies --debug.',
@@ -109,6 +114,7 @@ void main(List<String> args) async {
   var run = mode == 'run' || mode == 'all';
   var verbose = options['verbose'] as bool;
   var nonNullAsserts = options['null-assertions'] as bool;
+  var nativeNonNullAsserts = options['null-assertions'] as bool;
 
   var soundNullSafety = options['sound-null-safety'] as bool;
   // Enable null safety either by passing the `non-nullable` experiment flag or
@@ -280,6 +286,7 @@ void main(List<String> args) async {
     if ($nnbd) {
       sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
       sdk.dart.nonNullAsserts($nonNullAsserts);
+      sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
     }
     sdk._debugger.registerDevtoolsFormatter();
     app.$libname.main([]);
@@ -315,6 +322,7 @@ try {
   if ($nnbd) {
     sdk.dart.weakNullSafetyWarnings(!$soundNullSafety);
     sdk.dart.nonNullAsserts($nonNullAsserts);
+    sdk.dart.nativeNonNullAsserts($nativeNonNullAsserts);
   }
   sdk._isolate_helper.startRootIsolate(main, []);
 } catch(e) {
@@ -351,6 +359,7 @@ try {
   if ($nnbd) {
     dart.weakNullSafetyWarnings(!$soundNullSafety);
     dart.nonNullAsserts($nonNullAsserts);
+    dart.nativeNonNullAsserts($nativeNonNullAsserts);
   }
   _isolate_helper.startRootIsolate(() => {}, []);
   main([]);

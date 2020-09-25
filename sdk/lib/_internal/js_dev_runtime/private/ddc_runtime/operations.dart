@@ -870,3 +870,10 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
   }
   return ${defineProperty(to, name, desc)};
 })()''');
+
+checkNativeNonNull(dynamic variable) {
+  if (_nativeNonNullAsserts) {
+    return nullCheck(variable);
+  }
+  return variable;
+}

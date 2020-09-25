@@ -4200,8 +4200,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitPropertyGet(PropertyGet node) {
-    return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.text);
+    var propertyGet =
+        _emitPropertyGet(node.receiver, node.interfaceTarget, node.name.text);
+    if (_isCheckableNative(node.interfaceTarget)) {
+      // If target is a native getter with a non-nullable type, add a null check
+      // for soundness.
+      return runtimeCall('checkNativeNonNull(#)', [propertyGet]);
+    }
+    return propertyGet;
   }
 
   @override
@@ -4263,6 +4269,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return js_ast.PropertyAccess(jsReceiver, jsName);
     }
   }
+
+  /// Return whether [member] returns a native object whose type needs to be
+  /// checked.
+  bool _isCheckableNative(Member member) =>
+      member != null &&
+      member.isExternal &&
+      _extensionTypes.isNativeClass(member.enclosingClass) &&
+      member is Procedure &&
+      member.function != null &&
+      member.function.returnType.isPotentiallyNonNullable;
 
   // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
   // _emitMemberName would be a nice place to handle it, but we don't have
@@ -4334,8 +4350,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitMethodInvocation(MethodInvocation node) {
-    return _emitMethodCall(
+    var methodCall = _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
+    if (_isCheckableNative(node.interfaceTarget)) {
+      // If target is a native method with a non-nullable type, add a null check
+      // for soundness.
+      return runtimeCall('checkNativeNonNull(#)', [methodCall]);
+    }
+    return methodCall;
   }
 
   @override
@@ -5066,10 +5088,29 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var result = js.parseForeignJS(source).instantiate(jsArgs);
 
+    // Add a check to make sure any JS() values from a native type are typed
+    // properly.
+    if (_isWebLibrary(_currentLibrary.importUri)) {
+      var type = node.getStaticType(_staticTypeContext);
+      if (type.isPotentiallyNonNullable) {
+        result = runtimeCall('checkNativeNonNull(#)', [result]);
+      }
+    }
+
     assert(result is js_ast.Expression ||
         result is js_ast.Statement && node.parent is ExpressionStatement);
     return result;
   }
+
+  bool _isWebLibrary(Uri importUri) =>
+      importUri.scheme == 'dart' &&
+      (importUri.path == 'html' ||
+          importUri.path == 'svg' ||
+          importUri.path == 'indexed_db' ||
+          importUri.path == 'web_audio' ||
+          importUri.path == 'web_gl' ||
+          importUri.path == 'web_sql' ||
+          importUri.path == 'html_common');
 
   bool _isNull(Expression expr) =>
       expr is NullLiteral ||
