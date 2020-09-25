@@ -403,6 +403,7 @@ See [undefined_super_member](#undefined-super-member).
 This page uses the following terms.
 
 [constant context]: #constant-context
+[override inference]: #override-inference
 [potentially non-nullable]: #potentially-non-nullable
 
 ### Constant context
@@ -444,6 +445,64 @@ contexts:
     }
   }
   ```
+
+### Override inference
+
+Override inference is the process by which any missing types in a method
+declaration are inferred based on the corresponding types from the method or
+methods that it overrides.
+
+If a candidate method (the method that's missing type information) overrides a
+single inherited method, then the corresponding types from the overridden method
+are inferred. For example, consider the following code:
+
+```dart
+class A {
+  int m(String s) => 0;
+}
+
+class B extends A {
+  @override
+  m(s) => 1;
+}
+```
+
+The declaration of `m` in `B` is a candidate because it's missing both the
+return type and the parameter type. Because it overrides a single method (the
+method `m` in `A`), the types from the overridden method will be used to infer
+the missing types and it will be as if the method in `B` had been declared as
+`int m(String s) => 1;`.
+
+If a candidate method overrides multiple methods, and the function type one of
+those overridden methods, M<sub>s</sub>, is a supertype of the function types of
+all of the other overridden methods, then M<sub>s</sub> is used to infer the
+missing types. For example, consider the following code:
+
+```dart
+class A {
+  int m(num n) => 0;
+}
+
+class B {
+  num m(int i) => 0;
+}
+
+class C implements A, B {
+  @override
+  m(n) => 1;
+}
+```
+
+The declaration of `m` in `C` is a candidate for override inference because it's
+missing both the return type and the parameter type. It overrides both `m` in
+`A` and `m` in `B`, so we need to choose one of them from which the missing
+types can be inferred. But because the function type of `m` in `A`
+(`int Function(num)`) is a supertype of the function type of `m` in `B`
+(`num Function(int)`), the function in `A` is used to infer the missing types.
+The result is the same as declaring the method in `C` as `int m(num n) => 1;`.
+
+It is an error if none of the overridden methods has a function type that is a
+supertype of all the other overridden methods.
 
 ### Potentially non-nullable
 
