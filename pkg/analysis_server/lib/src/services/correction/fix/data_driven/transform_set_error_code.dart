@@ -15,7 +15,7 @@ class TransformSetErrorCode extends ErrorCode {
    * 0: the actual type of the value
    */
   static const TransformSetErrorCode invalidValue = TransformSetErrorCode(
-      'invalidValue',
+      'invalid_value',
       "The value of '{0}' should be of type '{1}' but is of type '{2}'.");
 
   /**
@@ -23,34 +23,34 @@ class TransformSetErrorCode extends ErrorCode {
    * 0: the missing key
    */
   static const TransformSetErrorCode missingKey =
-      TransformSetErrorCode('missingKey', "Missing the required key '{0}'.");
+      TransformSetErrorCode('missing_key', "Missing the required key '{0}'.");
 
   /**
    * No parameters.
    */
   static const TransformSetErrorCode missingTemplateEnd = TransformSetErrorCode(
-      'missingTemplateEnd', "Missing the end brace for the template.");
+      'missing_template_end', "Missing the end brace for the template.");
 
   /**
    * Parameters:
    * 0: the missing key
    */
   static const TransformSetErrorCode undefinedVariable = TransformSetErrorCode(
-      'undefinedVariable', "The variable '{0}' is not defined.");
+      'undefined_variable', "The variable '{0}' is not defined.");
 
   /**
    * Parameters:
    * 0: the unsupported key
    */
-  static const TransformSetErrorCode unsupportedKey =
-      TransformSetErrorCode('unsupportedKey', "The key '{0}' isn't supported.");
+  static const TransformSetErrorCode unsupportedKey = TransformSetErrorCode(
+      'unsupported_key', "The key '{0}' isn't supported.");
 
   /**
    * Parameters:
    * 0: the message produced by the YAML parser
    */
   static const TransformSetErrorCode yamlSyntaxError =
-      TransformSetErrorCode('yamlSyntaxError', "Parse error: {0}");
+      TransformSetErrorCode('yaml_syntax_error', "Parse error: {0}");
 
   /// Initialize a newly created error code.
   const TransformSetErrorCode(String name, String message,
