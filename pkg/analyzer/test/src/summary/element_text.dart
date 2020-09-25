@@ -55,6 +55,7 @@ void checkElementText(
   bool withSyntheticAccessors = false,
   bool withSyntheticFields = false,
   bool withTypes = false,
+  bool withTypeParameterVariance = false,
   bool annotateNullability = false,
 }) {
   var writer = _ElementWriter(
@@ -67,6 +68,7 @@ void checkElementText(
     withSyntheticAccessors: withSyntheticAccessors,
     withSyntheticFields: withSyntheticFields,
     withTypes: withTypes,
+    withTypeParameterVariance: withTypeParameterVariance,
     annotateNullability: annotateNullability,
   );
   writer.writeLibraryElement(library);
@@ -136,6 +138,7 @@ class _ElementWriter {
   final bool withSyntheticAccessors;
   final bool withSyntheticFields;
   final bool withTypes;
+  final bool withTypeParameterVariance;
   final bool annotateNullability;
   final StringBuffer buffer = StringBuffer();
 
@@ -151,6 +154,7 @@ class _ElementWriter {
     this.withSyntheticAccessors = false,
     this.withSyntheticFields = false,
     this.withTypes = false,
+    this.withTypeParameterVariance,
     this.annotateNullability = false,
   });
 
@@ -1044,12 +1048,15 @@ class _ElementWriter {
 
   void writeTypeParameterElement(TypeParameterElement e) {
     writeMetadata(e, '', '\n');
+
     // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
     // variance is added to the interface.
-    if (!(e as TypeParameterElementImpl).isLegacyCovariant) {
-      buffer.write(
-          (e as TypeParameterElementImpl).variance.toKeywordString() + ' ');
+    if (withTypeParameterVariance) {
+      var impl = e as TypeParameterElementImpl;
+      var variance = impl.variance;
+      buffer.write(variance.toString() + ' ');
     }
+
     writeName(e);
     writeCodeRange(e);
     if (e.bound != null && !e.bound.isDartCoreObject) {

@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -1598,12 +1599,13 @@ class AstBinaryReader {
     // TODO (kallentu) : Clean up AstFactoryImpl casting once variance is
     // added to the interface.
     var node = (astFactory as AstFactoryImpl).typeParameter2(
-        comment: _readDocumentationComment(data),
-        metadata: _readNodeListLazy(data.annotatedNode_metadata),
-        name: _declaredIdentifier(data),
-        extendsKeyword: _Tokens.EXTENDS,
-        bound: _readNodeLazy(data.typeParameter_bound),
-        varianceKeyword: _varianceKeyword(data));
+      comment: _readDocumentationComment(data),
+      metadata: _readNodeListLazy(data.annotatedNode_metadata),
+      name: _declaredIdentifier(data),
+      extendsKeyword: _Tokens.EXTENDS,
+      bound: _readNodeLazy(data.typeParameter_bound),
+    );
+    LazyAst.setVariance(node, _decodeVariance(data.typeParameter_variance));
     LazyTypeParameter.setData(node, data);
     return node;
   }
@@ -1959,11 +1961,20 @@ class AstBinaryReader {
     return _unitContext.readType(data);
   }
 
-  Token _varianceKeyword(LinkedNode data) {
-    if (data.typeParameter_variance != UnlinkedTokenType.NOTHING) {
-      return _Tokens.fromType(data.typeParameter_variance);
+  static Variance _decodeVariance(int encoding) {
+    if (encoding == 0) {
+      return null;
+    } else if (encoding == 1) {
+      return Variance.unrelated;
+    } else if (encoding == 2) {
+      return Variance.covariant;
+    } else if (encoding == 3) {
+      return Variance.contravariant;
+    } else if (encoding == 4) {
+      return Variance.invariant;
+    } else {
+      throw UnimplementedError('encoding: $encoding');
     }
-    return null;
   }
 
   static ParameterKind _toParameterKind(LinkedNodeFormalParameterKind kind) {

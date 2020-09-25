@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
@@ -1377,7 +1378,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.typeParameter(
       typeParameter_bound: node.bound?.accept(this),
       typeParameter_defaultType: _writeType(LazyAst.getDefaultType(node)),
-      typeParameter_variance: _getVarianceToken(node),
+      typeParameter_variance: _encodeVariance(LazyAst.getVariance(node)),
       informativeId: getInformativeId(node),
     );
     builder.name = node.name.name;
@@ -1506,15 +1507,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
     var elementIndex = _indexOfElement(element);
     return _ElementComponents(elementIndex, null);
-  }
-
-  UnlinkedTokenType _getVarianceToken(TypeParameter parameter) {
-    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
-    // added to the interface.
-    var parameterImpl = parameter as TypeParameterImpl;
-    return parameterImpl.varianceKeyword != null
-        ? TokensWriter.astToBinaryTokenType(parameterImpl.varianceKeyword.type)
-        : null;
   }
 
   int _indexOfElement(Element element) {
@@ -1710,6 +1702,22 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   LinkedNodeTypeBuilder _writeType(DartType type) {
     return _linkingContext.writeType(type);
+  }
+
+  static int _encodeVariance(Variance variance) {
+    if (variance == null) {
+      return 0;
+    } else if (variance == Variance.unrelated) {
+      return 1;
+    } else if (variance == Variance.covariant) {
+      return 2;
+    } else if (variance == Variance.contravariant) {
+      return 3;
+    } else if (variance == Variance.invariant) {
+      return 4;
+    } else {
+      throw UnimplementedError('$variance');
+    }
   }
 
   /// Return `true` if the expression might be successfully serialized.
