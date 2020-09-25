@@ -40,4 +40,5 @@ class Flags {
   static const String singleRootScheme = "--single-root-scheme";
   static const String verbose = "--verbose";
   static const String verify = "--verify";
+  static const String warnOnReachabilityCheck = "--warn-on-reachability-check";
 }

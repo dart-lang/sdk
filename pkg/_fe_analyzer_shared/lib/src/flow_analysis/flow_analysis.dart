@@ -449,6 +449,26 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// collection element.  See [forEach_bodyBegin] for details.
   void forEach_end();
 
+  /// Call this method to forward information on [oldExpression] to
+  /// [newExpression].
+  ///
+  /// This can be used to preserve promotions through a replacement from
+  /// [oldExpression] to [newExpression]. For instance when rewriting
+  ///
+  ///    method(int i) {
+  ///      if (i is int) { ... } else { ... }
+  ///    }
+  ///
+  ///  to
+  ///
+  ///    method(int i) {
+  ///      if (i is int || throw ...) { ... } else { ... }
+  ///    }
+  ///
+  ///  the promotion `i is int` can be forwarded to `i is int || throw ...` and
+  ///  there preserved in the surrounding if statement.
+  void forwardExpression(Expression newExpression, Expression oldExpression);
+
   /// Call this method just before visiting the body of a function expression or
   /// local function.
   ///
@@ -913,6 +933,12 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   @override
   void forEach_end() {
     return _wrap('forEach_end()', () => _wrapped.forEach_end());
+  }
+
+  @override
+  void forwardExpression(Expression newExpression, Expression oldExpression) {
+    return _wrap('forwardExpression($newExpression, $oldExpression)',
+        () => _wrapped.forwardExpression(newExpression, oldExpression));
   }
 
   @override
@@ -2656,6 +2682,13 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void forwardExpression(Expression newExpression, Expression oldExpression) {
+    if (identical(_expressionWithInfo, oldExpression)) {
+      _expressionWithInfo = newExpression;
+    }
+  }
+
+  @override
   void functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
@@ -2885,9 +2918,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   void parenthesizedExpression(
       Expression outerExpression, Expression innerExpression) {
-    if (identical(_expressionWithInfo, innerExpression)) {
-      _expressionWithInfo = outerExpression;
-    }
+    forwardExpression(outerExpression, innerExpression);
   }
 
   @override

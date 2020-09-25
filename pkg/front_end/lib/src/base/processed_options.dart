@@ -181,6 +181,8 @@ class ProcessedOptions {
 
   NnbdMode get nnbdMode => _raw.nnbdMode;
 
+  bool get warnOnReachabilityCheck => _raw.warnOnReachabilityCheck;
+
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
 

@@ -17,3 +17,16 @@ class LateInitializationErrorImpl extends Error
         : "LateInitializationError";
   }
 }
+
+class ReachabilityError extends Error {
+  final String? _message;
+
+  ReachabilityError([this._message]);
+
+  String toString() {
+    var message = _message;
+    return (message != null)
+        ? "ReachabilityError: $message"
+        : "ReachabilityError";
+  }
+}

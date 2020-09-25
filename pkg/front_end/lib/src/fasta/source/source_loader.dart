@@ -1486,6 +1486,9 @@ class Symbol {
 }
 
 T unsafeCast<T>(Object v) {}
+class ReachabilityError {
+  ReachabilityError([message]);
+}
 """;
 
 /// A minimal implementation of dart:typed_data that is sufficient to create an
