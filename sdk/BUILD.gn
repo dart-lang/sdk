@@ -755,13 +755,16 @@ copy("copy_headers") {
   visibility = [ ":create_common_sdk" ]
   sources = [
     "../runtime/include/dart_api.h",
+    "../runtime/include/dart_api_dl.c",
     "../runtime/include/dart_api_dl.h",
     "../runtime/include/dart_native_api.h",
     "../runtime/include/dart_tools_api.h",
     "../runtime/include/dart_version.h",
     "../runtime/include/internal/dart_api_dl_impl.h",
   ]
-  outputs = [ "$root_out_dir/dart-sdk/include/{{source_file_part}}" ]
+
+  # Some magic to recover the folder structure inside the include folder.
+  outputs = [ "$root_out_dir/dart-sdk/include/{{source_root_relative_dir}}/../../{{source_file_part}}" ]
 }
 
 # This rule copies libraries.json files to lib/
