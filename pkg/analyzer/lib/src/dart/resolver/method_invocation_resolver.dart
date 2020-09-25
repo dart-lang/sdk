@@ -150,7 +150,7 @@ class MethodInvocationResolver {
     }
 
     if (receiverType is DynamicTypeImpl) {
-      _resolveReceiverDynamic(node, name);
+      _resolveReceiverDynamic(node);
       return;
     }
 
@@ -291,15 +291,10 @@ class MethodInvocationResolver {
       node.methodName.staticType,
     );
 
-    // TODO(scheglov) Call this only when member lookup failed?
-    var inferred = _inferenceHelper.inferMethodInvocationObject(node);
-
-    if (!inferred) {
-      DartType staticStaticType = _inferenceHelper.computeInvokeReturnType(
-        node.staticInvokeType,
-      );
-      _inferenceHelper.recordStaticType(node, staticStaticType);
-    }
+    DartType staticStaticType = _inferenceHelper.computeInvokeReturnType(
+      node.staticInvokeType,
+    );
+    _inferenceHelper.recordStaticType(node, staticStaticType);
   }
 
   /// Given that we are accessing a property of the given [classElement] with the
@@ -387,8 +382,33 @@ class MethodInvocationResolver {
     _setResolution(node, member.type);
   }
 
-  void _resolveReceiverDynamic(MethodInvocation node, String name) {
-    _setDynamicResolution(node);
+  void _resolveReceiverDynamic(MethodInvocationImpl node) {
+    var nameNode = node.methodName;
+
+    var objectElement = _typeSystem.typeProvider.objectElement;
+    var target = objectElement.getMethod(nameNode.name);
+
+    var hasMatchingObjectMethod = false;
+    if (target is MethodElement) {
+      var arguments = node.argumentList.arguments;
+      hasMatchingObjectMethod = arguments.length == target.parameters.length &&
+          !arguments.any((e) => e is NamedExpression);
+      if (hasMatchingObjectMethod) {
+        target = _resolver.toLegacyElement(target);
+        nameNode.staticElement = target;
+        node.staticInvokeType = target.type;
+        node.staticType = target.returnType;
+      }
+    }
+
+    if (!hasMatchingObjectMethod) {
+      nameNode.staticType = DynamicTypeImpl.instance;
+      node.staticInvokeType = DynamicTypeImpl.instance;
+      node.staticType = DynamicTypeImpl.instance;
+    }
+
+    _setExplicitTypeArgumentTypes();
+    node.argumentList.accept(_resolver);
   }
 
   void _resolveReceiverFunctionType(MethodInvocation node, Expression receiver,
