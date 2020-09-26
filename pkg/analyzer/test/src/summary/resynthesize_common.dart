@@ -1289,7 +1289,7 @@ typedef F(C value);
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(C<dynamic> value);
-notSimplyBounded class C<T extends dynamic Function(C<dynamic>)> {
+notSimplyBounded class C<T extends dynamic Function(C<dynamic>) = dynamic Function(C<dynamic>)> {
 }
 ''');
   }
@@ -1301,7 +1301,7 @@ notSimplyBounded class C<T extends dynamic Function(C<dynamic>)> {
 class C<T extends C<dynamic>> {}
 ''');
     checkElementText(library, r'''
-class C<T extends C<dynamic>> {
+class C<T extends C<dynamic> = C<dynamic>> {
 }
 ''');
   }
@@ -1325,7 +1325,7 @@ class C<T extends D> {}
 class D<T extends D> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends D<dynamic>> {
+notSimplyBounded class C<T extends D<dynamic> = D<dynamic>> {
 }
 notSimplyBounded class D<T extends D<dynamic>> {
 }
@@ -1338,7 +1338,7 @@ class C<T extends D<T>> {}
 class D<T> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends D<T>> {
+notSimplyBounded class C<T extends D<T> = D<dynamic>> {
 }
 class D<T> {
 }
@@ -1353,9 +1353,9 @@ class C<T extends D<dynamic>> {}
 class D<T extends D<T>> {}
 ''');
     checkElementText(library, r'''
-class C<T extends D<dynamic>> {
+class C<T extends D<dynamic> = D<dynamic>> {
 }
-notSimplyBounded class D<T extends D<T>> {
+notSimplyBounded class D<T extends D<T> = D<dynamic>> {
 }
 ''');
   }
@@ -1365,7 +1365,7 @@ notSimplyBounded class D<T extends D<T>> {
 class C<T extends void Function(T)> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends void Function(T)> {
+notSimplyBounded class C<T extends void Function(T) = void Function(Null)> {
 }
 ''');
   }
@@ -1375,7 +1375,7 @@ notSimplyBounded class C<T extends void Function(T)> {
 class C<T extends T Function()> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends T Function()> {
+notSimplyBounded class C<T extends T Function() = dynamic Function()> {
 }
 ''');
   }
@@ -1385,7 +1385,7 @@ notSimplyBounded class C<T extends T Function()> {
 class C<T extends void Function()> {}
 ''');
     checkElementText(library, r'''
-class C<T extends void Function()> {
+class C<T extends void Function() = void Function()> {
 }
 ''');
   }
@@ -1402,7 +1402,7 @@ typedef G(F value);
     checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(dynamic Function(dynamic) value);
 notSimplyBounded typedef G = dynamic Function(dynamic value);
-notSimplyBounded class C<T extends dynamic Function(dynamic Function(dynamic))> {
+notSimplyBounded class C<T extends dynamic Function(dynamic Function(dynamic)) = dynamic Function(dynamic Function(dynamic))> {
 }
 ''');
   }
@@ -1435,7 +1435,7 @@ class C<T extends D> {}
 class D<T> {}
 ''');
     checkElementText(library, r'''
-class C<T extends D<dynamic>> {
+class C<T extends D<dynamic> = D<dynamic>> {
 }
 class D<T> {
 }
@@ -1675,7 +1675,7 @@ class C<T extends Object, U extends D> {}
 class D {}
 ''');
     checkElementText(library, r'''
-class C<T, U extends D> {
+class C<T = Object, U extends D = D> {
 }
 class D {
 }
@@ -1709,7 +1709,7 @@ notSimplyBounded class C<T extends dynamic, U, V extends dynamic> {
   test_class_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('class C<T extends List<U>, U> {}');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends List<U>, U> {
+notSimplyBounded class C<T extends List<U> = List<dynamic>, U> {
 }
 ''');
   }
@@ -7468,7 +7468,7 @@ class A {
 }
 class B extends A {
 }
-class S<T extends A> {
+class S<T extends A = A> {
   S(T _);
 }
 S<B> s;
@@ -8140,7 +8140,7 @@ class C<S extends num, T extends C<S, T>> {}
 C c;
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<S extends num, T extends C<S, T>> {
+notSimplyBounded class C<S extends num = num, T extends C<S, T> = C<num, dynamic>> {
 }
 C<num, C<num, dynamic>> c;
 ''');
@@ -8156,7 +8156,7 @@ class B {
 }
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 class B {
   C<C<dynamic>> c3;
@@ -8172,7 +8172,7 @@ class C<T extends C<T, U>, U extends num> {}
 C c;
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends C<T, U>, U extends num> {
+notSimplyBounded class C<T extends C<T, U> = C<dynamic, num>, U extends num = num> {
 }
 C<C<dynamic, num>, num> c;
 ''');
@@ -8206,7 +8206,7 @@ typedef F<T extends num>(T p);
 F f;
 ''');
     checkElementText(library, r'''
-typedef F<T extends num> = dynamic Function(T p);
+typedef F<T extends num = num> = dynamic Function(T p);
 dynamic Function(num) f;
 ''');
   }
@@ -8220,7 +8220,7 @@ B b;
     checkElementText(library, r'''
 class A<T> {
 }
-notSimplyBounded class B<T extends int Function(), U extends A<T>> {
+notSimplyBounded class B<T extends int Function() = int Function(), U extends A<T> = A<int Function()>> {
 }
 B<int Function(), A<int Function()>> b;
 ''');
@@ -8232,7 +8232,7 @@ typedef F<T extends num> = S Function<S>(T p);
 F f;
 ''');
     checkElementText(library, r'''
-typedef F<T extends num> = S Function<S>(T p);
+typedef F<T extends num = num> = S Function<S>(T p);
 S Function<S>(num) f;
 ''');
   }
@@ -8245,10 +8245,10 @@ class A<R extends B> {
 class B<T extends num> {}
 ''');
     checkElementText(library, r'''
-class A<R extends B<num>> {
+class A<R extends B<num> = B<num>> {
   final List<B<num>> values;
 }
-class B<T extends num> {
+class B<T extends num = num> {
 }
 ''');
   }
@@ -8259,7 +8259,7 @@ class C<T extends num> {}
 C c;
 ''');
     checkElementText(library, r'''
-class C<T extends num> {
+class C<T extends num = num> {
 }
 C<num> c;
 ''');
@@ -9625,7 +9625,7 @@ class C {
 }
 class D {
 }
-mixin M<T extends num, U> on A, B implements C, D {
+mixin M<T extends num = num, U> on A, B implements C, D {
   T f;
   U get g {}
   void set s(int v) {}
@@ -10780,7 +10780,7 @@ class A {
 }
 class B extends A {
 }
-class C<T extends A> {
+class C<T extends A = A> {
   final T f;
   const C(T this.f);
 }
@@ -11289,7 +11289,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -11303,7 +11303,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> );
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -11317,7 +11317,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = void Function(C<C<dynamic>> c);
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -11331,7 +11331,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = C<C<dynamic>> Function();
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -11345,7 +11345,7 @@ class C<T extends C<T>> {}
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = C<C<dynamic>> Function();
-notSimplyBounded class C<T extends C<T>> {
+notSimplyBounded class C<T extends C<T> = C<dynamic>> {
 }
 ''');
   }
@@ -11438,7 +11438,7 @@ typedef F<T, U> = U Function(T t);
     var library = await checkLibrary(
         'typedef U F<T extends Object, U extends D>(T t); class D {}');
     checkElementText(library, r'''
-typedef F<T, U extends D> = U Function(T t);
+typedef F<T = Object, U extends D = D> = U Function(T t);
 class D {
 }
 ''');
@@ -11463,7 +11463,7 @@ notSimplyBounded typedef F<T extends List<void Function()>> = void Function();
   test_typedef_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends List<U>, U> = U Function(T t);
+notSimplyBounded typedef F<T extends List<U> = List<dynamic>, U> = U Function(T t);
 ''');
   }
 
