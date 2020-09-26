@@ -6702,6 +6702,12 @@ class LinkedNodeBuilder extends Object
     return _variantField_15 ??= 0;
   }
 
+  @override
+  int get typeParameter_variance {
+    assert(kind == idl.LinkedNodeKind.typeParameter);
+    return _variantField_15 ??= 0;
+  }
+
   set assignmentExpression_element(int value) {
     assert(kind == idl.LinkedNodeKind.assignmentExpression);
     assert(value == null || value >= 0);
@@ -6774,6 +6780,12 @@ class LinkedNodeBuilder extends Object
     _variantField_15 = value;
   }
 
+  set typeParameter_variance(int value) {
+    assert(kind == idl.LinkedNodeKind.typeParameter);
+    assert(value == null || value >= 0);
+    _variantField_15 = value;
+  }
+
   @override
   idl.UnlinkedTokenType get assignmentExpression_operator {
     assert(kind == idl.LinkedNodeKind.assignmentExpression);
@@ -6804,12 +6816,6 @@ class LinkedNodeBuilder extends Object
     return _variantField_28 ??= idl.UnlinkedTokenType.NOTHING;
   }
 
-  @override
-  idl.UnlinkedTokenType get typeParameter_variance {
-    assert(kind == idl.LinkedNodeKind.typeParameter);
-    return _variantField_28 ??= idl.UnlinkedTokenType.NOTHING;
-  }
-
   set assignmentExpression_operator(idl.UnlinkedTokenType value) {
     assert(kind == idl.LinkedNodeKind.assignmentExpression);
     _variantField_28 = value;
@@ -6832,11 +6838,6 @@ class LinkedNodeBuilder extends Object
 
   set propertyAccess_operator(idl.UnlinkedTokenType value) {
     assert(kind == idl.LinkedNodeKind.propertyAccess);
-    _variantField_28 = value;
-  }
-
-  set typeParameter_variance(idl.UnlinkedTokenType value) {
-    assert(kind == idl.LinkedNodeKind.typeParameter);
     _variantField_28 = value;
   }
 
@@ -8619,13 +8620,13 @@ class LinkedNodeBuilder extends Object
   LinkedNodeBuilder.typeParameter({
     List<LinkedNodeBuilder> annotatedNode_metadata,
     LinkedNodeBuilder typeParameter_bound,
-    idl.UnlinkedTokenType typeParameter_variance,
+    int typeParameter_variance,
     int informativeId,
     LinkedNodeTypeBuilder typeParameter_defaultType,
   })  : _kind = idl.LinkedNodeKind.typeParameter,
         _variantField_4 = annotatedNode_metadata,
         _variantField_6 = typeParameter_bound,
-        _variantField_28 = typeParameter_variance,
+        _variantField_15 = typeParameter_variance,
         _variantField_36 = informativeId,
         _variantField_23 = typeParameter_defaultType;
 
@@ -10668,12 +10669,10 @@ class LinkedNodeBuilder extends Object
       }
       signature.addBool(this.typeParameter_bound != null);
       this.typeParameter_bound?.collectApiSignature(signature);
+      signature.addInt(this.typeParameter_variance ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.typeParameter_defaultType != null);
       this.typeParameter_defaultType?.collectApiSignature(signature);
-      signature.addInt(this.typeParameter_variance == null
-          ? 0
-          : this.typeParameter_variance.index);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.typeParameterList) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -12712,6 +12711,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  int get typeParameter_variance {
+    assert(kind == idl.LinkedNodeKind.typeParameter);
+    _variantField_15 ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
+    return _variantField_15;
+  }
+
+  @override
   idl.UnlinkedTokenType get assignmentExpression_operator {
     assert(kind == idl.LinkedNodeKind.assignmentExpression);
     _variantField_28 ??= const _UnlinkedTokenTypeReader()
@@ -12746,14 +12753,6 @@ class _LinkedNodeImpl extends Object
   @override
   idl.UnlinkedTokenType get propertyAccess_operator {
     assert(kind == idl.LinkedNodeKind.propertyAccess);
-    _variantField_28 ??= const _UnlinkedTokenTypeReader()
-        .vTableGet(_bc, _bcOffset, 28, idl.UnlinkedTokenType.NOTHING);
-    return _variantField_28;
-  }
-
-  @override
-  idl.UnlinkedTokenType get typeParameter_variance {
-    assert(kind == idl.LinkedNodeKind.typeParameter);
     _variantField_28 ??= const _UnlinkedTokenTypeReader()
         .vTableGet(_bc, _bcOffset, 28, idl.UnlinkedTokenType.NOTHING);
     return _variantField_28;
@@ -14797,9 +14796,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (typeParameter_bound != null) {
         _result["typeParameter_bound"] = typeParameter_bound.toJson();
       }
-      if (typeParameter_variance != idl.UnlinkedTokenType.NOTHING) {
-        _result["typeParameter_variance"] =
-            typeParameter_variance.toString().split('.')[1];
+      if (typeParameter_variance != 0) {
+        _result["typeParameter_variance"] = typeParameter_variance;
       }
       if (informativeId != 0) {
         _result["informativeId"] = informativeId;

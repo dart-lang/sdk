@@ -7426,10 +7426,7 @@ class TypeParameterElementImpl extends ElementImpl
     if (_variance != null) return _variance;
 
     if (linkedNode != null) {
-      var varianceKeyword = linkedContext.getTypeParameterVariance(linkedNode);
-      if (varianceKeyword != null) {
-        _variance = Variance.fromKeywordString(varianceKeyword.lexeme);
-      }
+      _variance = linkedContext.getTypeParameterVariance(linkedNode);
     }
 
     return _variance ?? Variance.covariant;

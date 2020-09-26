@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
@@ -16,7 +17,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// Accessor for reading AST lazily, or read data that is stored in IDL, but
 /// cannot be stored in AST, like inferred types.
 class LazyAst {
-  static const _defaultTypedKey = 'lazyAst_defaultType';
+  static const _defaultTypeKey = 'lazyAst_defaultType';
   static const _genericFunctionTypeIdKey = 'lazyAst_genericFunctionTypeId';
   static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
   static const _inheritsCovariantKey = 'lazyAst_isCovariant';
@@ -27,13 +28,14 @@ class LazyAst {
   static const _returnTypeKey = 'lazyAst_returnType';
   static const _typeInferenceErrorKey = 'lazyAst_typeInferenceError';
   static const _typeKey = 'lazyAst_type';
+  static const _varianceKey = 'lazyAst_variance';
 
   final LinkedNode data;
 
   LazyAst(this.data);
 
   static DartType getDefaultType(TypeParameter node) {
-    return node.getProperty(_defaultTypedKey);
+    return node.getProperty(_defaultTypeKey);
   }
 
   static int getGenericFunctionTypeId(GenericFunctionType node) {
@@ -60,6 +62,10 @@ class LazyAst {
     return node.getProperty(_typeInferenceErrorKey);
   }
 
+  static Variance getVariance(TypeParameter node) {
+    return node.getProperty(_varianceKey);
+  }
+
   static bool hasOperatorEqualParameterTypeFromObject(AstNode node) {
     return node.getProperty(_isOperatorEqualParameterTypeFromObjectKey) ??
         false;
@@ -74,7 +80,7 @@ class LazyAst {
   }
 
   static void setDefaultType(TypeParameter node, DartType type) {
-    node.setProperty(_defaultTypedKey, type);
+    node.setProperty(_defaultTypeKey, type);
   }
 
   static void setGenericFunctionTypeId(GenericFunctionType node, int id) {
@@ -112,6 +118,10 @@ class LazyAst {
   static void setTypeInferenceError(
       AstNode node, TopLevelInferenceError error) {
     node.setProperty(_typeInferenceErrorKey, error);
+  }
+
+  static void setVariance(TypeParameter node, Variance variance) {
+    return node.setProperty(_varianceKey, variance);
   }
 }
 

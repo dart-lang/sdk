@@ -354,6 +354,14 @@ class Primitives {
       @nullCheck bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     var jsMonth = month - 1;
+    // The JavaScript Date constructor 'corrects' year NN to 19NN. Sidestep that
+    // correction by adjusting years out of that range and compensating with an
+    // adjustment of months. This hack should not be sensitive to leap years but
+    // use 400 just in case.
+    if (0 <= years && years < 100) {
+      years += 400;
+      jsMonth -= 400 * 12;
+    }
     int value;
     if (isUtc) {
       value = JS<int>('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth,

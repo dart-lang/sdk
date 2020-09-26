@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:meta/meta.dart';
 
@@ -171,8 +172,9 @@ class ElementDisplayStringBuilder {
 
   void writeTypeParameter(TypeParameterElement element) {
     if (element is TypeParameterElementImpl) {
-      if (!element.isLegacyCovariant) {
-        _write(element.variance.toKeywordString());
+      var variance = element.variance;
+      if (!element.isLegacyCovariant && variance != Variance.unrelated) {
+        _write(variance.toKeywordString());
         _write(' ');
       }
     }

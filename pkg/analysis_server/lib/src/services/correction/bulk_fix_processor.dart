@@ -63,6 +63,7 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// A fix producer that produces changes to fix multiple diagnostics.
@@ -257,8 +258,11 @@ class BulkFixProcessor {
   Future<ChangeBuilder> fixErrorsInLibraries(List<String> libraryPaths) async {
     for (var path in libraryPaths) {
       var session = workspace.getSession(path);
-      var libraryResult = await session.getResolvedLibrary(path);
-      await _fixErrorsInLibrary(libraryResult);
+      var kind = await session.getSourceKind(path);
+      if (kind == SourceKind.LIBRARY) {
+        var libraryResult = await session.getResolvedLibrary(path);
+        await _fixErrorsInLibrary(libraryResult);
+      }
     }
     return builder;
   }
