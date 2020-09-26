@@ -152,7 +152,7 @@ class ReturnTypeVerifier {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
-    var S = getStaticType(expression);
+    var S = expression.staticType;
 
     void reportTypeError() {
       if (enclosingExecutable.isClosure) {
@@ -253,7 +253,7 @@ class ReturnTypeVerifier {
     // `T` is the declared return type.
     // `S` is the static type of the expression.
     var T = enclosingExecutable.returnType;
-    var S = getStaticType(expression);
+    var S = expression.staticType;
 
     void reportTypeError() {
       if (enclosingExecutable.isClosure) {
@@ -396,19 +396,6 @@ class ReturnTypeVerifier {
       nullabilitySuffix: NullabilitySuffix.star,
     );
     return _typeSystem.isSubtypeOf2(lowerBound, returnType);
-  }
-
-  /// Return the static type of the given [expression] that is to be used for
-  /// type analysis.
-  ///
-  /// TODO(scheglov) this is duplicate
-  static DartType getStaticType(Expression expression) {
-    DartType type = expression.staticType;
-    if (type == null) {
-      // TODO(brianwilkerson) This should never happen.
-      return DynamicTypeImpl.instance;
-    }
-    return type;
   }
 
   static bool _isVoidDynamic(DartType type) {

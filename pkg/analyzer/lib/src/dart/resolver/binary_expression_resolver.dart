@@ -106,15 +106,6 @@ class BinaryExpressionResolver {
     );
   }
 
-  /// Return the static type of the given [expression] that is to be used for
-  /// type analysis.
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _getStaticType(Expression expression) {
-    DartType type = expression.staticType;
-    return _resolveTypeParameter(type);
-  }
-
   void _resolveEqual(BinaryExpressionImpl node, {@required bool notEqual}) {
     var left = node.leftOperand;
     left.accept(_resolver);
@@ -303,7 +294,8 @@ class BinaryExpressionResolver {
       return;
     }
 
-    var leftType = _getStaticType(leftOperand);
+    var leftType = leftOperand.staticType;
+    leftType = _resolveTypeParameter(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.reportErrorForNode(
@@ -345,16 +337,21 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUserDefinableType(BinaryExpressionImpl node) {
-    if (identical(node.leftOperand.staticType, NeverTypeImpl.instance)) {
+    var leftOperand = node.leftOperand;
+
+    var leftType = leftOperand.staticType;
+    leftType = _resolveTypeParameter(leftType);
+
+    if (identical(leftType, NeverTypeImpl.instance)) {
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
       return;
     }
 
     DartType staticType =
         node.staticInvokeType?.returnType ?? DynamicTypeImpl.instance;
-    if (node.leftOperand is! ExtensionOverride) {
+    if (leftOperand is! ExtensionOverride) {
       staticType = _typeSystem.refineBinaryExpressionType(
-        _getStaticType(node.leftOperand),
+        leftType,
         node.operator.type,
         node.rightOperand.staticType,
         staticType,

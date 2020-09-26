@@ -1564,7 +1564,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForArgumentTypeNotAssignableWithExpectedTypes(
       Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
     _checkForArgumentTypeNotAssignable(
-        expression, expectedStaticType, getStaticType(expression), errorCode);
+        expression, expectedStaticType, expression.staticType, errorCode);
   }
 
   /// Verify that the arguments in the given [argumentList] can be assigned to
@@ -1586,7 +1586,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   bool _checkForAssignableExpression(
       Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
-    DartType actualStaticType = getStaticType(expression);
+    DartType actualStaticType = expression.staticType;
     return actualStaticType != null &&
         _checkForAssignableExpressionAtType(
             expression, actualStaticType, expectedStaticType, errorCode);
@@ -2269,7 +2269,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    DartType iterableType = getStaticType(node.iterable);
+    DartType iterableType = node.iterable.staticType;
 
     // TODO(scheglov) use NullableDereferenceVerifier
     if (_isNonNullableByDefault) {
@@ -2507,7 +2507,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // test the static type of the expression
-    DartType staticType = getStaticType(expression);
+    DartType staticType = expression.staticType;
     if (staticType == null) {
       return;
     }
@@ -2948,7 +2948,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       VariableElement leftVariableElement = getVariableElement(lhs);
       leftType = (leftVariableElement == null)
-          ? getStaticType(lhs)
+          ? lhs.staticType
           : leftVariableElement.type;
     }
 
@@ -3114,7 +3114,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForMissingEnumConstantInSwitch(SwitchStatement statement) {
     // TODO(brianwilkerson) This needs to be checked after constant values have
     // been computed.
-    var expressionType = getStaticType(statement.expression);
+    var expressionType = statement.expression.staticType;
 
     var hasCaseNull = false;
     if (expressionType is InterfaceType) {
@@ -4121,7 +4121,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     // prepare 'switch' expression type
-    DartType expressionType = getStaticType(expression);
+    DartType expressionType = expression.staticType;
     if (expressionType == null) {
       return;
     }
@@ -4134,7 +4134,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     Expression caseExpression = switchCase.expression;
-    DartType caseType = getStaticType(caseExpression);
+    DartType caseType = caseExpression.staticType;
 
     // check types
     if (!_typeSystem.isAssignableTo2(expressionType, caseType)) {
@@ -5300,17 +5300,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     return fields.toList();
-  }
-
-  /// Return the static type of the given [expression] that is to be used for
-  /// type analysis.
-  static DartType getStaticType(Expression expression) {
-    DartType type = expression.staticType;
-    if (type == null) {
-      // TODO(brianwilkerson) This should never happen.
-      return DynamicTypeImpl.instance;
-    }
-    return type;
   }
 
   /// Return the variable element represented by the given [expression], or
