@@ -355,17 +355,13 @@ import { $libname } from '$basename.js';
 // Create a self reference for JS interop tests that set fields on self.
 dart.global.self = dart.global;
 let main = $libname.main;
-try {
-  if ($nnbd) {
-    dart.weakNullSafetyWarnings(!$soundNullSafety);
-    dart.nonNullAsserts($nonNullAsserts);
-    dart.nativeNonNullAsserts($nativeNonNullAsserts);
-  }
-  _isolate_helper.startRootIsolate(() => {}, []);
-  main([]);
-} catch(e) {
-  console.error(e);
+if ($nnbd) {
+  dart.weakNullSafetyWarnings(!$soundNullSafety);
+  dart.nonNullAsserts($nonNullAsserts);
+  dart.nativeNonNullAsserts($nativeNonNullAsserts);
 }
+_isolate_helper.startRootIsolate(() => {}, []);
+main([]);
 ''';
       var d8File = p.setExtension(out, '.d8.js');
       File(d8File).writeAsStringSync(runjs);
