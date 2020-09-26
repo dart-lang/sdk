@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'resolved_ast_printer.dart';
@@ -204,7 +205,7 @@ class _ElementWriter {
 
     writeName(e);
     writeCodeRange(e);
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: true);
 
     if (e.supertype != null && e.supertype.element.name != 'Object' ||
         e.mixins.isNotEmpty) {
@@ -369,7 +370,7 @@ class _ElementWriter {
     buffer.write('extension ');
     writeName(e);
     writeCodeRange(e);
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: false);
     if (e.extendedType != null) {
       buffer.write(' on ');
       writeType(e.extendedType);
@@ -404,7 +405,7 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
 
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: false);
     writeParameterElements(e.parameters);
 
     writeBodyModifiers(e);
@@ -421,7 +422,7 @@ class _ElementWriter {
       buffer.write('typedef ');
       writeName(e);
       writeCodeRange(e);
-      writeTypeParameterElements(e.typeParameters);
+      writeTypeParameterElements(e.typeParameters, withDefault: true);
 
       buffer.write(' = ');
 
@@ -429,7 +430,7 @@ class _ElementWriter {
       if (function != null) {
         writeType(function.returnType);
         buffer.write(' Function');
-        writeTypeParameterElements(function.typeParameters);
+        writeTypeParameterElements(function.typeParameters, withDefault: false);
         writeParameterElements(function.parameters);
       } else {
         buffer.write('<null>');
@@ -539,7 +540,7 @@ class _ElementWriter {
     writeCodeRange(e);
     writeTypeInferenceError(e);
 
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: false);
     writeParameterElements(e.parameters);
 
     writeBodyModifiers(e);
@@ -1046,13 +1047,17 @@ class _ElementWriter {
     }
   }
 
-  void writeTypeParameterElement(TypeParameterElement e) {
+  void writeTypeParameterElement(
+    TypeParameterElement e, {
+    @required bool withDefault,
+  }) {
+    var impl = e as TypeParameterElementImpl;
+
     writeMetadata(e, '', '\n');
 
     // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
     // variance is added to the interface.
     if (withTypeParameterVariance) {
-      var impl = e as TypeParameterElementImpl;
       var variance = impl.variance;
       buffer.write(variance.toString() + ' ');
     }
@@ -1063,16 +1068,24 @@ class _ElementWriter {
       buffer.write(' extends ');
       writeType(e.bound);
     }
-    // TODO(scheglov) print the default type
-//    if (e is TypeParameterElementImpl && e.defaultType != null) {
-//      buffer.write(' = ');
-//      writeType(e.defaultType);
-//    }
+
+    if (withDefault) {
+      var defaultType = impl.defaultType;
+      if (defaultType is! DynamicTypeImpl) {
+        buffer.write(' = ');
+        writeType(defaultType);
+      }
+    }
   }
 
-  void writeTypeParameterElements(List<TypeParameterElement> elements) {
+  void writeTypeParameterElements(
+    List<TypeParameterElement> elements, {
+    @required bool withDefault,
+  }) {
     if (!withFullyResolvedAst) {
-      writeList('<', '>', elements, ', ', writeTypeParameterElement);
+      writeList('<', '>', elements, ', ', (e) {
+        writeTypeParameterElement(e, withDefault: withDefault);
+      });
     }
   }
 
