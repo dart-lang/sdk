@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -28,9 +27,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The resolver driving the resolution and type analysis.
   final ResolverVisitor _resolver;
 
-  /// The feature set that should be used to resolve types.
-  final FeatureSet _featureSet;
-
   final MigrationResolutionHooks _migrationResolutionHooks;
 
   /// The object providing access to the types defined by the language.
@@ -48,16 +44,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// [_resolver] based on the
   ///
   /// @param resolver the resolver driving this participant
-  StaticTypeAnalyzer(this._resolver, this._featureSet, this._flowAnalysis,
-      this._migrationResolutionHooks) {
+  StaticTypeAnalyzer(
+      this._resolver, this._flowAnalysis, this._migrationResolutionHooks) {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
   }
-
-  /// Is `true` if the library being analyzed is non-nullable by default.
-  bool get _isNonNullableByDefault =>
-      _featureSet.isEnabled(Feature.non_nullable);
 
   /// Given a constructor for a generic type, returns the equivalent generic
   /// function type that we could use to forward to the constructor, or for a
@@ -111,7 +103,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// `String`.</blockquote>
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    recordStaticType(node, _nonNullable(_typeProvider.stringType));
+    recordStaticType(node, _typeProvider.stringType);
   }
 
   /// The Dart Language Specification, 12.32: <blockquote>... the cast expression <i>e as T</i> ...
@@ -140,7 +132,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// bool.</blockquote>
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    recordStaticType(node, _nonNullable(_typeProvider.boolType));
+    recordStaticType(node, _typeProvider.boolType);
   }
 
   /// The Dart Language Specification, 12.15.2: <blockquote>A cascaded method invocation expression
@@ -167,7 +159,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// double.</blockquote>
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    recordStaticType(node, _nonNullable(_typeProvider.doubleType));
+    recordStaticType(node, _typeProvider.doubleType);
   }
 
   @override
@@ -242,9 +234,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (context == null ||
         _typeSystem.isAssignableTo2(_typeProvider.intType, context) ||
         !_typeSystem.isAssignableTo2(_typeProvider.doubleType, context)) {
-      recordStaticType(node, _nonNullable(_typeProvider.intType));
+      recordStaticType(node, _typeProvider.intType);
     } else {
-      recordStaticType(node, _nonNullable(_typeProvider.doubleType));
+      recordStaticType(node, _typeProvider.doubleType);
     }
   }
 
@@ -254,7 +246,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The static type of an is-expression is `bool`.</blockquote>
   @override
   void visitIsExpression(IsExpression node) {
-    recordStaticType(node, _nonNullable(_typeProvider.boolType));
+    recordStaticType(node, _typeProvider.boolType);
   }
 
   @override
@@ -292,14 +284,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// `String`.</blockquote>
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    recordStaticType(node, _nonNullable(_typeProvider.stringType));
+    recordStaticType(node, _typeProvider.stringType);
   }
 
   /// The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
   /// `String`.</blockquote>
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    recordStaticType(node, _nonNullable(_typeProvider.stringType));
+    recordStaticType(node, _typeProvider.stringType);
   }
 
   @override
@@ -316,7 +308,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSymbolLiteral(SymbolLiteral node) {
-    recordStaticType(node, _nonNullable(_typeProvider.symbolType));
+    recordStaticType(node, _typeProvider.symbolType);
   }
 
   /// The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
@@ -460,14 +452,5 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       constructorElement = _resolver.toLegacyElement(constructorElement);
       constructor.staticElement = constructorElement;
     }
-  }
-
-  /// Return the non-nullable variant of the [type] if NNBD is enabled, otherwise
-  /// return the type itself.
-  DartType _nonNullable(DartType type) {
-    if (_isNonNullableByDefault) {
-      return _typeSystem.promoteToNonNull(type);
-    }
-    return type;
   }
 }

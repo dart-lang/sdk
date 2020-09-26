@@ -377,8 +377,8 @@ class ResolverVisitor extends ScopedVisitor {
         reportConstEvaluationErrors: reportConstEvaluationErrors,
         migratableAstInfoProvider: _migratableAstInfoProvider);
     inferenceContext = InferenceContext._(this);
-    typeAnalyzer = StaticTypeAnalyzer(
-        this, featureSet, _flowAnalysis, migrationResolutionHooks);
+    typeAnalyzer =
+        StaticTypeAnalyzer(this, _flowAnalysis, migrationResolutionHooks);
   }
 
   /// Return the element representing the function containing the current node,
