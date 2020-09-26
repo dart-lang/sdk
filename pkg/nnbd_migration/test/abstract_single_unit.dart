@@ -68,7 +68,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   void setUp() {
     var testRoot = AbstractContextTest.testsPath;
     if (analyzeWithNnbd) {
-      newFile(convertPath('$testRoot/analysis_options.yaml'), content: '''
+      newFile('$testRoot/analysis_options.yaml', content: '''
 analyzer:
   enable-experiment:
     - non-nullable
