@@ -5810,6 +5810,8 @@ class IndexExpressionImpl extends ExpressionImpl
   /// If this expression is both in a getter and setter context, the
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
+  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
+      'CompoundAssignmentExpression.writeElement')
   @override
   AuxiliaryElements auxiliaryElements;
 

@@ -770,10 +770,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('IndexExpression');
     _withIndent(() {
       var properties = _Properties();
-      properties.addAuxiliaryElements(
-        'auxiliaryElements',
-        node.auxiliaryElements,
-      );
       properties.addNode('index', node.index);
       properties.addToken('period', node.period);
       properties.addNode('target', node.target);
@@ -1801,17 +1797,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 }
 
-class _AuxiliaryElementsProperty extends _Property {
-  final AuxiliaryElements elements;
-
-  _AuxiliaryElementsProperty(String name, this.elements) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeAuxiliaryElements(name, elements);
-  }
-}
-
 class _ElementProperty extends _Property {
   final Element element;
 
@@ -1847,12 +1832,6 @@ class _NodeProperty extends _Property {
 
 class _Properties {
   final properties = <_Property>[];
-
-  void addAuxiliaryElements(String name, AuxiliaryElements elements) {
-    properties.add(
-      _AuxiliaryElementsProperty(name, elements),
-    );
-  }
 
   void addElement(String name, Element element) {
     properties.add(
