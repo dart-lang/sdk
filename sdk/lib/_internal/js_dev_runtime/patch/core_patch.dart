@@ -732,8 +732,8 @@ class StringBuffer {
   @patch
   String toString() => Primitives.flattenString(_contents);
 
-  void _writeString(String str) {
-    _contents = Primitives.stringConcatUnchecked(_contents, str);
+  void _writeString(@notNull String str) {
+    _contents = JS<String>('!', '# + #', _contents, str);
   }
 
   static String _writeAll(String string, Iterable objects, String separator) {
@@ -753,8 +753,8 @@ class StringBuffer {
     return string;
   }
 
-  static String _writeOne(String string, Object? obj) {
-    return Primitives.stringConcatUnchecked(string, '$obj');
+  static String _writeOne(@notNull String string, Object? obj) {
+    return JS<String>('!', '# + #', string, '$obj');
   }
 }
 

@@ -6,7 +6,7 @@ library dart._js_helper;
 
 import 'dart:collection';
 
-import 'dart:_foreign_helper' show JS, JS_STRING_CONCAT, JSExportName;
+import 'dart:_foreign_helper' show JS, JSExportName;
 
 import 'dart:_interceptors';
 import 'dart:_internal'
@@ -293,10 +293,6 @@ class Primitives {
       }
     }
     throw RangeError.range(charCode, 0, 0x10ffff);
-  }
-
-  static String stringConcatUnchecked(String string1, String string2) {
-    return JS_STRING_CONCAT(string1, string2);
   }
 
   static String flattenString(String str) {
