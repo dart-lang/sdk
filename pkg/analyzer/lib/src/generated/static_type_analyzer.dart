@@ -123,7 +123,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ///   the static type of e.
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    DartType resultType = _getStaticType(node.expression);
+    DartType resultType = node.expression.staticType;
     if (resultType != null) resultType = _typeSystem.flatten(resultType);
     recordStaticType(node, resultType);
   }
@@ -140,7 +140,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// t;}(e)</i>.</blockquote>
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    recordStaticType(node, _getStaticType(node.target));
+    recordStaticType(node, node.target.staticType);
   }
 
   /// The Dart Language Specification, 12.19: <blockquote> ... a conditional expression <i>c</i> of
@@ -257,7 +257,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitNamedExpression(NamedExpression node) {
     Expression expression = node.expression;
-    recordStaticType(node, _getStaticType(expression));
+    recordStaticType(node, expression.staticType);
   }
 
   /// The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
@@ -270,7 +270,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.expression;
-    recordStaticType(node, _getStaticType(expression));
+    recordStaticType(node, expression.staticType);
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
@@ -358,32 +358,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 
     recordStaticType(node, staticType);
-  }
-
-  /// Return the static type of the given [expression].
-  DartType _getStaticType(Expression expression, {bool read = false}) {
-    DartType type;
-    if (read) {
-      type = expression.staticType;
-    } else {
-      if (expression is SimpleIdentifier && expression.inSetterContext()) {
-        var element = expression.staticElement;
-        if (element is PromotableElement) {
-          // We're writing to the element so ignore promotions.
-          type = element.type;
-        } else {
-          type = expression.staticType;
-        }
-      } else {
-        type = expression.staticType;
-      }
-    }
-    if (type == null) {
-      // TODO(brianwilkerson) Determine the conditions for which the static type
-      // is null.
-      return _dynamicType;
-    }
-    return type;
   }
 
   /// Return the type represented by the given type [annotation].
