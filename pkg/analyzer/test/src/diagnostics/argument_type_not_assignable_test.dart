@@ -194,8 +194,12 @@ class A {
 }
 f(A a) {
   a['0'] += 0;
+  ++a['0'];
+  a['0']++;
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
     ]);
   }
 
@@ -219,8 +223,12 @@ class A {
 }
 f(A a) {
   a['0'] += 0;
+  ++a['0'];
+  a['0']++;
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
     ]);
   }
 

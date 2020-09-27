@@ -658,6 +658,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (left is IndexExpression) {
       if (hasRead) {
         left.staticElement = assignment.writeElement;
+        // ignore: deprecated_member_use_from_same_package
         left.auxiliaryElements = AuxiliaryElements(assignment.readElement);
       } else {
         left.staticElement = assignment.writeElement;

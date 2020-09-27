@@ -321,6 +321,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForDeadNullCoalesce(node.readType, node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
+    if (lhs is IndexExpression) {
+      _checkIndexExpressionIndex(
+        lhs.index,
+        readElement: node.readElement,
+        writeElement: node.writeElement,
+      );
+    }
     super.visitAssignmentExpression(node);
   }
 
@@ -816,21 +823,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    void checkIndexExpression(MethodElement method) {
-      if (method != null) {
-        var parameters = method.parameters;
-        if (parameters.isNotEmpty) {
-          _checkForArgumentTypeNotAssignableForArgument2(
-            argument: node.index,
-            parameter: parameters[0],
-            promoteParameterToNullable: false,
-          );
-        }
-      }
-    }
-
-    checkIndexExpression(node.staticElement);
-    checkIndexExpression(node.auxiliaryElements?.staticElement);
+    _checkIndexExpressionIndex(
+      node.index,
+      readElement: node.staticElement,
+      writeElement: null,
+    );
 
     if (node.isNullAware) {
       _checkForUnnecessaryNullAware(
@@ -838,6 +835,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         node.question ?? node.period ?? node.leftBracket,
       );
     }
+
     super.visitIndexExpression(node);
   }
 
@@ -989,12 +987,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
+    var operand = node.operand;
     if (node.operator.type == TokenType.BANG) {
       _checkForUseOfVoidResult(node);
-      _checkForUnnecessaryNullAware(node.operand, node.operator);
+      _checkForUnnecessaryNullAware(operand, node.operator);
     } else {
-      _checkForAssignmentToFinal(node.operand);
-      _checkForIntNotAssignable(node.operand);
+      _checkForAssignmentToFinal(operand);
+      _checkForIntNotAssignable(operand);
+    }
+    if (operand is IndexExpression) {
+      _checkIndexExpressionIndex(
+        operand.index,
+        readElement: node.readElement,
+        writeElement: node.writeElement,
+      );
     }
     super.visitPostfixExpression(node);
   }
@@ -1021,6 +1027,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
       _checkForUseOfVoidResult(operand);
       _checkForIntNotAssignable(operand);
+    }
+    if (operand is IndexExpression) {
+      _checkIndexExpressionIndex(
+        operand.index,
+        readElement: node.readElement,
+        writeElement: node.writeElement,
+      );
     }
     super.visitPrefixExpression(node);
   }
@@ -4804,6 +4817,34 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
           interfaceNode,
           [superElement],
+        );
+      }
+    }
+  }
+
+  void _checkIndexExpressionIndex(
+    Expression index, {
+    @required ExecutableElement readElement,
+    @required ExecutableElement writeElement,
+  }) {
+    if (readElement is MethodElement) {
+      var parameters = readElement.parameters;
+      if (parameters.isNotEmpty) {
+        _checkForArgumentTypeNotAssignableForArgument2(
+          argument: index,
+          parameter: parameters[0],
+          promoteParameterToNullable: false,
+        );
+      }
+    }
+
+    if (writeElement is MethodElement) {
+      var parameters = writeElement.parameters;
+      if (parameters.isNotEmpty) {
+        _checkForArgumentTypeNotAssignableForArgument2(
+          argument: index,
+          parameter: parameters[0],
+          promoteParameterToNullable: false,
         );
       }
     }
