@@ -1066,8 +1066,10 @@ void testDefinitelyAssignedReadForms() {
     final dynamic x;
     x = 3;
     3 ?? x;
-    //   ^
-    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+//  ^
+// [cfe] Operand of null-aware operation '??' has type 'int' which excludes null.
+//       ^
+// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   }
 }
 
