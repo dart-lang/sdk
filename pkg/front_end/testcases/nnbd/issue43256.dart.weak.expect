@@ -22,12 +22,20 @@ library /*isNonNullableByDefault*/;
 //     if (i > 0) ...y, // error
 //                   ^
 //
+// pkg/front_end/testcases/nnbd/issue43256.dart:48:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     if (i > 0) ...x, // error
+//                   ^
+//
 // pkg/front_end/testcases/nnbd/issue43256.dart:48:19: Error: Unexpected type 'X' of a spread.  Expected 'dynamic' or an Iterable.
 //     if (i > 0) ...x, // error
 //                   ^
 //
 // pkg/front_end/testcases/nnbd/issue43256.dart:49:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
 //     if (i > 0) ...y, // error
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:53:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     if (i > 0) ...x, // error
 //                   ^
 //
 // pkg/front_end/testcases/nnbd/issue43256.dart:53:19: Error: Unexpected type 'X' of a spread.  Expected 'dynamic' or an Iterable.
