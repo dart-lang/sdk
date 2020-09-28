@@ -1382,8 +1382,7 @@ class InferenceVisitor
           spreadType, spreadTypeBound, element.isNullAware);
       if (typeChecksNeeded) {
         if (spreadElementType == null) {
-          if (inferrer.coreTypes
-                  .isNull(inferrer.resolveTypeParameter(spreadType)) &&
+          if (inferrer.coreTypes.isNull(spreadTypeBound) &&
               !element.isNullAware) {
             replacement = inferrer.helper.buildProblem(
                 templateNonNullAwareSpreadIsNull.withArguments(
@@ -1391,6 +1390,15 @@ class InferenceVisitor
                 element.expression.fileOffset,
                 1);
           } else {
+            if (inferrer.isNonNullableByDefault &&
+                spreadType.isPotentiallyNullable &&
+                spreadType is! DynamicType &&
+                spreadType != inferrer.coreTypes.nullType &&
+                !element.isNullAware) {
+              replacement = inferrer.helper.buildProblem(
+                  messageNullableSpreadError, element.expression.fileOffset, 1);
+            }
+
             replacement = inferrer.helper.buildProblem(
                 templateSpreadTypeMismatch.withArguments(
                     spreadType, inferrer.isNonNullableByDefault),
@@ -1406,7 +1414,8 @@ class InferenceVisitor
                     inferrer.isNonNullableByDefault),
                 element.expression.fileOffset,
                 1);
-          } else if (inferrer.isNonNullableByDefault &&
+          }
+          if (inferrer.isNonNullableByDefault &&
               spreadType.isPotentiallyNullable &&
               spreadType is! DynamicType &&
               spreadType != inferrer.coreTypes.nullType &&
@@ -1815,8 +1824,7 @@ class InferenceVisitor
       MapEntry replacement = entry;
       if (typeChecksNeeded) {
         if (actualKeyType == null) {
-          if (inferrer.coreTypes
-                  .isNull(inferrer.resolveTypeParameter(spreadType)) &&
+          if (inferrer.coreTypes.isNull(spreadTypeBound) &&
               !entry.isNullAware) {
             replacement = new MapEntry(
                 inferrer.helper.buildProblem(
@@ -1827,6 +1835,18 @@ class InferenceVisitor
                 new NullLiteral())
               ..fileOffset = entry.fileOffset;
           } else if (actualElementType != null) {
+            if (inferrer.isNonNullableByDefault &&
+                spreadType.isPotentiallyNullable &&
+                spreadType is! DynamicType &&
+                spreadType != inferrer.coreTypes.nullType &&
+                !entry.isNullAware) {
+              replacement = new SpreadMapEntry(
+                  inferrer.helper.buildProblem(messageNullableSpreadError,
+                      entry.expression.fileOffset, 1),
+                  false)
+                ..fileOffset = entry.fileOffset;
+            }
+
             // Don't report the error here, it might be an ambiguous Set.  The
             // error is reported in checkMapEntry if it's disambiguated as map.
             iterableSpreadType = spreadType;
