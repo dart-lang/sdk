@@ -1766,6 +1766,135 @@ class C<invariant T, contravariant U, covariant V> {
         withTypeParameterVariance: true);
   }
 
+  test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
+    var library = await checkLibrary(r'''
+typedef F<X> = void Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<contravariant X> = void Function(X );
+notSimplyBounded class A<covariant X extends void Function(X) = void Function(Null)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_contravariant_nullSafe() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+typedef F<X> = void Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<contravariant X> = void Function(X );
+notSimplyBounded class A<covariant X extends void Function(X) = void Function(Never)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_invariant_legacy() async {
+    var library = await checkLibrary(r'''
+typedef F<X> = X Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<invariant X> = X Function(X );
+notSimplyBounded class A<covariant X extends X Function(X) = dynamic Function(dynamic)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_functionTypeAlias_invariant_nullSafe() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+typedef F<X> = X Function(X);
+
+class A<X extends F<X>> {}
+''');
+    checkElementText(
+        library,
+        r'''
+typedef F<invariant X> = X Function(X );
+notSimplyBounded class A<covariant X extends X Function(X) = dynamic Function(dynamic)> {
+}
+''',
+        withTypeParameterVariance: true);
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_both_legacy() async {
+    var library = await checkLibrary(r'''
+class A<X extends X Function(X)> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends X Function(X) = dynamic Function(Null)> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_both_nullSafe() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+class A<X extends X Function(X)> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends X Function(X) = dynamic Function(Never)> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_contravariant_legacy() async {
+    var library = await checkLibrary(r'''
+class A<X extends void Function(X)> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends void Function(X) = void Function(Null)> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_contravariant_nullSafe() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+class A<X extends void Function(X)> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends void Function(X) = void Function(Never)> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_covariant_legacy() async {
+    var library = await checkLibrary(r'''
+class A<X extends X Function()> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends X Function() = dynamic Function()> {
+}
+''');
+  }
+
+  test_class_typeParameters_defaultType_genericFunctionType_covariant_nullSafe() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+class A<X extends X Function()> {}
+''');
+    checkElementText(library, r'''
+notSimplyBounded class A<X extends X Function() = dynamic Function()> {
+}
+''');
+  }
+
   test_classes() async {
     var library = await checkLibrary('class C {} class D {}');
     checkElementText(library, r'''
@@ -11463,14 +11592,14 @@ notSimplyBounded typedef F<T extends List<void Function()>> = void Function();
   test_typedef_type_parameters_f_bound_complex() async {
     var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends List<U> = List<dynamic>, U> = U Function(T t);
+notSimplyBounded typedef F<T extends List<U> = List<Null>, U> = U Function(T t);
 ''');
   }
 
   test_typedef_type_parameters_f_bound_simple() async {
     var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends U, U> = U Function(T t);
+notSimplyBounded typedef F<T extends U = Null, U> = U Function(T t);
 ''');
   }
 
@@ -11478,7 +11607,7 @@ notSimplyBounded typedef F<T extends U, U> = U Function(T t);
     var library =
         await checkLibrary('typedef F<T extends U, U> = U Function(T t);');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends U, U> = U Function(T t);
+notSimplyBounded typedef F<T extends U = Null, U> = U Function(T t);
 ''');
   }
 
