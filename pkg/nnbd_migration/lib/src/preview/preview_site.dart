@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -81,11 +80,15 @@ class PreviewSite extends Site
   // A function provided by DartFix to rerun the migration.
   final Future<MigrationState> Function() rerunFunction;
 
+  /// Callback function that should be invoked after successfully applying
+  /// migration.
+  final void Function() applyHook;
+
   final String serviceAuthToken = _makeAuthToken();
 
   /// Initialize a newly created site to serve a preview of the results of an
   /// NNBD migration.
-  PreviewSite(this.migrationState, this.rerunFunction)
+  PreviewSite(this.migrationState, this.rerunFunction, this.applyHook)
       : super('NNBD Migration Preview') {
     reset();
   }
@@ -266,6 +269,7 @@ class PreviewSite extends Site
       code = SourceEdit.applySequence(code, fileEdit.edits);
       file.writeAsStringSync(code);
     }
+    applyHook();
   }
 
   /// Perform the edit indicated by the [uri].

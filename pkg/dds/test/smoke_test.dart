@@ -27,48 +27,61 @@ void main() {
       process = null;
     });
 
-    bool useAuthCodes = false;
-    for (int i = 0; i < 2; ++i) {
-      test('Smoke Test with ${useAuthCodes ? "" : "no "} authentication codes',
-          () async {
-        dds = await DartDevelopmentService.startDartDevelopmentService(
-          remoteVmServiceUri,
-          enableAuthCodes: useAuthCodes,
-        );
-        expect(dds.isRunning, true);
+    void createSmokeTest(bool useAuthCodes, bool ipv6) {
+      final protocol = ipv6 ? 'IPv6' : 'IPv4';
+      test(
+        'Smoke Test with ${useAuthCodes ? "" : "no"} authentication codes '
+        'with $protocol',
+        () async {
+          dds = await DartDevelopmentService.startDartDevelopmentService(
+            remoteVmServiceUri,
+            enableAuthCodes: useAuthCodes,
+            ipv6: ipv6,
+          );
+          expect(dds.isRunning, true);
 
-        // Ensure basic websocket requests are forwarded correctly to the VM service.
-        final service = await vmServiceConnectUri(dds.wsUri.toString());
-        final version = await service.getVersion();
-        expect(version.major > 0, true);
-        expect(version.minor > 0, true);
+          try {
+            Uri.parseIPv6Address(dds.uri.host);
+            expect(ipv6, true);
+          } on FormatException {
+            expect(ipv6, false);
+          }
 
-        expect(
-          remoteVmServiceUri.pathSegments,
-          useAuthCodes ? isNotEmpty : isEmpty,
-        );
+          // Ensure basic websocket requests are forwarded correctly to the VM service.
+          final service = await vmServiceConnectUri(dds.wsUri.toString());
+          final version = await service.getVersion();
+          expect(version.major > 0, true);
+          expect(version.minor >= 0, true);
 
-        // Ensure we can still make requests of the VM service via HTTP.
-        HttpClient client = HttpClient();
-        final request = await client.getUrl(remoteVmServiceUri.replace(
-          pathSegments: [
-            if (remoteVmServiceUri.pathSegments.isNotEmpty)
-              remoteVmServiceUri.pathSegments.first,
-            'getVersion',
-          ],
-        ));
-        final response = await request.close();
-        final Map<String, dynamic> jsonResponse = (await response
-            .transform(utf8.decoder)
-            .transform(json.decoder)
-            .single);
-        expect(jsonResponse['result']['type'], 'Version');
-        expect(jsonResponse['result']['major'] > 0, true);
-        expect(jsonResponse['result']['minor'] > 0, true);
-      });
+          expect(
+            dds.uri.pathSegments,
+            useAuthCodes ? isNotEmpty : isEmpty,
+          );
 
-      useAuthCodes = true;
+          // Ensure we can still make requests of the VM service via HTTP.
+          HttpClient client = HttpClient();
+          final request = await client.getUrl(remoteVmServiceUri.replace(
+            pathSegments: [
+              if (remoteVmServiceUri.pathSegments.isNotEmpty)
+                remoteVmServiceUri.pathSegments.first,
+              'getVersion',
+            ],
+          ));
+          final response = await request.close();
+          final Map<String, dynamic> jsonResponse = (await response
+              .transform(utf8.decoder)
+              .transform(json.decoder)
+              .single);
+          expect(jsonResponse['result']['type'], 'Version');
+          expect(jsonResponse['result']['major'] > 0, true);
+          expect(jsonResponse['result']['minor'] >= 0, true);
+        },
+      );
     }
+
+    createSmokeTest(true, false);
+    createSmokeTest(false, false);
+    createSmokeTest(true, true);
 
     test('startup fails when VM service has existing clients', () async {
       Uri httpToWebSocketUri(Uri httpUri) {
@@ -117,6 +130,24 @@ void main() {
         () async => await DartDevelopmentService.startDartDevelopmentService(
               Uri.parse('http://localhost:1234'),
               serviceUri: Uri.parse('dart-lang://localhost:2345'),
+            ),
+        throwsA(TypeMatcher<ArgumentError>()));
+
+    // Protocol mismatch
+    expect(
+        () async => await DartDevelopmentService.startDartDevelopmentService(
+              Uri.parse('http://localhost:1234'),
+              serviceUri: Uri.parse('http://127.0.0.1:2345'),
+              ipv6: true,
+            ),
+        throwsA(TypeMatcher<ArgumentError>()));
+
+    // Protocol mismatch
+    expect(
+        () async => await DartDevelopmentService.startDartDevelopmentService(
+              Uri.parse('http://localhost:1234'),
+              serviceUri: Uri.parse('http://[::1]:2345'),
+              ipv6: false,
             ),
         throwsA(TypeMatcher<ArgumentError>()));
   });

@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,14 +14,14 @@ main() {
 }
 
 @reflectiveTest
-class ErrorSuppressionTest extends DriverResolutionTest with PackageMixin {
+class ErrorSuppressionTest extends PubPackageResolutionTest {
   String get ignoredCode => 'unused_element';
 
   test_does_not_ignore_errors() async {
     await assertErrorsInCode('''
 int x = ''; // ignore: invalid_assignment
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 2),
     ]);
   }
 
@@ -31,7 +30,7 @@ int x = ''; // ignore: invalid_assignment
 // ignore: unused_import, undefined_function
 f() => g();
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 52, 1),
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 52, 1),
     ]);
   }
 
@@ -41,7 +40,7 @@ f() => g();
 int x = '';
 int _y = 0; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 34, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 34, 2),
       error(HintCode.UNUSED_ELEMENT, 42, 2),
     ]);
   }
@@ -116,7 +115,7 @@ String _foo; // ignore: $ignoredCode
   }
 
   test_ignore_uniqueName() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
 
@@ -139,7 +138,7 @@ int x = (0 as int); // ignore: UNNECESSARY_CAST
 int x = '';
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 43, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 2),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 57,
           1),
     ]);
@@ -153,7 +152,7 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 ''', [
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 43,
           1),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 43, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 43, 1),
     ]);
   }
 
@@ -162,7 +161,7 @@ const String y = x; //INVALID_ASSIGNMENT, CONST_INITIALIZED_WITH_NON_CONSTANT_VA
 // ignore invalid_assignment
 String y = 3; //INVALID_ASSIGNMENT
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 40, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 40, 1),
     ]);
   }
 
@@ -228,7 +227,7 @@ int _y = x as int; //UNNECESSARY_CAST, UNUSED_ELEMENT
 int x = ''; //INVALID_ASSIGNMENT
 const y = x; //CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 2),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 43,
           1),
     ]);
@@ -245,7 +244,7 @@ int y = (0 as int);
 
   test_undefined_function_within_flutter_can_be_ignored() async {
     await assertErrorsInFile(
-      '/workspace/flutterlib/flutter.dart',
+      '$workspaceRootPath/flutterlib/flutter.dart',
       '''
 // ignore: undefined_function
 f() => g();
@@ -256,17 +255,17 @@ f() => g();
 
   test_undefined_function_within_flutter_without_ignore() async {
     await assertErrorsInFile(
-      '/workspace/flutterlib/flutter.dart',
+      '$workspaceRootPath/flutterlib/flutter.dart',
       '''
 f() => g();
 ''',
-      [error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 7, 1)],
+      [error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 7, 1)],
     );
   }
 
   test_undefined_prefixed_name_within_flutter_can_be_ignored() async {
     await assertErrorsInFile(
-      '/workspace/flutterlib/flutter.dart',
+      '$workspaceRootPath/flutterlib/flutter.dart',
       '''
 import 'dart:collection' as c;
 // ignore: undefined_prefixed_name

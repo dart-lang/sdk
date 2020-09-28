@@ -35,9 +35,10 @@ Set<String> allowlistedExternalDartFiles = {
   // TODO(johnniwinther): Fix to allow dependency of package:package_config.
   "third_party/pkg_tested/package_config/lib/src/util_io.dart",
 
-  // TODO(CFE-team): This file should not be included.
+  // TODO(CFE-team): These files should not be included.
   // The package isn't even in pubspec.yaml.
   "pkg/meta/lib/meta.dart",
+  "pkg/meta/lib/meta_meta.dart",
 };
 
 Future<void> main() async {

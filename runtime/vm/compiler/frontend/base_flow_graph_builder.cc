@@ -4,6 +4,7 @@
 
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
 
+#include "vm/compiler/backend/range_analysis.h"  // For Range.
 #include "vm/compiler/ffi/call.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
@@ -245,6 +246,15 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
       Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld))));
 }
 
+Fragment BaseFlowGraphBuilder::UnboxedIntConstant(
+    int64_t value,
+    Representation representation) {
+  const auto& obj = Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  auto const constant = new (Z) UnboxedConstantInstr(obj, representation);
+  Push(constant);
+  return Fragment(constant);
+}
+
 Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
                                           classid_t dest_cid) {
   Value* length = Pop();
@@ -269,11 +279,31 @@ void BaseFlowGraphBuilder::InlineBailout(const char* reason) {
   }
 }
 
+Fragment BaseFlowGraphBuilder::LoadArgDescriptor() {
+  if (has_saved_args_desc_array()) {
+    const ArgumentsDescriptor descriptor(saved_args_desc_array());
+    // Double-check that compile-time Size() matches runtime size on target.
+    ASSERT_EQUAL(descriptor.Size(),
+                 FlowGraph::ParameterOffsetAt(function_, descriptor.Count(),
+                                              /*last_slot=*/false));
+    return Constant(saved_args_desc_array());
+  }
+  ASSERT(parsed_function_->has_arg_desc_var());
+  return LoadLocal(parsed_function_->arg_desc_var());
+}
+
 Fragment BaseFlowGraphBuilder::TestTypeArgsLen(Fragment eq_branch,
                                                Fragment neq_branch,
                                                intptr_t num_type_args) {
   Fragment test;
 
+  // Compile-time arguments descriptor case.
+  if (has_saved_args_desc_array()) {
+    const ArgumentsDescriptor descriptor(saved_args_desc_array_);
+    return descriptor.TypeArgsLen() == num_type_args ? eq_branch : neq_branch;
+  }
+
+  // Runtime arguments descriptor case.
   TargetEntryInstr* eq_entry;
   TargetEntryInstr* neq_entry;
 
@@ -793,38 +823,19 @@ Fragment BaseFlowGraphBuilder::SmiRelationalOp(Token::Kind kind) {
 
 Fragment BaseFlowGraphBuilder::SmiBinaryOp(Token::Kind kind,
                                            bool is_truncating) {
-  Value* right = Pop();
-  Value* left = Pop();
-  BinarySmiOpInstr* instr =
-      new (Z) BinarySmiOpInstr(kind, left, right, GetNextDeoptId());
-  if (is_truncating) {
-    instr->mark_truncating();
-  }
-  Push(instr);
-  return Fragment(instr);
+  return BinaryIntegerOp(kind, kTagged, is_truncating);
 }
 
 Fragment BaseFlowGraphBuilder::BinaryIntegerOp(Token::Kind kind,
                                                Representation representation,
                                                bool is_truncating) {
   ASSERT(representation == kUnboxedInt32 || representation == kUnboxedUint32 ||
-         representation == kUnboxedInt64);
+         representation == kUnboxedInt64 || representation == kTagged);
   Value* right = Pop();
   Value* left = Pop();
-  BinaryIntegerOpInstr* instr;
-  switch (representation) {
-    case kUnboxedInt32:
-      instr = new (Z) BinaryInt32OpInstr(kind, left, right, GetNextDeoptId());
-      break;
-    case kUnboxedUint32:
-      instr = new (Z) BinaryUint32OpInstr(kind, left, right, GetNextDeoptId());
-      break;
-    case kUnboxedInt64:
-      instr = new (Z) BinaryInt64OpInstr(kind, left, right, GetNextDeoptId());
-      break;
-    default:
-      UNREACHABLE();
-  }
+  BinaryIntegerOpInstr* instr = BinaryIntegerOpInstr::Make(
+      representation, kind, left, right, GetNextDeoptId());
+  ASSERT(instr != nullptr);
   if (is_truncating) {
     instr->mark_truncating();
   }
@@ -1067,7 +1078,9 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
     const auto& parent = Function::Handle(Z, function.parent_function());
     const auto& func_name = String::Handle(Z, parent.name());
     const auto& owner = Class::Handle(Z, parent.Owner());
-    function = owner.LookupFunction(func_name);
+    if (owner.EnsureIsFinalized(thread_) == Error::null()) {
+      function = owner.LookupFunction(func_name);
+    }
   }
 
   Object& options = Object::Handle(Z);

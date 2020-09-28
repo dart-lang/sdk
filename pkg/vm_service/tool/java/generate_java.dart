@@ -36,7 +36,7 @@ Launch the Dart VM with the arguments:
 </pre>
 where <strong>some-port</strong> is a port number of your choice
 which this client will use to communicate with the Dart VM.
-See https://www.dartlang.org/tools/dart-vm/ for more details.
+See https://dart.dev/tools/dart-vm for more details.
 Once the VM is running, instantiate a new {@link VmService}
 to connect to that VM via {@link VmService#connect(String)}
 or {@link VmService#localConnect(int)}.

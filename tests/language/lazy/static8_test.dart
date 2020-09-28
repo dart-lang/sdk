@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 
 var trace;
 
-final foo = bar;
+var foo = bar;
 
 var recursionDepth = 0;
 
@@ -40,7 +40,7 @@ void testTopLevel() {
 }
 
 class X {
-  static final foo = X.bar;
+  static var foo = X.bar;
 
   static get bar {
     if (recursionDepth > 3) throw "recursed";

@@ -16,8 +16,8 @@ FutureOr<void> v = null;
 FutureOr<int> test() async {
   return v;
   //     ^
-  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
-  // [cfe] This expression has type 'void' and can't be used.
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] A value of type 'FutureOr<void>' can't be returned from an async function with return type 'FutureOr<int>'.
 }
 
 void main() {

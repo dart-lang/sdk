@@ -90,10 +90,13 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 0, 3) {
   script.GetTokenLocation(assertion_start, &from_line, &from_column);
   intptr_t to_line, to_column;
   script.GetTokenLocation(assertion_end, &to_line, &to_column);
-  // The snippet will extract the correct assertion code even if the source
-  // is generated.
-  args.SetAt(0, String::Handle(script.GetSnippet(from_line, from_column,
-                                                 to_line, to_column)));
+  // Extract the assertion condition text (if source is available).
+  auto& condition_text = String::Handle(
+      script.GetSnippet(from_line, from_column, to_line, to_column));
+  if (condition_text.IsNull()) {
+    condition_text = Symbols::OptimizedOut().raw();
+  }
+  args.SetAt(0, condition_text);
 
   // Initialize location arguments starting at position 1.
   // Do not set a column if the source has been generated as it will be wrong.

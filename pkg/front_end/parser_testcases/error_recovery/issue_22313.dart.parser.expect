@@ -1,0 +1,33 @@
+class A { }
+
+class B { }
+
+class Foo extends A, B {
+Foo() { }
+}
+
+class Bar extend A, B {
+Bar() { }
+}
+
+class Baz on A, B {
+Baz() { }
+}
+
+
+class[KeywordToken] A[StringToken] {[BeginToken] }[SimpleToken]
+
+class[KeywordToken] B[StringToken] {[BeginToken] }[SimpleToken]
+
+class[KeywordToken] Foo[StringToken] extends[KeywordToken] A[StringToken],[SimpleToken] B[StringToken] {[BeginToken]
+Foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken] }[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Bar[StringToken] extend[StringToken] A[StringToken],[SimpleToken] B[StringToken] {[BeginToken]
+Bar[StringToken]([BeginToken])[SimpleToken] {[BeginToken] }[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Baz[StringToken] on[KeywordToken] A[StringToken],[SimpleToken] B[StringToken] {[BeginToken]
+Baz[StringToken]([BeginToken])[SimpleToken] {[BeginToken] }[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

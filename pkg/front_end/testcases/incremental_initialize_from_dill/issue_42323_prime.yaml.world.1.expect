@@ -1,0 +1,12 @@
+main = <No Member>;
+library from "org-dartlang-test:///bin/runMe.dart" as run {
+//
+// Problems in library:
+//
+// org-dartlang-test:///bin/runMe.dart:1:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart = 2.8
+// ^^^^^^^^^^^^^^
+//
+
+  static method main() → dynamic {}
+}

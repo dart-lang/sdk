@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
@@ -80,19 +79,17 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
-    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      _instrumentationService.logRequest(data);
-      final Map<String, Object> json = jsonDecode(data);
-      if (RequestMessage.canParse(json, nullLspJsonReporter)) {
-        onMessage(RequestMessage.fromJson(json));
-      } else if (NotificationMessage.canParse(json, nullLspJsonReporter)) {
-        onMessage(NotificationMessage.fromJson(json));
-      } else if (ResponseMessage.canParse(json, nullLspJsonReporter)) {
-        onMessage(ResponseMessage.fromJson(json));
-      } else {
-        _sendParseError();
-      }
-    });
+    _instrumentationService.logRequest(data);
+    final Map<String, Object> json = jsonDecode(data);
+    if (RequestMessage.canParse(json, nullLspJsonReporter)) {
+      onMessage(RequestMessage.fromJson(json));
+    } else if (NotificationMessage.canParse(json, nullLspJsonReporter)) {
+      onMessage(NotificationMessage.fromJson(json));
+    } else if (ResponseMessage.canParse(json, nullLspJsonReporter)) {
+      onMessage(ResponseMessage.fromJson(json));
+    } else {
+      _sendParseError();
+    }
   }
 
   /// Sends a message prefixed with the required LSP headers.
@@ -102,27 +99,24 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      final jsonEncodedBody = jsonEncode(json);
-      final utf8EncodedBody = utf8.encode(jsonEncodedBody);
-      final header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
-          'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
-      final asciiEncodedHeader = ascii.encode(header);
+    final jsonEncodedBody = jsonEncode(json);
+    final utf8EncodedBody = utf8.encode(jsonEncodedBody);
+    final header = 'Content-Length: ${utf8EncodedBody.length}\r\n'
+        'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
+    final asciiEncodedHeader = ascii.encode(header);
 
-      // Header is always ascii, body is always utf8!
-      _write(asciiEncodedHeader);
-      _write(utf8EncodedBody);
+    // Header is always ascii, body is always utf8!
+    _write(asciiEncodedHeader);
+    _write(utf8EncodedBody);
 
-      _instrumentationService.logResponse(jsonEncodedBody);
-    });
+    _instrumentationService.logResponse(jsonEncodedBody);
   }
 
   void _sendParseError() {
     final error = ResponseMessage(
-        null,
-        null,
-        ResponseError(ErrorCodes.ParseError, 'Unable to parse message', null),
-        jsonRpcVersion);
+        error: ResponseError(
+            code: ErrorCodes.ParseError, message: 'Unable to parse message'),
+        jsonrpc: jsonRpcVersion);
     sendResponse(error);
   }
 

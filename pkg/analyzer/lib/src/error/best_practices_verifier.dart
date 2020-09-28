@@ -13,10 +13,10 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
@@ -26,15 +26,15 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
+import 'package:meta/meta_meta.dart';
 import 'package:path/path.dart' as path;
 
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
-//  static String _HASHCODE_GETTER_NAME = "hashCode";
-
   static const String _NULL_TYPE_NAME = "Null";
 
   static const String _TO_INT_METHOD_NAME = "toInt";
@@ -65,7 +65,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final _InvalidAccessVerifier _invalidAccessVerifier;
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
-  WorkspacePackage _workspacePackage;
+  final WorkspacePackage _workspacePackage;
 
   /// The [LinterContext] used for possible const calculations.
   LinterContext _linterContext;
@@ -87,9 +87,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     String content, {
     @required TypeSystemImpl typeSystem,
     @required InheritanceManager3 inheritanceManager,
-    @required ResourceProvider resourceProvider,
     @required DeclaredVariables declaredVariables,
     @required AnalysisOptions analysisOptions,
+    @required WorkspacePackage workspacePackage,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
         _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
@@ -97,10 +97,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
-            _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
+            _InvalidAccessVerifier(_errorReporter, _currentLibrary),
+        _workspacePackage = workspacePackage {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
-    String libraryPath = _currentLibrary.source.fullName;
-    _workspacePackage = _getPackage(libraryPath, resourceProvider);
 
     _linterContext = LinterContextImpl(
       null /* allUnits */,
@@ -117,26 +116,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     ElementAnnotation element = node.elementAnnotation;
+    if (element == null) {
+      return;
+    }
     AstNode parent = node.parent;
-    if (element?.isFactory == true) {
+    if (element.isFactory == true) {
       if (parent is MethodDeclaration) {
         _checkForInvalidFactory(parent);
       } else {
         _errorReporter
             .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
       }
-    } else if (element?.isImmutable == true) {
+    } else if (element.isImmutable == true) {
       if (parent is! ClassOrMixinDeclaration && parent is! ClassTypeAlias) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
       }
-    } else if (element?.isLiteral == true) {
+    } else if (element.isLiteral == true) {
       if (parent is! ConstructorDeclaration ||
           (parent as ConstructorDeclaration).constKeyword == null) {
         _errorReporter
             .reportErrorForNode(HintCode.INVALID_LITERAL_ANNOTATION, node, []);
       }
-    } else if (element?.isNonVirtual == true) {
+    } else if (element.isNonVirtual == true) {
       if (parent is FieldDeclaration) {
         if (parent.isStatic) {
           _errorReporter.reportErrorForNode(
@@ -157,13 +159,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node, [node.element.name]);
       }
-    } else if (element?.isSealed == true) {
+    } else if (element.isSealed == true) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_SEALED_ANNOTATION, node, [node.element.name]);
       }
-    } else if (element?.isVisibleForTemplate == true ||
-        element?.isVisibleForTesting == true) {
+    } else if (element.isVisibleForTemplate == true ||
+        element.isVisibleForTesting == true) {
       if (parent is Declaration) {
         void reportInvalidAnnotation(Element declaredElement) {
           _errorReporter.reportErrorForNode(
@@ -192,6 +194,27 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // Something other than a declaration was annotated. Whatever this is,
         // it probably warrants a Hint, but this has not been specified on
         // visibleForTemplate or visibleForTesting, so leave it alone for now.
+      }
+    }
+    var kinds = _targetKindsFor(element);
+    if (kinds.isNotEmpty) {
+      if (!_isValidTarget(parent, kinds)) {
+        var invokedElement = element.element;
+        var name = invokedElement.name;
+        if (invokedElement is ConstructorElement) {
+          var className = invokedElement.enclosingElement.name;
+          if (name.isEmpty) {
+            name = className;
+          } else {
+            name = '$className.$name';
+          }
+        }
+        var kindNames = kinds.map((kind) => kind.displayString).toList()
+          ..sort();
+        var validKinds = kindNames.commaSeparatedWithOr;
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_ANNOTATION_TARGET, node.name, [name, validKinds]);
+        return;
       }
     }
 
@@ -282,7 +305,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
       }
     }
-    _checkStrictInferenceInParameters(node.parameters);
+    _checkStrictInferenceInParameters(node.parameters,
+        body: node.body, initializers: node.initializers);
     super.visitConstructorDeclaration(node);
   }
 
@@ -336,6 +360,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               field.name,
               [field.name, overriddenElement.enclosingElement.name]);
         }
+
+        var expression = field.initializer;
+
+        Element element;
+        if (expression is PropertyAccess) {
+          element = expression.propertyName.staticElement;
+          // Tear-off.
+          if (element is FunctionElement || element is MethodElement) {
+            element = null;
+          }
+        } else if (expression is MethodInvocation) {
+          element = expression.methodName.staticElement;
+        } else if (expression is Identifier) {
+          element = expression.staticElement;
+          // Tear-off.
+          if (element is FunctionElement || element is MethodElement) {
+            element = null;
+          }
+        }
+        if (element != null) {
+          if (element is PropertyAccessorElement && element.isSynthetic) {
+            element = (element as PropertyAccessorElement).variable;
+          }
+          if (element.hasOrInheritsDoNotStore) {
+            _errorReporter.reportErrorForNode(
+              HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
+              expression,
+              [element.name],
+            );
+          }
+        }
       }
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
@@ -363,7 +418,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (node.parent is CompilationUnit && !node.isSetter) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
-      _checkStrictInferenceInParameters(node.functionExpression.parameters);
+      _checkStrictInferenceInParameters(node.functionExpression.parameters,
+          body: node.functionExpression.body);
       super.visitFunctionDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
@@ -384,7 +440,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     DartType functionType = InferenceContext.getContext(node);
     if (functionType is! FunctionType) {
-      _checkStrictInferenceInParameters(node.parameters);
+      _checkStrictInferenceInParameters(node.parameters, body: node.body);
     }
     super.visitFunctionExpression(node);
   }
@@ -403,6 +459,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
+    _checkStrictInferenceInParameters(node.parameters);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -496,7 +553,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (!node.isSetter && !elementIsOverride()) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
-      _checkStrictInferenceInParameters(node.parameters);
+      _checkStrictInferenceInParameters(node.parameters, body: node.body);
 
       ExecutableElement overriddenElement = getConcreteOverriddenElement();
       if (overriddenElement == null && (node.isSetter || node.isGetter)) {
@@ -1316,9 +1373,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// In "strict-inference" mode, check that each of the [parameters]' type is
   /// specified.
-  void _checkStrictInferenceInParameters(FormalParameterList parameters) {
+  ///
+  /// Only parameters which are referenced in [initializers] or [body] are
+  /// reported. If [initializers] and [body] are both null, the parameters are
+  /// assumed to originate from a typedef, function-typed parameter, or function
+  /// which is abstract or external.
+  void _checkStrictInferenceInParameters(FormalParameterList parameters,
+      {List<ConstructorInitializer> initializers, FunctionBody body}) {
+    _UsedParameterVisitor usedParameterVisitor;
+
+    bool isParameterReferenced(SimpleFormalParameter parameter) {
+      if ((body == null || body is EmptyFunctionBody) && initializers == null) {
+        // The parameter is in a typedef, or function that is abstract,
+        // external, etc.
+        return true;
+      }
+      if (usedParameterVisitor == null) {
+        // Visit the function body and initializers once to determine whether
+        // each of the parameters is referenced.
+        usedParameterVisitor = _UsedParameterVisitor(
+            parameters.parameters.map((p) => p.declaredElement).toSet());
+        body?.accept(usedParameterVisitor);
+        for (var initializer in initializers ?? []) {
+          initializer.accept(usedParameterVisitor);
+        }
+      }
+
+      return usedParameterVisitor.isUsed(parameter.declaredElement);
+    }
+
     void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
-      if (parameter.type == null) {
+      if (parameter.type == null && isParameterReferenced(parameter)) {
         ParameterElement element = parameter.declaredElement;
         _errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
@@ -1356,20 +1441,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  WorkspacePackage _getPackage(String root, ResourceProvider resourceProvider) {
-    Workspace workspace = _currentLibrary.session?.analysisContext?.workspace;
-    // If there is no driver setup (as in test environments), we need to create
-    // a workspace ourselves.
-    // todo (pq): fix tests or otherwise de-dup this logic shared w/ library_analyzer.
-    if (workspace == null) {
-      final builder = ContextBuilder(
-          resourceProvider, null /* sdkManager */, null /* contentCache */);
-      workspace =
-          ContextBuilder.createWorkspace(resourceProvider, root, builder);
-    }
-    return workspace?.findPackageFor(root);
-  }
-
   bool _isLibraryInWorkspacePackage(LibraryElement library) {
     if (_workspacePackage == null || library == null) {
       // Better to not make a big claim that they _are_ in the same package,
@@ -1377,6 +1448,80 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     return _workspacePackage.contains(library.source);
+  }
+
+  /// Return `true` if it is valid to have an annotation on the given [target]
+  /// when the annotation is marked as being valid for the given [kinds] of
+  /// targets.
+  bool _isValidTarget(AstNode target, Set<TargetKind> kinds) {
+    if (target is ClassDeclaration) {
+      return kinds.contains(TargetKind.classType) ||
+          kinds.contains(TargetKind.type);
+    } else if (target is Directive) {
+      return (target.parent as CompilationUnit).directives.first == target &&
+          kinds.contains(TargetKind.library);
+    } else if (target is EnumDeclaration) {
+      return kinds.contains(TargetKind.enumType) ||
+          kinds.contains(TargetKind.type);
+    } else if (target is ExtensionDeclaration) {
+      return kinds.contains(TargetKind.extension);
+    } else if (target is FieldDeclaration) {
+      return kinds.contains(TargetKind.field);
+    } else if (target is FunctionDeclaration) {
+      if (target.isGetter) {
+        return kinds.contains(TargetKind.getter);
+      }
+      if (target.isSetter) {
+        return kinds.contains(TargetKind.setter);
+      }
+      return kinds.contains(TargetKind.function);
+    } else if (target is MethodDeclaration) {
+      if (target.isGetter) {
+        return kinds.contains(TargetKind.getter);
+      }
+      if (target.isSetter) {
+        return kinds.contains(TargetKind.setter);
+      }
+      return kinds.contains(TargetKind.method);
+    } else if (target is MixinDeclaration) {
+      return kinds.contains(TargetKind.mixinType) ||
+          kinds.contains(TargetKind.type);
+    } else if (target is FormalParameter) {
+      return kinds.contains(TargetKind.parameter);
+    } else if (target is FunctionTypeAlias || target is GenericTypeAlias) {
+      return kinds.contains(TargetKind.typedefType) ||
+          kinds.contains(TargetKind.type);
+    }
+    return false;
+  }
+
+  /// Return the target kinds defined for the given [annotation].
+  Set<TargetKind> _targetKindsFor(ElementAnnotation annotation) {
+    var element = annotation.element;
+    ClassElement classElement;
+    if (element is VariableElement) {
+      var type = element.type;
+      if (type is InterfaceType) {
+        classElement = type.element;
+      }
+    } else if (element is ConstructorElement) {
+      classElement = element.enclosingElement;
+    }
+    if (classElement == null) {
+      return const <TargetKind>{};
+    }
+    for (var annotation in classElement.metadata) {
+      if (annotation.isTarget) {
+        var value = annotation.computeConstantValue();
+        var kinds = <TargetKind>{};
+        for (var kindObject in value.getField('kinds').toSetValue()) {
+          var index = kindObject.getField('index').toIntValue();
+          kinds.add(TargetKind.values[index]);
+        }
+        return kinds;
+      }
+    }
+    return const <TargetKind>{};
   }
 
   /// Checks for the passed as expression for the [HintCode.UNNECESSARY_CAST]
@@ -1543,9 +1688,9 @@ class _InvalidAccessVerifier {
     }
     AstNode grandparent = parent?.parent;
 
-    var element;
-    var name;
-    var node;
+    Element element;
+    String name;
+    AstNode node;
 
     if (grandparent is ConstructorName) {
       element = grandparent.staticElement;
@@ -1626,18 +1771,7 @@ class _InvalidAccessVerifier {
     if (element == null) {
       return false;
     }
-    if (element == superElement) {
-      return true;
-    }
-    // TODO(scheglov) `allSupertypes` is very expensive
-    var allSupertypes = element.allSupertypes;
-    for (var i = 0; i < allSupertypes.length; i++) {
-      var supertype = allSupertypes[i];
-      if (supertype.element == superElement) {
-        return true;
-      }
-    }
-    return false;
+    return element.thisType.asInstanceOf(superElement) != null;
   }
 
   bool _hasVisibleForTemplate(Element element) {
@@ -1680,4 +1814,63 @@ class _InvalidAccessVerifier {
   bool _inExportDirective(SimpleIdentifier identifier) =>
       identifier.parent is Combinator &&
       identifier.parent.parent is ExportDirective;
+}
+
+/// A visitor that determines, upon visiting a function body and/or a
+/// constructor's initializers, whether a parameter is referenced.
+class _UsedParameterVisitor extends RecursiveAstVisitor<void> {
+  final Set<ParameterElement> _parameters;
+
+  final Set<ParameterElement> _usedParameters = {};
+
+  _UsedParameterVisitor(this._parameters);
+
+  bool isUsed(ParameterElement parameter) =>
+      _usedParameters.contains(parameter);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element is ExecutableMember) {
+      element = element.declaration;
+    }
+    if (_parameters.contains(element)) {
+      _usedParameters.add(element);
+    }
+  }
+}
+
+extension on TargetKind {
+  /// Return a user visible string used to describe this target kind.
+  String get displayString {
+    switch (this) {
+      case TargetKind.classType:
+        return 'classes';
+      case TargetKind.enumType:
+        return 'enums';
+      case TargetKind.extension:
+        return 'extensions';
+      case TargetKind.field:
+        return 'fields';
+      case TargetKind.function:
+        return 'top-level functions';
+      case TargetKind.library:
+        return 'librarys';
+      case TargetKind.getter:
+        return 'getters';
+      case TargetKind.method:
+        return 'methods';
+      case TargetKind.mixinType:
+        return 'mixins';
+      case TargetKind.parameter:
+        return 'parameters';
+      case TargetKind.setter:
+        return 'setters';
+      case TargetKind.type:
+        return 'types (classes, enums, mixins, or typedefs)';
+      case TargetKind.typedefType:
+        return 'typedefs';
+    }
+    throw 'Remove this when this library is converted to null-safety';
+  }
 }

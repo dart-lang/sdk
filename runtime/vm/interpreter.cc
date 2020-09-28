@@ -232,9 +232,9 @@ class InterpreterHelpers {
     return false;
   }
 
-  DART_FORCE_INLINE static bool IsFinalized(ClassPtr cls) {
+  DART_FORCE_INLINE static bool IsAllocateFinalized(ClassPtr cls) {
     return Class::ClassFinalizedBits::decode(cls->ptr()->state_bits_) ==
-           ClassLayout::kFinalized;
+           ClassLayout::kAllocateFinalized;
   }
 };
 
@@ -746,6 +746,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
                                                  const KBCInstr** pc,
                                                  ObjectPtr** FP,
                                                  ObjectPtr** SP) {
+  ObjectPtr null_value = Object::null();
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
   const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
@@ -757,11 +758,11 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
   if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_,
                                      &target))) {
     // Table lookup miss.
-    top[0] = 0;  // Clean up slot as it may be visited by GC.
+    top[0] = null_value;  // Clean up slot as it may be visited by GC.
     top[1] = call_base[receiver_idx];
     top[2] = target_name;
     top[3] = argdesc_;
-    top[4] = 0;  // Result slot.
+    top[4] = null_value;  // Result slot.
 
     Exit(thread, *FP, top + 5, *pc);
     NativeArguments native_args(thread, 3, /* argv */ top + 1,
@@ -774,12 +775,61 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     target = static_cast<FunctionPtr>(top[4]);
     target_name = static_cast<StringPtr>(top[2]);
     argdesc_ = static_cast<ArrayPtr>(top[3]);
-    ASSERT(target->IsFunction());
-    lookup_cache_.Insert(receiver_cid, target_name, argdesc_, target);
   }
 
-  top[0] = target;
-  return Invoke(thread, call_base, top, pc, FP, SP);
+  if (target != Function::null()) {
+    lookup_cache_.Insert(receiver_cid, target_name, argdesc_, target);
+    top[0] = target;
+    return Invoke(thread, call_base, top, pc, FP, SP);
+  }
+
+  // The miss handler should only fail to return a function if lazy dispatchers
+  // are disabled, in which case we need to call DRT_InvokeNoSuchMethod, which
+  // walks the receiver appropriately in this case.
+  ASSERT(!FLAG_lazy_dispatchers);
+
+  // The receiver, name, and argument descriptor are already in the appropriate
+  // places on the stack from the previous call.
+  ASSERT(top[4] == null_value);
+
+  // Allocate array of arguments.
+  {
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
+    ASSERT_EQUAL(top - call_base, argc);
+
+    top[5] = Smi::New(argc);  // length
+    top[6] = null_value;      // type
+    Exit(thread, *FP, top + 7, *pc);
+    NativeArguments native_args(thread, 2, /* argv */ top + 5,
+                                /* result */ top + 4);
+    if (!InvokeRuntime(thread, this, DRT_AllocateArray, native_args)) {
+      return false;
+    }
+
+    // Copy arguments into the newly allocated array.
+    ArrayPtr array = Array::RawCast(top[4]);
+    for (intptr_t i = 0; i < argc; i++) {
+      array->ptr()->data()[i] = call_base[i];
+    }
+  }
+
+  {
+    Exit(thread, *FP, top + 5, *pc);
+    NativeArguments native_args(thread, 4, /* argv */ top + 1,
+                                /* result */ top);
+    if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod, native_args)) {
+      return false;
+    }
+
+    // Pop the call args and push the result.
+    ObjectPtr result = top[0];
+    *SP = call_base;
+    **SP = result;
+    pp_ = InterpreterHelpers::FrameBytecode(*FP)->ptr()->object_pool_;
+  }
+
+  return true;
 }
 
 // Note:
@@ -1543,7 +1593,7 @@ ObjectPtr Interpreter::Call(FunctionPtr function,
               reentering ? "Re-entering" : "Entering",
               reinterpret_cast<uword>(this), reinterpret_cast<uword>(fp_),
               thread->top_exit_frame_info(),
-              Function::Handle(function).ToCString());
+              Function::Handle(function).ToFullyQualifiedCString());
   }
 #endif
 
@@ -1662,6 +1712,7 @@ SwitchDispatch:
     const intptr_t arg_count = InterpreterHelpers::ArgDescArgCount(argdesc_);
     const intptr_t pos_count = InterpreterHelpers::ArgDescPosCount(argdesc_);
     if ((arg_count != num_fixed_params) || (pos_count != num_fixed_params)) {
+      SP[1] = FrameFunction(FP);
       goto NoSuchMethodFromPrologue;
     }
 
@@ -1679,6 +1730,7 @@ SwitchDispatch:
     if (CopyParameters(thread, &pc, &FP, &SP, rA, rB, rC)) {
       DISPATCH();
     } else {
+      SP[1] = FrameFunction(FP);
       goto NoSuchMethodFromPrologue;
     }
   }
@@ -1742,6 +1794,7 @@ SwitchDispatch:
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
     if ((type_args_len != declared_type_args_len) && (type_args_len != 0)) {
+      SP[1] = FrameFunction(FP);
       goto NoSuchMethodFromPrologue;
     }
     if (type_args_len > 0) {
@@ -2550,7 +2603,7 @@ SwitchDispatch:
   {
     BYTECODE(Allocate, D);
     ClassPtr cls = Class::RawCast(LOAD_CONSTANT(rD));
-    if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
+    if (LIKELY(InterpreterHelpers::IsAllocateFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
       const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;
@@ -2580,7 +2633,7 @@ SwitchDispatch:
     BYTECODE(AllocateT, 0);
     ClassPtr cls = Class::RawCast(SP[0]);
     TypeArgumentsPtr type_args = TypeArguments::RawCast(SP[-1]);
-    if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
+    if (LIKELY(InterpreterHelpers::IsAllocateFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
       const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;
@@ -3401,6 +3454,8 @@ SwitchDispatch:
 
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::kind(function) == FunctionLayout::kInvokeFieldDispatcher);
+    const bool is_dynamic_call =
+        Function::IsDynamicInvocationForwarderName(function->ptr()->name_);
 
     BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
@@ -3412,9 +3467,31 @@ SwitchDispatch:
 
     ClosurePtr receiver =
         Closure::RawCast(FrameArguments(FP, argc)[receiver_idx]);
-    function = receiver->ptr()->function_;
+    SP[1] = receiver->ptr()->function_;
 
-    SP[1] = function;
+    if (is_dynamic_call) {
+      {
+        SP[2] = null_value;
+        SP[3] = receiver;
+        SP[4] = argdesc_;
+        Exit(thread, FP, SP + 5, pc);
+        if (!InvokeRuntime(thread, this, DRT_ClosureArgumentsValid,
+                           NativeArguments(thread, 2, SP + 3, SP + 2))) {
+          HANDLE_EXCEPTION;
+        }
+        receiver = Closure::RawCast(SP[3]);
+        argdesc_ = Array::RawCast(SP[4]);
+      }
+
+      if (SP[2] != Bool::True().raw()) {
+        goto NoSuchMethodFromPrologue;
+      }
+
+      // TODO(dartbug.com/40813): Move other checks that are currently
+      // compiled in the closure body to here as they are also moved to
+      // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
+    }
+
     goto TailCallSP1;
   }
 
@@ -3459,12 +3536,31 @@ SwitchDispatch:
 
     // If the field value is a closure, no need to resolve 'call' function.
     if (InterpreterHelpers::GetClassId(receiver) == kClosureCid) {
+      SP[1] = Closure::RawCast(receiver)->ptr()->function_;
+
       if (is_dynamic_call) {
-        // TODO(dartbug.com/40813): Move checks that are currently compiled
-        // in the closure body to here as they are also moved to
+        {
+          SP[2] = null_value;
+          SP[3] = receiver;
+          SP[4] = argdesc_;
+          Exit(thread, FP, SP + 5, pc);
+          if (!InvokeRuntime(thread, this, DRT_ClosureArgumentsValid,
+                             NativeArguments(thread, 2, SP + 3, SP + 2))) {
+            HANDLE_EXCEPTION;
+          }
+          receiver = SP[3];
+          argdesc_ = Array::RawCast(SP[4]);
+        }
+
+        if (SP[2] != Bool::True().raw()) {
+          goto NoSuchMethodFromPrologue;
+        }
+
+        // TODO(dartbug.com/40813): Move other checks that are currently
+        // compiled in the closure body to here as they are also moved to
         // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
       }
-      SP[1] = Closure::RawCast(receiver)->ptr()->function_;
+
       goto TailCallSP1;
     }
 
@@ -3492,33 +3588,31 @@ SwitchDispatch:
     // Invoke noSuchMethod.
     SP[1] = null_value;
     SP[2] = receiver;
-    SP[3] = argdesc_;
-    SP[4] = null_value;  // Array of arguments (will be filled).
+    SP[3] = Symbols::Call().raw();  // We failed to resolve the 'call' function.
+    SP[4] = argdesc_;
+    SP[5] = null_value;  // Array of arguments (will be filled).
 
     // Allocate array of arguments.
     {
-      SP[5] = Smi::New(argc);  // length
-      SP[6] = null_value;      // type
-      Exit(thread, FP, SP + 7, pc);
+      SP[6] = Smi::New(argc);  // length
+      SP[7] = null_value;      // type
+      Exit(thread, FP, SP + 8, pc);
       if (!InvokeRuntime(thread, this, DRT_AllocateArray,
-                         NativeArguments(thread, 2, SP + 5, SP + 4))) {
+                         NativeArguments(thread, 2, SP + 6, SP + 5))) {
         HANDLE_EXCEPTION;
       }
     }
 
     // Copy arguments into the newly allocated array.
     ObjectPtr* argv = FrameArguments(FP, argc);
-    ArrayPtr array = static_cast<ArrayPtr>(SP[4]);
+    ArrayPtr array = static_cast<ArrayPtr>(SP[5]);
     ASSERT(array->GetClassId() == kArrayCid);
     for (intptr_t i = 0; i < argc; i++) {
       array->ptr()->data()[i] = argv[i];
     }
 
-    // We failed to resolve 'call' function.
-    SP[5] = Symbols::Call().raw();
-
-    // Invoke noSuchMethod passing down receiver, argument descriptor,
-    // array of arguments, and target name.
+    // Invoke noSuchMethod passing down receiver, target name, argument
+    // descriptor, and array of arguments.
     {
       Exit(thread, FP, SP + 6, pc);
       if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod,
@@ -3557,6 +3651,7 @@ SwitchDispatch:
       rC = KernelBytecode::DecodeC(pc2);
       pc2 = KernelBytecode::Next(pc2);
       if (!CopyParameters(thread, &pc2, &FP, &SP, rA, rB, rC)) {
+        SP[1] = function;
         goto NoSuchMethodFromPrologue;
       }
     }
@@ -3640,6 +3735,7 @@ SwitchDispatch:
     BYTECODE(VMInternal_NoSuchMethodDispatcher, 0);
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::kind(function) == FunctionLayout::kNoSuchMethodDispatcher);
+    SP[1] = function;
     goto NoSuchMethodFromPrologue;
   }
 
@@ -3718,10 +3814,11 @@ SwitchDispatch:
     }
   }
 
-  // Helper used to handle noSuchMethod on closures.
+  // Helper used to handle noSuchMethod on closures. The function should be
+  // placed into SP[1] before jumping here, similar to TailCallSP1.
   {
   NoSuchMethodFromPrologue:
-    FunctionPtr function = FrameFunction(FP);
+    FunctionPtr function = Function::RawCast(SP[1]);
 
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);

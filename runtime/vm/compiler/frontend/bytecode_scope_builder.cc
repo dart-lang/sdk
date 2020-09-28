@@ -64,6 +64,17 @@ void BytecodeScopeBuilder::BuildScopes() {
     case FunctionLayout::kImplicitClosureFunction: {
       ASSERT(function.NumImplicitParameters() == 1);
 
+      const auto& parent = Function::Handle(Z, function.parent_function());
+      const auto& target =
+          Function::Handle(Z, function.ImplicitClosureTarget(Z));
+
+      // For BuildGraphOfNoSuchMethodForwarder, since closures no longer
+      // require arg_desc_var in all cases.
+      if (target.IsNull() ||
+          (parent.num_fixed_parameters() != target.num_fixed_parameters())) {
+        needs_expr_temp = true;
+      }
+
       LocalVariable* closure_parameter = MakeVariable(
           Symbols::ClosureParameter(), AbstractType::dynamic_type());
       closure_parameter->set_is_forced_stack();

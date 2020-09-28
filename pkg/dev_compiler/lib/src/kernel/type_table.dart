@@ -74,7 +74,9 @@ class _CacheTable {
   String _typeString(DartType type, {bool flat = false}) {
     var nullability = type.declaredNullability == Nullability.legacy
         ? 'L'
-        : type.declaredNullability == Nullability.nullable ? 'N' : '';
+        : type.declaredNullability == Nullability.nullable
+            ? 'N'
+            : '';
     assert(isKnownDartTypeImplementor(type));
     if (type is InterfaceType) {
       var name = '${type.classNode.name}$nullability';

@@ -4,7 +4,7 @@
     {
       "name": "flu",
       "rootUri": "../flu_package",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     }
   ]
 }

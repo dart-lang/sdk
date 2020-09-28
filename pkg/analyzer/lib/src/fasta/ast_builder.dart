@@ -7,11 +7,15 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         LocatedMessage,
         Message,
         MessageCode,
+        messageAbstractClassMember,
+        messageAbstractLateField,
+        messageAbstractStaticField,
         messageConstConstructorWithBody,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
         messageExternalField,
+        messageExternalLateField,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
@@ -20,8 +24,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageInvalidThisInInitializer,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
-        messageTypedefNotFunction,
         messageOperatorWithTypeParameters,
+        messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
         templateExpectedIdentifier,
@@ -132,14 +136,14 @@ class AstBuilder extends StackListener {
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       this._featureSet,
       [Uri uri])
-      : this.errorReporter = FastaErrorReporter(errorReporter),
-        this.enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
-        this.enableSpreadCollections =
+      : errorReporter = FastaErrorReporter(errorReporter),
+        enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
+        enableSpreadCollections =
             _featureSet.isEnabled(Feature.spread_collections),
-        this.enableControlFlowCollections =
+        enableControlFlowCollections =
             _featureSet.isEnabled(Feature.control_flow_collections),
-        this.enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
-        this.enableVariance = _featureSet.isEnabled(Feature.variance),
+        enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
+        enableVariance = _featureSet.isEnabled(Feature.variance),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -481,11 +485,6 @@ class AstBuilder extends StackListener {
   @override
   void debugEvent(String name) {
     // printEvent('AstBuilder: $name');
-  }
-
-  @override
-  void discardTypeReplacedWithCommentTypeAssign() {
-    pop();
   }
 
   void doDotExpression(Token dot) {
@@ -836,6 +835,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -847,9 +847,29 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
+    if (abstractToken != null) {
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageAbstractClassMember, abstractToken, abstractToken);
+      } else {
+        if (staticToken != null) {
+          handleRecoverableError(
+              messageAbstractStaticField, abstractToken, abstractToken);
+        }
+        if (lateToken != null) {
+          handleRecoverableError(
+              messageAbstractLateField, abstractToken, abstractToken);
+        }
+      }
+    }
     if (externalToken != null) {
-      handleRecoverableError(
-          messageExternalField, externalToken, externalToken);
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      } else if (lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+      }
     }
 
     List<VariableDeclaration> variables = popTypedList(count);
@@ -866,7 +886,9 @@ class AstBuilder extends StackListener {
     currentDeclarationMembers.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
+        abstractKeyword: abstractToken,
         covariantKeyword: covariantKeyword,
+        externalKeyword: externalToken,
         staticKeyword: staticToken,
         fieldList: variableList,
         semicolon: semicolon));
@@ -1204,6 +1226,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endExtensionFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1218,8 +1241,8 @@ class AstBuilder extends StackListener {
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
     }
-    endClassFields(externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
@@ -1842,6 +1865,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endMixinFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1850,8 +1874,8 @@ class AstBuilder extends StackListener {
       int count,
       Token beginToken,
       Token endToken) {
-    endClassFields(externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
@@ -2131,8 +2155,13 @@ class AstBuilder extends StackListener {
     debugEvent("TopLevelFields");
 
     if (externalToken != null) {
-      handleRecoverableError(
-          messageExternalField, externalToken, externalToken);
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      } else if (lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+      }
     }
 
     List<VariableDeclaration> variables = popTypedList(count);
@@ -2146,7 +2175,8 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
-        comment, metadata, variableList, semicolon));
+        comment, metadata, variableList, semicolon,
+        externalKeyword: externalToken));
   }
 
   @override
@@ -2412,10 +2442,16 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     assert(extendsKeyword == null || extendsKeyword.isKeywordOrIdentifier);
     debugEvent("ClassExtends");
 
+    // If more extends clauses was specified (parser has already issued an
+    // error) throw them away for now and pick the first one.
+    while (typeCount > 1) {
+      pop();
+      typeCount--;
+    }
     TypeName supertype = pop();
     if (supertype != null) {
       push(ast.extendsClause(extendsKeyword, supertype));
@@ -3369,7 +3405,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         spreadToken,
         spreadToken,
@@ -3592,7 +3628,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         forToken,
         forToken,
@@ -3625,7 +3661,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         ifToken,
         ifToken,

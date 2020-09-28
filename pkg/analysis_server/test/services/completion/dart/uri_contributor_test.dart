@@ -123,8 +123,7 @@ class UriContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
-    assertSuggest('dart:core',
-        csKind: CompletionSuggestionKind.IMPORT, relevance: DART_RELEVANCE_LOW);
+    assertSuggest('dart:core', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('dart:_internal');
     assertSuggest('dart:async', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('dart:math', csKind: CompletionSuggestionKind.IMPORT);
@@ -136,8 +135,7 @@ class UriContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
-    assertSuggest('dart:core',
-        csKind: CompletionSuggestionKind.IMPORT, relevance: DART_RELEVANCE_LOW);
+    assertSuggest('dart:core', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('dart:_internal');
     assertSuggest('dart:async', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('dart:math', csKind: CompletionSuggestionKind.IMPORT);

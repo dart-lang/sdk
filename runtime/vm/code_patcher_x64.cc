@@ -397,13 +397,13 @@ class BareSwitchableCall : public SwitchableCallBase {
 
   CodePtr target() const {
     const uword pc = object_pool_.RawValueAt(target_index());
-    auto rct = IsolateGroup::Current()->reverse_pc_lookup_cache();
-    if (rct->Contains(pc)) {
-      return rct->Lookup(pc);
+    CodePtr result = ReversePc::Lookup(IsolateGroup::Current(), pc);
+    if (result != Code::null()) {
+      return result;
     }
-    rct = Dart::vm_isolate()->group()->reverse_pc_lookup_cache();
-    if (rct->Contains(pc)) {
-      return rct->Lookup(pc);
+    result = ReversePc::Lookup(Dart::vm_isolate()->group(), pc);
+    if (result != Code::null()) {
+      return result;
     }
     UNREACHABLE();
   }

@@ -81,10 +81,10 @@ class SExpression : public ZoneAllocated {
   virtual const char* DebugName() const = 0;
   virtual bool Equals(SExpression* sexp) const = 0;
   virtual void SerializeTo(Zone* zone,
-                           TextBuffer* buffer,
+                           BaseTextBuffer* buffer,
                            const char* indent,
                            intptr_t width = 80) const = 0;
-  virtual void SerializeToLine(TextBuffer* buffer) const = 0;
+  virtual void SerializeToLine(BaseTextBuffer* buffer) const = 0;
 
  private:
   // Starting character position of the s-expression in the original
@@ -100,7 +100,7 @@ class SExpAtom : public SExpression {
   virtual const SExpAtom* AsAtom() const { return this; }
   // No atoms have sub-elements, so they always print to a single line.
   virtual void SerializeTo(Zone* zone,
-                           TextBuffer* buffer,
+                           BaseTextBuffer* buffer,
                            const char* indent,
                            intptr_t width = 80) const {
     SerializeToLine(buffer);
@@ -124,7 +124,7 @@ class SExpAtom : public SExpression {
     value_type value() const { return val_; }                                  \
     virtual bool Equals(SExpression* sexp) const;                              \
     bool Equals(value_type val) const;                                         \
-    virtual void SerializeToLine(TextBuffer* buffer) const;                    \
+    virtual void SerializeToLine(BaseTextBuffer* buffer) const;                \
     DEFINE_S_EXPRESSION_TYPE_CHECK(name)                                       \
    private:                                                                    \
     value_type const val_;                                                     \
@@ -168,20 +168,20 @@ class SExpList : public SExpression {
   DEFINE_S_EXPRESSION_TYPE_CHECK(List)
   virtual bool Equals(SExpression* sexp) const;
   virtual void SerializeTo(Zone* zone,
-                           TextBuffer* buffer,
+                           BaseTextBuffer* buffer,
                            const char* indent,
                            intptr_t width = 80) const;
-  virtual void SerializeToLine(TextBuffer* buffer) const;
+  virtual void SerializeToLine(BaseTextBuffer* buffer) const;
 
  private:
   static const char* const kElemIndent;
   static const char* const kExtraIndent;
 
   void SerializeExtraInfoTo(Zone* zone,
-                            TextBuffer* buffer,
+                            BaseTextBuffer* buffer,
                             const char* indent,
                             int width) const;
-  void SerializeExtraInfoToLine(TextBuffer* buffer) const;
+  void SerializeExtraInfoToLine(BaseTextBuffer* buffer) const;
 
   ZoneGrowableArray<SExpression*> contents_;
   ExtraInfoHashMap extra_info_;

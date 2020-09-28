@@ -76,4 +76,8 @@ class BasicWorkspacePackage extends WorkspacePackage {
     // is in the package as well.
     return workspace.provider.pathContext.isWithin(root, filePath);
   }
+
+  @override
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      workspace.packageMap;
 }

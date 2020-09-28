@@ -106,26 +106,48 @@ static void CheckOffsets() {
     ok = false;                                                                \
   }
 
-#define CHECK_FIELD(Class, Name) CHECK_OFFSET(Class::Name(), Class##_##Name)
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define CHECK_FIELD(Class, Name)                                               \
+  CHECK_OFFSET(Class::Name(), AOT_##Class##_##Name);
 #define CHECK_ARRAY(Class, Name)                                               \
   CHECK_OFFSET(Class::ArrayTraits::elements_start_offset(),                    \
-               Class##_elements_start_offset)                                  \
-  CHECK_OFFSET(Class::ArrayTraits::kElementSize, Class##_element_size)
-#define CHECK_ARRAY_STRUCTFIELD(Class, Name, ElementOffsetName, FieldOffset)
-
-#if defined(DART_PRECOMPILED_RUNTIME)
+               AOT_##Class##_elements_start_offset);                           \
+  CHECK_OFFSET(Class::ArrayTraits::kElementSize, AOT_##Class##_element_size)
 #define CHECK_SIZEOF(Class, Name, What)                                        \
-  CHECK_OFFSET(sizeof(What), AOT_##Class##_##Name)
+  CHECK_OFFSET(sizeof(What), AOT_##Class##_##Name);
+#define CHECK_RANGE(Class, Getter, Type, First, Last, Filter)                  \
+  for (intptr_t i = static_cast<intptr_t>(First);                              \
+       i <= static_cast<intptr_t>(Last); i++) {                                \
+    if (Filter(static_cast<Type>(i))) {                                        \
+      CHECK_OFFSET(Class::Getter(static_cast<Type>(i)),                        \
+                   AOT_##Class##_##Getter[i]);                                 \
+    }                                                                          \
+  }
+#define CHECK_CONSTANT(Class, Name)                                            \
+  CHECK_OFFSET(Class::Name, AOT_##Class##_##Name);
 #else
+#define CHECK_FIELD(Class, Name) CHECK_OFFSET(Class::Name(), Class##_##Name);
+#define CHECK_ARRAY(Class, Name)                                               \
+  CHECK_OFFSET(Class::ArrayTraits::elements_start_offset(),                    \
+               Class##_elements_start_offset);                                 \
+  CHECK_OFFSET(Class::ArrayTraits::kElementSize, Class##_element_size);
 #define CHECK_SIZEOF(Class, Name, What)                                        \
-  CHECK_OFFSET(sizeof(What), Class##_##Name)
-#endif
+  CHECK_OFFSET(sizeof(What), Class##_##Name);
+#define CHECK_RANGE(Class, Getter, Type, First, Last, Filter)                  \
+  for (intptr_t i = static_cast<intptr_t>(First);                              \
+       i <= static_cast<intptr_t>(Last); i++) {                                \
+    if (Filter(static_cast<Type>(i))) {                                        \
+      CHECK_OFFSET(Class::Getter(static_cast<Type>(i)), Class##_##Getter[i]);  \
+    }                                                                          \
+  }
+#define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name);
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#define CHECK_RANGE(Class, Name, Type, First, Last, Filter)
-#define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name)
+  COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE,
+                      CHECK_CONSTANT)
 
-  OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_ARRAY_STRUCTFIELD, CHECK_SIZEOF,
-               CHECK_RANGE, CHECK_CONSTANT, NOT_IN_PRECOMPILED_RUNTIME)
+  NOT_IN_PRECOMPILED_RUNTIME(JIT_OFFSETS_LIST(
+      CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
 
   if (!ok) {
     FATAL(
@@ -237,13 +259,14 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
+    api_flags.is_system_isolate = true;
 
     // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
     // really an isolate itself - it acts more as a container for VM-global
     // objects.
-    std::unique_ptr<IsolateGroupSource> source(
-        new IsolateGroupSource(nullptr, kVmIsolateName, vm_isolate_snapshot,
-                               instructions_snapshot, nullptr, -1, api_flags));
+    std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
+        kVmIsolateName, kVmIsolateName, vm_isolate_snapshot,
+        instructions_snapshot, nullptr, -1, api_flags));
     // ObjectStore should be created later, after null objects are initialized.
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr,
                                   /*object_store=*/nullptr);
@@ -312,8 +335,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         // Must copy before leaving the zone.
         return Utils::StrDup(error.ToErrorCString());
       }
-
-      ReversePcLookupCache::BuildAndAttachToIsolateGroup(vm_isolate_->group());
 
       Object::FinishInit(vm_isolate_);
 #if defined(SUPPORT_TIMELINE)
@@ -412,7 +433,7 @@ static void DumpAliveIsolates(intptr_t num_attempts,
                               bool only_aplication_isolates) {
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate([&](Isolate* isolate) {
-      if (!only_aplication_isolates || !Isolate::IsVMInternalIsolate(isolate)) {
+      if (!only_aplication_isolates || !Isolate::IsSystemIsolate(isolate)) {
         OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
                      num_attempts, isolate->name());
       }
@@ -657,14 +678,6 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
   return isolate;
 }
 
-static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
-                                 Snapshot::Kind isolate_kind) {
-  if (vm_kind == isolate_kind) return true;
-  if (vm_kind == Snapshot::kFull && isolate_kind == Snapshot::kFullJIT)
-    return true;
-  return Snapshot::IsFull(isolate_kind);
-}
-
 #if defined(DART_PRECOMPILED_RUNTIME)
 static bool CloneIntoChildIsolateAOT(Thread* T,
                                      Isolate* I,
@@ -721,7 +734,6 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.raw();
     }
 
-    ReversePcLookupCache::BuildAndAttachToIsolateGroup(I->group());
     I->group()->set_saved_initial_field_table(
         std::shared_ptr<FieldTable>(I->field_table()->Clone()));
 
@@ -763,7 +775,7 @@ bool Dart::DetectNullSafety(const char* script_uri,
   //   generating the kernel file
   // - if loading from an appJIT, based on the mode used
   //   when generating the snapshot.
-  ASSERT(FLAG_null_safety == kNullSafetyOptionUnspecified);
+  ASSERT(FLAG_sound_null_safety == kNullSafetyOptionUnspecified);
 
   // If snapshot is an appJIT/AOT snapshot we will figure out the mode by
   // sniffing the feature string in the snapshot.
@@ -841,7 +853,7 @@ static void PrintLLVMConstantPool(Thread* T, Isolate* I) {
     }
     b.AddString("End of function pool.\n\n");
   }
-  THR_Print("%s", b.buf());
+  THR_Print("%s", b.buffer());
 }
 #endif
 
@@ -1025,7 +1037,7 @@ const char* Dart::FeaturesString(Isolate* isolate,
         buffer.AddString(" no-null-safety");
       }
     } else {
-      if (FLAG_null_safety == kNullSafetyOptionStrong) {
+      if (FLAG_sound_null_safety == kNullSafetyOptionStrong) {
         buffer.AddString(" null-safety");
       } else {
         buffer.AddString(" no-null-safety");

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -10,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
@@ -49,7 +48,7 @@ import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 
-typedef Printer = Function(String msg);
+typedef Printer = void Function(String msg);
 
 /// Describes a String in valid camel case format.
 @deprecated // Never intended for public use.
@@ -212,7 +211,7 @@ class Hyperlink {
 
   String get html => '<a href="$href">${_emph(label)}</a>';
 
-  String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
+  String _emph(String msg) => bold ? '<strong>$msg</strong>' : msg;
 }
 
 /// The result of attempting to evaluate an expression.
@@ -370,8 +369,6 @@ class LinterContextImpl implements LinterContext {
   @override
   LinterNameInScopeResolutionResult resolveNameInScope(
       String id, bool setter, AstNode node) {
-    var idEq = '$id=';
-
     Scope scope;
     for (var context = node; context != null; context = context.parent) {
       scope = ScopedVisitor.getNodeNameScope(context);
@@ -381,18 +378,9 @@ class LinterContextImpl implements LinterContext {
     }
 
     if (scope != null) {
-      Element idElement;
-      Element idEqElement;
-
-      void lookupScopeAndEnclosing() {
-        while (scope != null && idElement == null && idEqElement == null) {
-          idElement = scope.localLookup(id);
-          idEqElement = scope.localLookup(idEq);
-          scope = scope.enclosingScope;
-        }
-      }
-
-      lookupScopeAndEnclosing();
+      var lookupResult = scope.lookup2(id);
+      var idElement = lookupResult.getter;
+      var idEqElement = lookupResult.setter;
 
       var requestedElement = setter ? idEqElement : idElement;
       var differentElement = setter ? idElement : idEqElement;
@@ -682,7 +670,7 @@ class Maturity implements Comparable<Maturity> {
   const Maturity._(this.name, {this.ordinal});
 
   @override
-  int compareTo(Maturity other) => this.ordinal - other.ordinal;
+  int compareTo(Maturity other) => ordinal - other.ordinal;
 }
 
 /// [LintRule]s that implement this interface want to process only some types

@@ -7,8 +7,10 @@ import "native_testing.dart";
 // Verify that native fields on classes are not renamed by the minifier.
 @Native("A")
 class A {
-  int myLongPropertyName;
-  int getValue;
+  void set myLongPropertyName(int unused) native;
+  int get myLongPropertyName native;
+  void set getValue(int unused) native;
+  int get getValue native;
 
   int method(int z) => myLongPropertyName;
 }

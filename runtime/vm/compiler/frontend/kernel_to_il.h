@@ -79,6 +79,33 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
+
+  Fragment BuildDynamicCallVarsInit(LocalVariable* closure);
+
+  // The BuildClosureCall...Check methods differs from the checks built in the
+  // PrologueBuilder in that they are built for invoke field dispatchers,
+  // where the ArgumentsDescriptor is known at compile time but the specific
+  // closure function is retrieved at runtime.
+
+  // Builds checks that all required arguments are provided. Generates an empty
+  // fragment if null safety is not enabled.
+  Fragment BuildClosureCallHasRequiredNamedArgumentsCheck(
+      LocalVariable* closure,
+      JoinEntryInstr* nsm);
+
+  // Builds checks for checking the arguments of a call are valid for the
+  // function retrieved at runtime from the closure. Checks almost all the
+  // same cases as Function::AreArgumentsValid, leaving only name checking
+  // for optional named arguments to be checked during argument type checking.
+  Fragment BuildClosureCallArgumentsValidCheck(LocalVariable* closure,
+                                               JoinEntryInstr* nsm);
+
+  // Builds checks that the given named argument has a valid argument name.
+  // Returns the empty fragment for positional arguments.
+  Fragment BuildClosureCallNamedArgumentCheck(LocalVariable* closure,
+                                              intptr_t pos,
+                                              JoinEntryInstr* nsm);
+
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
   FlowGraph* BuildGraphOfFfiTrampoline(const Function& function);
   FlowGraph* BuildGraphOfFfiCallback(const Function& function);
@@ -351,6 +378,35 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //  - is_explicit_covariant_parameter()
   //
   FlowGraph* BuildGraphOfDynamicInvocationForwarder(const Function& function);
+
+  void SetConstantRangeOfCurrentDefinition(const Fragment& fragment,
+                                           int64_t min,
+                                           int64_t max);
+
+  // Extracts a packed field out of the unboxed value with representation [rep
+  // on the top of the stack. Picks a sequence that keeps unboxed values on the
+  // expression stack only as needed, switching to Smis as soon as possible.
+  template <typename T>
+  Fragment BuildExtractPackedFieldIntoSmi(Representation rep) {
+    Fragment instructions;
+    // Since kBIT_AND never throws or deoptimizes, we require that the result of
+    // masking the field in place fits into a Smi, so we can use Smi operations
+    // for the shift.
+    static_assert(T::mask_in_place() <= compiler::target::kSmiMax,
+                  "Cannot fit results of masking in place into a Smi");
+    instructions += UnboxedIntConstant(T::mask_in_place(), rep);
+    instructions += BinaryIntegerOp(Token::kBIT_AND, rep);
+    // Set the range of the definition that will be used as the value in the
+    // box so that ValueFitsSmi() can return true even in unoptimized code.
+    SetConstantRangeOfCurrentDefinition(instructions, 0, T::mask_in_place());
+    instructions += Box(rep);
+    if (T::shift() != 0) {
+      // Only add the shift operation if it's necessary.
+      instructions += IntConstant(T::shift());
+      instructions += SmiBinaryOp(Token::kSHR);
+    }
+    return instructions;
+  }
 
   TranslationHelper translation_helper_;
   Thread* thread_;

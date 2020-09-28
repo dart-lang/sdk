@@ -114,6 +114,11 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _SETTER_CONSTRUCTOR,
   _MEMBER_WITH_CLASS_NAME,
   _EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER,
+  _ABSTRACT_STATIC_FIELD,
+  _ABSTRACT_LATE_FIELD,
+  _EXTERNAL_LATE_FIELD,
+  _ABSTRACT_EXTERNAL_FIELD,
+  _ANNOTATION_ON_TYPE_ARGUMENT,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -121,6 +126,23 @@ const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
     r"Members of classes can't be declared to be 'abstract'.",
     correction:
         "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.");
+
+const ParserErrorCode _ABSTRACT_EXTERNAL_FIELD = ParserErrorCode(
+    'ABSTRACT_EXTERNAL_FIELD',
+    r"Fields can't be declared both 'abstract' and 'external'.",
+    correction: "Try removing the 'abstract' or 'external' keyword.");
+
+const ParserErrorCode _ABSTRACT_LATE_FIELD = ParserErrorCode(
+    'ABSTRACT_LATE_FIELD', r"Abstract fields cannot be late.",
+    correction: "Try removing the 'abstract' or 'late' keyword.");
+
+const ParserErrorCode _ABSTRACT_STATIC_FIELD = ParserErrorCode(
+    'ABSTRACT_STATIC_FIELD', r"Static fields can't be declared 'abstract'.",
+    correction: "Try removing the 'abstract' or 'static' keyword.");
+
+const ParserErrorCode _ANNOTATION_ON_TYPE_ARGUMENT = ParserErrorCode(
+    'ANNOTATION_ON_TYPE_ARGUMENT',
+    r"Type arguments can't have annotations because they aren't declarations.");
 
 const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = ParserErrorCode(
     'ANNOTATION_WITH_TYPE_ARGUMENTS',
@@ -304,6 +326,10 @@ const ParserErrorCode _EXTERNAL_FIELD = ParserErrorCode(
     'EXTERNAL_FIELD', r"Fields can't be declared to be 'external'.",
     correction:
         "Try removing the keyword 'external', or replacing the field by an external getter and/or setter.");
+
+const ParserErrorCode _EXTERNAL_LATE_FIELD = ParserErrorCode(
+    'EXTERNAL_LATE_FIELD', r"External fields cannot be late.",
+    correction: "Try removing the 'external' or 'late' keyword.");
 
 const ParserErrorCode _EXTERNAL_METHOD_WITH_BODY = ParserErrorCode(
     'EXTERNAL_METHOD_WITH_BODY',

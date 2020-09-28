@@ -7,7 +7,7 @@ class A {
 // [cfe] The non-abstract class 'A' is missing implementations for these members:
   B();
 //^^^^
-// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   static const field = const B();
   //                         ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER

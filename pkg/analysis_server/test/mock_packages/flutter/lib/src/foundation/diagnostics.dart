@@ -2,9 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-abstract class Diagnosticable with DiagnosticableMixin {}
-
+///// todo (pq): remove when linter 0.1.118 is integrated.
 mixin DiagnosticableMixin {}
+
+mixin Diagnosticable {}
+
+abstract class DiagnosticableTree with Diagnosticable {}
 
 class DiagnosticPropertiesBuilder {
   void add(DiagnosticsNode property) {}

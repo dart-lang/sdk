@@ -26,8 +26,8 @@ void testModifiableList(l1) {
   Expect.throwsRangeError(() => l1.removeAt(-1), "negative");
   Expect.throwsRangeError(() => l1.removeAt(5), "too large");
   Expect.throws(() => l1.removeAt(null),
-      // With --null-safety a TypeError is thrown
-      // With --no-null-safety an ArgumentError is thrown
+      // With sound null safety a TypeError is thrown.
+      // Without sound null safety an ArgumentError is thrown.
       (e) => e is TypeError || e is ArgumentError, "is null");
 
   Expect.equals(2, l1.removeAt(2), "l1-remove2");

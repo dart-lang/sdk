@@ -102,7 +102,7 @@ class Scanner {
   fasta.LanguageVersionToken get languageVersion => _languageVersion;
 
   set preserveComments(bool preserveComments) {
-    this._preserveComments = preserveComments;
+    _preserveComments = preserveComments;
   }
 
   /// Configures the scanner appropriately for the given [featureSet].
@@ -114,8 +114,8 @@ class Scanner {
     @required FeatureSet featureSetForOverriding,
     @required FeatureSet featureSet,
   }) {
-    this._featureSetForOverriding = featureSetForOverriding;
-    this._featureSet = featureSet;
+    _featureSetForOverriding = featureSetForOverriding;
+    _featureSet = featureSet;
     enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
     enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
   }

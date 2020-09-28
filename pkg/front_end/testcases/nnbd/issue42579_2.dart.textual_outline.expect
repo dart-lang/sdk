@@ -1,0 +1,9 @@
+class A<T> {
+  T get property => throw "A.property";
+}
+
+S foo<S>() => throw "foo";
+wrap<R>(R Function() f) {}
+wrap2<R>(A<R> Function() f) {}
+bar() {}
+main() {}

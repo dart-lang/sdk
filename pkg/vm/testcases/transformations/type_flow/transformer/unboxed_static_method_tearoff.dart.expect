@@ -9,9 +9,9 @@ class X extends core::Object {
 }
 [@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(1) ?{core::bool*} true : false;
 [@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(2) ?{core::bool*} true : false;
-static get mint() → core::int*
+[@vm.unboxing-info.metadata=()->i]static get mint() → core::int*
   return -6144092014192636707;
-static get smiOrMint() → core::int*
+[@vm.unboxing-info.metadata=()->i]static get smiOrMint() → core::int*
   return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : [@vm.inferred-type.metadata=int] self::mint;
 static method takePositional(core::int* unboxedSmi, dynamic unboxedInt, dynamic unboxedDouble, dynamic boxedNullableInt, dynamic boxedNullableDouble, dynamic boxedIntOrDouble, dynamic boxedNullableIntOrDouble, dynamic boxedNullableX, dynamic boxedX) → void {}
 static method takeOptional([@vm.inferred-type.metadata=dart.core::_Smi] core::int* unboxedSmi, [@vm.inferred-type.metadata=int] dynamic unboxedInt, [@vm.inferred-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-type.metadata=int?] dynamic boxedNullableInt, [@vm.inferred-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-type.metadata=!] dynamic boxedIntOrDouble, dynamic boxedNullableIntOrDouble, [@vm.inferred-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-type.metadata=#lib::X] dynamic boxedX) → void {}

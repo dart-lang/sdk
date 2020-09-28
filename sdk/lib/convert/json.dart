@@ -64,7 +64,7 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
 /// a local variable shadows the [json] constant.
 const JsonCodec json = JsonCodec();
 
-/// Converts [value] to a JSON string.
+/// Converts [object] to a JSON string.
 ///
 /// If value contains objects that are not directly encodable to a JSON
 /// string (a value that is not a number, boolean, string, null, list or a map

@@ -4,11 +4,11 @@
 
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:args/args.dart';
+import 'package:cli_util/cli_util.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -36,19 +36,30 @@ class ArgumentsTest with ResourceProviderMixin {
       '--packages=$defaultPackageFilePath',
     ];
     ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
+    ContextBuilderOptions options =
+        createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
-    expect(options.dartSdkSummaryPath, dartSdkSummaryPath);
+
+    expect(
+      options.defaultAnalysisOptionsFilePath,
+      endsWith(defaultAnalysisOptionsFilePath),
+    );
+    expect(
+      options.defaultPackageFilePath,
+      endsWith(defaultPackageFilePath),
+    );
+    expect(
+      options.dartSdkSummaryPath,
+      endsWith(dartSdkSummaryPath),
+    );
+
     Map<String, String> declaredVariables = options.declaredVariables;
     expect(declaredVariables, hasLength(2));
     expect(declaredVariables['foo'], '1');
     expect(declaredVariables['bar'], '2');
-    expect(
-        options.defaultAnalysisOptionsFilePath, defaultAnalysisOptionsFilePath);
-    expect(options.defaultPackageFilePath, defaultPackageFilePath);
+
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.strongMode, true);
     expect(defaultOptions.implicitCasts, false);
     expect(defaultOptions.implicitDynamic, false);
   }
@@ -58,7 +69,8 @@ class ArgumentsTest with ResourceProviderMixin {
     defineAnalysisArguments(parser);
     List<String> args = [];
     ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
+    ContextBuilderOptions options =
+        createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
     expect(options.dartSdkSummaryPath, isNull);
     expect(options.declaredVariables, isEmpty);
@@ -66,7 +78,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(options.defaultPackageFilePath, isNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.strongMode, true);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);
   }
@@ -78,8 +89,7 @@ class ArgumentsTest with ResourceProviderMixin {
     ArgResults result = parse(resourceProvider, parser, args);
     DartSdkManager manager = createDartSdkManager(resourceProvider, result);
     expect(manager, isNotNull);
-    expect(manager.defaultSdkDirectory,
-        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path);
+    expect(manager.defaultSdkDirectory, getSdkPath());
   }
 
   void test_createDartSdkManager_path() {
@@ -131,7 +141,8 @@ class ArgumentsTest with ResourceProviderMixin {
       '--implicit-casts',
     ];
     ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
+    ContextBuilderOptions options =
+        createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
@@ -145,7 +156,8 @@ class ArgumentsTest with ResourceProviderMixin {
       '--no-implicit-casts',
     ];
     ArgResults result = parse(resourceProvider, parser, args);
-    ContextBuilderOptions options = createContextBuilderOptions(result);
+    ContextBuilderOptions options =
+        createContextBuilderOptions(resourceProvider, result);
     expect(options, isNotNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);

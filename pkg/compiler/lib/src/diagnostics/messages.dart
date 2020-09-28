@@ -77,7 +77,6 @@ enum MessageKind {
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_INTEROP_FIELD_NOT_SUPPORTED,
   JS_INTEROP_NON_EXTERNAL_MEMBER,
-  JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
   JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_PLACEHOLDER_CAPTURE,
@@ -197,41 +196,14 @@ class MessageTemplate {
               """
           ]),
 
-      MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
-          const MessageTemplate(
-              MessageKind
-                  .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-              "Some parameters in anonymous js-interop class '#{cls}' "
-              "object literal constructor are positional instead of named."
-              ".",
-              howToFix: "Make all arguments in external factory object literal "
-                  "constructors named.",
-              examples: const [
-            """
-class Super {
-  factory Super.foo() => null;
-}
-class Class extends Super {
-  Class() : super.foo();
-}
-main() => new Class();
-"""
-          ]),
-
       MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER,
           "Js-interop members must be 'external'."),
 
-      MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS: const MessageTemplate(
-          MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
-          "Js-interop class members are only supported in js-interop classes.",
-          howToFix: "Try marking the enclosing class as js-interop or "
-              "remove the js-interop annotation from the member."),
-
       MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
           "Member '#{member}' in js-interop class '#{cls}' is not external.",
-          howToFix: "Try adding the 'external' to '#{member}'.",
+          howToFix: "Try adding 'external' to '#{member}'.",
           examples: const [
             """
               import 'package:js/js.dart';
@@ -247,27 +219,6 @@ main() => new Class();
               """
           ]),
 
-      MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS: const MessageTemplate(
-          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
-          "Js-interop method '#{method}' has named arguments but is not "
-          "a factory constructor of an @anonymous @JS class.",
-          howToFix: "Remove all named arguments from js-interop method or "
-              "in the case of a factory constructor annotate the class "
-              "as @anonymous.",
-          examples: const [
-            """
-              import 'package:js/js.dart';
-
-              @JS()
-              class Foo {
-                external bar(foo, {baz});
-              }
-
-              main() {
-                new Foo().bar(4, baz: 5);
-              }
-              """
-          ]),
       MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED:
           const MessageTemplate(
               MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED,

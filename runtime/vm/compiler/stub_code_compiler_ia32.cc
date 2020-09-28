@@ -2630,6 +2630,17 @@ void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
   __ Breakpoint();
 }
 
+void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
+    Assembler* assembler) {
+  // Not implemented on ia32.
+  __ Breakpoint();
+}
+
+void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
+  // Not implemented on ia32.
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   // Not implemented on ia32.
   __ Breakpoint();
@@ -2963,6 +2974,12 @@ void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
 
 void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ int3();  // Marker stub.
+}
+
+void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
+  __ int3();
 }
 
 // Instantiate type arguments from instantiator and function type args.

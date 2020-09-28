@@ -16,7 +16,7 @@ class Scope {
     map[name] = reference;
   }
 
-  void forEach(Function(String name, Reference reference) f) {
+  void forEach(void Function(String name, Reference reference) f) {
     map.forEach(f);
   }
 

@@ -10,7 +10,7 @@ main() {
   // This is somewhat brittle and relies on an implementation detail
   // of our test runner, but I can think of no other way to test this.
   // -- ahe
-  if (!thisScript.endsWith('/compute_this_script_test.js')) {
+  if (!thisScript!.endsWith('/compute_this_script_test.js')) {
     throw 'Unexpected script: "$thisScript"';
   }
 }

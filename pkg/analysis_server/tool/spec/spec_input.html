@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.28.0</version>
+  <version>1.29.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2156,6 +2156,44 @@
         <p>
           A list of fixes that can be specified
           in an edit.dartfix request.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="bulkFixes" experimental="true">
+    <p>
+      Analyze the specified sources for fixes that can be applied in bulk
+      and return a set of suggested edits for those sources.
+      These edits may include changes to sources outside the set
+      of specified sources if a change in a specified source requires it.
+    </p>
+    <params>
+      <field name="included">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          A list of the files and directories for which edits should be
+          suggested.
+        </p>
+        <p>
+          If a request is made with a path that is invalid, e.g. is not absolute
+          and normalized, an error of type <tt>INVALID_FILE_PATH_FORMAT</tt>
+          will be generated. If a request is made for a file which does not
+          exist, or which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>FILE_NOT_ANALYZED</tt> will be generated.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="edits">
+        <list>
+          <ref>SourceFileEdit</ref>
+        </list>
+        <p>
+          A list of source edits to apply the recommended changes.
         </p>
       </field>
     </result>

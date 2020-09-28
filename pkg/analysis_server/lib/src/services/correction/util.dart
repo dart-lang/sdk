@@ -212,6 +212,14 @@ String getElementQualifiedName(Element element) {
       kind == ElementKind.FIELD ||
       kind == ElementKind.METHOD) {
     return '${element.enclosingElement.displayName}.${element.displayName}';
+  } else if (kind == ElementKind.LIBRARY) {
+    // Libraries may not have names, so use a path relative to the context root.
+    final session = element.session;
+    final pathContext = session.resourceProvider.pathContext;
+    final rootPath = session.analysisContext.contextRoot.root.path;
+    final library = element as LibraryElement;
+
+    return pathContext.relative(library.source.fullName, from: rootPath);
   } else {
     return element.displayName;
   }

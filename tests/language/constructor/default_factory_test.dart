@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 abstract class Vehicle {
   factory Vehicle() = GoogleOne.Vehicle;
   //                  ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
   // [cfe] The constructor function type 'GoogleOne Function()' isn't a subtype of 'Vehicle Function()'.
 }
 

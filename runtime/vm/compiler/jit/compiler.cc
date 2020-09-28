@@ -502,8 +502,6 @@ void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped(
 }
 
 // Return null if bailed out.
-// If optimized_result_code is not NULL then it is caller's responsibility
-// to install code.
 CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
@@ -659,7 +657,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         //      those writes are observed atomically.
         //
         thread()->isolate_group()->RunWithStoppedMutators(
-            install_code_fun, install_code_fun, /*use_force_growth=*/true);
+            install_code_fun, /*use_force_growth=*/true);
       }
       if (!result->IsNull()) {
         // Must be called outside of safepoint.

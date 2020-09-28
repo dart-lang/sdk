@@ -13,10 +13,10 @@ import "package:expect/expect.dart";
 confuse(x) => x;
 
 void check2(String name, name1, f1, name2, f2) {
-  Error trap(part, f) {
+  Error? trap(part, f) {
     try {
       f();
-    } catch (e) {
+    } on Error catch (e) {
       return e;
     }
     Expect.fail('should throw: $name.$part');
@@ -52,7 +52,7 @@ class IntMinusNull {
   }
 
   static f4() {
-    return (confuse(1) as int) - null;
+    return (confuse(1) as int) - (null as dynamic);
   }
 
   static f5() {
@@ -62,11 +62,11 @@ class IntMinusNull {
 
   static f6() {
     var a = confuse(true) ? 1 : 2; // Small int with unknown value.
-    return a - null;
+    return a - (null as dynamic);
   }
 
   static f7() {
-    return 1 - null;
+    return 1 - (null as dynamic);
   }
 
   static test() {

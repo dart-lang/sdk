@@ -43,7 +43,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await openFile(mainFileUri, '');
     await expectLater(
-      () => getHover(mainFileUri, Position(999, 999)),
+      () => getHover(mainFileUri, Position(line: 999, character: 999)),
       throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)),
     );
   }

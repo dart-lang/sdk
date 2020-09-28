@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 /// Build summary for SDK at the given [sdkPath].
@@ -44,7 +45,11 @@ Uint8List buildSdkSummary({
     var file = resourceProvider.getFile(embedderYamlPath);
     var content = file.readAsStringSync();
     var map = loadYaml(content) as YamlMap;
-    var embedderSdk = EmbedderSdk(resourceProvider, {file.parent: map});
+    var embedderSdk = EmbedderSdk(
+      resourceProvider,
+      {file.parent: map},
+      languageVersion: sdk.languageVersion,
+    );
     for (var library in embedderSdk.sdkLibraries) {
       var uriStr = library.shortName;
       if (sdk.libraryMap.getLibrary(uriStr) == null) {
@@ -60,6 +65,7 @@ Uint8List buildSdkSummary({
   return _Builder(
     sdk.context,
     sdk.allowedExperimentsJson,
+    sdk.languageVersion,
     librarySources,
   ).build();
 }
@@ -73,11 +79,13 @@ class _Builder {
   final List<LinkInputLibrary> inputLibraries = [];
 
   AllowedExperiments allowedExperiments;
+  Version languageVersion;
   final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 
   _Builder(
     this.context,
     this.allowedExperimentsJson,
+    this.languageVersion,
     this.librarySources,
   ) {
     allowedExperiments = _parseAllowedExperiments(allowedExperimentsJson);
@@ -100,6 +108,10 @@ class _Builder {
       bundle2: linkResult.bundle,
       sdk: PackageBundleSdkBuilder(
         allowedExperimentsJson: allowedExperimentsJson,
+        languageVersion: LinkedLanguageVersionBuilder(
+          major: languageVersion.major,
+          minor: languageVersion.minor,
+        ),
       ),
     ).toBuffer();
 
@@ -146,15 +158,43 @@ class _Builder {
       if (pathSegments.isNotEmpty) {
         var libraryName = pathSegments.first;
         var experiments = allowedExperiments.forSdkLibrary(libraryName);
-        return FeatureSet.fromEnableFlags(experiments);
+        return FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: languageVersion,
+          flags: experiments,
+        );
       }
     }
     throw StateError('Expected a valid dart: URI: $uri');
   }
 
+  String _getContent(Source source) {
+    var uriStr = '${source.uri}';
+    var content = source.contents.data;
+
+    // https://github.com/google/json_serializable.dart/issues/692
+    // SDK 2.9 was released with the syntax that we later decided to remove.
+    // But the current analyzer still says that it supports SDK 2.9, so we
+    // have to be able to handle this code. We do this by rewriting it into
+    // the syntax that we support now.
+    if (uriStr == 'dart:core/uri.dart') {
+      return content.replaceAll(
+        'String? charsetName = parameters?.["charset"];',
+        'String? charsetName = parameters? ["charset"];',
+      );
+    }
+    if (uriStr == 'dart:_http/http_headers.dart') {
+      return content.replaceAll(
+        'return _originalHeaderNames?.[name] ?? name;',
+        'return _originalHeaderNames? [name] ?? name;',
+      );
+    }
+
+    return content;
+  }
+
   CompilationUnit _parse(Source source) {
     var result = parseString(
-      content: source.contents.data,
+      content: _getContent(source),
       featureSet: _featureSet(source.uri),
       throwIfDiagnostics: false,
     );

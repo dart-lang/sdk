@@ -24,12 +24,12 @@
 namespace dart {
 
 // Helper method to construct an induction debug string for loop hierarchy.
-void TestString(BufferFormatter* f,
+void TestString(BaseTextBuffer* f,
                 LoopInfo* loop,
                 const GrowableArray<BlockEntryInstr*>& preorder) {
   for (; loop != nullptr; loop = loop->next()) {
     intptr_t depth = loop->NestingDepth();
-    f->Print("%*c[%" Pd "\n", static_cast<int>(2 * depth), ' ', loop->id());
+    f->Printf("%*c[%" Pd "\n", static_cast<int>(2 * depth), ' ', loop->id());
     for (BitVector::Iterator block_it(loop->blocks()); !block_it.Done();
          block_it.Advance()) {
       BlockEntryInstr* block = preorder[block_it.Current()];
@@ -38,12 +38,12 @@ void TestString(BufferFormatter* f,
           InductionVar* induc = loop->LookupInduction(it.Current());
           if (induc != nullptr) {
             // Obtain the debug string for induction and bounds.
-            f->Print("%*c%s", static_cast<int>(2 * depth), ' ',
-                     induc->ToCString());
+            f->Printf("%*c%s", static_cast<int>(2 * depth), ' ',
+                      induc->ToCString());
             for (auto bound : induc->bounds()) {
-              f->Print(" %s", bound.limit_->ToCString());
+              f->Printf(" %s", bound.limit_->ToCString());
             }
-            f->Print("\n");
+            f->AddString("\n");
           }
         }
       }
@@ -51,13 +51,13 @@ void TestString(BufferFormatter* f,
         InductionVar* induc =
             loop->LookupInduction(it.Current()->AsDefinition());
         if (InductionVar::IsInduction(induc)) {
-          f->Print("%*c%s\n", static_cast<int>(2 * depth), ' ',
-                   induc->ToCString());
+          f->Printf("%*c%s\n", static_cast<int>(2 * depth), ' ',
+                    induc->ToCString());
         }
       }
     }
     TestString(f, loop->inner(), preorder);
-    f->Print("%*c]\n", static_cast<int>(2 * depth), ' ');
+    f->Printf("%*c]\n", static_cast<int>(2 * depth), ' ');
   }
 }
 

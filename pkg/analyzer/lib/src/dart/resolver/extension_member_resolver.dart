@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -159,7 +160,7 @@ class ExtensionMemberResolver {
 
     if (receiverType.isVoid) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, receiverExpression);
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
     } else if (!_typeSystem.isAssignableTo2(receiverType, node.extendedType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
@@ -370,17 +371,21 @@ class ExtensionMemberResolver {
   ) {
     var element = node.staticElement;
     var typeParameters = element.typeParameters;
-    if (typeParameters.isEmpty) {
-      return const <DartType>[];
-    }
-
     var typeArguments = node.typeArguments;
+
     if (typeArguments != null) {
       var arguments = typeArguments.arguments;
       if (arguments.length == typeParameters.length) {
+        if (typeParameters.isEmpty) {
+          return const <DartType>[];
+        }
         return arguments.map((a) => a.type).toList();
       } else {
-        // TODO(scheglov) Report an error.
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          typeArguments,
+          [element.name, typeParameters.length, arguments.length],
+        );
         return _listOfDynamic(typeParameters);
       }
     } else {

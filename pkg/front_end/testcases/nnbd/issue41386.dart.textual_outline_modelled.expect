@@ -1,0 +1,3 @@
+bool Function(T) predicate<T>(bool Function(T) fn) => (T val) => fn(val);
+void main() {}
+void test() {}

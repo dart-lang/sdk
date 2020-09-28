@@ -13,7 +13,7 @@ class Size {
 
   Size(num this.width, num this.height) {}
 
-  bool operator ==(Size other) {
+  bool operator ==(covariant Size other) {
     return other != null && width == other.width && height == other.height;
   }
 

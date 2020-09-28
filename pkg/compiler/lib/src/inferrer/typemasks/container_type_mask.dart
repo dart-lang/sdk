@@ -32,12 +32,12 @@ class ContainerTypeMask extends AllocationTypeMask {
 
   /// Deserializes a [ContainerTypeMask] object from [source].
   factory ContainerTypeMask.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld) {
+      DataSource source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask forwardTo = new TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask elementType = new TypeMask.readFromDataSource(source, closedWorld);
+    TypeMask elementType = new TypeMask.readFromDataSource(source, domain);
     int length = source.readIntOrNull();
     source.end(tag);
     return new ContainerTypeMask(
@@ -88,14 +88,14 @@ class ContainerTypeMask extends AllocationTypeMask {
   }
 
   @override
-  TypeMask intersection(TypeMask other, JClosedWorld closedWorld) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
+  TypeMask intersection(TypeMask other, CommonMasks domain) {
+    TypeMask forwardIntersection = forwardTo.intersection(other, domain);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
   @override
-  TypeMask union(dynamic other, JClosedWorld closedWorld) {
+  TypeMask union(dynamic other, CommonMasks domain) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -105,10 +105,9 @@ class ContainerTypeMask extends AllocationTypeMask {
     } else if (other.isContainer &&
         elementType != null &&
         other.elementType != null) {
-      TypeMask newElementType =
-          elementType.union(other.elementType, closedWorld);
+      TypeMask newElementType = elementType.union(other.elementType, domain);
       int newLength = (length == other.length) ? length : null;
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, closedWorld);
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       return new ContainerTypeMask(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,
@@ -118,7 +117,7 @@ class ContainerTypeMask extends AllocationTypeMask {
           newElementType,
           newLength);
     } else {
-      return forwardTo.union(other, closedWorld);
+      return forwardTo.union(other, domain);
     }
   }
 

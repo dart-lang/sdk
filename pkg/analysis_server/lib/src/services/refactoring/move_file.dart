@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:core';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -66,7 +65,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    var changeBuilder = ChangeBuilder();
+    var changeBuilder = ChangeBuilder(session: resolvedUnit.session);
     var element = resolvedUnit.unit.declaredElement;
     if (element == null) {
       return changeBuilder.sourceChange;
@@ -88,7 +87,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
               .where(
                   (po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
           if (partOfs.isNotEmpty) {
-            await changeBuilder.addFileEdit(
+            await changeBuilder.addDartFileEdit(
                 result.unit.declaredElement.source.fullName, (builder) {
               partOfs.forEach((po) {
                 final oldDir = pathContext.dirname(oldFile);
@@ -107,7 +106,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
         }
       }
 
-      await changeBuilder.addFileEdit(definingUnitResult.path, (builder) {
+      await changeBuilder.addDartFileEdit(definingUnitResult.path, (builder) {
         var oldDir = pathContext.dirname(oldFile);
         var newDir = pathContext.dirname(newFile);
         for (var directive in definingUnitResult.unit.directives) {
@@ -123,7 +122,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
           .where((po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
 
       if (partOfs.isNotEmpty) {
-        await changeBuilder.addFileEdit(element.source.fullName, (builder) {
+        await changeBuilder.addDartFileEdit(element.source.fullName, (builder) {
           partOfs.forEach((po) {
             final oldDir = pathContext.dirname(oldFile);
             final newDir = pathContext.dirname(newFile);
@@ -141,7 +140,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
         await refactoringWorkspace.searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {
-      await changeBuilder.addFileEdit(reference.file, (builder) {
+      await changeBuilder.addDartFileEdit(reference.file, (builder) {
         var newUri = _computeNewUri(reference);
         builder.addSimpleReplacement(reference.range, "'$newUri'");
       });

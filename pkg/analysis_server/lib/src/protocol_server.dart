@@ -152,16 +152,11 @@ DiagnosticMessage newDiagnosticMessage(
   var file = message.filePath;
   var offset = message.offset;
   var length = message.length;
-  var startLine = -1;
-  var startColumn = -1;
-  var lineInfo = result.session.getFile(file).lineInfo;
-  if (lineInfo != null) {
-    CharacterLocation lineLocation = lineInfo.getLocation(offset);
-    if (lineLocation != null) {
-      startLine = lineLocation.lineNumber;
-      startColumn = lineLocation.columnNumber;
-    }
-  }
+
+  var lineLocation = result.lineInfo.getLocation(offset);
+  var startLine = lineLocation.lineNumber;
+  var startColumn = lineLocation.columnNumber;
+
   return DiagnosticMessage(
       message.message, Location(file, offset, length, startLine, startColumn));
 }

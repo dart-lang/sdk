@@ -12,7 +12,7 @@ class A<T> {
     // potential subtype of the checked function types.
     return
 
-        /*checks=[],instance*/
+        /*checks=[$signature],instance*/
         (T t, String s) {};
   }
 }

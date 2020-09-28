@@ -153,7 +153,7 @@ class CollectionElementTest {
         'beginVariablesDeclaration a var',
         'handleIdentifier a localVariableDeclaration',
         'beginInitializedIdentifier a',
-        'handleNoVariableInitializer in',
+        'handleNoVariableInitializer a',
         'endInitializedIdentifier a',
         'endVariablesDeclaration 1 null',
         'handleForInitializerLocalVariableDeclaration a',
@@ -188,7 +188,7 @@ class CollectionElementTest {
         'beginVariablesDeclaration x var',
         'handleIdentifier x localVariableDeclaration',
         'beginInitializedIdentifier x',
-        'handleNoVariableInitializer in',
+        'handleNoVariableInitializer x',
         'endInitializedIdentifier x',
         'endVariablesDeclaration 1 null',
         'handleForInitializerLocalVariableDeclaration x',
@@ -206,7 +206,7 @@ class CollectionElementTest {
         'handleNoArguments )',
         'handleSend a )',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         // nested for (b in c)
         'beginForControlFlow null for',
         'handleIdentifier b expression',
@@ -250,7 +250,7 @@ class CollectionElementTest {
         'beginVariablesDeclaration x var',
         'handleIdentifier x localVariableDeclaration',
         'beginInitializedIdentifier x',
-        'handleNoVariableInitializer in',
+        'handleNoVariableInitializer x',
         'endInitializedIdentifier x',
         'endVariablesDeclaration 1 null',
         'handleForInitializerLocalVariableDeclaration x',
@@ -280,7 +280,7 @@ class CollectionElementTest {
         'beginVariablesDeclaration x var',
         'handleIdentifier x localVariableDeclaration',
         'beginInitializedIdentifier x',
-        'handleNoVariableInitializer in',
+        'handleNoVariableInitializer x',
         'endInitializedIdentifier x',
         'endVariablesDeclaration 1 null',
         'handleForInitializerLocalVariableDeclaration x',
@@ -344,7 +344,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         'handleLiteralInt 2',
         'endIfControlFlow 2',
         'handleLiteralList 1, [, null, ]',
@@ -359,7 +359,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         'handleLiteralInt 2',
         'handleElseControlFlow else',
         'handleLiteralInt 5',
@@ -377,7 +377,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         // nested for (x in y)
         'beginForControlFlow null for',
         'handleIdentifier x expression',
@@ -411,7 +411,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         // nested for (a in b)
         'beginForControlFlow null for',
         'handleIdentifier a expression',
@@ -439,7 +439,7 @@ class CollectionElementTest {
         'handleNoArguments )',
         'handleSend c )',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         // nested for (d in e)
         'beginForControlFlow null for',
         'handleIdentifier d expression',
@@ -474,7 +474,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         'handleNoTypeArguments [',
         'handleLiteralInt 2',
         'handleLiteralList 1, [, null, ]',
@@ -492,7 +492,7 @@ class CollectionElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         'handleNoTypeArguments [',
         'handleLiteralInt 2',
         'handleLiteralList 1, [, null, ]',
@@ -675,7 +675,7 @@ class MapElementTest {
         'beginVariablesDeclaration x var',
         'handleIdentifier x localVariableDeclaration',
         'beginInitializedIdentifier x',
-        'handleNoVariableInitializer in',
+        'handleNoVariableInitializer x',
         'endInitializedIdentifier x',
         'endVariablesDeclaration 1 null',
         'handleForInitializerLocalVariableDeclaration x',
@@ -706,7 +706,7 @@ class MapElementTest {
         'beginVariablesDeclaration x var',
         'handleIdentifier x localVariableDeclaration',
         'beginInitializedIdentifier x',
-        'handleNoVariableInitializer in',
+        'handleNoVariableInitializer x',
         'endInitializedIdentifier x',
         'endVariablesDeclaration 1 null',
         'handleForInitializerLocalVariableDeclaration x',
@@ -772,7 +772,7 @@ class MapElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         'handleLiteralInt 2',
         'handleLiteralInt 3',
         'handleLiteralMapEntry :, ',
@@ -788,7 +788,7 @@ class MapElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
-        'beginThenControlFlow )',
+        'handleThenControlFlow )',
         'handleNoTypeArguments {',
         'handleLiteralInt 2',
         'handleLiteralInt 3',
@@ -887,8 +887,8 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void beginThenControlFlow(Token token) {
-    calls.add('beginThenControlFlow $token');
+  void handleThenControlFlow(Token token) {
+    calls.add('handleThenControlFlow $token');
   }
 
   @override

@@ -7,14 +7,14 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class ConvertToMutilineString extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_MULTILINE_STRING;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is InterpolationElement) {
       node = (node as InterpolationElement).parent;
@@ -22,7 +22,7 @@ class ConvertToMutilineString extends CorrectionProducer {
     if (node is SingleStringLiteral) {
       var literal = node;
       if (!literal.isMultiline) {
-        await builder.addFileEdit(file, (builder) {
+        await builder.addDartFileEdit(file, (builder) {
           var newQuote = literal.isSingleQuoted ? "'''" : '"""';
           builder.addReplacement(
             SourceRange(literal.offset + (literal.isRaw ? 1 : 0), 1),

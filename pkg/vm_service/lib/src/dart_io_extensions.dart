@@ -4,8 +4,6 @@
 
 // TODO(bkonyi): autogenerate from service_extensions.md
 
-import 'dart:async';
-
 import 'package:meta/meta.dart';
 
 import 'vm_service.dart';

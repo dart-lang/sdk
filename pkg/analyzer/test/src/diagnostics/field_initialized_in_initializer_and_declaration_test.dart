@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class FieldInitializedInInitializerAndDeclarationTest
-    extends DriverResolutionTest {
+    extends PubPackageResolutionTest {
   test_both() async {
     await assertErrorsInCode('''
 class A {
@@ -23,8 +23,10 @@ class A {
   A() : x = 1;
 }
 ''', [
-      error(StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-          37, 1),
+      error(
+          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          37,
+          1),
     ]);
   }
 }

@@ -539,7 +539,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
       namedParameters.add(variable.name);
       namedParameterTypes.add(getParameterType(variable));
-      if (variable.isRequired && !options.useLegacySubtyping) {
+      if (variable.isRequired) {
         requiredNamedParameters.add(variable.name);
       }
     }
@@ -1191,7 +1191,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       String path = canonicalUri.path;
       name = path.substring(path.lastIndexOf('/') + 1);
     }
-    IndexedLibrary library = createLibrary(name, canonicalUri);
+    IndexedLibrary library =
+        createLibrary(name, canonicalUri, node.isNonNullableByDefault);
     return libraries.register(library, new KLibraryData(node),
         libraryEnv ?? env.lookupLibrary(canonicalUri));
   }
@@ -1597,8 +1598,9 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         isJsInterop: isJsInterop);
   }
 
-  IndexedLibrary createLibrary(String name, Uri canonicalUri) {
-    return new KLibrary(name, canonicalUri);
+  IndexedLibrary createLibrary(
+      String name, Uri canonicalUri, bool isNonNullableByDefault) {
+    return new KLibrary(name, canonicalUri, isNonNullableByDefault);
   }
 
   IndexedClass createClass(LibraryEntity library, String name,
@@ -1910,6 +1912,15 @@ class KernelElementEnvironment extends ElementEnvironment
     assert(elementMap.checkFamily(cls));
     KClassData classData = elementMap.classes.getData(cls);
     return classData.isEnumClass;
+  }
+
+  @override
+  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
+    if (!isMixinApplication(cls)) return null;
+    do {
+      cls = elementMap.getAppliedMixin(cls);
+    } while (isMixinApplication(cls));
+    return cls;
   }
 }
 

@@ -42,10 +42,12 @@ import '../fasta_codes.dart'
         messageConstEvalFailedAssertion,
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
+        messageConstEvalNonNull,
         messageConstEvalNullValue,
         messageConstEvalStartingPoint,
         messageConstEvalUnevaluated,
         messageNonAgnosticConstant,
+        messageNotAConstantExpression,
         noLength,
         templateConstEvalCaseImplementsEqual,
         templateConstEvalDeferredLibrary,
@@ -76,13 +78,16 @@ Component transformComponent(
     Map<String, String> environmentDefines,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    {bool keepFields: true,
-    bool evaluateAnnotations: true,
-    bool desugarSets: false,
-    bool enableTripleShift: false,
-    bool errorOnUnevaluatedConstant: false,
+    {bool evaluateAnnotations,
+    bool desugarSets,
+    bool enableTripleShift,
+    bool errorOnUnevaluatedConstant,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
+  assert(evaluateAnnotations != null);
+  assert(desugarSets != null);
+  assert(enableTripleShift != null);
+  assert(errorOnUnevaluatedConstant != null);
   coreTypes ??= new CoreTypes(component);
   hierarchy ??= new ClassHierarchy(component, coreTypes);
 
@@ -91,7 +96,6 @@ Component transformComponent(
 
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter, evaluationMode,
-      keepFields: keepFields,
       desugarSets: desugarSets,
       enableTripleShift: enableTripleShift,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
@@ -106,15 +110,17 @@ void transformLibraries(
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    {bool keepFields: true,
-    bool evaluateAnnotations: true,
-    bool desugarSets: false,
-    bool enableTripleShift: false,
-    bool errorOnUnevaluatedConstant: false}) {
+    {bool evaluateAnnotations,
+    bool desugarSets,
+    bool enableTripleShift,
+    bool errorOnUnevaluatedConstant}) {
+  assert(evaluateAnnotations != null);
+  assert(desugarSets != null);
+  assert(enableTripleShift != null);
+  assert(errorOnUnevaluatedConstant != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
-      keepFields,
       evaluateAnnotations,
       desugarSets,
       enableTripleShift,
@@ -125,6 +131,34 @@ void transformLibraries(
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
   }
+}
+
+void transformProcedure(
+    Procedure procedure,
+    ConstantsBackend backend,
+    Map<String, String> environmentDefines,
+    TypeEnvironment typeEnvironment,
+    ErrorReporter errorReporter,
+    EvaluationMode evaluationMode,
+    {bool evaluateAnnotations: true,
+    bool desugarSets: false,
+    bool enableTripleShift: false,
+    bool errorOnUnevaluatedConstant: false}) {
+  assert(evaluateAnnotations != null);
+  assert(desugarSets != null);
+  assert(enableTripleShift != null);
+  assert(errorOnUnevaluatedConstant != null);
+  final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
+      backend,
+      environmentDefines,
+      evaluateAnnotations,
+      desugarSets,
+      enableTripleShift,
+      errorOnUnevaluatedConstant,
+      typeEnvironment,
+      errorReporter,
+      evaluationMode);
+  constantsTransformer.visitProcedure(procedure);
 }
 
 enum EvaluationMode {
@@ -292,8 +326,6 @@ class ConstantsTransformer extends Transformer {
   final TypeEnvironment typeEnvironment;
   StaticTypeContext _staticTypeContext;
 
-  /// Whether to preserve constant [Field]s.  All use-sites will be rewritten.
-  final bool keepFields;
   final bool evaluateAnnotations;
   final bool desugarSets;
   final bool enableTripleShift;
@@ -302,7 +334,6 @@ class ConstantsTransformer extends Transformer {
   ConstantsTransformer(
       this.backend,
       Map<String, String> environmentDefines,
-      this.keepFields,
       this.evaluateAnnotations,
       this.desugarSets,
       this.enableTripleShift,
@@ -316,6 +347,13 @@ class ConstantsTransformer extends Transformer {
             enableTripleShift: enableTripleShift,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
             evaluationMode: evaluationMode);
+
+  /// Whether to preserve constant [Field]s. All use-sites will be rewritten.
+  bool get keepFields => backend.keepFields;
+
+  /// Whether to preserve constant [VariableDeclaration]s. All use-sites will be
+  /// rewritten.
+  bool get keepLocals => backend.keepLocals;
 
   // Transform the library/class members:
 
@@ -489,7 +527,7 @@ class ConstantsTransformer extends Transformer {
           ..parent = node;
 
         // If this constant is inlined, remove it.
-        if (shouldInline(node.initializer)) {
+        if (!keepLocals && shouldInline(node.initializer)) {
           if (constant is! UnevaluatedConstant) {
             // If the constant is unevaluated we need to keep the expression,
             // so that, in the case the constant contains error but the local
@@ -1785,7 +1823,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (node.receiver is ThisExpression) {
       // Access "this" during instance creation.
       if (instanceBuilder == null) {
-        return reportInvalid(node, 'Instance field access outside constructor');
+        return report(node, messageNotAConstantExpression);
       }
       for (final Field field in instanceBuilder.fields.keys) {
         if (field.name == node.name) {
@@ -2203,6 +2241,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   @override
+  Constant visitNullCheck(NullCheck node) {
+    final Constant constant = _evaluateSubexpression(node.operand);
+    if (constant is NullConstant) {
+      return report(node, messageConstEvalNonNull);
+    }
+    if (shouldBeUnevaluated) {
+      return unevaluated(node, new NullCheck(extract(constant)));
+    }
+    return constant;
+  }
+
+  @override
   Constant visitSymbolLiteral(SymbolLiteral node) {
     final Reference libraryReference =
         node.value.startsWith('_') ? libraryOf(node).reference : null;
@@ -2252,6 +2302,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (a is DoubleConstant && b is DoubleConstant) {
       if (a.value.isNaN && b.value.isNaN) return falseConstant;
       if (a.value == 0.0 && b.value == 0.0) return trueConstant;
+    }
+
+    if (a is DoubleConstant && b is IntConstant) {
+      return makeBoolConstant(a.value == b.value);
+    }
+
+    if (a is IntConstant && b is DoubleConstant) {
+      return makeBoolConstant(a.value == b.value);
     }
     return null;
   }

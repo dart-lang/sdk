@@ -4,13 +4,10 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/lint/registry.dart';
-import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,55 +16,48 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisDriverCachingTest extends DriverResolutionTest {
+class AnalysisDriverCachingTest extends PubPackageResolutionTest {
   List<Set<String>> get _linkedCycles {
+    var driver = driverFor(testFilePath);
     return driver.test.libraryContext.linkedCycles;
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    registerLintRules();
-  }
-
   test_lints() async {
-    var path = convertPath('/test/lib/test.dart');
-
-    newFile(path, content: r'''
+    newFile(testFilePath, content: r'''
 void f() {
   ![0].isEmpty;
 }
 ''');
 
     // We don't have any lints configured, so no errors.
-    assertErrorsInList(
-      (await driver.getErrors(path)).errors,
-      [],
-    );
+    await resolveTestFile();
+    assertErrorsInResult([]);
 
     // The summary for the library was linked.
-    _assertHasLinkedCycle({path}, andClear: true);
+    _assertContainsLinkedCycle({testFilePath}, andClear: true);
+
+    // We will recreate it with new analysis options.
+    // But we will reuse the byte store, so can reuse summaries.
+    disposeAnalysisContextCollection();
 
     // Configure to run a lint.
-    driver.configure(
-      analysisOptions: AnalysisOptionsImpl()
-        ..lint = true
-        ..lintRules = [
-          Registry.ruleRegistry.getRule('prefer_is_not_empty'),
-        ],
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        lints: ['prefer_is_not_empty'],
+      ),
     );
 
     // Check that the lint was run, and reported.
-    _assertHasLintReported(
-      (await driver.getErrors(path)).errors,
-      'prefer_is_not_empty',
-    );
+    await resolveTestFile();
+    _assertHasLintReported(result.errors, 'prefer_is_not_empty');
 
     // Lints don't affect summaries, nothing should be linked.
     _assertNoLinkedCycles();
   }
 
-  void _assertHasLinkedCycle(Set<String> expected, {bool andClear = false}) {
+  void _assertContainsLinkedCycle(Set<String> expectedPosix,
+      {bool andClear = false}) {
+    var expected = expectedPosix.map(convertPath).toSet();
     expect(_linkedCycles, contains(unorderedEquals(expected)));
     if (andClear) {
       _linkedCycles.clear();

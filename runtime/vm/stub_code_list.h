@@ -70,12 +70,15 @@ namespace dart {
   V(DefaultNullableTypeTest)                                                   \
   V(TopTypeTypeTest)                                                           \
   V(UnreachableTypeTest)                                                       \
+  V(TypeParameterTypeTest)                                                     \
+  V(NullableTypeParameterTypeTest)                                             \
   V(SlowTypeTest)                                                              \
   V(LazySpecializeTypeTest)                                                    \
   V(LazySpecializeNullableTypeTest)                                            \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)                                                     \
+  V(NotLoaded)                                                                 \
   V(DispatchTableNullError)                                                    \
   V(NullErrorSharedWithFPURegs)                                                \
   V(NullErrorSharedWithoutFPURegs)                                             \

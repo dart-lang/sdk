@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class UnusedImportTest extends DriverResolutionTest {
+class UnusedImportTest extends PubPackageResolutionTest {
   test_annotationOnDirective() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {
   const A() {}
 }
@@ -28,7 +28,7 @@ import 'lib1.dart';
   }
 
   test_as() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 ''');
     await assertErrorsInCode(r'''
@@ -42,10 +42,10 @@ one.A a;
 
   test_as_equalPrefixes_referenced() async {
     // 18818
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 ''');
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 class B {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -59,10 +59,10 @@ one.B b;
   @failingTest
   test_as_equalPrefixes_unreferenced() async {
     // See todo at ImportsVerifier.prefixElementMap.
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 ''');
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 class B {}
 ''');
     await assertErrorsInCode(r'''
@@ -81,11 +81,11 @@ import 'dart:core';
   }
 
   test_export() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 export 'lib2.dart';
 class One {}
 ''');
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 class Two {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -95,15 +95,15 @@ Two two;
   }
 
   test_export2() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 export 'lib2.dart';
 class One {}
 ''');
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 export 'lib3.dart';
 class Two {}
 ''');
-    newFile('/test/lib/lib3.dart', content: r'''
+    newFile('$testPackageLibPath/lib3.dart', content: r'''
 class Three {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -113,15 +113,15 @@ Three three;
   }
 
   test_export_infiniteLoop() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 export 'lib2.dart';
 class One {}
 ''');
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 export 'lib3.dart';
 class Two {}
 ''');
-    newFile('/test/lib/lib3.dart', content: r'''
+    newFile('$testPackageLibPath/lib3.dart', content: r'''
 export 'lib2.dart';
 class Three {}
 ''');
@@ -132,7 +132,7 @@ Two two;
   }
 
   test_extension_instance_call() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on int {
   int call(int x) => 0;
 }
@@ -147,7 +147,7 @@ f() {
   }
 
   test_extension_instance_getter() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   String get empty => '';
 }
@@ -162,7 +162,7 @@ f() {
   }
 
   test_extension_instance_method() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   String empty() => '';
 }
@@ -177,7 +177,7 @@ f() {
   }
 
   test_extension_instance_operator_binary() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   String operator -(String s) => this;
 }
@@ -192,7 +192,7 @@ f() {
   }
 
   test_extension_instance_operator_index() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on int {
   int operator [](int i) => 0;
 }
@@ -207,7 +207,7 @@ f() {
   }
 
   test_extension_instance_operator_unary() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   void operator -() {}
 }
@@ -222,7 +222,7 @@ f() {
   }
 
   test_extension_instance_setter() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   void set foo(int i) {}
 }
@@ -237,7 +237,7 @@ f() {
   }
 
   test_extension_override_getter() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   String get empty => '';
 }
@@ -252,7 +252,7 @@ f() {
   }
 
   test_extension_static_field() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   static const String empty = '';
 }
@@ -267,7 +267,7 @@ f() {
   }
 
   test_hide() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 ''');
     await assertErrorsInCode(r'''
@@ -287,7 +287,7 @@ import 'dart:async';
   }
 
   test_metadata() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 const x = 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -301,12 +301,12 @@ class A {
   }
 
   test_multipleExtensions() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 extension E on String {
   String a() => '';
 }
 ''');
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 extension E on String {
   String b() => '';
 }
@@ -324,7 +324,7 @@ f() {
   }
 
   test_prefix_topLevelFunction() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class One {}
 topLevelFunction() {}
 ''');
@@ -343,7 +343,7 @@ class A {
   }
 
   test_prefix_topLevelFunction2() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class One {}
 topLevelFunction() {}
 ''');
@@ -364,7 +364,7 @@ class A {
   }
 
   test_show() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 class B {}
 ''');
@@ -378,7 +378,7 @@ A a;
   }
 
   test_unusedImport() async {
-    newFile('/test/lib/lib1.dart');
+    newFile('$testPackageLibPath/lib1.dart');
     await assertErrorsInCode(r'''
 import 'lib1.dart';
 ''', [

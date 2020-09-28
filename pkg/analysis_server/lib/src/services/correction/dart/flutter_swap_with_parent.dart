@@ -6,14 +6,14 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_swap_with_child.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class FlutterSwapWithParent extends FlutterParentAndChild {
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_SWAP_WITH_PARENT;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var child = flutter.identifyNewExpression(node);
     if (!flutter.isWidgetCreation(child)) {
       return;

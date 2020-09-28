@@ -12,11 +12,9 @@
 #include "bin/namespace.h"
 #include "bin/platform.h"
 #include "bin/utils.h"
-
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "include/dart_tools_api.h"
-
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
@@ -66,6 +64,29 @@ static bool IsWindowsHost() {
 #else   // defined(HOST_OS_WINDOWS)
   return false;
 #endif  // defined(HOST_OS_WINDOWS)
+}
+
+Dart_Handle CommandLineOptions::CreateRuntimeOptions() {
+  Dart_Handle string_type = DartUtils::GetDartType("dart:core", "String");
+  if (Dart_IsError(string_type)) {
+    return string_type;
+  }
+  Dart_Handle dart_arguments =
+      Dart_NewListOfTypeFilled(string_type, Dart_EmptyString(), count_);
+  if (Dart_IsError(dart_arguments)) {
+    return dart_arguments;
+  }
+  for (int i = 0; i < count_; i++) {
+    Dart_Handle argument_value = DartUtils::NewString(GetArgument(i));
+    if (Dart_IsError(argument_value)) {
+      return argument_value;
+    }
+    Dart_Handle result = Dart_ListSetAt(dart_arguments, i, argument_value);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+  }
+  return dart_arguments;
 }
 
 int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {

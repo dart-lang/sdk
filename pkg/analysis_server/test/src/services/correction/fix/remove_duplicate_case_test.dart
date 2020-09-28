@@ -23,6 +23,40 @@ class RemoveDuplicateCaseTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.no_duplicate_case_values;
 
+  Future<void> test_fallThroughFromPrevious() async {
+    await resolveTestUnit('''
+void switchInt() {
+  switch (2) {
+    case 1:
+      print('a');
+      break;
+    case 2:
+    case 3:
+    case 2:
+      print('b');
+      break;
+    default:
+      print('?');
+  }
+}
+''');
+    await assertHasFix('''
+void switchInt() {
+  switch (2) {
+    case 1:
+      print('a');
+      break;
+    case 2:
+    case 3:
+      print('b');
+      break;
+    default:
+      print('?');
+  }
+}
+''');
+  }
+
   Future<void> test_removeIntCase() async {
     await resolveTestUnit('''
 void switchInt() {
@@ -62,7 +96,7 @@ void switchString() {
     case 'b':
       print('b');
       break;
-    case 'a' :
+    case 'a':
       print('a');
       break;
     default:

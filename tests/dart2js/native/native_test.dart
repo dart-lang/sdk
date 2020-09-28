@@ -32,7 +32,7 @@ nativeTopLevelFunction() native;
 
 class Class {
   Class.generative();
-  factory Class.fact() => null;
+  factory Class.fact() => null as dynamic;
 
   // NON_NATIVE_EXTERNAL               //# 08: compile-time error
   external Class.externalGenerative(); //# 08: continued
@@ -92,7 +92,7 @@ class Class {
 class NativeClass {
   NativeClass.generative();
 
-  factory NativeClass.fact() => null;
+  factory NativeClass.fact() => null as dynamic;
 
   // NON_NATIVE_EXTERNAL                     //# 31: compile-time error
   external NativeClass.externalGenerative(); //# 31: continued

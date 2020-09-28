@@ -32,7 +32,7 @@ void main() {
   // Inferred type of String does not satisfy the bound.
   s.e1;
 //  ^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 // [cfe] The getter 'e1' isn't defined for the class 'String'.
   E1(s).e1;
 //^^
@@ -56,7 +56,7 @@ void main() {
   // Inferred type of String does not satisfy the bound.
   s.e2;
 //  ^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 // [cfe] The getter 'e2' isn't defined for the class 'String'.
   E2(s).e2;
 //^^
@@ -123,7 +123,7 @@ void main() {
   // Inferred super-bounded type is invalid as type argument
   superRec.e4;
 //         ^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 // [cfe] The getter 'e4' isn't defined for the class 'Rec<dynamic>'.
   E4(superRec).e4;
 //^^

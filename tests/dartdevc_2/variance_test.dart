@@ -9,7 +9,7 @@
 // Tests the emission of explicit variance modifiers.
 
 import 'dart:_runtime'
-    show wrapType, unwrapType, getGenericArgVariances, Variance, typeRep;
+    show getGenericArgVariances, Variance, legacyTypeRep;
 
 import 'package:expect/expect.dart';
 
@@ -27,27 +27,27 @@ mixin F<in T> {}
 
 class G<inout T> = Object with F<T>;
 
-List getVariances(Object t) {
-  // TODO(nshahan) Update to handle legacy wrapper when we unfork dart:_runtime.
-  var type = unwrapType(wrapType(t));
-  return getGenericArgVariances(type);
+List getVariances(dynamic type) {
+  // TODO(nshahan) Revisit when we decide if getGenericArgVariances will handle
+  // legacy and nullable wrappers.
+  return getGenericArgVariances(type.type);
 }
 
 main() {
-  Expect.listEquals([Variance.contravariant], getVariances(typeRep<A>()));
+  Expect.listEquals([Variance.contravariant], getVariances(legacyTypeRep<A>()));
 
-  Expect.listEquals([Variance.covariant], getVariances(typeRep<B>()));
+  Expect.listEquals([Variance.covariant], getVariances(legacyTypeRep<B>()));
 
-  Expect.listEquals([Variance.invariant], getVariances(typeRep<C>()));
+  Expect.listEquals([Variance.invariant], getVariances(legacyTypeRep<C>()));
 
   // Implicit variance is not emitted into the generated code.
-  Expect.isNull(getVariances(typeRep<D>()));
+  Expect.isNull(getVariances(legacyTypeRep<D>()));
 
   Expect.listEquals(
       [Variance.invariant, Variance.covariant, Variance.contravariant],
-      getVariances(typeRep<E>()));
+      getVariances(legacyTypeRep<E>()));
 
-  Expect.listEquals([Variance.contravariant], getVariances(typeRep<F>()));
+  Expect.listEquals([Variance.contravariant], getVariances(legacyTypeRep<F>()));
 
-  Expect.listEquals([Variance.invariant], getVariances(typeRep<G>()));
+  Expect.listEquals([Variance.invariant], getVariances(legacyTypeRep<G>()));
 }

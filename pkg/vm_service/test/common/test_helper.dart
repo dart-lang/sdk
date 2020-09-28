@@ -22,11 +22,6 @@ const List<String> extraDebuggingArgs = useCausalAsyncStacks
     ? ['--causal-async-stacks', '--no-lazy-async-stacks']
     : ['--no-causal-async-stacks', '--lazy-async-stacks'];
 
-List<IsolateTest> ifLazyAsyncStacks(List<IsolateTest> lazyTests) {
-  if (useCausalAsyncStacks) return const <IsolateTest>[];
-  return lazyTests;
-}
-
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.
 String serviceHttpAddress;
@@ -222,13 +217,13 @@ class _ServiceTesteeLauncher {
           first = false;
           print('** Signaled to run test queries on $uri');
         }
-        print('>testee>out> $line');
+        stdout.write('>testee>out> ${line}\n');
       });
       process.stderr
           .transform(utf8.decoder)
           .transform(LineSplitter())
           .listen((line) {
-        print('>testee>err> $line');
+        stdout.write('>testee>err> ${line}\n');
       });
       process.exitCode.then((exitCode) {
         if ((exitCode != 0) && !killedByTester) {

@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AmbiguousExtensionMemberAccessTest extends DriverResolutionTest {
+class AmbiguousExtensionMemberAccessTest extends PubPackageResolutionTest {
   test_call() async {
     await assertErrorsInCode('''
 class A {}
@@ -30,8 +30,7 @@ extension E2 on A {
 int f(A a) => a();
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 110, 1),
-      error(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 110, 1),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 110, 1),
     ]);
   }
 

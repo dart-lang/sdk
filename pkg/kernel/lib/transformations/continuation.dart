@@ -392,8 +392,10 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
             VariableDeclaration(ContinuationVariables.iteratorParam)
               ..type = InterfaceType(
                   helper.syncIteratorClass, staticTypeContext.nullable, [
-                ContinuationRewriterBase.elementTypeFrom(
-                    helper.iterableClass, enclosingFunction.returnType)
+                // Note: This is dynamic since nested iterators (of potentially
+                // different type) are handled by shared internal synthetic
+                // code.
+                const DynamicType(),
               ]),
         super(helper, enclosingFunction, staticTypeContext);
 

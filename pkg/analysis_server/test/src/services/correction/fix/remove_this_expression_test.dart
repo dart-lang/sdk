@@ -55,48 +55,12 @@ class A {
 ''');
   }
 
-  Future<void> test_methodInvocation_twoCharactersOperator() async {
-    await resolveTestUnit('''
-class A {
-  void foo() {
-    this?.foo();
-  }
-}
-''');
-    await assertHasFix('''
-class A {
-  void foo() {
-    foo();
-  }
-}
-''');
-  }
-
   Future<void> test_propertyAccess_oneCharacterOperator() async {
     await resolveTestUnit('''
 class A {
   int x;
   void foo() {
     this.x = 2;
-  }
-}
-''');
-    await assertHasFix('''
-class A {
-  int x;
-  void foo() {
-    x = 2;
-  }
-}
-''');
-  }
-
-  Future<void> test_propertyAccess_twoCharactersOperator() async {
-    await resolveTestUnit('''
-class A {
-  int x;
-  void foo() {
-    this?.x = 2;
   }
 }
 ''');

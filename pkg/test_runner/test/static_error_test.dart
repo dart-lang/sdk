@@ -11,6 +11,7 @@ import 'utils.dart';
 void main() {
   testHasError();
   testErrorFor();
+  testIsWarning();
   testIsSpecifiedFor();
   testCompareTo();
   testDescribeDifferences();
@@ -76,6 +77,42 @@ void testErrorFor() {
   Expect.equals("E.CODE", all.errorFor(ErrorSource.analyzer));
   Expect.equals("Error.", all.errorFor(ErrorSource.cfe));
   Expect.equals("Web.", all.errorFor(ErrorSource.web));
+}
+
+void testIsWarning() {
+  // Analyzer only.
+  Expect.isTrue(
+      makeError(analyzerError: "STATIC_WARNING.INVALID_OPTION").isWarning);
+  Expect.isFalse(
+      makeError(analyzerError: "SYNTACTIC_ERROR.MISSING_FUNCTION_BODY")
+          .isWarning);
+  Expect.isFalse(makeError(
+          analyzerError: "COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS")
+      .isWarning);
+
+  // CFE only.
+  Expect.isFalse(makeError(cfeError: "Any error message.").isWarning);
+
+  // Web only.
+  Expect.isFalse(makeError(webError: "Any error message.").isWarning);
+
+  // Multiple front ends.
+  Expect.isFalse(makeError(
+          analyzerError: "STATIC_WARNING.INVALID_OPTION",
+          cfeError: "Any error message.")
+      .isWarning);
+  Expect.isFalse(
+      makeError(cfeError: "Any error message.", webError: "Any error message.")
+          .isWarning);
+  Expect.isFalse(makeError(
+          analyzerError: "STATIC_WARNING.INVALID_OPTION",
+          webError: "Any error message.")
+      .isWarning);
+  Expect.isFalse(makeError(
+          analyzerError: "STATIC_WARNING.INVALID_OPTION",
+          cfeError: "Any error message.",
+          webError: "Any error message.")
+      .isWarning);
 }
 
 void testIsSpecifiedFor() {

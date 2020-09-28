@@ -91,10 +91,11 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
 CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
+  auto isolate = Isolate::Current();
+
   if (type.IsTypeRef()) {
-    return Isolate::Current()->null_safety()
-               ? StubCode::DefaultTypeTest().raw()
-               : StubCode::DefaultNullableTypeTest().raw();
+    return isolate->null_safety() ? StubCode::DefaultTypeTest().raw()
+                                  : StubCode::DefaultNullableTypeTest().raw();
   }
 
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -109,8 +110,16 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
   if (type.IsTopTypeForSubtyping()) {
     return StubCode::TopTypeTypeTest().raw();
   }
+  if (type.IsTypeParameter()) {
+    const bool nullable = Instance::NullIsAssignableTo(type);
+    if (nullable) {
+      return StubCode::NullableTypeParameterTypeTest().raw();
+    } else {
+      return StubCode::TypeParameterTypeTest().raw();
+    }
+  }
 
-  if (type.IsType() || type.IsTypeParameter()) {
+  if (type.IsType()) {
     const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
     const bool nullable = Instance::NullIsAssignableTo(type);
     if (should_specialize) {
@@ -144,7 +153,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
 #if !defined(TARGET_ARCH_IA32)
   ASSERT(StubCode::HasBeenInitialized());
 
-  if (type.IsTypeRef()) {
+  if (type.IsTypeRef() || type.IsTypeParameter()) {
     return TypeTestingStubGenerator::DefaultCodeForType(
         type, /*lazy_specialize=*/false);
   }
@@ -226,8 +235,8 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   //   a) We allocate an instructions object, which might cause us to
   //      temporarily flip page protections from (RX -> RW -> RX).
   //
-  thread->isolate_group()->RunWithStoppedMutators(
-      install_code_fun, install_code_fun, /*use_force_growth=*/true);
+  thread->isolate_group()->RunWithStoppedMutators(install_code_fun,
+                                                  /*use_force_growth=*/true);
 
   Code::NotifyCodeObservers(name, code, /*optimized=*/false);
 
@@ -267,6 +276,14 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     compiler::Label continue_checking;
     __ CompareImmediate(TTSInternalRegs::kScratchReg, kClosureCid);
     __ BranchIf(NOT_EQUAL, &continue_checking);
+    __ Ret();
+    __ Bind(&continue_checking);
+
+  } else if (type.IsObjectType()) {
+    ASSERT(type.IsNonNullable() && Isolate::Current()->null_safety());
+    compiler::Label continue_checking;
+    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
+    __ BranchIf(EQUAL, &continue_checking);
     __ Ret();
     __ Bind(&continue_checking);
 
@@ -477,7 +494,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // ("Right Legacy", "Right Nullable" rules).
     if (Isolate::Current()->null_safety() && !type_arg.IsNullable() &&
         !type_arg.IsLegacy()) {
-      compiler::Label skip_nullable_check;
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument
       // and avoid reloading it.
@@ -489,10 +505,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
       __ CompareTypeNullabilityWith(TTSInternalRegs::kScratchReg,
                                     compiler::target::Nullability::kNullable);
       __ BranchIf(EQUAL, check_failed);
-
-      if (type_arg.IsTypeParameter()) {
-        __ Bind(&skip_nullable_check);
-      }
     }
   }
 

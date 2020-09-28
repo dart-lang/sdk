@@ -9,6 +9,10 @@ abstract class OperationPerformance {
   /// The child operations, might be empty.
   List<OperationPerformance> get children;
 
+  /// The data attachments, for non-timing data, e.g. how many files were read,
+  /// or how many bytes were processed.
+  List<OperationPerformanceData> get data;
+
   /// The duration of this operation, including its children.
   Duration get elapsed;
 
@@ -27,6 +31,42 @@ abstract class OperationPerformance {
   });
 }
 
+/// The data attachment for a [OperationPerformance].
+abstract class OperationPerformanceData<T> {
+  String get name;
+
+  T get value;
+}
+
+abstract class OperationPerformanceDataImpl<T>
+    implements OperationPerformanceData<T> {
+  @override
+  final String name;
+
+  OperationPerformanceDataImpl(this.name);
+
+  @override
+  String toString() {
+    return '$name: $value';
+  }
+}
+
+class OperationPerformanceDataImpl_int
+    extends OperationPerformanceDataImpl<int> {
+  @override
+  int value = 0;
+
+  OperationPerformanceDataImpl_int(String name) : super(name);
+
+  void add(int item) {
+    value += item;
+  }
+
+  void increment() {
+    value++;
+  }
+}
+
 class OperationPerformanceImpl implements OperationPerformance {
   @override
   final String name;
@@ -34,11 +74,18 @@ class OperationPerformanceImpl implements OperationPerformance {
   final Stopwatch _timer = Stopwatch();
   final List<OperationPerformance> _children = [];
 
+  final Map<String, OperationPerformanceData<Object>> _data = {};
+
   OperationPerformanceImpl(this.name);
 
   @override
   List<OperationPerformance> get children {
     return _children;
+  }
+
+  @override
+  List<OperationPerformanceData<Object>> get data {
+    return _data.values.toList();
   }
 
   @override
@@ -63,6 +110,13 @@ class OperationPerformanceImpl implements OperationPerformance {
     return children.firstWhere(
       (child) => child.name == name,
       orElse: () => null,
+    );
+  }
+
+  OperationPerformanceDataImpl_int getDataInt(String name) {
+    return _data.putIfAbsent(
+      name,
+      () => OperationPerformanceDataImpl_int(name),
     );
   }
 
@@ -112,8 +166,17 @@ class OperationPerformanceImpl implements OperationPerformance {
   }
 
   @override
-  void write({StringBuffer buffer, String indent = ''}) {
-    buffer.writeln('$indent${toString()}');
+  void write({@required StringBuffer buffer, String indent = ''}) {
+    buffer.write('$indent${toString()}');
+
+    if (_data.isNotEmpty) {
+      var sortedNames = _data.keys.toList()..sort();
+      var sortedData = sortedNames.map((name) => _data[name]);
+      var dataStr = sortedData.map((e) => '$e').join(', ');
+      buffer.write('($dataStr)');
+    }
+
+    buffer.writeln();
 
     var childIndent = '$indent  ';
     for (var child in children) {

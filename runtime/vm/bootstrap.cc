@@ -142,6 +142,10 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
     library = Library::LookupLibrary(thread, dart_builtin);
     isolate->object_store()->set_builtin_library(library);
 
+    if (FLAG_precompiled_mode) {
+      loader.ReadLoadingUnits();
+    }
+
     return Error::null();
   }
 

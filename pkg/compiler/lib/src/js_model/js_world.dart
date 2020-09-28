@@ -457,7 +457,8 @@ class JsClosedWorld implements JClosedWorld {
       getLubOfInstantiatedSubtypes(commonElements.functionClass);
 
   @override
-  bool includesClosureCall(Selector selector, AbstractValue receiver) {
+  bool includesClosureCallInDomain(Selector selector, AbstractValue receiver,
+      AbstractValueDomain abstractValueDomain) {
     return selector.name == Identifiers.call &&
         (receiver == null ||
             // This is logically equivalent to the former implementation using
@@ -480,6 +481,11 @@ class JsClosedWorld implements JClosedWorld {
   }
 
   @override
+  bool includesClosureCall(Selector selector, AbstractValue receiver) {
+    return includesClosureCallInDomain(selector, receiver, abstractValueDomain);
+  }
+
+  @override
   AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {
     _ensureFunctionSet();
     if (includesClosureCall(selector, receiver)) {
@@ -489,10 +495,16 @@ class JsClosedWorld implements JClosedWorld {
   }
 
   @override
-  Iterable<MemberEntity> locateMembers(
-      Selector selector, AbstractValue receiver) {
+  Iterable<MemberEntity> locateMembersInDomain(Selector selector,
+      AbstractValue receiver, AbstractValueDomain abstractValueDomain) {
     _ensureFunctionSet();
     return _allFunctions.filter(selector, receiver, abstractValueDomain);
+  }
+
+  @override
+  Iterable<MemberEntity> locateMembers(
+      Selector selector, AbstractValue receiver) {
+    return locateMembersInDomain(selector, receiver, abstractValueDomain);
   }
 
   bool hasAnyUserDefinedGetter(Selector selector, AbstractValue receiver) {

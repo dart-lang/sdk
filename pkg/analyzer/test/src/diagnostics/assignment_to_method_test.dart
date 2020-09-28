@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToMethodTest extends DriverResolutionTest {
+class AssignmentToMethodTest extends PubPackageResolutionTest {
   test_instance_extendedHasMethod_extensionHasSetter() async {
     await assertErrorsInCode('''
 class C {
@@ -29,8 +29,7 @@ f(C c) {
   c.foo = 0;
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_METHOD, 87, 5),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 95, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 87, 5),
     ]);
   }
 
@@ -42,7 +41,7 @@ class A {
 f(A a) {
   a.m = () {};
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_METHOD, 32, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 32, 3),
     ]);
   }
 
@@ -60,8 +59,7 @@ extension E on C {
   }
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_METHOD, 86, 8),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 97, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 86, 8),
     ]);
   }
 }

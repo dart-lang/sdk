@@ -172,6 +172,65 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(invocation.argumentList.arguments, hasLength(0));
   }
 
+  void test_parseField_abstract() {
+    createParser('abstract int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+  }
+
+  void test_parseField_abstract_external() {
+    createParser('abstract external int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+    expect(field.externalKeyword, isNotNull);
+  }
+
+  void test_parseField_abstract_late() {
+    createParser('abstract late int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+  }
+
+  void test_parseField_abstract_late_final() {
+    createParser('abstract late final int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+  }
+
+  void test_parseField_abstract_static() {
+    createParser('abstract static int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_STATIC_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+  }
+
   void test_parseField_const_late() {
     createParser('const late T f = 0;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
@@ -196,6 +255,63 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_external() {
+    createParser('external int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNotNull);
+  }
+
+  void test_parseField_external_abstract() {
+    createParser('external abstract int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 9, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+    expect(field.externalKeyword, isNotNull);
+  }
+
+  void test_parseField_external_late() {
+    createParser('external late int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNotNull);
+  }
+
+  void test_parseField_external_late_final() {
+    createParser('external late final int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNotNull);
+  }
+
+  void test_parseField_external_static() {
+    createParser('external static int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNotNull);
   }
 
   void test_parseField_final_late() {
@@ -319,6 +435,26 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_non_abstract() {
+    createParser('int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNull);
+  }
+
+  void test_parseField_non_external() {
+    createParser('int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNull);
   }
 
   void test_parseField_var_late() {
@@ -1250,7 +1386,10 @@ main() { // missing async
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
-  final beforeUiAsCode = FeatureSet.forTesting(sdkVersion: '2.2.0');
+  final beforeUiAsCode = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.2.0'),
+    flags: [],
+  );
 
   void test_binaryExpression_allOperators() {
     // https://github.com/dart-lang/sdk/issues/36255
@@ -1676,7 +1815,7 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
@@ -1688,7 +1827,7 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
@@ -1700,7 +1839,7 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name, isNull);
     expect(extension.onKeyword.lexeme, 'on');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
@@ -1738,7 +1877,7 @@ class C {}
     var unit = parseCompilationUnit('extension E', errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 11, 0),
-      expectedError(ParserErrorCode.MISSING_CLASS_BODY, 11, 0),
+      expectedError(ParserErrorCode.EXPECTED_BODY, 11, 0),
     ]);
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;
@@ -1799,7 +1938,7 @@ class C {}
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'C');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));
@@ -1836,19 +1975,24 @@ class C {}
     expect(extension.name, isNull);
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'C');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));
   }
 
   void test_simple_not_enabled() {
-    parseCompilationUnit('extension E on C { }',
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 9),
-          expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 1)
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.3.0'));
+    parseCompilationUnit(
+      'extension E on C { }',
+      errors: [
+        expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 9),
+        expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 1)
+      ],
+      featureSet: FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: Version.parse('2.3.0'),
+        flags: [],
+      ),
+    );
   }
 
   void test_simple_with() {
@@ -2527,6 +2671,12 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     expect(defaultParameter.isNamed, isTrue);
   }
 
+  void test_parseFormalParameter_external() {
+    parseNNBDFormalParameter('external int i', ParameterKind.REQUIRED, errors: [
+      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 1, 8),
+    ]);
+  }
+
   void test_parseFormalParameter_final_required_named() {
     ParameterKind kind = ParameterKind.NAMED;
     FormalParameter parameter = parseNNBDFormalParameter(
@@ -2914,12 +3064,13 @@ main() {
   }
 
   void test_indexed_nullAware() {
-    CompilationUnit unit = parseCompilationUnit('main() { a?.[7]; }');
+    CompilationUnit unit = parseCompilationUnit('main() { a?[7]; }');
     FunctionDeclaration method = unit.declarations[0];
     BlockFunctionBody body = method.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
     IndexExpression expression = statement.expression;
-    expect(expression.leftBracket.lexeme, '?.[');
+    expect(expression.question, isNotNull);
+    expect(expression.leftBracket.lexeme, '[');
     expect(expression.rightBracket.lexeme, ']');
     expect(expression.leftBracket.endGroup, expression.rightBracket);
   }
@@ -2927,14 +3078,17 @@ main() {
   void test_indexed_nullAware_optOut() {
     CompilationUnit unit = parseCompilationUnit('''
 // @dart = 2.2
-main() { a?.[7]; }''',
-        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 27, 1)]);
+main() { a?[7]; }''',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 25, 1)]);
     FunctionDeclaration method = unit.declarations[0];
     BlockFunctionBody body = method.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
-    PropertyAccess expression = statement.expression;
+    IndexExpressionImpl expression = statement.expression;
     expect(expression.target.toSource(), 'a');
-    expect(expression.operator.lexeme, '?.');
+    expect(expression.question, isNotNull);
+    expect(expression.leftBracket.lexeme, '[');
+    expect(expression.rightBracket.lexeme, ']');
+    expect(expression.leftBracket.endGroup, expression.rightBracket);
   }
 
   void test_indexExpression_nullable_disabled() {
@@ -4267,6 +4421,13 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     expect(forStatement.body, isNotNull);
   }
 
+  void test_parseLocalVariable_external() {
+    parseStatement('external int i;', featureSet: nonNullable);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8),
+    ]);
+  }
+
   void test_partial_typeArg1_34850() {
     var unit = parseCompilationUnit('<bar<', errors: [
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
@@ -4541,6 +4702,32 @@ mixin A {
     expectCommentText(declaration.documentationComment, '/// Doc');
   }
 
+  void test_parseTopLevelVariable_external() {
+    var unit = parseCompilationUnit('external int i;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    expect(declaration.externalKeyword, isNotNull);
+  }
+
+  void test_parseTopLevelVariable_external_late() {
+    var unit = parseCompilationUnit('external late int? i;',
+        featureSet: nonNullable,
+        errors: [
+          expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+        ]);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    expect(declaration.externalKeyword, isNotNull);
+  }
+
+  void test_parseTopLevelVariable_external_late_final() {
+    var unit = parseCompilationUnit('external late final int? i;',
+        featureSet: nonNullable,
+        errors: [
+          expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+        ]);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    expect(declaration.externalKeyword, isNotNull);
+  }
+
   void test_parseTopLevelVariable_final_late() {
     var unit = parseCompilationUnit('final late a;',
         featureSet: nonNullable,
@@ -4595,6 +4782,12 @@ mixin A {
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNotNull);
     expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_non_external() {
+    var unit = parseCompilationUnit('int i;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    expect(declaration.externalKeyword, isNull);
   }
 }
 

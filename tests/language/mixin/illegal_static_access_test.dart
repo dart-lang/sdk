@@ -20,10 +20,10 @@ main() {
 
   Expect.throwsNoSuchMethodError(() => C.foo());
   //                                     ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] Method not found: 'C.foo'.
   Expect.throwsNoSuchMethodError(() => C.bar());
   //                                     ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] Method not found: 'C.bar'.
 }

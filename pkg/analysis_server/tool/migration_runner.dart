@@ -30,8 +30,8 @@ import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:cli_util/cli_util.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -70,9 +70,7 @@ class MigrationBase {
     // Create server
     //
     var options = AnalysisServerOptions();
-    var sdkPath = FolderBasedDartSdk.defaultSdkDirectory(
-      PhysicalResourceProvider.INSTANCE,
-    ).path;
+    var sdkPath = getSdkPath();
     return AnalysisServer(
         serverChannel,
         resourceProvider,

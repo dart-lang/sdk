@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  abstract get i1() → core::int;
+  abstract set i1(core::int #t1) → void;
+  abstract get i2() → core::int;
+  abstract set i2(core::int #t2) → void;
+  abstract get x() → dynamic;
+  abstract set x(dynamic #t3) → void;
+  abstract get fi() → core::int;
+  abstract get fx() → dynamic;
+  abstract get cn() → core::num;
+  abstract set cn(covariant core::num #t4) → void;
+  abstract get cx() → dynamic;
+  abstract set cx(covariant dynamic #t5) → void;
+}
+static method main() → dynamic {}

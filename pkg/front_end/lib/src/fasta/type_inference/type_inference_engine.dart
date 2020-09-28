@@ -264,6 +264,21 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   TypeOperationsCfe(this.typeEnvironment);
 
   @override
+  TypeClassification classifyType(DartType type) {
+    if (type == null) {
+      // Note: this can happen during top-level inference.
+      return TypeClassification.potentiallyNullable;
+    } else if (isSubtypeOf(
+        type, typeEnvironment.coreTypes.objectNonNullableRawType)) {
+      return TypeClassification.nonNullable;
+    } else if (isSubtypeOf(type, typeEnvironment.coreTypes.nullType)) {
+      return TypeClassification.nullOrEquivalent;
+    } else {
+      return TypeClassification.potentiallyNullable;
+    }
+  }
+
+  @override
   DartType factor(DartType from, DartType what) {
     return factorType(typeEnvironment, from, what);
   }
@@ -274,6 +289,11 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
         variable.parent is Statement &&
         variable.isImplicitlyTyped &&
         !variable.hasDeclaredInitializer;
+  }
+
+  @override
+  bool isNever(DartType type) {
+    return typeEnvironment.coreTypes.isBottom(type);
   }
 
   // TODO(dmitryas): Consider checking for mutual subtypes instead of ==.

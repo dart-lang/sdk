@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,7 +13,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -28,59 +28,30 @@ import 'package:charcode/ascii.dart';
 import 'package:dart_style/dart_style.dart';
 
 /// A [ChangeBuilder] used to build changes in Dart files.
+@Deprecated('Use ChangeBuilder')
 class DartChangeBuilderImpl extends ChangeBuilderImpl
     implements DartChangeBuilder {
-  /// The analysis session in which the files are analyzed and edited.
-  final ChangeWorkspace workspace;
-
   /// Initialize a newly created change builder.
-  DartChangeBuilderImpl(AnalysisSession session)
-      : this.forWorkspace(_SingleSessionWorkspace(session));
+  @Deprecated('Use ChangeBuilder(session: session)')
+  DartChangeBuilderImpl(AnalysisSession session) : super(session: session);
 
-  DartChangeBuilderImpl.forWorkspace(this.workspace);
+  @Deprecated('Use ChangeBuilder(workspace: workspace)')
+  DartChangeBuilderImpl.forWorkspace(ChangeWorkspace workspace)
+      : super(workspace: workspace);
 
+  @Deprecated('Use ChangeBuilder.addDartFileEdit')
   @override
   Future<void> addFileEdit(
       String path, void Function(DartFileEditBuilder builder) buildFileEdit,
       {ImportPrefixGenerator importPrefixGenerator}) {
-    return super.addFileEdit(path, (builder) {
-      var dartBuilder = builder as DartFileEditBuilderImpl;
-      dartBuilder.importPrefixGenerator = importPrefixGenerator;
-      buildFileEdit(dartBuilder);
-    });
+    return super.addDartFileEdit(path, buildFileEdit,
+        importPrefixGenerator: importPrefixGenerator);
   }
 
   @override
-  Future<DartFileEditBuilderImpl> createFileEditBuilder(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
-    if (!workspace.containsFile(path)) {
-      return null;
-    }
-
-    var session = workspace.getSession(path);
-    var result = await session.getResolvedUnit(path);
-    var state = result?.state ?? ResultState.INVALID_FILE_TYPE;
-    if (state == ResultState.INVALID_FILE_TYPE) {
-      throw AnalysisException('Cannot analyze "$path"');
-    }
-    var timeStamp = state == ResultState.VALID ? 0 : -1;
-
-    var declaredUnit = result.unit.declaredElement;
-    var libraryUnit = declaredUnit.library.definingCompilationUnit;
-
-    DartFileEditBuilderImpl libraryEditBuilder;
-    if (libraryUnit != declaredUnit) {
-      // If the receiver is a part file builder, then proactively cache the
-      // library file builder so that imports can be finalized synchronously.
-      await addFileEdit(libraryUnit.source.fullName,
-          (DartFileEditBuilder builder) {
-        libraryEditBuilder = builder as DartFileEditBuilderImpl;
-      });
-    }
-
-    return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder);
+  Future<DartFileEditBuilderImpl> createGenericFileEditBuilder(
+      String path) async {
+    return super.createDartFileEditBuilder(path);
   }
 }
 
@@ -539,7 +510,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameter(String name,
-      {ExecutableElement methodBeingCopied,
+      {bool isCovariant = false,
+      bool isRequiredNamed = false,
+      ExecutableElement methodBeingCopied,
       String nameGroupName,
       DartType type,
       String typeGroupName}) {
@@ -565,6 +538,24 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
 
+    if (isCovariant) {
+      write('covariant ');
+    }
+    if (isRequiredNamed) {
+      var library = dartFileEditBuilder.resolvedUnit.libraryElement;
+      if (library.featureSet.isEnabled(Feature.non_nullable)) {
+        write('required ');
+      } else {
+        var result = dartFileEditBuilder
+            .importLibraryElement(Uri.parse('package:meta/meta.dart'));
+        var prefix = result.prefix;
+        if (prefix != null) {
+          write('@$prefix.required ');
+        } else {
+          write('@required ');
+        }
+      }
+    }
     if (type != null) {
       var hasType = writeType();
       if (name.isNotEmpty) {
@@ -642,6 +633,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       var groupPrefix =
           methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
       writeParameter(name,
+          isCovariant: parameter.isCovariant,
+          isRequiredNamed: parameter.isRequiredNamed,
           methodBeingCopied: methodBeingCopied,
           nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
           type: parameter.type,
@@ -922,10 +915,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     } else if (expression is IndexExpression) {
       name = _getBaseNameFromExpression(expression.realTarget);
-      if (name.endsWith('es')) {
-        name = name.substring(0, name.length - 2);
-      } else if (name.endsWith('s')) {
-        name = name.substring(0, name.length - 1);
+      if (name != null) {
+        if (name.endsWith('es')) {
+          name = name.substring(0, name.length - 2);
+        } else if (name.endsWith('s')) {
+          name = name.substring(0, name.length - 1);
+        }
       }
     }
     // strip known prefixes
@@ -1207,8 +1202,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Initialize a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given [resolvedUnit] and [timeStamp].
-  DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder,
-      this.resolvedUnit, int timeStamp, this.libraryChangeBuilder)
+  DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedUnit,
+      int timeStamp, this.libraryChangeBuilder)
       : super(changeBuilder, resolvedUnit.path, timeStamp);
 
   @override
@@ -1418,7 +1413,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         var isLastExistingDart = false;
         var isLastExistingPackage = false;
         for (var existingImport in importDirectives) {
-          var existingUri = existingImport.uriContent;
+          var existingUri = existingImport.uriContent ?? '';
 
           var isExistingDart = existingUri.startsWith('dart:');
           var isExistingPackage = existingUri.startsWith('package:');
@@ -1684,26 +1679,5 @@ class _LibraryToImport {
     return other is _LibraryToImport &&
         other.uriText == uriText &&
         other.prefix == prefix;
-  }
-}
-
-/// Workspace that wraps a single [AnalysisSession].
-class _SingleSessionWorkspace extends ChangeWorkspace {
-  final AnalysisSession session;
-
-  _SingleSessionWorkspace(this.session);
-
-  @override
-  bool containsFile(String path) {
-    var analysisContext = session.analysisContext;
-    return analysisContext.contextRoot.isAnalyzed(path);
-  }
-
-  @override
-  AnalysisSession getSession(String path) {
-    if (containsFile(path)) {
-      return session;
-    }
-    throw StateError('Not in a context root: $path');
   }
 }

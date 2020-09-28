@@ -11,6 +11,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
     show getSupportedLibraryNames;
 
 import '../compiler_new.dart' as api;
+import 'common/metrics.dart' show Metrics, Metric;
 import 'common/tasks.dart' show GenericTask, Measurer;
 import 'common.dart';
 import 'compiler.dart';
@@ -48,7 +49,11 @@ class CompilerImpl extends Compiler {
     ]);
   }
 
-  void log(message) {
+  void logInfo(String message) {
+    callUserHandler(null, null, null, null, message, api.Diagnostic.INFO);
+  }
+
+  void logVerbose(String message) {
     callUserHandler(
         null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
@@ -91,9 +96,14 @@ class CompilerImpl extends Compiler {
         return super.run(uri);
       }).then((bool success) {
         if (options.verbose) {
-          StringBuffer timings = new StringBuffer();
+          StringBuffer timings = StringBuffer();
           computeTimings(setupDuration, timings);
-          log("$timings");
+          logVerbose('$timings');
+        }
+        if (options.reportPrimaryMetrics || options.reportSecondaryMetrics) {
+          StringBuffer metrics = StringBuffer();
+          collectMetrics(metrics);
+          logInfo('$metrics');
         }
         return success;
       });
@@ -147,6 +157,31 @@ class CompilerImpl extends Compiler {
         ' async ${_formatMs(asyncDuration.inMilliseconds)};'
         ' unaccounted ${_formatMs(unaccountedDuration.inMilliseconds)}'
         ' (${percent.toStringAsFixed(2)}%)');
+  }
+
+  void collectMetrics(StringBuffer buffer) {
+    buffer.writeln('Metrics:');
+    for (final task in tasks) {
+      Metrics metrics = task.metrics;
+      String namespace = metrics.namespace;
+      if (namespace == '') {
+        namespace =
+            task.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+      }
+      void report(Metric metric) {
+        buffer
+            .writeln('  ${namespace}.${metric.name}: ${metric.formatValue()}');
+      }
+
+      for (final metric in metrics.primary) {
+        report(metric);
+      }
+      if (options.reportSecondaryMetrics) {
+        for (final metric in metrics.secondary) {
+          report(metric);
+        }
+      }
+    }
   }
 
   @override

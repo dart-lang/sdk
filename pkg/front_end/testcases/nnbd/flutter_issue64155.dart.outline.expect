@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  method test(generic-covariant-impl asy::Future<self::TestMixin::R%> fetch) → asy::Future<self::TestMixin::T%> async 
+    ;
+}
+class PagingResponse<T extends core::Object? = dynamic> extends core::Object {
+  final field self::PagingResponseData<self::PagingResponse::T%> data;
+  constructor •(self::PagingResponseData<self::PagingResponse::T%> data) → self::PagingResponse<self::PagingResponse::T%>
+    ;
+}
+class PagingResponseData<T extends core::Object? = dynamic> extends core::Object {
+  final field core::List<self::PagingResponseData::T%> data;
+  constructor •(core::List<self::PagingResponseData::T%> data) → self::PagingResponseData<self::PagingResponseData::T%>
+    ;
+}
+class Response<T extends core::Object? = dynamic> extends core::Object {
+  final field self::Response::T% data;
+  constructor •(self::Response::T% data) → self::Response<self::Response::T%>
+    ;
+}
+abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self::Response<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class1&Object&TestMixin
+    : super core::Object::•()
+    ;
+}
+class Class1 extends self::_Class1&Object&TestMixin {
+  synthetic constructor •() → self::Class1
+    ;
+  method _test() → dynamic
+    ;
+}
+abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self::PagingResponse<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class2&Object&TestMixin
+    : super core::Object::•()
+    ;
+}
+class Class2 extends self::_Class2&Object&TestMixin {
+  synthetic constructor •() → self::Class2
+    ;
+  method _test() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

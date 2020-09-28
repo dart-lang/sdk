@@ -4,8 +4,10 @@
 
 import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
+import '../constants/values.dart' show BoolConstantValue;
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/static_type.dart' show ClassRelation;
 import '../world.dart';
 import 'abstract_value_domain.dart';
 import 'type_graph_nodes.dart';
@@ -81,6 +83,9 @@ class TypeSystem {
   final Map<AbstractValue, TypeInformation> concreteTypes =
       new Map<AbstractValue, TypeInformation>();
 
+  /// Cache of some primitive constant types.
+  final Map<Object, TypeInformation> primitiveConstantTypes = {};
+
   /// List of [TypeInformation]s for calls inside method bodies.
   final List<CallSiteTypeInformation> allocatedCalls =
       <CallSiteTypeInformation>[];
@@ -102,8 +107,9 @@ class TypeSystem {
         allocatedMaps.values,
         allocatedClosures,
         concreteTypes.values,
+        primitiveConstantTypes.values,
         allocatedCalls,
-        allocatedTypes
+        allocatedTypes,
       ].expand((x) => x);
 
   TypeSystem(this._closedWorld, this.strategy) {
@@ -283,8 +289,22 @@ class TypeSystem {
   }
 
   TypeInformation boolLiteralType(bool value) {
-    return new BoolLiteralTypeInformation(
-        _abstractValueDomain, value, _abstractValueDomain.boolType);
+    return primitiveConstantTypes[value] ??= _boolLiteralType(value);
+  }
+
+  TypeInformation _boolLiteralType(bool value) {
+    AbstractValue abstractValue = _abstractValueDomain
+        .computeAbstractValueForConstant(BoolConstantValue(value));
+    return BoolLiteralTypeInformation(
+        _abstractValueDomain, value, abstractValue);
+  }
+
+  bool isLiteralTrue(TypeInformation info) {
+    return info is BoolLiteralTypeInformation && info.value == true;
+  }
+
+  bool isLiteralFalse(TypeInformation info) {
+    return info is BoolLiteralTypeInformation && info.value == false;
   }
 
   /// Returns the least upper bound between [firstType] and
@@ -313,46 +333,42 @@ class TypeSystem {
       _abstractValueDomain.isNull(type.typeAnnotation).isDefinitelyFalse;
 
   /// Returns the intersection between [type] and [annotation].
-  /// [isNullable] indicates whether the annotation implies a null
-  /// type.
+  ///
+  /// [isCast] indicates whether narrowing comes from a cast or parameter check
+  /// rather than an 'is' test. (In legacy semantics these differ on whether
+  /// `null` is accepted).
+  ///
+  /// If [excludeNull] is true, the intersection excludes `null` even if the
+  /// Dart type implies `null`.
   TypeInformation narrowType(TypeInformation type, DartType annotation,
-      {bool isNullable: true}) {
-    TypeInformation _narrowTo(AbstractValue otherType) {
-      if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) return type;
-      if (isNullable) {
-        otherType = _abstractValueDomain.includeNull(otherType);
-      }
-      TypeInformation newType =
-          new NarrowTypeInformation(_abstractValueDomain, type, otherType);
-      allocatedTypes.add(newType);
-      return newType;
+      {bool isCast: true, bool excludeNull: false}) {
+    // Avoid refining an input with an exact type. It we are almost always
+    // adding a narrowing to a subtype of the same class or a superclass.
+    if (_abstractValueDomain.isExact(type.type).isDefinitelyTrue) return type;
+
+    AbstractValueWithPrecision narrowing =
+        _abstractValueDomain.createFromStaticType(annotation,
+            classRelation: ClassRelation.subtype, nullable: isCast);
+
+    AbstractValue abstractValue = narrowing.abstractValue;
+    if (excludeNull) {
+      abstractValue = _abstractValueDomain.excludeNull(abstractValue);
     }
 
-    // TODO(fishythefish): Use nullability.
-    annotation = annotation.withoutNullability;
-    if (annotation is VoidType) return type;
-    if (_closedWorld.dartTypes.isTopType(annotation)) {
-      if (isNullable) return type;
+    if (_abstractValueDomain.containsAll(abstractValue).isPotentiallyTrue) {
+      // Top, or non-nullable Top.
+      if (_abstractValueDomain.isNull(abstractValue).isPotentiallyTrue) {
+        return type;
+      }
       // If the input is already narrowed to be not-null, there is no value
       // in adding another narrowing node.
       if (_isNonNullNarrow(type)) return type;
-      return _narrowTo(_abstractValueDomain.excludeNull(dynamicType.type));
-    } else if (annotation is NeverType) {
-      return _narrowTo(_abstractValueDomain.emptyType);
-    } else if (annotation is InterfaceType) {
-      return _narrowTo(
-          _abstractValueDomain.createNonNullSubtype(annotation.element));
-    } else if (annotation is FunctionType) {
-      return _narrowTo(functionType.type);
-    } else if (annotation is FutureOrType) {
-      // TODO(johnniwinther): Support narrowing of FutureOr.
-      return type;
-    } else if (annotation is TypeVariableType) {
-      // TODO(ngeoffray): Narrow to bound.
-      return type;
-    } else {
-      throw 'Unexpected annotation type $annotation';
     }
+
+    TypeInformation newType =
+        NarrowTypeInformation(_abstractValueDomain, type, abstractValue);
+    allocatedTypes.add(newType);
+    return newType;
   }
 
   ParameterTypeInformation getInferredTypeOfParameter(Local parameter) {

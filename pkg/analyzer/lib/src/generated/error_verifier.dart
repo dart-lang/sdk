@@ -39,7 +39,9 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
+import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:meta/meta.dart';
 
 class EnclosingExecutableContext {
   final ExecutableElement element;
@@ -48,7 +50,7 @@ class EnclosingExecutableContext {
   final bool isFactoryConstructor;
   final bool isGenerativeConstructor;
   final bool isGenerator;
-  final bool isStaticMethod;
+  final bool inStaticMethod;
 
   /// The return statements that have a value.
   final List<ReturnStatement> _returnsWith = [];
@@ -68,7 +70,7 @@ class EnclosingExecutableContext {
         isGenerativeConstructor =
             element is ConstructorElement && !element.isFactory,
         isGenerator = element != null && element.isGenerator,
-        isStaticMethod = _isStaticMethod(element);
+        inStaticMethod = _inStaticMethod(element);
 
   EnclosingExecutableContext.empty() : this(null);
 
@@ -104,10 +106,13 @@ class EnclosingExecutableContext {
 
   DartType get returnType => element.returnType;
 
-  static bool _isStaticMethod(ExecutableElement element) {
+  static bool _inStaticMethod(ExecutableElement element) {
     var enclosing = element?.enclosingElement;
     if (enclosing is ClassElement || enclosing is ExtensionElement) {
       return element.isStatic;
+    }
+    if (enclosing is ExecutableElement) {
+      return _inStaticMethod(enclosing);
     }
     return false;
   }
@@ -190,20 +195,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// in the scope of an extension.
   ExtensionElement _enclosingExtension;
 
+  /// The helper for tracking if the current location has access to `this`.
+  final ThisAccessTracker _thisAccessTracker = ThisAccessTracker.unit();
+
   /// The context of the method or function that we are currently visiting, or
   /// `null` if we are not inside a method or function.
   EnclosingExecutableContext _enclosingExecutable =
       EnclosingExecutableContext.empty();
-
-  /// A table mapping name of the library to the export directive which export
-  /// this library.
-  final Map<String, LibraryElement> _nameToExportElement =
-      HashMap<String, LibraryElement>();
-
-  /// A table mapping name of the library to the import directive which import
-  /// this library.
-  final Map<String, LibraryElement> _nameToImportElement =
-      HashMap<String, LibraryElement>();
 
   /// A table mapping names to the exported elements.
   final Map<String, Element> _exportedElements = HashMap<String, Element>();
@@ -236,8 +234,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _duplicateDefinitionVerifier =
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
-    this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
-    this._hasExtUri = _currentLibrary.hasExtUri;
+    _isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
+    _hasExtUri = _currentLibrary.hasExtUri;
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
@@ -313,7 +311,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Expression rhs = node.rightHandSide;
     if (operatorType == TokenType.EQ ||
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForInvalidAssignment(lhs, rhs);
+      // Already handled in the assignment resolver.
+      if (lhs is! SimpleIdentifier) {
+        _checkForInvalidAssignment(lhs, rhs);
+      }
     } else {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
     }
@@ -365,12 +366,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    _hiddenElements = HiddenElements(_hiddenElements, node);
-    try {
+    _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitBlock(node);
+    });
+  }
+
+  @override
+  void visitBlockFunctionBody(BlockFunctionBody node) {
+    _thisAccessTracker.enterFunctionBody(node);
+    try {
+      super.visitBlockFunctionBody(node);
     } finally {
-      _hiddenElements = _hiddenElements.outerElements;
+      _thisAccessTracker.exitFunctionBody(node);
     }
   }
 
@@ -410,7 +418,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkClass(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-      _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingClassTypeVariableErrorCodes();
       TypeName superclass = node.extendsClause?.superclass;
       ImplementsClause implementsClause = node.implementsClause;
@@ -501,6 +508,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForInvalidField(node, fieldName, staticElement);
       if (staticElement is FieldElement) {
         _checkForFieldInitializerNotAssignable(node, staticElement);
+        _checkForAbstractOrExternalFieldConstructorInitializer(
+            node.fieldName, staticElement);
       }
       super.visitConstructorFieldInitializer(node);
     } finally {
@@ -546,7 +555,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (exportElement != null) {
       LibraryElement exportedLibrary = exportElement.exportedLibrary;
       _checkForAmbiguousExport(node, exportElement, exportedLibrary);
-      _checkForExportDuplicateLibraryName(node, exportElement, exportedLibrary);
       _checkForExportInternalLibrary(node, exportElement);
       _checkForExportLegacySymbol(node);
     }
@@ -555,8 +563,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _returnTypeVerifier.verifyExpressionFunctionBody(node);
-    super.visitExpressionFunctionBody(node);
+    _thisAccessTracker.enterFunctionBody(node);
+    try {
+      _returnTypeVerifier.verifyExpressionFunctionBody(node);
+      super.visitExpressionFunctionBody(node);
+    } finally {
+      _thisAccessTracker.exitFunctionBody(node);
+    }
   }
 
   @override
@@ -583,6 +596,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     var fields = node.fields;
+    _thisAccessTracker.enterFieldDeclaration(node);
     _isInStaticVariableDeclaration = node.isStatic;
     _isInInstanceNotLateVariableDeclaration =
         !node.isStatic && !node.fields.isLate;
@@ -600,6 +614,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _isInStaticVariableDeclaration = false;
       _isInInstanceNotLateVariableDeclaration = false;
+      _thisAccessTracker.exitFieldDeclaration(node);
     }
   }
 
@@ -610,6 +625,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
     _checkForTypeAnnotationDeferredClass(node.type);
+    ParameterElement element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      FieldElement fieldElement = element.field;
+      if (fieldElement != null) {
+        _checkForAbstractOrExternalFieldConstructorInitializer(
+            node.identifier, fieldElement);
+      }
+    }
     super.visitFieldFormalParameter(node);
   }
 
@@ -721,7 +744,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         node.staticElement == null &&
         !_isFunctionType(expressionType)) {
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
           functionExpression);
     } else if (expressionType is FunctionType) {
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
@@ -753,7 +776,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         if (parameterType is FunctionType &&
             parameterType.returnType.isDynamic) {
           _errorReporter.reportErrorForNode(
-              StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+              LanguageCode.IMPLICIT_DYNAMIC_RETURN,
               node.identifier,
               [node.identifier]);
         }
@@ -787,7 +810,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           node.prefix, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME);
     }
     if (importElement != null) {
-      _checkForImportDuplicateLibraryName(node, importElement);
       _checkForImportInternalLibrary(node, importElement);
       if (importElement.isDeferred) {
         _checkForDeferredImportOfExtensions(node, importElement);
@@ -798,15 +820,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    _checkForArgumentTypeNotAssignableForArgument(node.index);
-    if (node.isNullAware) {
-      var target = node.realTarget;
-      if (_isExpressionWithType(target)) {
-        _checkForUnnecessaryNullAware(
-          target,
-          node.question ?? node.period ?? node.leftBracket,
-        );
+    void checkIndexExpression(MethodElement method) {
+      if (method != null) {
+        var parameters = method.parameters;
+        if (parameters.isNotEmpty) {
+          _checkForArgumentTypeNotAssignableForArgument2(
+            argument: node.index,
+            parameter: parameters[0],
+            promoteParameterToNullable: false,
+          );
+        }
       }
+    }
+
+    checkIndexExpression(node.staticElement);
+    checkIndexExpression(node.auxiliaryElements?.staticElement);
+
+    if (node.isNullAware) {
+      _checkForUnnecessaryNullAware(
+        node.realTarget,
+        node.question ?? node.period ?? node.leftBracket,
+      );
     }
     super.visitIndexExpression(node);
   }
@@ -900,9 +934,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
           typeReference, node.target, methodName);
-      if (_isExpressionWithType(target)) {
-        _checkForUnnecessaryNullAware(target, node.operator);
-      }
+      _checkForUnnecessaryNullAware(target, node.operator);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
@@ -1005,9 +1037,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-    if (_isExpressionWithType(target)) {
-      _checkForUnnecessaryNullAware(target, node.operator);
-    }
+    _checkForUnnecessaryNullAware(target, node.operator);
 
     super.visitPropertyAccess(node);
   }
@@ -1104,14 +1134,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    _duplicateDefinitionVerifier.checkStatements(node.statements);
-    super.visitSwitchCase(node);
+    _withHiddenElements(node.statements, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements);
+      super.visitSwitchCase(node);
+    });
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    _duplicateDefinitionVerifier.checkStatements(node.statements);
-    super.visitSwitchDefault(node);
+    _withHiddenElements(node.statements, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements);
+      super.visitSwitchDefault(node);
+    });
   }
 
   @override
@@ -1183,6 +1217,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // do checks
     _checkForInvalidAssignment(nameNode, initializerNode);
     _checkForImplicitDynamicIdentifier(node, nameNode);
+    _checkForAbstractOrExternalVariableInitializer(node);
     // visit name
     nameNode.accept(this);
     // visit initializer
@@ -1242,15 +1277,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // class.
     if (!_checkForExtendsDisallowedClass(superclass) &&
         !_checkForImplementsClauseErrorCodes(implementsClause) &&
-        !_checkForAllMixinErrorCodes(withClause)) {
+        !_checkForAllMixinErrorCodes(withClause) &&
+        !_checkForNoGenerativeConstructorsInSuperclass(superclass)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
       _checkForRepeatedType(implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
+      _checkMixinsSuperClass(withClause);
       _checkMixinInference(node, withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
+      if (node is ClassDeclaration) {
+        _checkForNoDefaultSuperConstructorImplicit(node);
+      }
     }
   }
 
@@ -1266,6 +1306,40 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         if (deferredToken != null) {
           _errorReporter.reportErrorForToken(
               CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
+        }
+      }
+    }
+  }
+
+  void _checkForAbstractOrExternalFieldConstructorInitializer(
+      AstNode node, FieldElement fieldElement) {
+    if (fieldElement.isAbstract) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER, node);
+    }
+    if (fieldElement.isExternal) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER, node);
+    }
+  }
+
+  void _checkForAbstractOrExternalVariableInitializer(
+      VariableDeclaration node) {
+    var declaredElement = node.declaredElement;
+    if (node.initializer != null) {
+      if (declaredElement is FieldElement) {
+        if (declaredElement.isAbstract) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, node.name);
+        }
+        if (declaredElement.isExternal) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER, node.name);
+        }
+      } else if (declaredElement is TopLevelVariableElement) {
+        if (declaredElement.isExternal) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER, node.name);
         }
       }
     }
@@ -1360,14 +1434,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_typeSystem.isAssignableTo2(
         redirectedReturnType, constructorReturnType)) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE,
+          CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE,
           redirectedConstructor,
           [redirectedReturnType, constructorReturnType]);
       return;
     } else if (!_typeSystem.isSubtypeOf2(redirectedType, constructorType)) {
       // Check parameters.
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
+          CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
           redirectedConstructor,
           [redirectedType, constructorType]);
     }
@@ -1419,7 +1493,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         libraryNames[i] = _getLibraryName(conflictingMembers[i]);
       }
       libraryNames.sort();
-      _errorReporter.reportErrorForNode(StaticWarningCode.AMBIGUOUS_IMPORT,
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_IMPORT,
           node, [name, StringUtilities.printListOfQuotedNames(libraryNames)]);
     }
   }
@@ -1453,17 +1527,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForArgumentTypeNotAssignableForArgument(Expression argument,
       {bool promoteParameterToNullable = false}) {
+    // TODO(scheglov) probably cannot happen
     if (argument == null) {
       return;
     }
 
-    ParameterElement staticParameterElement = argument.staticParameterElement;
-    DartType staticParameterType = staticParameterElement?.type;
+    _checkForArgumentTypeNotAssignableForArgument2(
+      argument: argument,
+      parameter: argument.staticParameterElement,
+      promoteParameterToNullable: promoteParameterToNullable,
+    );
+  }
+
+  void _checkForArgumentTypeNotAssignableForArgument2({
+    @required Expression argument,
+    @required ParameterElement parameter,
+    @required bool promoteParameterToNullable,
+  }) {
+    DartType staticParameterType = parameter?.type;
     if (promoteParameterToNullable && staticParameterType != null) {
       staticParameterType = _typeSystem.makeNullable(staticParameterType);
     }
     _checkForArgumentTypeNotAssignableWithExpectedTypes(argument,
-        staticParameterType, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+        staticParameterType, CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
 
   /// Verify that the given [expression] can be assigned to its corresponding
@@ -1516,8 +1602,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType expectedStaticType,
       ErrorCode errorCode) {
     if (!_typeSystem.isAssignableTo2(actualStaticType, expectedStaticType)) {
+      AstNode getErrorNode(AstNode node) {
+        if (node is CascadeExpression) {
+          return getErrorNode(node.target);
+        }
+        if (node is ParenthesizedExpression) {
+          return getErrorNode(node.expression);
+        }
+        return node;
+      }
+
       _errorReporter.reportErrorForNode(
-          errorCode, expression, [actualStaticType, expectedStaticType]);
+        errorCode,
+        getErrorNode(expression),
+        [actualStaticType, expectedStaticType],
+      );
       return false;
     }
     return true;
@@ -1529,6 +1628,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// [StaticWarningCode.ASSIGNMENT_TO_FINAL], and
   /// [StaticWarningCode.ASSIGNMENT_TO_METHOD].
   void _checkForAssignmentToFinal(Expression expression) {
+    // Already handled in the assignment resolver.
+    if (expression is SimpleIdentifier &&
+        expression.parent is AssignmentExpression) {
+      return;
+    }
+
     // prepare element
     Element element;
     AstNode highlightedNode = expression;
@@ -1542,46 +1647,55 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       highlightedNode = expression.propertyName;
     }
     // check if element is assignable
-    Element toVariable(Element element) {
-      return element is PropertyAccessorElement ? element.variable : element;
-    }
-
-    element = toVariable(element);
     if (element is VariableElement) {
       if (element.isConst) {
         _errorReporter.reportErrorForNode(
-            StaticWarningCode.ASSIGNMENT_TO_CONST, expression);
-      } else if (element.isFinal && !element.isLate) {
-        if (element is FieldElementImpl) {
-          if (element.setter == null && element.isSynthetic) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-                highlightedNode,
-                [element.name, element.enclosingElement.displayName]);
-          } else {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode.ASSIGNMENT_TO_FINAL,
-                highlightedNode,
-                [element.name]);
-          }
-          return;
+          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+          expression,
+        );
+      } else if (element.isFinal) {
+        if (_isNonNullableByDefault) {
+          // Handled during resolution, with flow analysis.
+        } else {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+            expression,
+            [element.name],
+          );
         }
+      }
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      var variable = element.variable;
+      if (variable.isConst) {
         _errorReporter.reportErrorForNode(
-            StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL,
-            highlightedNode,
-            [element.name]);
+          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+          expression,
+        );
+      } else if (variable is FieldElement && variable.isSynthetic) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+          highlightedNode,
+          [variable.name, variable.enclosingElement.displayName],
+        );
+      } else {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+          highlightedNode,
+          [variable.name],
+        );
       }
     } else if (element is FunctionElement) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.ASSIGNMENT_TO_FUNCTION, expression);
+          CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION, expression);
     } else if (element is MethodElement) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.ASSIGNMENT_TO_METHOD, expression);
+          CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, expression);
     } else if (element is ClassElement ||
+        element is DynamicElementImpl ||
         element is FunctionTypeAliasElement ||
         element is TypeParameterElement) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.ASSIGNMENT_TO_TYPE, expression);
+          CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, expression);
     }
   }
 
@@ -1679,7 +1793,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     _errorReporter.reportErrorForToken(
-        StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, switchCase.keyword);
+        CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED, switchCase.keyword);
   }
 
   /// Verify that the switch cases in the given switch [statement] are
@@ -1994,10 +2108,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             (expression as InstanceCreationExpressionImpl).isImplicit;
         if (!isImplicit) {
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, typeName);
+              CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, typeName);
         } else {
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS, typeName);
+              CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS, typeName);
         }
       }
     }
@@ -2220,7 +2334,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (!_typeSystem.isAssignableTo2(iterableType, requiredSequenceType)) {
       _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+        CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
         [iterableType, loopTypeName],
       );
@@ -2228,7 +2342,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     DartType sequenceElementType;
-    if (iterableType is InterfaceTypeImpl) {
+    {
       var sequenceElement = awaitKeyword != null
           ? _typeProvider.streamElement
           : _typeProvider.iterableElement;
@@ -2244,45 +2358,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (!_typeSystem.isAssignableTo2(sequenceElementType, variableType)) {
       _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+        CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
         node.iterable,
         [iterableType, loopTypeName, variableType],
       );
     }
 
     return true;
-  }
-
-  /// Verify that the given export [directive] has a unique name among other
-  /// exported libraries. The [exportElement] is the [ExportElement] retrieved
-  /// from the node, if the element in the node was `null`, then this method is
-  /// not called. The [exportedLibrary] is the library element containing the
-  /// exported element.
-  ///
-  /// See [CompileTimeErrorCode.EXPORT_DUPLICATED_LIBRARY_NAME].
-  void _checkForExportDuplicateLibraryName(ExportDirective directive,
-      ExportElement exportElement, LibraryElement exportedLibrary) {
-    if (exportedLibrary == null) {
-      return;
-    }
-    String name = exportedLibrary.name;
-    // check if there is other exported library with the same name
-    LibraryElement prevLibrary = _nameToExportElement[name];
-    if (prevLibrary != null) {
-      if (prevLibrary != exportedLibrary) {
-        if (name.isNotEmpty) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED, directive, [
-            prevLibrary.definingCompilationUnit.source.uri.toString(),
-            exportedLibrary.definingCompilationUnit.source.uri.toString(),
-            name
-          ]);
-        }
-        return;
-      }
-    } else {
-      _nameToExportElement[name] = exportedLibrary;
-    }
   }
 
   /// Check that if the visiting library is not system, then any given library
@@ -2458,13 +2540,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       // TODO(paulberry): this error should be based on the actual type of the
       // constant, not the static type.  See dartbug.com/21119.
       _errorReporter.reportErrorForNode(
-          CheckedModeCompileTimeErrorCode
-              .CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
           [staticType, fieldType]);
     }
     _errorReporter.reportErrorForNode(
-        StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
         expression,
         [staticType, fieldType]);
     // TODO(brianwilkerson) Define a hint corresponding to these errors and
@@ -2537,6 +2618,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_isInNativeClass || list.isSynthetic) {
       return;
     }
+
+    // Handled during resolution, with flow analysis.
+    if (_isNonNullableByDefault &&
+        list.isFinal &&
+        list.parent is VariableDeclarationStatement) {
+      return;
+    }
+
     bool isConst = list.isConst;
     if (!(isConst || list.isFinal)) {
       return;
@@ -2549,11 +2638,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               variable.name,
               [variable.name.name]);
-        } else if (!_isNonNullableByDefault || !variable.isLate) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.FINAL_NOT_INITIALIZED,
-              variable.name,
-              [variable.name.name]);
+        } else {
+          var variableElement = variable.declaredElement;
+          if (variableElement is FieldElement &&
+              (variableElement.isAbstract || variableElement.isExternal)) {
+            // Abstract and external fields can't be initialized, so no error.
+          } else if (variableElement is TopLevelVariableElement &&
+              variableElement.isExternal) {
+            // External top level variables can't be initialized, so no error.
+          } else if (!_isNonNullableByDefault || !variable.isLate) {
+            _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+                variable.name,
+                [variable.name.name]);
+          }
         }
       }
     }
@@ -2631,11 +2729,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         variable.type.isDynamic) {
       ErrorCode errorCode;
       if (variable is FieldElement) {
-        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_FIELD;
+        errorCode = LanguageCode.IMPLICIT_DYNAMIC_FIELD;
       } else if (variable is ParameterElement) {
-        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER;
+        errorCode = LanguageCode.IMPLICIT_DYNAMIC_PARAMETER;
       } else {
-        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE;
+        errorCode = LanguageCode.IMPLICIT_DYNAMIC_VARIABLE;
       }
       _errorReporter.reportErrorForNode(errorCode, node, [id]);
     }
@@ -2652,7 +2750,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (element != null &&
         element.hasImplicitReturnType &&
         element.returnType.isDynamic) {
-      _errorReporter.reportErrorForNode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+      _errorReporter.reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_RETURN,
           functionName, [element.displayName]);
     }
   }
@@ -2667,8 +2765,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (type is ParameterizedType &&
         type.typeArguments.isNotEmpty &&
         type.typeArguments.any((t) => t.isDynamic)) {
-      _errorReporter.reportErrorForNode(
-          StrongModeCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
+      _errorReporter
+          .reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
     }
   }
 
@@ -2684,7 +2782,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     if (!_isInConstructorInitializer &&
-        !_enclosingExecutable.isStaticMethod &&
+        !_enclosingExecutable.inStaticMethod &&
         !_enclosingExecutable.isFactoryConstructor &&
         !_isInInstanceNotLateVariableDeclaration &&
         !_isInStaticVariableDeclaration) {
@@ -2727,7 +2825,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (_enclosingExecutable.isStaticMethod) {
+    if (_enclosingExecutable.inStaticMethod) {
+      // TODO
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, identifier);
     } else if (_enclosingExecutable.isFactoryConstructor) {
@@ -2738,36 +2837,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
           identifier,
           [identifier.name]);
-    }
-  }
-
-  /// Verify that the given import [directive] has a unique name among other
-  /// imported libraries. The [importElement] is the [ImportElement] retrieved
-  /// from the node, if the element in the node was `null`, then this method is
-  /// not called.
-  ///
-  /// See [CompileTimeErrorCode.IMPORT_DUPLICATED_LIBRARY_NAME].
-  void _checkForImportDuplicateLibraryName(
-      ImportDirective directive, ImportElement importElement) {
-    // prepare imported library
-    LibraryElement nodeLibrary = importElement.importedLibrary;
-    if (nodeLibrary == null) {
-      return;
-    }
-    String name = nodeLibrary.name;
-    // check if there is another imported library with the same name
-    LibraryElement prevLibrary = _nameToImportElement[name];
-    if (prevLibrary != null) {
-      if (prevLibrary != nodeLibrary && name.isNotEmpty) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED, directive, [
-          prevLibrary.definingCompilationUnit.source.uri,
-          nodeLibrary.definingCompilationUnit.source.uri,
-          name
-        ]);
-      }
-    } else {
-      _nameToImportElement[name] = nodeLibrary;
     }
   }
 
@@ -2805,7 +2874,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Check that the given [typeReference] is not a type reference and that then
   /// the [name] is reference to an instance member.
   ///
-  /// See [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
+  /// See [CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
   void _checkForInstanceAccessToStaticMember(
       ClassElement typeReference, Expression target, SimpleIdentifier name) {
     if (_isInComment) {
@@ -2842,7 +2911,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
       }
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
           name,
           [name.name, _getKind(element), element.enclosingElement.name]);
     }
@@ -2860,7 +2929,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     ParameterElement staticParameterElement = argument.staticParameterElement;
     DartType staticParameterType = staticParameterElement?.type;
     _checkForArgumentTypeNotAssignable(argument, staticParameterType, _intType,
-        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
 
   /// Verify that the given [annotation] isn't defined in a deferred library.
@@ -2878,7 +2947,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Verify that the given left hand side ([lhs]) and right hand side ([rhs])
   /// represent a valid assignment.
   ///
-  /// See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
+  /// See [CompileTimeErrorCode.INVALID_ASSIGNMENT].
   void _checkForInvalidAssignment(Expression lhs, Expression rhs) {
     if (lhs == null || rhs == null) {
       return;
@@ -2893,17 +2962,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    VariableElement leftVariableElement = getVariableElement(lhs);
-    DartType leftType = (leftVariableElement == null)
-        ? getStaticType(lhs)
-        : leftVariableElement.type;
+    DartType leftType;
+    var parent = lhs.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == lhs) {
+      leftType = parent.writeType;
+    } else {
+      VariableElement leftVariableElement = getVariableElement(lhs);
+      leftType = (leftVariableElement == null)
+          ? getStaticType(lhs)
+          : leftVariableElement.type;
+    }
 
     if (!leftType.isVoid && _checkForUseOfVoidResult(rhs)) {
       return;
     }
 
     _checkForAssignableExpression(
-        rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+        rhs, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT);
   }
 
   /// Check the given [initializer] to ensure that the field being initialized
@@ -2947,7 +3022,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   ///
   /// See [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS].
   void _checkForInvalidReferenceToThis(ThisExpression expression) {
-    if (!_isThisInValidContext(expression)) {
+    if (!_thisAccessTracker.hasAccess) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, expression);
     }
@@ -3393,12 +3468,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     SimpleIdentifier name = constructorName.name;
     if (name != null) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
           name,
           [className, name]);
     } else {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
           constructorName,
           [className]);
     }
@@ -3428,9 +3503,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+            CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
             declaration.name,
-            [superUnnamedConstructor]);
+            [superElement.name, _enclosingClass.name, superUnnamedConstructor]);
         return;
       }
       if (superUnnamedConstructor.isDefaultConstructor) {
@@ -3446,6 +3521,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           declaration.name,
           [superType, _enclosingClass.displayName]);
     }
+  }
+
+  bool _checkForNoGenerativeConstructorsInSuperclass(TypeName superclass) {
+    InterfaceType superType = _enclosingClass.supertype;
+    if (superType == null) {
+      return false;
+    }
+    if (_enclosingClass.constructors
+        .every((constructor) => constructor.isFactory)) {
+      // A class with no generative constructors *can* be extended if the
+      // subclass has only factory constructors.
+      return false;
+    }
+    ClassElement superElement = superType.element;
+    if (superElement.constructors.isEmpty) {
+      // Exclude empty constructor set, which indicates other errors occurred.
+      return false;
+    }
+    if (superElement.constructors
+        .every((constructor) => constructor.isFactory)) {
+      // For `E extends Exception`, etc., this will never work, because it has
+      // no generative constructors. State this clearly to users.
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
+          superclass,
+          [_enclosingClass.name, superElement.name]);
+      return true;
+    }
+    return false;
   }
 
   /// Verify the given map [literal] either:
@@ -3473,6 +3577,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    /// TODO(srawlins): Add any tests showing this is reported.
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
   }
@@ -3493,7 +3598,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType type = annotation.type;
       if (type != null && !type.isVoid) {
         _errorReporter.reportErrorForNode(
-            StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR, annotation);
+            CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR, annotation);
       }
     }
   }
@@ -3507,7 +3612,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType type = typeName.type;
       if (type != null && !type.isVoid) {
         _errorReporter.reportErrorForNode(
-            StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, typeName);
+            CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, typeName);
       }
     }
   }
@@ -3526,9 +3631,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_isEnclosingClassFfiStruct) return;
 
     for (var field in fields.variables) {
+      var fieldElement = field.declaredElement as FieldElement;
+      if (fieldElement.isAbstract || fieldElement.isExternal) continue;
       if (field.initializer != null) continue;
 
-      var type = field.declaredElement.type;
+      var type = fieldElement.type;
       if (!_typeSystem.isPotentiallyNonNullable(type)) continue;
 
       _errorReporter.reportErrorForNode(
@@ -3560,6 +3667,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     if (node.isLate) {
       return;
+    }
+
+    var parent = node.parent;
+    if (parent is FieldDeclaration) {
+      if (parent.externalKeyword != null) {
+        return;
+      }
+    } else if (parent is TopLevelVariableDeclaration) {
+      if (parent.externalKeyword != null) {
+        return;
+      }
     }
 
     if (node.type == null) {
@@ -4000,7 +4118,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return;
       }
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+          CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
           name,
           [name.name]);
     }
@@ -4040,7 +4158,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // check types
     if (!_typeSystem.isAssignableTo2(expressionType, caseType)) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
           expression,
           [expressionType, caseType]);
     }
@@ -4083,13 +4201,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForTypeAnnotationDeferredClass(TypeAnnotation type) {
     if (type is TypeName && type.isDeferred) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, type, [type.name]);
+          CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS,
+          type,
+          [type.name]);
     }
   }
 
   /// Check that none of the type [parameters] references itself in its bound.
   ///
-  /// See [StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
+  /// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
   void _checkForTypeParameterBoundRecursion(List<TypeParameter> parameters) {
     Map<TypeParameterElement, TypeParameter> elementToNode;
     for (var parameter in parameters) {
@@ -4112,7 +4232,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           if (step == parameters.length) {
             var element = parameter.declaredElement;
             _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+              CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
               parameter,
               [element.displayName, element.bound],
             );
@@ -4124,7 +4244,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForTypeParameterReferencedByStatic(SimpleIdentifier identifier) {
-    if (_enclosingExecutable.isStaticMethod || _isInStaticVariableDeclaration) {
+    if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
       var element = identifier.staticElement;
       if (element is TypeParameterElement &&
           element.enclosingElement is ClassElement) {
@@ -4132,7 +4252,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
         _errorReporter.reportErrorForNode(
-            StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, identifier);
+            CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
+            identifier);
       }
     }
   }
@@ -4178,6 +4299,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     ClassElement superElement = superType.element;
+    if (superElement.constructors
+        .every((constructor) => constructor.isFactory)) {
+      // Already reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
+      return;
+    }
     ConstructorElement superUnnamedConstructor =
         superElement.unnamedConstructor;
     if (superUnnamedConstructor != null) {
@@ -4210,6 +4336,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    if (target is SuperExpression) {
+      return;
+    }
+
     ErrorCode errorCode;
     Token endToken = operator;
     List<Object> arguments = const [];
@@ -4223,9 +4353,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else if (operator.type == TokenType.QUESTION_PERIOD_PERIOD) {
       errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '..'];
-    } else if (operator.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
-      errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
-      arguments = [operator.lexeme, '['];
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
       errorCode = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
       arguments = [operator.lexeme, '...'];
@@ -4235,7 +4362,58 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (_typeSystem.isStrictlyNonNullable(target.staticType)) {
+    /// If the operator is not valid because the target already makes use of a
+    /// null aware operator, return the null aware operator from the target.
+    Token previousShortCircuitingOperator(Expression target) {
+      if (target is PropertyAccess) {
+        var operator = target.operator;
+        var type = operator.type;
+        if (type == TokenType.QUESTION_PERIOD) {
+          var realTarget = target.realTarget;
+          return previousShortCircuitingOperator(realTarget) ?? operator;
+        }
+      } else if (target is IndexExpression) {
+        if (target.question != null) {
+          var realTarget = target.realTarget;
+          return previousShortCircuitingOperator(realTarget) ?? target.question;
+        }
+      } else if (target is MethodInvocation) {
+        var operator = target.operator;
+        var type = operator?.type;
+        if (type == TokenType.QUESTION_PERIOD) {
+          var realTarget = target.realTarget;
+          return previousShortCircuitingOperator(realTarget) ?? operator;
+        }
+      }
+      return null;
+    }
+
+    var targetType = target.staticType;
+    if (target is ExtensionOverride) {
+      var arguments = target.argumentList.arguments;
+      if (arguments.length == 1) {
+        targetType = arguments[0].staticType;
+      } else {
+        return;
+      }
+    } else if (targetType == null) {
+      return;
+    }
+
+    if (_typeSystem.isStrictlyNonNullable(targetType)) {
+      if (errorCode == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
+        var previousOperator = previousShortCircuitingOperator(target);
+        if (previousOperator != null) {
+          _errorReporter.reportError(DiagnosticFactory()
+              .invalidNullAwareAfterShortCircuit(
+                  _errorReporter.source,
+                  operator.offset,
+                  endToken.end - operator.offset,
+                  arguments,
+                  previousOperator));
+          return;
+        }
+      }
       _errorReporter.reportErrorForOffset(
         errorCode,
         operator.offset,
@@ -4249,7 +4427,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// defined in the enclosing class rather than in a superclass.
   ///
   /// See
-  /// [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
+  /// [CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
       SimpleIdentifier name) {
     Element element = name.staticElement;
@@ -4282,8 +4460,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           [enclosingElement.displayName]);
     } else {
       _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           name,
           [enclosingElement.displayName]);
     }
@@ -4322,10 +4499,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, methodName, []);
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, methodName, []);
     } else {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, expression, []);
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, expression, []);
     }
 
     return true;
@@ -4360,11 +4537,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
                 parameter,
                 [parameter.identifier.name]);
-          } else if (declaredType != null &&
-              fieldType != null &&
-              !_typeSystem.isAssignableTo2(declaredType, fieldType)) {
+          } else if (!_typeSystem.isSubtypeOf(declaredType, fieldType)) {
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+                CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
                 parameter,
                 [declaredType, fieldType]);
           }
@@ -4626,27 +4801,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Verify that the given class [declaration] does not have the same class in
-  /// the 'extends' and 'implements' clauses.
+  /// Verify that the current class does not have the same class in the
+  /// 'extends' and 'implements' clauses.
   ///
   /// See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
   void _checkImplementsSuperClass(ImplementsClause implementsClause) {
-    // prepare super type
-    InterfaceType superType = _enclosingClass.supertype;
-    if (superType == null) {
-      return;
-    }
-    // prepare interfaces
     if (implementsClause == null) {
       return;
     }
-    // check interfaces
-    for (TypeName interfaceNode in implementsClause.interfaces) {
-      if (interfaceNode.type == superType) {
+
+    var superElement = _enclosingClass.supertype?.element;
+    if (superElement == null) {
+      return;
+    }
+
+    for (var interfaceNode in implementsClause.interfaces) {
+      if (interfaceNode.type.element == superElement) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
-            interfaceNode,
-            [superType]);
+          CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
+          interfaceNode,
+          [superElement],
+        );
       }
     }
   }
@@ -4657,23 +4832,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     ClassElement classElement = node.declaredElement;
-    var type = classElement.thisType;
     var supertype = classElement.supertype;
-    List<InterfaceType> supertypesForMixinInference = <InterfaceType>[];
-    ClassElementImpl.collectAllSupertypes(
-        supertypesForMixinInference, supertype, type);
+
+    var interfacesMerger = InterfacesMerger(_typeSystem);
+    interfacesMerger.addWithSupertypes(supertype);
+
     for (var typeName in withClause.mixinTypes) {
       var mixinType = typeName.type;
-      var mixinElement = mixinType.element;
-      if (mixinElement is ClassElement) {
+      if (mixinType is InterfaceType) {
+        var mixinElement = mixinType.element;
         if (typeName.typeArguments == null) {
           var mixinSupertypeConstraints = _typeSystem
               .gatherMixinSupertypeConstraintsForInference(mixinElement);
           if (mixinSupertypeConstraints.isNotEmpty) {
             var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
-                typeName,
-                mixinSupertypeConstraints,
-                supertypesForMixinInference);
+              typeName,
+              mixinSupertypeConstraints,
+              interfacesMerger.typeList,
+            );
             if (matchingInterfaceTypes != null) {
               // Try to pattern match matchingInterfaceType against
               // mixinSupertypeConstraint to find the correct set of type
@@ -4693,8 +4869,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             }
           }
         }
-        ClassElementImpl.collectAllSupertypes(
-            supertypesForMixinInference, mixinType, type);
+        interfacesMerger.addWithSupertypes(mixinType);
       }
     }
   }
@@ -4717,6 +4892,31 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
       _checkForConflictingGenerics(node);
+    }
+  }
+
+  /// Verify that the current class does not have the same class in the
+  /// 'extends' and 'with' clauses.
+  ///
+  /// See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
+  void _checkMixinsSuperClass(WithClause withClause) {
+    if (withClause == null) {
+      return;
+    }
+
+    var superElement = _enclosingClass.supertype?.element;
+    if (superElement == null) {
+      return;
+    }
+
+    for (var mixinNode in withClause.mixinTypes) {
+      if (mixinNode.type.element == superElement) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MIXINS_SUPER_CLASS,
+          mixinNode,
+          [superElement],
+        );
+      }
     }
   }
 
@@ -5015,29 +5215,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Return `true` if the given 'this' [expression] is in a valid context.
-  bool _isThisInValidContext(ThisExpression expression) {
-    for (AstNode node = expression.parent; node != null; node = node.parent) {
-      if (node is CompilationUnit) {
-        return false;
-      } else if (node is ConstructorDeclaration) {
-        return node.factoryKeyword == null;
-      } else if (node is ConstructorInitializer) {
-        return false;
-      } else if (node is MethodDeclaration) {
-        return !node.isStatic;
-      } else if (node is FieldDeclaration) {
-        if (node.fields.isLate &&
-            (node.parent is ClassDeclaration ||
-                node.parent is MixinDeclaration)) {
-          return true;
-        }
-        // Continue; a non-late variable may still occur in a valid context.
-      }
-    }
-    return false;
-  }
-
   /// Return `true` if the given [identifier] is in a location where it is
   /// allowed to resolve to a static member of a supertype.
   bool _isUnqualifiedReferenceToNonLocalStaticMemberAllowed(
@@ -5093,6 +5270,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _enclosingExecutable = current;
       _returnTypeVerifier.enclosingExecutable = _enclosingExecutable;
+    }
+  }
+
+  void _withHiddenElements(List<Statement> statements, void Function() f) {
+    _hiddenElements = HiddenElements(_hiddenElements, statements);
+    try {
+      f();
+    } finally {
+      _hiddenElements = _hiddenElements.outerElements;
     }
   }
 
@@ -5155,20 +5341,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     return null;
   }
-
-  static bool _isExpressionWithType(Expression node) {
-    if (node is ExtensionOverride) {
-      return false;
-    }
-
-    // For `foo?.bar`, `foo` must be an identifier with a value.
-    if (node is Identifier) {
-      var element = node.staticElement;
-      return element is PropertyAccessorElement || element is VariableElement;
-    }
-
-    return true;
-  }
 }
 
 /// A record of the elements that will be declared in some scope (block), but
@@ -5184,9 +5356,9 @@ class HiddenElements {
 
   /// Initialize a newly created set of hidden elements to include all of the
   /// elements defined in the set of [outerElements] and all of the elements
-  /// declared in the given [block].
-  HiddenElements(this.outerElements, Block block) {
-    _initializeElements(block);
+  /// declared in the given [statements].
+  HiddenElements(this.outerElements, List<Statement> statements) {
+    _initializeElements(statements);
   }
 
   /// Return `true` if this set of elements contains the given [element].
@@ -5206,9 +5378,9 @@ class HiddenElements {
   }
 
   /// Initialize the list of elements that are not yet declared to be all of the
-  /// elements declared somewhere in the given [block].
-  void _initializeElements(Block block) {
-    _elements.addAll(BlockScope.elementsInBlock(block));
+  /// elements declared somewhere in the given [statements].
+  void _initializeElements(List<Statement> statements) {
+    _elements.addAll(BlockScope.elementsInStatements(statements));
   }
 }
 
@@ -5232,7 +5404,7 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
   _UninstantiatedBoundChecker(this._errorReporter);
 
   @override
-  void visitTypeName(node) {
+  void visitTypeName(TypeName node) {
     var typeArgs = node.typeArguments;
     if (typeArgs != null) {
       typeArgs.accept(this);
@@ -5241,8 +5413,10 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
 
     var element = node.name.staticElement;
     if (element is TypeParameterizedElement && !element.isSimplyBounded) {
-      _errorReporter
-          .reportErrorForNode(StrongModeCode.NOT_INSTANTIATED_BOUND, node, []);
+      // TODO(srawlins): Don't report this if TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+      //  has been reported.
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, node, []);
     }
   }
 }

@@ -11,8 +11,8 @@ Class '', script = '#lib'
 
 
 Function 'test_for', static, reflectable, debuggable
-    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::List < dart:core::int* >* 'list'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                2
@@ -56,8 +56,8 @@ ConstantPool {
 
 
 Function 'test_for_break', static, reflectable, debuggable
-    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::List < dart:core::int* >* 'list'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                2
@@ -107,8 +107,8 @@ ConstantPool {
 
 
 Function 'test_for_continue', static, reflectable, debuggable
-    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::List < dart:core::int* >* 'list'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                2
@@ -160,8 +160,8 @@ ConstantPool {
 
 
 Function 'test_while', static, reflectable, debuggable
-    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::List < dart:core::int* >* 'list'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                4
@@ -207,8 +207,8 @@ ConstantPool {
 
 
 Function 'test_do_while', static, reflectable, debuggable
-    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::List < dart:core::int* >* 'list'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                2
@@ -249,8 +249,8 @@ ConstantPool {
 
 
 Function 'test_for_in', static, reflectable, debuggable
-    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::List < dart:core::int* >* 'list'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                3
@@ -289,8 +289,8 @@ ConstantPool {
 
 
 Function 'test_for_in_with_outer_var', static, reflectable, debuggable
-    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::List < dart:core::int* >* 'list'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                4

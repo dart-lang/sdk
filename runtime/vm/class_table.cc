@@ -4,6 +4,7 @@
 
 #include "vm/class_table.h"
 
+#include <limits>
 #include <memory>
 
 #include "platform/atomic.h"
@@ -81,7 +82,10 @@ void ClassTable::set_table(ClassPtr* table) {
 ClassTable::ClassTable(SharedClassTable* shared_class_table)
     : top_(kNumPredefinedCids),
       capacity_(0),
-      table_(NULL),
+      tlc_top_(0),
+      tlc_capacity_(0),
+      table_(nullptr),
+      tlc_table_(nullptr),
       old_class_tables_(new MallocGrowableArray<ClassPtr*>()),
       shared_class_table_(shared_class_table) {
   if (Dart::vm_isolate() == NULL) {
@@ -122,6 +126,7 @@ ClassTable::~ClassTable() {
     delete old_class_tables_;
   }
   free(table_.load());
+  free(tlc_table_.load());
 }
 
 void ClassTable::AddOldTable(ClassPtr* old_class_table) {
@@ -149,7 +154,8 @@ void SharedClassTable::FreeOldTables() {
 void ClassTable::Register(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
 
-  const intptr_t index = cls.id();
+  const classid_t cid = cls.id();
+  ASSERT(!IsTopLevelCid(cid));
 
   // During the transition period we would like [SharedClassTable] to operate in
   // parallel to [ClassTable].
@@ -158,12 +164,12 @@ void ClassTable::Register(const Class& cls) {
       cls.is_abstract() ? 0 : Class::host_instance_size(cls.raw());
 
   const intptr_t expected_cid =
-      shared_class_table_->Register(index, instance_size);
+      shared_class_table_->Register(cid, instance_size);
 
-  if (index != kIllegalCid) {
-    ASSERT(index > 0 && index < kNumPredefinedCids && index < top_);
-    ASSERT(table_.load()[index] == nullptr);
-    table_.load()[index] = cls.raw();
+  if (cid != kIllegalCid) {
+    ASSERT(cid > 0 && cid < kNumPredefinedCids && cid < top_);
+    ASSERT(table_.load()[cid] == nullptr);
+    table_.load()[cid] = cls.raw();
   } else {
     if (top_ == capacity_) {
       const intptr_t new_capacity = capacity_ + kCapacityIncrement;
@@ -175,6 +181,28 @@ void ClassTable::Register(const Class& cls) {
     top_++;  // Increment next index.
   }
   ASSERT(expected_cid == cls.id());
+}
+
+void ClassTable::RegisterTopLevel(const Class& cls) {
+  if (top_ >= std::numeric_limits<classid_t>::max()) {
+    FATAL1("Fatal error in ClassTable::RegisterTopLevel: invalid index %" Pd
+           "\n",
+           top_);
+  }
+
+  ASSERT(Thread::Current()->IsMutatorThread());
+
+  const intptr_t index = cls.id();
+  ASSERT(index == kIllegalCid);
+
+  if (tlc_top_ == tlc_capacity_) {
+    const intptr_t new_capacity = tlc_capacity_ + kCapacityIncrement;
+    GrowTopLevel(new_capacity);
+  }
+  ASSERT(tlc_top_ < tlc_capacity_);
+  cls.set_id(ClassTable::CidFromTopLevelIndex(tlc_top_));
+  tlc_table_.load()[tlc_top_] = cls.raw();
+  tlc_top_++;  // Increment next index.
 }
 
 intptr_t SharedClassTable::Register(intptr_t index, intptr_t size) {
@@ -202,6 +230,11 @@ intptr_t SharedClassTable::Register(intptr_t index, intptr_t size) {
 }
 
 void ClassTable::AllocateIndex(intptr_t index) {
+  if (IsTopLevelCid(index)) {
+    AllocateTopLevelIndex(index);
+    return;
+  }
+
   // This is called by a snapshot reader.
   shared_class_table_->AllocateIndex(index);
   ASSERT(Class::is_valid_id(index));
@@ -218,6 +251,21 @@ void ClassTable::AllocateIndex(intptr_t index) {
 
   ASSERT(top_ == shared_class_table_->top_);
   ASSERT(capacity_ == shared_class_table_->capacity_);
+}
+
+void ClassTable::AllocateTopLevelIndex(intptr_t cid) {
+  ASSERT(IsTopLevelCid(cid));
+  const intptr_t tlc_index = IndexFromTopLevelCid(cid);
+
+  if (tlc_index >= tlc_capacity_) {
+    const intptr_t new_capacity = tlc_index + kCapacityIncrement;
+    GrowTopLevel(new_capacity);
+  }
+
+  ASSERT(tlc_table_.load()[tlc_index] == nullptr);
+  if (tlc_index >= tlc_top_) {
+    tlc_top_ = tlc_index + 1;
+  }
 }
 
 void ClassTable::Grow(intptr_t new_capacity) {
@@ -241,6 +289,29 @@ void ClassTable::Grow(intptr_t new_capacity) {
   set_table(new_table);
 
   capacity_ = new_capacity;
+}
+
+void ClassTable::GrowTopLevel(intptr_t new_capacity) {
+  ASSERT(new_capacity > tlc_capacity_);
+
+  auto old_table = tlc_table_.load();
+  auto new_table = static_cast<ClassPtr*>(
+      malloc(new_capacity * sizeof(ClassPtr)));  // NOLINT
+  intptr_t i;
+  for (i = 0; i < tlc_capacity_; i++) {
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = old_table[i];
+  }
+  for (; i < new_capacity; i++) {
+    // Don't use memset, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
+    new_table[i] = 0;
+  }
+  old_class_tables_->Add(old_table);
+
+  tlc_table_.store(new_table);
+  tlc_capacity_ = new_capacity;
 }
 
 void SharedClassTable::AllocateIndex(intptr_t index) {
@@ -320,9 +391,16 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
   capacity_ = new_capacity;
 }
 
-void ClassTable::Unregister(intptr_t index) {
-  shared_class_table_->Unregister(index);
-  table_.load()[index] = nullptr;
+void ClassTable::Unregister(intptr_t cid) {
+  ASSERT(!IsTopLevelCid(cid));
+  shared_class_table_->Unregister(cid);
+  table_.load()[cid] = nullptr;
+}
+
+void ClassTable::UnregisterTopLevel(intptr_t cid) {
+  ASSERT(IsTopLevelCid(cid));
+  const intptr_t tlc_index = IndexFromTopLevelCid(cid);
+  tlc_table_.load()[tlc_index] = nullptr;
 }
 
 void SharedClassTable::Unregister(intptr_t index) {
@@ -376,6 +454,12 @@ void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     ObjectPtr* to = reinterpret_cast<ObjectPtr*>(&table[top_ - 1]);
     visitor->VisitPointers(from, to);
   }
+  if (tlc_top_ != 0) {
+    auto* tlc_table = tlc_table_.load();
+    ObjectPtr* from = reinterpret_cast<ObjectPtr*>(&tlc_table[0]);
+    ObjectPtr* to = reinterpret_cast<ObjectPtr*>(&tlc_table[tlc_top_ - 1]);
+    visitor->VisitPointers(from, to);
+  }
   visitor->clear_gc_root_type();
 }
 
@@ -420,13 +504,18 @@ void ClassTable::Print() {
   }
 }
 
-void ClassTable::SetAt(intptr_t index, ClassPtr raw_cls) {
+void ClassTable::SetAt(intptr_t cid, ClassPtr raw_cls) {
+  if (IsTopLevelCid(cid)) {
+    tlc_table_.load()[IndexFromTopLevelCid(cid)] = raw_cls;
+    return;
+  }
+
   // This is called by snapshot reader and class finalizer.
-  ASSERT(index < capacity_);
+  ASSERT(cid < capacity_);
   const intptr_t size =
       raw_cls == nullptr ? 0 : Class::host_instance_size(raw_cls);
-  shared_class_table_->SetSizeAt(index, size);
-  table_.load()[index] = raw_cls;
+  shared_class_table_->SetSizeAt(cid, size);
+  table_.load()[cid] = raw_cls;
 }
 
 #ifndef PRODUCT

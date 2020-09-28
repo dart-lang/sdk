@@ -56,20 +56,20 @@ main() {
   // The static type of e1?.v = e2 is the static type of e2.
   { D d = new D(new E()); G g = new G(); F f = (d?.v = g); Expect.identical(f, g); }
   { D d = new D(new E()); E e = new G(); F f = (d?.v = e); }
-  //                                           ^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                                            ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                            ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F'.
   { D.staticE = new E(); G g = new G(); F f = (D?.staticE = g); Expect.identical(f, g); }
   { h.D.staticE = new h.E(); h.G g = new h.G(); h.F f = (h.D?.staticE = g); Expect.identical(f, g); }
   { D.staticE = new E(); E e = new G(); F f = (D?.staticE = e); }
-  //                                          ^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                                           ^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                              ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F'.
   { h.D.staticE = new h.E(); h.E e = new h.G(); h.F f = (h.D?.staticE = e); }
-  //                                                    ^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                                                     ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                                          ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F'.
 
@@ -77,11 +77,11 @@ main() {
   // also generated in the case of e1?.v = e2.
   Expect.equals(null, nullC()?.bad = bad());
   //                           ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'bad' isn't defined for the class 'C'.
   { B b = new C(1); Expect.equals(2, b?.v = 2); }
   //                                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'v' isn't defined for the class 'B'.
 
   // e1?.v op= e2 is equivalent to ((x) => x?.v = x.v op e2)(e1).
@@ -101,40 +101,40 @@ main() {
   // also generated in the case of e1?.v op= e2.
   nullC()?.bad = bad();
   //       ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'bad' isn't defined for the class 'C'.
   { B b = new C(1); b?.v += 2; }
   //                   ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'v' isn't defined for the class 'B'.
   //                   ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'v' isn't defined for the class 'B'.
   { D d = new D(new E()); F f = (d?.v += nullC()); }
   //                                     ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C' can't be assigned to a variable of type 'int'.
   { D d = new D(new E()); H h = (d?.v += 1); }
-  //                            ^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                             ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                             ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H'.
   { D.staticE = new E(); F f = (D?.staticE += nullC()); }
   //                                          ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C' can't be assigned to a variable of type 'int'.
   { h.D.staticE = new h.E(); h.F f = (h.D?.staticE += h.nullC()); }
   //                                                  ^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'C' can't be assigned to a variable of type 'int'.
   { D.staticE = new E(); H h = (D?.staticE += 1); }
-  //                           ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                            ^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                               ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H'.
   { h.D.staticE = new h.E(); h.H hh = (h.D?.staticE += 1); }
-  //                                  ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  //                                   ^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                        ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H'.
 

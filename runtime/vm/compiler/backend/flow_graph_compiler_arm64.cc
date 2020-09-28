@@ -34,7 +34,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
 
     const auto& stub =
         Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
-    if (!stub.InVMIsolateHeap()) {
+    if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
         const intptr_t offset_into_target =
             Thread::WriteBarrierWrappersOffsetForRegister(reg);
@@ -45,7 +45,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
 
     const auto& array_stub =
         Code::ZoneHandle(object_store->array_write_barrier_stub());
-    if (!array_stub.InVMIsolateHeap()) {
+    if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_array_write_barrier_ = [&]() {
         assembler_->GenerateUnRelocatedPcRelativeCall();
         AddPcRelativeCallStubTarget(array_stub);
@@ -669,67 +669,19 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   ASSERT(!TokenPosition(token_pos).IsClassifying());
   ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 
-  compiler::Label is_assignable_fast, is_assignable, runtime_call;
-  // Generate inline type check, linking to runtime call if not assignable.
-  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
-
   if (locs->in(1).IsConstant()) {
     const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
     ASSERT(dst_type.IsFinalized());
 
     if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
 
-    if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
-      GenerateAssertAssignableViaTypeTestingStub(receiver_type, token_pos,
-                                                 deopt_id, dst_name, locs);
-      return;
-    }
-
-    if (Instance::NullIsAssignableTo(dst_type)) {
-      __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
-      __ b(&is_assignable_fast, EQ);
-    }
-
-    __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
-                TypeTestABI::kInstantiatorTypeArgumentsReg);
-
-    test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
-                                          &runtime_call);
+    GenerateAssertAssignableViaTypeTestingStub(receiver_type, token_pos,
+                                               deopt_id, dst_name, locs);
+    return;
   } else {
     // TODO(dartbug.com/40813): Handle setting up the non-constant case.
     UNREACHABLE();
   }
-
-  __ Bind(&runtime_call);
-  __ ldp(TypeTestABI::kFunctionTypeArgumentsReg,
-         TypeTestABI::kInstantiatorTypeArgumentsReg,
-         compiler::Address(SP, 0 * kWordSize, compiler::Address::PairOffset));
-  // Make room for the result and push the source object.
-  __ PushPair(TypeTestABI::kInstanceReg, NULL_REG);
-  // Push the destination type and the instantiator type arguments.
-  if (locs->in(1).IsConstant()) {
-    __ LoadObject(TMP, locs->in(1).constant());
-    __ PushPair(TypeTestABI::kInstantiatorTypeArgumentsReg, TMP);
-  } else {
-    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
-    UNREACHABLE();
-  }
-  // Push the function type arguments and the name of the destination.
-  __ LoadObject(TMP, dst_name);
-  __ PushPair(TMP, TypeTestABI::kFunctionTypeArgumentsReg);
-
-  __ LoadUniqueObject(R0, test_cache);
-  __ LoadObject(TMP, Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
-  __ PushPair(TMP, R0);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ Drop(7);
-  __ Pop(TypeTestABI::kInstanceReg);
-  __ Bind(&is_assignable);
-  __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
-             TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ Bind(&is_assignable_fast);
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
@@ -745,9 +697,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 
   // If the dst_type is instantiated we know the target TTS stub at
   // compile-time and can therefore use a pc-relative call.
-  const bool use_pc_relative_call = dst_type.IsInstantiated() &&
-                                    FLAG_precompiled_mode &&
-                                    FLAG_use_bare_instructions;
+  const bool use_pc_relative_call =
+      dst_type.IsInstantiated() && CanPcRelativeCall(dst_type);
 
   const Register kRegToCall =
       use_pc_relative_call
@@ -838,16 +789,6 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
   __ LoadFieldFromOffset(R0, CODE_REG,
                          Code::entry_point_offset(Code::EntryKind::kUnchecked));
   __ br(R0);
-}
-
-void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
-  // LR: return address.
-  // SP: receiver.
-  // Sequence node has one return node, its input is load field node.
-  __ Comment("Intrinsic Getter");
-  __ LoadFromOffset(R0, SP, 0 * kWordSize);
-  __ LoadFieldFromOffset(R0, R0, offset);
-  __ ret();
 }
 
 void FlowGraphCompiler::EmitFrameEntry() {
@@ -950,8 +891,7 @@ void FlowGraphCompiler::CompileGraph() {
 
 void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      !stub.InVMIsolateHeap()) {
+  if (CanPcRelativeCall(stub)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
   } else {
@@ -962,8 +902,7 @@ void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
 
 void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      !stub.InVMIsolateHeap()) {
+  if (CanPcRelativeCall(stub)) {
     __ LeaveDartFrame();
     __ GenerateUnRelocatedPcRelativeTailCall();
     AddPcRelativeTailCallStubTarget(stub);
@@ -1006,7 +945,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                const Function& target,
                                                Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (CanPcRelativeCall(target)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallTarget(target, entry_kind);
     EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);

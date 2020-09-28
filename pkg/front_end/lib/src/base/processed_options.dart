@@ -12,7 +12,8 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
+import 'package:kernel/kernel.dart'
+    show CanonicalName, Component, Location, Version;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
@@ -47,6 +48,7 @@ import '../fasta/fasta_codes.dart'
         templateCannotReadSdkSpecification,
         templateCantReadFile,
         templateDebugTrace,
+        templateExceptionReadingFile,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
         templatePackagesFileFormat,
@@ -169,6 +171,8 @@ class ProcessedOptions {
   bool get throwOnErrorsForDebugging => _raw.throwOnErrorsForDebugging;
 
   bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
+
+  bool get emitDeps => _raw.emitDeps;
 
   NnbdMode get nnbdMode => _raw.nnbdMode;
 
@@ -344,7 +348,13 @@ class ProcessedOptions {
       flags.ExperimentalFlag flag, Uri importUri) {
     return flags.isExperimentEnabledInLibrary(flag, importUri,
         experimentalFlags: _raw.experimentalFlags,
-        allowedExperimentalFlags: _raw.allowedExperimentalFlags);
+        allowedExperimentalFlags: _raw.allowedExperimentalFlagsForTesting);
+  }
+
+  Version getExperimentEnabledVersion(flags.ExperimentalFlag flag) {
+    return flags.getExperimentEnabledVersion(flag,
+        experimentReleasedVersionForTesting:
+            _raw.experimentReleasedVersionForTesting);
   }
 
   /// Get an outline component that summarizes the SDK, if any.
@@ -513,6 +523,14 @@ class ProcessedOptions {
         reportWithoutLocation(
             templateCantReadFile.withArguments(uri, e.message), Severity.error);
       }
+    } catch (e) {
+      Message message =
+          templateExceptionReadingFile.withArguments(uri, e.message);
+      reportWithoutLocation(message, Severity.error);
+      // We throw a new exception to ensure that the message include the uri
+      // that led to the exception. Exceptions in Uri don't include the
+      // offending uri in the exception message.
+      throw new ArgumentError(message.message);
     }
     return null;
   }

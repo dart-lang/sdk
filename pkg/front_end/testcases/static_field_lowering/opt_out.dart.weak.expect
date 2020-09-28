@@ -1,0 +1,90 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static const field core::int* staticConstField = #C1;
+  field core::int* instanceFieldWithInitializer = self::init<core::int*>(55);
+  static field core::int* staticFieldWithoutInitializer = null;
+  static field core::int* staticFieldWithInitializer1 = self::init<core::int*>(55);
+  static field core::int* staticFieldWithInitializer2 = self::init<core::int*>(55);
+  static final field core::int* staticFinalFieldWithInitializer1 = self::init<core::int*>(73);
+  static field core::int* staticFinalFieldWithInitializer2Init = 0;
+  static final field core::int* staticFinalFieldWithInitializer2 = (let final core::int* #t1 = self::Class::staticFinalFieldWithInitializer2Init in let final core::int* #t2 = self::Class::staticFinalFieldWithInitializer2Init = #t1.{core::num::+}(1) in #t1).{core::num::==}(0) ?{core::int*} self::Class::staticFinalFieldWithInitializer2.{core::num::+}(1) : 87;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field dynamic lastInit;
+static const field core::int* constTopLevelField = #C2;
+static field core::int* topLevelFieldWithoutInitializer;
+static field core::int* topLevelFieldWithInitializer1 = self::init<core::int*>(42);
+static field core::int* topLevelFieldWithInitializer2 = self::init<core::int*>(42);
+static final field core::int* finalTopLevelFieldWithInitializer1 = self::init<core::int*>(87);
+static field core::int* finalTopLevelFieldWithInitializer2Init = 0;
+static final field core::int* finalTopLevelFieldWithInitializer2 = (let final core::int* #t3 = self::finalTopLevelFieldWithInitializer2Init in let final core::int* #t4 = self::finalTopLevelFieldWithInitializer2Init = #t3.{core::num::+}(1) in #t3).{core::num::==}(0) ?{core::int*} self::finalTopLevelFieldWithInitializer2.{core::num::+}(1) : 87;
+static method init<T extends core::Object* = dynamic>(self::init::T* value) → self::init::T* {
+  self::lastInit = value;
+  return value;
+}
+static method main() → dynamic {
+  self::expect(null, self::lastInit);
+  self::expect(null, self::topLevelFieldWithoutInitializer);
+  self::expect(324, #C2);
+  self::expect(null, self::Class::staticFieldWithoutInitializer);
+  self::expect(123, #C1);
+  self::expect(42, self::topLevelFieldWithInitializer1);
+  self::expect(42, self::lastInit);
+  self::topLevelFieldWithInitializer2 = 56;
+  self::expect(42, self::lastInit);
+  self::expect(56, self::topLevelFieldWithInitializer2);
+  self::expect(42, self::lastInit);
+  self::expect(87, self::finalTopLevelFieldWithInitializer1);
+  self::expect(87, self::lastInit);
+  self::throws(() → core::int* => self::finalTopLevelFieldWithInitializer2, "Read finalTopLevelFieldWithInitializer2");
+  self::expect(55, self::Class::staticFieldWithInitializer1);
+  self::expect(55, self::lastInit);
+  self::Class::staticFieldWithInitializer2 = 63;
+  self::expect(55, self::lastInit);
+  self::expect(63, self::Class::staticFieldWithInitializer2);
+  self::expect(55, self::lastInit);
+  self::expect(73, self::Class::staticFinalFieldWithInitializer1);
+  self::expect(73, self::lastInit);
+  self::throws(() → core::int* => self::Class::staticFinalFieldWithInitializer2, "Read staticFinalFieldWithInitializer2");
+  self::Class* c = new self::Class::•();
+  self::expect(55, self::lastInit);
+  self::expect(55, c.{self::Class::instanceFieldWithInitializer});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() →* dynamic f, core::String* message) → dynamic {
+  dynamic value;
+  try {
+    value = f.call();
+  }
+  on core::LateInitializationError* catch(final core::LateInitializationError* e) {
+    throw "${message}: Unexpected LateInitializationError: ${e}";
+  }
+  on dynamic catch(final dynamic e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}
+
+constants  {
+  #C1 = 123
+  #C2 = 324
+}

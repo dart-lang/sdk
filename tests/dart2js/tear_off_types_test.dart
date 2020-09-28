@@ -27,9 +27,9 @@ test1() {
   Expect.isFalse(_test1(method1c));
 }
 
-B1 method1a() => null;
-A1<int> method1b() => null;
-A1<String> method1c() => null;
+B1 method1a() => throw 'unreachable';
+A1<int> method1b() => throw 'unreachable';
+A1<String> method1c() => throw 'unreachable';
 
 @pragma('dart2js:noInline')
 bool _test1(f) => f is A1<int> Function();
@@ -81,9 +81,9 @@ test4() {
   Expect.isFalse(_test4(method4c));
 }
 
-B4 method4a() => null;
-A4<int> method4b() => null;
-A4<String> method4c() => null;
+B4 method4a() => throw 'unreachable';
+A4<int> method4b() => throw 'unreachable';
+A4<String> method4c() => throw 'unreachable';
 
 @pragma('dart4js:noInline')
 _test4(f) => f is B4 Function();
@@ -117,9 +117,9 @@ test6() {
   Expect.isFalse(_test6(method6c));
 }
 
-void Function(B6) method6a() => null;
-void Function(A6<int>) method6b() => null;
-void Function(A6<String>) method6c() => null;
+void Function(B6) method6a() => throw 'unreachable';
+void Function(A6<int>) method6b() => throw 'unreachable';
+void Function(A6<String>) method6c() => throw 'unreachable';
 
 @pragma('dart6js:noInline')
 _test6(f) => f is void Function(B6) Function();

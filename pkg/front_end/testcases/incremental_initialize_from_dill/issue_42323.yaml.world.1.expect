@@ -1,0 +1,5 @@
+main = <No Member>;
+library from "org-dartlang-test:///bin/runMe.dart" as run {
+
+  static method main() → dynamic {}
+}

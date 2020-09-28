@@ -103,7 +103,7 @@ CompilationUnit parseDirectives(Source source) {
   var parser = new Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
-    featureSet: FeatureSet.fromEnableFlags([]),
+    featureSet: FeatureSet.latestLanguageVersion(),
   );
   return parser.parseDirectives(token);
 }
@@ -127,7 +127,7 @@ CompilationUnit parseFull(Source source) {
   var parser = new Parser(
     source,
     AnalysisErrorListener.NULL_LISTENER,
-    featureSet: FeatureSet.fromEnableFlags([]),
+    featureSet: FeatureSet.latestLanguageVersion(),
   );
   var unit = parser.parseCompilationUnit(token);
   parseTimer.stop();

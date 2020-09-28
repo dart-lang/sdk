@@ -4,10 +4,12 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -108,9 +110,13 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       LinkedBundleContext(elementFactory, sdkBundle),
     );
 
-    var linkResult = link(
-      elementFactory,
-      inputLibraries,
+    var linkResult = NullSafetyUnderstandingFlag.enableNullSafetyTypes(
+      () {
+        return link(
+          elementFactory,
+          inputLibraries,
+        );
+      },
     );
 
     elementFactory.addBundle(
@@ -219,6 +225,9 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 class _AnalysisSessionForLinking implements AnalysisSessionImpl {
   @override
   final ClassHierarchy classHierarchy = ClassHierarchy();
+
+  @override
+  InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

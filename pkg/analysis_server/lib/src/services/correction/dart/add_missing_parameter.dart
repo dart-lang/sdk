@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/executable_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingParameter extends MultiCorrectionProducer {
@@ -43,7 +43,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
   FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var prefix = context.required.isNotEmpty ? ', [' : '[';
     if (context.required.isNotEmpty) {
       var prevNode = await context.getParameterNode(context.required.last);
@@ -63,8 +63,8 @@ abstract class _AddMissingParameter extends CorrectionProducer {
 
   _AddMissingParameter(this.context);
 
-  Future<void> _addParameter(DartChangeBuilder builder, int offset,
-      String prefix, String suffix) async {
+  Future<void> _addParameter(
+      ChangeBuilder builder, int offset, String prefix, String suffix) async {
     ArgumentList argumentList = node;
     List<Expression> arguments = argumentList.arguments;
     var numRequired = context.required.length;
@@ -73,7 +73,7 @@ abstract class _AddMissingParameter extends CorrectionProducer {
     }
     var argument = arguments[numRequired];
     if (offset != null) {
-      await builder.addFileEdit(context.file, (builder) {
+      await builder.addDartFileEdit(context.file, (builder) {
         builder.addInsertion(offset, (builder) {
           builder.write(prefix);
           builder.writeParameterMatchingArgument(
@@ -95,7 +95,7 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
   FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (context.required.isNotEmpty) {
       var prevNode = await context.getParameterNode(context.required.last);
       await _addParameter(builder, prevNode?.end, ', ', '');

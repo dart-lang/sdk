@@ -16,6 +16,7 @@ from htmlrenamer import convert_to_future_members, custom_html_constructors, \
     removed_html_members
 from generator import TypeOrVar
 import logging
+from mdnreader import MDNReader
 import monitored
 import sys
 
@@ -49,6 +50,7 @@ class HtmlDartGenerator(object):
         self._renamer = options.renamer
         self._metadata = options.metadata
         self._library_name = self._renamer.GetLibraryName(self._interface)
+        self._mdn_reader = MDNReader()
         _logger.setLevel(logger.level)
 
     def EmitSupportCheck(self):
@@ -318,10 +320,7 @@ class HtmlDartGenerator(object):
             attribute.type.nullable = True
 
         if declare_only:
-            self.DeclareAttribute(attribute,
-                                  self.SecureOutputType(attribute.type.id,
-                                    nullable=attribute.type.nullable),
-                                  attr_name, read_only)
+            self.DeclareAttribute(attribute, attr_name, read_only)
         else:
             self.EmitAttribute(attribute, attr_name, read_only)
 
@@ -824,7 +823,7 @@ class HtmlDartGenerator(object):
                 'throw new UnsupportedError("Not supported"); }\n',
                 CLASSNAME=self._interface_type_info.implementation_name())
 
-    def DeclareAttribute(self, attribute, type_name, attr_name, read_only):
+    def DeclareAttribute(self, attribute, attr_name, read_only):
         """ Declares an attribute but does not include the code to invoke it.
     """
         if read_only:
@@ -837,9 +836,16 @@ class HtmlDartGenerator(object):
                 template = '\n  $TYPE get $NAME;\n'
         else:
             template = '\n  $TYPE get $NAME native;\n' \
-                       '\n  void set $NAME native;\n'
+                       '\n  set $NAME($TYPE value) native;\n'
 
-        self._members_emitter.Emit(template, NAME=attr_name, TYPE=type_name)
+        # Nullability is determined by attribute compatibility.
+        is_compat = self._mdn_reader.is_compatible(attribute)
+        nullable = attribute.type.nullable or not is_compat
+
+        self._members_emitter.Emit(template,
+                                   NAME=attr_name,
+                                   TYPE=self.SecureOutputType(
+                                       attribute.type.id, nullable=nullable))
 
     def DeclareOperation(self, operation, return_type_name, method_name):
         """ Declares an operation but does not include the code to invoke it.

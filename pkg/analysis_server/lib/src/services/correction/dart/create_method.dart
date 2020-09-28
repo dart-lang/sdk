@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show Position;
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -27,7 +27,7 @@ class CreateMethod extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_METHOD;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (_kind == _MethodKind.equalsOrHashCode) {
       await createEqualsOrHashCode(builder);
     } else if (_kind == _MethodKind.method) {
@@ -35,7 +35,7 @@ class CreateMethod extends CorrectionProducer {
     }
   }
 
-  Future<void> createEqualsOrHashCode(DartChangeBuilder builder) async {
+  Future<void> createEqualsOrHashCode(ChangeBuilder builder) async {
     final methodDecl = node.thisOrAncestorOfType<MethodDeclaration>();
     final classDecl = methodDecl.thisOrAncestorOfType<ClassDeclaration>();
     if (methodDecl != null && classDecl != null) {
@@ -55,7 +55,7 @@ class CreateMethod extends CorrectionProducer {
       final location =
           utils.prepareNewClassMemberLocation(classDecl, (_) => true);
 
-      await builder.addFileEdit(file, (fileBuilder) {
+      await builder.addDartFileEdit(file, (fileBuilder) {
         fileBuilder.addInsertion(location.offset, (builder) {
           builder.write(location.prefix);
           builder.writeOverride(element, invokeSuper: true);
@@ -67,7 +67,7 @@ class CreateMethod extends CorrectionProducer {
     }
   }
 
-  Future<void> createMethod(DartChangeBuilder builder) async {
+  Future<void> createMethod(ChangeBuilder builder) async {
     if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
       return;
     }
@@ -131,8 +131,8 @@ class CreateMethod extends CorrectionProducer {
     var targetLocation = utils.prepareNewMethodLocation(targetNode);
     var targetFile = targetElement.source.fullName;
     // build method source
-    await builder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
-      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(targetFile, (builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
         builder.write(targetLocation.prefix);
         // maybe "static"
         if (staticModifier) {
@@ -146,7 +146,7 @@ class CreateMethod extends CorrectionProducer {
           }
         }
         // append name
-        builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
+        builder.addLinkedEdit('NAME', (builder) {
           builder.write(_memberName);
         });
         builder.write('(');

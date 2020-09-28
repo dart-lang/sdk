@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexExpressionTest);
-    defineReflectiveTests(IndexExpressionWithNnbdTest);
+    defineReflectiveTests(IndexExpressionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class IndexExpressionTest extends DriverResolutionTest {
+class IndexExpressionTest extends PubPackageResolutionTest {
   test_read() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -73,7 +71,7 @@ main(A<double> a) {
     );
   }
 
-  test_readWrite() async {
+  test_readWrite_assignment() async {
     await assertNoErrorsInCode(r'''
 class A {
   num operator[](int index) => 0;
@@ -104,11 +102,15 @@ main(A a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: indexElement,
+      readType: 'num',
+      writeElement: indexEqElement,
+      writeType: 'num',
       operatorElement: elementMatcher(
         numPlusElement,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
-      type: 'num',
+      type: typeToStringWithNullability ? 'double' : 'num',
     );
     assertParameterElement(
       assignment.rightHandSide,
@@ -116,7 +118,7 @@ main(A a) {
     );
   }
 
-  test_readWrite_generic() async {
+  test_readWrite_assignment_generic() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
   T operator[](int index) => throw 42;
@@ -153,6 +155,16 @@ main(A<double> a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: elementMatcher(
+        indexElement,
+        substitution: {'T': 'double'},
+      ),
+      readType: 'double',
+      writeElement: elementMatcher(
+        indexEqElement,
+        substitution: {'T': 'double'},
+      ),
+      writeType: 'double',
       operatorElement: elementMatcher(
         doublePlusElement,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
@@ -193,6 +205,10 @@ main(A a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: indexEqElement,
+      writeType: 'num',
       operatorElement: null,
       type: 'double',
     );
@@ -230,6 +246,13 @@ main(A<double> a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        indexEqElement,
+        substitution: {'T': 'double'},
+      ),
+      writeType: 'double',
       operatorElement: null,
       type: 'double',
     );
@@ -238,15 +261,8 @@ main(A<double> a) {
 }
 
 @reflectiveTest
-class IndexExpressionWithNnbdTest extends IndexExpressionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class IndexExpressionWithNullSafetyTest extends IndexExpressionTest
+    with WithNullSafetyMixin {
   test_read_cascade_nullShorting() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -299,28 +315,6 @@ main(A? a) {
     );
   }
 
-  test_read_nullable_questionDotIndex() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  bool operator[](int index) => false;
-}
-
-main(A? a) {
-  a?.[0];
-}
-''');
-
-    var indexElement = findElement.method('[]');
-
-    var indexExpression = findNode.index('a?.[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: null,
-      type: 'bool?',
-    );
-  }
-
   test_readWrite_nullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -352,48 +346,12 @@ main(A? a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
-      operatorElement: numPlusElement,
-      type: 'num?',
-    );
-    assertParameterElement(
-      assignment.rightHandSide,
-      numPlusElement.parameters[0],
-    );
-  }
-
-  test_readWrite_nullable_questionDotIndex() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  num operator[](int index) => 0;
-  void operator[]=(int index, num value) {}
-}
-
-main(A? a) {
-  a?.[0] += 1.2;
-}
-''');
-
-    var indexElement = findElement.method('[]');
-    var indexEqElement = findElement.method('[]=');
-    var numPlusElement = numElement.getMethod('+');
-
-    var indexExpression = findNode.index('a?.[0]');
-    assertIndexExpression(
-      indexExpression,
       readElement: indexElement,
+      readType: 'num',
       writeElement: indexEqElement,
-      type: 'num',
-    );
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
+      writeType: 'num',
       operatorElement: numPlusElement,
-      type: 'num?',
+      type: 'double?',
     );
     assertParameterElement(
       assignment.rightHandSide,
@@ -459,40 +417,10 @@ main(A? a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
-      operatorElement: null,
-      type: 'double?',
-    );
-    assertParameterElement(assignment.rightHandSide, null);
-  }
-
-  test_write_nullable_questionDotIndex() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  void operator[]=(int index, num value) {}
-}
-
-main(A? a) {
-  a?.[0] = 1.2;
-}
-''');
-
-    var indexEqElement = findElement.method('[]=');
-
-    var indexExpression = findNode.index('a?.[0]');
-    assertIndexExpression(
-      indexExpression,
       readElement: null,
+      readType: null,
       writeElement: indexEqElement,
-      type: null,
-    );
-    assertParameterElement(
-      indexExpression.index,
-      indexEqElement.parameters[0],
-    );
-
-    var assignment = indexExpression.parent as AssignmentExpression;
-    assertAssignment(
-      assignment,
+      writeType: 'num',
       operatorElement: null,
       type: 'double?',
     );

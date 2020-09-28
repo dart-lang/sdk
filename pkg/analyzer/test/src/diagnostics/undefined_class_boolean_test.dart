@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,12 +15,12 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedClassBooleanTest extends DriverResolutionTest {
+class UndefinedClassBooleanTest extends PubPackageResolutionTest {
   test_variableDeclaration() async {
     await assertErrorsInCode('''
 f() { boolean v; }
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, 6, 7),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN, 6, 7),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
     ]);
   }

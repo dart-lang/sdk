@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedClassTest extends DriverResolutionTest {
+class UndefinedClassTest extends PubPackageResolutionTest {
   test_const() async {
     await assertErrorsInCode(r'''
 f() {
@@ -40,7 +40,7 @@ dynamic x;
     await assertErrorsInCode('''
 f() { new C(); }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 10, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 10, 1),
     ]);
   }
 

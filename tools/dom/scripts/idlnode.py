@@ -55,7 +55,6 @@ _operation_suffix_map = {
     '__delete__': "Deleter",
 }
 
-
 class IDLNode(object):
     """Base class for all IDL elements.
   IDLNode may contain various child nodes, and have properties. Examples
@@ -825,7 +824,7 @@ def generate_setLike_operations_properties(interface, set_like):
        void forEach(any callback, optional any thisArg);
        boolean has(FontFace fontFace);
        boolean has(FontFace fontFace);
-  
+
   if setlike is not read-only these operations are generated:
 
            FontFaceSet add(FontFace value);
@@ -837,10 +836,10 @@ def generate_setLike_operations_properties(interface, set_like):
   Need to create a typedef for a function callback e.g.,
   a setlike will need a callback that has the proper args in FontFaceSet that is
   three arguments, etc.
-  
+
       typedef void FontFaceSetForEachCallback(
         FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
-    
+
       void forEach(FontFaceSetForEachCallback callback, [Object thisArg]);
   """
     callback_name = '%sForEachCallback' % interface.id
@@ -1045,7 +1044,6 @@ class IDLOperation(IDLMember):
         return [a.type for a in self.arguments] == [
             a.type for a in operation.arguments
         ]
-
 
 class IDLAttribute(IDLMember):
     """IDLNode specialization for 'attribute type name' declarations."""

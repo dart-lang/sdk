@@ -1,0 +1,66 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42546.dart:14:58: Error: A value of type 'Divergent<int>' can't be returned from an async function with return type 'Future<Divergent<Divergent<Divergent<int>>>>'.
+//  - 'Divergent' is from 'pkg/front_end/testcases/nnbd/issue42546.dart'.
+//  - 'Future' is from 'dart:async'.
+//   Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())();
+//                                                          ^
+//
+// pkg/front_end/testcases/nnbd/issue42546.dart:14:75: Error: A value of type 'Future<Divergent<Divergent<Divergent<int>>>>' can't be assigned to a variable of type 'Future<Divergent<Divergent<int>>>'.
+//  - 'Future' is from 'dart:async'.
+//  - 'Divergent' is from 'pkg/front_end/testcases/nnbd/issue42546.dart'.
+//   Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())();
+//                                                                           ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class Divergent<T extends core::Object? = dynamic> extends core::Object implements asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>> {
+  synthetic constructor •() → self::Divergent<self::Divergent::T%>
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    return super.{core::Object::noSuchMethod}(invocation);
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ catchError(core::Function onError, {(core::Object) →? core::bool test = #C1}) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C4: test}))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ whenComplete(() → FutureOr<void>action) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C7))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration timeLimit, {generic-covariant-impl () →? FutureOr<self::Divergent<self::Divergent<self::Divergent::T%>>>onTimeout = #C1}) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C9: onTimeout}))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ then<R extends core::Object? = dynamic>((self::Divergent<self::Divergent<self::Divergent::T%>>) → FutureOr<self::Divergent::then::R%>onValue, {core::Function? onError = #C1}) → asy::Future<self::Divergent::then::R%>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 0, core::List::unmodifiable<core::Type*>(<core::Type*>[self::Divergent::then::R%]), core::List::unmodifiable<dynamic>(<dynamic>[onValue]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C11: onError}))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent::then::R%>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C12, 0, #C3, #C6, core::Map::unmodifiable<core::Symbol*, dynamic>(#C7))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+}
+static method test() → dynamic async {
+  asy::Future<self::Divergent<self::Divergent<core::int>>> x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue42546.dart:14:75: Error: A value of type 'Future<Divergent<Divergent<Divergent<int>>>>' can't be assigned to a variable of type 'Future<Divergent<Divergent<int>>>'.
+ - 'Future' is from 'dart:async'.
+ - 'Divergent' is from 'pkg/front_end/testcases/nnbd/issue42546.dart'.
+  Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())();
+                                                                          ^" in (() → asy::Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>> async => let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue42546.dart:14:58: Error: A value of type 'Divergent<int>' can't be returned from an async function with return type 'Future<Divergent<Divergent<Divergent<int>>>>'.
+ - 'Divergent' is from 'pkg/front_end/testcases/nnbd/issue42546.dart'.
+ - 'Future' is from 'dart:async'.
+  Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())();
+                                                         ^" in new self::Divergent::•<core::int>() as{TypeError,ForNonNullableByDefault} self::Divergent<self::Divergent<self::Divergent<core::int>>>).call() as{TypeError,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<core::int>>>;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+  #C2 = #catchError
+  #C3 = <core::Type*>[]
+  #C4 = #test
+  #C5 = #whenComplete
+  #C6 = <dynamic>[]
+  #C7 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C6}
+  #C8 = #timeout
+  #C9 = #onTimeout
+  #C10 = #then
+  #C11 = #onError
+  #C12 = #asStream
+}

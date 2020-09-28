@@ -30,8 +30,8 @@ class RegionPage extends PreviewPage {
   @override
   Future<void> generatePage(Map<String, String> params) async {
     var region = unitInfo.regionAt(int.parse(params['offset']));
-    var renderer =
-        RegionRenderer(region, unitInfo, site.migrationInfo, site.pathMapper);
+    var renderer = RegionRenderer(region, unitInfo, site.migrationInfo,
+        site.pathMapper, site.serviceAuthToken);
     buf.write(jsonEncode(renderer.render().toJson()));
   }
 }

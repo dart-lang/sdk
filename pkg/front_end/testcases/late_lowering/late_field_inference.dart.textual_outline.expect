@@ -15,8 +15,8 @@ class A {
 }
 class B extends A {
   get nonNullableInstanceField => 0;
-  set nonNullableInstanceField(value) { }
+  set nonNullableInstanceField(value) {}
   get nullableInstanceField => 0;
-  set nullableInstanceField(value) { }
+  set nullableInstanceField(value) {}
 }
-main() { }
+main() {}

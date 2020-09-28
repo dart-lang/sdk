@@ -149,7 +149,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     }
   } =>#t5;
   core::Set<core::String> a = block {
-    final core::Set<core::String> #t8 = col::LinkedHashSet::•<core::String>();
+    final core::Set<core::String> #t8 = new col::_CompactLinkedHashSet::•<core::String>();
     final core::Iterable<dynamic>? #t9 = l;
     if(!#t9.{core::Object::==}(null)) {
       core::Iterator<dynamic> :sync-for-iterator = #t9{core::Iterable<dynamic>}.{core::Iterable::iterator};
@@ -163,7 +163,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     }
   } =>#t8;
   block {
-    final core::Set<core::String> #t12 = col::LinkedHashSet::•<core::String>();
+    final core::Set<core::String> #t12 = new col::_CompactLinkedHashSet::•<core::String>();
     final core::Iterable<core::String>? #t13 = l;
     if(!#t13.{core::Object::==}(null)) {
       core::Iterator<core::String> :sync-for-iterator = #t13{core::Iterable<core::String>}.{core::Iterable::iterator};

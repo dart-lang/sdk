@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
@@ -29,12 +31,20 @@ void command() {
   });
 
   // Assert that all found usageLineLengths are the same and null
-  test('argParser usageLineLength isNull', () {
+  test('argParser usageLineLength', () {
     DartdevRunner(['--disable-dartdev-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       if (command.argParser != null) {
-        expect(command.argParser.usageLineLength, isNull);
+        if (command.name != 'help' &&
+            command.name != 'format' &&
+            command.name != 'migrate' &&
+            command.name != 'pub') {
+          expect(command.argParser.usageLineLength,
+              stdout.hasTerminal ? stdout.terminalColumns : null);
+        } else {
+          expect(command.argParser.usageLineLength, isNull);
+        }
       }
     });
   });
@@ -79,12 +89,50 @@ void help() {
     var result = p.runSync('--help', ['--verbose']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, contains('migrate '));
+    expect(result.stdout, isEmpty);
+    expect(result.stderr,
+        contains('The following options are only used for VM development'));
   });
 
   test('--help -v', () {
     p = project();
     var result = p.runSync('--help', ['-v']);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, isEmpty);
+    expect(result.stderr,
+        contains('The following options are only used for VM development'));
+  });
+
+  test('help', () {
+    p = project();
+    var result = p.runSync('help', []);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(DartdevRunner.dartdevDescription));
+    expect(result.stdout,
+        contains('Usage: dart [<vm-flags>] <command|dart-file> [<arguments>]'));
+    expect(result.stdout, contains('Global options:'));
+    expect(result.stdout, contains('Available commands:'));
+    expect(result.stdout, contains('analyze '));
+    expect(result.stdout, contains('create '));
+    expect(result.stdout, contains('compile '));
+    expect(result.stdout, contains('format '));
+    expect(result.stdout, contains('migrate '));
+  });
+
+  test('help --verbose', () {
+    p = project();
+    var result = p.runSync('help', ['--verbose']);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('migrate '));
+  });
+
+  test('help -v', () {
+    p = project();
+    var result = p.runSync('help', ['-v']);
 
     expect(result.exitCode, 0);
     expect(result.stdout, contains('migrate '));

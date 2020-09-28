@@ -18,5 +18,5 @@ class Class {
   late ;
   final int? nullableInstanceField = nullableInstanceFieldReads++ == 0 ? nullableInstanceField.hashCode : 0;
 }
-void main() { }
-throws(f(), String message) { }
+void main() {}
+throws(f(), String message) {}

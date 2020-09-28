@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class PrefixCollidesWithTopLevelMemberTest extends DriverResolutionTest {
+class PrefixCollidesWithTopLevelMemberTest extends PubPackageResolutionTest {
   test_functionTypeAlias() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
 class A{}
 ''');
@@ -30,7 +30,7 @@ p.A a;
   }
 
   test_no_collision() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
 class A {}''');
     await assertNoErrorsInCode(r'''
@@ -44,7 +44,7 @@ p.A a;
   }
 
   test_topLevelFunction() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
 class A{}
 ''');
@@ -58,7 +58,7 @@ p.A a;
   }
 
   test_topLevelVariable() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
 class A{}
 ''');
@@ -72,7 +72,7 @@ p.A a;
   }
 
   test_type() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
 class A{}
 ''');

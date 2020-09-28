@@ -10,7 +10,7 @@ extension E1 on int {
   //     ^^
   // [cfe] unspecified
   //             ^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   static void set property(String value) {}
   //                       ^^
   // [cfe] unspecified
@@ -18,7 +18,7 @@ extension E1 on int {
   //  ^^
   // [cfe] unspecified
   //      ^^^^^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   void set property2(String x) {}
   //                 ^^
   // [cfe] unspecified

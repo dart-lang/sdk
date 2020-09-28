@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'clients/test_all.dart' as clients;
 import 'command_line/test_all.dart' as command_line;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
@@ -21,10 +22,12 @@ import 'summary/test_all.dart' as summary;
 import 'summary2/test_all.dart' as summary2;
 import 'task/test_all.dart' as task;
 import 'util/test_all.dart' as util;
+import 'utilities/test_all.dart' as utilities;
 import 'workspace/test_all.dart' as workspace;
 
 main() {
   defineReflectiveSuite(() {
+    clients.main();
     command_line.main();
     context.main();
     dart.main();
@@ -42,6 +45,7 @@ main() {
     summary2.main();
     task.main();
     util.main();
+    utilities.main();
     workspace.main();
   }, name: 'src');
 }

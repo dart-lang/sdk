@@ -11,7 +11,8 @@ import 'package:expect/expect.dart';
 @pragma('dart2js:noInline')
 method<T>() {
   return
-      /*checks=[],instance*/
+      /*spec.checks=[$signature],instance*/
+      /*prod.checks=[],instance*/
       () => <T, int>{};
 }
 

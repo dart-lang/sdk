@@ -108,6 +108,12 @@ class ObjectPointerVisitor;
   V(Double, "double")                                                          \
   V(Dynamic, "dynamic")                                                        \
   V(DynamicCall, "dyn:call")                                                   \
+  V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
+  V(DynamicCallHasNamedVar, ":dyn_call_has_named")                             \
+  V(DynamicCallMaxParamsVar, ":dyn_call_max_params")                           \
+  V(DynamicCallNumFixedVar, ":dyn_call_num_fixed")                             \
+  V(DynamicCallNumOptVar, ":dyn_call_num_opt")                                 \
+  V(DynamicCallParameterNamesVar, ":dyn_call_parameter_names")                 \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \
@@ -269,6 +275,7 @@ class ObjectPointerVisitor;
   V(Struct, "Struct")                                                          \
   V(StructFromPointer, "#fromPointer")                                         \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
+  V(LoadingUnit, "LoadingUnit")                                                \
   V(SwitchExpr, ":switch_expr")                                                \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
@@ -362,6 +369,7 @@ class ObjectPointerVisitor;
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
   V(_GrowableListFilledFactory, "_GrowableList.filled")                        \
+  V(_GrowableListGenerateFactory, "_GrowableList.generate")                    \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
@@ -390,6 +398,7 @@ class ObjectPointerVisitor;
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
   V(_ListFilledFactory, "_List.filled")                                        \
+  V(_ListGenerateFactory, "_List.generate")                                    \
   V(_MethodMirror, "_MethodMirror")                                            \
   V(_Mint, "_Mint")                                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
@@ -490,6 +499,7 @@ class ObjectPointerVisitor;
   V(start_index_param, ":start_index_param")                                   \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
+  V(timeout, "timeout")                                                        \
   V(toString, "toString")                                                      \
   V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_entry_point, "vm:entry-point")                                          \

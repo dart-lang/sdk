@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/src/utilities/strings.dart';
@@ -69,7 +68,7 @@ final Uri specLicenseUri = Uri.parse(
 /// The URI of the version of the spec to generate from. This should be periodically updated as
 /// there's no longer a stable URI for the latest published version.
 final Uri specUri = Uri.parse(
-    'https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/specification-3-14.md');
+    'https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/specification-3-15.md');
 
 /// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
 /// Doesn't parse past full stops as some of these have english sentences tagged on
@@ -176,6 +175,7 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -294,6 +294,21 @@ bool shouldIncludeScriptBlock(String input) {
 
   // There are some code blocks that just have example JSON in them.
   if (input.startsWith('{') && input.endsWith('}')) {
+    return false;
+  }
+
+  // There are some example blocks that just contain arrays with no definitions.
+  // They're most easily noted by ending with `]` which no valid TypeScript blocks
+  // do.
+  if (input.trim().endsWith(']')) {
+    return false;
+  }
+
+  // There's a chunk of typescript that is just a partial snippet from a real
+  // interface declared elsewhere that we can only detect by the leading comment.
+  if (input
+      .replaceAll('\r', '')
+      .startsWith('/**\n\t * Window specific client capabilities.')) {
     return false;
   }
 

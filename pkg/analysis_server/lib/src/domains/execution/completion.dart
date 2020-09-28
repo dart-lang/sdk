@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart'
     show
         CompletionSuggestion,
@@ -17,7 +15,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class RuntimeCompletionComputer {
   final OverlayResourceProvider resourceProvider;
@@ -49,9 +47,9 @@ class RuntimeCompletionComputer {
     const codeMarker = '__code_\_';
 
     // Insert the code being completed at the context offset.
-    var changeBuilder = DartChangeBuilder(session);
+    var changeBuilder = ChangeBuilder(session: session);
     var nextImportPrefixIndex = 0;
-    await changeBuilder.addFileEdit(contextPath, (builder) {
+    await changeBuilder.addDartFileEdit(contextPath, (builder) {
       builder.addInsertion(contextOffset, (builder) {
         builder.writeln('{');
 
@@ -96,7 +94,6 @@ class RuntimeCompletionComputer {
         return await contributor.computeSuggestions(
           performance,
           request,
-          enableUriContributor: true,
         );
       },
     );

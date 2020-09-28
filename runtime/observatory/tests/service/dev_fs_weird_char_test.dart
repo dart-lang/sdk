@@ -19,7 +19,7 @@ var tests = <VMTest>[
     result = await vm.invokeRpcNoUpgrade('_createDevFS', {'fsName': fsId});
     expect(result['type'], equals('FileSystem'));
     expect(result['name'], equals(fsId));
-    expect(result['uri'], new isInstanceOf<String>());
+    expect(result['uri'], isA<String>());
 
     // Write the file.
     result = await vm.invokeRpcNoUpgrade('_writeDevFSFile',

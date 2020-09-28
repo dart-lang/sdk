@@ -752,6 +752,8 @@ class Printer extends Visitor<Null> {
       writeFunctionBody(function.body, terminateLine: terminateLine);
     } else if (terminateLine) {
       endLine(';');
+    } else {
+      writeSymbol(';');
     }
   }
 
@@ -1132,7 +1134,18 @@ class Printer extends Visitor<Null> {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
-    writeFunction(node.function, name: getMemberName(node));
+    if (node.memberSignatureOriginReference != null) {
+      writeFunction(node.function,
+          name: getMemberName(node), terminateLine: false);
+      if (node.function.body is ReturnStatement) {
+        writeSymbol(';');
+      }
+      writeSymbol(' -> ');
+      writeMemberReferenceFromReference(node.memberSignatureOriginReference);
+      endLine();
+    } else {
+      writeFunction(node.function, name: getMemberName(node));
+    }
   }
 
   visitConstructor(Constructor node) {
@@ -1667,6 +1680,27 @@ class Printer extends Visitor<Null> {
     if (node.name != null) {
       writeWord('as');
       writeWord(node.name);
+    }
+    String last;
+    final String show = 'show';
+    final String hide = 'hide';
+    if (node.combinators.isNotEmpty) {
+      for (Combinator combinator in node.combinators) {
+        if (combinator.isShow && last != show) {
+          last = show;
+          writeWord(show);
+        } else if (combinator.isHide && last != hide) {
+          last = hide;
+          writeWord(hide);
+        }
+
+        bool first = true;
+        for (String name in combinator.names) {
+          if (!first) writeComma();
+          writeWord(name);
+          first = false;
+        }
+      }
     }
     endLine(';');
   }

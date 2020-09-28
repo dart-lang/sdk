@@ -7,7 +7,7 @@ void ifNull(Object x) {
   /*num*/ x;
 }
 
-void ifNull_rightUnPromote(Object x, Object y, Object z) {
+void ifNull_rightUnPromote(Object x, Object? y, Object z) {
   if (x is int) {
     /*int*/ x;
     y ?? (x = z);

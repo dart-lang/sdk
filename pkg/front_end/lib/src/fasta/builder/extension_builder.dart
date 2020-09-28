@@ -36,6 +36,9 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// reported.
   Builder lookupLocalMemberByName(Name name,
       {bool setter: false, bool required: false});
+
+  /// Calls [f] for each member declared in this extension.
+  void forEach(void f(String name, Builder builder));
 }
 
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
@@ -84,6 +87,11 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       Nullability nullability, List<DartType> arguments) {
     throw new UnsupportedError("ExtensionBuilder.buildTypesWithBuiltArguments "
         "is not supported.");
+  }
+
+  @override
+  void forEach(void f(String name, Builder builder)) {
+    scope.forEach(f);
   }
 
   @override

@@ -302,7 +302,7 @@ class G4 = GTTnum with MTTnumR;
 // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
 class G5 = GTTnum with CII;
 //    ^^
-// [analyzer] STATIC_WARNING.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
 // [cfe] The mixin application class 'G5' introduces an erroneous override of 'id'.
 //    ^
 // [cfe] The non-abstract class 'G5' is missing implementations for these members:

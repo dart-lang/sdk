@@ -335,6 +335,20 @@ const String topLevelClassName = '';
 String objectKindToString(ObjectKind kind) =>
     kind.toString().substring('ObjectKind.k'.length);
 
+String nullabilityToString(Nullability nullability) {
+  switch (nullability) {
+    case Nullability.legacy:
+      return '*';
+    case Nullability.nullable:
+      return '?';
+    case Nullability.undetermined:
+      return '%';
+    case Nullability.nonNullable:
+      return '';
+  }
+  throw "Unknown Nullability: $nullability";
+}
+
 /// Represents object (library, class, member, closure, type or name) in the
 /// object table.
 abstract class ObjectHandle extends BytecodeObject {
@@ -763,8 +777,7 @@ class _NeverTypeHandle extends _TypeHandle {
       other is _NeverTypeHandle && this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability.
-  String toString() => 'Never';
+  String toString() => 'Never${nullabilityToString(nullability)}';
 }
 
 class _SimpleTypeHandle extends _TypeHandle {
@@ -803,8 +816,7 @@ class _SimpleTypeHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability.
-  String toString() => '$class_';
+  String toString() => '$class_${nullabilityToString(nullability)}';
 }
 
 class _TypeParameterHandle extends _TypeHandle {
@@ -857,8 +869,8 @@ class _TypeParameterHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability.
-  String toString() => '$parent::TypeParam/$indexInParent';
+  String toString() =>
+      '$parent::TypeParam/$indexInParent${nullabilityToString(nullability)}';
 }
 
 class _GenericTypeHandle extends _TypeHandle {
@@ -903,8 +915,7 @@ class _GenericTypeHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability.
-  String toString() => '$class_ $typeArgs';
+  String toString() => '$class_ $typeArgs${nullabilityToString(nullability)}';
 }
 
 class _RecursiveGenericTypeHandle extends _TypeHandle {
@@ -956,8 +967,8 @@ class _RecursiveGenericTypeHandle extends _TypeHandle {
       this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability.
-  String toString() => '(recursive #$id) $class_ $typeArgs';
+  String toString() =>
+      '(recursive #$id) $class_ $typeArgs${nullabilityToString(nullability)}';
 }
 
 class _RecursiveTypeRefHandle extends _TypeHandle {
@@ -1009,7 +1020,6 @@ class NameAndType {
       this.type == other.type;
 
   @override
-  // TODO(regis): Print nullability.
   String toString() => '$type ${name.name}';
 }
 
@@ -1139,6 +1149,7 @@ class _FunctionTypeHandle extends _TypeHandle {
     hash = _combineHashes(hash, listHashCode(positionalParams));
     hash = _combineHashes(hash, listHashCode(namedParams));
     hash = _combineHashes(hash, returnType.hashCode);
+    hash = _combineHashes(hash, nullability.index);
     return hash;
   }
 
@@ -1149,10 +1160,10 @@ class _FunctionTypeHandle extends _TypeHandle {
       this.numRequiredParams == other.numRequiredParams &&
       listEquals(this.positionalParams, other.positionalParams) &&
       listEquals(this.namedParams, other.namedParams) &&
-      this.returnType == other.returnType;
+      this.returnType == other.returnType &&
+      this.nullability == other.nullability;
 
   @override
-  // TODO(regis): Print nullability.
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('FunctionType');
@@ -1173,7 +1184,7 @@ class _FunctionTypeHandle extends _TypeHandle {
       }
       sb.write('{ ${namedParams.join(', ')} }');
     }
-    sb.write(') -> ');
+    sb.write(')${nullabilityToString(nullability)} -> ');
     sb.write(returnType);
     return sb.toString();
   }

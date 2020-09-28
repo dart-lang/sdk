@@ -6,6 +6,8 @@ analyzer:
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
+  language:
+    strict-inference: true
   exclude:
     - test/data/**
 linter:

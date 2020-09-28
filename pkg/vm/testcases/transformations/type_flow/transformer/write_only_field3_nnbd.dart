@@ -5,7 +5,7 @@
 // Test for tree shaking of write-only late fields.
 // This test requires non-nullable experiment.
 
-// @dart = 2.9
+// @dart = 2.10
 
 foo() {}
 

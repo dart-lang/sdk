@@ -2,12 +2,12 @@ import 'dart:async';
 
 Enum caseReturn1(Enum e) {}
 Enum caseReturn2(Enum e) {}
-Future returnAsync1() async {}
 Future<int?> returnAsync6() async {}
 Future<int?> returnAsync7() async {}
-FutureOr returnAsync2() async {}
+Future returnAsync1() async {}
 FutureOr<int> returnAsync3() async {}
 FutureOr<int?> returnAsync4() async {}
+FutureOr returnAsync2() async {}
 Iterable yieldSync() sync* {}
 Stream yieldAsync() async* {}
 String returnExplicit() {}

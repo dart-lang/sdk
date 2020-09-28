@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SimpleIdentifierResolutionTest);
-    defineReflectiveTests(SimpleIdentifierResolutionWithNnbdTest);
+    defineReflectiveTests(SimpleIdentifierResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class SimpleIdentifierResolutionTest extends DriverResolutionTest {
+class SimpleIdentifierResolutionTest extends PubPackageResolutionTest {
   test_dynamic_explicitCore() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core';
@@ -29,7 +27,8 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
-      element: dynamicElement,
+      readElement: dynamicElement,
+      writeElement: null,
       type: 'Type',
     );
   }
@@ -42,12 +41,13 @@ main() {
   dynamic;
 }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 42, 7),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 42, 7),
     ]);
 
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
-      element: null,
+      readElement: null,
+      writeElement: null,
       type: 'dynamic',
     );
   }
@@ -61,7 +61,8 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('dynamic;'),
-      element: dynamicElement,
+      readElement: dynamicElement,
+      writeElement: null,
       type: 'Type',
     );
   }
@@ -114,16 +115,8 @@ class A {
 }
 
 @reflectiveTest
-class SimpleIdentifierResolutionWithNnbdTest
-    extends SimpleIdentifierResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class SimpleIdentifierResolutionWithNullSafetyTest
+    extends SimpleIdentifierResolutionTest with WithNullSafetyMixin {
   test_functionReference() async {
     await assertErrorsInCode('''
 // @dart = 2.7
@@ -136,7 +129,7 @@ class A {
 @A([min])
 main() {}
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 66, 5),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
     ]);
 
     var identifier = findNode.simple('min]');
@@ -160,7 +153,7 @@ int Function() foo(A? a) {
   return a;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 68, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 68, 1),
     ]);
 
     var identifier = findNode.simple('a;');

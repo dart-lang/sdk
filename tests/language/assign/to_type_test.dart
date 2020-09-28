@@ -9,7 +9,7 @@ class C<T> {
   f() {
     T = Null;
 //  ^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
   }
 }
@@ -24,14 +24,14 @@ main() {
   new C<D>().f();
   D = Null;
 //^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
   E = Null;
 //^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
   F = Null;
 //^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
 }

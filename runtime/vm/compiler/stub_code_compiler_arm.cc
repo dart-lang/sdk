@@ -195,7 +195,7 @@ void GenerateSharedStubGeneric(Assembler* assembler,
   }
   __ LeaveStubFrame();
   __ PopRegisters(all_registers);
-  __ Pop(LR);
+  __ Drop(1);  // We use the LR restored via LeaveStubFrame.
   __ bx(LR);
 }
 
@@ -208,7 +208,7 @@ static void GenerateSharedStub(Assembler* assembler,
   ASSERT(!store_runtime_result_in_r0 || allow_return);
   auto perform_runtime_call = [&]() {
     if (store_runtime_result_in_r0) {
-      __ PushRegister(LR);  // Push an even register.
+      __ PushRegister(LR);
     }
     __ CallRuntime(*target, /*argument_count=*/0);
     if (store_runtime_result_in_r0) {
@@ -1205,12 +1205,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
-                   /*temp_reg=*/R1);
+    __ TryAllocate(compiler::MintClass(), &slow_case,
+                   AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
     __ Bind(&slow_case);
   }
+  COMPILE_ASSERT(AllocateMintABI::kResultReg == R0);
   GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
                      &kAllocateMintRuntimeEntry,
                      target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
@@ -1224,12 +1225,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
   // For test purpose call allocation stub without inline allocation attempt.
   if (!FLAG_use_slow_path) {
     Label slow_case;
-    __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
-                   /*temp_reg=*/R1);
+    __ TryAllocate(compiler::MintClass(), &slow_case,
+                   AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
     __ Ret();
 
     __ Bind(&slow_case);
   }
+  COMPILE_ASSERT(AllocateMintABI::kResultReg == R0);
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
       target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
@@ -2119,7 +2121,9 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
     if (is_cls_parameterized) {
-      if (!IsSameObject(NullObject(),
+      // TODO(41974): Assign all allocation stubs to the root loading unit?
+      if (false &&
+          !IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
@@ -2131,7 +2135,9 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
                            allocate_object_parameterized_entry_point_offset()));
       }
     } else {
-      if (!IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
+      // TODO(41974): Assign all allocation stubs to the root loading unit?
+      if (false &&
+          !IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
             __ CodeSize(), allocate_object, /*is_tail_call=*/true));
@@ -2201,6 +2207,10 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
     Assembler* assembler) {
   Register ic_reg = R9;
   Register func_reg = R8;
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+    return;
+  }
   if (FLAG_trace_optimized_ic_calls) {
     __ EnterStubFrame();
     __ PushList((1 << R9) | (1 << R8));  // Preserve.
@@ -2219,6 +2229,10 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement(
 // Loads function into 'temp_reg'.
 void StubCodeCompiler::GenerateUsageCounterIncrement(Assembler* assembler,
                                                      Register temp_reg) {
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+    return;
+  }
   if (FLAG_optimization_counter_threshold >= 0) {
     Register ic_reg = R9;
     Register func_reg = temp_reg;
@@ -2333,6 +2347,11 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Optimized optimized,
     CallType type,
     Exactness exactness) {
+  if (FLAG_precompiled_mode) {
+    __ Breakpoint();
+    return;
+  }
+
   const bool save_entry_point = kind == Token::kILLEGAL;
   if (save_entry_point) {
     GenerateRecordEntryPoint(assembler);
@@ -3204,6 +3223,59 @@ void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
   __ Ret();
 }
 
+static void BuildTypeParameterTypeTestStub(Assembler* assembler,
+                                           bool allow_null) {
+  Label done;
+
+  if (allow_null) {
+    __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
+    __ BranchIf(EQUAL, &done);
+  }
+
+  Label function_type_param;
+  __ ldrh(TypeTestABI::kScratchReg,
+          FieldAddress(TypeTestABI::kDstTypeReg,
+                       TypeParameter::parameterized_class_id_offset()));
+  __ cmp(TypeTestABI::kScratchReg, Operand(kFunctionCid));
+  __ BranchIf(EQUAL, &function_type_param);
+
+  auto handle_case = [&](Register tav) {
+    __ CompareObject(tav, NullObject());
+    __ BranchIf(EQUAL, &done);
+    __ ldrh(
+        TypeTestABI::kScratchReg,
+        FieldAddress(TypeTestABI::kDstTypeReg, TypeParameter::index_offset()));
+    __ add(TypeTestABI::kScratchReg, tav,
+           Operand(TypeTestABI::kScratchReg, LSL, 8));
+    __ ldr(TypeTestABI::kScratchReg,
+           FieldAddress(TypeTestABI::kScratchReg,
+                        target::TypeArguments::InstanceSize()));
+    __ Branch(FieldAddress(TypeTestABI::kScratchReg,
+                           AbstractType::type_test_stub_entry_point_offset()));
+  };
+
+  // Class type parameter: If dynamic we're done, otherwise dereference type
+  // parameter and tail call.
+  handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
+
+  // Function type parameter: If dynamic we're done, otherwise dereference type
+  // parameter and tail call.
+  __ Bind(&function_type_param);
+  handle_case(TypeTestABI::kFunctionTypeArgumentsReg);
+
+  __ Bind(&done);
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
+    Assembler* assembler) {
+  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/true);
+}
+
+void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
+  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/false);
+}
+
 void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
@@ -3713,6 +3785,12 @@ void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(
 }
 
 void StubCodeCompiler::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
+  __ bkpt(0);
+}
+
+void StubCodeCompiler::GenerateNotLoadedStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ CallRuntime(kNotLoadedRuntimeEntry, 0);
   __ bkpt(0);
 }
 

@@ -3,46 +3,84 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:meta/meta.dart';
 
 import '../core.dart';
+import '../events.dart';
 import '../experiments.dart';
 import '../sdk.dart';
+import '../vm_interop_handler.dart';
 
 class PubCommand extends DartdevCommand<int> {
-  PubCommand() : super('pub', 'Work with packages.');
+  static const String cmdName = 'pub';
+
+  PubCommand() : super(cmdName, 'Work with packages.');
+
+  // TODO(jwren) as soon as pub commands are are implemented directly in
+  //  dartdev, remove this static list.
+  /// A list of all subcommands, used only for the implementation of
+  /// [usagePath], see below.
+  static List<String> pubSubcommands = [
+    'cache',
+    'deps',
+    'downgrade',
+    'get',
+    'global',
+    'logout',
+    'outdated',
+    'publish',
+    'run',
+    'upgrade',
+    'uploader',
+    'version',
+  ];
 
   @override
-  final ArgParser argParser = ArgParser.allowAnything();
+  ArgParser createArgParser() => ArgParser.allowAnything();
 
   @override
   void printUsage() {
     // Override [printUsage] for invocations of 'dart help pub' which won't
     // execute [run] below.  Without this, the 'dart help pub' reports the
     // command pub with no commands or flags.
-    final command = sdk.pub;
+    if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
+      return;
+    }
+    final command = sdk.pubSnapshot;
     final args = ['help'];
 
     log.trace('$command ${args.first}');
 
     // Call 'pub help'
-    // Process.runSync(..) is used since [printUsage] is not an async method,
-    // and we want to guarantee that the result (the help text for the console)
-    // is printed before command exits.
-    final result = Process.runSync(command, args);
-    if (result.stderr.isNotEmpty) {
-      stderr.write(result.stderr);
+    VmInteropHandler.run(command, args);
+  }
+
+  /// Since the pub subcommands are not subclasses of DartdevCommand, we
+  /// override [usagePath] here as a special case to cover the first subcommand
+  /// under pub, i.e. we will have the path pub/cache
+  @override
+  String get usagePath {
+    if (argResults == null) {
+      return name;
     }
-    if (result.stdout.isNotEmpty) {
-      stdout.write(result.stdout);
+    var args = argResults.arguments;
+    var cmdIndex = args.indexOf(name) ?? 0;
+    for (int i = cmdIndex + 1; i < args.length; i++) {
+      if (pubSubcommands.contains(args[i])) {
+        return '$name/${args[i]}';
+      }
     }
+    return name;
   }
 
   @override
-  FutureOr<int> run() async {
-    final command = sdk.pub;
+  FutureOr<int> runImpl() async {
+    if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
+      return 255;
+    }
+    final command = sdk.pubSnapshot;
     var args = argResults.arguments;
 
     // Pass any --enable-experiment options along.
@@ -65,12 +103,29 @@ class PubCommand extends DartdevCommand<int> {
     }
 
     log.trace('$command ${args.join(' ')}');
-
-    // Starting in ProcessStartMode.inheritStdio mode means the child process
-    // can detect support for ansi chars.
-    var process =
-        await Process.start(command, args, mode: ProcessStartMode.inheritStdio);
-
-    return process.exitCode;
+    VmInteropHandler.run(command, args);
+    return 0;
   }
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => PubUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        specifiedExperiments: specifiedExperiments,
+        args: argResults.arguments,
+      );
+}
+
+/// The [UsageEvent] for the pub command.
+class PubUsageEvent extends UsageEvent {
+  PubUsageEvent(String usagePath,
+      {String label,
+      @required int exitCode,
+      @required List<String> specifiedExperiments,
+      @required List<String> args})
+      : super(PubCommand.cmdName, usagePath,
+            label: label,
+            exitCode: exitCode,
+            specifiedExperiments: specifiedExperiments,
+            args: args);
 }

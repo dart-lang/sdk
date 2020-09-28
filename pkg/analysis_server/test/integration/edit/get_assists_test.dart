@@ -21,7 +21,7 @@ class GetAssistsTest extends AbstractAnalysisServerIntegrationTest {
     var text = r'''
 import 'dart:async';
 
-Future f;
+Completer c;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();

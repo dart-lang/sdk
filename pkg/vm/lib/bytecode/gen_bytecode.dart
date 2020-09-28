@@ -1488,7 +1488,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     for (int i = 0; i < typeArgs.length; ++i) {
       final typeArg = typeArgs[i];
       if (!(typeArg is TypeParameterType &&
-          typeArg.parameter == functionTypeParameters[i])) {
+          typeArg.parameter == functionTypeParameters[i] &&
+          (typeArg.nullability == Nullability.nonNullable ||
+              typeArg.nullability == Nullability.undetermined))) {
         return false;
       }
     }
@@ -1986,8 +1988,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
 
       asm.emitFrame(locals.frameSize - locals.numParameters);
-    } else if (isClosure) {
-      asm.emitEntryFixed(locals.numParameters, locals.frameSize);
     } else {
       asm.emitEntry(locals.frameSize);
     }
@@ -2013,14 +2013,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _handleDefaultTypeArguments(function, done);
 
       asm.bind(done);
-    } else if (isClosure &&
-        !(parentFunction != null &&
-            parentFunction.dartAsyncMarker != AsyncMarker.Sync)) {
-      // Closures can be called dynamically with arbitrary arguments,
-      // so they should check number of type arguments, even if
-      // closure is not generic.
-      // Synthetic async_op closures don't need this check.
-      asm.emitCheckFunctionTypeArgs(0, locals.scratchVarIndexInFrame);
     }
 
     // Open initial scope before the first CheckStack, as VM might
@@ -2216,8 +2208,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         initializedPosition);
   }
 
-  bool get canSkipTypeChecksForNonCovariantArguments =>
-      !isClosure && enclosingMember.name.name != 'call';
+  // TODO(dartbug.com/40813): Remove the closure case when we move the
+  // type checks out of closure bodies.
+  bool get canSkipTypeChecksForNonCovariantArguments => !isClosure;
 
   bool get skipTypeChecksForGenericCovariantImplArguments =>
       procedureAttributesMetadata != null &&
@@ -4385,7 +4378,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       tryBlock.types.add(cp.addType(catchClause.guard));
 
       Label skipCatch;
-      if (catchClause.guard == const DynamicType()) {
+      final guardType = catchClause.guard;
+      // Exception objects are guaranteed to be non-nullable, so
+      // non-nullable Object is also a catch-all type.
+      if (guardType is DynamicType ||
+          (guardType is InterfaceType &&
+              guardType.classNode == coreTypes.objectClass)) {
         hasCatchAll = true;
       } else {
         asm.emitPush(exception);

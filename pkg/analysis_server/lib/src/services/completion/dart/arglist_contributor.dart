@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
@@ -163,7 +161,7 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   bool _isInFlutterCreation() {
-    var flutter = Flutter.of(request.result);
+    var flutter = Flutter.instance;
     var containingNode = request.target?.containingNode;
     var newExpr = containingNode != null
         ? flutter.identifyNewExpression(containingNode.parent)

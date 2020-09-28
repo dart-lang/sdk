@@ -83,7 +83,9 @@ function setFunctionNamesIfNecessary(holders) {
 // Older IEs use `Object.create` and copy over the properties.
 function inherit(cls, sup) {
   // Note that RTI needs cls.name, but we don't need to set it anymore.
-  cls.prototype.constructor = cls;
+  if (#legacyJavaScript) {
+    cls.prototype.constructor = cls;
+  }
   cls.prototype[#operatorIsPrefix + cls.name] = cls;
 
   // The superclass is only null for the Dart Object.
@@ -118,7 +120,7 @@ function mixin(cls, mixin) {
 // A lazy field has a storage entry, [name], which holds the value, and a
 // getter ([getterName]) to access the field. If the field wasn't set before
 // the first access, it is initialized with the [initializer].
-function lazy(holder, name, getterName, initializer) {
+function lazyOld(holder, name, getterName, initializer) {
   var uninitializedSentinel = holder;
   holder[name] = uninitializedSentinel;
   holder[getterName] = function() {
@@ -146,6 +148,23 @@ function lazy(holder, name, getterName, initializer) {
       holder[getterName] = function() { return this[name]; };
     }
     return result;
+  };
+}
+
+// Creates a lazy field that uses non-nullable initialization semantics.
+//
+// A lazy field has a storage entry, [name], which holds the value, and a
+// getter ([getterName]) to access the field. If the field wasn't set before
+// the first access, it is initialized with the [initializer].
+function lazy(holder, name, getterName, initializer) {
+  var uninitializedSentinel = holder;
+  holder[name] = uninitializedSentinel;
+  holder[getterName] = function() {
+    if (holder[name] === uninitializedSentinel) {
+      holder[name] = initializer();
+    }
+    holder[getterName] = function() { return this[name]; };
+    return holder[name];
   };
 }
 
@@ -350,6 +369,7 @@ var #hunkHelpers = (function(){
 
     makeConstList: makeConstList,
     lazy: lazy,
+    lazyOld: lazyOld,
     updateHolder: updateHolder,
     convertToFastObject: convertToFastObject,
     setFunctionNamesIfNecessary: setFunctionNamesIfNecessary,
@@ -712,6 +732,7 @@ class FragmentEmitter {
       'call0selector': js.quoteName(call0Name),
       'call1selector': js.quoteName(call1Name),
       'call2selector': js.quoteName(call2Name),
+      'legacyJavaScript': _options.legacyJavaScript
     });
     if (program.hasSoftDeferredClasses) {
       mainCode = js.Block([
@@ -1111,9 +1132,12 @@ class FragmentEmitter {
     List<js.Property> properties = [];
 
     if (cls.superclass == null) {
-      // TODO(sra): What is this doing? Document or remove.
-      properties
-          .add(js.Property(js.string("constructor"), classReference(cls)));
+      // ie11 might require us to set 'constructor' but we aren't 100% sure.
+      if (_options.legacyJavaScript) {
+        properties
+            .add(js.Property(js.string("constructor"), classReference(cls)));
+      }
+
       properties.add(js.Property(_namer.operatorIs(cls.element), js.number(1)));
     }
 
@@ -1732,7 +1756,9 @@ class FragmentEmitter {
     for (StaticField field in fields) {
       assert(field.holder.isStaticStateHolder);
       js.Statement statement = js.js.statement("#(#, #, #, #);", [
-        locals.find('_lazy', 'hunkHelpers.lazy'),
+        field.usesNonNullableInitialization
+            ? locals.find('_lazy', 'hunkHelpers.lazy')
+            : locals.find('_lazyOld', 'hunkHelpers.lazyOld'),
         field.holder.name,
         js.quoteName(field.name),
         js.quoteName(field.getterName),
@@ -1978,15 +2004,15 @@ class FragmentEmitter {
     ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
     InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
 
-    Map<Class, List<Class>> nativeRedirections =
+    Map<ClassTypeData, List<ClassTypeData>> nativeRedirections =
         _nativeEmitter.typeRedirections;
 
     Ruleset ruleset = Ruleset.empty();
     Map<ClassEntity, int> erasedTypes = {};
-    Iterable<Class> classes =
-        fragment.libraries.expand((Library library) => library.classes);
-    classes.forEach((Class cls) {
-      ClassEntity element = cls.element;
+    Iterable<ClassTypeData> classTypeData =
+        fragment.libraries.expand((Library library) => library.classTypeData);
+    classTypeData.forEach((ClassTypeData typeData) {
+      ClassEntity element = typeData.element;
       InterfaceType targetType = _elementEnvironment.getThisType(element);
 
       // TODO(fishythefish): Prune uninstantiated classes.
@@ -1996,7 +2022,7 @@ class FragmentEmitter {
 
       bool isInterop = _classHierarchy.isSubclassOf(element, jsObjectClass);
 
-      Iterable<TypeCheck> checks = cls.classChecksNewRti?.checks ?? [];
+      Iterable<TypeCheck> checks = typeData.classChecks?.checks ?? [];
       Iterable<InterfaceType> supertypes = isInterop
           ? checks
               .map((check) => _elementEnvironment.getJsInteropType(check.cls))
@@ -2004,11 +2030,11 @@ class FragmentEmitter {
               .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
 
       Map<TypeVariableType, DartType> typeVariables = {};
-      Set<TypeVariableType> namedTypeVariables = cls.namedTypeVariablesNewRti;
-      nativeRedirections[cls]?.forEach((Class redirectee) {
-        namedTypeVariables.addAll(redirectee.namedTypeVariablesNewRti);
+      Set<TypeVariableType> namedTypeVariables = typeData.namedTypeVariables;
+      nativeRedirections[typeData]?.forEach((ClassTypeData redirectee) {
+        namedTypeVariables.addAll(redirectee.namedTypeVariables);
       });
-      for (TypeVariableType typeVariable in cls.namedTypeVariablesNewRti) {
+      for (TypeVariableType typeVariable in typeData.namedTypeVariables) {
         TypeVariableEntity element = typeVariable.element;
         InterfaceType supertype = isInterop
             ? _elementEnvironment.getJsInteropType(element.typeDeclaration)
@@ -2033,8 +2059,9 @@ class FragmentEmitter {
       });
     }
 
-    nativeRedirections.forEach((Class target, List<Class> redirectees) {
-      for (Class redirectee in redirectees) {
+    nativeRedirections
+        .forEach((ClassTypeData target, List<ClassTypeData> redirectees) {
+      for (ClassTypeData redirectee in redirectees) {
         ruleset.addRedirection(redirectee.element, target.element);
       }
     });

@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -19,7 +19,7 @@ class CreateFunction extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_FUNCTION;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // should be the name of the invocation
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {
     } else {
@@ -41,8 +41,8 @@ class CreateFunction extends CorrectionProducer {
     sourcePrefix = '$eol$eol';
     utils.targetClassElement = null;
     // build method source
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(insertOffset, (builder) {
         builder.write(sourcePrefix);
         // append return type
         {
@@ -52,7 +52,7 @@ class CreateFunction extends CorrectionProducer {
           }
         }
         // append name
-        builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
+        builder.addLinkedEdit('NAME', (builder) {
           builder.write(_functionName);
         });
         builder.write('(');

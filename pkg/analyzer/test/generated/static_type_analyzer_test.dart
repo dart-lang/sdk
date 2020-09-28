@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ResolverVisitor;
 import 'package:analyzer/src/generated/source.dart';
@@ -33,8 +32,6 @@ main() {
     defineReflectiveTests(SetLiteralsTest);
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer2Test);
-    defineReflectiveTests(StaticTypeAnalyzer3Test);
-    defineReflectiveTests(StaticTypeAnalyzerWithSetLiteralsTest);
   });
 }
 
@@ -64,6 +61,66 @@ void useSet(Set<int> s) {
 /// Like [StaticTypeAnalyzerTest], but as end-to-end tests.
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
+  test_emptyListLiteral_inferredFromLinkedList() async {
+    await assertErrorsInCode(r'''
+abstract class ListImpl<T> implements List<T> {}
+ListImpl<int> f() => [];
+''', [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 70, 2),
+    ]);
+    expectExpressionType('[]', 'List<dynamic>');
+  }
+
+  test_emptyMapLiteral_inferredFromLinkedHashMap() async {
+    await assertErrorsInCode(r'''
+import 'dart:collection';
+LinkedHashMap<int, int> f() => {};
+''', [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 57, 2),
+    ]);
+    expectExpressionType('{}', 'Map<dynamic, dynamic>');
+  }
+
+  test_emptyMapLiteral_initializer_var() async {
+    await assertErrorsInCode(r'''
+main() {
+  var v = {};
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+    expectExpressionType('{}', 'Map<dynamic, dynamic>');
+  }
+
+  test_emptyMapLiteral_parameter_typed() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  useMap({});
+}
+void useMap(Map<int, int> m) {
+}
+''');
+    expectExpressionType('{}', 'Map<int, int>');
+  }
+
+  test_emptySetLiteral_inferredFromLinkedHashSet() async {
+    await assertErrorsInCode(r'''
+import 'dart:collection';
+LinkedHashSet<int> f() => {};
+''', [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_SET, 52, 2),
+    ]);
+    expectExpressionType('{}', 'Set<dynamic>');
+  }
+
+  test_emptySetLiteral_initializer_typed_nested() async {
+    await assertNoErrorsInCode(r'''
+Set<Set<int>> ints = {{}};
+''');
+    expectExpressionType('{}', 'Set<int>');
+    expectExpressionType('{{}}', 'Set<Set<int>>');
+  }
+
   test_FunctionExpressionInvocation_block() async {
     await assertErrorsInCode(r'''
 main() {
@@ -166,32 +223,6 @@ main() {
       findNode.simple('m);'),
       'void Function<S>(S)',
     );
-  }
-}
-
-/// End-to-end tests of the static type analyzer that use the new driver.
-@reflectiveTest
-class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
-  test_emptyMapLiteral_initializer_var() async {
-    await assertErrorsInCode(r'''
-main() {
-  var v = {};
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
-    expectExpressionType('{}', 'Map<dynamic, dynamic>');
-  }
-
-  test_emptyMapLiteral_parameter_typed() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  useMap({});
-}
-void useMap(Map<int, int> m) {
-}
-''');
-    expectExpressionType('{}', 'Map<int, int>');
   }
 }
 
@@ -678,7 +709,10 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
   void _assertType(
       InterfaceTypeImpl expectedType, InterfaceTypeImpl actualType) {
-    expect(actualType.getDisplayString(), expectedType.getDisplayString());
+    expect(
+      actualType.getDisplayString(withNullability: false),
+      expectedType.getDisplayString(withNullability: false),
+    );
     expect(actualType.element, expectedType.element);
     List<DartType> expectedArguments = expectedType.typeArguments;
     int length = expectedArguments.length;
@@ -708,8 +742,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         definingCompilationUnit.source = source;
     var featureSet = FeatureSet.forTesting();
 
-    _definingLibrary = LibraryElementImpl(
-        context, null, null, -1, 0, featureSet.isEnabled(Feature.non_nullable));
+    _definingLibrary =
+        LibraryElementImpl(context, null, null, -1, 0, featureSet);
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
@@ -718,7 +752,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
-        featureSet: featureSet, nameScope: LibraryScope(_definingLibrary));
+        featureSet: featureSet, nameScope: _definingLibrary.scope);
     _analyzer = _visitor.typeAnalyzer;
   }
 
@@ -769,29 +803,5 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     identifier.staticElement = element;
     identifier.staticType = type;
     return identifier;
-  }
-}
-
-/// End-to-end tests of the static type analyzer that use the new driver and
-/// enable the set-literals experiment.
-@reflectiveTest
-class StaticTypeAnalyzerWithSetLiteralsTest
-    extends StaticTypeAnalyzer2TestShared {
-  test_emptySetLiteral_inferredFromLinkedHashSet() async {
-    await assertErrorsInCode(r'''
-import 'dart:collection';
-LinkedHashSet<int> test4() => {};
-''', [
-      error(StrongModeCode.INVALID_CAST_LITERAL_SET, 56, 2),
-    ]);
-    expectExpressionType('{}', 'Set<dynamic>');
-  }
-
-  test_emptySetLiteral_initializer_typed_nested() async {
-    await assertNoErrorsInCode(r'''
-Set<Set<int>> ints = {{}};
-''');
-    expectExpressionType('{}', 'Set<int>');
-    expectExpressionType('{{}}', 'Set<Set<int>>');
   }
 }

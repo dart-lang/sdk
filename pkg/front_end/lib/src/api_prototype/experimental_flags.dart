@@ -118,3 +118,14 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
   }
   return enabled;
 }
+
+Version getExperimentEnabledVersion(ExperimentalFlag flag,
+    {Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting}) {
+  Version version;
+  if (experimentReleasedVersionForTesting != null) {
+    version = experimentReleasedVersionForTesting[flag];
+  }
+  version ??= experimentReleasedVersion[flag];
+  assert(version != null, "No version for enabling $flag.");
+  return version;
+}

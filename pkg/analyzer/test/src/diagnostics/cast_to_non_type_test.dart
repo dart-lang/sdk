@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,13 +15,13 @@ main() {
 }
 
 @reflectiveTest
-class CastToNonTypeTest extends DriverResolutionTest {
+class CastToNonTypeTest extends PubPackageResolutionTest {
   test_variable() async {
     await assertErrorsInCode('''
 var A = 0;
 f(String s) { var x = s as A; }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-      error(StaticWarningCode.CAST_TO_NON_TYPE, 38, 1),
+      error(CompileTimeErrorCode.CAST_TO_NON_TYPE, 38, 1),
     ]);
   }
 }

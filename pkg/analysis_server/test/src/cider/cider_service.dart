@@ -54,7 +54,8 @@ class CiderServiceTest with ResourceProviderMixin {
     logger = PerformanceLog(logBuffer);
     sdk = MockSdk(resourceProvider: resourceProvider);
 
-    newFile('/workspace/WORKSPACE', content: '');
+    newFile('/workspace/WORKSPACE');
+    newFile('/workspace/dart/test/BUILD');
     createFileResolver();
   }
 

@@ -122,7 +122,7 @@ class C {
     yGetValue = 1; check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']);
     finalOne ??= null;
 //  ^^^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
 // [cfe] The setter 'finalOne' isn't defined for the class 'C'.
     yGetValue = 1;
   }
@@ -163,11 +163,11 @@ main() {
   { var l; yGetValue = 1; check(1, () => l ??= y, ['y']); Expect.equals(1, l); }
   { final l = 1; l ??= null; }
   //             ^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   // [cfe] Can't assign to the final variable 'l'.
   C ??= null;
 //^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
   h ??= null;
 //^
@@ -214,11 +214,11 @@ main() {
   check(1, () => C?.x ??= bad(), ['C.x']);
   h.C.xgetValue = 1;
   //  ^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] Setter not found: 'xgetValue'.
   check(1, () => h.c?.x ??= bad(), ['h.C.x']);
   //               ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
   // [cfe] Getter not found: 'c'.
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);

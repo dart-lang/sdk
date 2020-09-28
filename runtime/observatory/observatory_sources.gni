@@ -21,7 +21,6 @@ observatory_sources = [
   "lib/service_html.dart",
   "lib/service_io.dart",
   "lib/src/allocation_profile/allocation_profile.dart",
-  "lib/src/app/analytics.dart",
   "lib/src/app/application.dart",
   "lib/src/app/location_manager.dart",
   "lib/src/app/notification.dart",

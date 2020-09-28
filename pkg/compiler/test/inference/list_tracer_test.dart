@@ -220,7 +220,7 @@ doTest(String allocation, {bool nullify}) async {
     var element = findMember(closedWorld, name);
     ContainerTypeMask mask = results.resultOfMember(element).type;
     if (nullify) type = type.nullable();
-    Expect.equals(type, simplify(mask.elementType, closedWorld), name);
+    Expect.equals(type, simplify(mask.elementType, commonMasks), name);
   }
 
   checkType('listInField', commonMasks.numType);

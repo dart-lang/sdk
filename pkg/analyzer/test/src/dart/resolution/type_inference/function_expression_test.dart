@@ -2,21 +2,64 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionTest);
-    defineReflectiveTests(FunctionExpressionWithNnbdTest);
+    defineReflectiveTests(FunctionExpressionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class FunctionExpressionTest extends DriverResolutionTest {
+class FunctionExpressionTest extends PubPackageResolutionTest {
+  test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1),
+      ],
+      legacy: [],
+    );
+    await assertErrorsInCode('''
+import 'dart:async';
+
+FutureOr<void> Function() v = () async {
+  return 0;
+};
+''', expectedErrors);
+    _assertReturnType(
+      '() async {',
+      typeStringByNullability(
+        nullable: 'Future<void>',
+        legacy: 'Future<int>',
+      ),
+    );
+  }
+
+  test_contextFunctionType_returnType_async_blockBody_futureVoid() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [
+        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1),
+      ],
+      legacy: [],
+    );
+    await assertErrorsInCode('''
+Future<void> Function() v = () async {
+  return 0;
+};
+''', expectedErrors);
+    _assertReturnType(
+      '() async {',
+      typeStringByNullability(
+        nullable: 'Future<void>',
+        legacy: 'Future<int>',
+      ),
+    );
+  }
+
   test_contextFunctionType_returnType_async_expressionBody() async {
     await assertNoErrorsInCode('''
 Future<num> Function() v = () async => 0;
@@ -116,6 +159,24 @@ int Function() v = () {
       ['int'],
     );
     _assertReturnType('() {', 'int');
+  }
+
+  test_contextFunctionType_returnType_sync_blockBody_void() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1),
+    ], legacy: []);
+    await assertErrorsInCode('''
+void Function() v = () {
+  return 0;
+};
+''', expectedErrors);
+    _assertReturnType(
+      '() {',
+      typeStringByNullability(
+        nullable: 'void',
+        legacy: 'int',
+      ),
+    );
   }
 
   test_contextFunctionType_returnType_sync_expressionBody() async {
@@ -282,7 +343,7 @@ main() {
   }
 
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 enum E { a, b }
 ''');
 
@@ -398,17 +459,10 @@ var v = () sync* {
 }
 
 @reflectiveTest
-class FunctionExpressionWithNnbdTest extends FunctionExpressionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class FunctionExpressionWithNullSafetyTest extends FunctionExpressionTest
+    with WithNullSafetyMixin {
   test_contextFunctionType_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 
 int Function(int a) v;
@@ -430,7 +484,7 @@ void f() {
   }
 
   test_contextFunctionType_nonNullify_returnType_takeActual() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 
 void foo(int Function() x) {}
@@ -446,7 +500,7 @@ void test(int? a) {
   }
 
   test_contextFunctionType_nonNullify_returnType_takeContext() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 
 void foo(int Function() x) {}
@@ -501,7 +555,7 @@ Object? Function() v = () async => foo();
   }
 
   test_optOut_downward_returnType_expressionBody_Null() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo(Map<String, String> Function() f) {}
 ''');
     await resolveTestCode('''

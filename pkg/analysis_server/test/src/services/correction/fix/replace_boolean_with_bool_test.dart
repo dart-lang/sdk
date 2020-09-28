@@ -27,7 +27,7 @@ main() {
   boolean w;
 }
 ''');
-    await assertHasFixAllFix(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN, '''
 main() {
   bool v;
   bool w;

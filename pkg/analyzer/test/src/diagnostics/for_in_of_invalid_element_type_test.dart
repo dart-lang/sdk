@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,31 +14,29 @@ main() {
 }
 
 @reflectiveTest
-class ForInOfInvalidElementTypeTest extends DriverResolutionTest {
+class ForInOfInvalidElementTypeTest extends PubPackageResolutionTest {
   test_await_declaredVariableWrongType() async {
     await assertErrorsInCode('''
-import 'dart:async';
 f() async {
   Stream<String> stream;
   await for (int i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 80, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 59, 6),
     ]);
   }
 
   test_await_existingVariableWrongType() async {
     await assertErrorsInCode('''
-import 'dart:async';
 f() async {
   Stream<String> stream;
   int i;
   await for (i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 64, 6),
     ]);
   }
 
@@ -51,7 +49,7 @@ class Foo<T extends Iterable<int>> {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
     ]);
   }
 
@@ -62,7 +60,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
     ]);
   }
 
@@ -74,7 +72,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
     ]);
   }
 }

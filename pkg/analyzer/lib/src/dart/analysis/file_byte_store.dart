@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -84,7 +83,7 @@ class EvictingFileByteStore implements ByteStore {
 
   /// This function is started in a new isolate, receives cache folder clean up
   /// requests and evicts older files from the folder.
-  static void _cacheCleanUpFunction(message) {
+  static void _cacheCleanUpFunction(Object message) {
     SendPort initialReplyTo = message;
     ReceivePort port = ReceivePort();
     initialReplyTo.send(port.sendPort);

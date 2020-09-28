@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 import 'analyzer_error_code.dart';
 
@@ -17,173 +16,25 @@ export 'package:analyzer/src/dart/error/todo_codes.dart';
 // ignore_for_file: slash_for_doc_comments
 
 /**
- * The error codes used for compile time errors caused by constant evaluation
- * that would throw an exception when run in checked mode. The client of the
- * analysis engine is responsible for determining how these errors should be
- * presented to the user (for example, a command-line compiler might elect to
- * treat these errors differently depending whether it is compiling it "checked"
- * mode).
- */
-class CheckedModeCompileTimeErrorCode extends AnalyzerErrorCode {
-  // TODO(paulberry): improve the text of these error messages so that it's
-  // clear to the user that the error is coming from constant evaluation (and
-  // hence the constant needs to be a subtype of the annotated type) as opposed
-  // to static type analysis (which only requires that the two types be
-  // assignable).  Also consider populating the "correction" field for these
-  // errors.
-
-  /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   */
-  static const CheckedModeCompileTimeErrorCode
-      CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH = CheckedModeCompileTimeErrorCode(
-          'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
-          "A value of type '{0}' can't be assigned to the field '{1}', which "
-              "has type '{2}'.");
-
-  /**
-   * Parameters:
-   * 0: The type of the runtime value of the argument
-   * 1: The static type of the parameter
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the runtime type of a constant
-  // value can't be assigned to the static type of a constant constructor's
-  // parameter.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the runtime type of `i`
-  // is `int`, which can't be assigned to the static type of `s`:
-  //
-  // ```dart
-  // class C {
-  //   final String s;
-  //
-  //   const C(this.s);
-  // }
-  //
-  // const dynamic i = 0;
-  //
-  // void f() {
-  //   const C([!i!]);
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Pass a value of the correct type to the constructor:
-  //
-  // ```dart
-  // class C {
-  //   final String s;
-  //
-  //   const C(this.s);
-  // }
-  //
-  // const dynamic i = 0;
-  //
-  // void f() {
-  //   const C('$i');
-  // }
-  // ```
-  static const CheckedModeCompileTimeErrorCode
-      CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH = CheckedModeCompileTimeErrorCode(
-          'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
-          "A value of type '{0}' can't be assigned to a parameter of type "
-              "'{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
-   * if o is not <b>null</b> and the interface of the class of <i>o</i> is not a
-   * subtype of the static type of the field <i>v</i>.
-   *
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   *
-   * Parameters:
-   * 0: the name of the type of the initializer expression
-   * 1: the name of the type of the field
-   */
-  static const CheckedModeCompileTimeErrorCode
-      CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE = CheckedModeCompileTimeErrorCode(
-          'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
-          "The initializer type '{0}' can't be assigned to the field type "
-              "'{1}'.");
-
-  /**
-   * Parameters:
-   * 0: the type of the object being assigned.
-   * 1: the type of the variable being assigned to
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the evaluation of a constant
-  // expression would result in a `CastException`.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the value of `x` is an
-  // `int`, which can't be assigned to `y` because an `int` isn't a `String`:
-  //
-  // ```dart
-  // const Object x = 0;
-  // const String y = [!x!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the declaration of the constant is correct, then change the value being
-  // assigned to be of the correct type:
-  //
-  // ```dart
-  // const Object x = 0;
-  // const String y = '$x';
-  // ```
-  //
-  // If the assigned value is correct, then change the declaration to have the
-  // correct type:
-  //
-  // ```dart
-  // const Object x = 0;
-  // const int y = x;
-  // ```
-  static const CheckedModeCompileTimeErrorCode VARIABLE_TYPE_MISMATCH =
-      CheckedModeCompileTimeErrorCode(
-          'VARIABLE_TYPE_MISMATCH',
-          "A value of type '{0}' can't be assigned to a variable of type "
-              "'{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const CheckedModeCompileTimeErrorCode(String name, String message,
-      {String correction, bool hasPublishedDocs})
-      : super.temporary(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
-
-  @override
-  ErrorSeverity get errorSeverity =>
-      ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR.severity;
-
-  @override
-  ErrorType get type => ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR;
-}
-
-/**
  * The error codes used for compile time errors. The convention for this class
  * is for the name of the error code to indicate the problem that caused the
  * error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
  */
 class CompileTimeErrorCode extends AnalyzerErrorCode {
+  static const CompileTimeErrorCode ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER =
+      CompileTimeErrorCode('ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
+          'Abstract fields cannot have initializers.',
+          correction:
+              "Try removing the field initializer or the 'abstract' keyword "
+              "from the field declaration.");
+
+  static const CompileTimeErrorCode ABSTRACT_FIELD_INITIALIZER =
+      CompileTimeErrorCode('ABSTRACT_FIELD_INITIALIZER',
+          'Abstract fields cannot have initializers.',
+          correction:
+              "Try removing the initializer or the 'abstract' keyword.");
+
   /**
    * Parameters:
    * 0: the display name for the kind of the found abstract member
@@ -321,6 +172,81 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try using an extension override to specify the extension "
               "you want to to be chosen.",
           hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the ambiguous type
+   * 1: the name of the first library that the type is found
+   * 2: the name of the second library that the type is found
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a name is referenced that is
+  // declared in two or more imported libraries.
+  //
+  // #### Examples
+  //
+  // Given a library (`a.dart`) that defines a class (`C` in this example):
+  //
+  // ```dart
+  // %uri="lib/a.dart"
+  // class A {}
+  // class C {}
+  // ```
+  //
+  // And a library (`b.dart`) that defines a different class with the same name:
+  //
+  // ```dart
+  // %uri="lib/b.dart"
+  // class B {}
+  // class C {}
+  // ```
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // import 'a.dart';
+  // import 'b.dart';
+  //
+  // void f([!C!] c1, [!C!] c2) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If any of the libraries aren't needed, then remove the import directives
+  // for them:
+  //
+  // ```dart
+  // import 'a.dart';
+  //
+  // void f(C c1, C c2) {}
+  // ```
+  //
+  // If the name is still defined by more than one library, then add a `hide`
+  // clause to the import directives for all except one library:
+  //
+  // ```dart
+  // import 'a.dart' hide C;
+  // import 'b.dart';
+  //
+  // void f(C c1, C c2) {}
+  // ```
+  //
+  // If you must be able to reference more than one of these types, then add a
+  // prefix to each of the import directives, and qualify the references with
+  // the appropriate prefix:
+  //
+  // ```dart
+  // import 'a.dart' as a;
+  // import 'b.dart' as b;
+  //
+  // void f(a.C c1, b.C c2) {}
+  // ```
+  static const CompileTimeErrorCode AMBIGUOUS_IMPORT = CompileTimeErrorCode(
+      'AMBIGUOUS_IMPORT', "The name '{0}' is defined in the libraries {1}.",
+      correction: "Try using 'as prefix' for one of the import directives, or "
+          "hiding the name from all but one of the imports.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -487,13 +413,277 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "correcting the name to match a defined class, or "
               "defining a class with the given name.");
 
-  @Deprecated('Use ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS')
-  static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
-      ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS;
+  /**
+   * Parameters:
+   * 0: the name of the actual argument type
+   * 1: the name of the expected type
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the static type of an argument
+  // can't be assigned to the static type of the corresponding parameter.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because a `num` can't be
+  // assigned to a `String`:
+  //
+  // ```dart
+  // String f(String x) => x;
+  // String g(num y) => f([!y!]);
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If possible, rewrite the code so that the static type is assignable. In the
+  // example above you might be able to change the type of the parameter `y`:
+  //
+  // ```dart
+  // String f(String x) => x;
+  // String g(String y) => f(y);
+  // ```
+  //
+  // If that fix isn't possible, then add code to handle the case where the
+  // argument value isn't the required type. One approach is to coerce other
+  // types to the required type:
+  //
+  // ```dart
+  // String f(String x) => x;
+  // String g(num y) => f(y.toString());
+  // ```
+  //
+  // Another approach is to add explicit type tests and fallback code:
+  //
+  // ```dart
+  // String f(String x) => x;
+  // String g(num y) => f(y is String ? y : '');
+  // ```
+  //
+  // If you believe that the runtime type of the argument will always be the
+  // same as the static type of the parameter, and you're willing to risk having
+  // an exception thrown at runtime if you're wrong, then add an explicit cast:
+  //
+  // ```dart
+  // String f(String x) => x;
+  // String g(num y) => f(y as String);
+  // ```
+  static const CompileTimeErrorCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
+      CompileTimeErrorCode(
+          'ARGUMENT_TYPE_NOT_ASSIGNABLE',
+          "The argument type '{0}' can't be assigned to the parameter type "
+              "'{1}'.",
+          hasPublishedDocs: true);
 
   static const CompileTimeErrorCode ASSERT_IN_REDIRECTING_CONSTRUCTOR =
       CompileTimeErrorCode('ASSERT_IN_REDIRECTING_CONSTRUCTOR',
           "A redirecting constructor can't have an 'assert' initializer.");
+
+  /**
+   * 5 Variables: Attempting to assign to a final variable elsewhere will cause
+   * a NoSuchMethodError to be thrown, because no setter is defined for it. The
+   * assignment will also give rise to a static warning for the same reason.
+   *
+   * A constant variable is always implicitly final.
+   */
+  static const CompileTimeErrorCode ASSIGNMENT_TO_CONST = CompileTimeErrorCode(
+      'ASSIGNMENT_TO_CONST', "Constant variables can't be assigned a value.",
+      correction: "Try removing the assignment, or "
+          "remove the modifier 'const' from the variable.");
+
+  /**
+   * Parameters:
+   * 0: the name of the final variable
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds an invocation of a
+  // setter, but there's no setter because the field with the same name was
+  // declared to be `final` or `const`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `v` is final:
+  //
+  // ```dart
+  // class C {
+  //   final v = 0;
+  // }
+  //
+  // f(C c) {
+  //   c.[!v!] = 1;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you need to be able to set the value of the field, then remove the
+  // modifier `final` from the field:
+  //
+  // ```dart
+  // class C {
+  //   int v = 0;
+  // }
+  //
+  // f(C c) {
+  //   c.v = 1;
+  // }
+  // ```
+  static const CompileTimeErrorCode ASSIGNMENT_TO_FINAL = CompileTimeErrorCode(
+      'ASSIGNMENT_TO_FINAL',
+      "'{0}' can't be used as a setter because it's final.",
+      correction: "Try finding a different setter, or making '{0}' non-final.",
+      hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a local variable that was
+  // declared to be final is assigned after it was initialized.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `x` is final, so it
+  // can't have a value assigned to it after it was initialized:
+  //
+  // ```dart
+  // void f() {
+  //   final x = 0;
+  //   [!x!] = 3;
+  //   print(x);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the keyword `final`, and replace it with `var` if there's no type
+  // annotation:
+  //
+  // ```dart
+  // void f() {
+  //   var x = 0;
+  //   x = 3;
+  //   print(x);
+  // }
+  // ```
+  static const CompileTimeErrorCode ASSIGNMENT_TO_FINAL_LOCAL =
+      CompileTimeErrorCode('ASSIGNMENT_TO_FINAL_LOCAL',
+          "The final variable '{0}' can only be set once.",
+          correction: "Try making '{0}' non-final.", hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a reference to a setter is
+  // found; there is no setter defined for the type; but there is a getter
+  // defined with the same name.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because there is no setter
+  // named `x` in `C`, but there is a getter named `x`:
+  //
+  // ```dart
+  // class C {
+  //   int get x => 0;
+  //   set y(int p) {}
+  // }
+  //
+  // void f(C c) {
+  //   c.[!x!] = 1;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you want to invoke an existing setter, then correct the name:
+  //
+  // ```dart
+  // class C {
+  //   int get x => 0;
+  //   set y(int p) {}
+  // }
+  //
+  // void f(C c) {
+  //   c.y = 1;
+  // }
+  // ```
+  //
+  // If you want to invoke the setter but it just doesn't exist yet, then
+  // declare it:
+  //
+  // ```dart
+  // class C {
+  //   int get x => 0;
+  //   set x(int p) {}
+  //   set y(int p) {}
+  // }
+  //
+  // void f(C c) {
+  //   c.x = 1;
+  // }
+  // ```
+  static const CompileTimeErrorCode ASSIGNMENT_TO_FINAL_NO_SETTER =
+      CompileTimeErrorCode('ASSIGNMENT_TO_FINAL_NO_SETTER',
+          "There isn’t a setter named '{0}' in class '{1}'.",
+          correction:
+              "Try correcting the name to reference an existing setter, or "
+              "declare the setter.",
+          hasPublishedDocs: true);
+
+  /**
+   * 12.18 Assignment: It is as static warning if an assignment of the form
+   * <i>v = e</i> occurs inside a top level or static function (be it function,
+   * method, getter, or setter) or variable initializer and there is neither a
+   * local variable declaration with name <i>v</i> nor setter declaration with
+   * name <i>v=</i> in the lexical scope enclosing the assignment.
+   */
+  static const CompileTimeErrorCode ASSIGNMENT_TO_FUNCTION =
+      CompileTimeErrorCode(
+          'ASSIGNMENT_TO_FUNCTION', "Functions can't be assigned a value.");
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the target of an assignment is a
+  // method.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `f` can't be assigned a
+  // value because it's a method:
+  //
+  // ```dart
+  // class C {
+  //   void f() {}
+  //
+  //   void g() {
+  //     [!f!] = null;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rewrite the code so that there isn't an assignment to a method.
+  static const CompileTimeErrorCode ASSIGNMENT_TO_METHOD = CompileTimeErrorCode(
+      'ASSIGNMENT_TO_METHOD', "Methods can't be assigned a value.",
+      hasPublishedDocs: true);
+
+  /**
+   * 12.18 Assignment: It is as static warning if an assignment of the form
+   * <i>v = e</i> occurs inside a top level or static function (be it function,
+   * method, getter, or setter) or variable initializer and there is neither a
+   * local variable declaration with name <i>v</i> nor setter declaration with
+   * name <i>v=</i> in the lexical scope enclosing the assignment.
+   */
+  static const CompileTimeErrorCode ASSIGNMENT_TO_TYPE = CompileTimeErrorCode(
+      'ASSIGNMENT_TO_TYPE', "Types can't be assigned a value.");
 
   /**
    * 17.6.3 Asynchronous For-in: It is a compile-time error if an asynchronous
@@ -536,9 +726,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a method or function has a
-  // return type that's <a href=”#potentially-non-nullable”>potentially
-  // non-nullable</a> but would implicitly return `null` if control reached the
-  // end of the function.
+  // return type that's [potentially non-nullable][] but would implicitly return
+  // `null` if control reached the end of the function.
   //
   // #### Example
   //
@@ -713,10 +902,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the built-in identifier that is being used
    */
-  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME =
-      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
-          "The built-in identifier '{0}' can't be used as a typedef name.",
-          correction: "Try choosing a different name for the typedef.");
+  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME =
+      CompileTimeErrorCode(
+          'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
+          "The built-in identifier '{0}' can't be used as a type parameter "
+              "name.",
+          correction: "Try choosing a different name for the type parameter.");
 
   /**
    * 16.33 Identifier Reference: It is a compile-time error if a built-in
@@ -726,12 +917,58 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the built-in identifier that is being used
    */
-  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME =
+  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME =
+      CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
+          "The built-in identifier '{0}' can't be used as a typedef name.",
+          correction: "Try choosing a different name for the typedef.");
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the last statement in a `case`
+  // block isn't one of the required terminators: `break`, `continue`,
+  // `rethrow`, `return`, or `throw`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the `case` block ends
+  // with an assignment:
+  //
+  // ```dart
+  // void f(int x) {
+  //   switch (x) {
+  //     [!case!] 0:
+  //       x += 2;
+  //     default:
+  //       x += 1;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add one of the required terminators:
+  //
+  // ```dart
+  // void f(int x) {
+  //   switch (x) {
+  //     case 0:
+  //       x += 2;
+  //       break;
+  //     default:
+  //       x += 1;
+  //   }
+  // }
+  // ```
+  static const CompileTimeErrorCode CASE_BLOCK_NOT_TERMINATED =
       CompileTimeErrorCode(
-          'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
-          "The built-in identifier '{0}' can't be used as a type parameter "
-              "name.",
-          correction: "Try choosing a different name for the type parameter.");
+          'CASE_BLOCK_NOT_TERMINATED',
+          "The last statement of the 'case' should be 'break', 'continue', "
+              "'rethrow', 'return', or 'throw'.",
+          correction: "Try adding one of the required statements.",
+          hasPublishedDocs: true);
 
   /**
    * 13.9 Switch: It is a compile-time error if the class <i>C</i> implements
@@ -808,6 +1045,86 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name following the `as` in a
+  // cast expression is defined to be something other than a type.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `x` is a variable, not
+  // a type:
+  //
+  // ```dart
+  // num x = 0;
+  // int y = x as [!x!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the name with the name of a type:
+  //
+  // ```dart
+  // num x = 0;
+  // int y = x as int;
+  // ```
+  static const CompileTimeErrorCode CAST_TO_NON_TYPE = CompileTimeErrorCode(
+      'CAST_TO_NON_TYPE',
+      "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
+      correction: "Try changing the name to the name of an existing type, or "
+          "creating a type with the name '{0}'.",
+      hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the abstract method
+   * 1: the name of the enclosing class
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a member of a concrete class is
+  // found that doesn't have a concrete implementation. Concrete classes aren't
+  // allowed to contain abstract members.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `m` is an abstract
+  // method but `C` isn't an abstract class:
+  //
+  // ```dart
+  // class C {
+  //   [!void m();!]
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If it's valid to create instances of the class, provide an implementation
+  // for the member:
+  //
+  // ```dart
+  // class C {
+  //   void m() {}
+  // }
+  // ```
+  //
+  // If it isn't valid to create instances of the class, mark the class as being
+  // abstract:
+  //
+  // ```dart
+  // abstract class C {
+  //   void m();
+  // }
+  // ```
+  static const CompileTimeErrorCode CONCRETE_CLASS_WITH_ABSTRACT_MEMBER =
+      CompileTimeErrorCode('CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
+          "'{0}' must have a method body because '{1}' isn't abstract.",
+          correction: "Try making '{1}' abstract, or adding a body to '{0}'.",
+          hasPublishedDocs: true);
+
+  /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
    * error if `C` declares a constructor named `C.n`, and a static member with
    * basename `n`.
@@ -856,6 +1173,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "renaming the field to a name that doesn't conflict.");
 
   /**
+   * Parameters:
+   * 0: the name of the type parameter
+   * 1: detail text explaining why the type could not be inferred
+   */
+  static const CompileTimeErrorCode COULD_NOT_INFER = CompileTimeErrorCode(
+      'COULD_NOT_INFER', "Couldn't infer type parameter '{0}'.{1}");
+
+  /**
    * 10.10 Superinterfaces: It is a compile-time error if a class `C` has two
    * superinterfaces that are different instantiations of the same generic
    * class. For example, a class may not have both `List<int>` and `List<num>`
@@ -864,7 +1189,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the class implementing the conflicting interface
    * 1: the first conflicting type
-   * 1: the second conflicting type
+   * 2: the second conflicting type
    */
   static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
       CompileTimeErrorCode(
@@ -968,6 +1293,73 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't be used to name both a type variable and a member in "
               "this extension.",
           correction: "Try renaming either the type variable or the member.");
+
+  /**
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   */
+  static const CompileTimeErrorCode CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH =
+      CompileTimeErrorCode(
+    'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
+    "In a const constructor, a value of type '{0}' can't be assigned to the "
+        "field '{1}', which has type '{2}'.",
+    correction: "Try using a subtype, or removing the keyword 'const'.",
+  );
+
+  /**
+   * Parameters:
+   * 0: The type of the runtime value of the argument
+   * 1: The static type of the parameter
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the runtime type of a constant
+  // value can't be assigned to the static type of a constant constructor's
+  // parameter.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the runtime type of `i`
+  // is `int`, which can't be assigned to the static type of `s`:
+  //
+  // ```dart
+  // class C {
+  //   final String s;
+  //
+  //   const C(this.s);
+  // }
+  //
+  // const dynamic i = 0;
+  //
+  // void f() {
+  //   const C([!i!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Pass a value of the correct type to the constructor:
+  //
+  // ```dart
+  // class C {
+  //   final String s;
+  //
+  //   const C(this.s);
+  // }
+  //
+  // const dynamic i = 0;
+  //
+  // void f() {
+  //   const C('$i');
+  // }
+  // ```
+  static const CompileTimeErrorCode CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH =
+      CompileTimeErrorCode(
+          'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
+          "A value of type '{0}' can't be assigned to a parameter of type "
+              "'{1}' in a const constructor.",
+          correction: "Try using a subtype, or removing the keyword 'const'.",
+          hasPublishedDocs: true);
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -1121,6 +1513,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "changing the import to not be deferred.");
 
   /**
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
+      CompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION',
+          "Evaluation of this constant expression throws an exception.");
+
+  /**
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_IDBZE =
+      CompileTimeErrorCode(
+          'CONST_EVAL_THROWS_IDBZE',
+          "Evaluation of this constant expression throws an "
+              "IntegerDivisionByZeroException.");
+
+  /**
    * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
    * where e, e1 and e2 are constant expressions that evaluate to a boolean
    * value.
@@ -1179,22 +1589,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'Type'.");
 
   /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
+   * Parameters:
+   * 0: the name of the type of the initializer expression
+   * 1: the name of the type of the field
    */
-  static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
-      CompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION',
-          "Evaluation of this constant expression throws an exception.");
-
-  /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_THROWS_IDBZE =
-      CompileTimeErrorCode(
-          'CONST_EVAL_THROWS_IDBZE',
-          "Evaluation of this constant expression throws an "
-              "IntegerDivisionByZeroException.");
+  static const CompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE =
+      CompileTimeErrorCodeWithUniqueName(
+          'FIELD_INITIALIZER_NOT_ASSIGNABLE',
+          'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
+          "The initializer type '{0}' can't be assigned to the field type "
+              "'{1}' in a const constructor.",
+          correction: "Try using a subtype, or removing the 'const' keyword",
+          hasPublishedDocs: true);
 
   /**
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is
@@ -2027,6 +2433,45 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * 12.7 Lists: A fresh instance (7.6.1) <i>a</i>, of size <i>n</i>, whose
+   * class implements the built-in class <i>List&lt;E></i> is allocated.
+   *
+   * Parameters:
+   * 0: the number of provided type arguments
+   */
+  static const CompileTimeErrorCode EXPECTED_ONE_LIST_TYPE_ARGUMENTS =
+      CompileTimeErrorCode(
+          'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
+          "List literals require exactly one type argument or none, "
+              "but {0} found.",
+          correction: "Try adjusting the number of type arguments.");
+
+  /**
+   * Parameters:
+   * 0: the number of provided type arguments
+   */
+  static const CompileTimeErrorCode EXPECTED_ONE_SET_TYPE_ARGUMENTS =
+      CompileTimeErrorCode(
+          'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
+          "Set literals require exactly one type argument or none, "
+              "but {0} found.",
+          correction: "Try adjusting the number of type arguments.");
+
+  /**
+   * 12.8 Maps: A fresh instance (7.6.1) <i>m</i>, of size <i>n</i>, whose class
+   * implements the built-in class <i>Map&lt;K, V></i> is allocated.
+   *
+   * Parameters:
+   * 0: the number of provided type arguments
+   */
+  static const CompileTimeErrorCode EXPECTED_TWO_MAP_TYPE_ARGUMENTS =
+      CompileTimeErrorCode(
+          'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
+          "Map literals require exactly two type arguments or none, "
+              "but {0} found.",
+          correction: "Try adjusting the number of type arguments.");
+
+  /**
    * SDK implementation libraries can be exported only by other SDK libraries.
    *
    * Parameters:
@@ -2090,7 +2535,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode EXPORT_LEGACY_SYMBOL = CompileTimeErrorCode(
       'EXPORT_LEGACY_SYMBOL',
       "The symbol '{0}' is defined in a legacy library, and can't be "
-          "re-exported from a non-nullable by default library.",
+          "re-exported from a library with null safety enabled.",
       correction: "Try removing the export or migrating the legacy library.",
       hasPublishedDocs: true);
 
@@ -2138,18 +2583,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * Parameters:
-   * 0: The name of the disallowed type
-   */
-  static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS =
-      // TODO(scheglov) We might want to restore specific code with FrontEnd.
-      //  https://github.com/dart-lang/sdk/issues/31821
-      CompileTimeErrorCodeWithUniqueName('SUBTYPE_OF_DISALLOWED_TYPE',
-          'EXTENDS_DISALLOWED_CLASS', "Classes can't extend '{0}'.",
-          correction: "Try specifying a different superclass, or "
-              "removing the extends clause.");
-
-  /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a
    * class <i>C</i> includes a deferred type expression.
    *
@@ -2161,6 +2594,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS =
       CompileTimeErrorCode(
           'EXTENDS_DEFERRED_CLASS', "Classes can't extend deferred classes.",
+          correction: "Try specifying a different superclass, or "
+              "removing the extends clause.");
+
+  /**
+   * Parameters:
+   * 0: The name of the disallowed type
+   */
+  static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS =
+      // TODO(scheglov) We might want to restore specific code with FrontEnd.
+      //  https://github.com/dart-lang/sdk/issues/31821
+      CompileTimeErrorCodeWithUniqueName('SUBTYPE_OF_DISALLOWED_TYPE',
+          'EXTENDS_DISALLOWED_CLASS', "Classes can't extend '{0}'.",
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.");
 
@@ -2344,7 +2789,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an extension override is the
-  // target of the invocation of a static member. Similar to static members in
+  // receiver of the invocation of a static member. Similar to static members in
   // classes, the static members of an extension should be accessed using the
   // name of the extension, not an extension override.
   //
@@ -2423,8 +2868,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // If there's a different extension that's valid for the type of the argument,
-  // then either replace the name of the extension or unwrap the target so that
-  // the correct extension is found.
+  // then either replace the name of the extension or unwrap the argument so
+  // that the correct extension is found.
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
@@ -2438,8 +2883,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an extension override is used as
-  // the target of a cascade expression. The value of a cascade expression
-  // `e..m` is the value of the target `e`, but extension overrides aren't
+  // the receiver of a cascade expression. The value of a cascade expression
+  // `e..m` is the value of the receiver `e`, but extension overrides aren't
   // expressions and don't have a value.
   //
   // #### Examples
@@ -2452,7 +2897,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //   void m() {}
   // }
   // f() {
-  //   E(3)[!..!]m();
+  //   [!E!](3)..m();
   // }
   // ```
   //
@@ -2475,7 +2920,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_WITH_CASCADE',
           "Extension overrides have no value so they can't be used as the "
-              "target of a cascade expression.",
+              "receiver of a cascade expression.",
           correction: "Try using '.' instead of '..'.",
           hasPublishedDocs: true);
 
@@ -2519,7 +2964,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // If you don't want to invoke a member, then unwrap the target:
+  // If you don't want to invoke a member, then unwrap the argument:
   //
   // ```dart
   // extension E on int {
@@ -2535,6 +2980,25 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "An extension override can only be used to access instance members.",
           correction: "Consider adding an access to an instance member.",
           hasPublishedDocs: true);
+
+  static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
+      CompileTimeErrorCode('EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
+          'External fields cannot have initializers.',
+          correction:
+              "Try removing the field initializer or the 'external' keyword "
+              "from the field declaration.");
+
+  static const CompileTimeErrorCode EXTERNAL_FIELD_INITIALIZER =
+      CompileTimeErrorCode('EXTERNAL_FIELD_INITIALIZER',
+          'External fields cannot have initializers.',
+          correction:
+              "Try removing the initializer or the 'external' keyword.");
+
+  static const CompileTimeErrorCode EXTERNAL_VARIABLE_INITIALIZER =
+      CompileTimeErrorCode('EXTERNAL_VARIABLE_INITIALIZER',
+          'External variables cannot have initializers.',
+          correction:
+              "Try removing the initializer or the 'external' keyword.");
 
   /**
    * Parameters:
@@ -2640,6 +3104,58 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing one of the initializations.");
 
   /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a final field is initialized in
+  // both the declaration of the field and in an initializer in a constructor.
+  // Final fields can only be assigned once, so it can't be initialized in both
+  // places.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `f` is :
+  //
+  // ```dart
+  // class C {
+  //   final int f = 0;
+  //   C() : [!f!] = 1;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the initialization doesn't depend on any values passed to the
+  // constructor, and if all of the constructors need to initialize the field to
+  // the same value, then remove the initializer from the constructor:
+  //
+  // ```dart
+  // class C {
+  //   final int f = 0;
+  //   C();
+  // }
+  // ```
+  //
+  // If the initialization depends on a value passed to the constructor, or if
+  // different constructors need to initialize the field differently, then
+  // remove the initializer in the field's declaration:
+  //
+  // ```dart
+  // class C {
+  //   final int f;
+  //   C() : f = 1;
+  // }
+  // ```
+  static const CompileTimeErrorCode
+      FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION = CompileTimeErrorCode(
+          'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
+          "Fields can't be initialized in the constructor if they are final "
+              "and were already initialized at their declaration.",
+          correction: "Try removing one of the initializations.",
+          hasPublishedDocs: true);
+
+  /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
    * is a compile time error if <i>k</i>'s initializer list contains an
    * initializer for a variable that is initialized by means of an initializing
@@ -2665,6 +3181,60 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a normal parameter.");
 
   /**
+   * Parameters:
+   * 0: the name of the type of the initializer expression
+   * 1: the name of the type of the field
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the initializer list of a
+  // constructor initializes a field to a value that isn't assignable to the
+  // field.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `0` has the type `int`,
+  // and an `int` can't be assigned to a field of type `String`:
+  //
+  // ```dart
+  // class C {
+  //   String s;
+  //
+  //   C() : s = [!0!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type of the field is correct, then change the value assigned to it
+  // so that the value has a valid type:
+  //
+  // ```dart
+  // class C {
+  //   String s;
+  //
+  //   C() : s = '0';
+  // }
+  // ```
+  //
+  // If the type of the value is correct, then change the type of the field to
+  // allow the assignment:
+  //
+  // ```dart
+  // class C {
+  //   int s;
+  //
+  //   C() : s = 0;
+  // }
+  // ```
+  static const CompileTimeErrorCode FIELD_INITIALIZER_NOT_ASSIGNABLE =
+      CompileTimeErrorCode(
+          'FIELD_INITIALIZER_NOT_ASSIGNABLE',
+          "The initializer type '{0}' can't be assigned to the field type "
+              "'{1}'.",
+          hasPublishedDocs: true);
+
+  /**
    * 7.6.1 Generative Constructors: It is a compile-time error if an
    * initializing formal is used by a function other than a non-redirecting
    * generative constructor.
@@ -2688,6 +3258,36 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a normal parameter.");
 
   /**
+   * 7.6.1 Generative Constructors: An initializing formal has the form
+   * <i>this.id</i>. It is a static warning if the static type of <i>id</i> is
+   * not assignable to <i>T<sub>id</sub></i>.
+   *
+   * Parameters:
+   * 0: the name of the type of the field formal parameter
+   * 1: the name of the type of the field
+   */
+  static const CompileTimeErrorCode FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE =
+      CompileTimeErrorCode('FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
+          "The parameter type '{0}' is incompatible with the field type '{1}'.",
+          correction: "Try changing or removing the parameter's type, or "
+              "changing the field's type.");
+
+  /**
+   * 5. Variables: It is a static warning if a final instance variable that has
+   * been initialized at its point of declaration is also initialized in a
+   * constructor.
+   *
+   * Parameters:
+   * 0: the name of the field in question
+   */
+  static const CompileTimeErrorCode
+      FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = CompileTimeErrorCode(
+          'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
+          "'{0}' is final and was given a value when it was declared, "
+              "so it can't be set to a new value.",
+          correction: "Try removing one of the initializations.");
+
+  /**
    * 5 Variables: It is a compile-time error if a final instance variable that
    * has is initialized by means of an initializing formal of a constructor is
    * also initialized elsewhere in the same constructor.
@@ -2699,6 +3299,238 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES',
           "'{0}' is a final field and so can only be set once.",
           correction: "Try removing all but one of the initializations.");
+
+  /**
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a final field or variable isn't
+  // initialized.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `x` doesn't have an
+  // initializer:
+  //
+  // ```dart
+  // final [!x!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // For variables and static fields, you can add an initializer:
+  //
+  // ```dart
+  // final x = 0;
+  // ```
+  //
+  // For instance fields, you can add an initializer as shown in the previous
+  // example, or you can initialize the field in every constructor. You can
+  // initialize the field by using a field formal parameter:
+  //
+  // ```dart
+  // class C {
+  //   final int x;
+  //   C(this.x);
+  // }
+  // ```
+  //
+  // You can also initialize the field by using an initializer in the
+  // constructor:
+  //
+  // ```dart
+  // class C {
+  //   final int x;
+  //   C(int y) : x = y * 2;
+  // }
+  // ```
+  static const CompileTimeErrorCode FINAL_NOT_INITIALIZED =
+      CompileTimeErrorCode('FINAL_NOT_INITIALIZED',
+          "The final variable '{0}' must be initialized.",
+          // TODO(brianwilkerson) Split this error code so that we can suggest
+          // initializing fields in constructors (FINAL_FIELD_NOT_INITIALIZED
+          // and FINAL_VARIABLE_NOT_INITIALIZED).
+          correction: "Try initializing the variable.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class defines one or more
+  // final instance fields without initializers and has at least one constructor
+  // that doesn't initialize those fields. All final instance fields must be
+  // initialized when the instance is created, either by the field's initializer
+  // or by the constructor.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // class C {
+  //   final String value;
+  //
+  //   [!C!]();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the value should be passed in to the constructor directly, then use a
+  // field formal parameter to initialize the field `value`:
+  //
+  // ```dart
+  // class C {
+  //   final String value;
+  //
+  //   C(this.value);
+  // }
+  // ```
+  //
+  // If the value should be computed indirectly from a value provided by the
+  // caller, then add a parameter and include an initializer:
+  //
+  // ```dart
+  // class C {
+  //   final String value;
+  //
+  //   C(Object o) : value = o.toString();
+  // }
+  // ```
+  //
+  // If the value of the field doesn't depend on values that can be passed to
+  // the constructor, then add an initializer for the field as part of the field
+  // declaration:
+  //
+  // ```dart
+  // class C {
+  //   final String value = '';
+  //
+  //   C();
+  // }
+  // ```
+  //
+  // If the value of the field doesn't depend on values that can be passed to
+  // the constructor but different constructors need to initialize it to
+  // different values, then add an initializer for the field in the initializer
+  // list:
+  //
+  // ```dart
+  // class C {
+  //   final String value;
+  //
+  //   C() : value = '';
+  //
+  //   C.named() : value = 'c';
+  // }
+  // ```
+  //
+  // However, if the value is the same for all instances, then consider using a
+  // static field instead of an instance field:
+  //
+  // ```dart
+  // class C {
+  //   static const String value = '';
+  //
+  //   C();
+  // }
+  // ```
+  static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
+      CompileTimeErrorCodeWithUniqueName(
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
+          "All final variables must be initialized, but '{0}' isn't.",
+          correction: "Try adding an initializer for the field.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   * 1: the name of the uninitialized final variable
+   */
+  static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
+      CompileTimeErrorCodeWithUniqueName(
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+          "All final variables must be initialized, but '{0}' and '{1}' "
+              "aren't.",
+          correction: "Try adding initializers for the fields.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the uninitialized final variable
+   * 1: the name of the uninitialized final variable
+   * 2: the number of additional not initialized variables that aren't listed
+   */
+  static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
+      CompileTimeErrorCodeWithUniqueName(
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+          "All final variables must be initialized, but '{0}', '{1}', and {2} "
+              "others aren't.",
+          correction: "Try adding initializers for the fields.",
+          hasPublishedDocs: true);
+
+  /**
+   * 17.6.2 For-in. It the iterable expression does not implement Iterable with
+   * a type argument that can be assigned to the for-in variable's type, this
+   * warning is reported.
+   *
+   * Parameters:
+   * 0: The type of the iterable expression.
+   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
+   * 2: The loop variable type.
+   */
+  static const CompileTimeErrorCode FOR_IN_OF_INVALID_ELEMENT_TYPE =
+      CompileTimeErrorCode(
+          'FOR_IN_OF_INVALID_ELEMENT_TYPE',
+          "The type '{0}' used in the 'for' loop must implement {1} with a "
+              "type argument that can be assigned to '{2}'.");
+
+  /**
+   * Parameters:
+   * 0: The type of the iterable expression.
+   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the expression following `in` in
+  // a for-in loop has a type that isn't a subclass of `Iterable`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `m` is a `Map`, and
+  // `Map` isn't a subclass of `Iterable`:
+  //
+  // ```dart
+  // void f(Map<String, String> m) {
+  //   for (String s in [!m!]) {
+  //     print(s);
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the expression with one that produces an iterable value:
+  //
+  // ```dart
+  // void f(Map<String, String> m) {
+  //   for (String s in m.values) {
+  //     print(s);
+  //   }
+  // }
+  // ```
+  static const CompileTimeErrorCode FOR_IN_OF_INVALID_TYPE =
+      CompileTimeErrorCode('FOR_IN_OF_INVALID_TYPE',
+          "The type '{0}' used in the 'for' loop must implement {1}.",
+          hasPublishedDocs: true);
 
   static const CompileTimeErrorCode FOR_IN_WITH_CONST_VARIABLE =
       CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
@@ -2713,8 +3545,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
       CompileTimeErrorCode('GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
           "Generic function types can't be used as type parameter bounds",
-          correction: "Try making the free variable in the function type part"
-              " of the larger declaration signature");
+          correction: "Try making the free variable in the function type part "
+              "of the larger declaration signature");
 
   /**
    * It is a compile-time error if a generic function type is used as an actual
@@ -2727,12 +3559,123 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing type parameters from the generic function "
               "type, or using 'dynamic' as the type argument here.");
 
+  /**
+   * 10.3 Setters: It is a compile-time error if a class has a setter named
+   * `v=` with argument type `T` and a getter named `v` with return type `S`,
+   * and `S` may not be assigned to `T`.
+   *
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the type of the getter
+   * 2: the type of the setter
+   * 3: the name of the setter
+   */
+  static const CompileTimeErrorCode GETTER_NOT_ASSIGNABLE_SETTER_TYPES =
+      CompileTimeErrorCode(
+          'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
+          "The return type of getter '{0}' is '{1}' which isn't assignable "
+              "to the type '{2}' of its setter '{3}'.",
+          correction: "Try changing the types so that they are compatible.");
+
+  /**
+   * nnbd/feature-specification.md
+   *
+   * It is an error if a class has a setter and a getter with the same basename
+   * where the return type of the getter is not a subtype of the argument type
+   * of the setter. Note that this error specifically requires subtyping and
+   * not assignability and hence makes no exception for `dynamic`.
+   *
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the type of the getter
+   * 2: the type of the setter
+   * 3: the name of the setter
+   */
+  static const CompileTimeErrorCode GETTER_NOT_SUBTYPE_SETTER_TYPES =
+      CompileTimeErrorCode(
+          'GETTER_NOT_SUBTYPE_SETTER_TYPES',
+          "The return type of getter '{0}' is '{1}' which isn't a subtype "
+              "of the type '{2}' of its setter '{3}'.",
+          correction: "Try changing the types so that they are compatible.");
+
   static const CompileTimeErrorCode IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY =
       CompileTimeErrorCode(
           'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as values in "
               "an if condition inside a const collection literal.",
           correction: "Try making the deferred import non-deferred.");
+
+  /**
+   * It is a compile-time error if the declared return type of a function marked
+   * 'async*' is not a supertype of 'Stream<T>' for some type 'T'.
+   */
+  static const CompileTimeErrorCode ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE =
+      CompileTimeErrorCode(
+          'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
+          "Functions marked 'async*' must have a return type that is a "
+              "supertype of 'Stream<T>' for some type 'T'.",
+          correction: "Try fixing the return type of the function, or "
+              "removing the modifier 'async*' from the function body.");
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the body of a function has the
+  // `async` modifier even though the return type of the function isn't
+  // assignable to `Future`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the body of the
+  // function `f` has the `async` modifier even though the return type isn't
+  // assignable to `Future`:
+  //
+  // ```dart
+  // [!int!] f() async {
+  //   return 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the function should be asynchronous, then change the return type to be
+  // assignable to `Future`:
+  //
+  // ```dart
+  // Future<int> f() async {
+  //   return 0;
+  // }
+  // ```
+  //
+  // If the function should be synchronous, then remove the `async` modifier:
+  //
+  // ```dart
+  // int f() {
+  //   return 0;
+  // }
+  // ```
+  static const CompileTimeErrorCode ILLEGAL_ASYNC_RETURN_TYPE =
+      CompileTimeErrorCode(
+          'ILLEGAL_ASYNC_RETURN_TYPE',
+          "Functions marked 'async' must have a return type assignable to "
+              "'Future'.",
+          correction: "Try fixing the return type of the function, or "
+              "removing the modifier 'async' from the function body.",
+          hasPublishedDocs: true);
+
+  /**
+   * It is a compile-time error if the declared return type of a function marked
+   * 'sync*' is not a supertype of 'Iterable<T>' for some type 'T'.
+   */
+  static const CompileTimeErrorCode ILLEGAL_SYNC_GENERATOR_RETURN_TYPE =
+      CompileTimeErrorCode(
+          'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
+          "Functions marked 'sync*' must have a return type that is a "
+              "supertype of 'Iterable<T>' for some type 'T'.",
+          correction: "Try fixing the return type of the function, or "
+              "removing the modifier 'sync*' from the function body.");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
@@ -3033,6 +3976,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "inconsistency.");
 
   /**
+   * It is a compile-time error if a part file has a different language version
+   * override than its library.
+   *
+   * https://github.com/dart-lang/language/blob/master/accepted/
+   * future-releases/language-versioning/feature-specification.md
+   * #individual-library-language-version-override
+   */
+  static const CompileTimeErrorCode INCONSISTENT_LANGUAGE_VERSION_OVERRIDE =
+      CompileTimeErrorCode(
+          'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
+          "Parts must have exactly the same language version override as "
+              "the library.");
+
+  /**
    * Parameters:
    * 0: the name of the initializing formal that is not an instance variable in
    *    the immediately enclosing class
@@ -3202,6 +4159,51 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing the initialization.");
 
   /**
+   * Parameters:
+   * 0: the name of the static member
+   * 1: the kind of the static member (field, getter, setter, or method)
+   * 2: the name of the defining class
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an access operator is used to
+  // access a static member through an instance of the class.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `zero` is a static
+  // field, but it’s being accessed as if it were an instance field:
+  //
+  // ```dart
+  // void f(C c) {
+  //   c.[!zero!];
+  // }
+  //
+  // class C {
+  //   static int zero = 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Use the class to access the static member:
+  //
+  // ```dart
+  // void f(C c) {
+  //   C.zero;
+  // }
+  //
+  // class C {
+  //   static int zero = 0;
+  // }
+  // ```
+  static const CompileTimeErrorCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
+      CompileTimeErrorCode('INSTANCE_ACCESS_TO_STATIC_MEMBER',
+          "Static {1} '{0}' can't be accessed through an instance.",
+          correction: "Try using the class '{2}' to access the {1}.",
+          hasPublishedDocs: true);
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -3306,20 +4308,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds a constructor
+  // invocation and the constructor is declared in an abstract class. Even
+  // though you can't create an instance of an abstract class, abstract classes
+  // can declare constructors that can be invoked by subclasses.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `C` is an abstract
+  // class:
+  //
+  // ```dart
+  // abstract class C {}
+  //
+  // var c = new [!C!]();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If there's a concrete subclass of the abstract class that can be used, then
+  // create an instance of the concrete subclass.
+  static const CompileTimeErrorCode INSTANTIATE_ABSTRACT_CLASS =
+      CompileTimeErrorCode('INSTANTIATE_ABSTRACT_CLASS',
+          "Abstract classes can't be instantiated.",
+          correction: "Try creating an instance of a concrete subtype.",
+          hasPublishedDocs: true);
+
+  /**
    * Enum proposal: It is also a compile-time error to explicitly instantiate an
    * enum via 'new' or 'const' or to access its private fields.
    */
   static const CompileTimeErrorCode INSTANTIATE_ENUM = CompileTimeErrorCode(
       'INSTANTIATE_ENUM', "Enums can't be instantiated.",
       correction: "Try using one of the defined constants.");
-
-  static const CompileTimeErrorCode INTEGER_LITERAL_OUT_OF_RANGE =
-      CompileTimeErrorCode('INTEGER_LITERAL_OUT_OF_RANGE',
-          "The integer literal {0} can't be represented in 64 bits.",
-          correction:
-              "Try using the BigInt class if you need an integer larger than "
-              "9,223,372,036,854,775,807 or less than "
-              "-9,223,372,036,854,775,808.");
 
   /**
    * An integer literal with static type `double` and numeric value `i`
@@ -3336,6 +4361,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try using the BigInt class, or switch to the closest valid "
               "double: {1}");
+
+  static const CompileTimeErrorCode INTEGER_LITERAL_OUT_OF_RANGE =
+      CompileTimeErrorCode('INTEGER_LITERAL_OUT_OF_RANGE',
+          "The integer literal {0} can't be represented in 64 bits.",
+          correction:
+              "Try using the BigInt class if you need an integer larger than "
+              "9,223,372,036,854,775,807 or less than "
+              "-9,223,372,036,854,775,808.");
 
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
@@ -3366,15 +4399,151 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "changing the import to not be deferred.");
 
   /**
-   * 15 Metadata: Metadata consists of a series of annotations, each of which
-   * begin with the character @, followed by a constant expression that must be
-   * either a reference to a compile-time constant variable, or a call to a
-   * constant constructor.
+   * No parameters.
    */
   static const CompileTimeErrorCode INVALID_ANNOTATION_GETTER =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName('INVALID_ANNOTATION',
           'INVALID_ANNOTATION_GETTER', "Getters can't be used as annotations.",
           correction: "Try using a top-level variable or a field.");
+
+  /**
+   * Parameters:
+   * 0: the name of the right hand side type
+   * 1: the name of the left hand side type
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the static type of an expression
+  // that is assigned to a variable isn't assignable to the type of the
+  // variable.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the type of the
+  // initializer (`int`) isn't assignable to the type of the variable
+  // (`String`):
+  //
+  // ```dart
+  // int i = 0;
+  // String s = [!i!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the value being assigned is always assignable at runtime, even though
+  // the static types don't reflect that, then add an explicit cast.
+  //
+  // Otherwise, change the value being assigned so that it has the expected
+  // type. In the previous example, this might look like:
+  //
+  // ```dart
+  // int i = 0;
+  // String s = i.toString();
+  // ```
+  //
+  // If you can’t change the value, then change the type of the variable to be
+  // compatible with the type of the value being assigned:
+  //
+  // ```dart
+  // int i = 0;
+  // int s = i;
+  // ```
+  static const CompileTimeErrorCode INVALID_ASSIGNMENT = CompileTimeErrorCode(
+      'INVALID_ASSIGNMENT',
+      "A value of type '{0}' can't be assigned to a variable of type "
+          "'{1}'.",
+      correction: "Try changing the type of the variable, or "
+          "casting the right-hand type to '{1}'.",
+      hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the type of the function
+   * 1: the expected function type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_FUNCTION = CompileTimeErrorCode(
+      'INVALID_CAST_FUNCTION',
+      "The function '{0}' has type '{1}' that isn't of expected type "
+          "'{2}'. This means its parameter or return type doesn't match what "
+          "is expected.");
+
+  /**
+   * Parameters:
+   * 0: the type of the torn-off function expression
+   * 1: the expected function type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_FUNCTION_EXPR =
+      CompileTimeErrorCode(
+          'INVALID_CAST_FUNCTION_EXPR',
+          "The function expression type '{0}' isn't of type '{1}'. "
+              "This means its parameter or return type doesn't match what is "
+              "expected. Consider changing parameter type(s) or the returned "
+              "type(s).");
+
+  /**
+   * Parameters:
+   * 0: the type of the literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL = CompileTimeErrorCode(
+      'INVALID_CAST_LITERAL',
+      "The literal '{0}' with type '{1}' isn't of expected type '{2}'.");
+
+  /**
+   * Parameters:
+   * 0: the type of the list literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL_LIST =
+      CompileTimeErrorCode(
+          'INVALID_CAST_LITERAL_LIST',
+          "The list literal type '{0}' isn't of expected type '{1}'. The "
+              "list's type can be changed with an explicit generic type "
+              "argument or by changing the element types.");
+
+  /**
+   * Parameters:
+   * 0: the type of the map literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL_MAP =
+      CompileTimeErrorCode(
+          'INVALID_CAST_LITERAL_MAP',
+          "The map literal type '{0}' isn't of expected type '{1}'. The maps's "
+              "type can be changed with an explicit generic type arguments or "
+              "by changing the key and value types.");
+
+  /**
+   * Parameters:
+   * 0: the type of the set literal
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_LITERAL_SET =
+      CompileTimeErrorCode(
+          'INVALID_CAST_LITERAL_SET',
+          "The set literal type '{0}' isn't of expected type '{1}'. The set's "
+              "type can be changed with an explicit generic type argument or "
+              "by changing the element types.");
+
+  /**
+   * Parameters:
+   * 0: the type of the torn-off method
+   * 1: the expected function type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_METHOD = CompileTimeErrorCode(
+      'INVALID_CAST_METHOD',
+      "The method tear-off '{0}' has type '{1}' that isn't of expected type "
+          "'{2}'. This means its parameter or return type doesn't match what "
+          "is expected.");
+
+  /**
+   * Parameters:
+   * 0: the type of the instantiated object
+   * 1: the expected type
+   */
+  static const CompileTimeErrorCode INVALID_CAST_NEW_EXPR = CompileTimeErrorCode(
+      'INVALID_CAST_NEW_EXPR',
+      "The constructor returns type '{0}' that isn't of expected type '{1}'.");
 
   /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report
@@ -3646,6 +4815,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Invalid reference to 'this' expression.",
           hasPublishedDocs: true);
 
+  static const CompileTimeErrorCode INVALID_SUPER_INVOCATION =
+      CompileTimeErrorCode('INVALID_SUPER_INVOCATION',
+          "The super call must be last in an initializer list: '{0}'.");
+
   /**
    * 12.6 Lists: It is a compile time error if the type argument of a constant
    * list literal includes a type parameter.
@@ -3685,20 +4858,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try replacing the type parameter with a different type.");
 
   /**
-   * The 'covariant' keyword was found in an inappropriate location.
-   */
-  static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT =
-      CompileTimeErrorCode(
-          'INVALID_USE_OF_COVARIANT',
-          "The 'covariant' keyword can only be used for parameters in instance "
-              "methods or before non-final instance fields.",
-          correction: "Try removing the 'covariant' keyword.");
-
-  @Deprecated('Use ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION')
-  static const ParserErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
-      ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION;
-
-  /**
    * Parameters:
    * 0: the URI that is invalid
    */
@@ -3722,6 +4881,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_URI = CompileTimeErrorCode(
       'INVALID_URI', "Invalid URI syntax: '{0}'.",
       hasPublishedDocs: true);
+
+  /**
+   * The 'covariant' keyword was found in an inappropriate location.
+   */
+  static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT =
+      CompileTimeErrorCode(
+          'INVALID_USE_OF_COVARIANT',
+          "The 'covariant' keyword can only be used for parameters in instance "
+              "methods or before non-final instance fields.",
+          correction: "Try removing the 'covariant' keyword.");
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an expression whose value will
+  // always be `null` is dererenced.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `x` will always be
+  // `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f(Null x) {
+  //   return [!x!].length;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the value is allowed to be something other than `null`, then change the
+  // type of the expression:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f(String? x) {
+  //   return x!.length;
+  // }
+  // ```
+  static const CompileTimeErrorCode INVALID_USE_OF_NULL_VALUE =
+      CompileTimeErrorCode('INVALID_USE_OF_NULL_VALUE',
+          "An expression whose value is always 'null' can't be dereferenced.",
+          correction: "Try changing the type of the expression.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3769,6 +4975,94 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
           "The extension '{0}' doesn't define a 'call' method so the override "
               "can't be used in an invocation.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the identifier that is not a function type
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds a function invocation,
+  // but the name of the function being invoked is defined to be something other
+  // than a function.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `Binary` is the name of
+  // a function type, not a function:
+  //
+  // ```dart
+  // typedef Binary = int Function(int, int);
+  //
+  // int f() {
+  //   return [!Binary!](1, 2);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the name with the name of a function.
+  static const CompileTimeErrorCode INVOCATION_OF_NON_FUNCTION =
+      CompileTimeErrorCode(
+          'INVOCATION_OF_NON_FUNCTION', "'{0}' isn't a function.",
+          // TODO(brianwilkerson) Split this error code so that we can provide
+          // better error and correction messages.
+          correction:
+              "Try correcting the name to match an existing function, or "
+              "define a method or function named '{0}'.",
+          hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a function invocation is found,
+  // but the name being referenced isn't the name of a function, or when the
+  // expression computing the function doesn't compute a function.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `x` isn't a function:
+  //
+  // ```dart
+  // int x = 0;
+  //
+  // int f() => x;
+  //
+  // var y = [!x!]();
+  // ```
+  //
+  // The following code produces this diagnostic because `f()` doesn't return a
+  // function:
+  //
+  // ```dart
+  // int x = 0;
+  //
+  // int f() => x;
+  //
+  // var y = [!f()!]();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you need to invoke a function, then replace the code before the argument
+  // list with the name of a function or with an expression that computes a
+  // function:
+  //
+  // ```dart
+  // int x = 0;
+  //
+  // int f() => x;
+  //
+  // var y = f();
+  // ```
+  static const CompileTimeErrorCode INVOCATION_OF_NON_FUNCTION_EXPRESSION =
+      CompileTimeErrorCode(
+          'INVOCATION_OF_NON_FUNCTION_EXPRESSION',
+          "The expression doesn't evaluate to a function, so it can't be "
+              "invoked.",
           hasPublishedDocs: true);
 
   /**
@@ -3825,8 +5119,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode LATE_FINAL_LOCAL_ALREADY_ASSIGNED =
       CompileTimeErrorCode('LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
           "The late final local variable is already definitely assigned.",
-          correction: "Try removing the 'late' modifier, or don't reassign "
+          correction: "Try removing the 'final' modifier, or don't reassign "
               "the value.");
+
+  /**
+   * Parameters:
+   * 0: the actual type of the list element
+   * 1: the expected type of the list element
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the type of an element in a list
+  // literal isn't assignable to the element type of the list.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `2.5` is a double, and
+  // the list can hold only integers:
+  //
+  // ```dart
+  // List<int> x = [1, [!2.5!], 3];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you intended to add a different object to the list, then replace the
+  // element with an expression that computes the intended object:
+  //
+  // ```dart
+  // List<int> x = [1, 2, 3];
+  // ```
+  //
+  // If the object shouldn't be in the list, then remove the element:
+  //
+  // ```dart
+  // List<int> x = [1, 3];
+  // ```
+  //
+  // If the object being computed is correct, then widen the element type of the
+  // list to allow all of the different types of objects it needs to contain:
+  //
+  // ```dart
+  // List<num> x = [1, 2.5, 3];
+  // ```
+  static const CompileTimeErrorCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE =
+      CompileTimeErrorCode('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+          "The element type '{0}' can't be assigned to the list type '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -3872,13 +5211,85 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * 7 Classes: It is a compile time error if a class <i>C</i> declares a member
-   * with the same name as <i>C</i>.
+   * Parameters:
+   * 0: the type of the expression being used as a key
+   * 1: the type of keys declared for the map
    */
-  @Deprecated('Superseded by ParserErrorCode.MEMBER_WITH_CLASS_NAME')
-  static const CompileTimeErrorCode MEMBER_WITH_CLASS_NAME =
-      CompileTimeErrorCode('MEMBER_WITH_CLASS_NAME',
-          "Class members can't have the same name as the enclosing class.");
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a key of a key-value pair in a
+  // map literal has a type that isn't assignable to the key type of the map.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `2` is an `int`, but
+  // the keys of the map are required to be `String`s:
+  //
+  // ```dart
+  // var m = <String, String>{[!2!] : 'a'};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type of the map is correct, then change the key to have the correct
+  // type:
+  //
+  // ```dart
+  // var m = <String, String>{'2' : 'a'};
+  // ```
+  //
+  // If the type of the key is correct, then change the key type of the map:
+  //
+  // ```dart
+  // var m = <int, String>{2 : 'a'};
+  // ```
+  static const CompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE =
+      CompileTimeErrorCode(
+          'MAP_KEY_TYPE_NOT_ASSIGNABLE',
+          "The element type '{0}' can't be assigned to the map key type "
+              "'{1}'.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the type of the expression being used as a value
+   * 1: the type of values declared for the map
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a value of a key-value pair in a
+  // map literal has a type that isn't assignable to the the value type of the
+  // map.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `2` is an `int`, but/
+  // the values of the map are required to be `String`s:
+  //
+  // ```dart
+  // var m = <String, String>{'a' : [!2!]};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type of the map is correct, then change the value to have the
+  // correct type:
+  //
+  // ```dart
+  // var m = <String, String>{'a' : '2'};
+  // ```
+  //
+  // If the type of the value is correct, then change the value type of the map:
+  //
+  // ```dart
+  // var m = <String, int>{'a' : 2};
+  // ```
+  static const CompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE =
+      CompileTimeErrorCode(
+          'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
+          "The element type '{0}' can't be assigned to the map value type "
+              "'{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * 12.1 Constants: A constant expression is ... a constant list literal.
@@ -3920,11 +5331,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an optional parameter, whether
-  // positional or named, has a <a href=”#potentially-non-nullable”>potentially
-  // non-nullable</a> type and doesn't specify a default value. Optional
-  // parameters that have no explicit default value have an implicit default
-  // value of `null`. If the type of the parameter doesn't allow the parameter
-  // to have a value of `null`, then the implicit default value isn't valid.
+  // positional or named, has a [potentially non-nullable][] type and doesn't
+  // specify a default value. Optional parameters that have no explicit default
+  // value have an implicit default value of `null`. If the type of the
+  // parameter doesn't allow the parameter to have a value of `null`, then the
+  // implicit default value isn't valid.
   //
   // #### Example
   //
@@ -4042,6 +5453,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "concrete member in the class has type '{2}'.");
 
   /**
+   * It's a compile-time error to apply a mixin containing super-invocations to
+   * a class that doesn't have a concrete implementation of the super-invoked
+   * members compatible with the super-constraint interface.
+   *
+   * Parameters:
+   * 0: the display name of the member without a concrete implementation
+   */
+  static const CompileTimeErrorCode
+      MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER = CompileTimeErrorCode(
+          'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
+          "The class doesn't have a concrete implementation of the "
+              "super-invoked member '{0}'.");
+
+  /**
    * It's a compile-time error to apply a mixin to a class that doesn't
    * implement all the `on` type requirements of the mixin declaration.
    *
@@ -4056,20 +5481,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement "
               "'{2}'.",
           correction: "Try extending the class '{0}'.");
-
-  /**
-   * It's a compile-time error to apply a mixin containing super-invocations to
-   * a class that doesn't have a concrete implementation of the super-invoked
-   * members compatible with the super-constraint interface.
-   *
-   * Parameters:
-   * 0: the display name of the member without a concrete implementation
-   */
-  static const CompileTimeErrorCode
-      MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER = CompileTimeErrorCode(
-          'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
-          "The class doesn't have a concrete implementation of the "
-              "super-invoked member '{0}'.");
 
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
@@ -4249,6 +5660,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Mixin can only be applied to class.");
 
   /**
+   * Technically this is [IMPLEMENTS_SUPER_CLASS].
+   * See https://github.com/dart-lang/sdk/issues/25765#issuecomment-307422593
+   *
+   * Parameters:
+   * 0: the name of the class that appears in both "extends" and "with" clauses
+   */
+  static const CompileTimeErrorCode MIXINS_SUPER_CLASS = CompileTimeErrorCode(
+      'MIXINS_SUPER_CLASS',
+      "'{0}' can't be used in both 'extends' and 'with' clauses.",
+      correction: "Try removing one of the occurrences.");
+
+  /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting,
    * in which case its only action is to invoke another generative constructor.
    */
@@ -4267,6 +5690,91 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('MULTIPLE_SUPER_INITIALIZERS',
           "Constructor may have at most one 'super' initializer.",
           correction: "Try removing all but one of the 'super' initializers.");
+
+  /**
+   * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible
+   * in the current scope, optionally followed by type arguments.
+   *
+   * Parameters:
+   * 0: the name of the non-type element
+   */
+  static const CompileTimeErrorCode NEW_WITH_NON_TYPE =
+      CompileTimeErrorCodeWithUniqueName('CREATION_WITH_NON_TYPE',
+          'NEW_WITH_NON_TYPE', "The name '{0}' isn't a class.",
+          correction: "Try correcting the name to match an existing class.",
+          isUnresolvedIdentifier: true);
+
+  /**
+   * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the
+   * current scope then:
+   * 1. If <i>e</i> is of the form <i>new T.id(a<sub>1</sub>, &hellip;,
+   *    a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;,
+   *    x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a static warning if
+   *    <i>T.id</i> is not the name of a constructor declared by the type
+   *    <i>T</i>.
+   * If <i>e</i> of the form <i>new T(a<sub>1</sub>, &hellip;, a<sub>n</sub>,
+   * x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>:
+   * a<sub>n+kM/sub>)</i> it is a static warning if the type <i>T</i> does not
+   * declare a constructor with the same name as the declaration of <i>T</i>.
+   */
+  static const CompileTimeErrorCode NEW_WITH_UNDEFINED_CONSTRUCTOR =
+      CompileTimeErrorCode('NEW_WITH_UNDEFINED_CONSTRUCTOR',
+          "The class '{0}' doesn't have a constructor named '{1}'.",
+          correction: "Try invoking a different constructor, or "
+              "define a constructor named '{1}'.");
+
+  /**
+   * Parameters:
+   * 0: the name of the class being instantiated
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an unnamed constructor is
+  // invoked on a class that defines named constructors but the class doesn’t
+  // have an unnamed constructor.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `A` doesn't define an
+  // unnamed constructor:
+  //
+  // ```dart
+  // class A {
+  //   A.a();
+  // }
+  //
+  // A f() => [!A!]();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If one of the named constructors does what you need, then use it:
+  //
+  // ```dart
+  // class A {
+  //   A.a();
+  // }
+  //
+  // A f() => A.a();
+  // ```
+  //
+  // If none of the named constructors does what you need, and you're able to
+  // add an unnamed constructor, then add the constructor:
+  //
+  // ```dart
+  // class A {
+  //   A();
+  //   A.a();
+  // }
+  //
+  // A f() => A();
+  // ```
+  static const CompileTimeErrorCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
+      CompileTimeErrorCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
+          "The class '{0}' doesn't have a default constructor.",
+          correction:
+              "Try using one of the named constructors defined in '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -4345,6 +5853,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "explicitly invoking a different constructor in '{0}'.");
 
   /**
+   * User friendly specialized error for [NON_GENERATIVE_CONSTRUCTOR]. This
+   * handles the case of `class E extends Exception` which will never work
+   * because [Exception] has no generative constructors.
+   */
+  static const CompileTimeErrorCode NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS =
+      CompileTimeErrorCode(
+          'NO_GENERATIVE_CONSTRUCTOR_IN_SUPERCLASS',
+          "The class '{0}' cannot extend '{1}' because '{1}' only has factory "
+              "constructors (no generative constructors), and '{0}' has at "
+              "least one generative constructor.",
+          correction: "Try implementing the class instead, adding a generative "
+              "(not factory) constructor to the superclass {0}, or a factory "
+              "constructor to the subclass.");
+
+  /**
    * Parameters:
    * 0: the name of the superclass that does not define an implicitly invoked
    *    constructor
@@ -4360,6 +5883,280 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "constructor in '{0}'.");
 
   /**
+   * Parameters:
+   * 0: the name of the first member
+   * 1: the name of the second member
+   * 2: the name of the third member
+   * 3: the name of the fourth member
+   * 4: the number of additional missing members that aren't listed
+   */
+  static const CompileTimeErrorCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS =
+      CompileTimeErrorCodeWithUniqueName(
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
+          "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and "
+              "{4} more.",
+          correction: "Try implementing the missing methods, or make the class "
+              "abstract.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the first member
+   * 1: the name of the second member
+   * 2: the name of the third member
+   * 3: the name of the fourth member
+   */
+  static const CompileTimeErrorCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR =
+      CompileTimeErrorCodeWithUniqueName(
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
+          "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
+          correction: "Try implementing the missing methods, or make the class "
+              "abstract.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the member
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a concrete class inherits one or
+  // more abstract members, and doesn't provide or inherit an implementation for
+  // at least one of those abstract members.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the class `B` doesn't
+  // have a concrete implementation of `m`:
+  //
+  // ```dart
+  // abstract class A {
+  //   void m();
+  // }
+  //
+  // class [!B!] extends A {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the subclass can provide a concrete implementation for some or all of
+  // the abstract inherited members, then add the concrete implementations:
+  //
+  // ```dart
+  // abstract class A {
+  //   void m();
+  // }
+  //
+  // class B extends A {
+  //   void m() {}
+  // }
+  // ```
+  //
+  // If there is a mixin that provides an implementation of the inherited
+  // methods, then apply the mixin to the subclass:
+  //
+  // ```dart
+  // abstract class A {
+  //   void m();
+  // }
+  //
+  // class B extends A with M {}
+  //
+  // mixin M {
+  //   void m() {}
+  // }
+  // ```
+  //
+  // If the subclass can't provide a concrete implementation for all of the
+  // abstract inherited members, then mark the subclass as being abstract:
+  //
+  // ```dart
+  // abstract class A {
+  //   void m();
+  // }
+  //
+  // abstract class B extends A {}
+  // ```
+  static const CompileTimeErrorCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE =
+      CompileTimeErrorCodeWithUniqueName(
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
+          "Missing concrete implementation of '{0}'.",
+          correction: "Try implementing the missing method, or make the class "
+              "abstract.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the first member
+   * 1: the name of the second member
+   * 2: the name of the third member
+   */
+  static const CompileTimeErrorCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE =
+      CompileTimeErrorCodeWithUniqueName(
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
+          "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
+          correction: "Try implementing the missing methods, or make the class "
+              "abstract.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the first member
+   * 1: the name of the second member
+   */
+  static const CompileTimeErrorCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO =
+      CompileTimeErrorCodeWithUniqueName(
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
+          "Missing concrete implementations of '{0}' and '{1}'.",
+          correction: "Try implementing the missing methods, or make the class "
+              "abstract.",
+          hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a condition, such as an `if` or
+  // `while` loop, doesn't have the static type `bool`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `x` has the static type
+  // `int`:
+  //
+  // ```dart
+  // void f(int x) {
+  //   if ([!x!]) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the condition so that it produces a Boolean value:
+  //
+  // ```dart
+  // void f(int x) {
+  //   if (x == 0) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  static const CompileTimeErrorCode NON_BOOL_CONDITION = CompileTimeErrorCode(
+      'NON_BOOL_CONDITION', "Conditions must have a static type of 'bool'.",
+      correction: "Try changing the condition.", hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the first expression in an
+  // assert has a type other than `bool`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the type of `p` is
+  // `int`, but a `bool` is required:
+  //
+  // ```dart
+  // void f(int p) {
+  //   assert([!p!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the expression so that it has the type `bool`:
+  //
+  // ```dart
+  // void f(int p) {
+  //   assert(p > 0);
+  // }
+  // ```
+  static const CompileTimeErrorCode NON_BOOL_EXPRESSION = CompileTimeErrorCode(
+      'NON_BOOL_EXPRESSION',
+      "The expression in an assert must be of type 'bool'.",
+      correction: "Try changing the expression.",
+      hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the operand of the unary
+  // negation operator (`!`) doesn't have the type `bool`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `x` is an `int` when it
+  // must be a `bool`:
+  //
+  // ```dart
+  // int x = 0;
+  // bool y = ![!x!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the operand with an expression that has the type `bool`:
+  //
+  // ```dart
+  // int x = 0;
+  // bool y = !(x > 0);
+  // ```
+  static const CompileTimeErrorCode NON_BOOL_NEGATION_EXPRESSION =
+      CompileTimeErrorCode('NON_BOOL_NEGATION_EXPRESSION',
+          "A negation operand must have a static type of 'bool'.",
+          correction: "Try changing the operand to the '!' operator.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the lexeme of the logical operator
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when one of the operands of either
+  // the `&&` or `||` operator doesn't have the type `bool`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `a` isn't a Boolean
+  // value:
+  //
+  // ```dart
+  // int a = 3;
+  // bool b = [!a!] || a > 1;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the operand to a Boolean value:
+  //
+  // ```dart
+  // int a = 3;
+  // bool b = a == 0 || a > 1;
+  // ```
+  static const CompileTimeErrorCode NON_BOOL_OPERAND = CompileTimeErrorCode(
+      'NON_BOOL_OPERAND',
+      "The operands of the operator '{0}' must be assignable to 'bool'.",
+      hasPublishedDocs: true);
+
+  /**
    * 13.2 Expression Statements: It is a compile-time error if a non-constant
    * map literal that has no explicit type arguments appears in a place where a
    * statement is expected.
@@ -4369,6 +6166,52 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
           "A non-constant map or set literal without type arguments can't be "
               "used as an expression statement.");
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an annotation is the invocation
+  // of an existing constructor even though the invoked constructor isn't a
+  // const constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the constructor for `C`
+  // isn't a const constructor:
+  //
+  // ```dart
+  // [!@C()!]
+  // void f() {
+  // }
+  //
+  // class C {
+  //   C();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If it's valid for the class to have a const constructor, then create a
+  // const constructor that can be used for the annotation:
+  //
+  // ```dart
+  // @C()
+  // void f() {
+  // }
+  //
+  // class C {
+  //   const C();
+  // }
+  // ```
+  //
+  // If it isn't valid for the class to have a const constructor, then either
+  // remove the annotation or use a different class for the annotation.
+  static const CompileTimeErrorCode NON_CONSTANT_ANNOTATION_CONSTRUCTOR =
+      CompileTimeErrorCode('NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
+          "Annotation creation can only call a const constructor.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -4500,7 +6343,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // The analyzer produces this diagnostic when an element in a constant list
   // literal isn't a constant value. The list literal can be constant either
   // explicitly (because it's prefixed by the `const` keyword) or implicitly
-  // (because it appears in a [constant context](#constant-context)).
+  // (because it appears in a [constant context][]).
   //
   // #### Examples
   //
@@ -4552,6 +6395,56 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "a 'const' list.",
           correction:
               "Try removing the keyword 'const' from the list literal.");
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an `if` element or a spread
+  // element in a constant map isn't a constant element.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because it's attempting to
+  // spread a non-constant map:
+  //
+  // ```dart
+  // var notConst = <int, int>{};
+  // var map = const <int, int>{...[!notConst!]};
+  // ```
+  //
+  // Similarly, the following code produces this diagnostic because the
+  // condition in the `if` element isn't a constant expression:
+  //
+  // ```dart
+  // bool notConst = true;
+  // var map = const <int, int>{if ([!notConst!]) 1 : 2};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the map needs to be a constant map, then make the elements constants.
+  // In the spread example, you might do that by making the collection being
+  // spread a constant:
+  //
+  // ```dart
+  // const notConst = <int, int>{};
+  // var map = const <int, int>{...notConst};
+  // ```
+  //
+  // If the map doesn't need to be a constant map, then remove the `const`
+  // keyword:
+  //
+  // ```dart
+  // bool notConst = true;
+  // var map = <int, int>{if (notConst) 1 : 2};
+  // ```
+  static const CompileTimeErrorCode NON_CONSTANT_MAP_ELEMENT =
+      CompileTimeErrorCode('NON_CONSTANT_MAP_ELEMENT',
+          "The elements in a const map literal must be constant.",
+          correction: "Try removing the keyword 'const' from the map literal.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -4646,56 +6539,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an `if` element or a spread
-  // element in a constant map isn't a constant element.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because it's attempting to
-  // spread a non-constant map:
-  //
-  // ```dart
-  // var notConst = <int, int>{};
-  // var map = const <int, int>{...[!notConst!]};
-  // ```
-  //
-  // Similarly, the following code produces this diagnostic because the
-  // condition in the `if` element isn't a constant expression:
-  //
-  // ```dart
-  // bool notConst = true;
-  // var map = const <int, int>{if ([!notConst!]) 1 : 2};
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the map needs to be a constant map, then make the elements constants.
-  // In the spread example, you might do that by making the collection being
-  // spread a constant:
-  //
-  // ```dart
-  // const notConst = <int, int>{};
-  // var map = const <int, int>{...notConst};
-  // ```
-  //
-  // If the map doesn't need to be a constant map, then remove the `const`
-  // keyword:
-  //
-  // ```dart
-  // bool notConst = true;
-  // var map = <int, int>{if (notConst) 1 : 2};
-  // ```
-  static const CompileTimeErrorCode NON_CONSTANT_MAP_ELEMENT =
-      CompileTimeErrorCode('NON_CONSTANT_MAP_ELEMENT',
-          "The elements in a const map literal must be constant.",
-          correction: "Try removing the keyword 'const' from the map literal.",
-          hasPublishedDocs: true);
-
-  /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an
    * entry in a constant map literal is not a compile-time constant.
    *
@@ -4708,52 +6551,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Constant values from a deferred library can't be used as values in "
               "a const map literal.",
           correction: "Try removing the keyword 'const' from the map literal.");
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an annotation is the invocation
-  // of an existing constructor even though the invoked constructor isn't a
-  // const constructor.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the constructor for `C`
-  // isn't a const constructor:
-  //
-  // ```dart
-  // [!@C()!]
-  // void f() {
-  // }
-  //
-  // class C {
-  //   C();
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If it's valid for the class to have a const constructor, then create a
-  // const constructor that can be used for the annotation:
-  //
-  // ```dart
-  // @C()
-  // void f() {
-  // }
-  //
-  // class C {
-  //   const C();
-  // }
-  // ```
-  //
-  // If it isn't valid for the class to have a const constructor, then either
-  // remove the annotation or use a different class for the annotation.
-  static const CompileTimeErrorCode NON_CONSTANT_ANNOTATION_CONSTRUCTOR =
-      CompileTimeErrorCode('NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
-          "Annotation creation can only call a const constructor.",
-          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -4797,33 +6594,172 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * This error code is no longer being generated. It should be removed when the
-   * reference to it in the linter has been removed and rolled into the SDK.
-   */
-  @deprecated
-  static const CompileTimeErrorCode NON_CONSTANT_VALUE_IN_INITIALIZER =
-      CompileTimeErrorCode(
-          'NON_CONSTANT_VALUE_IN_INITIALIZER',
-          "Initializer expressions in constant constructors must be "
-              "constants.");
-
-  /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
    * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.
    * Let <i>k</i> be a generative constructor. It is a compile-time error if
    * class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
+   *
+   * Parameters:
+   * 0: the non-generative constructor
    */
   static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR =
-      CompileTimeErrorCode('NON_GENERATIVE_CONSTRUCTOR',
-          "The generative constructor '{0}' expected, but factory found.",
+      CompileTimeErrorCode(
+          'NON_GENERATIVE_CONSTRUCTOR',
+          "The constructor '{0}' is a factory constructor, but must be a "
+              "generative constructor to be a valid superinitializer.",
           correction:
-              "Try calling a different constructor in the superclass, or "
+              "Try calling a different constructor of the superclass, or "
               "making the called constructor not be a factory constructor.");
+
+  /**
+   * An error code for when a class has no explicit constructor, and therefore
+   * a constructor is implicitly defined which uses a factory as a
+   * superinitializer. See [NON_GENERATIVE_CONSTRUCTOR].
+   *
+   * Parameters:
+   * 0: the name of the superclass
+   * 1: the name of the current class
+   * 2: the implicitly called factory constructor of the superclass
+   */
+  static const CompileTimeErrorCode NON_GENERATIVE_IMPLICIT_CONSTRUCTOR =
+      CompileTimeErrorCode(
+          'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
+          "The default constructor of superclass '{0}' (called by the implicit "
+              "default constructor of '{1}') must be a generative constructor, "
+              "but factory found.",
+          correction: "Try adding an explicit constructor that has a different "
+              "superinitializer or changing the superclass constructor '{2}' "
+              "to not be a factory constructor.");
 
   static const CompileTimeErrorCode NON_SYNC_FACTORY = CompileTimeErrorCode(
       'NON_SYNC_FACTORY',
       "Factory bodies can't use 'async', 'async*', or 'sync*'.");
+
+  /**
+   * Parameters:
+   * 0: the name appearing where a type is expected
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an identifier that isn't a type
+  // is used as a type argument.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `x` is a variable, not
+  // a type:
+  //
+  // ```dart
+  // var x = 0;
+  // List<[!x!]> xList = [];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the type argument to be a type:
+  //
+  // ```dart
+  // var x = 0;
+  // List<int> xList = [];
+  // ```
+  static const CompileTimeErrorCode NON_TYPE_AS_TYPE_ARGUMENT =
+      CompileTimeErrorCode('NON_TYPE_AS_TYPE_ARGUMENT',
+          "The name '{0}' isn't a type so it can't be used as a type argument.",
+          correction: "Try correcting the name to an existing type, or "
+              "defining a type named '{0}'.",
+          hasPublishedDocs: true,
+          isUnresolvedIdentifier: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the non-type element
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the identifier following the
+  // `on` in a `catch` clause is defined to be something other than a type.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `f` is a function, not
+  // a type:
+  //
+  // ```dart
+  // void f() {
+  //   try {
+  //     // ...
+  //   } on [!f!] {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the name to the type of object that should be caught:
+  //
+  // ```dart
+  // void f() {
+  //   try {
+  //     // ...
+  //   } on FormatException {
+  //     // ...
+  //   }
+  // }
+  // ```
+  static const CompileTimeErrorCode NON_TYPE_IN_CATCH_CLAUSE =
+      CompileTimeErrorCode(
+          'NON_TYPE_IN_CATCH_CLAUSE',
+          "The name '{0}' isn't a type and can't be used in an on-catch "
+              "clause.",
+          correction: "Try correcting the name to match an existing class.",
+          hasPublishedDocs: true);
+
+  /**
+   * 7.1.1 Operators: It is a static warning if the return type of the
+   * user-declared operator []= is explicitly declared and not void.
+   */
+  static const CompileTimeErrorCode NON_VOID_RETURN_FOR_OPERATOR =
+      CompileTimeErrorCode('NON_VOID_RETURN_FOR_OPERATOR',
+          "The return type of the operator []= must be 'void'.",
+          correction: "Try changing the return type to 'void'.");
+
+  /**
+   * 7.3 Setters: It is a static warning if a setter declares a return type
+   * other than void.
+   */
+  static const CompileTimeErrorCode NON_VOID_RETURN_FOR_SETTER =
+      CompileTimeErrorCode('NON_VOID_RETURN_FOR_SETTER',
+          "The return type of the setter must be 'void' or absent.",
+          correction: "Try removing the return type, or "
+              "define a method rather than a setter.");
+
+  /**
+   * Parameters:
+   * 0: the name that is not a type
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a name is used as a type but
+  // declared to be something other than a type.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `f` is a function:
+  //
+  // ```dart
+  // f() {}
+  // g([!f!] v) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the name with the name of a type.
+  static const CompileTimeErrorCode NOT_A_TYPE = CompileTimeErrorCode(
+      'NOT_A_TYPE', "{0} isn't a type.",
+      correction: "Try correcting the name to match an existing type.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4833,8 +6769,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // The analyzer produces this diagnostic when a local variable is referenced
   // and has all these characteristics:
-  // - Has a type that's <a href=”#potentially-non-nullable”>potentially
-  //   non-nullable</a>.
+  // - Has a type that's [potentially non-nullable][].
   // - Doesn't have an initializer.
   // - Isn't marked as `late`.
   // - The analyzer can't prove that the local variable will be assigned before
@@ -4996,10 +6931,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try adding the missing arguments.",
           hasPublishedDocs: true);
 
-  @Deprecated('Use CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS')
-  static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
-      NOT_ENOUGH_POSITIONAL_ARGUMENTS;
-
   /**
    * Parameters:
    * 0: the name of the field that is not initialized
@@ -5008,8 +6939,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // The analyzer produces this diagnostic when a field is declared and has all
   // these characteristics:
-  // - Has a type that's <a href=”#potentially-non-nullable”>potentially
-  //   non-nullable</a>
+  // - Has a type that's [potentially non-nullable][]
   // - Doesn't have an initializer
   // - Isn't marked as `late`
   //
@@ -5167,6 +7097,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The non-nullable variable '{0}' must be initialized.",
           correction: "Try adding an initializer expression.",
           hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode NOT_INSTANTIATED_BOUND =
+      CompileTimeErrorCode('NOT_INSTANTIATED_BOUND',
+          'Type parameter bound types must be instantiated.',
+          correction: 'Try adding type arguments to the type parameter bound.');
 
   /**
    * No parameters.
@@ -5440,6 +7378,49 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of expected library name
+   * 1: the non-matching actual library name from the "part of" declaration
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a library attempts to include a
+  // file as a part of itself when the other file is a part of a different
+  // library.
+  //
+  // #### Example
+  //
+  // Given a file named `part.dart` containing
+  //
+  // ```dart
+  // %uri="package:a/part.dart"
+  // part of 'library.dart';
+  // ```
+  //
+  // The following code, in any file other than `library.dart`, produces this
+  // diagnostic because it attempts to include `part.dart` as a part of itself
+  // when `part.dart` is a part of a different library:
+  //
+  // ```dart
+  // part [!'package:a/part.dart'!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the library should be using a different file as a part, then change the
+  // URI in the part directive to be the URI of the other file.
+  //
+  // If the part file should be a part of this library, then update the URI (or
+  // library name) in the part-of directive to be the URI (or name) of the
+  // correct library.
+  static const CompileTimeErrorCode PART_OF_DIFFERENT_LIBRARY =
+      CompileTimeErrorCode('PART_OF_DIFFERENT_LIBRARY',
+          "Expected this library to be part of '{0}', not '{1}'.",
+          correction: "Try including a different part, or changing the name of "
+              "the library in the part's part-of directive.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
    * 0: the uri pointing to a non-library declaration
    */
   // #### Description
@@ -5500,8 +7481,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Library is unnamed. Expected a URI not a library name '{0}' in the "
               "part-of directive.",
           correction:
-              "Try changing the part-of directive to a URI, or try including a"
-              " different part.");
+              "Try changing the part-of directive to a URI, or try including a "
+              "different part.");
 
   /**
    * 14.1 Imports: It is a compile-time error if the current library declares a
@@ -5564,6 +7545,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * From the `Static Types` section of the spec:
+   *
+   *     A type T is malformed if:
+   *     - T has the form id or the form prefix.id, and in the enclosing lexical
+   *       scope, the name id (respectively prefix.id) does not denote a type.
+   *
+   * In particular, this means that if an import prefix is shadowed by a local
+   * declaration, it is an error to try to use it as a prefix for a type name.
+   */
+  static const CompileTimeErrorCode PREFIX_SHADOWED_BY_LOCAL_DECLARATION =
+      CompileTimeErrorCode(
+          'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
+          "The prefix '{0}' can't be used here because it is shadowed by a "
+              "local declaration.",
+          correction:
+              "Try renaming either the prefix or the local declaration.");
+
+  /**
    * It is an error for a mixin to add a private name that conflicts with a
    * private name added by a superclass or another mixin.
    */
@@ -5581,6 +7580,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode PRIVATE_OPTIONAL_PARAMETER =
       CompileTimeErrorCode('PRIVATE_OPTIONAL_PARAMETER',
           "Named optional parameters can't start with an underscore.");
+
+  static const CompileTimeErrorCode PRIVATE_SETTER = CompileTimeErrorCode(
+      'PRIVATE_SETTER',
+      "The setter '{0}' is private and can't be accessed outside of the "
+          "library that declares it.",
+      correction: "Try making it public.");
+
+  static const CompileTimeErrorCode READ_POTENTIALLY_UNASSIGNED_FINAL =
+      CompileTimeErrorCode(
+    'READ_POTENTIALLY_UNASSIGNED_FINAL',
+    "The final variable '{0}' can't be read because it is potentially "
+        "unassigned at this point.",
+    correction: "Ensure that it is assigned on necessary execution paths.",
+  );
 
   /**
    * 12.1 Constants: It is a compile-time error if the value of a compile-time
@@ -5722,6 +7735,148 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The redirecting constructor '{0}' can't redirect to a constructor "
               "of the abstract class '{1}'.",
           correction: "Try redirecting to a constructor of a different class.");
+
+  /**
+   * Parameters:
+   * 0: the name of the redirected constructor
+   * 1: the name of the redirecting constructor
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a factory constructor attempts
+  // to redirect to another constructor, but the two have incompatible
+  // parameters. The parameters are compatible if all of the parameters of the
+  // redirecting constructor can be passed to the other constructor and if the
+  // other constructor doesn't require any parameters that aren't declared by
+  // the redirecting constructor.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the constructor for `A`
+  // doesn't declare a parameter that the constructor for `B` requires:
+  //
+  // ```dart
+  // abstract class A {
+  //   factory A() = [!B!];
+  // }
+  //
+  // class B implements A {
+  //   B(int x);
+  //   B.zero();
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the constructor for `A`
+  // declares a named parameter (`y`) that the constructor for `B` doesn't
+  // allow:
+  //
+  // ```dart
+  // abstract class A {
+  //   factory A(int x, {int y}) = [!B!];
+  // }
+  //
+  // class B implements A {
+  //   B(int x);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If there's a different constructor that is compatible with the redirecting
+  // constructor, then redirect to that constructor:
+  //
+  // ```dart
+  // abstract class A {
+  //   factory A() = B.zero;
+  // }
+  //
+  // class B implements A {
+  //   B(int x);
+  //   B.zero();
+  // }
+  // ```
+  //
+  // Otherwise, update the redirecting constructor to be compatible:
+  //
+  // ```dart
+  // abstract class A {
+  //   factory A(int x) = B;
+  // }
+  //
+  // class B implements A {
+  //   B(int x);
+  // }
+  // ```
+  static const CompileTimeErrorCode REDIRECT_TO_INVALID_FUNCTION_TYPE =
+      CompileTimeErrorCode(
+          'REDIRECT_TO_INVALID_FUNCTION_TYPE',
+          "The redirected constructor '{0}' has incompatible parameters with "
+              "'{1}'.",
+          correction: "Try redirecting to a different constructor.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the redirected constructor's return type
+   * 1: the name of the redirecting constructor's return type
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a factory constructor redirects
+  // to a constructor whose return type isn't a subtype of the type that the
+  // factory constructor is declared to produce.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `A` isn't a subclass
+  // of `C`, which means that the value returned by the constructor `A()`
+  // couldn't be returned from the constructor `C()`:
+  //
+  // ```dart
+  // class A {}
+  //
+  // class B implements C {}
+  //
+  // class C {
+  //   factory C() = [!A!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the factory constructor is redirecting to a constructor in the wrong
+  // class, then update the factory constructor to redirect to the correct
+  // constructor:
+  //
+  // ```dart
+  // class A {}
+  //
+  // class B implements C {}
+  //
+  // class C {
+  //   factory C() = B;
+  // }
+  // ```
+  //
+  // If the class defining the constructor being redirected to is the class that
+  // should be returned, then make it a subtype of the factory's return type:
+  //
+  // ```dart
+  // class A implements C {}
+  //
+  // class B implements C {}
+  //
+  // class C {
+  //   factory C() = A;
+  // }
+  // ```
+  static const CompileTimeErrorCode REDIRECT_TO_INVALID_RETURN_TYPE =
+      CompileTimeErrorCode(
+          'REDIRECT_TO_INVALID_RETURN_TYPE',
+          "The return type '{0}' of the redirected constructor isn't "
+              "a subtype of '{1}'.",
+          correction: "Try redirecting to a different constructor.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with
@@ -5926,12 +8081,159 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       correction: "Try removing the value, replacing 'return' with 'yield' or "
           "changing the method body modifier.");
 
+  /**
+   * Parameters:
+   * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the method
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the static type of a returned
+  // expression isn't assignable to the return type that the closure is required
+  // to have.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `f` is defined to be a
+  // function that returns a `String`, but the closure assigned to it returns an
+  // `int`:
+  //
+  // ```dart
+  // String Function(String) f = (s) => [!3!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the return type is correct, then replace the returned value with a value
+  // of the correct type, possibly by converting the existing value:
+  //
+  // ```dart
+  // String Function(String) f = (s) => 3.toString();
+  // ```
+  static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CLOSURE =
+      CompileTimeErrorCode(
+          'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
+          "The return type '{0}' isn't a '{1}', as required by the closure's "
+              "context.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the enclosing class
+   * 2: the name of the constructor
+   */
+  static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
+      CompileTimeErrorCodeWithUniqueName(
+          'RETURN_OF_INVALID_TYPE',
+          'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
+          "A value of type '{0}' can't be returned from constructor '{2}' "
+              "because it has a return type of '{1}'.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the method
+   * 2: the name of the method
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method or function returns a
+  // value whose type isn't assignable to the declared return type.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `f` has a return type
+  // of `String` but is returning an `int`:
+  //
+  // ```dart
+  // String f() => [!3!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the return type is correct, then replace the value being returned with a
+  // value of the correct type, possibly by converting the existing value:
+  //
+  // ```dart
+  // String f() => 3.toString();
+  // ```
+  //
+  // If the value is correct, then change the return type to match:
+  //
+  // ```dart
+  // int f() => 3;
+  // ```
+  static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_FUNCTION =
+      CompileTimeErrorCodeWithUniqueName(
+          'RETURN_OF_INVALID_TYPE',
+          'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
+          "A value of type '{0}' can't be returned from function '{2}' because "
+              "it has a return type of '{1}'.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the return type as declared in the return statement
+   * 1: the expected return type as defined by the method
+   * 2: the name of the method
+   */
+  static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_METHOD =
+      CompileTimeErrorCodeWithUniqueName(
+          'RETURN_OF_INVALID_TYPE',
+          'RETURN_OF_INVALID_TYPE_FROM_METHOD',
+          "A value of type '{0}' can't be returned from method '{2}' because "
+              "it has a return type of '{1}'.",
+          hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds a `return` statement
+  // without an expression in a function that declares a return type.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the function `f` is
+  // expected to return an `int`, but no value is being returned:
+  //
+  // ```dart
+  // int f() {
+  //   [!return!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add an expression that computes the value to be returned:
+  //
+  // ```dart
+  // int f() {
+  //   return 0;
+  // }
+  // ```
+  static const CompileTimeErrorCode RETURN_WITHOUT_VALUE = CompileTimeErrorCode(
+      'RETURN_WITHOUT_VALUE', "The  return value is missing after 'return'.",
+      hasPublishedDocs: true);
+
   static const CompileTimeErrorCode SET_ELEMENT_FROM_DEFERRED_LIBRARY =
       CompileTimeErrorCode(
           'SET_ELEMENT_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as values in "
               "a const set.",
           correction: "Try making the deferred import non-deferred.");
+
+  /**
+   * Parameters:
+   * 0: the actual type of the set element
+   * 1: the expected type of the set element
+   */
+  static const CompileTimeErrorCode SET_ELEMENT_TYPE_NOT_ASSIGNABLE =
+      CompileTimeErrorCode('SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
+          "The element type '{0}' can't be assigned to the set type '{1}'.");
 
   /**
    * 14.1 Imports: It is a compile-time error if a prefix used in a deferred
@@ -5950,6 +8252,63 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Constant values from a deferred library can't be spread into a "
               "const literal.",
           correction: "Try making the deferred import non-deferred.");
+
+  /**
+   * Parameters:
+   * 0: the name of the instance member
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class name is used to access
+  // an instance field. Instance fields don't exist on a class; they exist only
+  // on an instance of the class.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `x` is an instance
+  // field:
+  //
+  // ```dart
+  // class C {
+  //   static int a;
+  //
+  //   int b;
+  // }
+  //
+  // int f() => C.[!b!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you intend to access a static field, then change the name of the field
+  // to an existing static field:
+  //
+  // ```dart
+  // class C {
+  //   static int a;
+  //
+  //   int b;
+  // }
+  //
+  // int f() => C.a;
+  // ```
+  //
+  // If you intend to access the instance field, then use an instance of the
+  // class to access the field:
+  //
+  // ```dart
+  // class C {
+  //   static int a;
+  //
+  //   int b;
+  // }
+  //
+  // int f(C c) => c.b;
+  // ```
+  static const CompileTimeErrorCode STATIC_ACCESS_TO_INSTANCE_MEMBER =
+      CompileTimeErrorCode('STATIC_ACCESS_TO_INSTANCE_MEMBER',
+          "Instance member '{0}' can't be accessed using static access.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -6044,6 +8403,63 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: The static type of the switch expression
+   * 1: The static type of the case expressions
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the type of the expression in a
+  // `switch` statement isn't assignable to the type of the expressions in the
+  // `case` clauses.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the type of `s`
+  // (`String`) isn't assignable to the type of `0` (`int`):
+  //
+  // ```dart
+  // void f(String s) {
+  //   switch ([!s!]) {
+  //     case 0:
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type of the `case` expressions is correct, then change the
+  // expression in the `switch` statement to have the correct type:
+  //
+  // ```dart
+  // void f(String s) {
+  //   switch (int.parse(s)) {
+  //     case 0:
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // If the type of the `switch` expression is correct, then change the `case`
+  // expressions to have the correct type:
+  //
+  // ```dart
+  // void f(String s) {
+  //   switch (s) {
+  //     case '0':
+  //       break;
+  //   }
+  // }
+  // ```
+  static const CompileTimeErrorCode SWITCH_EXPRESSION_NOT_ASSIGNABLE =
+      CompileTimeErrorCode(
+          'SWITCH_EXPRESSION_NOT_ASSIGNABLE',
+          "Type '{0}' of the switch expression isn't assignable to "
+              "the type '{1}' of case expressions.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
    * 0: the type that can't be thrown
    */
   // #### Description
@@ -6078,6 +8494,45 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'THROW_OF_INVALID_TYPE',
       "The type '{0}' of the thrown expression must be assignable to 'Object'.",
       hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the element whose type could not be inferred.
+   * 1: The [TopLevelInferenceError]'s arguments that led to the cycle.
+   */
+  static const CompileTimeErrorCode TOP_LEVEL_CYCLE = CompileTimeErrorCode(
+      'TOP_LEVEL_CYCLE',
+      "The type of '{0}' can't be inferred because it depends on itself "
+          "through the cycle: {1}.",
+      correction:
+          "Try adding an explicit type to one or more of the variables in the "
+          "cycle in order to break the cycle.");
+
+  /**
+   * 15.3.1 Typedef: Any self reference, either directly, or recursively via
+   * another typedef, is a compile time error.
+   */
+  static const CompileTimeErrorCode TYPE_ALIAS_CANNOT_REFERENCE_ITSELF =
+      CompileTimeErrorCode(
+          'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
+          "Typedefs can't reference themselves directly or recursively via "
+              "another typedef.");
+
+  /**
+   * 15.1 Static Types: It is a static warning to use a deferred type in a type
+   * annotation.
+   *
+   * Parameters:
+   * 0: the name of the type that is deferred and being used in a type
+   *    annotation
+   */
+  static const CompileTimeErrorCode TYPE_ANNOTATION_DEFERRED_CLASS =
+      CompileTimeErrorCode(
+          'TYPE_ANNOTATION_DEFERRED_CLASS',
+          "The deferred type '{0}' can't be used in a declaration, cast or "
+              "type test.",
+          correction: "Try using a different type, or "
+              "changing the import to not be deferred.");
 
   /**
    * Parameters:
@@ -6117,18 +8572,158 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 15.3.1 Typedef: Any self reference, either directly, or recursively via
-   * another typedef, is a compile time error.
+   * 10 Generics: However, a type parameter is considered to be a malformed type
+   * when referenced by a static member.
+   *
+   * 15.1 Static Types: Any use of a malformed type gives rise to a static
+   * warning. A malformed type is then interpreted as dynamic by the static type
+   * checker and the runtime.
    */
-  static const CompileTimeErrorCode TYPE_ALIAS_CANNOT_REFERENCE_ITSELF =
-      CompileTimeErrorCode(
-          'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
-          "Typedefs can't reference themselves directly or recursively via "
-              "another typedef.");
+  static const CompileTimeErrorCode TYPE_PARAMETER_REFERENCED_BY_STATIC =
+      CompileTimeErrorCode('TYPE_PARAMETER_REFERENCED_BY_STATIC',
+          "Static members can't reference type parameters of the class.",
+          correction: "Try removing the reference to the type parameter, or "
+              "making the member an instance member.");
 
-  @Deprecated('Use ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR')
-  static const ParserErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
-      ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR;
+  /**
+   * 10 Generics: It is a static type warning if a type parameter is a supertype
+   * of its upper bound.
+   *
+   * Parameters:
+   * 0: the name of the type parameter
+   * 1: the name of the bounding type
+   *
+   * See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+   */
+  static const CompileTimeErrorCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND =
+      CompileTimeErrorCode('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
+          "'{0}' can't be a supertype of its upper bound.",
+          correction: "Try using a type that is or is a subclass of '{1}'.");
+
+  /**
+   * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
+   * available in the current lexical scope.
+   */
+  static const CompileTimeErrorCode TYPE_TEST_WITH_NON_TYPE =
+      CompileTimeErrorCode(
+          'TYPE_TEST_WITH_NON_TYPE',
+          "The name '{0}' isn't a type and can't be used in an 'is' "
+              "expression.",
+          correction: "Try correcting the name to match an existing type.");
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name following the `is` in a
+  // type test expression isn't defined.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the name `Srting` isn't
+  // defined:
+  //
+  // ```dart
+  // void f(Object o) {
+  //   if (o is [!Srting!]) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the name with the name of a type:
+  //
+  // ```dart
+  // void f(Object o) {
+  //   if (o is String) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  static const CompileTimeErrorCode TYPE_TEST_WITH_UNDEFINED_NAME =
+      CompileTimeErrorCode(
+          'TYPE_TEST_WITH_UNDEFINED_NAME',
+          "The name '{0}' isn't defined, so it can't be used in an 'is' "
+              "expression.",
+          correction:
+              "Try changing the name to the name of an existing type, or "
+              "creating a type with the name '{0}'.",
+          hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an expression whose type is
+  // [potentially non-nullable][] is dereferenced without first verifying that
+  // the value isn't `null`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `s` can be `null` at
+  // the point where it's referenced:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String? s) {
+  //   if ([!s!].length > 3) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the value really can be `null`, then add a test to ensure that members
+  // are only accessed when the value isn't `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String? s) {
+  //   if (s != null && s.length > 3) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // If the expression is a variable and the value should never be `null`, then
+  // change the type of the variable to be non-nullable:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String s) {
+  //   if (s.length > 3) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // If you believe that the value of the expression should never be `null`, but
+  // you can't change the type of the variable, and you're willing to risk
+  // having an exception thrown at runtime if you're wrong, then you can assert
+  // that the value isn't null:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String? s) {
+  //   if (s!.length > 3) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  static const CompileTimeErrorCode UNCHECKED_USE_OF_NULLABLE_VALUE =
+      CompileTimeErrorCode(
+          'UNCHECKED_USE_OF_NULLABLE_VALUE',
+          "An expression whose value can be 'null' must be null-checked before "
+              "it can be dereferenced.",
+          correction:
+              "Try checking that the value isn't 'null' before dereferencing "
+              "it.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -6216,6 +8811,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       isUnresolvedIdentifier: true);
 
   /**
+   * Same as [CompileTimeErrorCode.UNDEFINED_CLASS], but to catch using
+   * "boolean" instead of "bool".
+   */
+  static const CompileTimeErrorCode UNDEFINED_CLASS_BOOLEAN =
+      CompileTimeErrorCode(
+          'UNDEFINED_CLASS_BOOLEAN', "Undefined class 'boolean'.",
+          correction: "Try using the type 'bool'.");
+
+  /**
    * Parameters:
    * 0: the name of the superclass that does not define the invoked constructor
    * 1: the name of the constructor being invoked
@@ -6297,6 +8901,55 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The class '{0}' doesn't have an unnamed constructor.",
           correction: "Try defining an unnamed constructor in '{0}', or "
               "invoking a different constructor.");
+
+  /**
+   * Parameters:
+   * 0: the name of the enumeration constant that is not defined
+   * 1: the name of the enumeration used to access the constant
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it encounters an identifier that
+  // appears to be the name of an enum constant, and the name either isn't
+  // defined or isn't visible in the scope in which it's being referenced.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `E` doesn't define a
+  // constant named `c`:
+  //
+  // ```dart
+  // enum E {a, b}
+  //
+  // var e = E.[!c!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the constant should be defined, then add it to the declaration of the
+  // enum:
+  //
+  // ```dart
+  // enum E {a, b, c}
+  //
+  // var e = E.c;
+  // ```
+  //
+  // If the constant shouldn't be defined, then change the name to the name of
+  // an existing constant:
+  //
+  // ```dart
+  // enum E {a, b}
+  //
+  // var e = E.b;
+  // ```
+  static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTANT =
+      CompileTimeErrorCode('UNDEFINED_ENUM_CONSTANT',
+          "There's no constant named '{0}' in '{1}'.",
+          correction:
+              "Try correcting the name to the name of an existing constant, or "
+              "defining a constant named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6615,6 +9268,198 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the method that is undefined
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it encounters an identifier that
+  // appears to be the name of a function but either isn't defined or isn't
+  // visible in the scope in which it's being referenced.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the name `emty` isn't
+  // defined:
+  //
+  // ```dart
+  // List<int> empty() => [];
+  //
+  // void main() {
+  //   print([!emty!]());
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the identifier isn't defined, then either define it or replace it with
+  // the name of a function that is defined. The example above can be corrected
+  // by fixing the spelling of the function:
+  //
+  // ```dart
+  // List<int> empty() => [];
+  //
+  // void main() {
+  //   print(empty());
+  // }
+  // ```
+  //
+  // If the function is defined but isn't visible, then you probably need to add
+  // an import or re-arrange your code to make the function visible.
+  static const CompileTimeErrorCode UNDEFINED_FUNCTION = CompileTimeErrorCode(
+      'UNDEFINED_FUNCTION', "The function '{0}' isn't defined.",
+      correction: "Try importing the library that defines '{0}', "
+          "correcting the name to the name of an existing function, or "
+          "defining a function named '{0}'.",
+      hasPublishedDocs: true,
+      isUnresolvedIdentifier: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the enclosing type where the getter is being looked for
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it encounters an identifier that
+  // appears to be the name of a getter but either isn't defined or isn't
+  // visible in the scope in which it's being referenced.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `String` has no member
+  // named `len`:
+  //
+  // ```dart
+  // int f(String s) => s.[!len!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the identifier isn't defined, then either define it or replace it with
+  // the name of a getter that is defined. The example above can be corrected by
+  // fixing the spelling of the getter:
+  //
+  // ```dart
+  // int f(String s) => s.length;
+  // ```
+  static const CompileTimeErrorCode UNDEFINED_GETTER = CompileTimeErrorCode(
+      'UNDEFINED_GETTER', "The getter '{0}' isn't defined for the type '{1}'.",
+      correction: "Try importing the library that defines '{0}', "
+          "correcting the name to the name of an existing getter, or "
+          "defining a getter or field named '{0}'.",
+      hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the identifier
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it encounters an identifier that
+  // either isn't defined or isn't visible in the scope in which it's being
+  // referenced.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the name `rihgt` isn't
+  // defined:
+  //
+  // ```dart
+  // int min(int left, int right) => left <= [!rihgt!] ? left : right;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the identifier isn't defined, then either define it or replace it with
+  // an identifier that is defined. The example above can be corrected by
+  // fixing the spelling of the variable:
+  //
+  // ```dart
+  // int min(int left, int right) => left <= right ? left : right;
+  // ```
+  //
+  // If the identifier is defined but isn't visible, then you probably need to
+  // add an import or re-arrange your code to make the identifier visible.
+  static const CompileTimeErrorCode UNDEFINED_IDENTIFIER =
+      CompileTimeErrorCode('UNDEFINED_IDENTIFIER', "Undefined name '{0}'.",
+          correction: "Try correcting the name to one that is defined, or "
+              "defining the name.",
+          hasPublishedDocs: true,
+          isUnresolvedIdentifier: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name `await` is used in a
+  // method or function body without being declared, and the body isn't marked
+  // with the `async` keyword. The name `await` only introduces an await
+  // expression in an asynchronous function.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the name `await` is
+  // used in the body of `f` even though the body of `f` isn't marked with the
+  // `async` keyword:
+  //
+  // ```dart
+  // void f(p) { [!await!] p; }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add the keyword `async` to the function body:
+  //
+  // ```dart
+  // void f(p) async { await p; }
+  // ```
+  static const CompileTimeErrorCode UNDEFINED_IDENTIFIER_AWAIT =
+      CompileTimeErrorCode('UNDEFINED_IDENTIFIER_AWAIT',
+          "Undefined name 'await' in function body not marked with 'async'.",
+          correction: "Try correcting the name to one that is defined, "
+              "defining the name, or "
+              "adding 'async' to the enclosing function body.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the method that is undefined
+   * 1: the resolved type name that the method lookup is happening on
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it encounters an identifier that
+  // appears to be the name of a method but either isn't defined or isn't
+  // visible in the scope in which it's being referenced.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the identifier
+  // `removeMiddle` isn't defined:
+  //
+  // ```dart
+  // int f(List<int> l) => l.[!removeMiddle!]();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the identifier isn't defined, then either define it or replace it with
+  // the name of a method that is defined. The example above can be corrected by
+  // fixing the spelling of the method:
+  //
+  // ```dart
+  // int f(List<int> l) => l.removeLast();
+  // ```
+  static const CompileTimeErrorCode UNDEFINED_METHOD = CompileTimeErrorCode(
+      'UNDEFINED_METHOD', "The method '{0}' isn't defined for the type '{1}'.",
+      correction:
+          "Try correcting the name to the name of an existing method, or "
+          "defining a method named '{0}'.",
+      hasPublishedDocs: true);
+
+  /**
+   * Parameters:
    * 0: the name of the requested named parameter
    */
   // #### Description
@@ -6654,7 +9499,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // If a subclass adds a parameter with the name in question, then cast the
-  // target to the subclass:
+  // receiver to the subclass:
   //
   // ```dart
   // class C {
@@ -6688,6 +9533,245 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try correcting the name to an existing named parameter's name, "
               "or defining a named parameter with the name '{0}'.",
           hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the operator
+   * 1: the name of the enclosing type where the operator is being looked for
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a user-definable operator is
+  // invoked on an object for which the operator isn't defined.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the class `C` doesn't
+  // define the operator `+`:
+  //
+  // ```dart
+  // class C {}
+  //
+  // C f(C c) => c [!+!] 2;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the operator should be defined for the class, then define it:
+  //
+  // ```dart
+  // class C {
+  //   C operator +(int i) => this;
+  // }
+  //
+  // C f(C c) => c + 2;
+  // ```
+  static const CompileTimeErrorCode UNDEFINED_OPERATOR = CompileTimeErrorCode(
+      'UNDEFINED_OPERATOR',
+      "The operator '{0}' isn't defined for the type '{1}'.",
+      correction: "Try defining the operator '{0}'.",
+      hasPublishedDocs: true);
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a prefixed identifier is found
+  // where the prefix is valid, but the identifier isn't declared in any of the
+  // libraries imported using that prefix.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `dart:core` doesn't
+  // define anything named `a`:
+  //
+  // ```dart
+  // import 'dart:core' as p;
+  //
+  // void f() {
+  //   p.[!a!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the library in which the name is declared isn't imported yet, add an
+  // import for the library.
+  //
+  // If the name is wrong, then change it to one of the names that's declared in
+  // the imported libraries.
+  static const CompileTimeErrorCode UNDEFINED_PREFIXED_NAME =
+      CompileTimeErrorCode(
+          'UNDEFINED_PREFIXED_NAME',
+          "The name '{0}' is being referenced through the prefix '{1}', but it "
+              "isn't defined in any of the libraries imported using that "
+              "prefix.",
+          correction: "Try correcting the prefix or "
+              "importing the library that defines '{0}'.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the setter
+   * 1: the name of the enclosing type where the setter is being looked for
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it encounters an identifier that
+  // appears to be the name of a setter but either isn't defined or isn't
+  // visible in the scope in which the identifier is being referenced.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because there isn't a setter
+  // named `z`:
+  //
+  // ```dart
+  // class C {
+  //   int x = 0;
+  //   void m(int y) {
+  //     this.[!z!] = y;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the identifier isn't defined, then either define it or replace it with
+  // the name of a setter that is defined. The example above can be corrected by
+  // fixing the spelling of the setter:
+  //
+  // ```dart
+  // class C {
+  //   int x = 0;
+  //   void m(int y) {
+  //     this.x = y;
+  //   }
+  // }
+  // ```
+  static const CompileTimeErrorCode UNDEFINED_SETTER = CompileTimeErrorCode(
+      'UNDEFINED_SETTER', "The setter '{0}' isn't defined for the type '{1}'.",
+      correction: "Try importing the library that defines '{0}', "
+          "correcting the name to the name of an existing setter, or "
+          "defining a setter or field named '{0}'.",
+      hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the name of the enclosing type where the getter is being looked for
+   */
+  static const CompileTimeErrorCode UNDEFINED_SUPER_GETTER =
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_GETTER',
+          "The getter '{0}' isn't defined in a superclass of '{1}'.",
+          correction:
+              "Try correcting the name to the name of an existing getter, or "
+              "defining a getter or field named '{0}' in a superclass.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the method that is undefined
+   * 1: the resolved type name that the method lookup is happening on
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an inherited member is
+  // referenced using `super`, but there’s no member with that name in the
+  // superclass chain.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `Object` doesn't define
+  // a method named `n`:
+  //
+  // ```dart
+  // class C {
+  //   void m() {
+  //     super.[!n!]();
+  //   }
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because `Object` doesn't define
+  // a getter named `g`:
+  //
+  // ```dart
+  // class C {
+  //   void m() {
+  //     super.[!g!];
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the inherited member you intend to invoke has a different name, then
+  // make the name of the invoked member match the inherited member.
+  //
+  // If the member you intend to invoke is defined in the same class, then
+  // remove the `super.`.
+  //
+  // If not, then either add the member to one of the superclasses or remove the
+  // invocation.
+  static const CompileTimeErrorCode UNDEFINED_SUPER_METHOD =
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_METHOD',
+          "The method '{0}' isn't defined in a superclass of '{1}'.",
+          correction:
+              "Try correcting the name to the name of an existing method, or "
+              "defining a method named '{0}' in a superclass.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the operator
+   * 1: the name of the enclosing type where the operator is being looked for
+   */
+  static const CompileTimeErrorCode UNDEFINED_SUPER_OPERATOR =
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_OPERATOR',
+          "The operator '{0}' isn't defined in a superclass of '{1}'.",
+          correction: "Try defining the operator '{0}' in a superclass.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the setter
+   * 1: the name of the enclosing type where the setter is being looked for
+   */
+  static const CompileTimeErrorCode UNDEFINED_SUPER_SETTER =
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_SETTER',
+          "The setter '{0}' isn't defined in a superclass of '{1}'.",
+          correction:
+              "Try correcting the name to the name of an existing setter, or "
+              "defining a setter or field named '{0}' in a superclass.",
+          hasPublishedDocs: true);
+
+  /**
+   * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
+   * not have an accessible (3.2) instance member named <i>m</i>.
+   *
+   * This is a specialization of [INSTANCE_ACCESS_TO_STATIC_MEMBER] that is used
+   * when we are able to find the name defined in a supertype. It exists to
+   * provide a more informative error message.
+   *
+   * Parameters:
+   * 0: the name of the defining type
+   */
+  static const CompileTimeErrorCode
+      UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER = CompileTimeErrorCode(
+          'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
+          "Static members from supertypes must be qualified by the name of the "
+              "defining type.",
+          correction: "Try adding '{0}.' before the name.");
 
   /**
    * Parameters:
@@ -6843,6 +9927,113 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'URI_WITH_INTERPOLATION', "URIs can't use string interpolation.");
 
   /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it finds an expression whose
+  // type is `void`, and the expression is used in a place where a value is
+  // expected, such as before a member access or on the right-hand side of an
+  // assignment.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because `f` doesn't produce an
+  // object on which `toString` can be invoked:
+  //
+  // ```dart
+  // void f() {}
+  //
+  // void g() {
+  //   [!f()!].toString();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Either rewrite the code so that the expression has a value or rewrite the
+  // code so that it doesn't depend on the value.
+  static const CompileTimeErrorCode USE_OF_VOID_RESULT = CompileTimeErrorCode(
+      'USE_OF_VOID_RESULT',
+      "This expression has a type of 'void' so its value can't be used.",
+      correction:
+          "Try checking to see if you're using the correct API; there might "
+          "be a function or call that returns void you didn't expect. Also "
+          "check type parameters and variables which might also be void.",
+      hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the type of the object being assigned.
+   * 1: the type of the variable being assigned to
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the evaluation of a constant
+  // expression would result in a `CastException`.
+  //
+  // #### Examples
+  //
+  // The following code produces this diagnostic because the value of `x` is an
+  // `int`, which can't be assigned to `y` because an `int` isn't a `String`:
+  //
+  // ```dart
+  // const Object x = 0;
+  // const String y = [!x!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the declaration of the constant is correct, then change the value being
+  // assigned to be of the correct type:
+  //
+  // ```dart
+  // const Object x = 0;
+  // const String y = '$x';
+  // ```
+  //
+  // If the assigned value is correct, then change the declaration to have the
+  // correct type:
+  //
+  // ```dart
+  // const Object x = 0;
+  // const int y = x;
+  // ```
+  static const CompileTimeErrorCode VARIABLE_TYPE_MISMATCH =
+      CompileTimeErrorCode(
+          'VARIABLE_TYPE_MISMATCH',
+          "A value of type '{0}' can't be assigned to a const variable of type "
+              "'{1}'.",
+          correction: "Try using a subtype, or removing the 'const' keyword",
+          hasPublishedDocs: true);
+
+  /**
+   * Let `C` be a generic class that declares a formal type parameter `X`, and
+   * assume that `T` is a direct superinterface of `C`.
+   *
+   * It is a compile-time error if `X` is explicitly defined as a covariant or
+   * 'in' type parameter and `X` occurs in a non-covariant position in `T`.
+   * It is a compile-time error if `X` is explicitly defined as a contravariant
+   * or 'out' type parameter and `X` occurs in a non-contravariant position in
+   * `T`.
+   *
+   * Parameters:
+   * 0: the name of the type parameter
+   * 1: the variance modifier defined for {0}
+   * 2: the variance position of the type parameter {0} in the
+   *    superinterface {3}
+   * 3: the name of the superinterface
+   */
+  static const CompileTimeErrorCode
+      WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE =
+      CompileTimeErrorCode(
+    'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+    "'{0}' is an '{1}' type parameter and can't be used in an '{2}' position in '{3}'.",
+    correction: "Try using 'in' type parameters in 'in' positions and 'out' "
+        "type parameters in 'out' positions in the superinterface.",
+  );
+
+  /**
    * Parameters:
    * 0: the name of the declared operator
    * 1: the number of parameters expected
@@ -6939,1146 +10130,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * Let `C` be a generic class that declares a formal type parameter `X`, and
-   * assume that `T` is a direct superinterface of `C`. It is a compile-time
-   * error if `X` occurs contravariantly or invariantly in `T`.
-   */
-  static const CompileTimeErrorCode
-      WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE = CompileTimeErrorCode(
-    'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
-    "'{0}' can't be used contravariantly or invariantly in '{1}'.",
-    correction: "Try not using class type parameters in types of formal "
-        "parameters of function types, nor in explicitly contravariant or "
-        "invariant superinterfaces.",
-  );
-
-  /**
-   * Let `C` be a generic class that declares a formal type parameter `X`.
-   *
-   * If `X` is explicitly contravariant then it is a compile-time error for
-   * `X` to occur in a non-contravariant position in a member signature in the
-   * body of `C`, except when `X` is in a contravariant position in the type
-   * annotation of a covariant formal parameter.
-   *
-   * If `X` is explicitly covariant then it is a compile-time error for
-   * `X` to occur in a non-covariant position in a member signature in the
-   * body of `C`, except when `X` is in a covariant position in the type
-   * annotation of a covariant formal parameter.
-   *
-   * Parameters:
-   * 0: the variance modifier defined for {0}
-   * 1: the name of the type parameter
-   * 2: the variance position that the type parameter {1} is in
-   */
-  static const CompileTimeErrorCode WRONG_TYPE_PARAMETER_VARIANCE_POSITION =
-      CompileTimeErrorCode(
-    'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
-    "The '{0}' type parameter '{1}' can't be used in an '{2}' position.",
-    correction: "Try removing the type parameter or change the explicit "
-        "variance modifier declaration for the type parameter to another one of"
-        " 'in', 'out', or 'inout'.",
-  );
-
-  /**
-   * Let `C` be a generic class that declares a formal type parameter `X`, and
-   * assume that `T` is a direct superinterface of `C`.
-   *
-   * It is a compile-time error if `X` is explicitly defined as a covariant or
-   * 'in' type parameter and `X` occurs in a non-covariant position in `T`.
-   * It is a compile-time error if `X` is explicitly defined as a contravariant
-   * or 'out' type parameter and `X` occurs in a non-contravariant position in
-   * `T`.
-   *
-   * Parameters:
-   * 0: the name of the type parameter
-   * 1: the variance modifier defined for {0}
-   * 2: the variance position of the type parameter {0} in the
-   *    superinterface {3}
-   * 3: the name of the superinterface
-   */
-  static const CompileTimeErrorCode
-      WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE =
-      CompileTimeErrorCode(
-    'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
-    "'{0}' is an '{1}' type parameter and can't be used in an '{2}' position in '{3}'.",
-    correction: "Try using 'in' type parameters in 'in' positions and 'out' "
-        "type parameters in 'out' positions in the superinterface.",
-  );
-
-  /**
-   * ?? Yield: It is a compile-time error if a yield statement appears in a
-   * function that is not a generator function.
-   */
-  static const CompileTimeErrorCode YIELD_EACH_IN_NON_GENERATOR =
-      CompileTimeErrorCode(
-          'YIELD_EACH_IN_NON_GENERATOR',
-          "Yield-each statements must be in a generator function "
-              "(one marked with either 'async*' or 'sync*').",
-          correction:
-              "Try adding 'async*' or 'sync*' to the enclosing function.");
-
-  /**
-   * ?? Yield: It is a compile-time error if a yield statement appears in a
-   * function that is not a generator function.
-   */
-  static const CompileTimeErrorCode YIELD_IN_NON_GENERATOR =
-      CompileTimeErrorCode(
-          'YIELD_IN_NON_GENERATOR',
-          "Yield statements must be in a generator function "
-              "(one marked with either 'async*' or 'sync*').",
-          correction:
-              "Try adding 'async*' or 'sync*' to the enclosing function.");
-
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const CompileTimeErrorCode(String name, String message,
-      {String correction,
-      bool hasPublishedDocs,
-      bool isUnresolvedIdentifier = false})
-      : super.temporary(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs,
-            isUnresolvedIdentifier: isUnresolvedIdentifier);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
-
-  @override
-  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
-}
-
-class CompileTimeErrorCodeWithUniqueName extends CompileTimeErrorCode {
-  @override
-  final String uniqueName;
-
-  const CompileTimeErrorCodeWithUniqueName(
-      String name, this.uniqueName, String message,
-      {String correction,
-      bool hasPublishedDocs,
-      bool isUnresolvedIdentifier = false})
-      : super(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs,
-            isUnresolvedIdentifier: isUnresolvedIdentifier);
-}
-
-/**
- * The error codes used for static type warnings. The convention for this class
- * is for the name of the error code to indicate the problem that caused the
- * error to be generated and for the error message to explain what is wrong and,
- * when appropriate, how the problem can be corrected.
- */
-class StaticTypeWarningCode extends AnalyzerErrorCode {
-  /**
-   * 12.7 Lists: A fresh instance (7.6.1) <i>a</i>, of size <i>n</i>, whose
-   * class implements the built-in class <i>List&lt;E></i> is allocated.
-   *
-   * Parameters:
-   * 0: the number of provided type arguments
-   */
-  static const StaticTypeWarningCode EXPECTED_ONE_LIST_TYPE_ARGUMENTS =
-      StaticTypeWarningCode(
-          'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
-          "List literals require exactly one type argument or none, "
-              "but {0} found.",
-          correction: "Try adjusting the number of type arguments.");
-
-  /**
-   * Parameters:
-   * 0: the number of provided type arguments
-   */
-  static const StaticTypeWarningCode EXPECTED_ONE_SET_TYPE_ARGUMENTS =
-      StaticTypeWarningCode(
-          'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
-          "Set literals require exactly one type argument or none, "
-              "but {0} found.",
-          correction: "Try adjusting the number of type arguments.");
-
-  /**
-   * 12.8 Maps: A fresh instance (7.6.1) <i>m</i>, of size <i>n</i>, whose class
-   * implements the built-in class <i>Map&lt;K, V></i> is allocated.
-   *
-   * Parameters:
-   * 0: the number of provided type arguments
-   */
-  static const StaticTypeWarningCode EXPECTED_TWO_MAP_TYPE_ARGUMENTS =
-      StaticTypeWarningCode(
-          'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
-          "Map literals require exactly two type arguments or none, "
-              "but {0} found.",
-          correction: "Try adjusting the number of type arguments.");
-
-  /**
-   * 9 Functions: It is a static warning if the declared return type of a
-   * function marked async* may not be assigned to Stream.
-   */
-  static const StaticTypeWarningCode ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE =
-      StaticTypeWarningCode(
-          'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
-          "Functions marked 'async*' must have a return type assignable to "
-              "'Stream'.",
-          correction: "Try fixing the return type of the function, or "
-              "removing the modifier 'async*' from the function body.");
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the body of a function has the
-  // `async` modifier even though the return type of the function isn't
-  // assignable to `Future`.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the body of the
-  // function `f` has the `async` modifier even though the return type isn't
-  // assignable to `Future`:
-  //
-  // ```dart
-  // [!int!] f() async {
-  //   return 0;
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the function should be asynchronous, then change the return type to be
-  // assignable to `Future`:
-  //
-  // ```dart
-  // Future<int> f() async {
-  //   return 0;
-  // }
-  // ```
-  //
-  // If the function should be synchronous, then remove the `async` modifier:
-  //
-  // ```dart
-  // int f() {
-  //   return 0;
-  // }
-  // ```
-  static const StaticTypeWarningCode ILLEGAL_ASYNC_RETURN_TYPE =
-      StaticTypeWarningCode(
-          'ILLEGAL_ASYNC_RETURN_TYPE',
-          "Functions marked 'async' must have a return type assignable to "
-              "'Future'.",
-          correction: "Try fixing the return type of the function, or "
-              "removing the modifier 'async' from the function body.",
-          hasPublishedDocs: true);
-
-  /**
-   * 9 Functions: It is a static warning if the declared return type of a
-   * function marked sync* may not be assigned to Iterable.
-   */
-  static const StaticTypeWarningCode ILLEGAL_SYNC_GENERATOR_RETURN_TYPE =
-      StaticTypeWarningCode(
-          'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
-          "Functions marked 'sync*' must have a return type assignable to "
-              "'Iterable'.",
-          correction: "Try fixing the return type of the function, or "
-              "removing the modifier 'sync*' from the function body.");
-
-  /**
-   * Parameters:
-   * 0: the name of the static member
-   * 1: the kind of the static member (field, getter, setter, or method)
-   * 2: the name of the defining class
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an access operator is used to
-  // access a static member through an instance of the class.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `zero` is a static
-  // field, but it’s being accessed as if it were an instance field:
-  //
-  // ```dart
-  // void f(C c) {
-  //   c.[!zero!];
-  // }
-  //
-  // class C {
-  //   static int zero = 0;
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Use the class to access the static member:
-  //
-  // ```dart
-  // void f(C c) {
-  //   C.zero;
-  // }
-  //
-  // class C {
-  //   static int zero = 0;
-  // }
-  // ```
-  static const StaticTypeWarningCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
-      StaticTypeWarningCode('INSTANCE_ACCESS_TO_STATIC_MEMBER',
-          "Static {1} '{0}' can't be accessed through an instance.",
-          correction: "Try using the class '{2}' to access the {1}.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the right hand side type
-   * 1: the name of the left hand side type
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the static type of an expression
-  // that is assigned to a variable isn't assignable to the type of the
-  // variable.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the type of the
-  // initializer (`int`) isn't assignable to the type of the variable
-  // (`String`):
-  //
-  // ```dart
-  // int i = 0;
-  // String s = [!i!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the value being assigned is always assignable at runtime, even though
-  // the static types don't reflect that, then add an explicit cast.
-  //
-  // Otherwise, change the value being assigned so that it has the expected
-  // type. In the previous example, this might look like:
-  //
-  // ```dart
-  // int i = 0;
-  // String s = i.toString();
-  // ```
-  //
-  // If you can’t change the value, then change the type of the variable to be
-  // compatible with the type of the value being assigned:
-  //
-  // ```dart
-  // int i = 0;
-  // int s = i;
-  // ```
-  static const StaticTypeWarningCode INVALID_ASSIGNMENT = StaticTypeWarningCode(
-      'INVALID_ASSIGNMENT',
-      "A value of type '{0}' can't be assigned to a variable of type "
-          "'{1}'.",
-      correction: "Try changing the type of the variable, or "
-          "casting the right-hand type to '{1}'.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the identifier that is not a function type
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it finds a function invocation,
-  // but the name of the function being invoked is defined to be something other
-  // than a function.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `Binary` is the name of
-  // a function type, not a function:
-  //
-  // ```dart
-  // typedef Binary = int Function(int, int);
-  //
-  // int f() {
-  //   return [!Binary!](1, 2);
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Replace the name with the name of a function.
-  static const StaticTypeWarningCode INVOCATION_OF_NON_FUNCTION =
-      StaticTypeWarningCode(
-          'INVOCATION_OF_NON_FUNCTION', "'{0}' isn't a function.",
-          // TODO(brianwilkerson) Split this error code so that we can provide
-          // better error and correction messages.
-          correction:
-              "Try correcting the name to match an existing function, or "
-              "define a method or function named '{0}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a function invocation is found,
-  // but the name being referenced isn't the name of a function, or when the
-  // expression computing the function doesn't compute a function.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `x` isn't a function:
-  //
-  // ```dart
-  // int x = 0;
-  //
-  // int f() => x;
-  //
-  // var y = [!x!]();
-  // ```
-  //
-  // The following code produces this diagnostic because `f()` doesn't return a
-  // function:
-  //
-  // ```dart
-  // int x = 0;
-  //
-  // int f() => x;
-  //
-  // var y = [!f()!]();
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If you need to invoke a function, then replace the code before the argument
-  // list with the name of a function or with an expression that computes a
-  // function:
-  //
-  // ```dart
-  // int x = 0;
-  //
-  // int f() => x;
-  //
-  // var y = f();
-  // ```
-  static const StaticTypeWarningCode INVOCATION_OF_NON_FUNCTION_EXPRESSION =
-      StaticTypeWarningCode(
-          'INVOCATION_OF_NON_FUNCTION_EXPRESSION',
-          "The expression doesn't evaluate to a function, so it can't be "
-              "invoked.",
-          hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a condition, such as an `if` or
-  // `while` loop, doesn't have the static type `bool`.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `x` has the static type
-  // `int`:
-  //
-  // ```dart
-  // void f(int x) {
-  //   if ([!x!]) {
-  //     // ...
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Change the condition so that it produces a Boolean value:
-  //
-  // ```dart
-  // void f(int x) {
-  //   if (x == 0) {
-  //     // ...
-  //   }
-  // }
-  // ```
-  static const StaticTypeWarningCode NON_BOOL_CONDITION = StaticTypeWarningCode(
-      'NON_BOOL_CONDITION', "Conditions must have a static type of 'bool'.",
-      correction: "Try changing the condition.", hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the first expression in an
-  // assert has a type other than `bool`.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the type of `p` is
-  // `int`, but a `bool` is required:
-  //
-  // ```dart
-  // void f(int p) {
-  //   assert([!p!]);
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Change the expression so that it has the type `bool`:
-  //
-  // ```dart
-  // void f(int p) {
-  //   assert(p > 0);
-  // }
-  // ```
-  static const StaticTypeWarningCode NON_BOOL_EXPRESSION =
-      StaticTypeWarningCode('NON_BOOL_EXPRESSION',
-          "The expression in an assert must be of type 'bool'.",
-          correction: "Try changing the expression.", hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the operand of the unary
-  // negation operator (`!`) doesn't have the type `bool`.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `x` is an `int` when it
-  // must be a `bool`:
-  //
-  // ```dart
-  // int x = 0;
-  // bool y = ![!x!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Replace the operand with an expression that has the type `bool`:
-  //
-  // ```dart
-  // int x = 0;
-  // bool y = !(x > 0);
-  // ```
-  static const StaticTypeWarningCode NON_BOOL_NEGATION_EXPRESSION =
-      StaticTypeWarningCode('NON_BOOL_NEGATION_EXPRESSION',
-          "A negation operand must have a static type of 'bool'.",
-          correction: "Try changing the operand to the '!' operator.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the lexeme of the logical operator
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when one of the operands of either
-  // the `&&` or `||` operator doesn't have the type `bool`.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `a` isn't a Boolean
-  // value:
-  //
-  // ```dart
-  // int a = 3;
-  // bool b = [!a!] || a > 1;
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Change the operand to a Boolean value:
-  //
-  // ```dart
-  // int a = 3;
-  // bool b = a == 0 || a > 1;
-  // ```
-  static const StaticTypeWarningCode NON_BOOL_OPERAND = StaticTypeWarningCode(
-      'NON_BOOL_OPERAND',
-      "The operands of the operator '{0}' must be assignable to 'bool'.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name appearing where a type is expected
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an identifier that isn't a type
-  // is used as a type argument.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `x` is a variable, not
-  // a type:
-  //
-  // ```dart
-  // var x = 0;
-  // List<[!x!]> xList = [];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Change the type argument to be a type:
-  //
-  // ```dart
-  // var x = 0;
-  // List<int> xList = [];
-  // ```
-  static const StaticTypeWarningCode NON_TYPE_AS_TYPE_ARGUMENT =
-      StaticTypeWarningCode('NON_TYPE_AS_TYPE_ARGUMENT',
-          "The name '{0}' isn't a type so it can't be used as a type argument.",
-          correction: "Try correcting the name to an existing type, or "
-              "defining a type named '{0}'.",
-          hasPublishedDocs: true,
-          isUnresolvedIdentifier: true);
-
-  /**
-   * Parameters:
-   * 0: the return type as declared in the return statement
-   * 1: the expected return type as defined by the method
-   * 2: the name of the method
-   */
-  @Deprecated('Use either RETURN_OF_INVALID_TYPE_FROM_FUNCTION or '
-      'RETURN_OF_INVALID_TYPE_FROM_METHOD')
-  static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE =
-      StaticTypeWarningCode(
-          'RETURN_OF_INVALID_TYPE',
-          "The return type '{0}' isn't a '{1}', as defined by the method "
-              "'{2}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the return type as declared in the return statement
-   * 1: the expected return type as defined by the method
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the static type of a returned
-  // expression isn't assignable to the return type that the closure is required
-  // to have.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `f` is defined to be a
-  // function that returns a `String`, but the closure assigned to it returns an
-  // `int`:
-  //
-  // ```dart
-  // String Function(String) f = (s) => [!3!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the return type is correct, then replace the returned value with a value
-  // of the correct type, possibly by converting the existing value:
-  //
-  // ```dart
-  // String Function(String) f = (s) => 3.toString();
-  // ```
-  static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE_FROM_CLOSURE =
-      StaticTypeWarningCode(
-          'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
-          "The return type '{0}' isn't a '{1}', as required by the closure's "
-              "context.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the return type as declared in the return statement
-   * 1: the expected return type as defined by the enclosing class
-   * 2: the name of the constructor
-   */
-  static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
-      StaticTypeWarningCodeWithUniqueName(
-          'RETURN_OF_INVALID_TYPE',
-          'StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
-          "A value of type '{0}' can't be returned from constructor '{2}' "
-              "because it has a return type of '{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the return type as declared in the return statement
-   * 1: the expected return type as defined by the method
-   * 2: the name of the method
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a method or function returns a
-  // value whose type isn't assignable to the declared return type.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `f` has a return type
-  // of `String` but is returning an `int`:
-  //
-  // ```dart
-  // String f() => [!3!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the return type is correct, then replace the value being returned with a
-  // value of the correct type, possibly by converting the existing value:
-  //
-  // ```dart
-  // String f() => 3.toString();
-  // ```
-  //
-  // If the value is correct, then change the return type to match:
-  //
-  // ```dart
-  // int f() => 3;
-  // ```
-  static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE_FROM_FUNCTION =
-      StaticTypeWarningCodeWithUniqueName(
-          'RETURN_OF_INVALID_TYPE',
-          'StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
-          "A value of type '{0}' can't be returned from function '{2}' because "
-              "it has a return type of '{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the return type as declared in the return statement
-   * 1: the expected return type as defined by the method
-   * 2: the name of the method
-   */
-  static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE_FROM_METHOD =
-      StaticTypeWarningCodeWithUniqueName(
-          'RETURN_OF_INVALID_TYPE',
-          'StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD',
-          "A value of type '{0}' can't be returned from method '{2}' because "
-              "it has a return type of '{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * 10 Generics: It is a static type warning if a type parameter is a supertype
-   * of its upper bound.
-   *
-   * Parameters:
-   * 0: the name of the type parameter
-   * 1: the name of the bounding type
-   *
-   * See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
-   */
-  static const StaticTypeWarningCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND =
-      StaticTypeWarningCode('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
-          "'{0}' can't be a supertype of its upper bound.",
-          correction: "Try using a type that is or is a subclass of '{1}'.");
-
-  /**
-   * Parameters:
-   * 0: the name of the enumeration constant that is not defined
-   * 1: the name of the enumeration used to access the constant
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it encounters an identifier that
-  // appears to be the name of an enum constant, and the name either isn't
-  // defined or isn't visible in the scope in which it's being referenced.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `E` doesn't define a
-  // constant named `c`:
-  //
-  // ```dart
-  // enum E {a, b}
-  //
-  // var e = E.[!c!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the constant should be defined, then add it to the declaration of the
-  // enum:
-  //
-  // ```dart
-  // enum E {a, b, c}
-  //
-  // var e = E.c;
-  // ```
-  //
-  // If the constant shouldn't be defined, then change the name to the name of
-  // an existing constant:
-  //
-  // ```dart
-  // enum E {a, b}
-  //
-  // var e = E.b;
-  // ```
-  static const StaticTypeWarningCode UNDEFINED_ENUM_CONSTANT =
-      StaticTypeWarningCode('UNDEFINED_ENUM_CONSTANT',
-          "There's no constant named '{0}' in '{1}'.",
-          correction:
-              "Try correcting the name to the name of an existing constant, or "
-              "defining a constant named '{0}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the method that is undefined
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it encounters an identifier that
-  // appears to be the name of a function but either isn't defined or isn't
-  // visible in the scope in which it's being referenced.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the name `emty` isn't
-  // defined:
-  //
-  // ```dart
-  // List<int> empty() => [];
-  //
-  // void main() {
-  //   print([!emty!]());
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the identifier isn't defined, then either define it or replace it with
-  // the name of a function that is defined. The example above can be corrected
-  // by fixing the spelling of the function:
-  //
-  // ```dart
-  // List<int> empty() => [];
-  //
-  // void main() {
-  //   print(empty());
-  // }
-  // ```
-  //
-  // If the function is defined but isn't visible, then you probably need to add
-  // an import or re-arrange your code to make the function visible.
-  static const StaticTypeWarningCode UNDEFINED_FUNCTION = StaticTypeWarningCode(
-      'UNDEFINED_FUNCTION', "The function '{0}' isn't defined.",
-      correction: "Try importing the library that defines '{0}', "
-          "correcting the name to the name of an existing function, or "
-          "defining a function named '{0}'.",
-      hasPublishedDocs: true,
-      isUnresolvedIdentifier: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the name of the enclosing type where the getter is being looked for
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it encounters an identifier that
-  // appears to be the name of a getter but either isn't defined or isn't
-  // visible in the scope in which it's being referenced.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `String` has no member
-  // named `len`:
-  //
-  // ```dart
-  // int f(String s) => s.[!len!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the identifier isn't defined, then either define it or replace it with
-  // the name of a getter that is defined. The example above can be corrected by
-  // fixing the spelling of the getter:
-  //
-  // ```dart
-  // int f(String s) => s.length;
-  // ```
-  static const StaticTypeWarningCode UNDEFINED_GETTER = StaticTypeWarningCode(
-      'UNDEFINED_GETTER', "The getter '{0}' isn't defined for the type '{1}'.",
-      correction: "Try importing the library that defines '{0}', "
-          "correcting the name to the name of an existing getter, or "
-          "defining a getter or field named '{0}'.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the method that is undefined
-   * 1: the resolved type name that the method lookup is happening on
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it encounters an identifier that
-  // appears to be the name of a method but either isn't defined or isn't
-  // visible in the scope in which it's being referenced.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the identifier
-  // `removeMiddle` isn't defined:
-  //
-  // ```dart
-  // int f(List<int> l) => l.[!removeMiddle!]();
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the identifier isn't defined, then either define it or replace it with
-  // the name of a method that is defined. The example above can be corrected by
-  // fixing the spelling of the method:
-  //
-  // ```dart
-  // int f(List<int> l) => l.removeLast();
-  // ```
-  static const StaticTypeWarningCode UNDEFINED_METHOD = StaticTypeWarningCode(
-      'UNDEFINED_METHOD', "The method '{0}' isn't defined for the type '{1}'.",
-      correction:
-          "Try correcting the name to the name of an existing method, or "
-          "defining a method named '{0}'.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the operator
-   * 1: the name of the enclosing type where the operator is being looked for
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a user-definable operator is
-  // invoked on an object for which the operator isn't defined.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the class `C` doesn't
-  // define the operator `+`:
-  //
-  // ```dart
-  // class C {}
-  //
-  // C f(C c) => c [!+!] 2;
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the operator should be defined for the class, then define it:
-  //
-  // ```dart
-  // class C {
-  //   C operator +(int i) => this;
-  // }
-  //
-  // C f(C c) => c + 2;
-  // ```
-  static const StaticTypeWarningCode UNDEFINED_OPERATOR = StaticTypeWarningCode(
-      'UNDEFINED_OPERATOR',
-      "The operator '{0}' isn't defined for the type '{1}'.",
-      correction: "Try defining the operator '{0}'.",
-      hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a prefixed identifier is found
-  // where the prefix is valid, but the identifier isn't declared in any of the
-  // libraries imported using that prefix.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `dart:core` doesn't
-  // define anything named `a`:
-  //
-  // ```dart
-  // import 'dart:core' as p;
-  //
-  // void f() {
-  //   p.[!a!];
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the library in which the name is declared isn't imported yet, add an
-  // import for the library.
-  //
-  // If the name is wrong, then change it to one of the names that's declared in
-  // the imported libraries.
-  static const StaticTypeWarningCode UNDEFINED_PREFIXED_NAME =
-      StaticTypeWarningCode(
-          'UNDEFINED_PREFIXED_NAME',
-          "The name '{0}' is being referenced through the prefix '{1}', but it "
-              "isn't defined in any of the libraries imported using that "
-              "prefix.",
-          correction: "Try correcting the prefix or "
-              "importing the library that defines '{0}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the setter
-   * 1: the name of the enclosing type where the setter is being looked for
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it encounters an identifier that
-  // appears to be the name of a setter but either isn't defined or isn't
-  // visible in the scope in which the identifier is being referenced.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because there isn't a setter
-  // named `z`:
-  //
-  // ```dart
-  // class C {
-  //   int x = 0;
-  //   void m(int y) {
-  //     this.[!z!] = y;
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the identifier isn't defined, then either define it or replace it with
-  // the name of a setter that is defined. The example above can be corrected by
-  // fixing the spelling of the setter:
-  //
-  // ```dart
-  // class C {
-  //   int x = 0;
-  //   void m(int y) {
-  //     this.x = y;
-  //   }
-  // }
-  // ```
-  static const StaticTypeWarningCode UNDEFINED_SETTER = StaticTypeWarningCode(
-      'UNDEFINED_SETTER', "The setter '{0}' isn't defined for the type '{1}'.",
-      correction: "Try importing the library that defines '{0}', "
-          "correcting the name to the name of an existing setter, or "
-          "defining a setter or field named '{0}'.",
-      hasPublishedDocs: true);
-
-  /**
-   * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
-   * a static type warning if <i>T</i> does not have a getter named <i>m</i>.
-   *
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the name of the enclosing type where the getter is being looked for
-   */
-  static const StaticTypeWarningCode UNDEFINED_SUPER_GETTER =
-      StaticTypeWarningCode('UNDEFINED_SUPER_GETTER',
-          "The getter '{0}' isn't defined in a superclass of '{1}'.",
-          correction:
-              "Try correcting the name to the name of an existing getter, or "
-              "defining a getter or field named '{0}' in a superclass.");
-
-  /**
-   * Parameters:
-   * 0: the name of the method that is undefined
-   * 1: the resolved type name that the method lookup is happening on
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an inherited method is
-  // referenced using `super`, but there’s no method with that name in the
-  // superclass chain.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `Object` doesn't define
-  // a member named `n`:
-  //
-  // ```dart
-  // class C {
-  //   void m() {
-  //     super.[!n!]();
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the inherited method you intend to invoke has a different name, then
-  // make the name of the invoked method  match the inherited method.
-  //
-  // If the method you intend to invoke is defined in the same class, then
-  // remove the `super.`.
-  //
-  // If not, then either add the method to one of the superclasses or remove the
-  // invocation.
-  static const StaticTypeWarningCode UNDEFINED_SUPER_METHOD =
-      StaticTypeWarningCode('UNDEFINED_SUPER_METHOD',
-          "The method '{0}' isn't defined in a superclass of '{1}'.",
-          correction:
-              "Try correcting the name to the name of an existing method, or "
-              "defining a method named '{0}' in a superclass.",
-          hasPublishedDocs: true);
-
-  /**
-   * 12.18 Assignment: Evaluation of an assignment of the form
-   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] = <i>e<sub>3</sub></i> is
-   * equivalent to the evaluation of the expression (a, i, e){a.[]=(i, e);
-   * return e;} (<i>e<sub>1</sub></i>, <i>e<sub>2</sub></i>,
-   * <i>e<sub>2</sub></i>).
-   *
-   * 12.29 Assignable Expressions: An assignable expression of the form
-   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] is evaluated as a method
-   * invocation of the operator method [] on <i>e<sub>1</sub></i> with argument
-   * <i>e<sub>2</sub></i>.
-   *
-   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
-   * It is a static type warning if <i>T</i> does not have an accessible
-   * instance member named <i>m</i>.
-   *
-   * Parameters:
-   * 0: the name of the operator
-   * 1: the name of the enclosing type where the operator is being looked for
-   */
-  static const StaticTypeWarningCode UNDEFINED_SUPER_OPERATOR =
-      StaticTypeWarningCode('UNDEFINED_SUPER_OPERATOR',
-          "The operator '{0}' isn't defined in a superclass of '{1}'.",
-          correction: "Try defining the operator '{0}' in a superclass.");
-
-  /**
-   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
-   * It is a static type warning if <i>T</i> does not have an accessible
-   * instance setter named <i>v=</i>.
-   *
-   * Parameters:
-   * 0: the name of the setter
-   * 1: the name of the enclosing type where the setter is being looked for
-   */
-  static const StaticTypeWarningCode UNDEFINED_SUPER_SETTER =
-      StaticTypeWarningCode('UNDEFINED_SUPER_SETTER',
-          "The setter '{0}' isn't defined in a superclass of '{1}'.",
-          correction:
-              "Try correcting the name to the name of an existing setter, or "
-              "defining a setter or field named '{0}' in a superclass.");
-
-  /**
-   * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
-   * not have an accessible (3.2) instance member named <i>m</i>.
-   *
-   * This is a specialization of [INSTANCE_ACCESS_TO_STATIC_MEMBER] that is used
-   * when we are able to find the name defined in a supertype. It exists to
-   * provide a more informative error message.
-   *
-   * Parameters:
-   * 0: the name of the defining type
-   */
-  static const StaticTypeWarningCode
-      UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER = StaticTypeWarningCode(
-          'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
-          "Static members from supertypes must be qualified by the name of the "
-              "defining type.",
-          correction: "Try adding '{0}.' before the name.");
-
-  /**
    * Parameters:
    * 0: the name of the type being referenced (<i>G</i>)
    * 1: the number of type parameters that were declared
@@ -8125,8 +10176,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // void f(C<int> x) {}
   // ```
-  static const StaticTypeWarningCode WRONG_NUMBER_OF_TYPE_ARGUMENTS =
-      StaticTypeWarningCode(
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS =
+      CompileTimeErrorCode(
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
           "The type '{0}' is declared with {1} type parameters, "
               "but {2} type arguments were given.",
@@ -8143,11 +10194,23 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
    * 0: the name of the class being instantiated
    * 1: the name of the constructor being invoked
    */
-  static const StaticTypeWarningCode
-      WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR = StaticTypeWarningCode(
-          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR =
+      CompileTimeErrorCode('WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
           "The constructor '{0}.{1}' doesn't have type parameters.",
           correction: "Try moving type arguments to after the type name.");
+
+  /**
+   * Parameters:
+   * 0: the name of the extension being referenced
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION =
+      CompileTimeErrorCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
+          "The extension '{0}' is declared with {1} type parameters, "
+              "but {2} type arguments were given.",
+          correction: "Try adjusting the number of type arguments.");
 
   /**
    * It will be a static type warning if <i>m</i> is not a generic method with
@@ -8158,12 +10221,77 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
    * 1: the number of type parameters that were declared
    * 2: the number of type arguments provided
    */
-  static const StaticTypeWarningCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD =
-      StaticTypeWarningCode(
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD =
+      CompileTimeErrorCode(
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
           "The method '{0}' is declared with {1} type parameters, "
               "but {2} type arguments were given.",
           correction: "Try adjusting the number of type arguments.");
+
+  /**
+   * Let `C` be a generic class that declares a formal type parameter `X`, and
+   * assume that `T` is a direct superinterface of `C`. It is a compile-time
+   * error if `X` occurs contravariantly or invariantly in `T`.
+   */
+  static const CompileTimeErrorCode
+      WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE = CompileTimeErrorCode(
+    'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+    "'{0}' can't be used contravariantly or invariantly in '{1}'.",
+    correction: "Try not using class type parameters in types of formal "
+        "parameters of function types, nor in explicitly contravariant or "
+        "invariant superinterfaces.",
+  );
+
+  /**
+   * Let `C` be a generic class that declares a formal type parameter `X`.
+   *
+   * If `X` is explicitly contravariant then it is a compile-time error for
+   * `X` to occur in a non-contravariant position in a member signature in the
+   * body of `C`, except when `X` is in a contravariant position in the type
+   * annotation of a covariant formal parameter.
+   *
+   * If `X` is explicitly covariant then it is a compile-time error for
+   * `X` to occur in a non-covariant position in a member signature in the
+   * body of `C`, except when `X` is in a covariant position in the type
+   * annotation of a covariant formal parameter.
+   *
+   * Parameters:
+   * 0: the variance modifier defined for {0}
+   * 1: the name of the type parameter
+   * 2: the variance position that the type parameter {1} is in
+   */
+  static const CompileTimeErrorCode WRONG_TYPE_PARAMETER_VARIANCE_POSITION =
+      CompileTimeErrorCode(
+    'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
+    "The '{0}' type parameter '{1}' can't be used in an '{2}' position.",
+    correction: "Try removing the type parameter or change the explicit "
+        "variance modifier declaration for the type parameter to another one "
+        "of 'in', 'out', or 'inout'.",
+  );
+
+  /**
+   * ?? Yield: It is a compile-time error if a yield statement appears in a
+   * function that is not a generator function.
+   */
+  static const CompileTimeErrorCode YIELD_EACH_IN_NON_GENERATOR =
+      CompileTimeErrorCode(
+          'YIELD_EACH_IN_NON_GENERATOR',
+          "Yield-each statements must be in a generator function "
+              "(one marked with either 'async*' or 'sync*').",
+          correction:
+              "Try adding 'async*' or 'sync*' to the enclosing function.");
+
+  /**
+   * ?? Yield: It is a compile-time error if a yield statement appears in a
+   * function that is not a generator function.
+   */
+  static const CompileTimeErrorCode YIELD_IN_NON_GENERATOR =
+      CompileTimeErrorCode(
+          'YIELD_IN_NON_GENERATOR',
+          "Yield statements must be in a generator function "
+              "(one marked with either 'async*' or 'sync*').",
+          correction:
+              "Try adding 'async*' or 'sync*' to the enclosing function.");
 
   /**
    * 17.16.1 Yield: Let T be the static type of e [the expression to the right
@@ -8183,66 +10311,11 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
    * assigned to Iterable.  If f is asynchronous it is a static type warning if
    * T may not be assigned to Stream.
    */
-  static const StaticTypeWarningCode YIELD_OF_INVALID_TYPE =
-      StaticTypeWarningCode(
+  static const CompileTimeErrorCode YIELD_OF_INVALID_TYPE =
+      CompileTimeErrorCode(
           'YIELD_OF_INVALID_TYPE',
           "The type '{0}' implied by the 'yield' expression must be assignable "
               "to '{1}'.");
-
-  /**
-   * Parameters:
-   * 0: The type of the iterable expression.
-   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the expression following `in` in
-  // a for-in loop has a type that isn't a subclass of `Iterable`.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `m` is a `Map`, and
-  // `Map` isn't a subclass of `Iterable`:
-  //
-  // ```dart
-  // void f(Map<String, String> m) {
-  //   for (String s in [!m!]) {
-  //     print(s);
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Replace the expression with one that produces an iterable value:
-  //
-  // ```dart
-  // void f(Map<String, String> m) {
-  //   for (String s in m.values) {
-  //     print(s);
-  //   }
-  // }
-  // ```
-  static const StaticTypeWarningCode FOR_IN_OF_INVALID_TYPE =
-      StaticTypeWarningCode('FOR_IN_OF_INVALID_TYPE',
-          "The type '{0}' used in the 'for' loop must implement {1}.",
-          hasPublishedDocs: true);
-
-  /**
-   * 17.6.2 For-in. It the iterable expression does not implement Iterable with
-   * a type argument that can be assigned to the for-in variable's type, this
-   * warning is reported.
-   *
-   * Parameters:
-   * 0: The type of the iterable expression.
-   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
-   * 2: The loop variable type.
-   */
-  static const StaticTypeWarningCode FOR_IN_OF_INVALID_ELEMENT_TYPE =
-      StaticTypeWarningCode(
-          'FOR_IN_OF_INVALID_ELEMENT_TYPE',
-          "The type '{0}' used in the 'for' loop must implement {1} with a "
-              "type argument that can be assigned to '{2}'.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -8250,7 +10323,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const StaticTypeWarningCode(String name, String message,
+  const CompileTimeErrorCode(String name, String message,
       {String correction,
       bool hasPublishedDocs,
       bool isUnresolvedIdentifier = false})
@@ -8260,21 +10333,107 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
+  ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
 
   @override
-  ErrorType get type => ErrorType.STATIC_TYPE_WARNING;
+  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
-class StaticTypeWarningCodeWithUniqueName extends StaticTypeWarningCode {
+class CompileTimeErrorCodeWithUniqueName extends CompileTimeErrorCode {
   @override
   final String uniqueName;
 
-  const StaticTypeWarningCodeWithUniqueName(
+  const CompileTimeErrorCodeWithUniqueName(
       String name, this.uniqueName, String message,
-      {String correction, bool hasPublishedDocs})
+      {String correction,
+      bool hasPublishedDocs,
+      bool isUnresolvedIdentifier = false})
       : super(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+            correction: correction,
+            hasPublishedDocs: hasPublishedDocs,
+            isUnresolvedIdentifier: isUnresolvedIdentifier);
+}
+
+/**
+ * This class has experimental Language-specific codes.
+ *
+ * Currently it only contains codes related to implicit dynamic.
+ */
+class LanguageCode extends ErrorCode {
+  /**
+   * This is appended to the end of an error message about implicit dynamic.
+   *
+   * The idea is to make sure the user is aware that this error message is the
+   * result of turning on a particular option, and they are free to turn it
+   * back off.
+   */
+  static const String _implicitDynamicCorrection =
+      "Try adding an explicit type, or remove implicit-dynamic from your "
+      "analysis options file.";
+
+  static const LanguageCode IMPLICIT_DYNAMIC_FIELD = LanguageCode(
+      'IMPLICIT_DYNAMIC_FIELD', "Missing field type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_FUNCTION = LanguageCode(
+      'IMPLICIT_DYNAMIC_FUNCTION',
+      "Missing type arguments for generic function '{0}<{1}>'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_INVOKE = LanguageCode(
+      'IMPLICIT_DYNAMIC_INVOKE',
+      "Missing type arguments for calling generic function type '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_LIST_LITERAL = LanguageCode(
+      'IMPLICIT_DYNAMIC_LIST_LITERAL',
+      "Missing type argument for list literal.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_MAP_LITERAL = LanguageCode(
+      'IMPLICIT_DYNAMIC_MAP_LITERAL', "Missing type arguments for map literal.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_METHOD = LanguageCode(
+      'IMPLICIT_DYNAMIC_METHOD',
+      "Missing type arguments for generic method '{0}<{1}>'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_PARAMETER = LanguageCode(
+      'IMPLICIT_DYNAMIC_PARAMETER', "Missing parameter type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_RETURN = LanguageCode(
+      'IMPLICIT_DYNAMIC_RETURN', "Missing return type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_TYPE = LanguageCode(
+      'IMPLICIT_DYNAMIC_TYPE', "Missing type arguments for generic type '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_VARIABLE = LanguageCode(
+      'IMPLICIT_DYNAMIC_VARIABLE', "Missing variable type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  @override
+  final ErrorType type = ErrorType.COMPILE_TIME_ERROR;
+
+  /**
+   * Initialize a newly created language code to have the given [type] and
+   * [name].
+   *
+   * The message associated with the code will be created from the given
+   * [message] template. The correction associated with the code will be
+   * created from the optional [correction] template.
+   */
+  const LanguageCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction,
+            hasPublishedDocs: hasPublishedDocs ?? false);
+
+  @override
+  ErrorSeverity get errorSeverity => type.severity;
 }
 
 /**
@@ -8284,480 +10443,6 @@ class StaticTypeWarningCodeWithUniqueName extends StaticTypeWarningCode {
  * appropriate, how the problem can be corrected.
  */
 class StaticWarningCode extends AnalyzerErrorCode {
-  /**
-   * Parameters:
-   * 0: the name of the ambiguous type
-   * 1: the name of the first library that the type is found
-   * 2: the name of the second library that the type is found
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a name is referenced that is
-  // declared in two or more imported libraries.
-  //
-  // #### Examples
-  //
-  // Given a library (`a.dart`) that defines a class (`C` in this example):
-  //
-  // ```dart
-  // %uri="lib/a.dart"
-  // class A {}
-  // class C {}
-  // ```
-  //
-  // And a library (`b.dart`) that defines a different class with the same name:
-  //
-  // ```dart
-  // %uri="lib/b.dart"
-  // class B {}
-  // class C {}
-  // ```
-  //
-  // The following code produces this diagnostic:
-  //
-  // ```dart
-  // import 'a.dart';
-  // import 'b.dart';
-  //
-  // void f([!C!] c1, [!C!] c2) {}
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If any of the libraries aren't needed, then remove the import directives
-  // for them:
-  //
-  // ```dart
-  // import 'a.dart';
-  //
-  // void f(C c1, C c2) {}
-  // ```
-  //
-  // If the name is still defined by more than one library, then add a `hide`
-  // clause to the import directives for all except one library:
-  //
-  // ```dart
-  // import 'a.dart' hide C;
-  // import 'b.dart';
-  //
-  // void f(C c1, C c2) {}
-  // ```
-  //
-  // If you must be able to reference more than one of these types, then add a
-  // prefix to each of the import directives, and qualify the references with
-  // the appropriate prefix:
-  //
-  // ```dart
-  // import 'a.dart' as a;
-  // import 'b.dart' as b;
-  //
-  // void f(a.C c1, b.C c2) {}
-  // ```
-  static const StaticWarningCode AMBIGUOUS_IMPORT = StaticWarningCode(
-      'AMBIGUOUS_IMPORT', "The name '{0}' is defined in the libraries {1}.",
-      correction: "Try using 'as prefix' for one of the import directives, or "
-          "hiding the name from all but one of the imports.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the actual argument type
-   * 1: the name of the expected type
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the static type of an argument
-  // can't be assigned to the static type of the corresponding parameter.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because a `num` can't be
-  // assigned to a `String`:
-  //
-  // ```dart
-  // String f(String x) => x;
-  // String g(num y) => f([!y!]);
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If possible, rewrite the code so that the static type is assignable. In the
-  // example above you might be able to change the type of the parameter `y`:
-  //
-  // ```dart
-  // String f(String x) => x;
-  // String g(String y) => f(y);
-  // ```
-  //
-  // If that fix isn't possible, then add code to handle the case where the
-  // argument value isn't the required type. One approach is to coerce other
-  // types to the required type:
-  //
-  // ```dart
-  // String f(String x) => x;
-  // String g(num y) => f(y.toString());
-  // ```
-  //
-  // Another approach is to add explicit type tests and fallback code:
-  //
-  // ```dart
-  // String f(String x) => x;
-  // String g(num y) => f(y is String ? y : '');
-  // ```
-  //
-  // If you believe that the runtime type of the argument will always be the
-  // same as the static type of the parameter, and you're willing to risk having
-  // an exception thrown at runtime if you're wrong, then add an explicit cast:
-  //
-  // ```dart
-  // String f(String x) => x;
-  // String g(num y) => f(y as String);
-  // ```
-  static const StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
-      StaticWarningCode(
-          'ARGUMENT_TYPE_NOT_ASSIGNABLE',
-          "The argument type '{0}' can't be assigned to the parameter type "
-              "'{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * 5 Variables: Attempting to assign to a final variable elsewhere will cause
-   * a NoSuchMethodError to be thrown, because no setter is defined for it. The
-   * assignment will also give rise to a static warning for the same reason.
-   *
-   * A constant variable is always implicitly final.
-   */
-  static const StaticWarningCode ASSIGNMENT_TO_CONST = StaticWarningCode(
-      'ASSIGNMENT_TO_CONST', "Constant variables can't be assigned a value.",
-      correction: "Try removing the assignment, or "
-          "remove the modifier 'const' from the variable.");
-
-  /**
-   * Parameters:
-   * 0: the name of the final variable
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it finds an invocation of a
-  // setter, but there's no setter because the field with the same name was
-  // declared to be `final` or `const`.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `v` is final:
-  //
-  // ```dart
-  // class C {
-  //   final v = 0;
-  // }
-  //
-  // f(C c) {
-  //   c.[!v!] = 1;
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If you need to be able to set the value of the field, then remove the
-  // modifier `final` from the field:
-  //
-  // ```dart
-  // class C {
-  //   int v = 0;
-  // }
-  //
-  // f(C c) {
-  //   c.v = 1;
-  // }
-  // ```
-  static const StaticWarningCode ASSIGNMENT_TO_FINAL = StaticWarningCode(
-      'ASSIGNMENT_TO_FINAL',
-      "'{0}' can't be used as a setter because it's final.",
-      correction: "Try finding a different setter, or making '{0}' non-final.",
-      hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a local variable that was
-  // declared to be final is assigned after it was initialized.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `x` is final, so it
-  // can't have a value assigned to it after it was initialized:
-  //
-  // ```dart
-  // void f() {
-  //   final x = 0;
-  //   [!x!] = 3;
-  //   print(x);
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Remove the keyword `final`, and replace it with `var` if there's no type
-  // annotation:
-  //
-  // ```dart
-  // void f() {
-  //   var x = 0;
-  //   x = 3;
-  //   print(x);
-  // }
-  // ```
-  static const StaticWarningCode ASSIGNMENT_TO_FINAL_LOCAL = StaticWarningCode(
-      'ASSIGNMENT_TO_FINAL_LOCAL',
-      "The final variable '{0}' can only be set once.",
-      correction: "Try making '{0}' non-final.",
-      hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a reference to a setter is
-  // found; there is no setter defined for the type; but there is a getter
-  // defined with the same name.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because there is no setter
-  // named `x` in `C`, but there is a getter named `x`:
-  //
-  // ```dart
-  // class C {
-  //   int get x => 0;
-  //   set y(int p) {}
-  // }
-  //
-  // void f(C c) {
-  //   c.[!x!] = 1;
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If you want to invoke an existing setter, then correct the name:
-  //
-  // ```dart
-  // class C {
-  //   int get x => 0;
-  //   set y(int p) {}
-  // }
-  //
-  // void f(C c) {
-  //   c.y = 1;
-  // }
-  // ```
-  //
-  // If you want to invoke the setter but it just doesn't exist yet, then
-  // declare it:
-  //
-  // ```dart
-  // class C {
-  //   int get x => 0;
-  //   set x(int p) {}
-  //   set y(int p) {}
-  // }
-  //
-  // void f(C c) {
-  //   c.x = 1;
-  // }
-  // ```
-  static const StaticWarningCode ASSIGNMENT_TO_FINAL_NO_SETTER =
-      StaticWarningCode('ASSIGNMENT_TO_FINAL_NO_SETTER',
-          "There isn’t a setter named '{0}' in class '{1}'.",
-          correction:
-              "Try correcting the name to reference an existing setter, or "
-              "declare the setter.",
-          hasPublishedDocs: true);
-
-  /**
-   * 12.18 Assignment: It is as static warning if an assignment of the form
-   * <i>v = e</i> occurs inside a top level or static function (be it function,
-   * method, getter, or setter) or variable initializer and there is neither a
-   * local variable declaration with name <i>v</i> nor setter declaration with
-   * name <i>v=</i> in the lexical scope enclosing the assignment.
-   */
-  static const StaticWarningCode ASSIGNMENT_TO_FUNCTION = StaticWarningCode(
-      'ASSIGNMENT_TO_FUNCTION', "Functions can't be assigned a value.");
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the target of an assignment is a
-  // method.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `f` can't be assigned a
-  // value because it's a method:
-  //
-  // ```dart
-  // class C {
-  //   void f() {}
-  //
-  //   void g() {
-  //     [!f!] = null;
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Rewrite the code so that there isn't an assignment to a method.
-  static const StaticWarningCode ASSIGNMENT_TO_METHOD = StaticWarningCode(
-      'ASSIGNMENT_TO_METHOD', "Methods can't be assigned a value.",
-      hasPublishedDocs: true);
-
-  /**
-   * 12.18 Assignment: It is as static warning if an assignment of the form
-   * <i>v = e</i> occurs inside a top level or static function (be it function,
-   * method, getter, or setter) or variable initializer and there is neither a
-   * local variable declaration with name <i>v</i> nor setter declaration with
-   * name <i>v=</i> in the lexical scope enclosing the assignment.
-   */
-  static const StaticWarningCode ASSIGNMENT_TO_TYPE = StaticWarningCode(
-      'ASSIGNMENT_TO_TYPE', "Types can't be assigned a value.");
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the last statement in a `case`
-  // block isn't one of the required terminators: `break`, `continue`,
-  // `rethrow`, `return`, or `throw`.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the `case` block ends
-  // with an assignment:
-  //
-  // ```dart
-  // void f(int x) {
-  //   switch (x) {
-  //     [!case!] 0:
-  //       x += 2;
-  //     default:
-  //       x += 1;
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Add one of the required terminators:
-  //
-  // ```dart
-  // void f(int x) {
-  //   switch (x) {
-  //     case 0:
-  //       x += 2;
-  //       break;
-  //     default:
-  //       x += 1;
-  //   }
-  // }
-  // ```
-  static const StaticWarningCode CASE_BLOCK_NOT_TERMINATED = StaticWarningCode(
-      'CASE_BLOCK_NOT_TERMINATED',
-      "The last statement of the 'case' should be 'break', 'continue', "
-          "'rethrow', 'return', or 'throw'.",
-      correction: "Try adding one of the required statements.",
-      hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the name following the `as` in a
-  // cast expression is defined to be something other than a type.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `x` is a variable, not
-  // a type:
-  //
-  // ```dart
-  // num x = 0;
-  // int y = x as [!x!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Replace the name with the name of a type:
-  //
-  // ```dart
-  // num x = 0;
-  // int y = x as int;
-  // ```
-  static const StaticWarningCode CAST_TO_NON_TYPE = StaticWarningCode(
-      'CAST_TO_NON_TYPE',
-      "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
-      correction: "Try changing the name to the name of an existing type, or "
-          "creating a type with the name '{0}'.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the abstract method
-   * 1: the name of the enclosing class
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a member of a concrete class is
-  // found that doesn't have a concrete implementation. Concrete classes aren't
-  // allowed to contain abstract members.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `m` is an abstract
-  // method but `C` isn't an abstract class:
-  //
-  // ```dart
-  // class C {
-  //   [!void m();!]
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If it's valid to create instances of the class, provide an implementation
-  // for the member:
-  //
-  // ```dart
-  // class C {
-  //   void m() {}
-  // }
-  // ```
-  //
-  // If it isn't valid to create instances of the class, mark the class as being
-  // abstract:
-  //
-  // ```dart
-  // abstract class C {
-  //   void m();
-  // }
-  // ```
-  static const StaticWarningCode CONCRETE_CLASS_WITH_ABSTRACT_MEMBER =
-      StaticWarningCode('CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
-          "'{0}' must have a method body because '{1}' isn't abstract.",
-          correction: "Try making '{1}' abstract, or adding a body to '{0}'.",
-          hasPublishedDocs: true);
-
-  @Deprecated('Use StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS')
-  static const StaticWarningCode CONST_WITH_ABSTRACT_CLASS =
-      INSTANTIATE_ABSTRACT_CLASS;
-
   /**
    * No parameters.
    */
@@ -8843,434 +10528,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
       'DEAD_NULL_AWARE_EXPRESSION',
       "The left operand can't be null, so the right operand is never executed.",
       correction: "Try removing the operator and the right operand.",
-      errorSeverity: ErrorSeverity.WARNING,
-      hasPublishedDocs: true);
-
-  /**
-   * 14.2 Exports: It is a static warning to export two different libraries with
-   * the same name.
-   *
-   * Parameters:
-   * 0: the uri pointing to a first library
-   * 1: the uri pointing to a second library
-   * 2:e the shared name of the exported libraries
-   */
-  static const StaticWarningCode EXPORT_DUPLICATED_LIBRARY_NAMED =
-      StaticWarningCode(
-          'EXPORT_DUPLICATED_LIBRARY_NAMED',
-          "The exported libraries '{0}' and '{1}' can't have the same name "
-              "'{2}'.",
-          correction:
-              "Try adding a hide clause to one of the export directives.");
-
-  @Deprecated('Use CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS')
-  static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
-      CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
-
-  @Deprecated(
-      'Use CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED')
-  static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
-      CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED;
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a final field is initialized in
-  // both the declaration of the field and in an initializer in a constructor.
-  // Final fields can only be assigned once, so it can't be initialized in both
-  // places.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because `f` is :
-  //
-  // ```dart
-  // class C {
-  //   final int f = 0;
-  //   C() : [!f!] = 1;
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the initialization doesn't depend on any values passed to the
-  // constructor, and if all of the constructors need to initialize the field to
-  // the same value, then remove the initializer from the constructor:
-  //
-  // ```dart
-  // class C {
-  //   final int f = 0;
-  //   C();
-  // }
-  // ```
-  //
-  // If the initialization depends on a value passed to the constructor, or if
-  // different constructors need to initialize the field differently, then
-  // remove the initializer in the field's declaration:
-  //
-  // ```dart
-  // class C {
-  //   final int f;
-  //   C() : f = 1;
-  // }
-  // ```
-  static const StaticWarningCode
-      FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION = StaticWarningCode(
-          'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
-          "Fields can't be initialized in the constructor if they are final "
-              "and were already initialized at their declaration.",
-          correction: "Try removing one of the initializations.",
-          hasPublishedDocs: true);
-
-  /**
-   * 5. Variables: It is a static warning if a final instance variable that has
-   * been initialized at its point of declaration is also initialized in a
-   * constructor.
-   *
-   * Parameters:
-   * 0: the name of the field in question
-   */
-  static const StaticWarningCode
-      FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR = StaticWarningCode(
-          'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
-          "'{0}' is final and was given a value when it was declared, "
-              "so it can't be set to a new value.",
-          correction: "Try removing one of the initializations.");
-
-  /**
-   * Parameters:
-   * 0: the name of the type of the initializer expression
-   * 1: the name of the type of the field
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the initializer list of a
-  // constructor initializes a field to a value that isn't assignable to the
-  // field.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because `0` has the type `int`,
-  // and an `int` can't be assigned to a field of type `String`:
-  //
-  // ```dart
-  // class C {
-  //   String s;
-  //
-  //   C() : s = [!0!];
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the type of the field is correct, then change the value assigned to it
-  // so that the value has a valid type:
-  //
-  // ```dart
-  // class C {
-  //   String s;
-  //
-  //   C() : s = '0';
-  // }
-  // ```
-  //
-  // If the type of the value is correct, then change the type of the field to
-  // allow the assignment:
-  //
-  // ```dart
-  // class C {
-  //   int s;
-  //
-  //   C() : s = 0;
-  // }
-  // ```
-  static const StaticWarningCode FIELD_INITIALIZER_NOT_ASSIGNABLE =
-      StaticWarningCode(
-          'FIELD_INITIALIZER_NOT_ASSIGNABLE',
-          "The initializer type '{0}' can't be assigned to the field type "
-              "'{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * 7.6.1 Generative Constructors: An initializing formal has the form
-   * <i>this.id</i>. It is a static warning if the static type of <i>id</i> is
-   * not assignable to <i>T<sub>id</sub></i>.
-   *
-   * Parameters:
-   * 0: the name of the type of the field formal parameter
-   * 1: the name of the type of the field
-   */
-  static const StaticWarningCode FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE =
-      StaticWarningCode('FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
-          "The parameter type '{0}' is incompatible with the field type '{1}'.",
-          correction: "Try changing or removing the parameter's type, or "
-              "changing the field's type.");
-
-  /**
-   * Parameters:
-   * 0: the name of the uninitialized final variable
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a final field or variable isn't
-  // initialized.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `x` doesn't have an
-  // initializer:
-  //
-  // ```dart
-  // final [!x!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // For variables and static fields, you can add an initializer:
-  //
-  // ```dart
-  // final x = 0;
-  // ```
-  //
-  // For instance fields, you can add an initializer as shown in the previous
-  // example, or you can initialize the field in every constructor. You can
-  // initialize the field by using a field formal parameter:
-  //
-  // ```dart
-  // class C {
-  //   final int x;
-  //   C(this.x);
-  // }
-  // ```
-  //
-  // You can also initialize the field by using an initializer in the
-  // constructor:
-  //
-  // ```dart
-  // class C {
-  //   final int x;
-  //   C(int y) : x = y * 2;
-  // }
-  // ```
-  static const StaticWarningCode FINAL_NOT_INITIALIZED = StaticWarningCode(
-      'FINAL_NOT_INITIALIZED', "The final variable '{0}' must be initialized.",
-      // TODO(brianwilkerson) Split this error code so that we can suggest
-      // initializing fields in constructors (FINAL_FIELD_NOT_INITIALIZED
-      // and FINAL_VARIABLE_NOT_INITIALIZED).
-      correction: "Try initializing the variable.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the uninitialized final variable
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a class defines one or more
-  // final instance fields without initializers and has at least one constructor
-  // that doesn't initialize those fields. All final instance fields must be
-  // initialized when the instance is created, either by the field's initializer
-  // or by the constructor.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic:
-  //
-  // ```dart
-  // class C {
-  //   final String value;
-  //
-  //   [!C!]();
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the value should be passed in to the constructor directly, then use a
-  // field formal parameter to initialize the field `value`:
-  //
-  // ```dart
-  // class C {
-  //   final String value;
-  //
-  //   C(this.value);
-  // }
-  // ```
-  //
-  // If the value should be computed indirectly from a value provided by the
-  // caller, then add a parameter and include an initializer:
-  //
-  // ```dart
-  // class C {
-  //   final String value;
-  //
-  //   C(Object o) : value = o.toString();
-  // }
-  // ```
-  //
-  // If the value of the field doesn't depend on values that can be passed to
-  // the constructor, then add an initializer for the field as part of the field
-  // declaration:
-  //
-  // ```dart
-  // class C {
-  //   final String value = '';
-  //
-  //   C();
-  // }
-  // ```
-  //
-  // If the value of the field doesn't depend on values that can be passed to
-  // the constructor but different constructors need to initialize it to
-  // different values, then add an initializer for the field in the initializer
-  // list:
-  //
-  // ```dart
-  // class C {
-  //   final String value;
-  //
-  //   C() : value = '';
-  //
-  //   C.named() : value = 'c';
-  // }
-  // ```
-  //
-  // However, if the value is the same for all instances, then consider using a
-  // static field instead of an instance field:
-  //
-  // ```dart
-  // class C {
-  //   static const String value = '';
-  //
-  //   C();
-  // }
-  // ```
-  static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
-      StaticWarningCodeWithUniqueName(
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
-          "All final variables must be initialized, but '{0}' isn't.",
-          correction: "Try adding an initializer for the field.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the uninitialized final variable
-   * 1: the name of the uninitialized final variable
-   */
-  static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
-      StaticWarningCodeWithUniqueName(
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
-          "All final variables must be initialized, but '{0}' and '{1}' "
-              "aren't.",
-          correction: "Try adding initializers for the fields.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the uninitialized final variable
-   * 1: the name of the uninitialized final variable
-   * 2: the number of additional not initialized variables that aren't listed
-   */
-  static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
-      StaticWarningCodeWithUniqueName(
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
-          "All final variables must be initialized, but '{0}', '{1}', and {2} "
-              "others aren't.",
-          correction: "Try adding initializers for the fields.",
-          hasPublishedDocs: true);
-
-  /**
-   * 10.3 Setters: It is a compile-time error if a class has a setter named
-   * `v=` with argument type `T` and a getter named `v` with return type `S`,
-   * and `S` may not be assigned to `T`.
-   *
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the type of the getter
-   * 2: the type of the setter
-   * 3: the name of the setter
-   */
-  static const StaticWarningCode GETTER_NOT_ASSIGNABLE_SETTER_TYPES =
-      StaticWarningCode(
-          'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
-          "The return type of getter '{0}' is '{1}' which isn't assignable "
-              "to the type '{2}' of its setter '{3}'.",
-          correction: "Try changing the types so that they are compatible.");
-
-  /**
-   * nnbd/feature-specification.md
-   *
-   * It is an error if a class has a setter and a getter with the same basename
-   * where the return type of the getter is not a subtype of the argument type
-   * of the setter. Note that this error specifically requires subtyping and
-   * not assignability and hence makes no exception for `dynamic`.
-   *
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the type of the getter
-   * 2: the type of the setter
-   * 3: the name of the setter
-   */
-  static const StaticWarningCode GETTER_NOT_SUBTYPE_SETTER_TYPES =
-      StaticWarningCode(
-          'GETTER_NOT_SUBTYPE_SETTER_TYPES',
-          "The return type of getter '{0}' is '{1}' which isn't a subtype "
-              "of the type '{2}' of its setter '{3}'.",
-          correction: "Try changing the types so that they are compatible.");
-
-  /**
-   * 14.1 Imports: It is a static warning to import two different libraries with
-   * the same name.
-   *
-   * Parameters:
-   * 0: the uri pointing to a first library
-   * 1: the uri pointing to a second library
-   * 2: the shared name of the imported libraries
-   */
-  static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED =
-      StaticWarningCode(
-          'IMPORT_DUPLICATED_LIBRARY_NAMED',
-          "The imported libraries '{0}' and '{1}' can't have the same name "
-              "'{2}'.",
-          correction: "Try adding a hide clause to one of the imports.");
-
-  @Deprecated('Use CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY')
-  static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
-      CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it finds a constructor
-  // invocation and the constructor is declared in an abstract class. Even
-  // though you can't create an instance of an abstract class, abstract classes
-  // can declare constructors that can be invoked by subclasses.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `C` is an abstract
-  // class:
-  //
-  // ```dart
-  // abstract class C {}
-  //
-  // var c = new [!C!]();
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If there's a concrete subclass of the abstract class that can be used, then
-  // create an instance of the concrete subclass.
-  static const StaticWarningCode INSTANTIATE_ABSTRACT_CLASS = StaticWarningCode(
-      'INSTANTIATE_ABSTRACT_CLASS', "Abstract classes can't be instantiated.",
-      correction: "Try creating an instance of a concrete subtype.",
       hasPublishedDocs: true);
 
   /**
@@ -9281,7 +10538,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a null-aware operator (`?.`,
-  // `?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
+  // `?..`, `?[`, `?..[`, or `...?`) is used on a receiver that's known to be
   // non-nullable.
   //
   // #### Example
@@ -9320,10 +10577,24 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode INVALID_NULL_AWARE_OPERATOR =
       StaticWarningCode(
           'INVALID_NULL_AWARE_OPERATOR',
-          "The target expression can't be null, so the null-aware operator "
-              "'{0}' can't be used.",
-          correction: "Try replace the operator '{0}' with '{1}'.",
-          errorSeverity: ErrorSeverity.WARNING,
+          "The receiver can't be null, so the null-aware operator '{0}' can't "
+              "be used.",
+          correction: "Try replacing the operator '{0}' with '{1}'.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: The null-aware operator that is invalid
+   * 1: The non-null-aware operator that can replace the invalid operator
+   */
+  static const StaticWarningCode
+      INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT =
+      StaticWarningCodeWithUniqueName(
+          'INVALID_NULL_AWARE_OPERATOR',
+          'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
+          "The receiver can't be null because of short-circuiting, so the "
+              "null-aware operator '{0}' can't be used.",
+          correction: "Try replacing the operator '{0}' with '{1}'.",
           hasPublishedDocs: true);
 
   /**
@@ -9338,8 +10609,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED',
           "Parameters can't override default values, this method overrides "
               "'{0}.{1}' where '{2}' has a different value.",
-          correction: "Try using the same default value in both methods.",
-          errorSeverity: ErrorSeverity.WARNING);
+          correction: "Try using the same default value in both methods.");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -9354,171 +10624,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
           "Parameters can't override default values, this method overrides "
               "'{0}.{1}' where this positional parameter has a different "
               "value.",
-          correction: "Try using the same default value in both methods.",
-          errorSeverity: ErrorSeverity.WARNING);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an expression whose value will
-  // always be `null` is dererenced.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because `x` will always be
-  // `null`:
-  //
-  // ```dart
-  // %experiments=non-nullable
-  // int f(Null x) {
-  //   return [!x!].length;
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the value is allowed to be something other than `null`, then change the
-  // type of the expression:
-  //
-  // ```dart
-  // %experiments=non-nullable
-  // int f(String? x) {
-  //   return x!.length;
-  // }
-  // ```
-  static const StaticWarningCode INVALID_USE_OF_NULL_VALUE = StaticWarningCode(
-      'INVALID_USE_OF_NULL_VALUE',
-      "An expression whose value is always 'null' can't be dereferenced.",
-      correction: "Try changing the type of the expression.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the actual type of the list element
-   * 1: the expected type of the list element
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the type of an element in a list
-  // literal isn't assignable to the element type of the list.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `2.5` is a double, and
-  // the list can hold only integers:
-  //
-  // ```dart
-  // List<int> x = [1, [!2.5!], 3];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If you intended to add a different object to the list, then replace the
-  // element with an expression that computes the intended object:
-  //
-  // ```dart
-  // List<int> x = [1, 2, 3];
-  // ```
-  //
-  // If the object shouldn't be in the list, then remove the element:
-  //
-  // ```dart
-  // List<int> x = [1, 3];
-  // ```
-  //
-  // If the object being computed is correct, then widen the element type of the
-  // list to allow all of the different types of objects it needs to contain:
-  //
-  // ```dart
-  // List<num> x = [1, 2.5, 3];
-  // ```
-  static const StaticWarningCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE =
-      StaticWarningCode('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the list type '{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the type of the expression being used as a key
-   * 1: the type of keys declared for the map
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a key of a key-value pair in a
-  // map literal has a type that isn't assignable to the key type of the map.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `2` is an `int`, but
-  // the keys of the map are required to be `String`s:
-  //
-  // ```dart
-  // var m = <String, String>{[!2!] : 'a'};
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the type of the map is correct, then change the key to have the correct
-  // type:
-  //
-  // ```dart
-  // var m = <String, String>{'2' : 'a'};
-  // ```
-  //
-  // If the type of the key is correct, then change the key type of the map:
-  //
-  // ```dart
-  // var m = <int, String>{2 : 'a'};
-  // ```
-  static const StaticWarningCode MAP_KEY_TYPE_NOT_ASSIGNABLE =
-      StaticWarningCode(
-          'MAP_KEY_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the map key type "
-              "'{1}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the type of the expression being used as a value
-   * 1: the type of values declared for the map
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a value of a key-value pair in a
-  // map literal has a type that isn't assignable to the the value type of the
-  // map.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `2` is an `int`, but/
-  // the values of the map are required to be `String`s:
-  //
-  // ```dart
-  // var m = <String, String>{'a' : [!2!]};
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the type of the map is correct, then change the value to have the
-  // correct type:
-  //
-  // ```dart
-  // var m = <String, String>{'a' : '2'};
-  // ```
-  //
-  // If the type of the value is correct, then change the value type of the map:
-  //
-  // ```dart
-  // var m = <String, int>{'a' : 2};
-  // ```
-  static const StaticWarningCode MAP_VALUE_TYPE_NOT_ASSIGNABLE =
-      StaticWarningCode(
-          'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the map value type "
-              "'{1}'.",
-          hasPublishedDocs: true);
+          correction: "Try using the same default value in both methods.");
 
   /**
    * Parameters:
@@ -9588,927 +10694,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'MISSING_ENUM_CONSTANT_IN_SWITCH', "Missing case clause for '{0}'.",
           correction: "Try adding a case clause for the missing constant, or "
               "adding a default clause.",
-          errorSeverity: ErrorSeverity.WARNING,
-          hasPublishedDocs: true);
-
-  @Deprecated('No longer an error in the spec and no longer generated')
-  static const StaticWarningCode MIXED_RETURN_TYPES = StaticWarningCode(
-      'MIXED_RETURN_TYPES',
-      "Functions can't include return statements both with and without values.",
-      correction: "Try making all the return statements consistent "
-          "(either include a value or not).");
-
-  @Deprecated('Use StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS')
-  static const StaticWarningCode NEW_WITH_ABSTRACT_CLASS =
-      INSTANTIATE_ABSTRACT_CLASS;
-
-  /**
-   * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible
-   * in the current scope, optionally followed by type arguments.
-   *
-   * Parameters:
-   * 0: the name of the non-type element
-   */
-  static const StaticWarningCode NEW_WITH_NON_TYPE =
-      StaticWarningCodeWithUniqueName('CREATION_WITH_NON_TYPE',
-          'NEW_WITH_NON_TYPE', "The name '{0}' isn't a class.",
-          correction: "Try correcting the name to match an existing class.",
-          isUnresolvedIdentifier: true);
-
-  /**
-   * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the
-   * current scope then:
-   * 1. If <i>e</i> is of the form <i>new T.id(a<sub>1</sub>, &hellip;,
-   *    a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;,
-   *    x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a static warning if
-   *    <i>T.id</i> is not the name of a constructor declared by the type
-   *    <i>T</i>.
-   * If <i>e</i> of the form <i>new T(a<sub>1</sub>, &hellip;, a<sub>n</sub>,
-   * x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>:
-   * a<sub>n+kM/sub>)</i> it is a static warning if the type <i>T</i> does not
-   * declare a constructor with the same name as the declaration of <i>T</i>.
-   */
-  static const StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR =
-      StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR',
-          "The class '{0}' doesn't have a constructor named '{1}'.",
-          correction: "Try invoking a different constructor, or "
-              "define a constructor named '{1}'.");
-
-  /**
-   * Parameters:
-   * 0: the name of the class being instantiated
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an unnamed constructor is
-  // invoked on a class that defines named constructors but the class doesn’t
-  // have an unnamed constructor.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `A` doesn't define an
-  // unnamed constructor:
-  //
-  // ```dart
-  // class A {
-  //   A.a();
-  // }
-  //
-  // A f() => [!A!]();
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If one of the named constructors does what you need, then use it:
-  //
-  // ```dart
-  // class A {
-  //   A.a();
-  // }
-  //
-  // A f() => A.a();
-  // ```
-  //
-  // If none of the named constructors does what you need, and you're able to
-  // add an unnamed constructor, then add the constructor:
-  //
-  // ```dart
-  // class A {
-  //   A();
-  //   A.a();
-  // }
-  //
-  // A f() => A();
-  // ```
-  static const StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
-      StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-          "The class '{0}' doesn't have a default constructor.",
-          correction:
-              "Try using one of the named constructors defined in '{0}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the first member
-   * 1: the name of the second member
-   * 2: the name of the third member
-   * 3: the name of the fourth member
-   * 4: the number of additional missing members that aren't listed
-   */
-  static const StaticWarningCode
-      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS =
-      StaticWarningCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
-          "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and "
-              "{4} more.",
-          correction: "Try implementing the missing methods, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the first member
-   * 1: the name of the second member
-   * 2: the name of the third member
-   * 3: the name of the fourth member
-   */
-  static const StaticWarningCode
-      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR =
-      StaticWarningCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
-          "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
-          correction: "Try implementing the missing methods, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the member
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a concrete class inherits one or
-  // more abstract members, and doesn't provide or inherit an implementation for
-  // at least one of those abstract members.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the class `B` doesn't
-  // have a concrete implementation of `m`:
-  //
-  // ```dart
-  // abstract class A {
-  //   void m();
-  // }
-  //
-  // class [!B!] extends A {}
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the subclass can provide a concrete implementation for some or all of
-  // the abstract inherited members, then add the concrete implementations:
-  //
-  // ```dart
-  // abstract class A {
-  //   void m();
-  // }
-  //
-  // class B extends A {
-  //   void m() {}
-  // }
-  // ```
-  //
-  // If there is a mixin that provides an implementation of the inherited
-  // methods, then apply the mixin to the subclass:
-  //
-  // ```dart
-  // abstract class A {
-  //   void m();
-  // }
-  //
-  // class B extends A with M {}
-  //
-  // mixin M {
-  //   void m() {}
-  // }
-  // ```
-  //
-  // If the subclass can't provide a concrete implementation for all of the
-  // abstract inherited members, then mark the subclass as being abstract:
-  //
-  // ```dart
-  // abstract class A {
-  //   void m();
-  // }
-  //
-  // abstract class B extends A {}
-  // ```
-  static const StaticWarningCode
-      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE =
-      StaticWarningCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
-          "Missing concrete implementation of '{0}'.",
-          correction: "Try implementing the missing method, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the first member
-   * 1: the name of the second member
-   * 2: the name of the third member
-   */
-  static const StaticWarningCode
-      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE =
-      StaticWarningCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
-          "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
-          correction: "Try implementing the missing methods, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the first member
-   * 1: the name of the second member
-   */
-  static const StaticWarningCode
-      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO =
-      StaticWarningCodeWithUniqueName(
-          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
-          "Missing concrete implementations of '{0}' and '{1}'.",
-          correction: "Try implementing the missing methods, or make the class "
-              "abstract.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the non-type element
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the identifier following the
-  // `on` in a `catch` clause is defined to be something other than a type.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `f` is a function, not
-  // a type:
-  //
-  // ```dart
-  // void f() {
-  //   try {
-  //     // ...
-  //   } on [!f!] {
-  //     // ...
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Change the name to the type of object that should be caught:
-  //
-  // ```dart
-  // void f() {
-  //   try {
-  //     // ...
-  //   } on FormatException {
-  //     // ...
-  //   }
-  // }
-  // ```
-  static const StaticWarningCode NON_TYPE_IN_CATCH_CLAUSE = StaticWarningCode(
-      'NON_TYPE_IN_CATCH_CLAUSE',
-      "The name '{0}' isn't a type and can't be used in an on-catch "
-          "clause.",
-      correction: "Try correcting the name to match an existing class.",
-      hasPublishedDocs: true);
-
-  /**
-   * 7.1.1 Operators: It is a static warning if the return type of the
-   * user-declared operator []= is explicitly declared and not void.
-   */
-  static const StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR =
-      StaticWarningCode('NON_VOID_RETURN_FOR_OPERATOR',
-          "The return type of the operator []= must be 'void'.",
-          correction: "Try changing the return type to 'void'.");
-
-  /**
-   * 7.3 Setters: It is a static warning if a setter declares a return type
-   * other than void.
-   */
-  static const StaticWarningCode NON_VOID_RETURN_FOR_SETTER = StaticWarningCode(
-      'NON_VOID_RETURN_FOR_SETTER',
-      "The return type of the setter must be 'void' or absent.",
-      correction: "Try removing the return type, or "
-          "define a method rather than a setter.");
-
-  /**
-   * Parameters:
-   * 0: the name that is not a type
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a name is used as a type but
-  // declared to be something other than a type.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `f` is a function:
-  //
-  // ```dart
-  // f() {}
-  // g([!f!] v) {}
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Replace the name with the name of a type.
-  static const StaticWarningCode NOT_A_TYPE = StaticWarningCode(
-      'NOT_A_TYPE', "{0} isn't a type.",
-      correction: "Try correcting the name to match an existing type.",
-      hasPublishedDocs: true);
-
-  @Deprecated('Use CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS')
-  static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
-      CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS;
-
-  /**
-   * Parameters:
-   * 0: the name of expected library name
-   * 1: the non-matching actual library name from the "part of" declaration
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a library attempts to include a
-  // file as a part of itself when the other file is a part of a different
-  // library.
-  //
-  // #### Example
-  //
-  // Given a file named `part.dart` containing
-  //
-  // ```dart
-  // %uri="package:a/part.dart"
-  // part of 'library.dart';
-  // ```
-  //
-  // The following code, in any file other than `library.dart`, produces this
-  // diagnostic because it attempts to include `part.dart` as a part of itself
-  // when `part.dart` is a part of a different library:
-  //
-  // ```dart
-  // part [!'package:a/part.dart'!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the library should be using a different file as a part, then change the
-  // URI in the part directive to be the URI of the other file.
-  //
-  // If the part file should be a part of this library, then update the URI (or
-  // library name) in the part-of directive to be the URI (or name) of the
-  // correct library.
-  static const StaticWarningCode PART_OF_DIFFERENT_LIBRARY = StaticWarningCode(
-      'PART_OF_DIFFERENT_LIBRARY',
-      "Expected this library to be part of '{0}', not '{1}'.",
-      correction: "Try including a different part, or changing the name of "
-          "the library in the part's part-of directive.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the redirected constructor
-   * 1: the name of the redirecting constructor
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a factory constructor attempts
-  // to redirect to another constructor, but the two have incompatible
-  // parameters. The parameters are compatible if all of the parameters of the
-  // redirecting constructor can be passed to the other constructor and if the
-  // other constructor doesn't require any parameters that aren't declared by
-  // the redirecting constructor.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the constructor for `A`
-  // doesn't declare a parameter that the constructor for `B` requires:
-  //
-  // ```dart
-  // abstract class A {
-  //   factory A() = [!B!];
-  // }
-  //
-  // class B implements A {
-  //   B(int x);
-  //   B.zero();
-  // }
-  // ```
-  //
-  // The following code produces this diagnostic because the constructor for `A`
-  // declares a named parameter (`y`) that the constructor for `B` doesn't
-  // allow:
-  //
-  // ```dart
-  // abstract class A {
-  //   factory A(int x, {int y}) = [!B!];
-  // }
-  //
-  // class B implements A {
-  //   B(int x);
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If there's a different constructor that is compatible with the redirecting
-  // constructor, then redirect to that constructor:
-  //
-  // ```dart
-  // abstract class A {
-  //   factory A() = B.zero;
-  // }
-  //
-  // class B implements A {
-  //   B(int x);
-  //   B.zero();
-  // }
-  // ```
-  //
-  // Otherwise, update the redirecting constructor to be compatible:
-  //
-  // ```dart
-  // abstract class A {
-  //   factory A(int x) = B;
-  // }
-  //
-  // class B implements A {
-  //   B(int x);
-  // }
-  // ```
-  static const StaticWarningCode REDIRECT_TO_INVALID_FUNCTION_TYPE =
-      StaticWarningCode(
-          'REDIRECT_TO_INVALID_FUNCTION_TYPE',
-          "The redirected constructor '{0}' has incompatible parameters with "
-              "'{1}'.",
-          correction: "Try redirecting to a different constructor.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the redirected constructor's return type
-   * 1: the name of the redirecting constructor's return type
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a factory constructor redirects
-  // to a constructor whose return type isn't a subtype of the type that the
-  // factory constructor is declared to produce.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `A` isn't a subclass
-  // of `C`, which means that the value returned by the constructor `A()`
-  // couldn't be returned from the constructor `C()`:
-  //
-  // ```dart
-  // class A {}
-  //
-  // class B implements C {}
-  //
-  // class C {
-  //   factory C() = [!A!];
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the factory constructor is redirecting to a constructor in the wrong
-  // class, then update the factory constructor to redirect to the correct
-  // constructor:
-  //
-  // ```dart
-  // class A {}
-  //
-  // class B implements C {}
-  //
-  // class C {
-  //   factory C() = B;
-  // }
-  // ```
-  //
-  // If the class defining the constructor being redirected to is the class that
-  // should be returned, then make it a subtype of the factory's return type:
-  //
-  // ```dart
-  // class A implements C {}
-  //
-  // class B implements C {}
-  //
-  // class C {
-  //   factory C() = A;
-  // }
-  // ```
-  static const StaticWarningCode REDIRECT_TO_INVALID_RETURN_TYPE =
-      StaticWarningCode(
-          'REDIRECT_TO_INVALID_RETURN_TYPE',
-          "The return type '{0}' of the redirected constructor isn't "
-              "a subtype of '{1}'.",
-          correction: "Try redirecting to a different constructor.",
-          hasPublishedDocs: true);
-
-  @Deprecated('Use CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR')
-  static const CompileTimeErrorCode REDIRECT_TO_MISSING_CONSTRUCTOR =
-      CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR;
-
-  @Deprecated('Use CompileTimeErrorCode.REDIRECT_TO_NON_CLASS')
-  static const CompileTimeErrorCode REDIRECT_TO_NON_CLASS =
-      CompileTimeErrorCode.REDIRECT_TO_NON_CLASS;
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it finds a `return` statement
-  // without an expression in a function that declares a return type.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the function `f` is
-  // expected to return an `int`, but no value is being returned:
-  //
-  // ```dart
-  // int f() {
-  //   [!return!];
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Add an expression that computes the value to be returned:
-  //
-  // ```dart
-  // int f() {
-  //   return 0;
-  // }
-  // ```
-  static const StaticWarningCode RETURN_WITHOUT_VALUE = StaticWarningCode(
-      'RETURN_WITHOUT_VALUE', "The  return value is missing after 'return'.",
-      hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the actual type of the set element
-   * 1: the expected type of the set element
-   */
-  static const StaticWarningCode SET_ELEMENT_TYPE_NOT_ASSIGNABLE =
-      StaticWarningCode('SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the set type '{1}'.");
-
-  /**
-   * Parameters:
-   * 0: the name of the instance member
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a class name is used to access
-  // an instance field. Instance fields don't exist on a class; they exist only
-  // on an instance of the class.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `x` is an instance
-  // field:
-  //
-  // ```dart
-  // class C {
-  //   static int a;
-  //
-  //   int b;
-  // }
-  //
-  // int f() => C.[!b!];
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If you intend to access a static field, then change the name of the field
-  // to an existing static field:
-  //
-  // ```dart
-  // class C {
-  //   static int a;
-  //
-  //   int b;
-  // }
-  //
-  // int f() => C.a;
-  // ```
-  //
-  // If you intend to access the instance field, then use an instance of the
-  // class to access the field:
-  //
-  // ```dart
-  // class C {
-  //   static int a;
-  //
-  //   int b;
-  // }
-  //
-  // int f(C c) => c.b;
-  // ```
-  static const StaticWarningCode STATIC_ACCESS_TO_INSTANCE_MEMBER =
-      StaticWarningCode('STATIC_ACCESS_TO_INSTANCE_MEMBER',
-          "Instance member '{0}' can't be accessed using static access.",
-          hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: The static type of the switch expression
-   * 1: The static type of the case expressions
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the type of the expression in a
-  // `switch` statement isn't assignable to the type of the expressions in the
-  // `case` clauses.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the type of `s`
-  // (`String`) isn't assignable to the type of `0` (`int`):
-  //
-  // ```dart
-  // void f(String s) {
-  //   switch ([!s!]) {
-  //     case 0:
-  //       break;
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the type of the `case` expressions is correct, then change the
-  // expression in the `switch` statement to have the correct type:
-  //
-  // ```dart
-  // void f(String s) {
-  //   switch (int.parse(s)) {
-  //     case 0:
-  //       break;
-  //   }
-  // }
-  // ```
-  //
-  // If the type of the `switch` expression is correct, then change the `case`
-  // expressions to have the correct type:
-  //
-  // ```dart
-  // void f(String s) {
-  //   switch (s) {
-  //     case '0':
-  //       break;
-  //   }
-  // }
-  // ```
-  static const StaticWarningCode SWITCH_EXPRESSION_NOT_ASSIGNABLE =
-      StaticWarningCode(
-          'SWITCH_EXPRESSION_NOT_ASSIGNABLE',
-          "Type '{0}' of the switch expression isn't assignable to "
-              "the type '{1}' of case expressions.",
-          hasPublishedDocs: true);
-
-  /**
-   * 15.1 Static Types: It is a static warning to use a deferred type in a type
-   * annotation.
-   *
-   * Parameters:
-   * 0: the name of the type that is deferred and being used in a type
-   *    annotation
-   */
-  static const StaticWarningCode TYPE_ANNOTATION_DEFERRED_CLASS =
-      StaticWarningCode(
-          'TYPE_ANNOTATION_DEFERRED_CLASS',
-          "The deferred type '{0}' can't be used in a declaration, cast or "
-              "type test.",
-          correction: "Try using a different type, or "
-              "changing the import to not be deferred.");
-
-  /**
-   * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
-   * available in the current lexical scope.
-   */
-  static const StaticWarningCode TYPE_TEST_WITH_NON_TYPE = StaticWarningCode(
-      'TYPE_TEST_WITH_NON_TYPE',
-      "The name '{0}' isn't a type and can't be used in an 'is' "
-          "expression.",
-      correction: "Try correcting the name to match an existing type.");
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the name following the `is` in a
-  // type test expression isn't defined.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the name `Srting` isn't
-  // defined:
-  //
-  // ```dart
-  // void f(Object o) {
-  //   if (o is [!Srting!]) {
-  //     // ...
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Replace the name with the name of a type:
-  //
-  // ```dart
-  // void f(Object o) {
-  //   if (o is String) {
-  //     // ...
-  //   }
-  // }
-  // ```
-  static const StaticWarningCode TYPE_TEST_WITH_UNDEFINED_NAME =
-      StaticWarningCode(
-          'TYPE_TEST_WITH_UNDEFINED_NAME',
-          "The name '{0}' isn't defined, so it can't be used in an 'is' "
-              "expression.",
-          correction:
-              "Try changing the name to the name of an existing type, or "
-              "creating a type with the name '{0}'.",
-          hasPublishedDocs: true);
-
-  /**
-   * 10 Generics: However, a type parameter is considered to be a malformed type
-   * when referenced by a static member.
-   *
-   * 15.1 Static Types: Any use of a malformed type gives rise to a static
-   * warning. A malformed type is then interpreted as dynamic by the static type
-   * checker and the runtime.
-   */
-  static const StaticWarningCode TYPE_PARAMETER_REFERENCED_BY_STATIC =
-      StaticWarningCode('TYPE_PARAMETER_REFERENCED_BY_STATIC',
-          "Static members can't reference type parameters of the class.",
-          correction: "Try removing the reference to the type parameter, or "
-              "making the member an instance member.");
-
-  @Deprecated('Use CompileTimeErrorCode.UNDEFINED_CLASS')
-  static const CompileTimeErrorCode UNDEFINED_CLASS =
-      CompileTimeErrorCode.UNDEFINED_CLASS;
-
-  /**
-   * Same as [CompileTimeErrorCode.UNDEFINED_CLASS], but to catch using
-   * "boolean" instead of "bool".
-   */
-  static const StaticWarningCode UNDEFINED_CLASS_BOOLEAN = StaticWarningCode(
-      'UNDEFINED_CLASS_BOOLEAN', "Undefined class 'boolean'.",
-      correction: "Try using the type 'bool'.");
-
-  /**
-   * Parameters:
-   * 0: the name of the identifier
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it encounters an identifier that
-  // either isn't defined or isn't visible in the scope in which it's being
-  // referenced.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because the name `rihgt` isn't
-  // defined:
-  //
-  // ```dart
-  // int min(int left, int right) => left <= [!rihgt!] ? left : right;
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the identifier isn't defined, then either define it or replace it with
-  // an identifier that is defined. The example above can be corrected by
-  // fixing the spelling of the variable:
-  //
-  // ```dart
-  // int min(int left, int right) => left <= right ? left : right;
-  // ```
-  //
-  // If the identifier is defined but isn't visible, then you probably need to
-  // add an import or re-arrange your code to make the identifier visible.
-  static const StaticWarningCode UNDEFINED_IDENTIFIER =
-      StaticWarningCode('UNDEFINED_IDENTIFIER', "Undefined name '{0}'.",
-          correction: "Try correcting the name to one that is defined, or "
-              "defining the name.",
-          hasPublishedDocs: true,
-          isUnresolvedIdentifier: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the name `await` is used in a
-  // method or function body without being declared, and the body isn't marked
-  // with the `async` keyword. The name `await` only introduces an await
-  // expression in an asynchronous function.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the name `await` is
-  // used in the body of `f` even though the body of `f` isn't marked with the
-  // `async` keyword:
-  //
-  // ```dart
-  // void f(p) { [!await!] p; }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Add the keyword `async` to the function body:
-  //
-  // ```dart
-  // void f(p) async { await p; }
-  // ```
-  static const StaticWarningCode UNDEFINED_IDENTIFIER_AWAIT = StaticWarningCode(
-      'UNDEFINED_IDENTIFIER_AWAIT',
-      "Undefined name 'await' in function body not marked with 'async'.",
-      correction: "Try correcting the name to one that is defined, "
-          "defining the name, or "
-          "adding 'async' to the enclosing function body.",
-      hasPublishedDocs: true);
-
-  @Deprecated('Use CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER')
-  static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER =
-      CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER;
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when an expression whose type is
-  // <a href=”#potentially-non-nullable”>potentially non-nullable</a> is
-  // dereferenced without first verifying that the value isn't `null`.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because `s` can be `null` at
-  // the point where it's referenced:
-  //
-  // ```dart
-  // %experiments=non-nullable
-  // void f(String? s) {
-  //   if ([!s!].length > 3) {
-  //     // ...
-  //   }
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the value really can be `null`, then add a test to ensure that members
-  // are only accessed when the value isn't `null`:
-  //
-  // ```dart
-  // %experiments=non-nullable
-  // void f(String? s) {
-  //   if (s != null && s.length > 3) {
-  //     // ...
-  //   }
-  // }
-  // ```
-  //
-  // If the expression is a variable and the value should never be `null`, then
-  // change the type of the variable to be non-nullable:
-  //
-  // ```dart
-  // %experiments=non-nullable
-  // void f(String s) {
-  //   if (s.length > 3) {
-  //     // ...
-  //   }
-  // }
-  // ```
-  //
-  // If you believe that the value of the expression should never be `null`, but
-  // you can't change the type of the variable, and you're willing to risk
-  // having an exception thrown at runtime if you're wrong, then you can assert
-  // that the value isn't null:
-  //
-  // ```dart
-  // %experiments=non-nullable
-  // void f(String? s) {
-  //   if (s!.length > 3) {
-  //     // ...
-  //   }
-  // }
-  // ```
-  static const StaticWarningCode UNCHECKED_USE_OF_NULLABLE_VALUE =
-      StaticWarningCode(
-          'UNCHECKED_USE_OF_NULLABLE_VALUE',
-          "An expression whose value can be 'null' must be null-checked before "
-              "it can be dereferenced.",
-          correction:
-              "Try checking that the value isn't 'null' before dereferencing "
-              "it.",
           hasPublishedDocs: true);
 
   /**
@@ -10541,52 +10726,9 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // }
   // ```
   static const StaticWarningCode UNNECESSARY_NON_NULL_ASSERTION =
-      StaticWarningCode(
-          'UNNECESSARY_NON_NULL_ASSERTION',
-          "The '!' will have no effect because the target expression can't be"
-              " null.",
-          correction: "Try removing the '!' operator.",
-          errorSeverity: ErrorSeverity.WARNING,
-          hasPublishedDocs: true);
-
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it finds an expression whose
-  // type is `void`, and the expression is used in a place where a value is
-  // expected, such as before a member access or on the right-hand side of an
-  // assignment.
-  //
-  // #### Examples
-  //
-  // The following code produces this diagnostic because `f` doesn't produce an
-  // object on which `toString` can be invoked:
-  //
-  // ```dart
-  // void f() {}
-  //
-  // void g() {
-  //   [!f()!].toString();
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Either rewrite the code so that the expression has a value or rewrite the
-  // code so that it doesn't depend on the value.
-  static const StaticWarningCode USE_OF_VOID_RESULT = StaticWarningCode(
-      'USE_OF_VOID_RESULT',
-      "This expression has a type of 'void' so its value can't be used.",
-      correction:
-          "Try checking to see if you're using the correct API; there might "
-          "be a function or call that returns void you didn't expect. Also "
-          "check type parameters and variables which might also be void.",
-      hasPublishedDocs: true);
-
-  @override
-  final ErrorSeverity errorSeverity;
+      StaticWarningCode('UNNECESSARY_NON_NULL_ASSERTION',
+          "The '!' will have no effect because the receiver can't be null.",
+          correction: "Try removing the '!' operator.", hasPublishedDocs: true);
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -10596,13 +10738,15 @@ class StaticWarningCode extends AnalyzerErrorCode {
    */
   const StaticWarningCode(String name, String message,
       {String correction,
-      this.errorSeverity = ErrorSeverity.ERROR,
       bool hasPublishedDocs,
       bool isUnresolvedIdentifier = false})
       : super.temporary(name, message,
             correction: correction,
             hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
 
   @override
   ErrorType get type => ErrorType.STATIC_WARNING;
@@ -10634,155 +10778,6 @@ class StaticWarningCodeWithUniqueName extends StaticWarningCode {
  * levels, so they are grouped for clarity.
  */
 class StrongModeCode extends ErrorCode {
-  /**
-   * This is appended to the end of an error message about implicit dynamic.
-   *
-   * The idea is to make sure the user is aware that this error message is the
-   * result of turning on a particular option, and they are free to turn it
-   * back off.
-   */
-  static const String _implicitDynamicCorrection =
-      "Try adding an explicit type like 'dynamic', or "
-      "enable implicit-dynamic in your analysis options file.";
-
-  static const StrongModeCode INVALID_PARAMETER_DECLARATION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_PARAMETER_DECLARATION',
-      "Type check failed: '{0}' isn't of type '{1}'.");
-
-  static const StrongModeCode COULD_NOT_INFER = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'COULD_NOT_INFER',
-      "Couldn't infer type parameter '{0}'.{1}");
-
-  static const StrongModeCode INVALID_CAST_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL',
-      "The literal '{0}' with type '{1}' isn't of expected type '{2}'.");
-
-  static const StrongModeCode INVALID_CAST_LITERAL_LIST = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL_LIST',
-      "The list literal type '{0}' isn't of expected type '{1}'. The list's "
-          "type can be changed with an explicit generic type argument or by "
-          "changing the element types.");
-
-  static const StrongModeCode INVALID_CAST_LITERAL_MAP = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL_MAP',
-      "The map literal type '{0}' isn't of expected type '{1}'. The maps's "
-          "type can be changed with an explicit generic type arguments or by "
-          "changing the key and value types.");
-
-  static const StrongModeCode INVALID_CAST_LITERAL_SET = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_LITERAL_SET',
-      "The set literal type '{0}' isn't of expected type '{1}'. The set's "
-          "type can be changed with an explicit generic type argument or by "
-          "changing the element types.");
-
-  static const StrongModeCode INVALID_CAST_FUNCTION_EXPR = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_FUNCTION_EXPR',
-      "The function expression type '{0}' isn't of type '{1}'. "
-          "This means its parameter or return type doesn't match what is "
-          "expected. Consider changing parameter type(s) or the returned "
-          "type(s).");
-
-  static const StrongModeCode INVALID_CAST_NEW_EXPR = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_NEW_EXPR',
-      "The constructor returns type '{0}' that isn't of expected type '{1}'.");
-
-  static const StrongModeCode INVALID_CAST_METHOD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_METHOD',
-      "The method tear-off '{0}' has type '{1}' that isn't of expected type "
-          "'{2}'. This means its parameter or return type doesn't match what "
-          "is expected.");
-
-  static const StrongModeCode INVALID_CAST_FUNCTION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_CAST_FUNCTION',
-      "The function '{0}' has type '{1}' that isn't of expected type "
-          "'{2}'. This means its parameter or return type doesn't match what "
-          "is expected.");
-
-  static const StrongModeCode INVALID_SUPER_INVOCATION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_SUPER_INVOCATION',
-      "The super call must be last in an initializer "
-          "list (see https://goo.gl/EY6hDP): '{0}'.");
-
-  static const StrongModeCode DYNAMIC_INVOKE = StrongModeCode(
-      ErrorType.HINT, 'DYNAMIC_INVOKE', "'{0}' requires a dynamic invoke.");
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_PARAMETER',
-      "Missing parameter type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_RETURN = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_RETURN',
-      "Missing return type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_VARIABLE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_VARIABLE',
-      "Missing variable type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_FIELD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_FIELD',
-      "Missing field type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_TYPE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_TYPE',
-      "Missing type arguments for generic type '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_LIST_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_LIST_LITERAL',
-      "Missing type argument for list literal.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_MAP_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_MAP_LITERAL',
-      "Missing type arguments for map literal.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_FUNCTION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_FUNCTION',
-      "Missing type arguments for generic function '{0}<{1}>'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_METHOD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_METHOD',
-      "Missing type arguments for generic method '{0}<{1}>'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_INVOKE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_INVOKE',
-      "Missing type arguments for calling generic function type '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode NOT_INSTANTIATED_BOUND = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'NOT_INSTANTIATED_BOUND',
-      "Type parameter bound types must be instantiated.",
-      correction: "Try adding type arguments.");
-
   /*
    * TODO(brianwilkerson) Make the TOP_LEVEL_ error codes be errors rather than
    * hints and then clean up the function _errorSeverity in
@@ -10790,14 +10785,6 @@ class StrongModeCode extends ErrorCode {
    */
   /* TODO(leafp) Delete most of these.
    */
-  static const StrongModeCode TOP_LEVEL_CYCLE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'TOP_LEVEL_CYCLE',
-      "The type of '{0}' can't be inferred because it depends on itself "
-          "through the cycle: {1}.",
-      correction:
-          "Try adding an explicit type to one or more of the variables in the "
-          "cycle in order to break the cycle.");
 
   static const StrongModeCode TOP_LEVEL_FUNCTION_LITERAL_BLOCK = StrongModeCode(
       ErrorType.HINT,

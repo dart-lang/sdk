@@ -75,8 +75,14 @@ static void RunTTSTest(
   arguments.SetAt(5, dst_type);
 
   // Ensure we have a) uninitialized TTS b) no/empty SubtypeTestCache.
-  dst_type.SetTypeTestingStub(StubCode::LazySpecializeTypeTest());
-  EXPECT(dst_type.type_test_stub() == StubCode::LazySpecializeTypeTest().raw());
+  auto& instantiated_dst_type = AbstractType::Handle(dst_type.raw());
+  if (dst_type.IsTypeParameter()) {
+    instantiated_dst_type = TypeParameter::Cast(dst_type).GetFromTypeArguments(
+        instantiator_tav, function_tav);
+  }
+  instantiated_dst_type.SetTypeTestingStub(StubCode::LazySpecializeTypeTest());
+  EXPECT(instantiated_dst_type.type_test_stub() ==
+         StubCode::LazySpecializeTypeTest().raw());
   EXPECT(pool.ObjectAt(kSubtypeTestCacheIndex) == Object::null());
 
   auto& result = Object::Handle();
@@ -92,7 +98,7 @@ static void RunTTSTest(
   result = DartEntry::InvokeCode(invoke_tts, arguments_descriptor, arguments,
                                  thread);
   stc ^= pool.ObjectAt(kSubtypeTestCacheIndex);
-  tts = dst_type.type_test_stub();
+  tts = instantiated_dst_type.type_test_stub();
   if (!result.IsError()) {
     EXPECT(tts.raw() != StubCode::LazySpecializeTypeTest().raw());
   }
@@ -102,7 +108,7 @@ static void RunTTSTest(
   result2 = DartEntry::InvokeCode(invoke_tts, arguments_descriptor, arguments,
                                   thread);
   stc2 ^= pool.ObjectAt(kSubtypeTestCacheIndex);
-  tts2 = dst_type.type_test_stub();
+  tts2 = instantiated_dst_type.type_test_stub();
   abi_regs_modified ^= abi_regs_modified_box.At(0);
   rest_regs_modified ^= rest_regs_modified_box.At(0);
   EXPECT(result2.IsError() || !abi_regs_modified.IsNull());
@@ -114,18 +120,13 @@ static void RunTTSTest(
   // SubtypeTestCache
   // (This is to simulate AOT where we don't use lazy specialization but
   // precompile the TTS)
-  auto& dst_type_to_specialize = AbstractType::Handle(dst_type.raw());
-  if (dst_type_to_specialize.IsTypeParameter()) {
-    dst_type_to_specialize = TypeParameter::Cast(dst_type).GetFromTypeArguments(
-        instantiator_tav, function_tav);
-  }
-  TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type_to_specialize);
-  tts = dst_type.type_test_stub();
+  TypeTestingStubGenerator::SpecializeStubFor(thread, instantiated_dst_type);
+  tts = instantiated_dst_type.type_test_stub();
 
   result2 = DartEntry::InvokeCode(invoke_tts, arguments_descriptor, arguments,
                                   thread);
   stc2 ^= pool.ObjectAt(kSubtypeTestCacheIndex);
-  tts2 = dst_type.type_test_stub();
+  tts2 = instantiated_dst_type.type_test_stub();
   abi_regs_modified ^= abi_regs_modified_box.At(0);
   rest_regs_modified ^= rest_regs_modified_box.At(0);
   EXPECT(result2.IsError() || !abi_regs_modified.IsNull());
@@ -410,6 +411,17 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
              ExpectLazilyFailedViaSTC, ExpectFailedViaSTC);
   RunTTSTest(obj_b2, type_dynamic_t, tav_object, tav_null,
              ExpectLazilyHandledViaSTC, ExpectHandledViaSTC);
+
+  // obj as Object (with null safety)
+  Isolate* isolate = Isolate::Current();
+  if (isolate->null_safety()) {
+    auto& type_non_nullable_object =
+        Type::Handle(isolate->object_store()->non_nullable_object_type());
+    RunTTSTest(obj_a, type_non_nullable_object, tav_null, tav_null,
+               ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+    RunTTSTest(Object::null_object(), type_non_nullable_object, tav_null,
+               tav_null, ExpectLazilyFailedViaTTS, ExpectFailedViaTTS);
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
@@ -651,6 +663,50 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
   // a as B<T> -- a==B<C<num>, T==<C<int>>
   RunTTSTest(bcnum, dst_type, cint_tav, function_tav, ExpectLazilyFailedViaTTS,
              ExpectFailedViaTTS);
+}
+
+ISOLATE_UNIT_TEST_CASE(TTS_TypeParameter) {
+  const char* kScript =
+      R"(
+          class A<T> {
+            T test(dynamic x) => x as T;
+          }
+          H genericFun<H>(dynamic x) => x as H;
+
+          createAInt() => A<int>();
+          createAString() => A<String>();
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& class_a = Class::Handle(GetClass(root_library, "A"));
+  const auto& fun_generic =
+      Function::Handle(GetFunction(root_library, "genericFun"));
+
+  const auto& dst_type_t =
+      TypeParameter::Handle(GetClassTypeParameter(class_a, "T"));
+  const auto& dst_type_h =
+      TypeParameter::Handle(GetFunctionTypeParameter(fun_generic, "H"));
+
+  const auto& aint = Object::Handle(Invoke(root_library, "createAInt"));
+  const auto& astring = Object::Handle(Invoke(root_library, "createAString"));
+
+  const auto& int_tav =
+      TypeArguments::Handle(Instance::Cast(aint).GetTypeArguments());
+  const auto& string_tav =
+      TypeArguments::Handle(Instance::Cast(astring).GetTypeArguments());
+
+  const auto& int_instance = Integer::Handle(Integer::New(1));
+  const auto& string_instance = String::Handle(String::New("foo"));
+
+  RunTTSTest(int_instance, dst_type_t, int_tav, string_tav,
+             ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+  RunTTSTest(string_instance, dst_type_t, int_tav, string_tav,
+             ExpectLazilyFailedViaTTS, ExpectFailedViaTTS);
+
+  RunTTSTest(string_instance, dst_type_h, int_tav, string_tav,
+             ExpectLazilyHandledViaTTS, ExpectHandledViaTTS);
+  RunTTSTest(int_instance, dst_type_h, int_tav, string_tav,
+             ExpectLazilyFailedViaTTS, ExpectFailedViaTTS);
 }
 
 }  // namespace dart

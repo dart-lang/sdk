@@ -47,7 +47,7 @@ class FastaErrorReporter {
         return;
       case "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER":
         errorReporter?.reportErrorForOffset(
-            StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+            CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
             offset,
             length);
         return;
@@ -104,12 +104,12 @@ class FastaErrorReporter {
       case "FINAL_NOT_INITIALIZED":
         String name = arguments['name'];
         errorReporter?.reportErrorForOffset(
-            StaticWarningCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
+            CompileTimeErrorCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
         return;
       case "FINAL_NOT_INITIALIZED_CONSTRUCTOR_1":
         String name = arguments['name'];
         errorReporter?.reportErrorForOffset(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+            CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
             offset,
             length,
             [name]);
@@ -130,7 +130,7 @@ class FastaErrorReporter {
         var type1 = arguments['type'];
         var type2 = arguments['type2'];
         errorReporter?.reportErrorForOffset(
-            StaticTypeWarningCode.INVALID_ASSIGNMENT,
+            CompileTimeErrorCode.INVALID_ASSIGNMENT,
             offset,
             length,
             [type1, type2]);
@@ -149,27 +149,31 @@ class FastaErrorReporter {
         return;
       case "INVALID_CAST_FUNCTION":
         errorReporter?.reportErrorForOffset(
-            StrongModeCode.INVALID_CAST_FUNCTION, offset, length);
+            CompileTimeErrorCode.INVALID_CAST_FUNCTION, offset, length);
         return;
       case "INVALID_CAST_FUNCTION_EXPR":
         errorReporter?.reportErrorForOffset(
-            StrongModeCode.INVALID_CAST_FUNCTION_EXPR, offset, length);
+            CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR, offset, length);
         return;
       case "INVALID_CAST_LITERAL_LIST":
         errorReporter?.reportErrorForOffset(
-            StrongModeCode.INVALID_CAST_LITERAL_LIST, offset, length);
+            CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, offset, length);
         return;
       case "INVALID_CAST_LITERAL_MAP":
         errorReporter?.reportErrorForOffset(
-            StrongModeCode.INVALID_CAST_LITERAL_MAP, offset, length);
+            CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, offset, length);
+        return;
+      case "INVALID_CAST_LITERAL_SET":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.INVALID_CAST_LITERAL_SET, offset, length);
         return;
       case "INVALID_CAST_METHOD":
         errorReporter?.reportErrorForOffset(
-            StrongModeCode.INVALID_CAST_METHOD, offset, length);
+            CompileTimeErrorCode.INVALID_CAST_METHOD, offset, length);
         return;
       case "INVALID_CAST_NEW_EXPR":
         errorReporter?.reportErrorForOffset(
-            StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
+            CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, offset, length);
         return;
       case "INVALID_CODE_POINT":
         errorReporter?.reportErrorForOffset(
@@ -193,7 +197,7 @@ class FastaErrorReporter {
         return;
       case "INVALID_SUPER_INVOCATION":
         errorReporter?.reportErrorForOffset(
-            StrongModeCode.INVALID_SUPER_INVOCATION, offset, length);
+            CompileTimeErrorCode.INVALID_SUPER_INVOCATION, offset, length);
         return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(
@@ -284,15 +288,15 @@ class FastaErrorReporter {
         return;
       case "UNDEFINED_GETTER":
         errorReporter?.reportErrorForOffset(
-            StaticTypeWarningCode.UNDEFINED_GETTER, offset, length);
+            CompileTimeErrorCode.UNDEFINED_GETTER, offset, length);
         return;
       case "UNDEFINED_METHOD":
         errorReporter?.reportErrorForOffset(
-            StaticTypeWarningCode.UNDEFINED_METHOD, offset, length);
+            CompileTimeErrorCode.UNDEFINED_METHOD, offset, length);
         return;
       case "UNDEFINED_SETTER":
         errorReporter?.reportErrorForOffset(
-            StaticTypeWarningCode.UNDEFINED_SETTER, offset, length);
+            CompileTimeErrorCode.UNDEFINED_SETTER, offset, length);
         return;
       case "UNEXPECTED_DOLLAR_IN_STRING":
         errorReporter?.reportErrorForOffset(
@@ -318,7 +322,7 @@ class FastaErrorReporter {
         return;
       case "WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR":
         errorReporter?.reportErrorMessage(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+            CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
             offset,
             length,
             message);

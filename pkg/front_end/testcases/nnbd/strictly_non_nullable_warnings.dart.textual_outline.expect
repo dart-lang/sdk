@@ -1,11 +1,11 @@
 extension E ;
-on String (){ }
+on String (){}
 class A {
   String operator[](int index) => "foo";
-  void operator[]=(int index, String value) { }
+  void operator[]=(int index, String value) {}
 }
 class B extends A {
-  void test() { }
+  void test() {}
 }
-warning(String s, List<String> l, Map<String, int> m) { }
-main() { }
+warning(String s, List<String> l, Map<String, int> m) {}
+main() {}

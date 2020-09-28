@@ -198,12 +198,13 @@ class Library implements FieldContainer {
   final String uri;
   final List<StaticMethod> statics;
   final List<Class> classes;
+  final List<ClassTypeData> classTypeData;
 
   @override
   final List<Field> staticFieldsForReflection;
 
   Library(this.element, this.uri, this.statics, this.classes,
-      this.staticFieldsForReflection);
+      this.classTypeData, this.staticFieldsForReflection);
 
   @override
   String toString() {
@@ -225,9 +226,13 @@ class StaticField {
   final bool isFinal;
   final bool isLazy;
   final bool isInitializedByConstant;
+  final bool usesNonNullableInitialization;
 
   StaticField(this.element, this.name, this.getterName, this.holder, this.code,
-      {this.isFinal, this.isLazy, this.isInitializedByConstant: false});
+      {this.isFinal,
+      this.isLazy,
+      this.isInitializedByConstant: false,
+      this.usesNonNullableInitialization: false});
 
   @override
   String toString() {
@@ -235,11 +240,27 @@ class StaticField {
   }
 }
 
-// TODO(fishythefish, sra): Split type information into separate model object.
+class ClassTypeData {
+  /// The element should only be used during the transition to the new model.
+  /// Uses indicate missing information in the model.
+  final ClassEntity element;
+
+  final ClassChecks classChecks;
+  final Set<TypeVariableType> namedTypeVariables = {};
+
+  ClassTypeData(this.element, this.classChecks);
+
+  bool isTriviallyChecked(CommonElements commonElements) =>
+      classChecks.checks.every((TypeCheck check) =>
+          check.cls == commonElements.objectClass || check.cls == element);
+}
+
 class Class implements FieldContainer {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final ClassEntity element;
+
+  final ClassTypeData typeData;
 
   final js.Name name;
   final Holder holder;
@@ -248,8 +269,6 @@ class Class implements FieldContainer {
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
-  final ClassChecks classChecksNewRti;
-  final Set<TypeVariableType> namedTypeVariablesNewRti = {};
   final List<StubMethod> checkedSetters;
 
   /// Stub methods for this class that are call stubs for getters.
@@ -261,6 +280,7 @@ class Class implements FieldContainer {
   final List<Field> staticFieldsForReflection;
   final bool hasRtiField; // Per-instance runtime type information pseudo-field.
   final bool onlyForRti;
+  final bool onlyForConstructor;
   final bool isDirectlyInstantiated;
   final bool isNative;
   final bool isClosureBaseClass; // Common base class for closures.
@@ -290,6 +310,7 @@ class Class implements FieldContainer {
 
   Class(
       this.element,
+      this.typeData,
       this.name,
       this.holder,
       this.methods,
@@ -299,26 +320,23 @@ class Class implements FieldContainer {
       this.noSuchMethodStubs,
       this.checkedSetters,
       this.isChecks,
-      this.classChecksNewRti,
       this.functionTypeIndex,
       {this.hasRtiField,
       this.onlyForRti,
+      this.onlyForConstructor,
       this.isDirectlyInstantiated,
       this.isNative,
       this.isClosureBaseClass,
       this.isSoftDeferred = false,
       this.isSuperMixinApplication}) {
     assert(onlyForRti != null);
+    assert(onlyForConstructor != null);
     assert(isDirectlyInstantiated != null);
     assert(isNative != null);
     assert(isClosureBaseClass != null);
   }
 
   bool get isSimpleMixinApplication => false;
-
-  bool isTriviallyChecked(CommonElements commonElements) =>
-      classChecksNewRti.checks.every((TypeCheck check) =>
-          check.cls == commonElements.objectClass || check.cls == element);
 
   Class get superclass => _superclass;
 
@@ -344,6 +362,7 @@ class Class implements FieldContainer {
 class MixinApplication extends Class {
   MixinApplication(
       ClassEntity element,
+      ClassTypeData typeData,
       js.Name name,
       Holder holder,
       List<Field> instanceFields,
@@ -351,13 +370,14 @@ class MixinApplication extends Class {
       List<StubMethod> callStubs,
       List<StubMethod> checkedSetters,
       List<StubMethod> isChecks,
-      ClassChecks classChecksNewRti,
       js.Expression functionTypeIndex,
       {bool hasRtiField,
       bool onlyForRti,
+      bool onlyForConstructor,
       bool isDirectlyInstantiated})
       : super(
             element,
+            typeData,
             name,
             holder,
             const <Method>[],
@@ -367,10 +387,10 @@ class MixinApplication extends Class {
             const <StubMethod>[],
             checkedSetters,
             isChecks,
-            classChecksNewRti,
             functionTypeIndex,
             hasRtiField: hasRtiField,
             onlyForRti: onlyForRti,
+            onlyForConstructor: onlyForConstructor,
             isDirectlyInstantiated: isDirectlyInstantiated,
             isNative: false,
             isClosureBaseClass: false,

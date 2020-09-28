@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -54,12 +55,26 @@ class PostfixExpressionResolver {
 
     node.operand.accept(_resolver);
 
-    var receiverType = getReadType(
-      node.operand,
-    );
+    var operand = node.operand;
+    if (operand is SimpleIdentifier) {
+      var element = operand.staticElement;
+      // ElementResolver does not set it.
+      if (element is VariableElement) {
+        _resolver.setReadElement(operand, element);
+        _resolver.setWriteElement(operand, element);
+      }
+    }
 
-    _assignmentShared.checkLateFinalAlreadyAssigned(node.operand);
+    if (node.readElement == null || node.readType == null) {
+      _resolver.setReadElement(operand, null);
+    }
+    if (node.writeElement == null || node.writeType == null) {
+      _resolver.setWriteElement(operand, null);
+    }
 
+    _assignmentShared.checkFinalAlreadyAssigned(node.operand);
+
+    var receiverType = node.readType;
     _resolve1(node, receiverType);
     _resolve2(node, receiverType);
   }
@@ -73,7 +88,7 @@ class PostfixExpressionResolver {
     var operandWriteType = _getWriteType(operand);
     if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.INVALID_ASSIGNMENT,
+        CompileTimeErrorCode.INVALID_ASSIGNMENT,
         node,
         [type, operandWriteType],
       );
@@ -149,13 +164,13 @@ class PostfixExpressionResolver {
     if (_shouldReportInvalidMember(receiverType, result)) {
       if (operand is SuperExpression) {
         _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
           node.operator,
           [methodName, receiverType],
         );
       } else {
         _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
+          CompileTimeErrorCode.UNDEFINED_OPERATOR,
           node.operator,
           [methodName, receiverType],
         );
@@ -192,6 +207,16 @@ class PostfixExpressionResolver {
 
   void _resolveNullCheck(PostfixExpressionImpl node) {
     var operand = node.operand;
+
+    if (operand is SuperExpression) {
+      _resolver.errorReporter.reportErrorForNode(
+        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+        node,
+      );
+      _inferenceHelper.recordStaticType(operand, DynamicTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance);
+      return;
+    }
 
     var contextType = InferenceContext.getContext(node);
     if (contextType != null) {

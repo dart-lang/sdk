@@ -1,0 +1,3 @@
+dynamic getNull() => null;
+Future<Object> fn() async {}
+main() {}

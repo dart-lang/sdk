@@ -31,10 +31,10 @@ import 'package:kernel/ast.dart'
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/dynamic_type_builder.dart';
+import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/modifier_builder.dart';
-import '../builder/never_type_builder.dart';
+import '../builder/never_type_declaration_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -151,14 +151,14 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   String get name => library.name;
 
   void addSyntheticDeclarationOfDynamic() {
-    addBuilder(
-        "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);
+    addBuilder("dynamic",
+        new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
   }
 
   void addSyntheticDeclarationOfNever() {
     addBuilder(
         "Never",
-        new NeverTypeBuilder(
+        new NeverTypeDeclarationBuilder(
             const NeverType(Nullability.nonNullable), this, -1),
         -1);
   }

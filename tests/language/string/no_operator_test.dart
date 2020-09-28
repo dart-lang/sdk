@@ -9,66 +9,66 @@ main() {
   var y = "y";
   Expect.throws(() => x < y);
   //                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '<' isn't defined for the class 'String'.
   Expect.throws(() => x <= y);
   //                    ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '<=' isn't defined for the class 'String'.
   Expect.throws(() => x > y);
   //                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '>' isn't defined for the class 'String'.
   Expect.throws(() => x >= y);
   //                    ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '>=' isn't defined for the class 'String'.
   Expect.throws(() => x - y);
   //                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '-' isn't defined for the class 'String'.
   Expect.throws(() => x * y);
   //                      ^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
   Expect.throws(() => x / y);
   //                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '/' isn't defined for the class 'String'.
   Expect.throws(() => x ~/ y);
   //                    ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '~/' isn't defined for the class 'String'.
   Expect.throws(() => x % y);
   //                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '%' isn't defined for the class 'String'.
   Expect.throws(() => x >> y);
   //                    ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '>>' isn't defined for the class 'String'.
   Expect.throws(() => x << y);
   //                    ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '<<' isn't defined for the class 'String'.
   Expect.throws(() => x & y);
   //                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '&' isn't defined for the class 'String'.
   Expect.throws(() => x | y);
   //                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '|' isn't defined for the class 'String'.
   Expect.throws(() => x ^ y);
   //                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '^' isn't defined for the class 'String'.
   Expect.throws(() => -x);
   //                  ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator 'unary-' isn't defined for the class 'String'.
   Expect.throws(() => ~x);
   //                  ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '~' isn't defined for the class 'String'.
 }

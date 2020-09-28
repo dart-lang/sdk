@@ -6,25 +6,25 @@ class Number {
   String toString() => 'Number($value)';
 }
 extension NumberExtension ;
-on Number (){ }
+on Number (){}
 class Class {
   Number field;
   Class(this.field);
 }
 extension ClassExtension ;
-on Class (){ }
+on Class (){}
 class IntClass {
   int field;
   IntClass(this.field);
 }
 extension IntClassExtension ;
-on IntClass (){ }
-main() { }
-testLocals() { }
-testProperties() { }
-testIntProperties() { }
-testExplicitProperties() { }
-testExplicitIntProperties() { }
-testExplicitNullAwareProperties(Class v) { }
-testExplicitNullAwareIntProperties(IntClass v) { }
-expect(expected, actual, [expectNull = false]) { }
+on IntClass (){}
+main() {}
+testLocals() {}
+testProperties() {}
+testIntProperties() {}
+testExplicitProperties() {}
+testExplicitIntProperties() {}
+testExplicitNullAwareProperties(Class v) {}
+testExplicitNullAwareIntProperties(IntClass v) {}
+expect(expected, actual, [expectNull = false]) {}

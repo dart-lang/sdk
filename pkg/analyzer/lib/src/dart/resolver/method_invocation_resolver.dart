@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -96,7 +97,7 @@ class MethodInvocationResolver {
     if (receiver is SimpleIdentifier) {
       var receiverElement = receiver.staticElement;
       if (receiverElement is PrefixElement) {
-        _resolveReceiverPrefix(node, receiver, receiverElement, nameNode, name);
+        _resolveReceiverPrefix(node, receiverElement, nameNode, name);
         return;
       }
     }
@@ -189,13 +190,13 @@ class MethodInvocationResolver {
       );
     } else if (nullReceiver) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+        CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
         nameNode,
         [element.enclosingElement.displayName],
       );
     } else {
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+        CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
         nameNode,
         [
           nameNode.name,
@@ -209,7 +210,7 @@ class MethodInvocationResolver {
   void _reportInvocationOfNonFunction(MethodInvocation node) {
     _setDynamicResolution(node, setNameTypeToDynamic: false);
     _resolver.errorReporter.reportErrorForNode(
-      StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+      CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION,
       node.methodName,
       [node.methodName.name],
     );
@@ -227,7 +228,7 @@ class MethodInvocationResolver {
       ExecutableElement element, SimpleIdentifier nameNode) {
     if (!element.isStatic) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+        CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
         nameNode,
         [nameNode.name],
       );
@@ -235,16 +236,18 @@ class MethodInvocationResolver {
   }
 
   void _reportUndefinedFunction(
-      MethodInvocation node, Identifier ignorableIdentifier) {
+    MethodInvocation node, {
+    @required String prefix,
+    @required String name,
+  }) {
     _setDynamicResolution(node);
 
-    // TODO(scheglov) This is duplication.
-    if (nameScope.shouldIgnoreUndefined(ignorableIdentifier)) {
+    if (nameScope.shouldIgnoreUndefined2(prefix: prefix, name: name)) {
       return;
     }
 
     _resolver.errorReporter.reportErrorForNode(
-      StaticTypeWarningCode.UNDEFINED_FUNCTION,
+      CompileTimeErrorCode.UNDEFINED_FUNCTION,
       node.methodName,
       [node.methodName.name],
     );
@@ -254,7 +257,7 @@ class MethodInvocationResolver {
       MethodInvocation node, String name, ClassElement typeReference) {
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+      CompileTimeErrorCode.UNDEFINED_METHOD,
       node.methodName,
       [name, typeReference.displayName],
     );
@@ -263,7 +266,7 @@ class MethodInvocationResolver {
   void _reportUseOfVoidType(MethodInvocation node, AstNode errorNode) {
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
-      StaticWarningCode.USE_OF_VOID_RESULT,
+      CompileTimeErrorCode.USE_OF_VOID_RESULT,
       errorNode,
     );
   }
@@ -369,8 +372,10 @@ class MethodInvocationResolver {
 
     if (node.isCascaded) {
       // Report this error and recover by treating it like a non-cascade.
-      _resolver.errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, node.operator);
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+        override.extensionName,
+      );
     }
 
     nameNode.staticElement = member;
@@ -480,7 +485,9 @@ class MethodInvocationResolver {
 
   void _resolveReceiverNull(
       MethodInvocation node, SimpleIdentifier nameNode, String name) {
-    var element = nameScope.lookup(nameNode, _definingLibrary);
+    _resolver.checkReadOfNotAssignedLocalVariable(nameNode);
+
+    var element = nameScope.lookup2(name).getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
@@ -512,7 +519,11 @@ class MethodInvocationResolver {
     } else if (_resolver.enclosingExtension != null) {
       receiverType = _resolver.enclosingExtension.extendedType;
     } else {
-      return _reportUndefinedFunction(node, node.methodName);
+      return _reportUndefinedFunction(
+        node,
+        prefix: null,
+        name: node.methodName.name,
+      );
     }
 
     _resolveReceiverType(
@@ -525,8 +536,8 @@ class MethodInvocationResolver {
     );
   }
 
-  void _resolveReceiverPrefix(MethodInvocation node, SimpleIdentifier receiver,
-      PrefixElement prefix, SimpleIdentifier nameNode, String name) {
+  void _resolveReceiverPrefix(MethodInvocation node, PrefixElement prefix,
+      SimpleIdentifier nameNode, String name) {
     // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
@@ -542,10 +553,7 @@ class MethodInvocationResolver {
       }
     }
 
-    // TODO(scheglov) I don't like how we resolve prefixed names.
-    // But maybe this is the only one solution.
-    var prefixedName = PrefixedIdentifierImpl.temp(receiver, nameNode);
-    var element = nameScope.lookup(prefixedName, _definingLibrary);
+    var element = prefix.scope.lookup2(name).getter;
     element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
 
@@ -562,7 +570,11 @@ class MethodInvocationResolver {
       return _setResolution(node, element.type);
     }
 
-    _reportUndefinedFunction(node, prefixedName);
+    _reportUndefinedFunction(
+      node,
+      prefix: prefix.name,
+      name: name,
+    );
   }
 
   void _resolveReceiverSuper(MethodInvocation node, SuperExpression receiver,
@@ -608,7 +620,7 @@ class MethodInvocationResolver {
     // Nothing help, there is no target at all.
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+        CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
         nameNode,
         [name, enclosingClass.displayName]);
   }
@@ -663,7 +675,7 @@ class MethodInvocationResolver {
 
     if (!nameNode.isSynthetic) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNDEFINED_METHOD,
+        CompileTimeErrorCode.UNDEFINED_METHOD,
         nameNode,
         [name, receiverClassName],
       );

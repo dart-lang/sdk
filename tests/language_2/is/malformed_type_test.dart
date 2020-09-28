@@ -14,7 +14,7 @@ test99(e) {
   // malformed type.
     if (e is Undefined) Expect.fail("unreachable");
     //       ^^^^^^^^^
-    // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_UNDEFINED_NAME
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_UNDEFINED_NAME
     // [cfe] 'Undefined' isn't a type.
 }
 
@@ -23,7 +23,7 @@ test98(e) {
   // malformed type.
     if (e as Undefined) Expect.fail("unreachable");
     //       ^^^^^^^^^
-    // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
     // [cfe] 'Undefined' isn't a type.
 }
 
@@ -33,7 +33,7 @@ test97(e) {
     // Regression test for issue 16985.
     if (e is Undefined && testEval(e)) Expect.fail("unreachable");
     //       ^^^^^^^^^
-    // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_UNDEFINED_NAME
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_UNDEFINED_NAME
     // [cfe] 'Undefined' isn't a type.
 }
 
@@ -43,7 +43,7 @@ test96(e) {
     // Regression test for issue 16985.
     if (e as Undefined && testEval(e)) Expect.fail("unreachable");
     //       ^^^^^^^^^
-    // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
     // [cfe] 'Undefined' isn't a type.
 }
 
@@ -52,7 +52,7 @@ test95(e) {
   // runtime error is thrown.
     if (testEval(e) is Undefined) Expect.fail("unreachable");
     //                 ^^^^^^^^^
-    // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_UNDEFINED_NAME
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_UNDEFINED_NAME
     // [cfe] 'Undefined' isn't a type.
 }
 
@@ -61,7 +61,7 @@ test94(e) {
   // runtime error is thrown.
     if (testEval(e) as Undefined) Expect.fail("unreachable");
     //                 ^^^^^^^^^
-    // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
     // [cfe] 'Undefined' isn't a type.
 }
 

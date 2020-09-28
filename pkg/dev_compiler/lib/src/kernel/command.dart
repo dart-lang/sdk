@@ -146,16 +146,17 @@ Future<CompilerResult> _compile(List<String> args,
     return CompilerResult(0);
   }
 
+  var options = SharedCompilerOptions.fromArguments(argResults);
+
   // To make the output .dill agnostic of the current working directory,
   // we use a custom-uri scheme for all app URIs (these are files outside the
   // lib folder). The following [FileSystem] will resolve those references to
   // the correct location and keeps the real file location hidden from the
   // front end.
-  var multiRootScheme = argResults['multi-root-scheme'] as String;
   var multiRootPaths = (argResults['multi-root'] as Iterable<String>)
       .map(Uri.base.resolve)
       .toList();
-  var multiRootOutputPath = argResults['multi-root-output-path'] as String;
+  var multiRootOutputPath = options.multiRootOutputPath;
   if (multiRootOutputPath == null) {
     if (outPaths.length > 1) {
       print(
@@ -168,11 +169,11 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var fileSystem = MultiRootFileSystem(
-      multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
+      options.multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
     if (uri.scheme == '') {
-      return Uri(scheme: multiRootScheme, path: '/' + uri.path);
+      return Uri(scheme: options.multiRootScheme, path: '/' + uri.path);
     }
     return uri;
   }
@@ -185,7 +186,6 @@ Future<CompilerResult> _compile(List<String> args,
     return toCustomUri(sourcePathToRelativeUri(source));
   }
 
-  var options = SharedCompilerOptions.fromArguments(argResults);
   var summaryPaths = options.summaryModules.keys.toList();
   var summaryModules = Map.fromIterables(
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
@@ -361,7 +361,7 @@ Future<CompilerResult> _compile(List<String> args,
           'the --summarize option is not supported.');
       return CompilerResult(64);
     }
-    // TODO(jmesserly): CFE mutates the Kernel tree, so we can't save the dill
+    // Note: CFE mutates the Kernel tree, so we can't save the dill
     // file if we successfully reused a cached library. If compiler state is
     // unchanged, it means we used the cache.
     //
@@ -374,6 +374,27 @@ Future<CompilerResult> _compile(List<String> args,
     // TODO(jmesserly): this appears to save external libraries.
     // Do we need to run them through an outlining step so they can be saved?
     kernel.BinaryPrinter(sink).writeComponentFile(component);
+    outFiles.add(sink.flush().then((_) => sink.close()));
+  }
+  if (argResults['experimental-output-compiled-kernel'] as bool) {
+    if (outPaths.length > 1) {
+      print(
+          'If multiple output files (found ${outPaths.length}) are specified, '
+          'the --experimental-output-compiled-kernel option is not supported.');
+      return CompilerResult(64);
+    }
+    // Note: CFE mutates the Kernel tree, so we can't save the dill
+    // file if we successfully reused a cached library. If compiler state is
+    // unchanged, it means we used the cache.
+    //
+    // In that case, we need to unbind canonical names, because they could be
+    // bound already from the previous compile.
+    if (identical(compilerState, oldCompilerState)) {
+      compiledLibraries.unbindCanonicalNames();
+    }
+    var sink =
+        File(p.withoutExtension(outPaths.first) + '.full.dill').openWrite();
+    kernel.BinaryPrinter(sink).writeComponentFile(compiledLibraries);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {
@@ -420,7 +441,7 @@ Future<CompilerResult> _compile(List<String> args,
         emitDebugMetadata: options.emitDebugMetadata,
         jsUrl: p.toUri(output).toString(),
         mapUrl: mapUrl,
-        customScheme: multiRootScheme,
+        customScheme: options.multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
         component: compiledLibraries);
 
@@ -469,7 +490,7 @@ Future<CompilerResult> _compile(List<String> args,
 // TODO(sigmund): refactor the underlying pieces to reduce the code duplication.
 Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var argParser = ArgParser(allowTrailingOptions: true);
-  SharedCompilerOptions.addArguments(argParser);
+  SharedCompilerOptions.addSdkRequiredArguments(argParser);
 
   ArgResults argResults;
   try {
@@ -519,9 +540,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   }
   var coreTypes = CoreTypes(component);
   var hierarchy = ClassHierarchy(component, coreTypes);
-  var multiRootScheme = argResults['multi-root-scheme'] as String;
-  var multiRootOutputPath = argResults['multi-root-output-path'] as String;
-  var options = SharedCompilerOptions.fromArguments(argResults);
+  var options = SharedCompilerOptions.fromSdkRequiredArguments(argResults);
 
   var compiler = ProgramCompiler(
       component, hierarchy, options, const {}, const {},
@@ -542,8 +561,8 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
         mapUrl: p.toUri(output + '.map').toString(),
-        customScheme: multiRootScheme,
-        multiRootOutputPath: multiRootOutputPath,
+        customScheme: options.multiRootScheme,
+        multiRootOutputPath: options.multiRootOutputPath,
         component: component);
 
     outFiles.add(file.writeAsString(jsCode.code));
@@ -552,6 +571,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
           File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
     }
   }
+  await Future.wait(outFiles);
   return CompilerResult(0);
 }
 

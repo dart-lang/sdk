@@ -2,21 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IfElementTest);
-    defineReflectiveTests(IfElementWithNnbdTest);
+    defineReflectiveTests(IfElementWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class IfElementTest extends DriverResolutionTest {
+class IfElementTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
 main(bool Function() b) {
@@ -35,9 +33,5 @@ main(bool Function() b) {
 }
 
 @reflectiveTest
-class IfElementWithNnbdTest extends IfElementTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-}
+class IfElementWithNullSafetyTest extends IfElementTest
+    with WithNullSafetyMixin {}

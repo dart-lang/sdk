@@ -3123,7 +3123,9 @@ class NodeReplacerTest {
 
   void test_indexExpression() {
     IndexExpression node = AstTestFactory.indexExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.identifier3("i"));
+      target: AstTestFactory.identifier3("a"),
+      index: AstTestFactory.identifier3("i"),
+    );
     _assertReplace(node, Getter_NodeReplacerTest_test_indexExpression());
     _assertReplace(node, Getter_NodeReplacerTest_test_indexExpression_2());
   }

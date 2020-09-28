@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -24,7 +24,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import '../util/element_type_matchers.dart';
 import 'elements_types_mixin.dart';
 import 'test_analysis_context.dart';
@@ -47,9 +47,9 @@ void _fail(String message) {
 }
 
 @reflectiveTest
-class AnnotationElementResolverTest extends DriverResolutionTest {
+class AnnotationElementResolverTest extends PubPackageResolutionTest {
   test_class_namedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -78,7 +78,7 @@ class A {
   }
 
   test_class_prefixed_namedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -109,7 +109,7 @@ class A {
   }
 
   test_class_prefixed_staticConstField() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -139,7 +139,7 @@ class A {
   }
 
   test_class_prefixed_unnamedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A();
 }
@@ -167,7 +167,7 @@ class A {
   }
 
   test_class_staticConstField() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -195,7 +195,7 @@ class A {
   }
 
   test_class_unnamedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A();
 }
@@ -221,7 +221,7 @@ class A {
   }
 
   test_topLevelVariable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('', '@V', (SimpleIdentifier name1,
@@ -245,7 +245,7 @@ const V = 0;
   }
 
   test_topLevelVariable_prefixed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,
@@ -404,8 +404,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //
     SimpleIdentifier array = AstTestFactory.identifier3("a");
     array.staticType = interfaceTypeStar(classD);
-    IndexExpression expression =
-        AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
+    IndexExpression expression = AstTestFactory.indexExpression(
+      target: array,
+      index: AstTestFactory.identifier3("i"),
+    );
     expect(_resolveIndexExpression(expression), same(operator));
     _listener.assertNoErrors();
   }
@@ -442,8 +444,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
     // set name scope
-    _visitor.nameScope = EnclosedScope(null)
-      ..defineNameWithoutChecking('A', classA);
+    _visitor.nameScope = LocalScope(null)..add(classA);
     // prepare "A.p"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'p');
     CommentReference commentReference =
@@ -462,8 +463,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = EnclosedScope(null)
-      ..defineNameWithoutChecking('A', classA);
+    _visitor.nameScope = LocalScope(null)..add(classA);
     // prepare "A.m"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'm');
     CommentReference commentReference =
@@ -482,8 +482,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("==", _typeProvider.boolType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = EnclosedScope(null)
-      ..defineNameWithoutChecking('A', classA);
+    _visitor.nameScope = LocalScope(null)..add(classA);
     // prepare "A.=="
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', '==');
     CommentReference commentReference =
@@ -1029,7 +1028,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     try {
       _visitor.enclosingClass = enclosingClass;
       EnclosedScope innerScope = ClassScope(
-          TypeParameterScope(outerScope, enclosingClass), enclosingClass);
+        TypeParameterScope(outerScope, enclosingClass.typeParameters),
+        enclosingClass,
+      );
       _visitor.nameScope = innerScope;
       node.accept(_resolver);
     } finally {
@@ -1061,10 +1062,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
     Scope outerScope = _visitor.nameScope;
     try {
-      EnclosedScope innerScope = EnclosedScope(outerScope);
+      var innerScope = LocalScope(outerScope);
       if (definedElements != null) {
         for (Element element in definedElements) {
-          innerScope.define(element);
+          innerScope.add(element);
         }
       }
       _visitor.nameScope = innerScope;

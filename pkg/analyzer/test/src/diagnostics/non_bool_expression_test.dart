@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class NonBoolExpressionTest extends DriverResolutionTest {
+class NonBoolExpressionTest extends PubPackageResolutionTest {
   test_functionType_bool() async {
     await assertErrorsInCode(r'''
 bool makeAssertion() => true;
@@ -22,7 +22,7 @@ f() {
   assert(makeAssertion);
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_EXPRESSION, 45, 13),
+      error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 45, 13),
     ]);
   }
 
@@ -33,7 +33,7 @@ f() {
   assert(makeAssertion);
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_EXPRESSION, 41, 13),
+      error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 41, 13),
     ]);
   }
 
@@ -43,7 +43,7 @@ f() {
   assert(0);
 }
 ''', [
-      error(StaticTypeWarningCode.NON_BOOL_EXPRESSION, 15, 1),
+      error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 15, 1),
     ]);
   }
 }

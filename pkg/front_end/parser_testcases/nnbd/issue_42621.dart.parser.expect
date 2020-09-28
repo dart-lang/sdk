@@ -1,0 +1,55 @@
+Order method1(Map<String, dynamic> json) {
+return Order()
+..x = json['x'] as List
+..y = json['y'] as int;
+}
+
+Order method2(Map<String, dynamic> json) {
+return Order()
+..x = json['x'] as List?
+..y = json['y'] as int;
+}
+
+Order method3(Map<String, dynamic> json) {
+return Order()
+..x = (json['x'] as List?)
+..y = json['y'] as int;
+}
+
+Order method4(Map<String, dynamic> json) {
+return Order()
+..x = json['x'] as List?;
+}
+
+class Order {
+List? x;
+int? y;
+}
+
+Order[StringToken] method1[StringToken]([BeginToken]Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] dynamic[KeywordToken]>[SimpleToken] json[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] Order[StringToken]([BeginToken])[SimpleToken]
+..[SimpleToken]x[StringToken] =[SimpleToken] json[StringToken][[BeginToken]'x'[StringToken]][SimpleToken] as[KeywordToken] List[StringToken]
+..[SimpleToken]y[StringToken] =[SimpleToken] json[StringToken][[BeginToken]'y'[StringToken]][SimpleToken] as[KeywordToken] int[StringToken];[SimpleToken]
+}[SimpleToken]
+
+Order[StringToken] method2[StringToken]([BeginToken]Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] dynamic[KeywordToken]>[SimpleToken] json[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] Order[StringToken]([BeginToken])[SimpleToken]
+..[SimpleToken]x[StringToken] =[SimpleToken] json[StringToken][[BeginToken]'x'[StringToken]][SimpleToken] as[KeywordToken] List[StringToken]?[SimpleToken]
+..[SimpleToken]y[StringToken] =[SimpleToken] json[StringToken][[BeginToken]'y'[StringToken]][SimpleToken] as[KeywordToken] int[StringToken];[SimpleToken]
+}[SimpleToken]
+
+Order[StringToken] method3[StringToken]([BeginToken]Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] dynamic[KeywordToken]>[SimpleToken] json[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] Order[StringToken]([BeginToken])[SimpleToken]
+..[SimpleToken]x[StringToken] =[SimpleToken] ([BeginToken]json[StringToken][[BeginToken]'x'[StringToken]][SimpleToken] as[KeywordToken] List[StringToken]?[SimpleToken])[SimpleToken]
+..[SimpleToken]y[StringToken] =[SimpleToken] json[StringToken][[BeginToken]'y'[StringToken]][SimpleToken] as[KeywordToken] int[StringToken];[SimpleToken]
+}[SimpleToken]
+
+Order[StringToken] method4[StringToken]([BeginToken]Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] dynamic[KeywordToken]>[SimpleToken] json[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] Order[StringToken]([BeginToken])[SimpleToken]
+..[SimpleToken]x[StringToken] =[SimpleToken] json[StringToken][[BeginToken]'x'[StringToken]][SimpleToken] as[KeywordToken] List[StringToken]?[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Order[StringToken] {[BeginToken]
+List[StringToken]?[SimpleToken] x[StringToken];[SimpleToken]
+int[StringToken]?[SimpleToken] y[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

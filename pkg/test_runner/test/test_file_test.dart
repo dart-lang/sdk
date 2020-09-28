@@ -28,6 +28,7 @@ void main() {
   testParseMultitest();
   testParseErrorFlags();
   testParseErrorExpectations();
+  testIsRuntimeTest();
   testName();
   testMultitest();
   testShardHash();
@@ -460,6 +461,47 @@ int i = "s";
     makeError(line: 12, column: 34, length: 56, cfeError: "Message."),
   ]);
 
+  // Allow front ends in any order.
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^^^
+/\/ [cfe] Error message.
+/\/ [analyzer] ErrorCode.BAD_THING
+""", [
+    makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        analyzerError: "ErrorCode.BAD_THING",
+        cfeError: "Error message."),
+  ]);
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^^^
+/\/ [web] Web message.
+/\/ [analyzer] ErrorCode.BAD_THING
+""", [
+    makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        analyzerError: "ErrorCode.BAD_THING",
+        webError: "Web message."),
+  ]);
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^^^
+/\/ [web] Web message.
+/\/ [cfe] Error message.
+""", [
+    makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        cfeError: "Error message.",
+        webError: "Web message."),
+  ]);
+
   // Must have at least one error message.
   expectFormatError("""
 int i = "s";
@@ -487,26 +529,6 @@ int i = "s";
 int i = "s";
 /\/ ^^^
 /\/ [wat] Error message.
-""");
-
-  // Front ends must be ordered.
-  expectFormatError("""
-int i = "s";
-/\/      ^^^
-/\/ [cfe] Error message.
-/\/ [analyzer] ErrorCode.BAD_THING
-""");
-  expectFormatError("""
-int i = "s";
-/\/      ^^^
-/\/ [web] Error message.
-/\/ [analyzer] ErrorCode.BAD_THING
-""");
-  expectFormatError("""
-int i = "s";
-/\/      ^^^
-/\/ [web] Error message.
-/\/ [cfe] Error message
 """);
 
   // Analyzer error must look like an error code.
@@ -567,6 +589,53 @@ int i = "s";
 /\/ [web] Web 1.
 /\/ [web] Web 2.
 """);
+}
+
+void testIsRuntimeTest() {
+  // No static errors at all.
+  var file = parseTestFile("");
+  Expect.isTrue(file.isRuntimeTest);
+
+  // Only warnings.
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
+  /\/ ^^^
+  /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
+  """);
+  Expect.isTrue(file.isRuntimeTest);
+
+  // Errors.
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
+  """);
+  Expect.isFalse(file.isRuntimeTest);
+
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [cfe] Error message.
+  """);
+  Expect.isFalse(file.isRuntimeTest);
+
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [web] Error message.
+  """);
+  Expect.isFalse(file.isRuntimeTest);
+
+  // Mixed errors and warnings.
+  file = parseTestFile("""
+  int i = "s";
+  /\/ ^^^
+  /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
+  /\/ [cfe] Error message.
+  """);
+  Expect.isFalse(file.isRuntimeTest);
 }
 
 void testName() {

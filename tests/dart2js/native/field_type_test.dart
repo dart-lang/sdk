@@ -12,11 +12,11 @@ import "native_testing.dart";
 class Node {
   Node get parentNode native;
 
-  ModelSource _modelSource; // If null, inherited from parent.
+  ModelSource? _modelSource; // If null, inherited from parent.
 
-  ModelSource get modelSource {
+  ModelSource? get modelSource {
     for (Node node = this; node != null; node = node.parentNode) {
-      ModelSource source = node._modelSource;
+      ModelSource? source = node._modelSource;
       if (source != null) return source;
     }
     return null;
@@ -24,11 +24,11 @@ class Node {
 
   // Copy of above code renamed with suffix '2'.
 
-  ModelSource _modelSource2; // If null, inherited from parent.
+  ModelSource? _modelSource2; // If null, inherited from parent.
 
-  ModelSource get modelSource2 {
+  ModelSource? get modelSource2 {
     for (Node node = this; node != null; node = node.parentNode) {
-      ModelSource source = node._modelSource2;
+      ModelSource? source = node._modelSource2;
       if (source != null) return source;
     }
     return null;

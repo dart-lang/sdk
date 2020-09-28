@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class NewWithNonTypeTest extends DriverResolutionTest {
+class NewWithNonTypeTest extends PubPackageResolutionTest {
   test_functionTypeAlias() async {
     await assertErrorsInCode('''
 typedef F = void Function();
@@ -23,12 +23,12 @@ void foo() {
   new F();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 49, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
     ]);
   }
 
   test_imported() async {
-    newFile("/test/lib/lib.dart", content: "class B {}");
+    newFile('$testPackageLibPath/lib.dart', content: "class B {}");
     await assertErrorsInCode('''
 import 'lib.dart' as lib;
 void f() {
@@ -36,7 +36,7 @@ void f() {
 }
 lib.B b;
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 47, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 47, 1),
     ]);
   }
 
@@ -47,7 +47,20 @@ void f() {
   new A();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 28, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1),
+    ]);
+  }
+
+  test_malformed_constructor_call() async {
+    await assertErrorsInCode('''
+class C {
+  C.x();
+}
+main() {
+  new C.x.y();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 36, 3),
     ]);
   }
 
@@ -57,7 +70,7 @@ void foo<T>() {
   new T();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 22, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 22, 1),
     ]);
   }
 }

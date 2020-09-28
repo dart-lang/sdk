@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -115,14 +114,12 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      var jsonEncoding = json.encode(notification.toJson());
-      _outputLine(jsonEncoding);
-      if (!identical(notification.event, 'server.log')) {
-        _instrumentationService.logNotification(jsonEncoding);
-        _requestStatistics?.logNotification(notification);
-      }
-    });
+    var jsonEncoding = json.encode(notification.toJson());
+    _outputLine(jsonEncoding);
+    if (!identical(notification.event, 'server.log')) {
+      _instrumentationService.logNotification(jsonEncoding);
+      _requestStatistics?.logNotification(notification);
+    }
   }
 
   @override
@@ -132,12 +129,10 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
-    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      _requestStatistics?.addResponse(response);
-      var jsonEncoding = json.encode(response.toJson());
-      _outputLine(jsonEncoding);
-      _instrumentationService.logResponse(jsonEncoding);
-    });
+    _requestStatistics?.addResponse(response);
+    var jsonEncoding = json.encode(response.toJson());
+    _outputLine(jsonEncoding);
+    _instrumentationService.logResponse(jsonEncoding);
   }
 
   /// Send the string [s] to [_output] followed by a newline.
@@ -156,17 +151,15 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
-    ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
-      _instrumentationService.logRequest(data);
-      // Parse the string as a JSON descriptor and process the resulting
-      // structure as a request.
-      var request = Request.fromString(data);
-      if (request == null) {
-        sendResponse(Response.invalidRequestFormat());
-        return;
-      }
-      _requestStatistics?.addRequest(request);
-      onRequest(request);
-    });
+    _instrumentationService.logRequest(data);
+    // Parse the string as a JSON descriptor and process the resulting
+    // structure as a request.
+    var request = Request.fromString(data);
+    if (request == null) {
+      sendResponse(Response.invalidRequestFormat());
+      return;
+    }
+    _requestStatistics?.addRequest(request);
+    onRequest(request);
   }
 }

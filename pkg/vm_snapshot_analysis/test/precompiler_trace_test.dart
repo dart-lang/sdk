@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:vm_snapshot_analysis/precompiler_trace.dart';
+import 'package:vm_snapshot_analysis/program_info.dart';
 
 import 'utils.dart';
 
@@ -70,7 +71,8 @@ void main() async {
     test('basic-parsing', () async {
       await withFlag('basic-parsing', testSource, '--trace_precompiler_to',
           (json) async {
-        final callGraph = await loadTrace(File(json));
+        final jsonRaw = await loadJson(File(json));
+        final callGraph = loadTrace(jsonRaw);
         callGraph.computeDominators();
 
         final main = callGraph.program
@@ -88,14 +90,27 @@ void main() async {
         expect(retainedClasses, containsAll(['A', 'B', 'K']));
         expect(retainedFunctions, containsAll(['print', 'tearOff']));
 
-        final getTearOffCall =
-            callGraph.dynamicCalls.firstWhere((n) => n.data == 'get:tornOff');
+        final getTearOffCall = callGraph.dynamicCalls
+            .firstWhere((n) => n.data == 'dyn:get:tornOff');
         expect(
             getTearOffCall.dominated.map((n) => n.data.qualifiedName),
             equals([
               'package:input/input.dart::B.[tear-off-extractor] get:tornOff',
               'package:input/input.dart::A.[tear-off-extractor] get:tornOff',
             ]));
+      });
+    });
+
+    test('collapse-by-package', () async {
+      await withFlag(
+          'collapse-by-package', testSource, '--trace_precompiler_to',
+          (json) async {
+        final jsonRaw = await loadJson(File(json));
+        final callGraph = loadTrace(jsonRaw).collapse(NodeType.packageNode);
+
+        // Collapsing by package should not collapse dart:* libraries into root
+        // node and create predecessors for the root node.
+        expect(callGraph.root.pred, isEmpty);
       });
     });
   });

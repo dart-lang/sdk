@@ -304,15 +304,9 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 
   const uint8_t* vm_data_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kVmSnapshotDataCSymbol));
-  if (vm_data_buffer == NULL) {
-    FATAL1("Failed to resolve symbol '%s'\n", kVmSnapshotDataCSymbol);
-  }
 
   const uint8_t* vm_instructions_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kVmSnapshotInstructionsCSymbol));
-  if (vm_instructions_buffer == NULL) {
-    FATAL1("Failed to resolve symbol '%s'\n", kVmSnapshotInstructionsCSymbol);
-  }
 
   const uint8_t* isolate_data_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kIsolateSnapshotDataCSymbol));
@@ -474,6 +468,7 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
   dfe.ReadScript(script_name, &kernel_buffer, &kernel_buffer_size);
   if (kernel_buffer != NULL) {
     WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
+    free(kernel_buffer);
   } else {
     Dart_KernelCompilationResult result =
         dfe.CompileScript(script_name, false, package_config);
@@ -541,6 +536,25 @@ void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
+}
+
+bool Snapshot::IsAOTSnapshot(const char* snapshot_filename) {
+  // Header is simply "ELF" prefixed with the DEL character.
+  const char elf_header[] = {0x7F, 0x45, 0x4C, 0x46, 0x0};
+  const int64_t elf_header_len = strlen(elf_header);
+  File* file = File::Open(NULL, snapshot_filename, File::kRead);
+  if (file == nullptr) {
+    return false;
+  }
+  if (file->Length() < elf_header_len) {
+    file->Release();
+    return false;
+  }
+  auto buf = std::unique_ptr<char[]>(new char[elf_header_len]);
+  bool success = file->ReadFully(buf.get(), elf_header_len);
+  file->Release();
+  ASSERT(success);
+  return (strncmp(elf_header, buf.get(), elf_header_len) == 0);
 }
 
 }  // namespace bin

@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
@@ -61,17 +62,11 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(ShutdownMessageHandler(server));
     registerHandler(ExitMessageHandler(server));
     registerHandler(
-      TextDocumentOpenHandler(
-        server,
-        server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles,
-      ),
+      TextDocumentOpenHandler(server),
     );
     registerHandler(TextDocumentChangeHandler(server));
     registerHandler(
-      TextDocumentCloseHandler(
-        server,
-        server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles,
-      ),
+      TextDocumentCloseHandler(server),
     );
     registerHandler(HoverHandler(server));
     registerHandler(CompletionHandler(
@@ -102,6 +97,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(DiagnosticServerHandler(server));
     registerHandler(WorkspaceSymbolHandler(server));
     registerHandler(WorkspaceDidChangeConfigurationMessageHandler(server));
+    registerHandler(ReanalyzeHandler(server));
   }
 }
 

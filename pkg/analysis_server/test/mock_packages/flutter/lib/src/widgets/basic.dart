@@ -65,6 +65,30 @@ class Center extends StatelessWidget {
   const Center({Key key, double heightFactor, Widget child});
 }
 
+class SizedBox extends SingleChildRenderObjectWidget {
+  const SizedBox({Key key, this.width, this.height, Widget child})
+      : super(key: key, child: child);
+
+  const SizedBox.expand({Key key, Widget child})
+      : width = double.infinity,
+        height = double.infinity,
+        super(key: key, child: child);
+
+  const SizedBox.shrink({Key key, Widget child})
+      : width = 0.0,
+        height = 0.0,
+        super(key: key, child: child);
+
+  SizedBox.fromSize({Key key, Widget child, Size size})
+      : width = size?.width,
+        height = size?.height,
+        super(key: key, child: child);
+
+  final double width;
+
+  final double height;
+}
+
 class ClipRect extends SingleChildRenderObjectWidget {
   const ClipRect({Key key, Widget child}) : super(key: key, child: child);
 

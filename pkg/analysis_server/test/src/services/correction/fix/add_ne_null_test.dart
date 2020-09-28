@@ -48,7 +48,7 @@ main(String p, String q) {
   }
 }
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.NON_BOOL_CONDITION, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.NON_BOOL_CONDITION, '''
 main(String p, String q) {
   if (p != null) {
     print(p);

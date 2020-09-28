@@ -44,7 +44,7 @@ var tests = <IsolateTest>[
     result = await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
     var firstReset = result['dateLastAccumulatorReset'];
-    expect(firstReset, new isInstanceOf<String>());
+    expect(firstReset, isA<String>());
     expect(result.containsKey('dateLastServiceGC'), isFalse);
     expect(result.containsKey('_heaps'), isFalse);
     expect(result['members'].length, isPositive);
@@ -74,7 +74,7 @@ var tests = <IsolateTest>[
     expect(result['type'], equals('AllocationProfile'));
     expect(result['dateLastAccumulatorReset'], equals(secondReset));
     var firstGC = result['dateLastServiceGC'];
-    expect(firstGC, new isInstanceOf<String>());
+    expect(firstGC, isA<String>());
     expect(result.containsKey('_heaps'), isFalse);
     expect(result['members'].length, isPositive);
 

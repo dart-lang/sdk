@@ -9,17 +9,27 @@ part of dart.collection;
 /// `ListBase` can be used as a base class for implementing the `List`
 /// interface.
 ///
-/// All operations are defined in terms of `length`, `operator[]`,
-/// `operator[]=` and `length=`, which need to be implemented.
+/// This class implements all read operations using only the `length` and
+/// `operator[]` and members. It implements write operations using those and
+/// `add`, `length=` and `operator[]=`
+/// Classes using this base classs  should implement those five operations.
 ///
-/// *NOTICE*: Forwarding just these four operations to a normal growable [List]
-/// (as created by `[]`) will give very bad performance for `add` and
-/// `addAll` operations of `ListBase`. These operations are implemented by
-/// increasing the length of the list by one for each `add` operation, and
-/// repeatedly increasing the length of a growable list is not efficient.
-/// To avoid this, either override 'add' and 'addAll' to also forward directly
-/// to the growable list, or, preferably, use `DelegatingList` from
-/// "package:collection/collection.dart" instead.
+/// **NOTICE**: For backwards compatability reasons,
+/// there is a default implementation of `add`
+/// which only works for lists with a nullable element type.
+/// For list with a non-nullable element type,
+/// the `add` method must be implemented.
+///
+/// **NOTICE**: Forwarding just the four `length` and `[]` read/write operations
+/// to a normal growable [List] (as created by a `[]` literal)
+/// will give very bad performance for `add` and `addAll` operations
+/// of `ListBase`.
+/// These operations are implemented by
+/// increasing the length of the list by one for each `add` operation,
+/// and repeatedly increasing the length of a growable list is not efficient.
+/// To avoid this, override 'add' and 'addAll' to also forward directly
+/// to the growable list, or, if possible, use `DelegatingList` from
+/// "package:collection/collection.dart" instead of a `ListMixin`.
 abstract class ListBase<E> extends Object with ListMixin<E> {
   /// Converts a [List] to a [String].
   ///
@@ -38,18 +48,27 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
 /// `ListMixin` can be used as a mixin to make a class implement
 /// the `List` interface.
 ///
-/// This implements all read operations using only the `length` and
-/// `operator[]` members. It implements write operations using those and
-/// `length=` and `operator[]=`
+/// This mixin implements all read operations using only the `length` and
+/// `operator[]` and members. It implements write operations using those and
+/// `add`, `length=` and `operator[]=`.
+/// Classes using this mixin should implement those five operations.
 ///
-/// *NOTICE*: Forwarding just these four operations to a normal growable [List]
-/// (as created by `[]`) will give very bad performance for `add` and
-/// `addAll` operations of `ListBase`. These operations are implemented by
-/// increasing the length of the list by one for each `add` operation, and
-/// repeatedly increasing the length of a growable list is not efficient.
-/// To avoid this, either override 'add' and 'addAll' to also forward directly
+/// **NOTICE**: For backwards compatability reasons,
+/// there is a default implementation of `add`
+/// which only works for lists with a nullable element type.
+/// For lists with a non-nullable element type,
+/// the `add` method must be implemented.
+///
+/// **NOTICE**: Forwarding just the four `length` and `[]` read/write operations
+/// to a normal growable [List] (as created by a `[]` literal)
+/// will give very bad performance for `add` and `addAll` operations
+/// of `ListMixin`.
+/// These operations are implemented by
+/// increasing the length of the list by one for each `add` operation,
+/// and repeatedly increasing the length of a growable list is not efficient.
+/// To avoid this, override 'add' and 'addAll' to also forward directly
 /// to the growable list, or, if possible, use `DelegatingList` from
-/// "package:collection/collection.dart" instead.
+/// "package:collection/collection.dart" instead of a `ListMixin`.
 abstract class ListMixin<E> implements List<E> {
   // Iterable interface.
   // TODO(lrn): When we get composable mixins, reuse IterableMixin instead
@@ -255,6 +274,7 @@ abstract class ListMixin<E> implements List<E> {
 
   // List interface.
   void add(E element) {
+    // This implementation only works for lists which allow `null` as element.
     this[this.length++] = element;
   }
 
@@ -504,14 +524,13 @@ abstract class ListMixin<E> implements List<E> {
 
   void insert(int index, E element) {
     ArgumentError.checkNotNull(index, "index");
+    var length = this.length;
     RangeError.checkValueInInterval(index, 0, length, "index");
-    if (index == this.length) {
-      add(element);
-      return;
+    add(element);
+    if (index != length) {
+      setRange(index + 1, length + 1, this, index);
+      this[index] = element;
     }
-    this.length++;
-    setRange(index + 1, this.length, this, index);
-    this[index] = element;
   }
 
   E removeAt(int index) {

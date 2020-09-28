@@ -123,11 +123,7 @@ class SharedClassTable {
     ASSERT(cid < top_);
     trace_allocation_table_.load()[cid] = trace ? 1 : 0;
   }
-  bool TraceAllocationFor(intptr_t cid) {
-    ASSERT(cid > 0);
-    ASSERT(cid < top_);
-    return trace_allocation_table_.load()[cid] != 0;
-  }
+  bool TraceAllocationFor(intptr_t cid);
 #endif  // !defined(PRODUCT)
 
   void CopyBeforeHotReload(intptr_t** copy, intptr_t* copy_num_cids) {
@@ -258,20 +254,34 @@ class ClassTable {
 
   SharedClassTable* shared_class_table() const { return shared_class_table_; }
 
-  void CopyBeforeHotReload(ClassPtr** copy, intptr_t* copy_num_cids) {
+  void CopyBeforeHotReload(ClassPtr** copy,
+                           ClassPtr** tlc_copy,
+                           intptr_t* copy_num_cids,
+                           intptr_t* copy_num_tlc_cids) {
     // The [IsolateReloadContext] will need to maintain a copy of the old class
     // table until instances have been morphed.
     const intptr_t num_cids = NumCids();
-    const intptr_t bytes = sizeof(ClassPtr) * num_cids;
-    auto class_table = static_cast<ClassPtr*>(malloc(bytes));
+    const intptr_t num_tlc_cids = NumTopLevelCids();
+    auto class_table =
+        static_cast<ClassPtr*>(malloc(sizeof(ClassPtr) * num_cids));
+    auto tlc_class_table =
+        static_cast<ClassPtr*>(malloc(sizeof(ClassPtr) * num_tlc_cids));
+
+    // Don't use memmove, which changes this from a relaxed atomic operation
+    // to a non-atomic operation.
     auto table = table_.load();
     for (intptr_t i = 0; i < num_cids; i++) {
-      // Don't use memmove, which changes this from a relaxed atomic operation
-      // to a non-atomic operation.
       class_table[i] = table[i];
     }
-    *copy_num_cids = num_cids;
+    auto tlc_table = tlc_table_.load();
+    for (intptr_t i = 0; i < num_tlc_cids; i++) {
+      tlc_class_table[i] = tlc_table[i];
+    }
+
     *copy = class_table;
+    *tlc_copy = tlc_class_table;
+    *copy_num_cids = num_cids;
+    *copy_num_tlc_cids = num_tlc_cids;
   }
 
   void ResetBeforeHotReload() {
@@ -283,64 +293,79 @@ class ClassTable {
   }
 
   void ResetAfterHotReload(ClassPtr* old_table,
+                           ClassPtr* old_tlc_table,
                            intptr_t num_old_cids,
+                           intptr_t num_old_tlc_cids,
                            bool is_rollback) {
     // The [IsolateReloadContext] is no longer source-of-truth for GC after we
     // return, so we restore size information for all classes.
     if (is_rollback) {
-      SetNumCids(num_old_cids);
+      SetNumCids(num_old_cids, num_old_tlc_cids);
+
+      // Don't use memmove, which changes this from a relaxed atomic operation
+      // to a non-atomic operation.
       auto table = table_.load();
       for (intptr_t i = 0; i < num_old_cids; i++) {
-        // Don't use memmove, which changes this from a relaxed atomic operation
-        // to a non-atomic operation.
         table[i] = old_table[i];
+      }
+      auto tlc_table = tlc_table_.load();
+      for (intptr_t i = 0; i < num_old_tlc_cids; i++) {
+        tlc_table[i] = old_tlc_table[i];
       }
     } else {
       CopySizesFromClassObjects();
     }
 
-    // Can't free this table immediately as another thread (e.g., concurrent
+    // Can't free these tables immediately as another thread (e.g., concurrent
     // marker or sweeper) may be between loading the table pointer and loading
     // the table element. The table will be freed at the next major GC or
     // isolate shutdown.
     AddOldTable(old_table);
+    AddOldTable(old_tlc_table);
   }
 
   // Thread-safe.
-  ClassPtr At(intptr_t index) const {
-    ASSERT(IsValidIndex(index));
-    return table_.load()[index];
+  ClassPtr At(intptr_t cid) const {
+    ASSERT(IsValidIndex(cid));
+    if (IsTopLevelCid(cid)) {
+      return tlc_table_.load()[IndexFromTopLevelCid(cid)];
+    }
+    return table_.load()[cid];
   }
 
   intptr_t SizeAt(intptr_t index) const {
+    if (IsTopLevelCid(index)) {
+      return 0;
+    }
     return shared_class_table_->SizeAt(index);
   }
 
   void SetAt(intptr_t index, ClassPtr raw_cls);
 
-  bool IsValidIndex(intptr_t index) const {
-    return shared_class_table_->IsValidIndex(index);
+  bool IsValidIndex(intptr_t cid) const {
+    if (IsTopLevelCid(cid)) {
+      return IndexFromTopLevelCid(cid) < tlc_top_;
+    }
+    return shared_class_table_->IsValidIndex(cid);
   }
 
-  bool HasValidClassAt(intptr_t index) const {
-    ASSERT(IsValidIndex(index));
-    return table_.load()[index] != nullptr;
+  bool HasValidClassAt(intptr_t cid) const {
+    ASSERT(IsValidIndex(cid));
+    if (IsTopLevelCid(cid)) {
+      return tlc_table_.load()[IndexFromTopLevelCid(cid)] != nullptr;
+    }
+    return table_.load()[cid] != nullptr;
   }
 
   intptr_t NumCids() const { return shared_class_table_->NumCids(); }
+  intptr_t NumTopLevelCids() const { return tlc_top_; }
   intptr_t Capacity() const { return shared_class_table_->Capacity(); }
 
-  // Used to drop recently added classes.
-  void SetNumCids(intptr_t num_cids) {
-    shared_class_table_->SetNumCids(num_cids);
-
-    ASSERT(num_cids <= top_);
-    top_ = num_cids;
-  }
-
   void Register(const Class& cls);
+  void RegisterTopLevel(const Class& cls);
   void AllocateIndex(intptr_t index);
   void Unregister(intptr_t index);
+  void UnregisterTopLevel(intptr_t index);
 
   void Remap(intptr_t* old_to_new_cids);
 
@@ -374,6 +399,17 @@ class ClassTable {
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
 
+  static bool IsTopLevelCid(intptr_t cid) { return cid >= kTopLevelCidOffset; }
+
+  static intptr_t IndexFromTopLevelCid(intptr_t cid) {
+    ASSERT(IsTopLevelCid(cid));
+    return cid - kTopLevelCidOffset;
+  }
+
+  static intptr_t CidFromTopLevelIndex(intptr_t index) {
+    return kTopLevelCidOffset + index;
+  }
+
  private:
   friend class GCMarker;
   friend class MarkingWeakVisitor;
@@ -387,24 +423,54 @@ class ClassTable {
   static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
   static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
 
+  static const intptr_t kTopLevelCidOffset = (1 << 16);
+
   void AddOldTable(ClassPtr* old_table);
+  void AllocateTopLevelIndex(intptr_t index);
 
   void Grow(intptr_t index);
+  void GrowTopLevel(intptr_t index);
 
   ClassPtr* table() { return table_.load(); }
   void set_table(ClassPtr* table);
 
+  // Used to drop recently added classes.
+  void SetNumCids(intptr_t num_cids, intptr_t num_tlc_cids) {
+    shared_class_table_->SetNumCids(num_cids);
+
+    ASSERT(num_cids <= top_);
+    top_ = num_cids;
+
+    ASSERT(num_tlc_cids <= tlc_top_);
+    tlc_top_ = num_tlc_cids;
+  }
+
   intptr_t top_;
   intptr_t capacity_;
+
+  intptr_t tlc_top_;
+  intptr_t tlc_capacity_;
 
   // Copy-on-write is used for table_, with old copies stored in
   // old_class_tables_.
   AcqRelAtomic<ClassPtr*> table_;
+  AcqRelAtomic<ClassPtr*> tlc_table_;
   MallocGrowableArray<ClassPtr*>* old_class_tables_;
   SharedClassTable* shared_class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassTable);
 };
+
+#if !defined(PRODUCT)
+DART_FORCE_INLINE bool SharedClassTable::TraceAllocationFor(intptr_t cid) {
+  ASSERT(cid > 0);
+  if (ClassTable::IsTopLevelCid(cid)) {
+    return false;
+  }
+  ASSERT(cid < top_);
+  return trace_allocation_table_.load()[cid] != 0;
+}
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart
 

@@ -32,8 +32,8 @@ class NullableDereferenceVerifier {
 
   void report(AstNode errorNode, DartType receiverType) {
     var errorCode = receiverType == _typeSystem.typeProvider.nullType
-        ? StaticWarningCode.INVALID_USE_OF_NULL_VALUE
-        : StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
+        ? CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE
+        : CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
     _errorReporter.reportErrorForNode(errorCode, errorNode);
   }
 

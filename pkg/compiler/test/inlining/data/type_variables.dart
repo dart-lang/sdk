@@ -9,12 +9,12 @@ main() {
   inlineTypeTests();
 }
 
-/*member: Mixin1.:[inlineTypeTests:Mixin1<int*>]*/
+/*member: Mixin1.:closure*/
 class Mixin1<S> {
   var field = /*[]*/ (S s) => null;
 }
 
-/*member: Class1.:[inlineTypeTests:Class1<int*>]*/
+/*member: Class1.:closure*/
 class Class1<T> extends Object with Mixin1<T> {}
 
 /*member: _inlineTypeTests:[inlineTypeTests]*/

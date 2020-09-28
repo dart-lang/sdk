@@ -2,24 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AmbiguousSetOrMapLiteralBothTest);
-    defineReflectiveTests(AmbiguousSetOrMapLiteralBothWithNnbdTest);
+    defineReflectiveTests(AmbiguousSetOrMapLiteralBothWithNullSafetyTest);
     defineReflectiveTests(AmbiguousSetOrMapLiteralEitherTest);
-    defineReflectiveTests(AmbiguousSetOrMapLiteralEitherWithNnbdTest);
+    defineReflectiveTests(AmbiguousSetOrMapLiteralEitherWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralBothTest extends DriverResolutionTest {
+class AmbiguousSetOrMapLiteralBothTest extends PubPackageResolutionTest {
   test_map() async {
     await assertNoErrorsInCode('''
 f(Map<int, int> map) {
@@ -64,13 +62,8 @@ f(Map<int, int> map, Set<int> set) {
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralBothWithNnbdTest
-    extends AmbiguousSetOrMapLiteralBothTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
+class AmbiguousSetOrMapLiteralBothWithNullSafetyTest
+    extends AmbiguousSetOrMapLiteralBothTest with WithNullSafetyMixin {
   test_map_keyNonNullable_valueNullable() async {
     await assertNoErrorsInCode('''
 f(Map<int, int?> map) {
@@ -115,7 +108,7 @@ f(Map<int?, int> map, Set<int?> set) {
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralEitherTest extends DriverResolutionTest {
+class AmbiguousSetOrMapLiteralEitherTest extends PubPackageResolutionTest {
   test_invalidPrefixOperator() async {
     // Guard against an exception being thrown.
     await assertErrorsInCode('''
@@ -137,10 +130,5 @@ var c = {...set, ...map};
 }
 
 @reflectiveTest
-class AmbiguousSetOrMapLiteralEitherWithNnbdTest
-    extends AmbiguousSetOrMapLiteralEitherTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-}
+class AmbiguousSetOrMapLiteralEitherWithNullSafetyTest
+    extends AmbiguousSetOrMapLiteralEitherTest with WithNullSafetyMixin {}

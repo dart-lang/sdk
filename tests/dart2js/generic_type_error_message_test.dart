@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong
-
 import 'package:expect/expect.dart';
 
 class Foo<T extends num> {}
@@ -21,14 +19,14 @@ main() {
   test(c as Baz<num>, Baz, expectTypeArguments: true);
 }
 
-void test(dynamic object, Type type, {bool expectTypeArguments}) {
+void test(dynamic object, Type type, {required bool expectTypeArguments}) {
   bool caught = false;
   try {
     print(type);
     object as List<String>;
   } catch (e) {
     String expected = '$type';
-    if (!expectTypeArguments) {
+    if (!expectTypeArguments!) {
       expected = expected.substring(0, expected.indexOf('<'));
     }
     expected = '$expected';

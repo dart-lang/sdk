@@ -28,6 +28,8 @@ import 'environment.dart';
 import 'frontend_strategy.dart';
 import 'inferrer/abstract_value_domain.dart' show AbstractValueStrategy;
 import 'inferrer/trivial.dart' show TrivialAbstractValueStrategy;
+import 'inferrer/powersets/wrapped.dart' show WrappedAbstractValueStrategy;
+import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
@@ -138,6 +140,13 @@ abstract class Compiler {
     abstractValueStrategy = options.useTrivialAbstractValueDomain
         ? const TrivialAbstractValueStrategy()
         : const TypeMaskStrategy();
+    if (options.experimentalWrapped) {
+      abstractValueStrategy =
+          WrappedAbstractValueStrategy(abstractValueStrategy);
+    } else if (options.experimentalPowersets) {
+      abstractValueStrategy = PowersetStrategy(abstractValueStrategy);
+    }
+
     CompilerTask kernelFrontEndTask;
     selfTask = new GenericTask('self', measurer);
     _outputProvider = new _CompilerOutput(this, outputProvider);

@@ -24,13 +24,17 @@ class FlowAnalysisDataForTesting {
   /// there is a `return` statement at the end of the function body block.
   final List<FunctionBody> functionBodiesThatDontComplete = [];
 
-  /// The list of [Expression]s representing variable accesses that occur before
-  /// the corresponding variable has been definitely assigned.
-  final List<AstNode> potentiallyUnassignedNodes = [];
+  /// The list of references to variables, where a variable is read, and
+  /// is not definitely assigned.
+  final List<SimpleIdentifier> notDefinitelyAssigned = [];
 
-  /// The list of [SimpleIdentifier]s representing variable accesses that occur
-  /// when the corresponding variable has been definitely unassigned.
-  final List<AstNode> definitelyUnassignedNodes = [];
+  /// The list of references to variables, where a variable is read, and
+  /// is definitely assigned.
+  final List<SimpleIdentifier> definitelyAssigned = [];
+
+  /// The list of references to variables, where a variable is written, and
+  /// is definitely unassigned.
+  final List<SimpleIdentifier> definitelyUnassigned = [];
 
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
@@ -77,30 +81,16 @@ class FlowAnalysisHelper {
     flow.asExpression_end(expression, typeAnnotation.type);
   }
 
-  VariableElement assignmentExpression(AssignmentExpression node) {
+  void assignmentExpression(AssignmentExpression node) {
     if (flow == null) return null;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      flow.ifNullExpression_rightBegin(node.leftHandSide);
+      flow.ifNullExpression_rightBegin(node.leftHandSide, node.readType);
     }
-
-    var left = node.leftHandSide;
-
-    if (left is SimpleIdentifier) {
-      var element = left.staticElement;
-      if (element is VariableElement) {
-        return element;
-      }
-    }
-
-    return null;
   }
 
-  void assignmentExpression_afterRight(AssignmentExpression node,
-      VariableElement localElement, DartType writtenType) {
-    if (localElement != null) {
-      flow.write(localElement, writtenType);
-    }
+  void assignmentExpression_afterRight(AssignmentExpression node) {
+    if (flow == null) return null;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
       flow.ifNullExpression_end();
@@ -158,6 +148,36 @@ class FlowAnalysisHelper {
     flow.for_conditionBegin(node);
   }
 
+  bool isDefinitelyAssigned(
+    SimpleIdentifier node,
+    PromotableElement element,
+  ) {
+    var isAssigned = flow.isAssigned(element);
+
+    if (dataForTesting != null) {
+      if (isAssigned) {
+        dataForTesting.definitelyAssigned.add(node);
+      } else {
+        dataForTesting.notDefinitelyAssigned.add(node);
+      }
+    }
+
+    return isAssigned;
+  }
+
+  bool isDefinitelyUnassigned(
+    SimpleIdentifier node,
+    PromotableElement element,
+  ) {
+    var isUnassigned = flow.isUnassigned(element);
+
+    if (dataForTesting != null && isUnassigned) {
+      dataForTesting.definitelyUnassigned.add(node);
+    }
+
+    return isUnassigned;
+  }
+
   void isExpression(IsExpression node) {
     if (flow == null) return;
 
@@ -170,52 +190,6 @@ class FlowAnalysisHelper {
       node.notOperator != null,
       typeAnnotation.type,
     );
-  }
-
-  bool isPotentiallyNonNullableLocalReadBeforeWrite(SimpleIdentifier node) {
-    if (flow == null) return false;
-
-    if (node.inDeclarationContext()) return false;
-    if (!node.inGetterContext()) return false;
-
-    var element = node.staticElement;
-    if (element is LocalVariableElement) {
-      var typeSystem = _typeOperations.typeSystem;
-      var isUnassigned = !flow.isAssigned(element);
-      if (isUnassigned) {
-        dataForTesting?.potentiallyUnassignedNodes?.add(node);
-      }
-      if (typeSystem.isPotentiallyNonNullable(element.type)) {
-        // Note: in principle we could make this slightly more performant by
-        // checking element.isLate earlier, but we would lose the ability to
-        // test the flow analysis mechanism using late variables.  And it seems
-        // unlikely that the `late` modifier will be used often enough for it to
-        // make a significant difference.
-        if (element.isLate) return false;
-        return isUnassigned;
-      }
-    }
-
-    return false;
-  }
-
-  bool isReadOfDefinitelyUnassignedLateLocal(SimpleIdentifier node) {
-    if (flow == null) return false;
-
-    if (node.inDeclarationContext()) return false;
-    if (!node.inGetterContext()) return false;
-
-    var element = node.staticElement;
-    if (element is LocalVariableElement) {
-      if (flow.isUnassigned(element)) {
-        dataForTesting?.definitelyUnassignedNodes?.add(node);
-        if (element.isLate) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   void labeledStatement_enter(LabeledStatement node) {
@@ -351,6 +325,17 @@ class TypeSystemTypeOperations
   TypeSystemTypeOperations(this.typeSystem);
 
   @override
+  TypeClassification classifyType(DartType type) {
+    if (isSubtypeOf(type, typeSystem.typeProvider.objectType)) {
+      return TypeClassification.nonNullable;
+    } else if (isSubtypeOf(type, typeSystem.typeProvider.nullType)) {
+      return TypeClassification.nullOrEquivalent;
+    } else {
+      return TypeClassification.potentiallyNullable;
+    }
+  }
+
+  @override
   DartType factor(DartType from, DartType what) {
     return typeSystem.factor(from, what);
   }
@@ -359,7 +344,12 @@ class TypeSystemTypeOperations
   bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
     return variable is LocalVariableElement &&
         variable.hasImplicitType &&
-        variable.initializer == null;
+        !variable.hasInitializer;
+  }
+
+  @override
+  bool isNever(DartType type) {
+    return typeSystem.isBottom(type);
   }
 
   @override

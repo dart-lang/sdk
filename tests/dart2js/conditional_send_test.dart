@@ -10,12 +10,12 @@ import "package:expect/expect.dart";
 confuse(x) => x;
 
 class A {
-  int x;
+  int? x;
   m() => "a";
 }
 
 main(args) {
   var a = confuse(true) ? null : new A();
   a?.x = 3;
-  Expect.throws(() => a.m());
+  Expect.throws(() => a!.m());
 }

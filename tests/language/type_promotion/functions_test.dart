@@ -43,7 +43,7 @@ testFuncAtoDyn() {
   b = funcAtoDyn(new B());
   c = funcAtoDyn(new C());
   //             ^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //                 ^
   // [cfe] The argument type 'C' can't be assigned to the parameter type 'A'.
 
@@ -76,7 +76,7 @@ testFuncDynToDyn() {
     // Returned value has type `void`, usage is restricted.
     Object o = funcDynToDyn(null);
     //         ^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
     //                     ^
     // [cfe] This expression has type 'void' and can't be used.
   }
@@ -87,7 +87,7 @@ testFuncDynToDyn() {
     b = funcDynToDyn(new B()) as B;
     c = funcDynToDyn(new C());
     //  ^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //              ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
   }
@@ -97,17 +97,17 @@ testFuncDynToVoid() {
   FuncDynToVoid funcDynToVoid = func;
   a = funcDynToVoid(new A());
   //  ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //               ^
   // [cfe] This expression has type 'void' and can't be used.
   b = funcDynToVoid(new B());
   //  ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //               ^
   // [cfe] This expression has type 'void' and can't be used.
   c = funcDynToVoid(new C());
   //  ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //               ^
   // [cfe] This expression has type 'void' and can't be used.
 
@@ -124,7 +124,7 @@ testFuncDynToVoid() {
     b = funcDynToVoid(new B()) as B;
     c = funcDynToVoid(new C());
     //  ^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //               ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
   }
@@ -136,7 +136,7 @@ testFuncDynToA() {
   b = funcDynToA(new B()) as B;
   c = funcDynToA(new C());
   //  ^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //            ^
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
 
@@ -146,7 +146,7 @@ testFuncDynToA() {
     b = funcDynToA(new B()) as B;
     c = funcDynToA(new C());
     //  ^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //            ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
   }
@@ -157,7 +157,7 @@ testFuncDynToA() {
     b = funcDynToA(new B()) as B;
     c = funcDynToA(new C());
     //  ^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //            ^
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'C'.
   }

@@ -69,7 +69,6 @@
     "Dynamic access of 'dart.collection::_modifications'.": 5,
     "Dynamic access of 'dart.collection::_map'.": 4,
     "Dynamic access of 'dart.collection::_elements'.": 1,
-    "Dynamic access of 'dart.collection::_element'.": 1,
     "Dynamic access of 'dart.collection::_first'.": 1
   },
   "org-dartlang-sdk:///lib/html/dart2js/html_dart2js.dart": {

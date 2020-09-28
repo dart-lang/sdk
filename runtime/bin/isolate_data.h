@@ -11,6 +11,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/growable_array.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -96,10 +97,15 @@ class IsolateGroupData {
     return app_snapshot_ != nullptr || isolate_run_app_snapshot_;
   }
 
+  void AddLoadingUnit(AppSnapshot* loading_unit) {
+    loading_units_.Add(loading_unit);
+  }
+
  private:
   friend class IsolateData;  // For packages_file_
 
   std::unique_ptr<AppSnapshot> app_snapshot_;
+  MallocGrowableArray<AppSnapshot*> loading_units_;
   char* resolved_packages_config_;
   std::shared_ptr<uint8_t> kernel_buffer_;
   intptr_t kernel_buffer_size_;

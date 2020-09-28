@@ -3,54 +3,357 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
+import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DeprecatedMemberUseFromSamePackageTest);
-    defineReflectiveTests(DeprecatedMemberUseTest);
+    defineReflectiveTests(DeprecatedMemberUse_BasicWorkspaceTest);
+    defineReflectiveTests(DeprecatedMemberUse_BazelWorkspaceTest);
+    defineReflectiveTests(DeprecatedMemberUse_GnWorkspaceTest);
+    defineReflectiveTests(DeprecatedMemberUse_PackageBuildWorkspaceTest);
+
+    defineReflectiveTests(
+      DeprecatedMemberUseFromSamePackage_BasicWorkspaceTest,
+    );
+    defineReflectiveTests(
+      DeprecatedMemberUseFromSamePackage_BazelWorkspaceTest,
+    );
+    defineReflectiveTests(
+      DeprecatedMemberUseFromSamePackage_PackageBuildWorkspaceTest,
+    );
   });
 }
 
 @reflectiveTest
-class DeprecatedMemberUseFromSamePackageTest extends DriverResolutionTest {
-  test_basicWorkspace() async {
-    newFile('/workspace/lib/deprecated_library.dart', content: r'''
+class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
+  }
+
+  test_export() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 @deprecated
-library deprecated_library;
-class A {}
+library a;
 ''');
 
-    await assertErrorsInFile('/workspace/lib/test.dart', r'''
-import 'deprecated_library.dart';
-f(A a) {}
+    assertBasicWorkspaceFor(testFilePath);
+
+    await assertErrorsInCode('''
+export 'package:aaa/a.dart';
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 0, 33),
+      error(HintCode.DEPRECATED_MEMBER_USE, 0, 28),
     ]);
   }
 
-  test_bazelWorkspace() async {
-    newFile('/workspace/WORKSPACE');
-    newFile('/workspace/project/BUILD');
-    newFolder('/workspace/bazel-genfiles');
-
-    newFile('/workspace/project/lib/deprecated_library.dart', content: r'''
-@deprecated
-library deprecated_library;
-class A {}
+  test_fieldGet_implicitGetter() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+class A {
+  @deprecated
+  int foo = 0;
+}
 ''');
 
-    await assertErrorsInFile('/workspace/project/lib/lib1.dart', r'''
-import 'deprecated_library.dart';
-f(A a) {}
+    assertBasicWorkspaceFor(testFilePath);
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo;
+}
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 0, 33),
+      error(HintCode.DEPRECATED_MEMBER_USE, 48, 3),
     ]);
   }
 
+  test_fieldSet_implicitSetter() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+class A {
+  @deprecated
+  int foo = 0;
+}
+''');
+
+    assertBasicWorkspaceFor(testFilePath);
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo = 0;
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 48, 3),
+    ]);
+  }
+
+  test_import() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+@deprecated
+library a;
+''');
+
+    assertBasicWorkspaceFor(testFilePath);
+
+    await assertErrorsInCode(r'''
+// ignore:unused_import
+import 'package:aaa/a.dart';
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 24, 28,
+          messageContains: 'package:aaa/a.dart'),
+    ]);
+  }
+
+  test_methodInvocation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+class A {
+  @deprecated
+  void foo() {}
+}
+''');
+
+    assertBasicWorkspaceFor(testFilePath);
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 48, 3),
+    ]);
+  }
+
+  test_methodInvocation_withMessage() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+class A {
+  @Deprecated('0.9')
+  void foo() {}
+}
+''');
+
+    assertBasicWorkspaceFor(testFilePath);
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 48, 3),
+    ]);
+  }
+
+  test_setterInvocation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+class A {
+  @deprecated
+  set foo(int _) {}
+}
+''');
+
+    assertBasicWorkspaceFor(testFilePath);
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo = 0;
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 48, 3),
+    ]);
+  }
+}
+
+@reflectiveTest
+class DeprecatedMemberUse_BazelWorkspaceTest
+    extends BazelWorkspaceResolutionTest {
+  test_dart() async {
+    newFile('$workspaceRootPath/foo/bar/lib/a.dart', content: r'''
+@deprecated
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:foo.bar/a.dart';
+
+void f(A a) {}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 41, 1),
+    ]);
+  }
+
+  test_thirdPartyDart() async {
+    newFile('$workspaceThirdPartyDartPath/aaa/lib/a.dart', content: r'''
+@deprecated
+class A {}
+''');
+
+    assertBazelWorkspaceFor(testFilePath);
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 37, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
+  @override
+  List<String> get collectionIncludedPaths => [workspaceRootPath];
+
+  String get myPackageLibPath => '$myPackageRootPath/lib';
+
+  String get myPackageRootPath => '$workspaceRootPath/my';
+
+  @override
+  String get testFilePath => '$myPackageLibPath/my.dart';
+
+  String get workspaceRootPath => '/workspace';
+
+  @override
+  void setUp() {
+    super.setUp();
+    newFolder('$workspaceRootPath/.jiri_root');
+  }
+
+  test_differentPackage() async {
+    newFile('$workspaceRootPath/my/pubspec.yaml');
+    newFile('$workspaceRootPath/my/BUILD.gn');
+
+    newFile('$workspaceRootPath/aaa/pubspec.yaml');
+    newFile('$workspaceRootPath/aaa/BUILD.gn');
+
+    _writeWorkspacePackagesFile({
+      'aaa': '$workspaceRootPath/aaa/lib',
+      'my': myPackageLibPath,
+    });
+
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+@deprecated
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 37, 1),
+    ]);
+  }
+
+  test_samePackage() async {
+    newFile('$workspaceRootPath/my/pubspec.yaml');
+    newFile('$workspaceRootPath/my/BUILD.gn');
+
+    _writeWorkspacePackagesFile({
+      'my': myPackageLibPath,
+    });
+
+    newFile('$myPackageLibPath/a.dart', content: r'''
+@deprecated
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:my/a.dart';
+
+void f(A a) {}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 36, 1),
+    ]);
+  }
+
+  @override
+  void verifyCreatedCollection() {
+    super.verifyCreatedCollection();
+    assertGnWorkspaceFor(testFilePath);
+  }
+
+  void _writeWorkspacePackagesFile(Map<String, String> nameToLibPath) {
+    var builder = StringBuffer();
+    for (var entry in nameToLibPath.entries) {
+      builder.writeln('${entry.key}:${toUriStr(entry.value)}');
+    }
+
+    var buildDir = 'out/debug-x87_128';
+    var genPath = '$workspaceRootPath/$buildDir/dartlang/gen';
+    newFile('$genPath/foo.packages', content: builder.toString());
+  }
+}
+
+@reflectiveTest
+class DeprecatedMemberUse_PackageBuildWorkspaceTest
+    extends _PackageBuildWorkspaceBase {
+  test_generated() async {
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
+
+    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    _newTestPackageGeneratedFile(
+      packageName: 'aaa',
+      pathInLib: 'a.dart',
+      content: r'''
+@deprecated
+class A {}
+''',
+    );
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 37, 1),
+    ]);
+  }
+
+  test_lib() async {
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
+
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
+@deprecated
+class A {}
+''');
+
+    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    _createTestPackageBuildMarker();
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 37, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class DeprecatedMemberUseFromSamePackage_BasicWorkspaceTest
+    extends PubPackageResolutionTest {
   test_call() async {
     await assertErrorsInCode(r'''
 class A {
@@ -63,6 +366,21 @@ class A {
 }
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 67, 3),
+    ]);
+  }
+
+  test_class() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+@deprecated
+class A {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart';
+
+void f(A a) {}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 25, 1),
     ]);
   }
 
@@ -82,7 +400,7 @@ f(A a) {
   }
 
   test_export() async {
-    newFile("/test/lib/deprecated_library.dart", content: r'''
+    newFile('$testPackageLibPath/deprecated_library.dart', content: r'''
 @deprecated
 library deprecated_library;
 class A {}
@@ -122,33 +440,8 @@ f(A a) {
     ]);
   }
 
-  test_gnWorkspace() async {
-    newFolder('/workspace/.jiri_root');
-    newFile('/workspace/project/pubspec.yaml');
-    newFile('/workspace/project/BUILD.gn');
-    String buildDir = convertPath('out/debug-x87_128');
-    newFile('/workspace/.config', content: '''
-FOO=foo
-FUCHSIA_BUILD_DIR=$buildDir
-''');
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/project/foo.packages');
-
-    newFile('/workspace/project/lib/deprecated_library.dart', content: r'''
-@deprecated
-library deprecated_library;
-class A {}
-''');
-
-    await assertErrorsInFile('/workspace/project/lib/lib1.dart', r'''
-import 'deprecated_library.dart';
-f(A a) {}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 0, 33),
-    ]);
-  }
-
   test_import() async {
-    newFile("/test/lib/deprecated_library.dart", content: r'''
+    newFile('$testPackageLibPath/deprecated_library.dart', content: r'''
 @deprecated
 library deprecated_library;
 class A {}
@@ -352,25 +645,6 @@ f(A a, A b) {
     ]);
   }
 
-  test_packageBuildWorkspace() async {
-    newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    newFileWithBytes('/workspace/.packages', 'project:lib/'.codeUnits);
-
-    newFile('/workspace/lib/deprecated_library.dart', content: r'''
-@deprecated
-library deprecated_library;
-class A {}
-''');
-
-    await assertErrorsInFile('/workspace/lib/lib1.dart', r'''
-import 'deprecated_library.dart';
-f(A a) {}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 0, 33),
-    ]);
-  }
-
   test_parameter_named() async {
     await assertErrorsInCode(r'''
 class A {
@@ -476,252 +750,111 @@ class B extends A {
       error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 63, 7),
     ]);
   }
+
+  test_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+@deprecated
+int x = 1;
+
+int f() {
+  return x;
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 43, 1),
+    ]);
+  }
 }
 
 @reflectiveTest
-class DeprecatedMemberUseTest extends DriverResolutionTest {
-  /// Write a pubspec file at [root], so that BestPracticesVerifier can see that
-  /// [root] is the root of a PubWorkspace, and a PubWorkspacePackage.
-  void newPubPackage(String root) {
-    newFile('$root/pubspec.yaml');
-  }
-
-  void resetWithFooLibrary(String content) {
-    newFile('/aaa/lib/a.dart', content: content);
-  }
-
-  test_basicWorkspace() async {
-    resetWithFooLibrary(r'''
+class DeprecatedMemberUseFromSamePackage_BazelWorkspaceTest
+    extends BazelWorkspaceResolutionTest {
+  test_it() async {
+    newFile('$myPackageLibPath/a.dart', content: r'''
 @deprecated
-library deprecated_library;
 class A {}
 ''');
 
     await assertErrorsInCode(r'''
-import 'package:aaa/a.dart';
-f(A a) {}
+import 'a.dart';
+
+void f(A a) {}
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 0, 28),
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 25, 1),
     ]);
   }
-
-  test_bazelWorkspace() async {
-    resetWithFooLibrary(r'''
-@deprecated
-library deprecated_library;
-class A {}
-''');
-
-    newFile('/workspace/WORKSPACE');
-    newFile('/workspace/project/BUILD');
-    newFolder('/workspace/bazel-genfiles');
-
-    await assertErrorsInFile('/workspace/project/lib/lib1.dart', r'''
-import 'package:aaa/a.dart';
-f(A a) {}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 0, 28),
-    ]);
-  }
-
-  test_bazelWorkspace_sameWorkspace() async {
-    newFile('/workspace/WORKSPACE');
-    newFile('/workspace/project_a/BUILD');
-    newFile('/workspace/project_b/BUILD');
-    newFolder('/workspace/bazel-genfiles');
-
-    newFile('/workspace/project_a/lib/deprecated_library.dart', content: r'''
-@deprecated
-library deprecated_library;
-class A {}
-''');
-
-    await assertErrorsInFile('/workspace/project_b/lib/lib1.dart', r'''
-import '../../project_a/lib/deprecated_library.dart';
-f(A a) {}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 0, 53),
-    ]);
-  }
-
-  test_export() async {
-    resetWithFooLibrary(r'''
-@deprecated
-library deprecated_library;
-class A {}
-''');
-
-    newPubPackage('/pkg1');
-    await assertErrorsInFile('/pkg1/lib/lib1.dart', '''
-export 'package:aaa/a.dart';
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 0, 28),
-    ]);
-  }
-
-  test_fieldGet_implicitGetter() async {
-    resetWithFooLibrary(r'''
-class A {
-  @Deprecated('0.9')
-  bool bob = true;
 }
-''');
 
-    newPubPackage('/pkg1');
-    await assertErrorsInFile('/pkg1/lib/lib1.dart', r'''
-import 'package:aaa/a.dart';
-void main() { A().bob; }
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 47, 3),
-    ]);
-  }
+@reflectiveTest
+class DeprecatedMemberUseFromSamePackage_PackageBuildWorkspaceTest
+    extends _PackageBuildWorkspaceBase {
+  test_generated() async {
+    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
 
-  test_fieldSet_implicitSetter() async {
-    resetWithFooLibrary(r'''
-class A {
-  @Deprecated('0.9')
-  bool bob = true;
-}
-''');
-
-    newPubPackage('/pkg1');
-    await assertErrorsInFile('/pkg1/lib/lib1.dart', r'''
-import 'package:aaa/a.dart';
-void main() { A().bob = false; }
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 47, 3),
-    ]);
-  }
-
-  test_gnWorkspace() async {
-    resetWithFooLibrary(r'''
+    _newTestPackageGeneratedFile(
+      packageName: 'test',
+      pathInLib: 'a.dart',
+      content: r'''
 @deprecated
-library deprecated_library;
 class A {}
-''');
+''',
+    );
 
-    newFolder('/workspace/.jiri_root');
-    newFile('/workspace/project/pubspec.yaml');
-    String buildDir = convertPath('out/debug-x87_128');
-    newFile('/workspace/.config', content: '''
-FOO=foo
-FUCHSIA_BUILD_DIR=$buildDir
-BAR=bar
-''');
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/project/foo.packages');
+    await assertErrorsInCode(r'''
+import 'a.dart';
 
-    await assertErrorsInFile('/workspace/project/lib/lib1.dart', r'''
-import 'package:aaa/a.dart';
-f(A a) {}
+void f(A a) {}
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 0, 28),
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 25, 1),
     ]);
   }
 
-  test_gnWorkspace_sameWorkspace() async {
-    newFolder('/workspace/.jiri_root');
-    newFile('/workspace/project_a/pubspec.yaml');
-    newFile('/workspace/project_b/pubspec.yaml');
-    newFile('/workspace/project_a/BUILD.gn');
-    newFile('/workspace/project_b/BUILD.gn');
-    String buildDir = convertPath('out/debug-x87_128');
-    newFile('/workspace/.config', content: '''
-FOO=foo
-FUCHSIA_BUILD_DIR=$buildDir
-''');
-    newFile('/workspace/out/debug-x87_128/dartlang/gen/project_a/foo.packages');
+  test_lib() async {
+    newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
+    _createTestPackageBuildMarker();
 
-    newFile('/workspace/project_a/lib/deprecated_library.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 @deprecated
-library deprecated_library;
 class A {}
-''');
-
-    await assertErrorsInFile('/workspace/project_b/lib/lib1.dart', r'''
-import '../../project_a/lib/deprecated_library.dart';
-f(A a) {}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 0, 53),
-    ]);
-  }
-
-  test_import() async {
-    resetWithFooLibrary(r'''
-@deprecated
-library deprecated_library;
-class A {}
-''');
-
-    await resolveTestCode(r'''
-import 'package:aaa/a.dart';
-f(A a) {}
-''');
-    expect(result.errors[0].message, contains('package:aaa/a.dart'));
-  }
-
-  test_methodInvocation_constant() async {
-    resetWithFooLibrary(r'''
-class A {
-  @deprecated
-  m() {}
-}
 ''');
 
     await assertErrorsInCode(r'''
-import 'package:aaa/a.dart';
-void main() => A().m();
+import 'a.dart';
+
+void f(A a) {}
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 48, 1),
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 25, 1),
     ]);
   }
-
-  test_methodInvocation_constructor() async {
-    resetWithFooLibrary(r'''
-class A {
-  @Deprecated('0.9')
-  m() {}
 }
-''');
 
-    await assertErrorsInCode(r'''
-import 'package:aaa/a.dart';
-void main() => A().m();
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 48, 1),
-    ]);
+class _PackageBuildWorkspaceBase extends PubPackageResolutionTest {
+  String get testPackageGeneratedPath {
+    return '$testPackageRootPath/.dart_tool/build/generated';
   }
 
-  test_packageBuildWorkspace() async {
-    resetWithFooLibrary(r'''
-@deprecated
-library deprecated_library;
-class A {}
-''');
-
-    newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-
-    await assertErrorsInFile('/workspace/package/lib/lib1.dart', r'''
-import 'package:aaa/a.dart';
-f(A a) {}
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 0, 28),
-    ]);
+  @override
+  void setUp() {
+    super.setUp();
   }
 
-  test_setterInvocation_constructor() async {
-    resetWithFooLibrary(r'''
-class A {
-  @Deprecated('0.9')
-  set bob(bool b) { }
-}
-''');
+  @override
+  void verifyCreatedCollection() {
+    super.verifyCreatedCollection();
+    assertPackageBuildWorkspaceFor(testFilePath);
+  }
 
-    await assertErrorsInCode(r'''
-import 'package:aaa/a.dart';
-void main() { A().bob = false; }
-''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 47, 3),
-    ]);
+  void _createTestPackageBuildMarker() {
+    newFolder(testPackageGeneratedPath);
+  }
+
+  void _newTestPackageGeneratedFile({
+    @required String packageName,
+    @required String pathInLib,
+    @required String content,
+  }) {
+    newFile(
+      '$testPackageGeneratedPath/$packageName/lib/$pathInLib',
+      content: content,
+    );
   }
 }

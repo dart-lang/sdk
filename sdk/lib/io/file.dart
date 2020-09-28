@@ -225,15 +225,10 @@ class FileLock {
  *
  * ## Other resources
  *
- * * [Dart by Example](https://www.dartlang.org/dart-by-example/#files-directories-and-symlinks)
- *   provides additional task-oriented code samples that show how to use
- *   various API from the Directory class and the related [File] class.
+ * * The [Files and directories](https://dart.dev/guides/libraries/library-tour#files-and-directories)
+ *   section of the library tour.
  *
- * * [I/O for Command-Line
- *   Apps](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps)
- *   a section from _A Tour of the Dart Libraries_ covers files and directories.
- *
- * * [Write Command-Line Apps](https://www.dartlang.org/docs/tutorials/cmdline/),
+ * * [Write Command-Line Apps](https://dart.dev/tutorials/server/cmdline),
  *   a tutorial about writing command-line apps, includes information about
  *   files and directories.
  */

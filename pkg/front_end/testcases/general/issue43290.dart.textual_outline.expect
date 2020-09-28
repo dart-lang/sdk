@@ -1,0 +1,10 @@
+class Class {
+  final int length;
+  const Class({this.length});
+  method1a() {}
+  method1b() {}
+  method2a() {}
+  method2b() {}
+}
+
+main() {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -1544,7 +1542,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
   ]);
 
   AnalysisError invalid_assignment_error =
-      AnalysisError(null, 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+      AnalysisError(null, 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
     ['x'],
     ['y']
   ]);
@@ -1591,7 +1589,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     resourceProvider.newFolder(projPath);
     // Create an SDK in the mock file system.
     MockSdk(resourceProvider: resourceProvider);
-    var sdkManager = DartSdkManager(convertPath('/sdk'));
+    var sdkManager = DartSdkManager(convertPath(sdkRoot));
     manager = ContextManagerImpl(
         resourceProvider,
         sdkManager,

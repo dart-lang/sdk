@@ -13,7 +13,7 @@ void test() {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] Can't return a value from a void function.
 }
 
 void main() {

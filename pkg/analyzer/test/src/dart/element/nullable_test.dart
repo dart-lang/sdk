@@ -119,7 +119,7 @@ class IsNonNullableTest extends _NullableBase {
     isNotNonNullable(nullStar);
   }
 
-  test_typeParameter_noneBound() {
+  test_typeParameter_boundNone() {
     var T = typeParameter('T', bound: intNone);
 
     isNonNullable(
@@ -131,7 +131,7 @@ class IsNonNullableTest extends _NullableBase {
     );
   }
 
-  test_typeParameter_questionBound() {
+  test_typeParameter_boundQuestion() {
     var T = typeParameter('T', bound: intQuestion);
 
     isNotNonNullable(
@@ -143,11 +143,47 @@ class IsNonNullableTest extends _NullableBase {
     );
   }
 
-  test_typeParameter_starBound() {
+  test_typeParameter_boundStar() {
     var T = typeParameter('T', bound: intStar);
 
     isNonNullable(
       typeParameterTypeStar(T),
+    );
+  }
+
+  test_typeParameter_promotedBoundNone() {
+    var T = typeParameter('T');
+
+    isNonNullable(
+      typeParameterTypeNone(T, promotedBound: intNone),
+    );
+
+    isNonNullable(
+      typeParameterTypeQuestion(T, promotedBound: intNone),
+    );
+  }
+
+  test_typeParameter_promotedBoundQuestion() {
+    var T = typeParameter('T');
+
+    isNotNonNullable(
+      typeParameterTypeNone(T, promotedBound: intQuestion),
+    );
+
+    isNotNonNullable(
+      typeParameterTypeQuestion(T, promotedBound: intQuestion),
+    );
+  }
+
+  test_typeParameter_promotedBoundStar() {
+    var T = typeParameter('T');
+
+    isNonNullable(
+      typeParameterTypeNone(T, promotedBound: intStar),
+    );
+
+    isNonNullable(
+      typeParameterTypeQuestion(T, promotedBound: intStar),
     );
   }
 
@@ -248,7 +284,7 @@ class IsNullableTest extends _NullableBase {
     isNullable(nullStar);
   }
 
-  test_typeParameter_noneBound() {
+  test_typeParameter_boundNone() {
     var T = typeParameter('T', bound: intNone);
 
     isNotNullable(
@@ -260,7 +296,7 @@ class IsNullableTest extends _NullableBase {
     );
   }
 
-  test_typeParameter_questionBound_none() {
+  test_typeParameter_boundQuestion_none() {
     var T = typeParameter('T', bound: intQuestion);
 
     isNotNullable(
@@ -272,11 +308,47 @@ class IsNullableTest extends _NullableBase {
     );
   }
 
-  test_typeParameter_starBound() {
+  test_typeParameter_boundStar() {
     var T = typeParameter('T', bound: intStar);
 
     isNotNullable(
       typeParameterTypeStar(T),
+    );
+  }
+
+  test_typeParameter_promotedBoundNone() {
+    var T = typeParameter('T');
+
+    isNotNullable(
+      typeParameterTypeNone(T, promotedBound: intNone),
+    );
+
+    isNotNullable(
+      typeParameterTypeQuestion(T, promotedBound: intNone),
+    );
+  }
+
+  test_typeParameter_promotedBoundQuestion() {
+    var T = typeParameter('T');
+
+    isNullable(
+      typeParameterTypeNone(T, promotedBound: intQuestion),
+    );
+
+    isNullable(
+      typeParameterTypeQuestion(T, promotedBound: intQuestion),
+    );
+  }
+
+  test_typeParameter_promotedBoundStar() {
+    var T = typeParameter('T');
+
+    isNotNullable(
+      typeParameterTypeNone(T, promotedBound: intStar),
+    );
+
+    isNotNullable(
+      typeParameterTypeQuestion(T, promotedBound: intStar),
     );
   }
 
@@ -473,7 +545,7 @@ class IsStrictlyNonNullableTest extends _NullableBase {
     isNotStrictlyNonNullable(nullStar);
   }
 
-  test_typeParameter_noneBound() {
+  test_typeParameter_boundNone() {
     var T = typeParameter('T', bound: intNone);
 
     isStrictlyNonNullable(
@@ -489,7 +561,7 @@ class IsStrictlyNonNullableTest extends _NullableBase {
     );
   }
 
-  test_typeParameter_questionBound() {
+  test_typeParameter_boundQuestion() {
     var T = typeParameter('T', bound: intQuestion);
 
     isNotStrictlyNonNullable(
@@ -505,7 +577,7 @@ class IsStrictlyNonNullableTest extends _NullableBase {
     );
   }
 
-  test_typeParameter_starBound() {
+  test_typeParameter_boundStar() {
     var T = typeParameter('T', bound: intStar);
 
     isNotStrictlyNonNullable(

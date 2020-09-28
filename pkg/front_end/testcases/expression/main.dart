@@ -14,6 +14,14 @@ int _privateToplevel(int x) => x + 1;
 int globalVar = 6;
 int _globalPrivate = 7;
 
+const ConstClass const42 = ConstClass(42);
+
+class ConstClass {
+  static const ConstClass classConst42 = ConstClass(42);
+  final int x;
+  const ConstClass(this.x);
+}
+
 class A<T> {
   const A();
   static int doit(int x) => x + 1;

@@ -15,21 +15,21 @@ class C {
   foo() {
     print(a);
     //    ^
-    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
     // [cfe] The getter 'a' isn't defined for the class 'C'.
     return a;
     //     ^
-    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
     // [cfe] The getter 'a' isn't defined for the class 'C'.
   }
   bar() {
     print(b.a);
     //    ^
-    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
     // [cfe] The getter 'b' isn't defined for the class 'C'.
     return b.a;
     //     ^
-    // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
     // [cfe] The getter 'b' isn't defined for the class 'C'.
   }
 }

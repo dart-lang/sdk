@@ -19,7 +19,7 @@ void f(int x, int y, int? z) {
 // [cfe] Illegal assignment to non-assignable expression.
   z++ ??= y;
 //^
-// [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 //^^^
 // [analyzer] SYNTACTIC_ERROR.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
 //^^^

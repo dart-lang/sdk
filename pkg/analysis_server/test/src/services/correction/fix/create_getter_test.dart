@@ -322,7 +322,7 @@ main(A a) {
 }
 ''');
     await assertNoFix(errorFilter: (e) {
-      return e.errorCode == StaticTypeWarningCode.UNDEFINED_GETTER;
+      return e.errorCode == CompileTimeErrorCode.UNDEFINED_GETTER;
     });
   }
 

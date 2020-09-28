@@ -2,22 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixedIdentifierResolutionTest);
-    defineReflectiveTests(PrefixedIdentifierResolutionWithNnbdTest);
+    defineReflectiveTests(PrefixedIdentifierResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class PrefixedIdentifierResolutionTest extends DriverResolutionTest {
+class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest {
   test_dynamic_explicitCore_withPrefix() async {
     await assertNoErrorsInCode(r'''
 import 'dart:core' as mycore;
@@ -35,7 +34,7 @@ main() {
   }
 
   test_implicitCall_tearOff() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int call() => 0;
 }
@@ -57,21 +56,137 @@ int Function() foo() {
     );
     assertType(identifier, 'A');
   }
+
+  test_read() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('a.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: findElement.getter('foo'),
+      writeElement: null,
+      type: 'int',
+    );
+  }
+
+  test_readWrite_assignment() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo += 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo += 1');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('foo'),
+      readType: 'int',
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: null,
+      writeElement: findElement.setter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_write() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo = 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: null,
+      writeElement: findElement.setter('foo'),
+      type: 'int',
+    );
+  }
 }
 
 @reflectiveTest
-class PrefixedIdentifierResolutionWithNnbdTest
-    extends PrefixedIdentifierResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class PrefixedIdentifierResolutionWithNullSafetyTest
+    extends PrefixedIdentifierResolutionTest with WithNullSafetyMixin {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
 
@@ -97,7 +212,7 @@ main() {
   }
 
   test_implicitCall_tearOff_nullable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int call() => 0;
 }
@@ -111,7 +226,7 @@ int Function() foo() {
   return a;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 50, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 50, 1),
     ]);
 
     var identifier = findNode.simple('a;');

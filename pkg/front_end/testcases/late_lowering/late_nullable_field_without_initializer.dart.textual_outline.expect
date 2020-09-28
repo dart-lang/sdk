@@ -3,22 +3,22 @@ late int;
 lateTopLevelField;
 class Class<T> {
   static late int;
-  operator? ( ){ }
+  operator? (){}
   lateStaticField1;
   static late int;
-  operator? ( ){ }
+  operator? (){}
   lateStaticField2;
-  static staticMethod() { }
+  static staticMethod() {}
   late int;
-  operator? ( ){ }
+  operator? (){}
   lateInstanceField;
   late T;
-  operator? ( ){ }
+  operator? (){}
   lateGenericInstanceField;
-  instanceMethod(T? value) { }
+  instanceMethod(T? value) {}
 }
-extension Extension<T> ( ){ }
-on Class<T> (){ }
-main() { }
-expect(expected, actual) { }
-throws(f(), String message) { }
+extension Extension<T> (){}
+on Class<T> (){}
+main() {}
+expect(expected, actual) {}
+throws(f(), String message) {}

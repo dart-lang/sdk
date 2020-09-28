@@ -14,28 +14,27 @@ final List<String> targetNames = targets.keys.toList();
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool forceLateLoweringForTesting;
+  final bool forceStaticFieldLoweringForTesting;
   final bool forceNoExplicitGetterCallsForTesting;
   final bool enableNullSafety;
 
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.forceLateLoweringForTesting = false,
+      this.forceStaticFieldLoweringForTesting = false,
       this.forceNoExplicitGetterCallsForTesting = false,
       this.enableNullSafety = false});
 
   bool operator ==(other) {
-    if (other is! TargetFlags) return false;
-    TargetFlags o = other;
-    if (trackWidgetCreation != o.trackWidgetCreation) return false;
-    if (forceLateLoweringForTesting != o.forceLateLoweringForTesting) {
-      return false;
-    }
-    if (forceNoExplicitGetterCallsForTesting !=
-        o.forceNoExplicitGetterCallsForTesting) {
-      return false;
-    }
-    if (enableNullSafety != o.enableNullSafety) return false;
-    return true;
+    if (identical(this, other)) return true;
+    return other is TargetFlags &&
+        trackWidgetCreation == other.trackWidgetCreation &&
+        forceLateLoweringForTesting == other.forceLateLoweringForTesting &&
+        forceStaticFieldLoweringForTesting ==
+            other.forceStaticFieldLoweringForTesting &&
+        forceNoExplicitGetterCallsForTesting ==
+            other.forceNoExplicitGetterCallsForTesting &&
+        enableNullSafety == other.enableNullSafety;
   }
 
   int get hashCode {
@@ -43,6 +42,8 @@ class TargetFlags {
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff &
         (hash * 31 + (hash ^ forceLateLoweringForTesting.hashCode));
+    hash = 0x3fffffff &
+        (hash * 31 + (hash ^ forceStaticFieldLoweringForTesting.hashCode));
     hash = 0x3fffffff &
         (hash * 31 + (hash ^ forceNoExplicitGetterCallsForTesting.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
@@ -96,7 +97,7 @@ class ConstantsBackend {
   /// is the initializer of a [Field] or [VariableDeclaration] node.
   /// If this method returns `true`, the variable will be inlined at all
   /// points of reference and the variable itself removed (unless overridden
-  /// by the `keepFields` or `keepVariables` flag to the constant transformer).
+  /// by the `keepFields` or `keepLocals` properties).
   /// This method must be deterministic, i.e. it must always return the same
   /// value for the same constant value and place in the AST.
   bool shouldInlineConstant(ConstantExpression initializer) => true;
@@ -109,6 +110,18 @@ class ConstantsBackend {
   /// This defaults to `false` since it requires additional work for a backend
   /// to support unevaluated constants.
   bool get supportsUnevaluatedConstants => false;
+
+  /// If `true` constant [Field] declarations are not removed from the AST even
+  /// when use-sites are inlined.
+  ///
+  /// All use-sites will be rewritten based on [shouldInlineConstant].
+  bool get keepFields => true;
+
+  /// If `true` constant [VariableDeclaration]s are not removed from the AST
+  /// even when use-sites are inlined.
+  ///
+  /// All use-sites will be rewritten based on [shouldInlineConstant].
+  bool get keepLocals => false;
 }
 
 /// A target provides backend-specific options for generating kernel IR.
@@ -269,6 +282,10 @@ abstract class Target {
   /// details.
   bool get supportsLateFields;
 
+  /// Whether static fields with initializers in nnbd libraries should be
+  /// encoded using the late field lowering.
+  bool get useStaticFieldLowering;
+
   /// Whether calls to getters and fields should be encoded as a .call
   /// invocation on a property get.
   ///
@@ -330,6 +347,9 @@ class NoneTarget extends Target {
 
   @override
   bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+
+  @override
+  bool get useStaticFieldLowering => flags.forceStaticFieldLoweringForTesting;
 
   @override
   bool get supportsExplicitGetterCalls =>

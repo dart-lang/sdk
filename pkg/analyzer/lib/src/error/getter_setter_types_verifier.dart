@@ -27,8 +27,8 @@ class GetterSetterTypesVerifier {
 
   ErrorCode get _errorCode {
     return _isNonNullableByDefault
-        ? StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES
-        : StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES;
+        ? CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES
+        : CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES;
   }
 
   bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;

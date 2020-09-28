@@ -5,8 +5,6 @@
 import 'dart:convert' show JsonEncoder;
 import 'dart:io' show Platform;
 
-import 'package:analyzer/src/generated/utilities_general.dart'
-    show PerformanceTag;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
@@ -29,7 +27,6 @@ final String _osType = () {
 String makePerfReport(int startTime, int endTime, CommandLineOptions options,
     int analyzedFileCount, AnalysisStats stats) {
   var totalTime = endTime - startTime;
-  var otherTime = totalTime;
 
   var platformJson = <String, dynamic>{
     'osType': _osType,
@@ -38,7 +35,6 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
 
   var optionsJson = <String, dynamic>{
     'dartSdkPath': options.dartSdkPath,
-    'strongMode': options.strongMode,
     'showPackageWarnings': options.showPackageWarnings,
     'showPackageWarningsPrefix': options.showPackageWarningsPrefix,
     'showSdkWarnings': options.showSdkWarnings,
@@ -46,17 +42,6 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
     'packageConfigPath': options.packageConfigPath,
     'sourceFiles': options.sourceFiles,
   };
-
-  // Convert performance tags to JSON representation.
-  var perfTagsJson = <String, dynamic>{};
-  for (var tag in PerformanceTag.all) {
-    if (tag != PerformanceTag.unknown) {
-      var tagTime = tag.elapsedMs;
-      perfTagsJson[tag.label] = tagTime;
-      otherTime -= tagTime;
-    }
-  }
-  perfTagsJson['other'] = otherTime;
 
   var reportJson = <String, dynamic>{
     'perfReportVersion': 0,
@@ -66,7 +51,6 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
     'analyzedFiles': analyzedFileCount,
     'generatedDiagnostics': stats.unfilteredCount,
     'reportedDiagnostics': stats.filteredCount,
-    'performanceTags': perfTagsJson,
   };
 
   return _JSON.convert(reportJson);

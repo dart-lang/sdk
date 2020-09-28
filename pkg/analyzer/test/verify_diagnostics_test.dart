@@ -3,22 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:path/path.dart';
-import 'package:pub_semver/src/version_constraint.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/diagnostics/generate.dart';
-import 'src/dart/resolution/driver_resolution.dart';
+import 'src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -38,6 +34,8 @@ class DocumentationValidator {
   /// ony include docs that cannot be verified because of missing support in the
   /// verifier.
   static const List<String> unverifiedDocs = [
+    // Needs to be able to specify two expected diagnostics.
+    'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
     // Produces two diagnostics when it should only produce one. We could get
@@ -46,17 +44,21 @@ class DocumentationValidator {
     'CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.INVALID_URI',
+    // Produces two diagnostics when it should only produce one.
+    'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',
+    // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
+    'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
-    // Needs to be able to specify two expected diagnostics.
-    'StaticWarningCode.AMBIGUOUS_IMPORT',
-    // Produces two diagnostics when it should only produce one.
-    'StaticWarningCode.INVALID_USE_OF_NULL_VALUE',
-    // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
-    'StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT',
+    // Produces two diagnostics when it should only produce one (see
+    // https://github.com/dart-lang/sdk/issues/43051)
+    'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',
+    // Produces two diagnostics when it should only produce one (see
+    // https://github.com/dart-lang/sdk/issues/43263)
+    'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
   ];
 
   /// The prefix used on directive lines to specify the experiments that should
@@ -399,51 +401,48 @@ class _SnippetData {
 
 /// A test class that creates an environment suitable for analyzing the
 /// snippets.
-class _SnippetTest extends DriverResolutionTest with PackageMixin {
+class _SnippetTest extends PubPackageResolutionTest {
   /// The snippet being tested.
   final _SnippetData snippet;
 
-  @override
-  AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
-
   /// Initialize a newly created test to test the given [snippet].
   _SnippetTest(this.snippet) {
-    analysisOptions.contextFeatures =
-        FeatureSet.fromEnableFlags(snippet.experiments ?? []);
-    String pubspecContent = snippet.auxiliaryFiles['pubspec.yaml'];
-    if (pubspecContent != null) {
-      for (String line in pubspecContent.split('\n')) {
-        if (line.indexOf('sdk:') > 0) {
-          int start = line.indexOf("'") + 1;
-          String constraint = line.substring(start, line.indexOf("'", start));
-          analysisOptions.sdkVersionConstraint =
-              VersionConstraint.parse(constraint);
-        }
-      }
-    }
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: snippet.experiments,
+      ),
+    );
   }
 
   @override
   void setUp() {
     super.setUp();
-    addMetaPackage();
     _createAuxiliaryFiles(snippet.auxiliaryFiles);
     addTestFile(snippet.content);
   }
 
   void _createAuxiliaryFiles(Map<String, String> auxiliaryFiles) {
-    Map<String, String> packageMap = {};
-    for (String uri in auxiliaryFiles.keys) {
-      if (uri.startsWith('package:')) {
-        int slash = uri.indexOf('/');
-        String packageName = uri.substring(8, slash);
-        String libPath = packageMap.putIfAbsent(
-            packageName, () => addPubPackage(packageName).path);
-        String relativePath = uri.substring(slash + 1);
-        newFile('$libPath/$relativePath', content: auxiliaryFiles[uri]);
+    var packageConfigBuilder = PackageConfigFileBuilder();
+    for (String uriStr in auxiliaryFiles.keys) {
+      if (uriStr.startsWith('package:')) {
+        Uri uri = Uri.parse(uriStr);
+
+        String packageName = uri.pathSegments[0];
+        String packageRootPath = '/packages/$packageName';
+        packageConfigBuilder.add(name: packageName, rootPath: packageRootPath);
+
+        String pathInLib = uri.pathSegments.skip(1).join('/');
+        newFile(
+          '$packageRootPath/lib/$pathInLib',
+          content: auxiliaryFiles[uriStr],
+        );
       } else {
-        newFile('/test/$uri', content: auxiliaryFiles[uri]);
+        newFile(
+          '$testPackageRootPath/$uriStr',
+          content: auxiliaryFiles[uriStr],
+        );
       }
     }
+    writeTestPackageConfig(packageConfigBuilder, meta: true);
   }
 }

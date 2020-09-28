@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class TypeAliasCannotReferenceItselfTest extends DriverResolutionTest {
+class TypeAliasCannotReferenceItselfTest extends PubPackageResolutionTest {
   test_functionTypedParameter_returnType() async {
     await assertErrorsInCode('''
 typedef A(A b());
@@ -33,16 +33,15 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 101, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 101, 1),
     ]);
   }
 
   test_infiniteParameterBoundCycle() async {
     await assertErrorsInCode(r'''
-typedef F<X extends F> = F Function();
+typedef F<X extends F<X>> = F Function();
 ''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 38),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 20, 1),
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 41),
     ]);
   }
 

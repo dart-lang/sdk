@@ -51,8 +51,8 @@ class Class4 extends Class1 {
 }
 
 @pragma('dart2js:noInline')
-method6(Class1 c) {
-  return c.field1;
+method6(Class1? c) {
+  return c!.field1;
 }
 
 @pragma('dart2js:noInline')
@@ -70,5 +70,4 @@ main() {
   Expect.equals(0, method6(new Class1()));
   Expect.throws(() => method6(null));
   Expect.equals(4, method7(new Class1()));
-  Expect.throws(() => method7(null));
 }

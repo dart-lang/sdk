@@ -1141,6 +1141,22 @@ def _GetPromiseAttributeType(interface_operation):
         return promise_attributes[interface_operation]
     return None
 
+# Compatibility is used to help determine attribute nullability i.e. if the
+# attribute is not compatible across all browsers, the getter/setter is marked
+# as nullable. There are cases where the attribute belongs to a class that
+# implements an interface whose methods are not in the IDL, however.
+# Since attribute getters need to match their overridden method declaration,
+# there are conflicts when the overriding method is not compatible, the
+# overriding method is, and they're not already nullable. This dict marks the
+# attributes where there is a conflict that cannot be resolved with code
+# generation or within src/template files.
+compat_conflicts = {
+    # These interfaces implement Rectangle, which is a Dart interface. In order
+    # to match the interface of Rectangle, they must be marked as non-nullable.
+    'DOMRectReadOnly': ['bottom', 'height', 'left', 'right', 'top', 'width'],
+    'DOMRect': ['height', 'width'],
+}
+
 
 class Dart2JSBackend(HtmlDartGenerator):
     """Generates a dart2js class for the dart:html library from a DOM IDL
@@ -1394,6 +1410,8 @@ class Dart2JSBackend(HtmlDartGenerator):
         metadata = self._Metadata(attribute.type.id, attribute.id, output_type,
             attribute.type.nullable)
 
+        is_compat = self._mdn_reader.is_compatible(attribute)
+
         # If the attribute is shadowing, we can't generate a shadowing
         # getter or setter (Issue 1633).
         # TODO(sra): _FindShadowedAttribute does not take into account the html
@@ -1406,10 +1424,18 @@ class Dart2JSBackend(HtmlDartGenerator):
          super_attribute_interface) = self._FindShadowedAttribute(attribute)
 
         if super_attribute:
+            if is_compat is None:
+                # If there is no compatibility info on this attribute, we use
+                # the parent attribute's compatibility info.
+                is_compat = self._mdn_reader.is_compatible(super_attribute)
+                self._mdn_reader.set_compatible(attribute, is_compat)
             if read_only or self._SafeToIgnoreShadowingMember(html_name):
                 if attribute.type.id == super_attribute.type.id:
                     # Compatible attribute, use the superclass property.  This
                     # works because JavaScript will do its own dynamic dispatch.
+
+                    # Nullability is determined by attribute compatibility.
+                    nullable = not is_compat or attribute.type.nullable
                     self._members_emitter.Emit(
                         '\n'
                         '  // Use implementation from $SUPER.\n'
@@ -1419,10 +1445,10 @@ class Dart2JSBackend(HtmlDartGenerator):
                         NAME=html_name,
                         GET_TYPE=self.SecureOutputType(attribute.type.id,
                             can_narrow_type=read_only,
-                            nullable=attribute.type.nullable),
+                            nullable=nullable),
                         SET_TYPE=self.SecureOutputType(attribute.type.id,
                             can_narrow_type=read_only,
-                            nullable=attribute.type.nullable or \
+                            nullable=nullable or \
                                 'TreatNullAs' in attribute.ext_attrs))
                     return
             self._members_emitter.Emit('\n  // Shadowing definition.')
@@ -1452,7 +1478,7 @@ class Dart2JSBackend(HtmlDartGenerator):
             return
 
         input_type = self._NarrowInputType(attribute.type.id)
-        if attribute.type.nullable:
+        if attribute.type.nullable or not is_compat:
             input_type += '?'
         if not read_only:
             if attribute.type.id == 'Promise':
@@ -1519,6 +1545,20 @@ class Dart2JSBackend(HtmlDartGenerator):
                     self._AddAttributeUsingProperties(attribute, html_name,
                         read_only, rename, metadata)
 
+    def _IsACompatibilityConflict(self, interface, attr):
+        if interface in compat_conflicts and attr.id in compat_conflicts[
+                interface]:
+            is_compat = self._mdn_reader.is_compatible(attr)
+            if is_compat or attr.type.nullable:
+                # Only attributes that are not compatible and not nullable
+                # belong in this list.
+                raise ValueError(
+                    interface + '.' + attr.id +
+                    ' has no conflict between compatibility and nullability.')
+            else:
+                return True
+        return False
+
     def _AddAttributeUsingProperties(self, attribute, html_name, read_only,
                                      rename=None, metadata=None):
         self._AddRenamingGetter(attribute, html_name, rename, metadata)
@@ -1530,18 +1570,38 @@ class Dart2JSBackend(HtmlDartGenerator):
         conversion = self._OutputConversion(attr.type.id, attr.id)
         if conversion:
             return self._AddConvertingGetter(attr, html_name, conversion)
+        # If the attribute is incompatible, it must be marked nullable.
+        is_compat = self._mdn_reader.is_compatible(attr)
         return_type = self.SecureOutputType(attr.type.id,
-            nullable=attr.type.nullable)
-        self._members_emitter.Emit(
-            '\n  $RENAME'
-            '\n  $METADATA'
-            '\n  $STATIC $TYPE get $HTML_NAME native;'
-            '\n',
-            RENAME=rename if rename else '',
-            METADATA=metadata if metadata else '',
-            HTML_NAME=html_name,
-            STATIC='static' if attr.is_static else '',
-            TYPE=return_type)
+                                            nullable=(not is_compat) or
+                                            attr.type.nullable)
+        native_type = self._NarrowToImplementationType(attr.type.id)
+        non_null_return_type = self.SecureOutputType(attr.type.id,
+                                                     nullable=False)
+        if self._IsACompatibilityConflict(self._interface.id, attr):
+            if not rename:
+                rename = '@JSName(\'%s\')' % html_name
+            template = """\n
+                // The following getter is incompatible with some browsers but
+                // must be made non-nullable to match the overridden method.
+                \n  $RENAME
+                \n  $METADATA
+                \n  $STATIC $TYPE get _$HTML_NAME native;
+                \n
+                \n  $STATIC $NONNULLTYPE get $HTML_NAME => _$HTML_NAME$NULLASSERT;"""
+        else:
+            template = """\n  $RENAME
+                \n  $METADATA
+                \n  $STATIC $TYPE get $HTML_NAME native;
+                \n"""
+        self._members_emitter.Emit(template,
+                                   RENAME=rename if rename else '',
+                                   METADATA=metadata if metadata else '',
+                                   HTML_NAME=html_name,
+                                   STATIC='static' if attr.is_static else '',
+                                   TYPE=return_type,
+                                   NULLASSERT='!',
+                                   NONNULLTYPE=non_null_return_type)
 
     def _AddRenamingSetter(self, attr, html_name, rename):
         conversion = self._InputConversion(attr.type.id, attr.id)
@@ -1552,8 +1612,13 @@ class Dart2JSBackend(HtmlDartGenerator):
         # converting getter. We need to make sure the setter type matches the
         # getter type.
         conversion = self._OutputConversion(attr.type.id, attr.id)
-        if conversion and conversion.nullable_output:
+        # If the attribute is incompatible, it must be marked nullable.
+        is_compat = self._mdn_reader.is_compatible(attr)
+        if (conversion and conversion.nullable_output) or not is_compat:
             nullable_type = True
+        if self._IsACompatibilityConflict(self._interface.id, attr):
+            # Force non-nullable if it's a manual conflict.
+            nullable_type = False
         self._members_emitter.Emit(
             '\n  $RENAME'
             '\n  $STATIC set $HTML_NAME($TYPE value) native;'
@@ -1564,10 +1629,12 @@ class Dart2JSBackend(HtmlDartGenerator):
             TYPE=self.SecureOutputType(attr.type.id, nullable=nullable_type))
 
     def _AddConvertingGetter(self, attr, html_name, conversion):
+        # dynamic should not be marked with ?
         nullable_out = conversion.nullable_output and \
             not conversion.output_type == 'dynamic'
-        # If the attribute is nullable, the getter should be nullable.
-        nullable_in = attr.type.nullable and \
+        # Nullability is determined by attribute compatibility.
+        is_compat = self._mdn_reader.is_compatible(attr)
+        nullable_in = (not is_compat or attr.type.nullable) and \
             not conversion.input_type == 'dynamic'
         self._members_emitter.Emit(
             '\n  $(METADATA)$RETURN_TYPE$NULLABLE_OUT get $HTML_NAME => '
@@ -1591,9 +1658,11 @@ class Dart2JSBackend(HtmlDartGenerator):
                 not conversion.nullable_input else '')
 
     def _AddConvertingSetter(self, attr, html_name, conversion):
+        # If the attribute is incompatible, it must be marked nullable.
+        is_compat = self._mdn_reader.is_compatible(attr)
         # If the attribute is nullable, the setter should be nullable.
-        nullable_in = (attr.type.nullable or 'TreatNullAs' in attr.ext_attrs) \
-            and not conversion.input_type == 'dynamic'
+        nullable_in = ((attr.type.nullable or 'TreatNullAs' in attr.ext_attrs) \
+            and not conversion.input_type == 'dynamic') or not is_compat
         nullable_out = conversion.nullable_output and \
             not conversion.output_type == 'dynamic'
         self._members_emitter.Emit(

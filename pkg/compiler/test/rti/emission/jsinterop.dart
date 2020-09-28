@@ -11,33 +11,33 @@ library jsinterop;
 
 import 'package:js/js.dart';
 
-/*class: A:checkedInstance,checks=[],instance*/
+/*class: A:checkedInstance,checks=[],instance,onlyForRti*/
 @JS()
 class A {
   external A();
 }
 
-/*class: B:checks=[],instance*/
+/*class: B:checks=[],instance,onlyForRti*/
 @JS('BClass')
 class B {
   external B();
 }
 
-/*class: C:checkedInstance,checks=[],instance*/
+/*class: C:checkedInstance,checks=[],instance,onlyForRti*/
 @JS()
 @anonymous
 class C {
   external factory C();
 }
 
-/*class: D:checks=[],instance*/
+/*class: D:checks=[],instance,onlyForRti*/
 @JS()
 @anonymous
 class D {
   external factory D();
 }
 
-/*class: E:checks=[],instance,typeLiteral*/
+/*class: E:checks=[],instance*/
 class E {
   E();
 }

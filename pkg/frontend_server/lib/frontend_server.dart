@@ -9,7 +9,8 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
-import 'package:dev_compiler/dev_compiler.dart' show DevCompilerTarget;
+import 'package:dev_compiler/dev_compiler.dart'
+    show DevCompilerTarget, ExpressionCompiler;
 
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
@@ -39,7 +40,6 @@ import 'package:vm/kernel_front_end.dart';
 
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
-import 'src/expression_compiler.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -154,10 +154,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Include only bytecode into the output file', defaultsTo: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
-  ..addFlag('null-safety',
-      help:
-          'Respect the nullability of types at runtime in casts and instance checks.',
-      defaultsTo: null)
+  ..addFlag('sound-null-safety',
+      help: 'Respect the nullability of types at runtime.', defaultsTo: null)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true)
@@ -172,7 +170,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('libraries-spec',
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
-      help: 'Use debugger-friendly modules names', defaultsTo: false)
+      help: 'Use debugger-friendly modules names', defaultsTo: true)
   ..addFlag('experimental-emit-debug-metadata',
       help: 'Emit module and library metadata for the debugger',
       defaultsTo: false)
@@ -407,6 +405,7 @@ class FrontendCompiler implements CompilerInterface {
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
     final String packagesOption = _options['packages'];
+    final bool nullSafety = _options['sound-null-safety'];
     final CompilerOptions compilerOptions = CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
@@ -418,8 +417,7 @@ class FrontendCompiler implements CompilerInterface {
       ..experimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode =
-          (options['null-safety'] == true) ? NnbdMode.Strong : NnbdMode.Weak
+      ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = _onDiagnostic;
 
     if (options.wasParsed('libraries-spec')) {
@@ -469,7 +467,7 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
-    if (options['null-safety'] == null &&
+    if (nullSafety == null &&
         compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }
@@ -970,7 +968,8 @@ class FrontendCompiler implements CompilerInterface {
     var evaluator = new ExpressionCompiler(
         _generator.generator, kernel2jsCompiler, component,
         verbose: _compilerOptions.verbose,
-        onDiagnostic: _compilerOptions.onDiagnostic);
+        onDiagnostic: _compilerOptions.onDiagnostic,
+        errors: errors);
 
     var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
         column, jsModules, jsFrameValues, moduleName, expression);

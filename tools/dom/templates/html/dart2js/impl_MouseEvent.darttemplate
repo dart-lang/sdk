@@ -27,7 +27,7 @@ $!MEMBERS
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  Point get movement => new Point(_movementX, _movementY);
+  Point get movement => new Point(_movementX$NULLASSERT, _movementY$NULLASSERT);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -55,9 +55,9 @@ $!MEMBERS
 
   Point get screen => new Point(_screenX, _screenY);
 
-  Point get layer => new Point(_layerX, _layerY);
+  Point get layer => new Point(_layerX$NULLASSERT, _layerY$NULLASSERT);
 
-  Point get page => new Point(_pageX, _pageY);
+  Point get page => new Point(_pageX$NULLASSERT, _pageY$NULLASSERT);
 
   DataTransfer get dataTransfer => JS('DataTransfer', "#['dataTransfer']", this);
 

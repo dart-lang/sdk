@@ -7,8 +7,8 @@ class B1 {
 }
 
 class B2 extends B1 {
-  num bar = 3.14;
   num? get baz => null;
+  num bar = 3.14;
   void hest(num value) {}
 }
 

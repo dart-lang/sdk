@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-06-29T11:21:54.984521",
+  "generated": "2020-08-18T15:38:52.410101",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -19,6 +19,41 @@
       "rootUri": "../pkg/_fe_analyzer_shared",
       "packageUri": "lib/",
       "languageVersion": "2.2"
+    },
+    {
+      "name": "_fe_analyzer_shared_assigned_variables",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_definite_assignment",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_definite_unassignment",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/definite_unassignment",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_inheritance",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/inheritance",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_nullability",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/nullability",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_reachability",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/reachability",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_type_promotion",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion",
+      "packageUri": ".nonexisting/"
     },
     {
       "name": "_js_interop_checks",
@@ -48,7 +83,7 @@
       "name": "analyzer",
       "rootUri": "../pkg/analyzer",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.7"
     },
     {
       "name": "analyzer_cli",
@@ -72,7 +107,7 @@
       "name": "async",
       "rootUri": "../third_party/pkg/async",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.10"
     },
     {
       "name": "async_helper",
@@ -83,19 +118,19 @@
       "name": "bazel_worker",
       "rootUri": "../third_party/pkg/bazel_worker",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.3"
     },
     {
       "name": "benchmark_harness",
       "rootUri": "../third_party/pkg/benchmark_harness",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     },
     {
       "name": "boolean_selector",
       "rootUri": "../third_party/pkg/boolean_selector",
       "packageUri": "lib/",
-      "languageVersion": "2.4"
+      "languageVersion": "2.10"
     },
     {
       "name": "build_integration",
@@ -107,7 +142,7 @@
       "name": "charcode",
       "rootUri": "../third_party/pkg/charcode",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "cli_util",
@@ -119,7 +154,7 @@
       "name": "collection",
       "rootUri": "../third_party/pkg/collection",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     },
     {
       "name": "compiler",
@@ -131,19 +166,19 @@
       "name": "convert",
       "rootUri": "../third_party/pkg/convert",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "crypto",
       "rootUri": "../third_party/pkg/crypto",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.10"
     },
     {
       "name": "csslib",
       "rootUri": "../third_party/pkg/csslib",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.10"
     },
     {
       "name": "dart2js_info",
@@ -167,7 +202,7 @@
       "name": "dart_internal",
       "rootUri": "../pkg/dart_internal",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "dart_style",
@@ -225,7 +260,7 @@
       "name": "fixnum",
       "rootUri": "../third_party/pkg/fixnum",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     },
     {
       "name": "front_end",
@@ -234,33 +269,8 @@
       "languageVersion": "2.2"
     },
     {
-      "name": "front_end_agnostic",
-      "rootUri": "../pkg/front_end/testcases/agnostic",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_general_nnbd_opt_out",
-      "rootUri": "../pkg/front_end/testcases/general_nnbd_opt_out",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_late_lowering",
-      "rootUri": "../pkg/front_end/testcases/late_lowering",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_nnbd",
-      "rootUri": "../pkg/front_end/testcases/nnbd",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_nnbd_mixed",
-      "rootUri": "../pkg/front_end/testcases/nnbd_mixed",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_nonfunction_type_aliases",
-      "rootUri": "../pkg/front_end/testcases/nonfunction_type_aliases",
+      "name": "front_end_testcases",
+      "rootUri": "../pkg/front_end/testcases",
       "packageUri": ".nonexisting/"
     },
     {
@@ -327,7 +337,7 @@
       "name": "js",
       "rootUri": "../pkg/js",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     },
     {
       "name": "js_ast",
@@ -339,7 +349,7 @@
       "name": "js_runtime",
       "rootUri": "../sdk/lib/_internal/js_runtime",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     },
     {
       "name": "json_rpc_2",
@@ -352,6 +362,11 @@
       "rootUri": "../pkg/kernel",
       "packageUri": "lib/",
       "languageVersion": "2.2"
+    },
+    {
+      "name": "language_versioning_2.7_test",
+      "rootUri": "../pkg/language_versioning_2.7_test",
+      "languageVersion": "2.7"
     },
     {
       "name": "linter",
@@ -369,19 +384,19 @@
       "name": "markdown",
       "rootUri": "../third_party/pkg/markdown",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.6"
     },
     {
       "name": "matcher",
       "rootUri": "../third_party/pkg/matcher",
       "packageUri": "lib/",
-      "languageVersion": "2.4"
+      "languageVersion": "2.10"
     },
     {
       "name": "meta",
       "rootUri": "../pkg/meta",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     },
     {
       "name": "mime",
@@ -446,19 +461,19 @@
       "name": "path",
       "rootUri": "../third_party/pkg/path",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "pedantic",
       "rootUri": "../third_party/pkg/pedantic",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.10"
     },
     {
       "name": "pool",
       "rootUri": "../third_party/pkg/pool",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "protobuf",
@@ -494,13 +509,13 @@
       "name": "sdk_library_metadata",
       "rootUri": "../sdk/lib/_internal/sdk_library_metadata",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     },
     {
       "name": "shelf",
       "rootUri": "../third_party/pkg/shelf",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.1"
     },
     {
       "name": "shelf_packages_handler",
@@ -536,19 +551,19 @@
       "name": "source_map_stack_trace",
       "rootUri": "../third_party/pkg/source_map_stack_trace",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.10"
     },
     {
       "name": "source_maps",
       "rootUri": "../third_party/pkg/source_maps",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "source_span",
       "rootUri": "../third_party/pkg/source_span",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.10"
     },
     {
       "name": "sourcemap_testing",
@@ -557,10 +572,16 @@
       "languageVersion": "2.1"
     },
     {
+      "name": "sse",
+      "rootUri": "../third_party/pkg/sse",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
+    },
+    {
       "name": "stack_trace",
       "rootUri": "../third_party/pkg/stack_trace",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "stagehand",
@@ -578,11 +599,17 @@
       "name": "stream_channel",
       "rootUri": "../third_party/pkg/stream_channel",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.10"
     },
     {
       "name": "string_scanner",
       "rootUri": "../third_party/pkg/string_scanner",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
+    },
+    {
+      "name": "sync_http",
+      "rootUri": "../third_party/pkg/sync_http",
       "packageUri": "lib/",
       "languageVersion": "2.0"
     },
@@ -596,25 +623,25 @@
       "name": "term_glyph",
       "rootUri": "../third_party/pkg/term_glyph",
       "packageUri": "lib/",
-      "languageVersion": "1.8"
+      "languageVersion": "2.10"
     },
     {
       "name": "test",
       "rootUri": "../third_party/pkg/test/pkgs/test",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.10"
     },
     {
       "name": "test_api",
       "rootUri": "../third_party/pkg/test/pkgs/test_api",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.10"
     },
     {
       "name": "test_core",
       "rootUri": "../third_party/pkg/test/pkgs/test_core",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.10"
     },
     {
       "name": "test_descriptor",
@@ -656,13 +683,19 @@
       "name": "typed_data",
       "rootUri": "../third_party/pkg/typed_data",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.10"
     },
     {
       "name": "usage",
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
       "languageVersion": "2.0"
+    },
+    {
+      "name": "vector_math",
+      "rootUri": "../third_party/pkg/vector_math",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
     },
     {
       "name": "vm",
@@ -683,6 +716,12 @@
       "languageVersion": "2.8"
     },
     {
+      "name": "wasm",
+      "rootUri": "../pkg/wasm",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
+    },
+    {
       "name": "watcher",
       "rootUri": "../third_party/pkg/watcher",
       "packageUri": "lib/",
@@ -697,6 +736,12 @@
     {
       "name": "web_socket_channel",
       "rootUri": "../third_party/pkg/web_socket_channel",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
+    },
+    {
+      "name": "webdriver",
+      "rootUri": "../third_party/pkg/webdriver",
       "packageUri": "lib/",
       "languageVersion": "2.0"
     },

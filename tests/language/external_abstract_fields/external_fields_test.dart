@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Checks that external variable declarations are allowed.
-// Can only be statically checked, there is no implementation at run-time.
+// No implementation at run-time, so it throws.
+
+import 'package:expect/expect.dart';
 
 // External variables cannot be abstract, const, late or have an initializer.
 
@@ -32,30 +34,32 @@ class D extends C {
   external int instance6;
 }
 
-void main() {
-  top1;
-  top1 = 0;
-  top2;
-  top3;
-  top3 = 0;
-  top4;
+void shouldThrow(Function() f) => Expect.throwsNoSuchMethodError(f);
 
-  C.static1;
-  C.static1 = 0;
-  C.static2;
-  C.static3;
-  C.static3 = 0;
-  C.static4;
+void main() {
+  shouldThrow(() => top1);
+  shouldThrow(() => top1 = 0);
+  shouldThrow(() => top2);
+  shouldThrow(() => top3);
+  shouldThrow(() => top3 = 0);
+  shouldThrow(() => top4);
+
+  shouldThrow(() => C.static1);
+  shouldThrow(() => C.static1 = 0);
+  shouldThrow(() => C.static2);
+  shouldThrow(() => C.static3);
+  shouldThrow(() => C.static3 = 0);
+  shouldThrow(() => C.static4);
 
   C c = C();
-  c.instance1;
-  c.instance1 = 0;
-  c.instance2;
-  c.instance3;
-  c.instance3 = 0;
-  c.instance4;
-  c.instance5;
-  c.instance5 = 0;
-  c.instance6;
-  c.instance6 = 0;
+  shouldThrow(() => c.instance1);
+  shouldThrow(() => c.instance1 = 0);
+  shouldThrow(() => c.instance2);
+  shouldThrow(() => c.instance3);
+  shouldThrow(() => c.instance3 = 0);
+  shouldThrow(() => c.instance4);
+  shouldThrow(() => c.instance5);
+  shouldThrow(() => c.instance5 = 0);
+  shouldThrow(() => c.instance6);
+  shouldThrow(() => c.instance6 = 0);
 }

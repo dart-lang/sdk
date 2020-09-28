@@ -3,5 +3,5 @@ class C {
   int get one => 1;
 }
 extension E ;
-on C (){ }
-main() { }
+on C (){}
+main() {}

@@ -867,16 +867,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var savedTopLevelClass = _classEmittingExtends;
     _classEmittingExtends = c;
 
-    // Unroll mixins.
+    // Refers to 'S' in `class C extends S`. Set this to null to avoid
+    // referencing deferred supertypes in _emitClassConstructor's JS output.
+    js_ast.Expression baseClass;
+
     if (shouldDefer(supertype)) {
       deferredSupertypes.add(runtimeStatement('setBaseClass(#, #)', [
         getBaseClass(isMixinAliasClass(c) ? 0 : mixins.length),
         emitDeferredType(supertype),
       ]));
+      // Refers to 'supertype' without any type arguments.
       supertype =
           _coreTypes.rawType(supertype.classNode, _currentLibrary.nonNullable);
+    } else {
+      baseClass = emitClassRef(supertype);
     }
-    var baseClass = emitClassRef(supertype);
 
     if (isMixinAliasClass(c)) {
       // Given `class C = Object with M [implements I1, I2 ...];`
@@ -2558,7 +2563,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           typeArgument.nullability == Nullability.legacy;
       var nullability = nullable
           ? Nullability.nullable
-          : legacy ? Nullability.legacy : Nullability.nonNullable;
+          : legacy
+              ? Nullability.legacy
+              : Nullability.nonNullable;
       return _emitInterfaceType(
           typeArgument.withDeclaredNullability(nullability));
     } else if (typeArgument is NeverType) {
@@ -2930,11 +2937,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _staticTypeContext.enterLibrary(_currentLibrary);
     _currentClass = cls;
 
-    // emit function with additional information,
-    // such as types that are used in the expression
+    // Emit function with additional information, such as types that are used
+    // in the expression. Note that typeTable can be null if this function is
+    // called from the expression compilation service, since we currently do
+    // not optimize for size of generated javascript in that scenario.
+    // TODO: figure whether or when optimizing for build time vs JavaScript
+    // size on expression evaluation is better.
+    // Issue: https://github.com/dart-lang/sdk/issues/43288
     var fun = _emitFunction(functionNode, name);
-    var items = _typeTable.discharge();
-    var body = js_ast.Block([...items, ...fun.body.statements]);
+    var items = _typeTable?.discharge();
+    var body = js_ast.Block([...?items, ...fun.body.statements]);
 
     return js_ast.Fun(fun.params, body);
   }
@@ -3239,7 +3251,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       if (_annotatedNullCheck(p.annotations)) {
         body.add(_nullParameterCheck(jsParam));
-      } else if (_mustBeNonNullable(p.type) &&
+      } else if (!_options.soundNullSafety &&
+          _mustBeNonNullable(p.type) &&
           !_annotatedNotNull(p.annotations)) {
         // TODO(vsm): Remove if / when CFE does this:
         // https://github.com/dart-lang/sdk/issues/40597
@@ -3449,7 +3462,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (fileUri == null) return null;
     try {
       var loc = _component.getLocation(fileUri, offset);
-      if (loc == null) return null;
+      if (loc == null || loc.line < 0) return null;
       return SourceLocation(offset,
           sourceUrl: fileUri, line: loc.line - 1, column: loc.column - 1);
     } on StateError catch (_) {
@@ -4849,6 +4862,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (name == 'extensionSymbol' && firstArg is StringLiteral) {
           return getExtensionSymbolInternal(firstArg.value);
         }
+
+        if (name == 'compileTimeFlag' && firstArg is StringLiteral) {
+          var flagName = firstArg.value;
+          if (flagName == 'soundNullSafety') {
+            return js.boolean(_options.soundNullSafety);
+          }
+          throw UnsupportedError('Invalid flag in call to $name: $flagName');
+        }
       } else if (node.arguments.positional.length == 2) {
         var firstArg = node.arguments.positional[0];
         var secondArg = node.arguments.positional[1];
@@ -5212,8 +5233,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitNullCheck(NullCheck node) {
     var expr = node.operand;
+    var jsExpr = _visitExpression(expr);
     // If the expression is non-nullable already, this is a no-op.
-    return isNullable(expr) ? notNull(expr) : _visitExpression(expr);
+    return isNullable(expr) ? runtimeCall('nullCheck(#)', [jsExpr]) : jsExpr;
   }
 
   @override
@@ -5290,11 +5312,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Generate `is` as `dart.is` or `typeof` depending on the RHS type.
     var lhs = _visitExpression(operand);
     var typeofName = _typeRep.typeFor(type).primitiveTypeOf;
-    // Inline primitives other than int (which requires a Math.floor check).
+    // Inline non-nullable primitive types other than int (which requires a
+    // Math.floor check).
     if (typeofName != null &&
-        type != _types.coreTypes.intLegacyRawType &&
-        type != _types.coreTypes.intNonNullableRawType &&
-        type != _types.coreTypes.intNullableRawType) {
+        type.nullability == Nullability.nonNullable &&
+        type != _types.coreTypes.intNonNullableRawType) {
       return js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       return js.call('#.is(#)', [_emitType(type), lhs]);

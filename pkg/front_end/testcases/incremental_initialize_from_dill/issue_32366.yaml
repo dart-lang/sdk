@@ -1,0 +1,38 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Reproduction of https://github.com/dart-lang/sdk/issues/32366.
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        abstract class AIterator extends Iterator {
+        }
+        class Foo {
+          final a;
+          Foo(this.a);
+        }
+        main() {
+          new Foo(5);
+          return 1;
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    errors: true
+    sources:
+      main.dart: |
+        abstract class BIterator extends Iterator {
+        }
+        class Foo {
+          final a kjsdf ksjdf ;
+          Foo(this.a);
+        }
+        main() {
+          new Foo(5);
+          return 2;
+        }
+    expectedLibraryCount: 1

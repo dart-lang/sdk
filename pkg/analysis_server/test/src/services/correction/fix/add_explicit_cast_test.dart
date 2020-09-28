@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -12,6 +13,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddExplicitCastTest);
+    defineReflectiveTests(AddExplicitCastWithNullSafetyTest);
   });
 }
 
@@ -64,7 +66,7 @@ f(A a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(A a) {
   B b, b2;
   b = a as B;
@@ -106,7 +108,7 @@ f(List<A> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(List<A> a) {
   List<B> b, b2;
   b = a.where((e) => e is B).cast<B>().toList();
@@ -148,7 +150,7 @@ f(Map<A, B> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(Map<A, B> a) {
   Map<B, A> b, b2;
   b = a.cast<B, A>();
@@ -196,7 +198,7 @@ class A {
 }
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(A a) {
   B b, b2;
   b = (a..m()) as B;
@@ -240,7 +242,7 @@ f(Set<A> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(Set<A> a) {
   Set<B> b, b2;
   b = a.cast<B>();
@@ -291,7 +293,7 @@ f(A a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(A a) {
   B b = a as B;
   B b2 = a as B;
@@ -329,7 +331,7 @@ f(List<A> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(List<A> a) {
   List<B> b = a.where((e) => e is B).cast<B>().toList();
   List<B> b2 = a.where((e) => e is B).cast<B>().toList();
@@ -367,7 +369,7 @@ f(Map<A, B> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(Map<A, B> a) {
   Map<B, A> b = a.cast<B, A>();
   Map<B, A> b2 = a.cast<B, A>();
@@ -411,7 +413,7 @@ class A {
 }
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(A a) {
   B b = (a..m()) as B;
   B b2 = (a..m()) as B;
@@ -451,7 +453,7 @@ f(Set<A> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(StaticTypeWarningCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
 f(Set<A> a) {
   Set<B> b = a.cast<B>();
   Set<B> b2 = a.cast<B>();
@@ -469,8 +471,32 @@ void foo(int a) {
 ''');
     await assertNoFix(
       errorFilter: (e) {
-        return e.errorCode == StaticTypeWarningCode.INVALID_ASSIGNMENT;
+        return e.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT;
       },
     );
+  }
+}
+
+@reflectiveTest
+class AddExplicitCastWithNullSafetyTest extends AddExplicitCastTest {
+  @override
+  List<String> get experiments => [EnableString.non_nullable];
+
+  Future<void> test_assignment_null() async {
+    await resolveTestUnit('''
+void f(int x) {
+  x = null;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_assignment_nullable() async {
+    await resolveTestUnit('''
+void f(int x, int? y) {
+  x = y;
+}
+''');
+    await assertNoFix();
   }
 }

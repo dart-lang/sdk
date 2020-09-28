@@ -51,7 +51,7 @@ static method main() → dynamic {
     }
   } =>#t5;
   final core::Set<core::int*>* aSet = block {
-    final core::Set<core::int*>* #t9 = col::LinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t9 = new col::_CompactLinkedHashSet::•<core::int*>();
     #t9.{core::Set::add}(1);
     {
       core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[2].{core::Iterable::iterator};

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -450,10 +448,10 @@ import 'a.dart';
 ''');
     // validate change
     _assertSort(r'''
-/// aaa1
-/// aaa2
 /// Library documentation comment A
 /// Library documentation comment B
+/// aaa1
+/// aaa2
 import 'a.dart';
 import 'b.dart';
 ''');
@@ -475,12 +473,12 @@ import 'a.dart';
     // validate change
     _assertSort(r'''
 /**
- * aaa
- * aaa
- */
-/**
  * Library documentation comment A.
  * Library documentation comment B.
+ */
+/**
+ * aaa
+ * aaa
  */
 import 'a.dart';
 import 'b.dart';
@@ -508,6 +506,50 @@ import 'package:product.ui.api/entity2.dart';
 import 'package:product.ui.api.aaa/manager2.dart';
 import 'package:product.ui.api.bbb/manager1.dart';
 import 'package:product2.client/entity.dart';
+''');
+  }
+
+  Future<void> test_directives_invalidUri_interpolation() async {
+    await _parseTestUnit(r'''
+library lib;
+
+import 'dart:$bbb';
+import 'dart:ccc';
+import 'dart:aaa';
+''');
+    _assertSort(r'''
+library lib;
+
+import 'dart:aaa';
+import 'dart:ccc';
+
+import 'dart:$bbb';
+''');
+  }
+
+  Future<void> test_directives_splits_comments() async {
+    // Here, the comments "b" and "ccc1" will be part of the same list
+    // of comments so need to be split.
+    await _parseTestUnit(r'''
+// copyright
+import 'b.dart'; // b
+// ccc1
+// ccc2
+import 'c.dart'; // c
+// aaa1
+// aaa2
+import 'a.dart'; // a
+''');
+
+    _assertSort(r'''
+// copyright
+// aaa1
+// aaa2
+import 'a.dart'; // a
+import 'b.dart'; // b
+// ccc1
+// ccc2
+import 'c.dart'; // c
 ''');
   }
 

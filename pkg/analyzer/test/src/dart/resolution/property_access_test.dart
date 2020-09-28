@@ -2,22 +2,444 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PropertyAccessResolutionTest);
-    defineReflectiveTests(PropertyAccessResolutionWithNnbdTest);
+    defineReflectiveTests(PropertyAccessResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class PropertyAccessResolutionTest extends DriverResolutionTest {
+class PropertyAccessResolutionTest extends PubPackageResolutionTest {
+  test_extensionOverride_read() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  E(a).foo;
+}
+''');
+
+    var propertyAccess = findNode.propertyAccess('foo;');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: findElement.getter('foo'),
+      writeElement: null,
+      type: 'int',
+    );
+  }
+
+  test_extensionOverride_readWrite_assignment() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  int get foo => 0;
+  set foo(num _) {}
+}
+
+void f(A a) {
+  E(a).foo += 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo += 1');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('foo'),
+      readType: 'int',
+      writeElement: findElement.setter('foo'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.setter('foo'),
+      type: 'num',
+    );
+  }
+
+  test_extensionOverride_write() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  E(a).foo = 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: null,
+      writeElement: findElement.setter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_instanceCreation_read() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f() {
+  A().foo;
+}
+''');
+
+    var propertyAccess = findNode.propertyAccess('foo;');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: findElement.getter('foo'),
+      writeElement: null,
+      type: 'int',
+    );
+  }
+
+  test_instanceCreation_readWrite_assignment() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f() {
+  A().foo += 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo += 1');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('foo'),
+      readType: 'int',
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_instanceCreation_write() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f() {
+  A().foo = 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: null,
+      writeElement: findElement.setter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_ofExtension_read() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  A().foo;
+}
+''');
+
+    var propertyAccess = findNode.propertyAccess('foo;');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: findElement.getter('foo'),
+      writeElement: null,
+      type: 'int',
+    );
+  }
+
+  test_ofExtension_readWrite_assignment() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  int get foo => 0;
+  set foo(num _) {}
+}
+
+void f() {
+  A().foo += 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo += 1');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('foo'),
+      readType: 'int',
+      writeElement: findElement.setter('foo'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.setter('foo'),
+      type: 'num',
+    );
+  }
+
+  test_ofExtension_write() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  set foo(int _) {}
+}
+
+void f() {
+  A().foo = 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: null,
+      writeElement: findElement.setter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_super_read() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+class B extends A {
+  void f() {
+    super.foo;
+  }
+}
+''');
+
+    var propertyAccess = findNode.propertyAccess('super.foo');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSuperExpression(
+      propertyAccess.target,
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: findElement.getter('foo'),
+      writeElement: null,
+      type: 'int',
+    );
+  }
+
+  test_super_readWrite_assignment() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+class B extends A {
+  void f() {
+    super.foo += 1;
+  }
+}
+''');
+
+    var assignment = findNode.assignment('foo += 1');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('foo'),
+      readType: 'int',
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+
+    assertSuperExpression(
+      propertyAccess.target,
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: findElement.getter('foo'),
+      writeElement: findElement.setter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_super_write() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+class B extends A {
+  void f() {
+    super.foo = 1;
+  }
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertPropertyAccess2(
+      propertyAccess,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+
+    assertSuperExpression(
+      propertyAccess.target,
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: null,
+      writeElement: findElement.setter('foo'),
+      type: 'int',
+    );
+  }
+
   test_tearOff_method() async {
     await assertNoErrorsInCode('''
 class A {
@@ -36,16 +458,8 @@ bar() {
 }
 
 @reflectiveTest
-class PropertyAccessResolutionWithNnbdTest
-    extends PropertyAccessResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class PropertyAccessResolutionWithNullSafetyTest
+    extends PropertyAccessResolutionTest with WithNullSafetyMixin {
   test_implicitCall_tearOff_nullable() async {
     await assertErrorsInCode('''
 class A {
@@ -60,7 +474,7 @@ int Function() foo() {
   return B().a; // ref
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5),
     ]);
 
     var identifier = findNode.simple('a; // ref');
@@ -174,7 +588,8 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('foo?'),
-      element: findElement.topGet('foo'),
+      readElement: findElement.topGet('foo'),
+      writeElement: null,
       type: 'A?',
     );
 

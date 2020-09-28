@@ -28,8 +28,8 @@ main() async {
   Future doDirSetup(String testName) async {
     await getFileSystem();
 
-    var file = await fs.root.createFile('file_$testName') as FileEntry;
-    var dir = await fs.root.createDirectory('dir_$testName') as DirectoryEntry;
+    var file = await fs.root!.createFile('file_$testName') as FileEntry;
+    var dir = await fs.root!.createDirectory('dir_$testName') as DirectoryEntry;
     return new Future.value(new FileAndDir(file, dir));
   }
 

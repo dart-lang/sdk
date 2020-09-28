@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,17 +17,18 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisSessionHelperTest extends DriverResolutionTest {
+class AnalysisSessionHelperTest extends PubPackageResolutionTest {
   AnalysisSessionHelper helper;
 
   @override
   void setUp() {
     super.setUp();
-    helper = AnalysisSessionHelper(driver.currentSession);
+    var session = contextFor(testFilePath).currentSession;
+    helper = AnalysisSessionHelper(session);
   }
 
   test_getClass_defined() async {
-    var file = newFile('/test/lib/c.dart', content: r'''
+    var file = newFile('$testPackageLibPath/c.dart', content: r'''
 class C {}
 int v = 0;
 ''');
@@ -39,7 +40,7 @@ int v = 0;
   }
 
   test_getClass_defined_notClass() async {
-    var file = newFile('/test/lib/c.dart', content: r'''
+    var file = newFile('$testPackageLibPath/c.dart', content: r'''
 int v = 0;
 ''');
     String uri = file.toUri().toString();
@@ -49,10 +50,10 @@ int v = 0;
   }
 
   test_getClass_exported() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
-    var bFile = newFile('/test/lib/b.dart', content: r'''
+    var bFile = newFile('$testPackageLibPath/b.dart', content: r'''
 export 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
@@ -63,10 +64,10 @@ export 'a.dart';
   }
 
   test_getClass_imported() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
-    var bFile = newFile('/test/lib/b.dart', content: r'''
+    var bFile = newFile('$testPackageLibPath/b.dart', content: r'''
 import 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
@@ -96,7 +97,7 @@ class B {}
   }
 
   test_getTopLevelPropertyAccessor_defined_getter() async {
-    var file = newFile('/test/lib/test.dart', content: r'''
+    var file = newFile('$testPackageLibPath/test.dart', content: r'''
 int get a => 0;
 ''');
     String uri = file.toUri().toString();
@@ -108,7 +109,7 @@ int get a => 0;
   }
 
   test_getTopLevelPropertyAccessor_defined_setter() async {
-    var file = newFile('/test/lib/test.dart', content: r'''
+    var file = newFile('$testPackageLibPath/test.dart', content: r'''
 set a(_) {}
 ''');
     String uri = file.toUri().toString();
@@ -120,7 +121,7 @@ set a(_) {}
   }
 
   test_getTopLevelPropertyAccessor_defined_variable() async {
-    var file = newFile('/test/lib/test.dart', content: r'''
+    var file = newFile('$testPackageLibPath/test.dart', content: r'''
 int a;
 ''');
     String uri = file.toUri().toString();
@@ -132,10 +133,10 @@ int a;
   }
 
   test_getTopLevelPropertyAccessor_exported() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int a;
 ''');
-    var bFile = newFile('/test/lib/b.dart', content: r'''
+    var bFile = newFile('$testPackageLibPath/b.dart', content: r'''
 export 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
@@ -147,10 +148,10 @@ export 'a.dart';
   }
 
   test_getTopLevelPropertyAccessor_imported() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 int a;
 ''');
-    var bFile = newFile('/test/lib/b.dart', content: r'''
+    var bFile = newFile('$testPackageLibPath/b.dart', content: r'''
 import 'a.dart';
 ''');
     String bUri = bFile.toUri().toString();
@@ -160,7 +161,7 @@ import 'a.dart';
   }
 
   test_getTopLevelPropertyAccessor_notDefined() async {
-    var file = newFile('/test/lib/test.dart', content: r'''
+    var file = newFile('$testPackageLibPath/test.dart', content: r'''
 int a;
 ''');
     String uri = file.toUri().toString();
@@ -170,7 +171,7 @@ int a;
   }
 
   test_getTopLevelPropertyAccessor_notPropertyAccessor() async {
-    var file = newFile('/test/lib/test.dart', content: r'''
+    var file = newFile('$testPackageLibPath/test.dart', content: r'''
 int a() {}
 ''');
     String uri = file.toUri().toString();

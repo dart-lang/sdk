@@ -44,7 +44,6 @@ String _removePeriod(String value) {
 
 /// Data structure recording command-line options for the migration tool that
 /// have been passed in by the client.
-@visibleForTesting
 class CommandLineOptions {
   static const applyChangesFlag = 'apply-changes';
   static const helpFlag = 'help';
@@ -177,16 +176,18 @@ class DependencyChecker {
 class MigrateCommand extends Command<dynamic> {
   final bool verbose;
 
-  MigrateCommand({this.verbose = false}) {
+  @override
+  final bool hidden;
+
+  MigrateCommand({this.verbose = false, this.hidden = false}) {
     MigrationCli._defineOptions(argParser, !verbose);
   }
 
   @override
   String get description =>
       'Perform a null safety migration on a project or package.'
-      '\n\nThe migrate feature is in preview and not yet complete; we welcome '
-      'feedback.\n\n'
-      'https://github.com/dart-lang/sdk/tree/master/pkg/nnbd_migration#providing-feedback';
+      '\n\nThe migration tool is in preview; see '
+      'https://dart.dev/go/null-safety-migration for a migration guide.';
 
   @override
   String get invocation {
@@ -380,6 +381,27 @@ class MigrationCli {
   }
 
   static void _defineOptions(ArgParser parser, bool hide) {
+    addCoreOptions(parser, hide);
+    parser.addFlag(
+      CommandLineOptions.skipPubOutdatedFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Skip the `pub outdated --mode=null-safety` check.',
+    );
+    parser.addFlag(CommandLineOptions.webPreviewFlag,
+        defaultsTo: true,
+        negatable: true,
+        help: 'Show an interactive preview of the proposed null safety changes '
+            'in a browser window.\n'
+            '--no-web-preview prints proposed changes to the console.');
+
+    parser.addOption(CommandLineOptions.sdkPathOption,
+        help: 'The path to the Dart SDK.', hide: hide);
+    parser.addOption(CommandLineOptions.summaryOption,
+        help: 'Output a machine-readable summary of migration changes.');
+  }
+
+  static void addCoreOptions(ArgParser parser, bool hide) {
     parser.addFlag(CommandLineOptions.applyChangesFlag,
         defaultsTo: false,
         negatable: false,
@@ -388,8 +410,8 @@ class MigrationCli {
       CommandLineOptions.ignoreErrorsFlag,
       defaultsTo: false,
       negatable: false,
-      help: 'Attempt to perform null safety analysis even if there are '
-          'analysis errors in the project.',
+      help: 'Attempt to perform null safety analysis even if the package has '
+          'analysis errors.',
     );
     parser.addFlag(CommandLineOptions.ignoreExceptionsFlag,
         defaultsTo: false,
@@ -397,38 +419,19 @@ class MigrationCli {
         help:
             'Attempt to perform null safety analysis even if exceptions occur.',
         hide: hide);
-    parser.addOption(CommandLineOptions.previewHostnameOption,
-        defaultsTo: 'localhost',
-        help: 'Run the preview server on the specified hostname.  If not '
-            'specified, "localhost" is used. Use "any" to specify IPv6.any or '
-            'IPv4.any.');
-    parser.addOption(CommandLineOptions.previewPortOption,
-        help:
-            'Run the preview server on the specified port.  If not specified, '
-            'dynamically allocate a port.');
-    parser.addOption(CommandLineOptions.sdkPathOption,
-        help: 'The path to the Dart SDK.', hide: hide);
-    parser.addFlag(
-      CommandLineOptions.skipPubOutdatedFlag,
-      defaultsTo: false,
-      negatable: false,
-      help: 'Skip the `pub outdated --mode=null-safety` check.',
-    );
-    parser.addOption(CommandLineOptions.summaryOption,
-        help:
-            'Output path for a machine-readable summary of migration changes');
     parser.addFlag(CommandLineOptions.verboseFlag,
         abbr: 'v',
         defaultsTo: false,
-        help: 'Verbose output.',
+        help: 'Show additional command output.',
         negatable: false);
-    parser.addFlag(CommandLineOptions.webPreviewFlag,
-        defaultsTo: true,
-        negatable: true,
-        help: 'Show an interactive preview of the proposed null safety changes '
-            'in a browser window.\n'
-            'With --no-web-preview, the proposed changes are instead printed to '
-            'the console.');
+    parser.addOption(CommandLineOptions.previewHostnameOption,
+        defaultsTo: 'localhost',
+        help: 'Run the preview server on the specified hostname.\nIf not '
+            'specified, "localhost" is used. Use "any" to specify IPv6.any or '
+            'IPv4.any.');
+    parser.addOption(CommandLineOptions.previewPortOption,
+        help: 'Run the preview server on the specified port. If not specified, '
+            'dynamically allocate a port.');
   }
 }
 
@@ -497,6 +500,10 @@ class MigrationCliRunner {
   Context get pathContext => resourceProvider.pathContext;
 
   ResourceProvider get resourceProvider => cli.resourceProvider;
+
+  /// Called after changes have been applied on disk.  Maybe overridden by a
+  /// derived class.
+  void applyHook() {}
 
   /// Blocks until an interrupt signal (control-C) is received.  Tests may
   /// override this method to simulate control-C.
@@ -699,6 +706,7 @@ Use this interactive web view to review, improve, or apply the results.
         }
       }
     }
+    applyHook();
   }
 
   void _checkDependencies() {
@@ -1022,7 +1030,7 @@ class _FixCodeProcessor extends Object {
     });
     var state = await _task.finish();
     if (_migrationCli.options.webPreview) {
-      await _task.startPreviewServer(state);
+      await _task.startPreviewServer(state, _migrationCli.applyHook);
     }
     _progressBar.complete();
 

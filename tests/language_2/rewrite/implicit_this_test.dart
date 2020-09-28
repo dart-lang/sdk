@@ -12,7 +12,7 @@ class Foo {
   easy(z) {
         return x + y + z;
         //         ^
-        // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+        // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
         // [cfe] The getter 'y' isn't defined for the class 'Foo'.
   }
 
@@ -20,7 +20,7 @@ class Foo {
   shadow_y_parameter(y) {
         return x + this.y + y;
         //              ^
-        // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+        // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
         // [cfe] The getter 'y' isn't defined for the class 'Foo'.
   }
 
@@ -28,7 +28,7 @@ class Foo {
     var y = z;
         return x + this.y + y;
         //              ^
-        // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+        // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
         // [cfe] The getter 'y' isn't defined for the class 'Foo'.
   }
 
@@ -37,7 +37,7 @@ class Foo {
     foo() {
             return x + this.y + y;
             //              ^
-            // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
             // [cfe] The getter 'y' isn't defined for the class 'Foo'.
     }
     return foo();
@@ -47,7 +47,7 @@ class Foo {
     foo(y) {
             return x + this.y + y;
             //              ^
-            // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
             // [cfe] The getter 'y' isn't defined for the class 'Foo'.
     }
     return foo(z);
@@ -58,7 +58,7 @@ class Foo {
       var y = z;
             return x + this.y + y;
             //              ^
-            // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
             // [cfe] The getter 'y' isn't defined for the class 'Foo'.
     }
 
@@ -69,7 +69,7 @@ class Foo {
   shadow_x_parameter(x) {
         return this.x + y + x;
         //              ^
-        // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+        // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
         // [cfe] The getter 'y' isn't defined for the class 'Foo'.
   }
 
@@ -77,7 +77,7 @@ class Foo {
     var x = z;
         return this.x + y + x;
         //              ^
-        // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+        // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
         // [cfe] The getter 'y' isn't defined for the class 'Foo'.
   }
 
@@ -86,7 +86,7 @@ class Foo {
     foo() {
             return this.x + y + x;
             //              ^
-            // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
             // [cfe] The getter 'y' isn't defined for the class 'Foo'.
     }
     return foo();
@@ -96,7 +96,7 @@ class Foo {
     foo(x) {
             return this.x + y + x;
             //              ^
-            // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
             // [cfe] The getter 'y' isn't defined for the class 'Foo'.
     }
     return foo(z);
@@ -107,7 +107,7 @@ class Foo {
       var x = z;
             return this.x + y + x;
             //              ^
-            // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+            // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
             // [cfe] The getter 'y' isn't defined for the class 'Foo'.
     }
 
@@ -117,10 +117,10 @@ class Foo {
   shadow_x_toplevel() {
         return x + this.y + toplevel + this.toplevel;
         //              ^
-        // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+        // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
         // [cfe] The getter 'y' isn't defined for the class 'Foo'.
         //                                  ^^^^^^^^
-        // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+        // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
         // [cfe] The getter 'toplevel' isn't defined for the class 'Foo'.
   }
 }

@@ -27,7 +27,7 @@ class D {
   D();
   factory D.factory() = lib.Foo2;
 //                      ^^^^^^^^
-// [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+// [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
 // [cfe] The constructor function type 'Foo2 Function()' isn't a subtype of 'D Function()'.
 }
 

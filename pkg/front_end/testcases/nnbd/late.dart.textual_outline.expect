@@ -25,9 +25,9 @@ class Class {
   final int lateFinalStaticField2;
   static late ;
   final int lateFinalStaticFieldWithInit = 0;
-  method() { }
-  methodWithErrors() { }
+  method() {}
+  methodWithErrors() {}
 }
-main() { }
-noErrors() { }
-errors() { }
+main() {}
+noErrors() {}
+errors() {}

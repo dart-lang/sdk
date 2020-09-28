@@ -25,14 +25,14 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:convert';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);
@@ -54,14 +54,14 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:convert';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);
@@ -133,7 +133,7 @@ int minified(int x, int y) => min(x, y);
 import 'dart:async';
 import 'dart:math';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);
@@ -281,7 +281,8 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
       // Claim that we failed tpo apply the edits. This is what the client
       // would do if the edits provided were for an old version of the
       // document.
-      handler: (edit) => ApplyWorkspaceEditResponse(false, 'Document changed'),
+      handler: (edit) => ApplyWorkspaceEditResponse(
+          applied: false, failureReason: 'Document changed'),
     );
 
     // Ensure the request returned an error (error repsonses are thrown by

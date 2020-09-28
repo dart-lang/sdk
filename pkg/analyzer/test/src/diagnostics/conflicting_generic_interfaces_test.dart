@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConflictingGenericInterfacesTest);
-    defineReflectiveTests(ConflictingGenericInterfacesWithNnbdTest);
+    defineReflectiveTests(ConflictingGenericInterfacesWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ConflictingGenericInterfacesTest extends DriverResolutionTest {
+class ConflictingGenericInterfacesTest extends PubPackageResolutionTest {
   test_class_extends_implements() async {
     await assertErrorsInCode('''
 class I<T> {}
@@ -73,13 +71,8 @@ class C extends A implements B {}
 }
 
 @reflectiveTest
-class ConflictingGenericInterfacesWithNnbdTest
-    extends ConflictingGenericInterfacesTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
+class ConflictingGenericInterfacesWithNullSafetyTest
+    extends ConflictingGenericInterfacesTest with WithNullSafetyMixin {
   test_class_extends_implements_never() async {
     await assertNoErrorsInCode('''
 class I<T> {}
@@ -101,7 +94,7 @@ class C extends A implements B {}
   }
 
   test_class_extends_implements_optOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class I<T> {}
 class A implements I<int> {}
 class B implements I<int?> {}
@@ -115,7 +108,7 @@ class C extends A implements B {}
   }
 
   test_class_extends_optIn_implements_optOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {}
 
 class B extends A<int> {}
@@ -129,7 +122,7 @@ class C extends B implements A<int> {}
   }
 
   test_class_mixed_viaLegacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {}
 
 class Bi implements A<int> {}
@@ -138,7 +131,7 @@ class Biq implements A<int?> {}
 ''');
 
     // Both `Bi` and `Biq` implement `A<int*>` in legacy, so identical.
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -165,11 +158,11 @@ class C extends B implements A<Object> {}
   }
 
   test_class_topMerge_optIn_optOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {}
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.5
 import 'a.dart';
 

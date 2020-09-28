@@ -1,0 +1,698 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:15:7: Error: 'B with MixinB' can't implement both 'B<num>' and 'B<int>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2c extends B<num> with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:19:7: Error: 'B with MixinB' can't implement both 'B<Object>' and 'B<dynamic>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'Object' is from 'dart:core'.
+// class Class2e extends B<Object> with MixinB<dynamic> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:23:7: Error: 'C with MixinC' can't implement both 'C<num, num>' and 'C<num, int>'
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3b extends C<num, num> with MixinC<num, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:23:7: Error: 'B with MixinB' can't implement both 'B<int?>' and 'B<int>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2b extends B<int?> with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:25:7: Error: 'B with MixinB' can't implement both 'B<num>' and 'B<int>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2c extends B<num> with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:29:7: Error: 'B with MixinB' can't implement both 'B<Object>' and 'B<dynamic>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'Object' is from 'dart:core'.
+// class Class2e extends B<Object> with MixinB<dynamic> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:35:7: Error: 'C with MixinC' can't implement both 'C<num, num>' and 'C<num, int>'
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3b extends C<num, num> with MixinC<num, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:37:7: Error: 'C with MixinC' can't implement both 'C<num?, int>' and 'C<num, int>'
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3c extends C<num?, int> with MixinC<num, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:49:7: Error: 'ClassBa with MixinB' can't implement both 'B<int?>' and 'B<int>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class4a extends ClassBa with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:53:7: Error: 'ClassBb with MixinB' can't implement both 'B<int>' and 'B<int?>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class4c extends ClassBb with MixinB<int?> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:57:7: Error: 'ClassCa with MixinC' can't implement both 'C<num?, int?>' and 'C<num?, int>'
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class5a extends ClassCa with MixinC<num?, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:61:7: Error: 'ClassCb with MixinC' can't implement both 'C<num?, int>' and 'C<num?, int?>'
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class5c extends ClassCb with MixinC<num?, int?> {} // error
+//       ^
+//
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:9:7: Error: 'Object' doesn't implement 'A' so it can't be used with 'MixinA'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinA' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class1a extends Object with MixinA {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:13:7: Error: 'Object' doesn't implement 'B<int>' so it can't be used with 'MixinB<int>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinB' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2a extends Object with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:15:7: Error: 'B<num>' doesn't implement 'B<int>' so it can't be used with 'MixinB<int>'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinB' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2c extends B<num> with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:21:7: Error: 'Object' doesn't implement 'C<num, int>' so it can't be used with 'MixinC<num, int>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinC' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3a extends Object with MixinC<num, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:23:7: Error: 'C<num, num>' doesn't implement 'C<num, int>' so it can't be used with 'MixinC<num, int>'.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinC' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3b extends C<num, num> with MixinC<num, int> {} // error
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+import "bad_mixins_lib.dart" as bad;
+
+import "org-dartlang-testcase:///bad_mixins_lib.dart";
+
+abstract class _Class1a&Object&MixinA = core::Object with bad::MixinA /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class1a&Object&MixinA*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class1a extends self::_Class1a&Object&MixinA {
+  synthetic constructor •() → self::Class1a*
+    : super self::_Class1a&Object&MixinA::•()
+    ;
+}
+abstract class _Class1b&A&MixinA = bad::A with bad::MixinA /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class1b&A&MixinA*
+    : super bad::A::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class1b extends self::_Class1b&A&MixinA {
+  synthetic constructor •() → self::Class1b*
+    : super self::_Class1b&A&MixinA::•()
+    ;
+}
+abstract class _Class2a&Object&MixinB = core::Object with bad::MixinB<core::int*> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class2a&Object&MixinB*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class2a extends self::_Class2a&Object&MixinB {
+  synthetic constructor •() → self::Class2a*
+    : super self::_Class2a&Object&MixinB::•()
+    ;
+}
+abstract class _Class2c&B&MixinB = bad::B<core::num*> with bad::MixinB<core::int*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class2c&B&MixinB*
+    : super bad::B::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class2c extends self::_Class2c&B&MixinB {
+  synthetic constructor •() → self::Class2c*
+    : super self::_Class2c&B&MixinB::•()
+    ;
+}
+abstract class _Class2d&B&MixinB = bad::B<core::int*> with bad::MixinB<core::int*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class2d&B&MixinB*
+    : super bad::B::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class2d extends self::_Class2d&B&MixinB {
+  synthetic constructor •() → self::Class2d*
+    : super self::_Class2d&B&MixinB::•()
+    ;
+}
+abstract class _Class2e&B&MixinB = bad::B<core::Object*> with bad::MixinB<dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class2e&B&MixinB*
+    : super bad::B::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class2e extends self::_Class2e&B&MixinB {
+  synthetic constructor •() → self::Class2e*
+    : super self::_Class2e&B&MixinB::•()
+    ;
+}
+abstract class _Class3a&Object&MixinC = core::Object with bad::MixinC<core::num*, core::int*> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class3a&Object&MixinC*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class3a extends self::_Class3a&Object&MixinC {
+  synthetic constructor •() → self::Class3a*
+    : super self::_Class3a&Object&MixinC::•()
+    ;
+}
+abstract class _Class3b&C&MixinC = bad::C<core::num*, core::num*> with bad::MixinC<core::num*, core::int*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class3b&C&MixinC*
+    : super bad::C::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class3b extends self::_Class3b&C&MixinC {
+  synthetic constructor •() → self::Class3b*
+    : super self::_Class3b&C&MixinC::•()
+    ;
+}
+abstract class _Class3d&C&MixinC = bad::C<core::num*, core::int*> with bad::MixinC<core::num*, core::int*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class3d&C&MixinC*
+    : super bad::C::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class3d extends self::_Class3d&C&MixinC {
+  synthetic constructor •() → self::Class3d*
+    : super self::_Class3d&C&MixinC::•()
+    ;
+}
+abstract class _Class4a&ClassBa&MixinB = bad::ClassBa with bad::MixinB<core::int*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class4a&ClassBa&MixinB*
+    : super bad::ClassBa::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class4a extends self::_Class4a&ClassBa&MixinB {
+  synthetic constructor •() → self::Class4a*
+    : super self::_Class4a&ClassBa&MixinB::•()
+    ;
+}
+abstract class _Class4b&ClassBb&MixinB = bad::ClassBb with bad::MixinB<core::int*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class4b&ClassBb&MixinB*
+    : super bad::ClassBb::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class4b extends self::_Class4b&ClassBb&MixinB {
+  synthetic constructor •() → self::Class4b*
+    : super self::_Class4b&ClassBb&MixinB::•()
+    ;
+}
+abstract class _Class5a&ClassCa&MixinC = bad::ClassCa with bad::MixinC<core::num*, core::int*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class5a&ClassCa&MixinC*
+    : super bad::ClassCa::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class5a extends self::_Class5a&ClassCa&MixinC {
+  synthetic constructor •() → self::Class5a*
+    : super self::_Class5a&ClassCa&MixinC::•()
+    ;
+}
+abstract class _Class5b&ClassCb&MixinC = bad::ClassCb with bad::MixinC<core::num*, core::int*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class5b&ClassCb&MixinC*
+    : super bad::ClassCb::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class5b extends self::_Class5b&ClassCb&MixinC {
+  synthetic constructor •() → self::Class5b*
+    : super self::_Class5b&ClassCb&MixinC::•()
+    ;
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:17:7: Error: 'Object' doesn't implement 'A' so it can't be used with 'MixinA'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinA' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class1a extends Object with MixinA {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:21:7: Error: 'Object' doesn't implement 'B<int>' so it can't be used with 'MixinB<int>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinB' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2a extends Object with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:23:7: Error: 'B<int?>' doesn't implement 'B<int>' so it can't be used with 'MixinB<int>'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinB' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2b extends B<int?> with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:25:7: Error: 'B<num>' doesn't implement 'B<int>' so it can't be used with 'MixinB<int>'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinB' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2c extends B<num> with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:29:7: Error: 'B<Object>' doesn't implement 'B<dynamic>' so it can't be used with 'MixinB<dynamic>'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'Object' is from 'dart:core'.
+//  - 'MixinB' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2e extends B<Object> with MixinB<dynamic> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:33:7: Error: 'Object' doesn't implement 'C<num, int>' so it can't be used with 'MixinC<num, int>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinC' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3a extends Object with MixinC<num, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:35:7: Error: 'C<num, num>' doesn't implement 'C<num, int>' so it can't be used with 'MixinC<num, int>'.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinC' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3b extends C<num, num> with MixinC<num, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:37:7: Error: 'C<num?, int>' doesn't implement 'C<num, int>' so it can't be used with 'MixinC<num, int>'.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinC' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3c extends C<num?, int> with MixinC<num, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:49:7: Error: 'ClassBa' doesn't implement 'B<int>' so it can't be used with 'MixinB<int>'.
+//  - 'ClassBa' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinB' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class4a extends ClassBa with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:53:7: Error: 'ClassBb' doesn't implement 'B<int?>' so it can't be used with 'MixinB<int?>'.
+//  - 'ClassBb' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinB' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class4c extends ClassBb with MixinB<int?> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:57:7: Error: 'ClassCa' doesn't implement 'C<num?, int>' so it can't be used with 'MixinC<num?, int>'.
+//  - 'ClassCa' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinC' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class5a extends ClassCa with MixinC<num?, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:61:7: Error: 'ClassCb' doesn't implement 'C<num?, int?>' so it can't be used with 'MixinC<num?, int?>'.
+//  - 'ClassCb' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'MixinC' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class5c extends ClassCb with MixinC<num?, int?> {} // error
+//       ^
+//
+import self as bad;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → bad::A
+    : super core::Object::•()
+    ;
+}
+class B<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → bad::B<bad::B::T%>
+    : super core::Object::•()
+    ;
+}
+class C<T extends core::Object? = dynamic, S extends bad::C::T% = dynamic> extends core::Object {
+  synthetic constructor •() → bad::C<bad::C::T%, bad::C::S%>
+    : super core::Object::•()
+    ;
+}
+abstract class MixinA extends bad::A /*isMixinDeclaration*/  {
+}
+abstract class MixinB<T extends core::Object? = dynamic> extends bad::B<bad::MixinB::T%> /*isMixinDeclaration*/  {
+}
+abstract class MixinC<T extends core::Object? = dynamic, S extends bad::MixinC::T% = dynamic> extends bad::C<bad::MixinC::T%, bad::MixinC::S%> /*isMixinDeclaration*/  {
+}
+abstract class _Class1a&Object&MixinA = core::Object with bad::MixinA /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → bad::_Class1a&Object&MixinA
+    : super core::Object::•()
+    ;
+}
+class Class1a extends bad::_Class1a&Object&MixinA {
+  synthetic constructor •() → bad::Class1a
+    : super bad::_Class1a&Object&MixinA::•()
+    ;
+}
+abstract class _Class1b&A&MixinA = bad::A with bad::MixinA /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class1b&A&MixinA
+    : super bad::A::•()
+    ;
+}
+class Class1b extends bad::_Class1b&A&MixinA {
+  synthetic constructor •() → bad::Class1b
+    : super bad::_Class1b&A&MixinA::•()
+    ;
+}
+abstract class _Class2a&Object&MixinB = core::Object with bad::MixinB<core::int> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → bad::_Class2a&Object&MixinB
+    : super core::Object::•()
+    ;
+}
+class Class2a extends bad::_Class2a&Object&MixinB {
+  synthetic constructor •() → bad::Class2a
+    : super bad::_Class2a&Object&MixinB::•()
+    ;
+}
+abstract class _Class2b&B&MixinB = bad::B<core::int?> with bad::MixinB<core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class2b&B&MixinB
+    : super bad::B::•()
+    ;
+}
+class Class2b extends bad::_Class2b&B&MixinB {
+  synthetic constructor •() → bad::Class2b
+    : super bad::_Class2b&B&MixinB::•()
+    ;
+}
+abstract class _Class2c&B&MixinB = bad::B<core::num> with bad::MixinB<core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class2c&B&MixinB
+    : super bad::B::•()
+    ;
+}
+class Class2c extends bad::_Class2c&B&MixinB {
+  synthetic constructor •() → bad::Class2c
+    : super bad::_Class2c&B&MixinB::•()
+    ;
+}
+abstract class _Class2d&B&MixinB = bad::B<core::int> with bad::MixinB<core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class2d&B&MixinB
+    : super bad::B::•()
+    ;
+}
+class Class2d extends bad::_Class2d&B&MixinB {
+  synthetic constructor •() → bad::Class2d
+    : super bad::_Class2d&B&MixinB::•()
+    ;
+}
+abstract class _Class2e&B&MixinB = bad::B<core::Object> with bad::MixinB<dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class2e&B&MixinB
+    : super bad::B::•()
+    ;
+}
+class Class2e extends bad::_Class2e&B&MixinB {
+  synthetic constructor •() → bad::Class2e
+    : super bad::_Class2e&B&MixinB::•()
+    ;
+}
+abstract class _Class2f&B&MixinB = bad::B<core::Object?> with bad::MixinB<dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class2f&B&MixinB
+    : super bad::B::•()
+    ;
+}
+class Class2f extends bad::_Class2f&B&MixinB {
+  synthetic constructor •() → bad::Class2f
+    : super bad::_Class2f&B&MixinB::•()
+    ;
+}
+abstract class _Class3a&Object&MixinC = core::Object with bad::MixinC<core::num, core::int> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → bad::_Class3a&Object&MixinC
+    : super core::Object::•()
+    ;
+}
+class Class3a extends bad::_Class3a&Object&MixinC {
+  synthetic constructor •() → bad::Class3a
+    : super bad::_Class3a&Object&MixinC::•()
+    ;
+}
+abstract class _Class3b&C&MixinC = bad::C<core::num, core::num> with bad::MixinC<core::num, core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class3b&C&MixinC
+    : super bad::C::•()
+    ;
+}
+class Class3b extends bad::_Class3b&C&MixinC {
+  synthetic constructor •() → bad::Class3b
+    : super bad::_Class3b&C&MixinC::•()
+    ;
+}
+abstract class _Class3c&C&MixinC = bad::C<core::num?, core::int> with bad::MixinC<core::num, core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class3c&C&MixinC
+    : super bad::C::•()
+    ;
+}
+class Class3c extends bad::_Class3c&C&MixinC {
+  synthetic constructor •() → bad::Class3c
+    : super bad::_Class3c&C&MixinC::•()
+    ;
+}
+abstract class _Class3d&C&MixinC = bad::C<core::num, core::int> with bad::MixinC<core::num, core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class3d&C&MixinC
+    : super bad::C::•()
+    ;
+}
+class Class3d extends bad::_Class3d&C&MixinC {
+  synthetic constructor •() → bad::Class3d
+    : super bad::_Class3d&C&MixinC::•()
+    ;
+}
+class ClassBa extends bad::B<core::int?> {
+  synthetic constructor •() → bad::ClassBa
+    : super bad::B::•()
+    ;
+}
+class ClassBb extends bad::B<core::int> {
+  synthetic constructor •() → bad::ClassBb
+    : super bad::B::•()
+    ;
+}
+class ClassCa extends bad::C<core::num?, core::int?> {
+  synthetic constructor •() → bad::ClassCa
+    : super bad::C::•()
+    ;
+}
+class ClassCb extends bad::C<core::num?, core::int> {
+  synthetic constructor •() → bad::ClassCb
+    : super bad::C::•()
+    ;
+}
+abstract class _Class4a&ClassBa&MixinB = bad::ClassBa with bad::MixinB<core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class4a&ClassBa&MixinB
+    : super bad::ClassBa::•()
+    ;
+}
+class Class4a extends bad::_Class4a&ClassBa&MixinB {
+  synthetic constructor •() → bad::Class4a
+    : super bad::_Class4a&ClassBa&MixinB::•()
+    ;
+}
+abstract class _Class4b&ClassBa&MixinB = bad::ClassBa with bad::MixinB<core::int?> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class4b&ClassBa&MixinB
+    : super bad::ClassBa::•()
+    ;
+}
+class Class4b extends bad::_Class4b&ClassBa&MixinB {
+  synthetic constructor •() → bad::Class4b
+    : super bad::_Class4b&ClassBa&MixinB::•()
+    ;
+}
+abstract class _Class4c&ClassBb&MixinB = bad::ClassBb with bad::MixinB<core::int?> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class4c&ClassBb&MixinB
+    : super bad::ClassBb::•()
+    ;
+}
+class Class4c extends bad::_Class4c&ClassBb&MixinB {
+  synthetic constructor •() → bad::Class4c
+    : super bad::_Class4c&ClassBb&MixinB::•()
+    ;
+}
+abstract class _Class4d&ClassBb&MixinB = bad::ClassBb with bad::MixinB<core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class4d&ClassBb&MixinB
+    : super bad::ClassBb::•()
+    ;
+}
+class Class4d extends bad::_Class4d&ClassBb&MixinB {
+  synthetic constructor •() → bad::Class4d
+    : super bad::_Class4d&ClassBb&MixinB::•()
+    ;
+}
+abstract class _Class5a&ClassCa&MixinC = bad::ClassCa with bad::MixinC<core::num?, core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class5a&ClassCa&MixinC
+    : super bad::ClassCa::•()
+    ;
+}
+class Class5a extends bad::_Class5a&ClassCa&MixinC {
+  synthetic constructor •() → bad::Class5a
+    : super bad::_Class5a&ClassCa&MixinC::•()
+    ;
+}
+abstract class _Class5b&ClassCa&MixinC = bad::ClassCa with bad::MixinC<core::num?, core::int?> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class5b&ClassCa&MixinC
+    : super bad::ClassCa::•()
+    ;
+}
+class Class5b extends bad::_Class5b&ClassCa&MixinC {
+  synthetic constructor •() → bad::Class5b
+    : super bad::_Class5b&ClassCa&MixinC::•()
+    ;
+}
+abstract class _Class5c&ClassCb&MixinC = bad::ClassCb with bad::MixinC<core::num?, core::int?> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class5c&ClassCb&MixinC
+    : super bad::ClassCb::•()
+    ;
+}
+class Class5c extends bad::_Class5c&ClassCb&MixinC {
+  synthetic constructor •() → bad::Class5c
+    : super bad::_Class5c&ClassCb&MixinC::•()
+    ;
+}
+abstract class _Class5d&ClassCb&MixinC = bad::ClassCb with bad::MixinC<core::num?, core::int> /*isAnonymousMixin*/  {
+  synthetic constructor •() → bad::_Class5d&ClassCb&MixinC
+    : super bad::ClassCb::•()
+    ;
+}
+class Class5d extends bad::_Class5d&ClassCb&MixinC {
+  synthetic constructor •() → bad::Class5d
+    : super bad::_Class5d&ClassCb&MixinC::•()
+    ;
+}

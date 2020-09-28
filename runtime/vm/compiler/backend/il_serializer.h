@@ -50,12 +50,9 @@ class FlowGraphSerializer : ValueObject {
   SExpSymbol* BlockEntryKindToTag(BlockEntryKind k);
   static bool BlockEntryKindHasInitialDefs(BlockEntryKind kind);
 
-  static void SerializeToBuffer(const FlowGraph* flow_graph,
-                                TextBuffer* buffer);
   static void SerializeToBuffer(Zone* zone,
                                 const FlowGraph* flow_graph,
-                                TextBuffer* buffer);
-  static SExpression* SerializeToSExp(const FlowGraph* flow_graph);
+                                BaseTextBuffer* buffer);
   static SExpression* SerializeToSExp(Zone* zone, const FlowGraph* flow_graph);
 
   const FlowGraph* flow_graph() const { return flow_graph_; }
@@ -69,7 +66,7 @@ class FlowGraphSerializer : ValueObject {
   SExpression* UseToSExp(const Definition* definition);
 
   // Helper method for creating canonical names.
-  void SerializeCanonicalName(TextBuffer* b, const Object& obj);
+  void SerializeCanonicalName(BaseTextBuffer* b, const Object& obj);
 
   // Methods for serializing Dart values. If the argument
   // value is the null object, the null pointer is returned.

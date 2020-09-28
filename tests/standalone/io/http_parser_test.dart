@@ -19,7 +19,6 @@ import "../../../sdk/lib/internal/internal.dart"
     show Since, valueOfNonNullableParamWithDefault, HttpStatus;
 
 part "../../../sdk/lib/_http/crypto.dart";
-part "../../../sdk/lib/_http/embedder_config.dart";
 part "../../../sdk/lib/_http/http_impl.dart";
 part "../../../sdk/lib/_http/http_date.dart";
 part "../../../sdk/lib/_http/http_parser.dart";

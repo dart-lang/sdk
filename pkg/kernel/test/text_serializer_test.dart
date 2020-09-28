@@ -10,7 +10,13 @@ import 'package:kernel/text/text_serializer.dart';
 
 void main() {
   initializeSerializers();
-  test();
+  TestRunner testRunner = new TestRunner();
+  testRunner.run();
+  if (testRunner.failures.isNotEmpty) {
+    print('Round trip failures:');
+    testRunner.failures.forEach(print);
+    throw StateError('Round trip failures');
+  }
 }
 
 // Wrappers for testing.
@@ -32,75 +38,73 @@ String writeExpression(Expression expression) {
   return buffer.toString();
 }
 
-void test() {
-  List<String> failures = [];
-  List<String> tests = [
-    '(get-prop (int 0) (public "hashCode"))',
-    '(get-super (public "hashCode"))',
-    '(invoke-method (int 0) (public "foo") () ((int 1) (int 2)) ())',
-    '(invoke-method (int 0) (public "foo") ((dynamic) (void)) '
-        '((int 1) (int 2)) ("others" (list (dynamic) ((int 3) (int 4)))))',
-    '(let (var "x^0" (dynamic) (int 0) ()) (null))',
-    '(let (var "x^0" (dynamic) _ ()) (null))',
-    '(let (const "x^0" (dynamic) (int 0) ()) (null))',
-    '(let (const "x^0" (dynamic) _ ()) (null))',
-    '(let (final "x^0" (dynamic) (int 0) ()) (null))',
-    '(let (final "x^0" (dynamic) _ ()) (null))',
-    r'''(string "Hello, 'string'!")''',
-    r'''(string "Hello, \"string\"!")''',
-    r'''(string "Yeah nah yeah, here is\nthis really long string haiku\n'''
-        r'''blowing in the wind\n")''',
-    '(int 42)',
-    '(int 0)',
-    '(int -1001)',
-    '(double 3.14159)',
-    '(bool true)',
-    '(bool false)',
-    '(null)',
-    r'''(invalid "You can't touch this")''',
-    '(not (bool true))',
-    '(&& (bool true) (bool false))',
-    '(|| (&& (bool true) (not (bool true))) (bool true))',
-    '(concat ((string "The opposite of ") (int 3) '
-        '(string " is ") (int 7)))',
-    '(symbol "unquote-splicing")',
-    '(this)',
-    '(rethrow)',
-    '(throw (string "error"))',
-    '(await (null))',
-    '(cond (bool true) (dynamic) (int 0) (int 1))',
-    '(is (bool true) (invalid))',
-    '(as (bool true) (void))',
-    '(type (bottom))',
-    '(list (dynamic) ((null) (null) (null)))',
-    '(const-list (dynamic) ((int 0) (int 1) (int 2)))',
-    '(set (dynamic) ((bool true) (bool false) (int 0)))',
-    '(const-set (dynamic) ((int 0) (int 1) (int 2)))',
-    '(map (dynamic) (void) ((int 0) (null) (int 1) (null) (int 2) (null)))',
-    '(const-map (dynamic) (void) ((int 0) (null) (int 1) (null) '
-        '(int 2) (null)))',
-    '(type (-> () () () ((dynamic)) () () (dynamic)))',
-    '(type (-> () () () () ((dynamic)) () (dynamic)))',
-    '(type (-> () () () ((dynamic) (dynamic)) () () (dynamic)))',
-    '(type (-> () () () () () () (dynamic)))',
-    '(type (-> () () () ((-> () () () ((dynamic)) () () (dynamic))) () () '
-        '(dynamic)))',
-    '(type (-> ("T^0") ((dynamic)) ((dynamic)) () () () (dynamic)))',
-    '(type (-> ("T^0") ((dynamic)) ((dynamic)) ((par "T^0" _)) () () '
-        '(par "T^0" _)))',
-    '(type (-> ("T^0" "S^1") ((par "S^1" _) (par "T^0" _)) ((dynamic) '
-        '(dynamic)) () () () (dynamic)))',
-  ];
-  for (var test in tests) {
-    var literal = readExpression(test);
-    var output = writeExpression(literal);
-    if (output != test) {
-      failures.add('* input "${test}" gave output "${output}"');
-    }
+class TestRunner {
+  final List<String> failures = [];
+
+  void run() {
+    test('(get-prop (int 0) (public "hashCode"))');
+    test('(get-super (public "hashCode"))');
+    test('(invoke-method (int 0) (public "foo") () ((int 1) (int 2)) ())');
+    test('(invoke-method (int 0) (public "foo") ((dynamic) (void)) '
+        '((int 1) (int 2)) ("others" (list (dynamic) ((int 3) (int 4)))))');
+    test('(let "x^0" () (dynamic) (int 0) () (null))');
+    test('(let "x^0" () (dynamic) _ () (null))');
+    test('(let "x^0" ((const)) (dynamic) (int 0) () (null))');
+    test('(let "x^0" ((const)) (dynamic) _ () (null))');
+    test('(let "x^0" ((final)) (dynamic) (int 0) () (null))');
+    test('(let "x^0" ((final)) (dynamic) _ () (null))');
+    test(r'''(string "Hello, 'string'!")''');
+    test(r'''(string "Hello, \"string\"!")''');
+    test(r'''(string "Yeah nah yeah, here is\nthis really long string haiku\n'''
+        r'''blowing in the wind\n")''');
+    test('(int 42)');
+    test('(int 0)');
+    test('(int -1001)');
+    test('(double 3.14159)');
+    test('(bool true)');
+    test('(bool false)');
+    test('(null)');
+    test(r'''(invalid "You can't touch this")''');
+    test('(not (bool true))');
+    test('(&& (bool true) (bool false))');
+    test('(|| (&& (bool true) (not (bool true))) (bool true))');
+    test('(concat ((string "The opposite of ") (int 3) '
+        '(string " is ") (int 7)))');
+    test('(symbol "unquote-splicing")');
+    test('(this)');
+    test('(rethrow)');
+    test('(throw (string "error"))');
+    test('(await (null))');
+    test('(cond (bool true) (dynamic) (int 0) (int 1))');
+    test('(is (bool true) (invalid))');
+    test('(as (bool true) (void))');
+    test('(type (bottom))');
+    test('(list (dynamic) ((null) (null) (null)))');
+    test('(const-list (dynamic) ((int 0) (int 1) (int 2)))');
+    test('(set (dynamic) ((bool true) (bool false) (int 0)))');
+    test('(const-set (dynamic) ((int 0) (int 1) (int 2)))');
+    test(
+        '(map (dynamic) (void) ((int 0) (null) (int 1) (null) (int 2) (null)))');
+    test('(const-map (dynamic) (void) ((int 0) (null) (int 1) (null) '
+        '(int 2) (null)))');
+    test('(type (-> () () () ((dynamic)) () () (dynamic)))');
+    test('(type (-> () () () () ((dynamic)) () (dynamic)))');
+    test('(type (-> () () () ((dynamic) (dynamic)) () () (dynamic)))');
+    test('(type (-> () () () () () () (dynamic)))');
+    test('(type (-> () () () ((-> () () () ((dynamic)) () () (dynamic))) () () '
+        '(dynamic)))');
+    test('(type (-> ("T^0") ((dynamic)) ((dynamic)) () () () (dynamic)))');
+    test('(type (-> ("T^0") ((dynamic)) ((dynamic)) ((par "T^0" _)) () () '
+        '(par "T^0" _)))');
+    test('(type (-> ("T^0" "S^1") ((par "S^1" _) (par "T^0" _)) ((dynamic) '
+        '(dynamic)) () () () (dynamic)))');
   }
-  if (failures.isNotEmpty) {
-    print('Round trip failures:');
-    failures.forEach(print);
-    throw StateError('Round trip failures');
+
+  void test(String input) {
+    var kernelAst = readExpression(input);
+    var output = writeExpression(kernelAst);
+    if (output != input) {
+      failures.add('* input "${input}" gave output "${output}"');
+    }
   }
 }

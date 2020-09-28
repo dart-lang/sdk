@@ -20,6 +20,6 @@ class C1 implements C {}
 class C2 implements C {}
 
 main() {
-  Expect.isTrue(new B<List<A<C>>>().method(new List<A1>()));
-  Expect.isFalse(new B<List<A<C2>>>().method(new List<A1>()));
+  Expect.isTrue(B<List<A<C>>>().method(List<A1>.empty()));
+  Expect.isFalse(B<List<A<C2>>>().method(List<A1>.empty()));
 }

@@ -308,7 +308,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     if (message != null) {
       return new NamedTypeBuilder(
-          supertype.name, const NullabilityBuilder.omitted(), null)
+          supertype.name,
+          const NullabilityBuilder.omitted(),
+          /* arguments = */ null,
+          fileUri,
+          charOffset)
         ..bind(new InvalidTypeDeclarationBuilder(supertype.name,
             message.withLocation(fileUri, charOffset, noLength)));
     }
@@ -591,11 +595,24 @@ class SourceClassBuilder extends ClassBuilderImpl
     });
 
     constructors.local.forEach((String name, MemberBuilder builder) {
-      if (builder is ConstructorBuilder &&
-          !builder.isExternal &&
-          builder.formals != null) {
-        libraryBuilder.checkInitializersInFormals(
-            builder.formals, typeEnvironment);
+      if (builder is ConstructorBuilder) {
+        if (!builder.isExternal && builder.formals != null) {
+          libraryBuilder.checkInitializersInFormals(
+              builder.formals, typeEnvironment);
+        }
+      } else if (builder is RedirectingFactoryBuilder) {
+        // Default values are not required on redirecting factory constructors.
+      } else if (builder is ProcedureBuilder) {
+        assert(builder.isFactory, "Unexpected constructor $builder.");
+        if (!builder.isExternal && builder.formals != null) {
+          libraryBuilder.checkInitializersInFormals(
+              builder.formals, typeEnvironment);
+        }
+      } else {
+        assert(
+            // This is a synthesized constructor.
+            builder is DillMemberBuilder && builder.member is Constructor,
+            "Unexpected constructor $builder.");
       }
     });
   }

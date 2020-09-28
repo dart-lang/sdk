@@ -57,5 +57,5 @@ mixin B {
   final int finalStaticFieldWithInitializer = 0;
 }
 extension Extension ;
-on A (){ }
-main() { }
+on A (){}
+main() {}

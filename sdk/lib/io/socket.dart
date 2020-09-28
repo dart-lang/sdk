@@ -176,8 +176,8 @@ abstract class InternetAddress {
    * valid UTF-8 encoded file path.
    *
    * If [type] is omitted, the [rawAddress] must have a length of either 4 or
-   * 16, in which case the type defaults to [InternetAddress.IPv4] or
-   * [InternetAddress.IPv6] respectively.
+   * 16, in which case the type defaults to [InternetAddressType.IPv4] or
+   * [InternetAddressType.IPv6] respectively.
    */
   external factory InternetAddress.fromRawAddress(Uint8List rawAddress,
       {@Since("2.8") InternetAddressType? type});
@@ -203,7 +203,7 @@ abstract class InternetAddress {
    * change over time.
    */
   external static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type: InternetAddressType.any});
+      {InternetAddressType type = InternetAddressType.any});
 
   /**
    * Clones the given [address] with the new [host].
@@ -264,9 +264,9 @@ abstract class NetworkInterface {
    * specified type. Default is [InternetAddressType.any].
    */
   external static Future<List<NetworkInterface>> list(
-      {bool includeLoopback: false,
-      bool includeLinkLocal: false,
-      InternetAddressType type: InternetAddressType.any});
+      {bool includeLoopback = false,
+      bool includeLinkLocal = false,
+      InternetAddressType type = InternetAddressType.any});
 }
 
 /**
@@ -315,7 +315,7 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * distributed over multiple isolates this way.
    */
   external static Future<RawServerSocket> bind(address, int port,
-      {int backlog: 0, bool v6Only: false, bool shared: false});
+      {int backlog = 0, bool v6Only = false, bool shared = false});
 
   /**
    * Returns the port used by this socket.
@@ -391,7 +391,8 @@ abstract class ServerSocket implements Stream<Socket> {
   }
 
   external static Future<ServerSocket> _bind(address, int port,
-      {int backlog: 0, bool v6Only: false, bool shared: false});
+      {int backlog = 0, bool v6Only = false, bool shared = false});
+
   /**
    * Returns the port used by this socket.
    */
@@ -472,24 +473,24 @@ enum _RawSocketOptions {
 /// [RawSocket.setRawOption] to set customize the behaviour of the underlying
 /// socket.
 ///
-/// It allows for fine grained control of the socket options, and its values will
-/// be passed to the underlying platform's implementation of setsockopt and
+/// It allows for fine grained control of the socket options, and its values
+/// will be passed to the underlying platform's implementation of setsockopt and
 /// getsockopt.
 @Since("2.2")
 class RawSocketOption {
   /// Creates a RawSocketOption for getRawOption andSetRawOption.
   ///
   /// The level and option arguments correspond to level and optname arguments
-  /// on the get/setsockopt native calls.
+  /// on the getsockopt and setsockopt native calls.
   ///
   /// The value argument and its length correspond to the optval and length
   /// arguments on the native call.
   ///
-  /// For a [getRawOption] call, the value parameter will be updated after a
-  /// successful call (although its length will not be changed).
+  /// For a [RawSocket.getRawOption] call, the value parameter will be updated
+  /// after a successful call (although its length will not be changed).
   ///
-  /// For a [setRawOption] call, the value parameter will be used set the
-  /// option.
+  /// For a [RawSocket.setRawOption] call, the value parameter will be used set
+  /// the option.
   const RawSocketOption(this.level, this.option, this.value);
 
   /// Convenience constructor for creating an int based RawSocketOption.
@@ -558,11 +559,21 @@ class RawSocketOption {
 
 /**
  * Events for the [RawSocket].
+ *
+ * These event objects are by the [Stream] behavior of [RawSocket] (for example
+ * [RawSocket.listen], [RawSocket.forEach]) when the socket's state change.
  */
 class RawSocketEvent {
+  /// An event indicates the socket is ready to be read.
   static const RawSocketEvent read = const RawSocketEvent._(0);
+
+  /// An event indicates the socket is ready to write.
   static const RawSocketEvent write = const RawSocketEvent._(1);
+
+  /// An event indicates the reading from the socket is closed
   static const RawSocketEvent readClosed = const RawSocketEvent._(2);
+
+  /// An event indicates the socket is closed.
   static const RawSocketEvent closed = const RawSocketEvent._(3);
 
   @Deprecated("Use read instead")
@@ -610,15 +621,17 @@ class ConnectionTask<S> {
   }
 }
 
-/**
- * A [RawSocket] is an unbuffered interface to a TCP socket.
- *
- * The raw socket delivers the data stream in the same chunks as the underlying
- * operating system.
- *
- * It is not the same as a
- * [POSIX raw socket](http://man7.org/linux/man-pages/man7/raw.7.html).
- */
+/// A TCP connection.
+///
+/// A *socket connection* connects a *local* socket to a *remote* socket.
+/// Data, as [Uint8List]s, is received by the local socket and made
+/// available by the [read] method, and can be sent to the remote socket
+/// through the [write] method.
+///
+/// The [Stream] interface of this class provides event notification about when
+/// a certain change has happened, for example when data has become available
+/// ([RawSocketEvent.read]) or when the remote end has stopped listening
+/// ([RawSocketEvent.close]).
 abstract class RawSocket implements Stream<RawSocketEvent> {
   /**
    * Set or get, if the [RawSocket] should listen for [RawSocketEvent.read]
@@ -768,12 +781,12 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   void setRawOption(RawSocketOption option);
 }
 
-/**
- * A high-level class for communicating over a TCP socket.
- *
- * The [Socket] exposes both a [Stream] and a [IOSink] interface, making it
- * ideal for using together with other [Stream]s.
- */
+/// A TCP connection between two sockets.
+///
+/// A *socket connection* connects a *local* socket to a *remote* socket.
+/// Data, as [Uint8List]s, is received by the local socket, made available
+/// by the [Stream] interface of this class, and can be sent to the remote
+/// socket through the [IOSink] interface of this class.
 abstract class Socket implements Stream<Uint8List>, IOSink {
   /**
    * Creates a new socket connection to the host and port and returns a [Future]
@@ -903,14 +916,15 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
   Future get done;
 }
 
-/**
- * Datagram package. Data sent to and received from datagram sockets
- * contains the internet address and port of the destination or source
- * togeter with the data.
- */
+/// A data packet which is received by a [RawDatagramSocket].
 class Datagram {
+  /// The actual bytes of the message.
   Uint8List data;
+
+  /// The address of the socket which sends the data.
   InternetAddress address;
+
+  /// The port of the socket which sends the data.
   int port;
 
   Datagram(this.data, this.address, this.port);
@@ -990,11 +1004,29 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   void set broadcastEnabled(bool value);
 
   /**
-   * Creates a new raw datagram socket binding it to an address and
-   * port.
+   * Binds a socket to the given [host] and the [port].
+   *
+   * When the socket is bound and has started listening on [port], the returned
+   * future completes with the [RawDatagramSocket] of the bound socket.
+   *
+   * The [host] can either be a [String] or an [InternetAddress]. If [host] is a
+   * [String], [bind] will perform a [InternetAddress.lookup] and use the first
+   * value in the list. To listen on the loopback interface, which will allow
+   * only incoming connections from the local host, use the value
+   * [InternetAddress.loopbackIPv4] or [InternetAddress.loopbackIPv6].
+   * To allow for incoming connection from any network use either one of
+   * the values [InternetAddress.anyIPv4] or [InternetAddress.anyIPv6] to
+   * bind to all interfaces, or use the IP address of a specific interface.
+   *
+   * The [reuseAddress] should be set for all listeners that bind to the same
+   * address. Otherwise, it will fail with a [SocketException].
+   *
+   * The [reusePort] specifies whether the port can be reused.
+   *
+   * The [ttl] sets `time to live` of a datagram sent on the socket.
    */
   external static Future<RawDatagramSocket> bind(host, int port,
-      {bool reuseAddress: true, bool reusePort: false, int ttl: 1});
+      {bool reuseAddress = true, bool reusePort = false, int ttl = 1});
 
   /**
    * Returns the port used by this socket.
@@ -1062,13 +1094,34 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   void setRawOption(RawSocketOption option);
 }
 
+/// Exception thrown when a socket operation fails.
 class SocketException implements IOException {
+  /// Description of the error.
   final String message;
+
+  /// The underlying OS error.
+  ///
+  /// If this exception is not thrown due to an OS error, the value is `null`.
   final OSError? osError;
+
+  /// The address of the socket giving rise to the exception.
+  ///
+  /// This is either the source or destination address of a socket,
+  /// or it can be `null` if no socket end-point was involved in the cause of
+  /// the exception.
   final InternetAddress? address;
+
+  /// The port of the socket giving rise to the exception.
+  ///
+  /// This is either the source or destination address of a socket,
+  /// or it can be `null` if no socket end-point was involved in the cause of
+  /// the exception.
   final int? port;
 
+  /// Creates a [SocketException] with the provided values.
   const SocketException(this.message, {this.osError, this.address, this.port});
+
+  /// Creates an exception reporting that a socket was used after it was closed.
   const SocketException.closed()
       : message = 'Socket has been closed',
         osError = null,

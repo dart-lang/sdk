@@ -40,6 +40,14 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    if (node.methodName.name == FunctionElement.CALL_METHOD_NAME) {
+      var targetType = node.realTarget?.staticType;
+      if (targetType is FunctionType) {
+        _check(targetType.parameters, node.argumentList, node.argumentList);
+        return;
+      }
+    }
+
     _check(
       _executableElement(node.methodName.staticElement)?.parameters,
       node.argumentList,
@@ -87,11 +95,11 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
         }
       }
       if (parameter.isOptionalNamed) {
-        ElementAnnotationImpl annotation = _requiredAnnotation(parameter);
+        var annotation = _requiredAnnotation(parameter);
         if (annotation != null) {
           String parameterName = parameter.name;
           if (!_containsNamedExpression(argumentList, parameterName)) {
-            String reason = _requiredReason(annotation);
+            String reason = annotation.reason;
             if (reason != null) {
               _errorReporter.reportErrorForNode(
                 HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
@@ -132,14 +140,35 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     }
   }
 
-  static ElementAnnotationImpl _requiredAnnotation(ParameterElement element) {
-    return element.metadata.firstWhere(
+  static _RequiredAnnotation _requiredAnnotation(ParameterElement element) {
+    var annotation = element.metadata.firstWhere(
       (e) => e.isRequired,
       orElse: () => null,
     );
-  }
+    if (annotation != null) {
+      return _RequiredAnnotation(annotation);
+    }
 
-  static String _requiredReason(ElementAnnotationImpl annotation) {
+    if (element.declaration.isRequiredNamed) {
+      return _RequiredAnnotation(annotation);
+    }
+
+    return null;
+  }
+}
+
+class _RequiredAnnotation {
+  /// The instance of `@required` annotation.
+  /// If `null`, then the parameter is `required` in null safety.
+  final ElementAnnotationImpl annotation;
+
+  _RequiredAnnotation(this.annotation);
+
+  String get reason {
+    if (annotation == null) {
+      return null;
+    }
+
     DartObject constantValue = annotation.computeConstantValue();
     String value = constantValue?.getField('reason')?.toStringValue();
     return (value == null || value.isEmpty) ? null : value;

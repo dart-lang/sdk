@@ -5,11 +5,12 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
-
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
 import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/treemap.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
+import 'package:vm_snapshot_analysis/v8_profile.dart';
 
 import 'utils.dart';
 
@@ -168,6 +169,29 @@ void main(List<String> args) {
 """
 };
 
+final chainOfStaticCalls = {
+  'input.dart': """
+@pragma('vm:never-inline')
+String _private3(dynamic o) {
+  return "";
+}
+
+@pragma('vm:never-inline')
+String _private2(dynamic o) {
+  return _private3(o);
+}
+
+@pragma('vm:never-inline')
+String _private1(dynamic o) {
+  return _private2(o);
+}
+
+void main(List<String> args) {
+  _private1(null);
+}
+"""
+};
+
 extension on Histogram {
   String bucketFor(String pkg, String lib, String cls, String fun) =>
       (this.bucketInfo as Bucketing).bucketFor(pkg, lib, cls, fun);
@@ -182,8 +206,8 @@ void main() async {
   group('instruction-sizes', () {
     test('basic-parsing', () async {
       await withSymbolSizes('basic-parsing', testSource, (sizesJson) async {
-        final symbols =
-            instruction_sizes.fromJson(await loadJson(File(sizesJson)));
+        final json = await loadJson(File(sizesJson));
+        final symbols = instruction_sizes.fromJson(json);
         expect(symbols, isNotNull,
             reason: 'Sizes file was successfully parsed');
         expect(symbols.length, greaterThan(0),
@@ -256,7 +280,8 @@ void main() async {
     test('program-info-from-sizes', () async {
       await withSymbolSizes('program-info-from-sizes', testSource,
           (sizesJson) async {
-        final info = await loadProgramInfo(File(sizesJson));
+        final json = await loadJson(File(sizesJson));
+        final info = loadProgramInfoFromJson(json);
         expect(info.root.children, contains('dart:core'));
         expect(info.root.children, contains('dart:typed_data'));
         expect(info.root.children, contains('package:input'));
@@ -303,7 +328,8 @@ void main() async {
 
     test('histograms', () async {
       await withSymbolSizes('histograms', testSource, (sizesJson) async {
-        final info = await loadProgramInfo(File(sizesJson));
+        final json = await loadJson(File(sizesJson));
+        final info = loadProgramInfoFromJson(json);
         final bySymbol = computeHistogram(info, HistogramType.bySymbol);
         expect(
             bySymbol.buckets,
@@ -356,16 +382,16 @@ void main() async {
       await withSymbolSizes('diff-1', testSource, (sizesJson) async {
         await withSymbolSizes('diff-2', testSourceModified,
             (modifiedSizesJson) async {
-          final info = await loadProgramInfo(File(sizesJson));
-          final modifiedInfo = await loadProgramInfo(File(modifiedSizesJson));
+          final infoJson = await loadJson(File(sizesJson));
+          final info = loadProgramInfoFromJson(infoJson);
+          final modifiedJson = await loadJson(File(modifiedSizesJson));
+          final modifiedInfo = loadProgramInfoFromJson(modifiedJson);
           final diff = computeDiff(info, modifiedInfo);
 
           expect(
               diffToJson(diff),
               equals({
                 '#type': 'library',
-                '@stubs': {'#type': 'library'},
-                '@unknown': {'#type': 'library'},
                 'package:input': {
                   '#type': 'package',
                   'package:input/input.dart': {
@@ -403,9 +429,11 @@ void main() async {
       await withSymbolSizes('diff-collapsed-1', testSource, (sizesJson) async {
         await withSymbolSizes('diff-collapsed-2', testSourceModified2,
             (modifiedSizesJson) async {
-          final info = await loadProgramInfo(File(sizesJson),
-              collapseAnonymousClosures: true);
-          final modifiedInfo = await loadProgramInfo(File(modifiedSizesJson),
+          final json = await loadJson(File(sizesJson));
+          final info =
+              loadProgramInfoFromJson(json, collapseAnonymousClosures: true);
+          final modifiedJson = await loadJson(File(modifiedSizesJson));
+          final modifiedInfo = loadProgramInfoFromJson(modifiedJson,
               collapseAnonymousClosures: true);
           final diff = computeDiff(info, modifiedInfo);
 
@@ -413,8 +441,6 @@ void main() async {
               diffToJson(diff),
               equals({
                 '#type': 'library',
-                '@stubs': {'#type': 'library'},
-                '@unknown': {'#type': 'library'},
                 'package:input': {
                   '#type': 'package',
                   'package:input/input.dart': {
@@ -442,7 +468,8 @@ void main() async {
     test('program-info-from-profile', () async {
       await withV8Profile('program-info-from-profile', testSource,
           (profileJson) async {
-        final info = await loadProgramInfo(File(profileJson));
+        final infoJson = await loadJson(File(profileJson));
+        final info = loadProgramInfoFromJson(infoJson);
         expect(info.root.children, contains('dart:core'));
         expect(info.root.children, contains('dart:typed_data'));
         expect(info.root.children, contains('package:input'));
@@ -500,7 +527,8 @@ void main() async {
 
     test('histograms', () async {
       await withV8Profile('histograms', testSource, (sizesJson) async {
-        final info = await loadProgramInfo(File(sizesJson));
+        final infoJson = await loadJson(File(sizesJson));
+        final info = loadProgramInfoFromJson(infoJson);
         final bySymbol = computeHistogram(info, HistogramType.bySymbol);
         expect(
             bySymbol.buckets,
@@ -553,8 +581,10 @@ void main() async {
       await withV8Profile('diff-1', testSource, (profileJson) async {
         await withV8Profile('diff-2', testSourceModified,
             (modifiedProfileJson) async {
-          final info = await loadProgramInfo(File(profileJson));
-          final modifiedInfo = await loadProgramInfo(File(modifiedProfileJson));
+          final infoJson = await loadJson(File(profileJson));
+          final info = loadProgramInfoFromJson(infoJson);
+          final modifiedJson = await loadJson(File(modifiedProfileJson));
+          final modifiedInfo = loadProgramInfoFromJson(modifiedJson);
           final diff = computeDiff(info, modifiedInfo);
 
           expect(
@@ -597,9 +627,11 @@ void main() async {
       await withV8Profile('diff-collapsed-1', testSource, (profileJson) async {
         await withV8Profile('diff-collapsed-2', testSourceModified2,
             (modifiedProfileJson) async {
-          final info = await loadProgramInfo(File(profileJson),
+          final infoJson = await loadJson(File(profileJson));
+          final info = loadProgramInfoFromJson(infoJson,
               collapseAnonymousClosures: true);
-          final modifiedInfo = await loadProgramInfo(File(modifiedProfileJson),
+          final modifiedJson = await loadJson(File(modifiedProfileJson));
+          final modifiedInfo = loadProgramInfoFromJson(modifiedJson,
               collapseAnonymousClosures: true);
           final diff = computeDiff(info, modifiedInfo);
 
@@ -610,8 +642,6 @@ void main() async {
                   '#type': 'package',
                   'package:input/input.dart': {
                     '#type': 'library',
-                    '#size': lessThan(0),
-                    'K': {'#size': isA<int>(), '#type': 'class'},
                     '::': {
                       '#type': 'class',
                       'makeSomeClosures': {
@@ -629,6 +659,53 @@ void main() async {
         });
       });
     });
+
+    test('treemap', () async {
+      await withV8Profile('treemap', testSource, (profileJson) async {
+        final infoJson = await loadJson(File(profileJson));
+        final info = await loadProgramInfoFromJson(infoJson,
+            collapseAnonymousClosures: true);
+        final treemap = treemapFromInfo(info);
+
+        List<Map<String, dynamic>> childrenOf(Map<String, dynamic> node) =>
+            (node['children'] as List).cast();
+
+        String nameOf(Map<String, dynamic> node) => node['n'];
+
+        Map<String, dynamic> findChild(Map<String, dynamic> node, String name) {
+          return childrenOf(node)
+              .firstWhere((child) => nameOf(child) == name, orElse: () => null);
+        }
+
+        Set<String> childrenNames(Map<String, dynamic> node) {
+          return childrenOf(node).map(nameOf).toSet();
+        }
+
+        // Verify that we don't include package names twice into paths
+        // while building the treemap.
+        if (Platform.isWindows) {
+          // Note: in Windows we don't consider main.dart part of package:input
+          // for some reason.
+          expect(findChild(treemap, 'package:input/input.dart'), isNotNull);
+        } else {
+          expect(childrenNames(findChild(treemap, 'package:input')),
+              equals({'main.dart', 'input.dart'}));
+        }
+      });
+    });
+
+    test('dominators', () async {
+      await withV8Profile('dominators', chainOfStaticCalls,
+          (profileJson) async {
+        // Note: computing dominators also verifies that we don't have
+        // unreachable nodes in the snapshot.
+        final infoJson = await loadJson(File(profileJson));
+        final snapshot = Snapshot.fromJson(infoJson);
+        for (var n in snapshot.nodes.skip(1)) {
+          expect(snapshot.dominatorOf(n), isNotNull);
+        }
+      });
+    });
   });
 }
 
@@ -643,10 +720,48 @@ Future withV8Profile(String prefix, Map<String, String> source,
 // On Windows there is some issue with interpreting entry point URI as a package URI
 // it instead gets interpreted as a file URI - which breaks comparison. So we
 // simply ignore entry point library (main.dart).
+// Additionally this function removes all nodes with the size below
+// the given threshold.
 Map<String, dynamic> diffToJson(ProgramInfo diff,
     {bool keepOnlyInputPackage = false}) {
   final diffJson = diff.toJson();
   diffJson.removeWhere((key, _) =>
       keepOnlyInputPackage ? key != 'package:input' : key.startsWith('file:'));
-  return diffJson;
+
+  // Rebuild the diff JSON discarding all nodes with size below threshold.
+  const smallChangeThreshold = 16;
+  Map<String, dynamic> discardSmallChanges(Map<String, dynamic> map) {
+    final result = <String, dynamic>{};
+
+    // First recursively process all children (skipping #type and #size keys).
+    for (var key in map.keys) {
+      if (key == '#type' || key == '#size') continue;
+      final value = discardSmallChanges(map[key]);
+      if (value != null) {
+        result[key] = value;
+      }
+    }
+
+    // Check if this node own #size is above the threshold and copy it
+    // into the result if it is.
+    final size = map['#size'] ?? 0;
+    if (size.abs() > smallChangeThreshold) {
+      result['#size'] = size;
+    }
+
+    // If the node has no children and its own size does not pass the threshold
+    // drop it.
+    if (result.isEmpty) {
+      return null;
+    }
+
+    // We decided that this node is meaningful - preserve its type.
+    if (map.containsKey('#type')) {
+      result['#type'] = map['#type'];
+    }
+
+    return result;
+  }
+
+  return discardSmallChanges(diffJson);
 }

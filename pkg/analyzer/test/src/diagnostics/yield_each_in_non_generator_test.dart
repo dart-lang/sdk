@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class YieldEachInNonGeneratorTest extends DriverResolutionTest {
+class YieldEachInNonGeneratorTest extends PubPackageResolutionTest {
   @FailingTest(
       reason: 'We are currently trying to parse the yield statement as a '
           'binary expression.')

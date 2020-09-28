@@ -1,0 +1,9 @@
+class Class {
+  @override
+  noSuchMethod(Object o, {String foo = ''}) => 42;
+  @override
+  toString({String foo = ''}) => 'foo';
+}
+
+main() {}
+test() {}

@@ -62,9 +62,7 @@ static SSLFilter* GetFilter(Dart_NativeArguments args) {
   return filter;
 }
 
-static void DeleteFilter(void* isolate_data,
-                         Dart_WeakPersistentHandle handle,
-                         void* context_pointer) {
+static void DeleteFilter(void* isolate_data, void* context_pointer) {
   SSLFilter* filter = reinterpret_cast<SSLFilter*>(context_pointer);
   filter->Release();
 }
@@ -78,8 +76,8 @@ static Dart_Handle SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
       dart_this, SSLFilter::kSSLFilterNativeFieldIndex,
       reinterpret_cast<intptr_t>(filter));
   RETURN_IF_ERROR(err);
-  Dart_NewWeakPersistentHandle(dart_this, reinterpret_cast<void*>(filter),
-                               SSLFilter::kApproximateSize, DeleteFilter);
+  Dart_NewFinalizableHandle(dart_this, reinterpret_cast<void*>(filter),
+                            SSLFilter::kApproximateSize, DeleteFilter);
   return Dart_Null();
 }
 
@@ -247,7 +245,8 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
     SecureSocketUtils::FetchErrorString(filter->ssl_, &error_string);
     CObjectArray* result = new CObjectArray(CObject::NewArray(2));
     result->SetAt(0, new CObjectInt32(CObject::NewInt32(error_code)));
-    result->SetAt(1, new CObjectString(CObject::NewString(error_string.buf())));
+    result->SetAt(1,
+                  new CObjectString(CObject::NewString(error_string.buffer())));
     return result;
   }
 }
@@ -652,21 +651,35 @@ void SSLFilter::Destroy() {
 int SSLFilter::ProcessReadPlaintextBuffer(int start, int end) {
   int length = end - start;
   int bytes_processed = 0;
+  if (SSL_LOG_DATA) {
+    Syslog::Print("Entering ProcessReadPlaintextBuffer with %d bytes\n",
+                  length);
+  }
   if (length > 0) {
     bytes_processed = SSL_read(
         ssl_, reinterpret_cast<char*>((buffers_[kReadPlaintext] + start)),
         length);
     if (bytes_processed < 0) {
       int error = SSL_get_error(ssl_, bytes_processed);
-      USE(error);
+      if (SSL_LOG_DATA) {
+        Syslog::Print("SSL_read returned error %d\n", error);
+      }
       bytes_processed = 0;
     }
+  }
+  if (SSL_LOG_DATA) {
+    Syslog::Print("Leaving ProcessReadPlaintextBuffer read %d bytes\n",
+                  bytes_processed);
   }
   return bytes_processed;
 }
 
 int SSLFilter::ProcessWritePlaintextBuffer(int start, int end) {
   int length = end - start;
+  if (SSL_LOG_DATA) {
+    Syslog::Print("Entering ProcessWritePlaintextBuffer with %d bytes\n",
+                  length);
+  }
   int bytes_processed =
       SSL_write(ssl_, buffers_[kWritePlaintext] + start, length);
   if (bytes_processed < 0) {
@@ -675,15 +688,20 @@ int SSLFilter::ProcessWritePlaintextBuffer(int start, int end) {
     }
     return 0;
   }
+  if (SSL_LOG_DATA) {
+    Syslog::Print("Leaving ProcessWritePlaintextBuffer wrote %d bytes\n",
+                  bytes_processed);
+  }
   return bytes_processed;
 }
 
 /* Read encrypted data from the circular buffer to the filter */
 int SSLFilter::ProcessReadEncryptedBuffer(int start, int end) {
   int length = end - start;
-  if (SSL_LOG_DATA)
+  if (SSL_LOG_DATA) {
     Syslog::Print("Entering ProcessReadEncryptedBuffer with %d bytes\n",
                   length);
+  }
   int bytes_processed = 0;
   if (length > 0) {
     bytes_processed =
@@ -691,33 +709,41 @@ int SSLFilter::ProcessReadEncryptedBuffer(int start, int end) {
     if (bytes_processed <= 0) {
       bool retry = BIO_should_retry(socket_side_) != 0;
       if (!retry) {
-        if (SSL_LOG_DATA)
+        if (SSL_LOG_DATA) {
           Syslog::Print("BIO_write failed in ReadEncryptedBuffer\n");
+        }
       }
       bytes_processed = 0;
     }
   }
-  if (SSL_LOG_DATA)
-    Syslog::Print("Leaving ProcessReadEncryptedBuffer wrote %d bytes\n",
+  if (SSL_LOG_DATA) {
+    Syslog::Print("Leaving ProcessReadEncryptedBuffer read %d bytes\n",
                   bytes_processed);
+  }
   return bytes_processed;
 }
 
 int SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
   int length = end - start;
   int bytes_processed = 0;
+  if (SSL_LOG_DATA) {
+    Syslog::Print("Entering ProcessWriteEncryptedBuffer with %d bytes\n",
+                  length);
+  }
   if (length > 0) {
     bytes_processed =
         BIO_read(socket_side_, buffers_[kWriteEncrypted] + start, length);
     if (bytes_processed < 0) {
-      if (SSL_LOG_DATA)
+      if (SSL_LOG_DATA) {
         Syslog::Print("WriteEncrypted BIO_read returned error %d\n",
                       bytes_processed);
+      }
       return 0;
     } else {
-      if (SSL_LOG_DATA)
+      if (SSL_LOG_DATA) {
         Syslog::Print("WriteEncrypted  BIO_read wrote %d bytes\n",
                       bytes_processed);
+      }
     }
   }
   return bytes_processed;

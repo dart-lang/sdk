@@ -117,7 +117,13 @@ class InstanceMemberInferrer {
       currentClassElement,
       getterName,
     );
-    overriddenGetters ??= const [];
+    if (overriddenGetters != null) {
+      overriddenGetters = overriddenGetters.where((e) {
+        return e is PropertyAccessorElement && e.isGetter;
+      }).toList();
+    } else {
+      overriddenGetters = const [];
+    }
 
     var setterName = Name(elementLibraryUri, '$elementName=');
     var overriddenSetters = inheritance.getOverridden2(
@@ -292,15 +298,7 @@ class InstanceMemberInferrer {
 
       // Otherwise, declarations of static variables and fields that omit a
       // type will be inferred from their initializer if present.
-      var initializer = field.initializer;
-      if (initializer != null) {
-        var initializerType = initializer.returnType;
-        if (initializerType == null || initializerType.isDartCoreNull) {
-          initializerType = _dynamicType;
-        }
-        field.type = initializerType;
-        return;
-      }
+      field.typeInference?.perform();
 
       return;
     }

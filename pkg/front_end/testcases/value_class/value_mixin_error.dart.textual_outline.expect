@@ -1,0 +1,12 @@
+import 'value_class_support_lib.dart';
+
+@valueClass
+class A {}
+
+class B {}
+
+class C extends B with A {}
+
+class D extends A with B {}
+
+main() {}

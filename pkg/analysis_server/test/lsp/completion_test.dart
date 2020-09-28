@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -27,6 +28,41 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
       ),
       isNotNull,
     );
+  }
+
+  Future<void> test_commitCharacter_config() async {
+    final registrations = <Registration>[];
+    // Provide empty config and collect dynamic registrations during
+    // initialization.
+    await provideConfig(
+      () => monitorDynamicRegistrations(
+        registrations,
+        () => initialize(
+            textDocumentCapabilities: withAllSupportedDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
+            workspaceCapabilities:
+                withDidChangeConfigurationDynamicRegistration(
+                    withConfigurationSupport(
+                        emptyWorkspaceClientCapabilities))),
+      ),
+      {},
+    );
+
+    Registration registration(Method method) =>
+        registrationFor(registrations, method);
+
+    // By default, there should be no commit characters.
+    var reg = registration(Method.textDocument_completion);
+    var options = reg.registerOptions as CompletionRegistrationOptions;
+    expect(options.allCommitCharacters, isNull);
+
+    // When we change config, we should get a re-registration (unregister then
+    // register) for completion which now includes the commit characters.
+    await monitorDynamicReregistration(
+        registrations, () => updateConfig({'previewCommitCharacters': true}));
+    reg = registration(Method.textDocument_completion);
+    options = reg.registerOptions as CompletionRegistrationOptions;
+    expect(options.allCommitCharacters, equals(dartCompletionCommitCharacters));
   }
 
   Future<void> test_completionKinds_default() async {
@@ -108,8 +144,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     final invalidTriggerKind = CompletionTriggerKind.fromJson(-1);
     final request = getCompletion(
       mainFileUri,
-      Position(0, 0),
-      context: CompletionContext(invalidTriggerKind, 'A'),
+      Position(line: 0, character: 0),
+      context: CompletionContext(
+          triggerKind: invalidTriggerKind, triggerCharacter: 'A'),
     );
 
     await expectLater(
@@ -292,13 +329,14 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    // ignore: deprecated_member_use_from_same_package
     expect(item.deprecated, isNull);
     // If the does not say it supports the deprecated flag, we should show
     // '(deprecated)' in the details.
     expect(item.detail.toLowerCase(), contains('deprecated'));
   }
 
-  Future<void> test_isDeprecated_supported() async {
+  Future<void> test_isDeprecated_supportedFlag() async {
     final content = '''
     class MyClass {
       @deprecated
@@ -312,15 +350,65 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     ''';
 
     await initialize(
-        textDocumentCapabilities: withCompletionItemDeprecatedSupport(
+        textDocumentCapabilities: withCompletionItemDeprecatedFlagSupport(
             emptyTextDocumentClientCapabilities));
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    // ignore: deprecated_member_use_from_same_package
     expect(item.deprecated, isTrue);
     // If the client says it supports the deprecated flag, we should not show
     // deprecated in the details.
     expect(item.detail, isNot(contains('deprecated')));
+  }
+
+  Future<void> test_isDeprecated_supportedTag() async {
+    final content = '''
+    class MyClass {
+      @deprecated
+      String abcdefghij;
+    }
+
+    main() {
+      MyClass a;
+      a.abc^
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withCompletionItemTagSupport(
+            emptyTextDocumentClientCapabilities,
+            [CompletionItemTag.Deprecated]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'abcdefghij');
+    expect(item.tags, contains(CompletionItemTag.Deprecated));
+    // If the client says it supports the deprecated tag, we should not show
+    // deprecated in the details.
+    expect(item.detail, isNot(contains('deprecated')));
+  }
+
+  Future<void> test_namedArg_offsetBeforeCompletionTarget() async {
+    // This test checks for a previous bug where the completion target was a
+    // symbol far after the cursor offset (`aaaa` here) and caused the whole
+    // identifier to be used as the `targetPrefix` which would filter out
+    // other symbol.
+    // https://github.com/Dart-Code/Dart-Code/issues/2672#issuecomment-666085575
+    final content = '''
+    void main() {
+      myFunction(
+        ^
+        aaaa: '',
+      );
+    }
+
+    void myFunction({String aaaa, String aaab, String aaac}) {}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'aaab: '), isTrue);
   }
 
   Future<void> test_namedArg_plainText() async {
@@ -363,7 +451,9 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.textEdit.newText, equals(r'one: ${1:}'));
     expect(
       item.textEdit.range,
-      equals(Range(positionFromMarker(content), positionFromMarker(content))),
+      equals(Range(
+          start: positionFromMarker(content),
+          end: positionFromMarker(content))),
     );
   }
 
@@ -850,7 +940,7 @@ main() {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return ApplyWorkspaceEditResponse(true, null);
+        return ApplyWorkspaceEditResponse(applied: true);
       },
     );
     // Successful edits return an empty success() response.
@@ -943,6 +1033,41 @@ main() {
   var a = MyExportedClass.myStaticDateTimeField
 }
     '''));
+  }
+
+  /// This test reproduces a bug where the pathKey hash used in
+  /// available_declarations.dart would not change with the contents of the file
+  /// (as it always used 0 as the modification stamp) which would prevent
+  /// completion including items from files that were open (had overlays).
+  /// https://github.com/Dart-Code/Dart-Code/issues/2286#issuecomment-658597532
+  Future<void> test_suggestionSets_modifiedFiles() async {
+    final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
+    final otherFileUri = Uri.file(otherFilePath);
+
+    final mainFileContent = 'MyOtherClass^';
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(mainFileContent));
+    await initialAnalysis;
+
+    // Start with a blank file.
+    newFile(otherFilePath, content: '');
+    await openFile(otherFileUri, '');
+    await pumpEventQueue(times: 5000);
+
+    // Reopen the file with a class definition.
+    await closeFile(otherFileUri);
+    await openFile(otherFileUri, 'class MyOtherClass {}');
+    await pumpEventQueue(times: 5000);
+
+    // Ensure the class appears in completion.
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(mainFileContent));
+    final matching =
+        completions.where((c) => c.label == 'MyOtherClass').toList();
+    expect(matching, hasLength(1));
   }
 
   Future<void> test_suggestionSets_namedConstructors() async {

@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterConvertToStatefulWidget extends CorrectionProducer {
@@ -20,7 +20,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
       DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var widgetClass = node.thisOrAncestorOfType<ClassDeclaration>();
     var superclass = widgetClass?.extendsClause?.superclass;
     if (widgetClass == null || superclass == null) {
@@ -116,7 +116,7 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
       return;
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(superclass), (builder) {
         builder.writeReference(statefulWidgetClass);
       });

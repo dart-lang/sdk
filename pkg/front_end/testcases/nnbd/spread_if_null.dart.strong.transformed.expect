@@ -85,7 +85,7 @@ static method main() → dynamic {
   } =>#t16;
   core::Set<core::int>? set = null;
   core::print( block {
-    final core::Set<core::int> #t19 = col::LinkedHashSet::•<core::int>();
+    final core::Set<core::int> #t19 = new col::_CompactLinkedHashSet::•<core::int>();
     #t19.{core::Set::add}(1);
     #t19.{core::Set::add}(2);
     final core::Iterable<core::int>? #t20 = set;
@@ -99,7 +99,7 @@ static method main() → dynamic {
     #t19.{core::Set::add}(3);
   } =>#t19);
   core::print( block {
-    final core::Set<core::int> #t22 = col::LinkedHashSet::•<core::int>();
+    final core::Set<core::int> #t22 = new col::_CompactLinkedHashSet::•<core::int>();
     #t22.{core::Set::add}(1);
     #t22.{core::Set::add}(2);
     final core::Iterable<core::int>? #t23 = null;
@@ -113,7 +113,7 @@ static method main() → dynamic {
     #t22.{core::Set::add}(3);
   } =>#t22);
   core::Set<core::int> set1 = block {
-    final core::Set<core::int> #t25 = col::LinkedHashSet::•<core::int>();
+    final core::Set<core::int> #t25 = new col::_CompactLinkedHashSet::•<core::int>();
     final core::Iterable<dynamic>? #t26 = set;
     if(!#t26.{core::Object::==}(null)) {
       core::Iterator<dynamic> :sync-for-iterator = #t26{core::Iterable<dynamic>}.{core::Iterable::iterator};
@@ -127,7 +127,7 @@ static method main() → dynamic {
     }
   } =>#t25;
   core::Set<core::int> set3 = block {
-    final core::Set<core::int> #t29 = col::LinkedHashSet::•<core::int>();
+    final core::Set<core::int> #t29 = new col::_CompactLinkedHashSet::•<core::int>();
     #t29.{core::Set::add}(1);
     #t29.{core::Set::add}(2);
     final core::Iterable<core::int>? #t30 = set;
@@ -141,7 +141,7 @@ static method main() → dynamic {
     #t29.{core::Set::add}(3);
   } =>#t29;
   core::Set<core::int> set4 = block {
-    final core::Set<core::int> #t32 = col::LinkedHashSet::•<core::int>();
+    final core::Set<core::int> #t32 = new col::_CompactLinkedHashSet::•<core::int>();
     #t32.{core::Set::add}(1);
     #t32.{core::Set::add}(2);
     final core::Iterable<core::int>? #t33 = null;

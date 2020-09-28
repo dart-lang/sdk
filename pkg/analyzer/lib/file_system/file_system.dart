@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
@@ -130,6 +128,9 @@ abstract class Resource {
 
   /// Return the full path to this resource.
   String get path;
+
+  /// Return the [ResourceProvider] that owns this resource.
+  ResourceProvider get provider;
 
   /// Return a short version of the name that can be displayed to the user to
   /// denote this resource.

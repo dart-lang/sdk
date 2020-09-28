@@ -28,18 +28,18 @@ void main() {
   E e = new E();
   c[a] ??= 1;
   //^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
   d[a] ??= 1;
   //^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
   e[a] ??= 1;
   //^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
   c[a] ??= 1;
   //^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 }

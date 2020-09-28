@@ -4710,6 +4710,58 @@ TEST_CASE(IsolateReload_StaticTargetArityChange) {
                "with matching arguments declared in class 'A'.");
 }
 
+TEST_CASE(IsolateReload_SuperGetterReboundToMethod) {
+  const char* kScript = R"(
+    import 'file:///test:isolate_reload_helper';
+
+    class A {
+      get x => "123";
+    }
+
+    class B extends A {
+      f() {
+        var old_x = super.x;
+        reloadTest();
+        var new_x = super.x;
+        return "$old_x:$new_x";
+      }
+    }
+
+    main() {
+      return B().f().toString();
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+
+  const char* kReloadScript = R"(
+    import 'file:///test:isolate_reload_helper';
+
+    class A {
+      x() => "123";
+    }
+
+    class B extends A {
+      f() {
+        var old_x = super.x;
+        reloadTest();
+        var new_x = super.x;
+        return "$old_x:$new_x";
+      }
+    }
+
+    main() {
+      return B().f();
+    }
+  )";
+
+  EXPECT_VALID(TestCase::SetReloadTestScript(kReloadScript));
+
+  EXPECT_STREQ("123:Closure: () => dynamic from Function 'x':.",
+               SimpleInvokeStr(lib, "main"));
+}
+
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

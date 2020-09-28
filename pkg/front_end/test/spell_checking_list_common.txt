@@ -276,6 +276,7 @@ behavior
 behaviors
 behind
 being
+believes
 belong
 belongs
 below
@@ -446,6 +447,10 @@ clashing
 class
 classes
 classic
+classification
+classifications
+classifies
+classify
 clause
 clauses
 clean
@@ -788,6 +793,7 @@ deprecate
 deprecated
 depromotes
 depth
+dereferenced
 derivation
 derive
 derived
@@ -1083,8 +1089,8 @@ experimental
 experimentally
 experiments
 expired
-explanation
 explain
+explanation
 explicit
 explicitly
 exponent
@@ -1152,6 +1158,7 @@ field
 field's
 fieldname
 fields
+fifth
 figure
 file
 filename
@@ -1910,6 +1917,7 @@ nature
 nearest
 necessarily
 necessary
+necessity
 need
 needed
 needing
@@ -2642,6 +2650,7 @@ setting
 settings
 settled
 setup
+seventh
 several
 severity
 shadow
@@ -2700,6 +2709,7 @@ sink
 sites
 situation
 situations
+sixth
 skip
 skipped
 skipping

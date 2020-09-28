@@ -287,8 +287,9 @@ $endif
 
   String get returnValue => _returnValue;
 
-  set returnValue(String value) {
-    _returnValue = value;
+  set returnValue(String$NULLABLE value) {
+    // Typed as nullable only to be compatible with the overriden method.
+    _returnValue = value$NULLASSERT;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
     if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {

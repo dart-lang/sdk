@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/context_collection_resolution.dart';
 import 'sdk_constraint_verifier_support.dart';
 
 main() {
@@ -19,10 +18,14 @@ main() {
 @reflectiveTest
 class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
   @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.triple_shift],
+  void setUp() {
+    super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: [EnableString.triple_shift],
+      ),
     );
+  }
 
   test_const_equals() async {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
@@ -30,7 +33,7 @@ class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
     await verifyVersion('2.5.0', '''
 const a = 42 >>> 3;
 ''', expectedErrors: [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 13, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 13, 3),
     ]);
   }
 
@@ -41,7 +44,7 @@ const a = 42 >>> 3;
 const a = 42 >>> 3;
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 13, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 13, 3),
     ]);
   }
 
@@ -69,7 +72,7 @@ class A {
     await verifyVersion('2.5.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 11, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 11, 3),
     ]);
   }
 
@@ -80,7 +83,7 @@ var a = 42 >>> 3;
 var a = 42 >>> 3;
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 11, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 11, 3),
     ]);
   }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,58 +9,431 @@ import 'dart:io' show File;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
 
+import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
+
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, LanguageVersionToken, Scanner;
 
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 
-import '../../fasta/source/directive_listener.dart' show DirectiveListener;
+import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-// TODO: Sort imports.
+abstract class _Chunk implements Comparable<_Chunk> {
+  int originalPosition;
 
-class _TextualOutlineState {
-  bool prevTokenKnown = false;
-  Token currentElementEnd;
-  List<String> currentChunk = new List<String>();
-  List<String> outputLines = new List<String>();
+  List<_MetadataChunk> metadata;
 
-  final bool performModelling;
-  String indent = "";
-  _TextualOutlineState(this.performModelling);
+  void _printNormalHeaderWithMetadata(
+      StringBuffer sb, bool extraLine, String indent) {
+    if (sb.isNotEmpty) {
+      sb.write("\n");
+      if (extraLine) sb.write("\n");
+    }
+    printMetadata(sb, indent);
+    sb.write(indent);
+  }
+
+  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true});
+
+  void printMetadata(StringBuffer sb, String indent) {
+    if (metadata != null) {
+      for (_MetadataChunk m in metadata) {
+        m.printMetadataOn(sb, indent);
+      }
+    }
+  }
+
+  /// Merge and sort this chunk internally (e.g. a class might merge and sort
+  /// its members).
+  /// The provided [sb] should be clean and be thought of as dirty after this
+  /// call.
+  void internalMergeAndSort(StringBuffer sb);
+
+  @override
+  int compareTo(_Chunk other) {
+    // Generally we compare according to the original position.
+    if (originalPosition < other.originalPosition) return -1;
+    return 1;
+  }
+
+  /// Prints tokens from [fromToken] to [toToken] into [sb].
+  ///
+  /// Adds space as "normal" given the tokens start and end.
+  ///
+  /// If [skipContentOnEndGroupUntilToToken] is true, upon meeting a token that
+  /// has an endGroup where the endGroup is [toToken] the Tokens between that
+  /// and [toToken] is skipped, i.e. it jumps directly to [toToken].
+  void printTokenRange(Token fromToken, Token toToken, StringBuffer sb,
+      {bool skipContentOnEndGroupUntilToToken: false,
+      bool includeToToken: true}) {
+    int endOfLast = fromToken.end;
+    Token token = fromToken;
+    Token afterEnd = toToken;
+    if (includeToToken) afterEnd = toToken.next;
+    bool nextTokenIsEndGroup = false;
+    while (token != afterEnd) {
+      if (token.offset > endOfLast && !nextTokenIsEndGroup) {
+        sb.write(" ");
+      }
+
+      sb.write(token.lexeme);
+      endOfLast = token.end;
+      if (skipContentOnEndGroupUntilToToken &&
+          token.endGroup != null &&
+          token.endGroup == toToken) {
+        token = token.endGroup;
+        nextTokenIsEndGroup = true;
+      } else {
+        token = token.next;
+        nextTokenIsEndGroup = false;
+      }
+    }
+  }
 }
 
+class _LanguageVersionChunk extends _Chunk {
+  final int major;
+  final int minor;
+
+  _LanguageVersionChunk(this.major, this.minor);
+
+  @override
+  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true}) {
+    _printNormalHeaderWithMetadata(sb, extraLine, indent);
+    sb.write("// @dart = ${major}.${minor}");
+  }
+
+  @override
+  void internalMergeAndSort(StringBuffer sb) {
+    // Cannot be sorted.
+    assert(sb.isEmpty);
+  }
+}
+
+abstract class _TokenChunk extends _Chunk {
+  final Token startToken;
+  final Token endToken;
+
+  _TokenChunk(this.startToken, this.endToken);
+
+  void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
+    printTokenRange(startToken, endToken, sb);
+  }
+
+  @override
+  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true}) {
+    _printNormalHeaderWithMetadata(sb, extraLine, indent);
+    _printOnWithoutHeaderAndMetadata(sb);
+  }
+
+  @override
+  void internalMergeAndSort(StringBuffer sb) {
+    // Generally cannot be sorted.
+    assert(sb.isEmpty);
+  }
+}
+
+abstract class _SortableChunk extends _TokenChunk {
+  _SortableChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+
+  @override
+  int compareTo(_Chunk o) {
+    if (o is! _SortableChunk) return super.compareTo(o);
+
+    _SortableChunk other = o;
+
+    // Compare lexemes from startToken and at most the next 10 tokens.
+    // For valid code this should be more than enough. Note that this won't
+    // sort as a text-sort would as for instance "C<Foo>" and "C2<Foo>" will
+    // say "C" < "C2" where a text-sort would say "C<" > "C2". This doesn't
+    // really matter as long as the sorting is consistent (i.e. the textual
+    // outline always sorts like this).
+    Token thisToken = startToken;
+    Token otherToken = other.startToken;
+    int steps = 0;
+    while (thisToken.lexeme == otherToken.lexeme) {
+      if (steps++ > 10) break;
+      thisToken = thisToken.next;
+      otherToken = otherToken.next;
+    }
+    if (thisToken.lexeme == otherToken.lexeme) return super.compareTo(o);
+    return thisToken.lexeme.compareTo(otherToken.lexeme);
+  }
+}
+
+class _ImportExportChunk extends _Chunk {
+  final List<_SingleImportExportChunk> content;
+
+  _ImportExportChunk(this.content, int originalPosition) {
+    this.originalPosition = originalPosition;
+  }
+
+  @override
+  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true}) {
+    if (sb.isNotEmpty) {
+      sb.write("\n");
+    }
+
+    for (int i = 0; i < content.length; i++) {
+      _SingleImportExportChunk chunk = content[i];
+      chunk.printOn(sb,
+          indent: indent,
+          // add extra space if there's metadata
+          extraLine: chunk.metadata != null);
+    }
+  }
+
+  @override
+  void internalMergeAndSort(StringBuffer sb) {
+    assert(sb.isEmpty);
+    content.sort();
+  }
+}
+
+abstract class _SingleImportExportChunk extends _SortableChunk {
+  final Token firstShowOrHide;
+  final List<_NamespaceCombinator> combinators;
+  String sortedShowAndHide;
+
+  _SingleImportExportChunk(
+      Token startToken, Token endToken, this.firstShowOrHide, this.combinators)
+      : super(startToken, endToken);
+
+  @override
+  void internalMergeAndSort(StringBuffer sb) {
+    assert(sb.isEmpty);
+    if (firstShowOrHide == null) return;
+    for (int i = 0; i < combinators.length; i++) {
+      sb.write(" ");
+      _NamespaceCombinator combinator = combinators[i];
+      sb.write(combinator.isShow ? "show " : "hide ");
+      List<String> sorted = combinator.names.toList()..sort();
+      for (int j = 0; j < sorted.length; j++) {
+        if (j > 0) sb.write(", ");
+        sb.write(sorted[j]);
+      }
+    }
+    sb.write(";");
+    sortedShowAndHide = sb.toString();
+  }
+
+  @override
+  void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
+    if (sortedShowAndHide == null) {
+      return super._printOnWithoutHeaderAndMetadata(sb);
+    }
+    printTokenRange(startToken, firstShowOrHide, sb, includeToToken: false);
+    sb.write(sortedShowAndHide);
+  }
+}
+
+class _ImportChunk extends _SingleImportExportChunk {
+  _ImportChunk(Token startToken, Token endToken, Token firstShowOrHide,
+      List<_NamespaceCombinator> combinators)
+      : super(startToken, endToken, firstShowOrHide, combinators);
+}
+
+class _ExportChunk extends _SingleImportExportChunk {
+  _ExportChunk(Token startToken, Token endToken, Token firstShowOrHide,
+      List<_NamespaceCombinator> combinators)
+      : super(startToken, endToken, firstShowOrHide, combinators);
+}
+
+class _NamespaceCombinator {
+  final bool isShow;
+  final Set<String> names;
+
+  _NamespaceCombinator.hide(List<String> names)
+      : isShow = false,
+        names = names.toSet();
+
+  _NamespaceCombinator.show(List<String> names)
+      : isShow = true,
+        names = names.toSet();
+}
+
+class _LibraryNameChunk extends _TokenChunk {
+  _LibraryNameChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _PartChunk extends _TokenChunk {
+  _PartChunk(Token startToken, Token endToken) : super(startToken, endToken);
+}
+
+class _PartOfChunk extends _TokenChunk {
+  _PartOfChunk(Token startToken, Token endToken) : super(startToken, endToken);
+}
+
+abstract class _ClassChunk extends _SortableChunk {
+  List<_Chunk> content = new List<_Chunk>();
+  Token headerEnd;
+  Token footerStart;
+
+  _ClassChunk(Token startToken, Token endToken) : super(startToken, endToken);
+
+  @override
+  void printOn(StringBuffer sb, {String indent: "", bool extraLine: true}) {
+    _printNormalHeaderWithMetadata(sb, extraLine, indent);
+
+    // Header.
+    printTokenRange(startToken, headerEnd, sb);
+
+    // Content.
+    for (int i = 0; i < content.length; i++) {
+      _Chunk chunk = content[i];
+      chunk.printOn(sb, indent: "  $indent", extraLine: false);
+    }
+
+    // Footer.
+    if (footerStart != null) {
+      if (content.isNotEmpty) {
+        sb.write("\n");
+      }
+      sb.write(indent);
+
+      printTokenRange(footerStart, endToken, sb);
+    }
+  }
+
+  @override
+  void internalMergeAndSort(StringBuffer sb) {
+    assert(sb.isEmpty);
+    content = _mergeAndSort(content);
+  }
+}
+
+class _ClassDeclarationChunk extends _ClassChunk {
+  _ClassDeclarationChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _MixinDeclarationChunk extends _ClassChunk {
+  _MixinDeclarationChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _ExtensionDeclarationChunk extends _ClassChunk {
+  _ExtensionDeclarationChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _NamedMixinApplicationChunk extends _ClassChunk {
+  _NamedMixinApplicationChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+abstract class _ProcedureEtcChunk extends _SortableChunk {
+  _ProcedureEtcChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+
+  void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
+    printTokenRange(startToken, endToken, sb,
+        skipContentOnEndGroupUntilToToken: true);
+  }
+}
+
+class _ClassMethodChunk extends _ProcedureEtcChunk {
+  _ClassMethodChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _TopLevelMethodChunk extends _ProcedureEtcChunk {
+  _TopLevelMethodChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _ClassFactoryMethodChunk extends _ProcedureEtcChunk {
+  _ClassFactoryMethodChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _ClassFieldsChunk extends _ProcedureEtcChunk {
+  _ClassFieldsChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _TopLevelFieldsChunk extends _ProcedureEtcChunk {
+  _TopLevelFieldsChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _FunctionTypeAliasChunk extends _ProcedureEtcChunk {
+  _FunctionTypeAliasChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
+class _EnumChunk extends _SortableChunk {
+  _EnumChunk(Token startToken, Token endToken) : super(startToken, endToken);
+}
+
+class _MetadataChunk extends _TokenChunk {
+  _MetadataChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+
+  void printMetadataOn(StringBuffer sb, String indent) {
+    sb.write(indent);
+    printTokenRange(startToken, endToken, sb);
+    sb.write("\n");
+  }
+}
+
+class _UnknownChunk extends _TokenChunk {
+  final bool addMarkerForUnknownForTest;
+  _UnknownChunk(
+      this.addMarkerForUnknownForTest, Token startToken, Token endToken)
+      : super(startToken, endToken);
+
+  void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
+    if (addMarkerForUnknownForTest) {
+      sb.write("---- unknown chunk starts ----\n");
+      super._printOnWithoutHeaderAndMetadata(sb);
+      sb.write("\n---- unknown chunk ends ----");
+      return;
+    }
+    super._printOnWithoutHeaderAndMetadata(sb);
+  }
+}
+
+class _UnknownTokenBuilder {
+  Token start;
+  Token interimEnd;
+}
+
+class BoxedInt {
+  int value;
+  BoxedInt(this.value);
+}
+
+// TODO(jensj): Better support for not carring about preexisting spaces, e.g.
+//              "foo(int a, int b)" will be different from "foo(int a,int b)".
+// TODO(jensj): Specify scanner settings to match that of the compiler.
+// TODO(jensj): Canonicalize show/hides on imports/exports. E.g.
+//              "show A hide B" could just be "show A".
+//              "show A show B" could just be "show A, B".
+//              "show A, B, C hide A show A" would be empty.
+
 String textualOutline(List<int> rawBytes,
-    {bool throwOnUnexpected: false, bool performModelling: false}) {
-  // TODO(jensj): We need to specify the scanner settings to match that of the
-  // compiler!
+    {bool throwOnUnexpected: false,
+    bool performModelling: false,
+    bool addMarkerForUnknownForTest: false}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
-  // Idea:
-  // * Chunks are entities, e.g. whole classes, whole procedures etc.
-  // * It could also be an "unknown" batch of tokens.
-  // * currentChunk is a temporary buffer where we add chunks in a "run".
-  // * Depending on whether we know what the previous token (and thus chunk) is
-  //   or not, and what the current token (and thus chunk) is, we either flush
-  //   the currentChunk buffer or not.
-  // * The idea being, that if we add 3 chunks we know and then are about to add
-  //   one we don't know, we can sort the 3 chunks we do know and output them.
-  //   But when we go from unknown to known, we don't sort before outputting.
+  List<_Chunk> parsedChunks = new List<_Chunk>();
 
-  _TextualOutlineState state = new _TextualOutlineState(performModelling);
-
-  TokenPrinter tokenPrinter = new TokenPrinter();
+  BoxedInt originalPosition = new BoxedInt(0);
 
   Utf8BytesScanner scanner = new Utf8BytesScanner(bytes, includeComments: false,
       languageVersionChanged:
           (Scanner scanner, LanguageVersionToken languageVersion) {
-    flush(state, isSortable: false);
-    state.prevTokenKnown = false;
-    state.outputLines
-        .add("// @dart = ${languageVersion.major}.${languageVersion.minor}");
+    parsedChunks.add(
+        new _LanguageVersionChunk(languageVersion.major, languageVersion.minor)
+          ..originalPosition = originalPosition.value++);
   });
   Token firstToken = scanner.tokenize();
   if (firstToken == null) {
@@ -72,313 +445,262 @@ String textualOutline(List<int> rawBytes,
   ClassMemberParser classMemberParser = new ClassMemberParser(listener);
   classMemberParser.parseUnit(firstToken);
 
-  Token token = firstToken;
-  while (token != null) {
-    if (token is ErrorToken) {
+  Token nextToken = firstToken;
+  _UnknownTokenBuilder currentUnknown = new _UnknownTokenBuilder();
+  while (nextToken != null) {
+    if (nextToken is ErrorToken) {
       return null;
     }
-    if (token.isEof) break;
+    if (nextToken.isEof) break;
 
-    if (listener.classStartToFinish.containsKey(token)) {
-      if (state.prevTokenKnown) {
-        // TODO: Assert this instead.
-        if (!tokenPrinter.isEmpty) {
-          throw new StateError("Expected empty, was '${tokenPrinter.content}'");
-        }
-      } else if (!tokenPrinter.isEmpty) {
-        // We're ending a streak of unknown: Output, and flush,
-        // but it's not sortable.
-        tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-        flush(state, isSortable: false);
-      }
-
-      Token currentClassEnd = listener.classStartToFinish[token];
-      String classContent = _textualizeClass(
-          listener, token, currentClassEnd, state,
-          throwOnUnexpected: throwOnUnexpected);
-      if (classContent == null) return null;
-      state.currentChunk.add(classContent);
-      token = currentClassEnd.next;
-      state.prevTokenKnown = true;
-      assert(tokenPrinter.isEmpty);
-      continue;
-    }
-
-    token = _textualizeNonClassEntriesInsideLoop(
-        listener, token, state, throwOnUnexpected, tokenPrinter);
-    if (token == null) return null;
+    nextToken = _textualizeTokens(listener, nextToken, currentUnknown,
+        parsedChunks, originalPosition, addMarkerForUnknownForTest);
   }
-  _textualizeAfterLoop(state, tokenPrinter);
-  return state.outputLines.join("\n\n");
+  outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
+      addMarkerForUnknownForTest);
+
+  if (nextToken == null) return null;
+
+  if (performModelling) {
+    parsedChunks = _mergeAndSort(parsedChunks);
+  }
+
+  StringBuffer sb = new StringBuffer();
+  for (_Chunk chunk in parsedChunks) {
+    chunk.printOn(sb);
+  }
+
+  return sb.toString();
 }
 
-Token _textualizeNonClassEntriesInsideLoop(
+List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
+  List<_Chunk> result =
+      new List<_Chunk>.filled(chunks.length, null, growable: true);
+  List<_MetadataChunk> metadataChunks;
+  List<_SingleImportExportChunk> importExportChunks;
+  int outSize = 0;
+  StringBuffer sb = new StringBuffer();
+  for (_Chunk chunk in chunks) {
+    if (chunk is _MetadataChunk) {
+      metadataChunks ??= new List<_MetadataChunk>();
+      metadataChunks.add(chunk);
+    } else {
+      chunk.metadata = metadataChunks;
+      metadataChunks = null;
+      chunk.internalMergeAndSort(sb);
+      sb.clear();
+
+      if (chunk is _SingleImportExportChunk) {
+        importExportChunks ??= new List<_SingleImportExportChunk>();
+        importExportChunks.add(chunk);
+      } else {
+        if (importExportChunks != null) {
+          _ImportExportChunk importExportChunk = new _ImportExportChunk(
+              importExportChunks, importExportChunks.first.originalPosition);
+          importExportChunk.internalMergeAndSort(sb);
+          sb.clear();
+          result[outSize++] = importExportChunk;
+          importExportChunks = null;
+        }
+        result[outSize++] = chunk;
+      }
+    }
+  }
+  if (metadataChunks != null) {
+    for (_MetadataChunk metadata in metadataChunks) {
+      result[outSize++] = metadata;
+    }
+  }
+  if (importExportChunks != null) {
+    _ImportExportChunk importExportChunk = new _ImportExportChunk(
+        importExportChunks, importExportChunks.first.originalPosition);
+    importExportChunk.internalMergeAndSort(sb);
+    sb.clear();
+    result[outSize++] = importExportChunk;
+    importExportChunks = null;
+  }
+  result.length = outSize;
+
+  result.sort();
+  return result;
+}
+
+/// Parses a chunk of tokens and returns the next - unparsed - token or null
+/// on error.
+Token _textualizeTokens(
     TextualOutlineListener listener,
     Token token,
-    _TextualOutlineState state,
-    bool throwOnUnexpected,
-    TokenPrinter tokenPrinter) {
-  if (listener.elementStartToFinish.containsKey(token)) {
-    if (state.currentElementEnd != null) {
-      if (throwOnUnexpected) throw "Element in element";
-      return null;
-    }
-    if (state.prevTokenKnown) {
-      if (!tokenPrinter.isEmpty) {
-        throw new StateError("Expected empty, was '${tokenPrinter.content}'");
-      }
-    } else if (!tokenPrinter.isEmpty) {
-      // We're ending a streak of unknown: Output, and flush,
-      // but it's not sortable.
-      tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-      flush(state, isSortable: false);
-    }
-    state.currentElementEnd = listener.elementStartToFinish[token];
-    state.prevTokenKnown = true;
-  } else if (state.currentElementEnd == null &&
-      listener.metadataStartToFinish.containsKey(token)) {
-    if (state.prevTokenKnown) {
-      if (!tokenPrinter.isEmpty) {
-        throw new StateError("Expected empty, was '${tokenPrinter.content}'");
-      }
-    } else if (!tokenPrinter.isEmpty) {
-      // We're ending a streak of unknown: Output, and flush,
-      // but it's not sortable.
-      tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-      flush(state, isSortable: false);
-    }
-    state.currentElementEnd = listener.metadataStartToFinish[token];
-    state.prevTokenKnown = true;
+    _UnknownTokenBuilder currentUnknown,
+    List<_Chunk> parsedChunks,
+    BoxedInt originalPosition,
+    bool addMarkerForUnknownForTest) {
+  _ClassChunk classChunk = listener.classStartToChunk[token];
+  if (classChunk != null) {
+    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
+        addMarkerForUnknownForTest);
+    parsedChunks.add(classChunk..originalPosition = originalPosition.value++);
+    return _textualizeClass(
+        listener, classChunk, originalPosition, addMarkerForUnknownForTest);
   }
 
-  if (state.currentElementEnd == null && state.prevTokenKnown) {
-    // We're ending a streak of known stuff.
-    if (!tokenPrinter.isEmpty) {
-      throw new StateError("Expected empty, was '${tokenPrinter.content}'");
-    }
-    flush(state, isSortable: true);
-    state.prevTokenKnown = false;
+  _SingleImportExportChunk singleImportExport =
+      listener.importExportsStartToChunk[token];
+  if (singleImportExport != null) {
+    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
+        addMarkerForUnknownForTest);
+    parsedChunks
+        .add(singleImportExport..originalPosition = originalPosition.value++);
+    return singleImportExport.endToken.next;
+  }
+
+  _TokenChunk knownUnsortableChunk =
+      listener.unsortableElementStartToChunk[token];
+  if (knownUnsortableChunk != null) {
+    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
+        addMarkerForUnknownForTest);
+    parsedChunks
+        .add(knownUnsortableChunk..originalPosition = originalPosition.value++);
+    return knownUnsortableChunk.endToken.next;
+  }
+
+  _TokenChunk elementChunk = listener.elementStartToChunk[token];
+  if (elementChunk != null) {
+    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
+        addMarkerForUnknownForTest);
+    parsedChunks.add(elementChunk..originalPosition = originalPosition.value++);
+    return elementChunk.endToken.next;
+  }
+
+  _MetadataChunk metadataChunk = listener.metadataStartToChunk[token];
+  if (metadataChunk != null) {
+    outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
+        addMarkerForUnknownForTest);
+    parsedChunks
+        .add(metadataChunk..originalPosition = originalPosition.value++);
+    return metadataChunk.endToken.next;
+  }
+
+  // This token --- and whatever else tokens until we reach a start token we
+  // know is an unknown chunk. We don't yet know the end.
+  if (currentUnknown.start == null) {
+    // Start of unknown chunk.
+    currentUnknown.start = token;
+    currentUnknown.interimEnd = token;
   } else {
-    if (state.currentElementEnd == null) {
-      if (state.prevTokenKnown) {
-        // known -> unknown.
-        throw "This case was apparently not handled above.";
-      } else {
-        // OK: Streak of unknown.
-      }
-    } else {
-      if (state.prevTokenKnown) {
-        // OK: Streak of known.
-      } else {
-        // unknown -> known: This should have been flushed above.
-        if (!tokenPrinter.isEmpty) {
-          throw new StateError("Expected empty, was '${tokenPrinter.content}'");
-        }
-      }
-    }
+    // Continued unknown chunk.
+    currentUnknown.interimEnd = token;
   }
-
-  tokenPrinter.print(token);
-
-  if (token == state.currentElementEnd) {
-    state.currentElementEnd = null;
-    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-  }
-
-  if (token.endGroup != null &&
-      listener.nonClassEndOffsets.contains(token.endGroup.offset)) {
-    token = token.endGroup;
-    tokenPrinter.nextTokenIsEndGroup = true;
-  } else {
-    token = token.next;
-  }
-  return token;
+  return token.next;
 }
 
-void _textualizeAfterLoop(
-    _TextualOutlineState state, TokenPrinter tokenPrinter) {
-  // We're done, so we're logically at an unknown token.
-  if (state.prevTokenKnown) {
-    // We're ending a streak of known stuff.
-    if (!tokenPrinter.isEmpty) {
-      throw new StateError("Expected empty, was '${tokenPrinter.content}'");
-    }
-    flush(state, isSortable: true);
-    state.prevTokenKnown = false;
-  } else {
-    // Streak of unknown.
-    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-    flush(state, isSortable: false);
-    state.prevTokenKnown = false;
-  }
-}
-
-void flush(_TextualOutlineState state, {bool isSortable}) {
-  assert(isSortable != null);
-  if (state.currentChunk.isEmpty) return;
-  if (isSortable) {
-    state.currentChunk = mergeAndSort(state.currentChunk, state.indent,
-        isModelling: state.performModelling);
-  }
-  if (state.indent == "") {
-    state.outputLines.addAll(state.currentChunk);
-  } else {
-    for (int i = 0; i < state.currentChunk.length; i++) {
-      state.outputLines.add("${state.indent}${state.currentChunk[i]}");
-    }
-  }
-  state.currentChunk.clear();
-}
-
-List<String> mergeAndSort(List<String> data, String indent,
-    {bool isModelling}) {
-  assert(isModelling != null);
-  // If not modelling, don't sort.
-  if (!isModelling) return data;
-
-  bool hasAnnotations = false;
-  for (int i = 0; i < data.length - 1; i++) {
-    String element = data[i];
-    if (element.startsWith("@")) {
-      hasAnnotations = true;
-      break;
-    }
-  }
-  if (!hasAnnotations) {
-    data.sort();
-    return data;
-  }
-
-  // There's annotations: Merge them with the owner.
-  List<String> merged = new List<String>();
-  StringBuffer sb = new StringBuffer();
-  for (int i = 0; i < data.length; i++) {
-    String element = data[i];
-    if (element.startsWith("@")) {
-      if (sb.length > 0) sb.write(indent);
-      sb.writeln(element);
-    } else {
-      if (sb.length > 0) sb.write(indent);
-      sb.write(element);
-      merged.add(sb.toString());
-      sb.clear();
-    }
-  }
-  if (sb.length > 0) {
-    merged.add(sb.toString());
-    sb.clear();
-  }
-
-  merged.sort();
-  return merged;
-}
-
-class TokenPrinter {
-  bool nextTokenIsEndGroup = false;
-  int _endOfLast = -1;
-  StringBuffer _sb = new StringBuffer();
-
-  String get content => _sb.toString();
-
-  bool get isEmpty => _sb.isEmpty;
-
-  void clear() {
-    _endOfLast = -1;
-    _sb.clear();
-  }
-
-  void addAndClearIfHasContent(List<String> list) {
-    if (_sb.length > 0) {
-      list.add(_sb.toString());
-      clear();
-    }
-  }
-
-  void print(Token token) {
-    if (_sb.isNotEmpty && (token.offset > _endOfLast || nextTokenIsEndGroup)) {
-      _sb.write(" ");
-    }
-
-    _sb.write(token.lexeme);
-    _endOfLast = token.end;
-    nextTokenIsEndGroup = false;
-  }
-
-  String toString() {
-    throw new UnsupportedError("toString");
-  }
-}
-
-String _textualizeClass(TextualOutlineListener listener, Token beginToken,
-    Token endToken, _TextualOutlineState originalState,
-    {bool throwOnUnexpected: false, bool model: false}) {
-  Token token = beginToken;
-  TokenPrinter tokenPrinter = new TokenPrinter();
+Token _textualizeClass(TextualOutlineListener listener, _ClassChunk classChunk,
+    BoxedInt originalPosition, bool addMarkerForUnknownForTest) {
+  Token token = classChunk.startToken;
   // Class header.
-  while (token != endToken) {
-    tokenPrinter.print(token);
-    if (token.endGroup == endToken) {
-      token = token.next;
+  while (token != classChunk.endToken) {
+    if (token.endGroup == classChunk.endToken) {
       break;
     }
     token = token.next;
   }
-  _TextualOutlineState state =
-      new _TextualOutlineState(originalState.performModelling);
-  tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-  flush(state, isSortable: false);
+  classChunk.headerEnd = token;
 
-  state.indent = "  ";
-  while (token != endToken) {
-    token = _textualizeNonClassEntriesInsideLoop(
-        listener, token, state, throwOnUnexpected, tokenPrinter);
-    if (token == null) return null;
+  if (token == classChunk.endToken) {
+    // This for instance happens on named mixins, e.g.
+    // class C<T> = Object with A<Function(T)>;
+    // or when the class has no content, e.g.
+    // class C { }
+    // either way, output the end token right away to avoid a weird line break.
+  } else {
+    token = token.next;
+    // "Normal" class with (possibly) content.
+    _UnknownTokenBuilder currentUnknown = new _UnknownTokenBuilder();
+    while (token != classChunk.endToken) {
+      token = _textualizeTokens(listener, token, currentUnknown,
+          classChunk.content, originalPosition, addMarkerForUnknownForTest);
+    }
+    outputUnknownChunk(currentUnknown, classChunk.content, originalPosition,
+        addMarkerForUnknownForTest);
+    classChunk.footerStart = classChunk.endToken;
   }
-  _textualizeAfterLoop(state, tokenPrinter);
 
-  state.indent = "";
-  tokenPrinter.nextTokenIsEndGroup = true;
-  tokenPrinter.print(token);
-  tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-  flush(state, isSortable: false);
-  return state.outputLines.join("\n");
+  return classChunk.endToken.next;
+}
+
+/// Outputs an unknown chunk if one has been started.
+///
+/// Resets the given builder.
+void outputUnknownChunk(
+    _UnknownTokenBuilder _currentUnknown,
+    List<_Chunk> parsedChunks,
+    BoxedInt originalPosition,
+    bool addMarkerForUnknownForTest) {
+  if (_currentUnknown.start == null) return;
+  parsedChunks.add(new _UnknownChunk(addMarkerForUnknownForTest,
+      _currentUnknown.start, _currentUnknown.interimEnd)
+    ..originalPosition = originalPosition.value++);
+  _currentUnknown.start = null;
+  _currentUnknown.interimEnd = null;
 }
 
 main(List<String> args) {
   File f = new File(args[0]);
-  String outline = textualOutline(f.readAsBytesSync(),
-      throwOnUnexpected: true, performModelling: true);
+  Uint8List data = f.readAsBytesSync();
+  String outline =
+      textualOutline(data, throwOnUnexpected: true, performModelling: true);
   if (args.length > 1 && args[1] == "--overwrite") {
     f.writeAsStringSync(outline);
+  } else if (args.length > 1 && args[1] == "--benchmark") {
+    Stopwatch stopwatch = new Stopwatch()..start();
+    int numRuns = 100;
+    for (int i = 0; i < numRuns; i++) {
+      String outline2 =
+          textualOutline(data, throwOnUnexpected: true, performModelling: true);
+      if (outline2 != outline) throw "Not the same result every time";
+    }
+    stopwatch.stop();
+    print("First $numRuns took ${stopwatch.elapsedMilliseconds} ms "
+        "(i.e. ${stopwatch.elapsedMilliseconds / numRuns}ms/iteration)");
+    stopwatch = new Stopwatch()..start();
+    numRuns = 2500;
+    for (int i = 0; i < numRuns; i++) {
+      String outline2 =
+          textualOutline(data, throwOnUnexpected: true, performModelling: true);
+      if (outline2 != outline) throw "Not the same result every time";
+    }
+    stopwatch.stop();
+    print("Next $numRuns took ${stopwatch.elapsedMilliseconds} ms "
+        "(i.e. ${stopwatch.elapsedMilliseconds / numRuns}ms/iteration)");
   } else {
     print(outline);
   }
 }
 
-class TextualOutlineListener extends DirectiveListener {
-  Set<int> nonClassEndOffsets = new Set<int>();
-  Map<Token, Token> classStartToFinish = {};
-  Map<Token, Token> elementStartToFinish = {};
-  Map<Token, Token> metadataStartToFinish = {};
+class TextualOutlineListener extends Listener {
+  Map<Token, _ClassChunk> classStartToChunk = {};
+  Map<Token, _TokenChunk> elementStartToChunk = {};
+  Map<Token, _MetadataChunk> metadataStartToChunk = {};
+  Map<Token, _SingleImportExportChunk> importExportsStartToChunk = {};
+  Map<Token, _TokenChunk> unsortableElementStartToChunk = {};
 
   @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
-    nonClassEndOffsets.add(endToken.offset);
-    elementStartToFinish[beginToken] = endToken;
+    elementStartToChunk[beginToken] =
+        new _ClassMethodChunk(beginToken, endToken);
   }
 
   @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
-    nonClassEndOffsets.add(endToken.offset);
-    elementStartToFinish[beginToken] = endToken;
+    elementStartToChunk[beginToken] =
+        new _TopLevelMethodChunk(beginToken, endToken);
   }
 
   @override
   void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    nonClassEndOffsets.add(endToken.offset);
-    elementStartToFinish[beginToken] = endToken;
+    elementStartToChunk[beginToken] =
+        new _ClassFactoryMethodChunk(beginToken, endToken);
   }
 
   @override
@@ -388,6 +710,7 @@ class TextualOutlineListener extends DirectiveListener {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -396,7 +719,8 @@ class TextualOutlineListener extends DirectiveListener {
       int count,
       Token beginToken,
       Token endToken) {
-    elementStartToFinish[beginToken] = endToken;
+    elementStartToChunk[beginToken] =
+        new _ClassFieldsChunk(beginToken, endToken);
   }
 
   @override
@@ -409,42 +733,133 @@ class TextualOutlineListener extends DirectiveListener {
       int count,
       Token beginToken,
       Token endToken) {
-    elementStartToFinish[beginToken] = endToken;
+    elementStartToChunk[beginToken] =
+        new _TopLevelFieldsChunk(beginToken, endToken);
   }
 
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
-    elementStartToFinish[typedefKeyword] = endToken;
+    elementStartToChunk[typedefKeyword] =
+        new _FunctionTypeAliasChunk(typedefKeyword, endToken);
   }
 
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
-    elementStartToFinish[enumKeyword] = leftBrace.endGroup;
+    elementStartToChunk[enumKeyword] =
+        new _EnumChunk(enumKeyword, leftBrace.endGroup);
   }
 
-  // @override
-  // void endLibraryName(Token libraryKeyword, Token semicolon) {
-  //   elementStartToFinish[libraryKeyword] = semicolon;
-  // }
+  @override
+  void endLibraryName(Token libraryKeyword, Token semicolon) {
+    unsortableElementStartToChunk[libraryKeyword] =
+        new _LibraryNameChunk(libraryKeyword, semicolon);
+  }
+
+  @override
+  void endPart(Token partKeyword, Token semicolon) {
+    unsortableElementStartToChunk[partKeyword] =
+        new _PartChunk(partKeyword, semicolon);
+  }
+
+  @override
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
+    unsortableElementStartToChunk[partKeyword] =
+        new _PartOfChunk(partKeyword, semicolon);
+  }
 
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     // Metadata's endToken is the one *after* the actual end of the metadata.
-    metadataStartToFinish[beginToken] = endToken.previous;
+    metadataStartToChunk[beginToken] =
+        new _MetadataChunk(beginToken, endToken.previous);
   }
 
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
-    classStartToFinish[beginToken] = endToken;
+    classStartToChunk[beginToken] =
+        new _ClassDeclarationChunk(beginToken, endToken);
   }
 
   @override
   void endMixinDeclaration(Token mixinKeyword, Token endToken) {
-    classStartToFinish[mixinKeyword] = endToken;
+    classStartToChunk[mixinKeyword] =
+        new _MixinDeclarationChunk(mixinKeyword, endToken);
   }
 
   @override
   void endExtensionDeclaration(
       Token extensionKeyword, Token onKeyword, Token endToken) {
-    classStartToFinish[extensionKeyword] = endToken;
+    classStartToChunk[extensionKeyword] =
+        new _ExtensionDeclarationChunk(extensionKeyword, endToken);
+  }
+
+  @override
+  void endNamedMixinApplication(Token beginToken, Token classKeyword,
+      Token equals, Token implementsKeyword, Token endToken) {
+    classStartToChunk[beginToken] =
+        new _NamedMixinApplicationChunk(beginToken, endToken);
+  }
+
+  Token firstShowOrHide;
+  List<_NamespaceCombinator> _combinators;
+  List<String> _combinatorNames;
+
+  @override
+  beginExport(Token export) {
+    _combinators = <_NamespaceCombinator>[];
+  }
+
+  @override
+  beginImport(Token import) {
+    _combinators = <_NamespaceCombinator>[];
+  }
+
+  @override
+  void beginShow(Token show) {
+    if (firstShowOrHide == null) firstShowOrHide = show;
+    _combinatorNames = <String>[];
+  }
+
+  @override
+  void beginHide(Token hide) {
+    if (firstShowOrHide == null) firstShowOrHide = hide;
+    _combinatorNames = <String>[];
+  }
+
+  @override
+  void endHide(Token hide) {
+    _combinators.add(new _NamespaceCombinator.hide(_combinatorNames));
+    _combinatorNames = null;
+  }
+
+  @override
+  void endShow(Token show) {
+    _combinators.add(new _NamespaceCombinator.show(_combinatorNames));
+    _combinatorNames = null;
+  }
+
+  @override
+  void handleIdentifier(Token token, IdentifierContext context) {
+    if (_combinatorNames != null && context == IdentifierContext.combinator) {
+      _combinatorNames.add(token.lexeme);
+    }
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
+    if (importKeyword != null && semicolon != null) {
+      importExportsStartToChunk[importKeyword] = new _ImportChunk(
+          importKeyword, semicolon, firstShowOrHide, _combinators);
+    }
+    _combinators = null;
+    firstShowOrHide = null;
+  }
+
+  @override
+  void endExport(Token exportKeyword, Token semicolon) {
+    importExportsStartToChunk[exportKeyword] = new _ExportChunk(
+        exportKeyword, semicolon, firstShowOrHide, _combinators);
+    _combinators = null;
+    firstShowOrHide = null;
   }
 }

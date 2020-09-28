@@ -17,24 +17,29 @@ class DeserializationEnvironment<T extends Node> {
 
   final Map<String, T> binders = <String, T>{};
 
-  final Set<String> usedNames;
+  final Map<T, String> distinctNames = new Map<T, String>.identity();
 
-  DeserializationEnvironment(this.parent)
-      : usedNames = parent?.usedNames?.toSet() ?? new Set<String>();
+  DeserializationEnvironment(this.parent);
 
   T lookup(String name) => locals[name] ?? parent?.lookup(name);
 
-  T addBinder(String name, T node) {
-    if (usedNames.contains(name)) {
-      throw StateError("Name '${name}' is already declared in this scope.");
+  T addBinder(T node, String distinctName) {
+    if (lookupDistinctName(node) != null) {
+      throw StateError(
+          "Name '${distinctName}' is already declared in this scope.");
     }
-    usedNames.add(name);
-    return binders[name] = node;
+    distinctNames[node] = distinctName;
+    return binders[distinctName] = node;
   }
 
-  void close() {
+  // TODO(dmitryas): Consider combining with [addBinder] into a single method.
+  void extend() {
     locals.addAll(binders);
     binders.clear();
+  }
+
+  String lookupDistinctName(T object) {
+    return distinctNames[object] ?? parent?.lookupDistinctName(object);
   }
 }
 
@@ -47,32 +52,54 @@ class SerializationEnvironment<T extends Node> {
 
   int nameCount;
 
+  Map<T, String> distinctNames = new Map<T, String>.identity();
+
   SerializationEnvironment(this.parent) : nameCount = parent?.nameCount ?? 0;
 
   String lookup(T node) => locals[node] ?? parent?.lookup(node);
 
-  String addBinder(T node, String name) {
+  String addBinder(T node, {String nameClue}) {
     final String separator = "^";
     final int codeOfZero = "0".codeUnitAt(0);
     final int codeOfNine = "9".codeUnitAt(0);
 
-    int prefixLength = name.length - 1;
-    bool isOnlyDigits = true;
-    while (prefixLength >= 0 && name[prefixLength] != separator) {
-      int code = name.codeUnitAt(prefixLength);
-      isOnlyDigits = isOnlyDigits && (codeOfZero <= code && code <= codeOfNine);
-      --prefixLength;
+    String prefix;
+    if (nameClue != null) {
+      int prefixLength = nameClue.length - 1;
+      bool isOnlyDigits = true;
+      while (prefixLength >= 0 && nameClue[prefixLength] != separator) {
+        int code = nameClue.codeUnitAt(prefixLength);
+        isOnlyDigits =
+            isOnlyDigits && (codeOfZero <= code && code <= codeOfNine);
+        --prefixLength;
+      }
+      if (prefixLength < 0 || !isOnlyDigits) {
+        prefixLength = nameClue.length;
+      }
+      prefix = nameClue.substring(0, prefixLength);
+    } else {
+      prefix = "ID";
     }
-    if (prefixLength < 0 || !isOnlyDigits) {
-      prefixLength = name.length;
-    }
-    String prefix = name.substring(0, prefixLength);
-    return binders[node] = "$prefix$separator${nameCount++}";
+    String distinctName = "$prefix$separator${nameCount++}";
+    // The following checks for an internal error, not an error caused by the user.
+    // So, an assert is used instead of an exception.
+    assert(
+        lookupDistinctName(node) == null,
+        "Can't assign distinct name '${distinctName}' "
+        "to an object of kind '${node.runtimeType}': "
+        "it's already known by name '${lookupDistinctName(node)}'.");
+    distinctNames[node] = distinctName;
+    return binders[node] = distinctName;
   }
 
-  void close() {
+  // TODO(dmitryas): Consider combining with [addBinder] into a single method.
+  void extend() {
     locals.addAll(binders);
     binders.clear();
+  }
+
+  String lookupDistinctName(T object) {
+    return distinctNames[object] ?? parent?.lookupDistinctName(object);
   }
 }
 
@@ -203,7 +230,7 @@ class UriSerializer extends TextSerializer<Uri> {
 // They require a function mapping serializables to a tag string.  This is
 // implemented by Tagger visitors.
 // A tagged union of serializer/deserializers.
-class Case<T extends Node> extends TextSerializer<T> {
+class Case<T> extends TextSerializer<T> {
   final Tagger<T> tagger;
   final List<String> _tags;
   final List<TextSerializer<T>> _serializers;
@@ -312,7 +339,7 @@ class Tuple2Serializer<T1, T2> extends TextSerializer<Tuple2<T1, T2>> {
   void writeTo(
       StringBuffer buffer, Tuple2<T1, T2> object, SerializationState state) {
     first.writeTo(buffer, object.first, state);
-    buffer.write(' ');
+    if (!second.isEmpty) buffer.write(' ');
     second.writeTo(buffer, object.second, state);
   }
 }
@@ -340,9 +367,9 @@ class Tuple3Serializer<T1, T2, T3> extends TextSerializer<Tuple3<T1, T2, T3>> {
   void writeTo(StringBuffer buffer, Tuple3<T1, T2, T3> object,
       SerializationState state) {
     first.writeTo(buffer, object.first, state);
-    buffer.write(' ');
+    if (!second.isEmpty) buffer.write(' ');
     second.writeTo(buffer, object.second, state);
-    buffer.write(' ');
+    if (!third.isEmpty) buffer.write(' ');
     third.writeTo(buffer, object.third, state);
   }
 }
@@ -376,11 +403,11 @@ class Tuple4Serializer<T1, T2, T3, T4>
   void writeTo(StringBuffer buffer, Tuple4<T1, T2, T3, T4> object,
       SerializationState state) {
     first.writeTo(buffer, object.first, state);
-    buffer.write(' ');
+    if (!second.isEmpty) buffer.write(' ');
     second.writeTo(buffer, object.second, state);
-    buffer.write(' ');
+    if (!third.isEmpty) buffer.write(' ');
     third.writeTo(buffer, object.third, state);
-    buffer.write(' ');
+    if (!fourth.isEmpty) buffer.write(' ');
     fourth.writeTo(buffer, object.fourth, state);
   }
 }
@@ -392,6 +419,158 @@ class Tuple4<T1, T2, T3, T4> {
   final T4 fourth;
 
   const Tuple4(this.first, this.second, this.third, this.fourth);
+}
+
+class Tuple5Serializer<T1, T2, T3, T4, T5>
+    extends TextSerializer<Tuple5<T1, T2, T3, T4, T5>> {
+  final TextSerializer<T1> first;
+  final TextSerializer<T2> second;
+  final TextSerializer<T3> third;
+  final TextSerializer<T4> fourth;
+  final TextSerializer<T5> fifth;
+
+  const Tuple5Serializer(
+      this.first, this.second, this.third, this.fourth, this.fifth);
+
+  Tuple5<T1, T2, T3, T4, T5> readFrom(
+      Iterator<Object> stream, DeserializationState state) {
+    return new Tuple5(
+        first.readFrom(stream, state),
+        second.readFrom(stream, state),
+        third.readFrom(stream, state),
+        fourth.readFrom(stream, state),
+        fifth.readFrom(stream, state));
+  }
+
+  void writeTo(StringBuffer buffer, Tuple5<T1, T2, T3, T4, T5> object,
+      SerializationState state) {
+    first.writeTo(buffer, object.first, state);
+    if (!second.isEmpty) buffer.write(' ');
+    second.writeTo(buffer, object.second, state);
+    if (!third.isEmpty) buffer.write(' ');
+    third.writeTo(buffer, object.third, state);
+    if (!fourth.isEmpty) buffer.write(' ');
+    fourth.writeTo(buffer, object.fourth, state);
+    if (!fifth.isEmpty) buffer.write(' ');
+    fifth.writeTo(buffer, object.fifth, state);
+  }
+}
+
+class Tuple5<T1, T2, T3, T4, T5> {
+  final T1 first;
+  final T2 second;
+  final T3 third;
+  final T4 fourth;
+  final T5 fifth;
+
+  const Tuple5(this.first, this.second, this.third, this.fourth, this.fifth);
+}
+
+class Tuple6Serializer<T1, T2, T3, T4, T5, T6>
+    extends TextSerializer<Tuple6<T1, T2, T3, T4, T5, T6>> {
+  final TextSerializer<T1> first;
+  final TextSerializer<T2> second;
+  final TextSerializer<T3> third;
+  final TextSerializer<T4> fourth;
+  final TextSerializer<T5> fifth;
+  final TextSerializer<T6> sixth;
+
+  const Tuple6Serializer(
+      this.first, this.second, this.third, this.fourth, this.fifth, this.sixth);
+
+  Tuple6<T1, T2, T3, T4, T5, T6> readFrom(
+      Iterator<Object> stream, DeserializationState state) {
+    return new Tuple6(
+        first.readFrom(stream, state),
+        second.readFrom(stream, state),
+        third.readFrom(stream, state),
+        fourth.readFrom(stream, state),
+        fifth.readFrom(stream, state),
+        sixth.readFrom(stream, state));
+  }
+
+  void writeTo(StringBuffer buffer, Tuple6<T1, T2, T3, T4, T5, T6> object,
+      SerializationState state) {
+    first.writeTo(buffer, object.first, state);
+    if (!second.isEmpty) buffer.write(' ');
+    second.writeTo(buffer, object.second, state);
+    if (!third.isEmpty) buffer.write(' ');
+    third.writeTo(buffer, object.third, state);
+    if (!fourth.isEmpty) buffer.write(' ');
+    fourth.writeTo(buffer, object.fourth, state);
+    if (!fifth.isEmpty) buffer.write(' ');
+    fifth.writeTo(buffer, object.fifth, state);
+    if (!sixth.isEmpty) buffer.write(' ');
+    sixth.writeTo(buffer, object.sixth, state);
+  }
+}
+
+class Tuple6<T1, T2, T3, T4, T5, T6> {
+  final T1 first;
+  final T2 second;
+  final T3 third;
+  final T4 fourth;
+  final T5 fifth;
+  final T6 sixth;
+
+  const Tuple6(
+      this.first, this.second, this.third, this.fourth, this.fifth, this.sixth);
+}
+
+class Tuple7Serializer<T1, T2, T3, T4, T5, T6, T7>
+    extends TextSerializer<Tuple7<T1, T2, T3, T4, T5, T6, T7>> {
+  final TextSerializer<T1> first;
+  final TextSerializer<T2> second;
+  final TextSerializer<T3> third;
+  final TextSerializer<T4> fourth;
+  final TextSerializer<T5> fifth;
+  final TextSerializer<T6> sixth;
+  final TextSerializer<T7> seventh;
+
+  const Tuple7Serializer(this.first, this.second, this.third, this.fourth,
+      this.fifth, this.sixth, this.seventh);
+
+  Tuple7<T1, T2, T3, T4, T5, T6, T7> readFrom(
+      Iterator<Object> stream, DeserializationState state) {
+    return new Tuple7(
+        first.readFrom(stream, state),
+        second.readFrom(stream, state),
+        third.readFrom(stream, state),
+        fourth.readFrom(stream, state),
+        fifth.readFrom(stream, state),
+        sixth.readFrom(stream, state),
+        seventh.readFrom(stream, state));
+  }
+
+  void writeTo(StringBuffer buffer, Tuple7<T1, T2, T3, T4, T5, T6, T7> object,
+      SerializationState state) {
+    first.writeTo(buffer, object.first, state);
+    if (!second.isEmpty) buffer.write(' ');
+    second.writeTo(buffer, object.second, state);
+    if (!third.isEmpty) buffer.write(' ');
+    third.writeTo(buffer, object.third, state);
+    if (!fourth.isEmpty) buffer.write(' ');
+    fourth.writeTo(buffer, object.fourth, state);
+    if (!fifth.isEmpty) buffer.write(' ');
+    fifth.writeTo(buffer, object.fifth, state);
+    if (!sixth.isEmpty) buffer.write(' ');
+    sixth.writeTo(buffer, object.sixth, state);
+    if (!seventh.isEmpty) buffer.write(' ');
+    seventh.writeTo(buffer, object.seventh, state);
+  }
+}
+
+class Tuple7<T1, T2, T3, T4, T5, T6, T7> {
+  final T1 first;
+  final T2 second;
+  final T3 third;
+  final T4 fourth;
+  final T5 fifth;
+  final T6 sixth;
+  final T7 seventh;
+
+  const Tuple7(this.first, this.second, this.third, this.fourth, this.fifth,
+      this.sixth, this.seventh);
 }
 
 // A serializer/deserializer for lists.
@@ -451,25 +630,28 @@ class Optional<T> extends TextSerializer<T> {
 /// Serializes an object and uses it as a binder for the name that is retrieved
 /// from the object using [nameGetter] and (temporarily) modified using
 /// [nameSetter].  The binder is added to the enclosing environment.
-class Binder<T extends Node> extends TextSerializer<T> {
-  final TextSerializer<T> contents;
-  final String Function(T) nameGetter;
-  final void Function(T, String) nameSetter;
+class Binder<T extends Node> extends TextSerializer<Tuple2<String, T>> {
+  final Tuple2Serializer<String, T> namedContents;
 
-  const Binder(this.contents, this.nameGetter, this.nameSetter);
+  Binder(TextSerializer<T> contents)
+      : namedContents = new Tuple2Serializer(const DartString(), contents);
 
-  T readFrom(Iterator<Object> stream, DeserializationState state) {
-    T object = contents.readFrom(stream, state);
-    state.environment.addBinder(nameGetter(object), object);
-    return object;
+  Tuple2<String, T> readFrom(
+      Iterator<Object> stream, DeserializationState state) {
+    Tuple2<String, T> namedObject = namedContents.readFrom(stream, state);
+    String name = namedObject.first;
+    T object = namedObject.second;
+    state.environment.addBinder(object, name);
+    return new Tuple2(name, object);
   }
 
-  void writeTo(StringBuffer buffer, T object, SerializationState state) {
-    String oldName = nameGetter(object);
-    String newName = state.environment.addBinder(object, oldName);
-    nameSetter(object, newName);
-    contents.writeTo(buffer, object, state);
-    nameSetter(object, oldName);
+  void writeTo(StringBuffer buffer, Tuple2<String, T> namedObject,
+      SerializationState state) {
+    String nameClue = namedObject.first;
+    T object = namedObject.second;
+    String distinctName =
+        state.environment.addBinder(object, nameClue: nameClue);
+    namedContents.writeTo(buffer, new Tuple2(distinctName, object), state);
   }
 }
 
@@ -488,7 +670,7 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
     var bindingState = new DeserializationState(
         new DeserializationEnvironment(state.environment), state.nameRoot);
     P first = pattern.readFrom(stream, bindingState);
-    bindingState.environment.close();
+    bindingState.environment.extend();
     T second = term.readFrom(stream, bindingState);
     return new Tuple2(first, second);
   }
@@ -498,7 +680,7 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
     var bindingState =
         new SerializationState(new SerializationEnvironment(state.environment));
     pattern.writeTo(buffer, tuple.first, bindingState);
-    bindingState.environment.close();
+    bindingState.environment.extend();
     buffer.write(' ');
     term.writeTo(buffer, tuple.second, bindingState);
   }
@@ -520,7 +702,7 @@ class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
     var closedState = new DeserializationState(
         new DeserializationEnvironment(state.environment)
           ..binders.addAll(state.environment.binders)
-          ..close(),
+          ..extend(),
         state.nameRoot);
     T second = pattern2.readFrom(stream, closedState);
     state.environment.binders.addAll(closedState.environment.binders);
@@ -533,7 +715,7 @@ class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
     var closedState =
         new SerializationState(new SerializationEnvironment(state.environment)
           ..binders.addAll(state.environment.binders)
-          ..close());
+          ..extend());
     buffer.write(' ');
     pattern2.writeTo(buffer, tuple.second, closedState);
     state.environment.binders.addAll(closedState.environment.binders);

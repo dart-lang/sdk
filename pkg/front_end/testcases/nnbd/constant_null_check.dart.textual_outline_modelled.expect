@@ -1,0 +1,13 @@
+class Class {
+  const Class(int? x) : y = x!;
+  final int y;
+}
+
+const Class e = const Class(a);
+const Class f = const Class(c);
+const int? a = 42;
+const int? c = null;
+const int? d = c!;
+const int b = a!;
+expect(expected, actual) {}
+main() {}

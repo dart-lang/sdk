@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/constant/potentially_constant_test.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,30 @@ main() {
 }
 
 @reflectiveTest
-class InconsistentCaseExpressionTypesTest extends DriverResolutionTest {
+class InconsistentCaseExpressionTypesTest extends PubPackageResolutionTest {
+  test_dynamic() async {
+    // Even though A.S and S have a static type of "dynamic", we should see
+    // that they match 'abc', because they are constant strings.
+    await assertNoErrorsInCode(r'''
+class A {
+  static const S = 'A.S';
+}
+
+const S = 'S';
+
+foo(var p) {
+  switch (p) {
+    case S:
+      break;
+    case A.S:
+      break;
+    case 'abc':
+      break;
+  }
+}
+''');
+  }
+
   test_int() async {
     await assertNoErrorsInCode(r'''
 void f(var e) {
@@ -92,9 +114,9 @@ void f(var e) {
 
 @reflectiveTest
 class InconsistentCaseExpressionTypesWithNullSafetyTest
-    extends DriverResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_int_none_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
 

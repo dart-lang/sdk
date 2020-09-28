@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,36 @@ main() {
 }
 
 @reflectiveTest
-class ExtraPositionalArgumentsCouldBeNamedTest extends DriverResolutionTest {
+class ExtraPositionalArgumentsCouldBeNamedTest
+    extends PubPackageResolutionTest {
+  test_constConstructor() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A({int x});
+}
+main() {
+  const A(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 50,
+          3),
+    ]);
+  }
+
+  test_constConstructor_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A({int x});
+}
+class B extends A {
+  const B() : super(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 71,
+          3),
+    ]);
+  }
+
   test_functionExpressionInvocation() async {
     await assertErrorsInCode('''
 main() {
@@ -41,7 +70,33 @@ main() {
 }
 
 @reflectiveTest
-class ExtraPositionalArgumentsTest extends DriverResolutionTest {
+class ExtraPositionalArgumentsTest extends PubPackageResolutionTest {
+  test_constConstructor() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+main() {
+  const A(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 43, 3),
+    ]);
+  }
+
+  test_constConstructor_super() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+}
+class B extends A {
+  const B() : super(0);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 64, 3),
+    ]);
+  }
+
   test_functionExpressionInvocation() async {
     await assertErrorsInCode('''
 main() {

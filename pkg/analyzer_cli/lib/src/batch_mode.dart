@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show exitCode, stdin;
 
@@ -13,8 +12,8 @@ typedef BatchRunnerHandler = Future<ErrorSeverity> Function(List<String> args);
 /// Provides a framework to read command line options from stdin and feed them
 /// to a callback.
 class BatchRunner {
-  final outSink;
-  final errorSink;
+  final StringSink outSink;
+  final StringSink errorSink;
 
   BatchRunner(this.outSink, this.errorSink);
 

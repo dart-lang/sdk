@@ -5,10 +5,12 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/src/version.dart';
 
 const String sdkRoot = '/sdk';
 
@@ -476,7 +478,9 @@ abstract class num implements Comparable<num> {
   int operator ~/(num other);
 
   num abs();
+  num clamp(num lowerLimit, num upperLimit);
   int floor();
+  num remainder(num other);
   int round();
   double toDouble();
   int toInt();
@@ -1069,6 +1073,7 @@ final Map<String, String> _librariesDartEntries = {
   'io': 'const LibraryInfo("io/io.dart")',
   'isolate': 'const LibraryInfo("isolate/isolate.dart")',
   'math': 'const LibraryInfo("math/math.dart")',
+  '_internal': 'const LibraryInfo("_internal/internal.dart", categories: "")',
 };
 
 class MockSdk implements DartSdk {
@@ -1084,6 +1089,8 @@ class MockSdk implements DartSdk {
   @override
   final List<SdkLibrary> sdkLibraries = [];
 
+  File _versionFile;
+
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
   MockSdk({
@@ -1091,6 +1098,11 @@ class MockSdk implements DartSdk {
     AnalysisOptionsImpl analysisOptions,
     List<MockSdkLibrary> additionalLibraries = const [],
   }) : _analysisOptions = analysisOptions ?? AnalysisOptionsImpl() {
+    _versionFile = resourceProvider
+        .getFolder(resourceProvider.convertPath(sdkRoot))
+        .getChildAssumingFile('version');
+    _versionFile.writeAsStringSync('2.10.0');
+
     for (MockSdkLibrary library in _LIBRARIES) {
       var convertedLibrary = library._toProvider(resourceProvider);
       sdkLibraries.add(convertedLibrary);
@@ -1101,7 +1113,7 @@ class MockSdk implements DartSdk {
           library.units.map(
             (unit) {
               var pathContext = resourceProvider.pathContext;
-              var absoluteUri = pathContext.join(sdkRoot, unit.path);
+              var absoluteUri = pathContext.join(sdkRoot, 'lib', unit.path);
               return MockSdkLibraryUnit(
                 unit.uriStr,
                 resourceProvider.convertPath(absoluteUri),
@@ -1125,6 +1137,13 @@ class MockSdk implements DartSdk {
       buffer.writeln('const Map<String, LibraryInfo> libraries = const {');
       for (var e in _librariesDartEntries.entries) {
         buffer.writeln('"${e.key}": ${e.value},');
+      }
+      for (var library in additionalLibraries) {
+        for (var unit in library.units) {
+          var name = unit.uriStr.substring(5);
+          var libraryInfo = 'const LibraryInfo("${unit.path}")';
+          buffer.writeln('"$name": $libraryInfo,');
+        }
       }
       buffer.writeln('};');
       resourceProvider.newFile(
@@ -1177,6 +1196,12 @@ class MockSdk implements DartSdk {
       _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
     }
     return _analysisContext;
+  }
+
+  @override
+  Version get languageVersion {
+    var sdkVersionStr = _versionFile.readAsStringSync();
+    return languageVersionFromSdkVersion(sdkVersionStr);
   }
 
   @override

@@ -33,7 +33,8 @@ class IsolateSharedSummaryElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateSharedSummaryElement.created() : super.created('isolate-shared-summary');
+  IsolateSharedSummaryElement.created()
+      : super.created('isolate-shared-summary');
 
   @override
   void attached() {

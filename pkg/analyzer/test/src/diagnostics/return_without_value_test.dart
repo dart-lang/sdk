@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/constant/potentially_constant_test.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,14 +15,14 @@ main() {
 }
 
 @reflectiveTest
-class ReturnWithoutValueTest extends DriverResolutionTest {
+class ReturnWithoutValueTest extends PubPackageResolutionTest {
   test_async_futureInt() async {
     await assertErrorsInCode('''
 Future<int> f() async {
   return;
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 26, 6),
+      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 26, 6),
     ]);
   }
 
@@ -33,7 +32,7 @@ Future<Object> f() async {
   return;
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 29, 6),
+      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 29, 6),
     ]);
   }
 
@@ -45,7 +44,7 @@ class A {
   }
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 30, 6),
+      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 30, 6),
     ]);
   }
 
@@ -55,7 +54,7 @@ int f() {
   return;
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 12, 6),
+      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 12, 6),
     ]);
   }
 
@@ -112,7 +111,7 @@ f() {
   };
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 48, 6),
+      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 48, 6),
     ]);
   }
 
@@ -132,7 +131,7 @@ class A {
   }
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 26, 6),
+      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 26, 6),
     ]);
   }
 
@@ -147,7 +146,7 @@ int f(int x) {
   return;
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 50, 6),
+      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 50, 6),
     ]);
   }
 }

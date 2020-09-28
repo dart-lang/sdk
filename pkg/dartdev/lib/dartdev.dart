@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dart_style/src/cli/format_command.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 import 'package:usage/usage.dart';
 
@@ -15,23 +17,24 @@ import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
-import 'src/commands/format.dart';
+import 'src/commands/fix.dart';
 import 'src/commands/pub.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
+import 'src/events.dart';
 import 'src/experiments.dart';
+import 'src/sdk.dart';
+import 'src/utils.dart';
+import 'src/vm_interop_handler.dart';
 
 /// This is typically called from bin/, but given the length of the method and
 /// analytics logic, it has been moved here. Also note that this method calls
 /// [io.exit(code)] directly.
-Future<void> runDartdev(List<String> args) async {
+Future<void> runDartdev(List<String> args, SendPort port) async {
+  VmInteropHandler.initialize(port);
   final stopwatch = Stopwatch();
   int result;
-
-  // The Analytics instance used to report information back to Google Analytics,
-  // see lib/src/analytics.dart.
-  Analytics analytics;
 
   // The exit code for the dartdev process, null indicates that it has not yet
   // been set yet. The value is set in the catch and finally blocks below.
@@ -41,13 +44,20 @@ Future<void> runDartdev(List<String> args) async {
   Object exception;
   StackTrace stackTrace;
 
-  analytics =
+  // The Analytics instance used to report information back to Google Analytics,
+  // see lib/src/analytics.dart.
+  Analytics analytics =
       createAnalyticsInstance(args.contains('--disable-dartdev-analytics'));
 
-  // On the first run, print the message to alert users that anonymous data will
-  // be collected by default.
-  if (analytics.firstRun) {
+  // If we have not printed the analyticsNoticeOnFirstRunMessage to stdout,
+  // the user is on a terminal, and the machine is not a bot, then print the
+  // disclosure and set analytics.disclosureShownOnTerminal to true.
+  if (analytics is DartdevAnalytics &&
+      !analytics.disclosureShownOnTerminal &&
+      io.stdout.hasTerminal &&
+      !isBot()) {
     print(analyticsNoticeOnFirstRunMessage);
+    analytics.disclosureShownOnTerminal = true;
   }
 
   // When `--disable-analytics` or `--enable-analytics` are called we perform
@@ -68,24 +78,65 @@ Future<void> runDartdev(List<String> args) async {
     io.exit(0);
   }
 
+  // --launch-dds is provided by the VM if the VM service is to be enabled. In
+  // that case, we need to launch DDS as well.
+  final launchDdsArg = args.singleWhere(
+    (element) => element.startsWith('--launch-dds'),
+    orElse: () => null,
+  );
+  if (launchDdsArg != null) {
+    // TODO(bkonyi): uncomment after 2.10 branch.
+    // RunCommand.launchDds = true;
+    // final ddsUrl = (launchDdsArg.split('=')[1]).split(':');
+    // RunCommand.ddsHost = ddsUrl[0];
+    // RunCommand.ddsPort = ddsUrl[1];
+  }
+
   String commandName;
 
   try {
     stopwatch.start();
     final runner = DartdevRunner(args);
+
     // Run can't be called with the '--disable-dartdev-analytics' flag, remove
     // it if it is contained in args.
     if (args.contains('--disable-dartdev-analytics')) {
       args = List.from(args)..remove('--disable-dartdev-analytics');
     }
 
-    // Before calling to run, send the first ping to analytics to have the first
-    // ping, as well as the command itself, running in parallel.
-    if (analytics.enabled) {
-      analytics.setSessionValue(flagsParam, getFlags(args));
-      commandName = getCommandStr(args, runner.commands.keys.toList());
+    // Run also can't be called with '--launch-dds', remove it if it's
+    // contained in args.
+    if (launchDdsArg != null) {
+      args = List.from(args)..remove(launchDdsArg);
+    }
+
+    // These flags have a format that can't be handled by package:args, so
+    // while they are valid flags we'll assume the VM has verified them by this
+    // point.
+    args = args
+        .where(
+          (element) => !(element.contains('--observe') ||
+              element.contains('--enable-vm-service')),
+        )
+        .toList();
+
+    // If ... help pub ... is in the args list, remove 'help', and add '--help'
+    // to the end of the list.  This will make it possible to use the help
+    // command to access subcommands of pub such as `dart help pub publish`, see
+    // https://github.com/dart-lang/sdk/issues/42965
+    if (PubUtils.shouldModifyArgs(args, runner.commands.keys.toList())) {
+      args = PubUtils.modifyArgs(args);
+    }
+
+    // For the commands format and migrate, dartdev itself sends the
+    // sendScreenView notification to analytics, for all other
+    // dartdev commands (instances of DartdevCommand) the commands send this
+    // to analytics.
+    commandName = ArgParserUtils.getCommandStr(args);
+    if (analytics.enabled &&
+        (commandName == formatCmdName || commandName == migrateCmdName)) {
       // ignore: unawaited_futures
-      analytics.sendEvent(eventCategory, commandName);
+      analytics.sendScreenView(commandName);
     }
 
     // Finally, call the runner to execute the command, see DartdevRunner.
@@ -110,7 +161,22 @@ Future<void> runDartdev(List<String> args) async {
 
     // Send analytics before exiting
     if (analytics.enabled) {
-      analytics.setSessionValue(exitCodeParam, exitCode);
+      // For commands that are not DartdevCommand instances, we manually create
+      // and send the UsageEvent from here:
+      if (commandName == formatCmdName) {
+        // ignore: unawaited_futures
+        FormatUsageEvent(
+          exitCode: exitCode,
+          args: args,
+        ).send(analyticsInstance);
+      } else if (commandName == migrateCmdName) {
+        // ignore: unawaited_futures
+        MigrateUsageEvent(
+          exitCode: exitCode,
+          args: args,
+        ).send(analyticsInstance);
+      }
+
       // ignore: unawaited_futures
       analytics.sendTiming(commandName, stopwatch.elapsedMilliseconds,
           category: 'commands');
@@ -127,17 +193,22 @@ Future<void> runDartdev(List<String> args) async {
           timeout: const Duration(milliseconds: 200));
     }
 
-    // As the notification to the user read on the first run, analytics are
-    // enabled by default, on the first run only.
+    // Set the enabled flag in the analytics object to true. Note: this will not
+    // enable the analytics unless the disclosure was shown (terminal
+    // detected), and the machine is not detected to be a bot.
     if (analytics.firstRun) {
       analytics.enabled = true;
     }
     analytics.close();
-    io.exit(exitCode);
+    VmInteropHandler.exit(exitCode);
   }
 }
 
 class DartdevRunner<int> extends CommandRunner {
+  @override
+  final ArgParser argParser =
+      ArgParser(usageLineLength: dartdevUsageLineLength);
+
   static const String dartdevDescription =
       'A command-line utility for Dart development';
 
@@ -161,24 +232,59 @@ class DartdevRunner<int> extends CommandRunner {
     // A hidden flag to disable analytics on this run, this constructor can be
     // called with this flag, but should be removed before run() is called as
     // the flag has not been added to all sub-commands.
-    argParser.addFlag('disable-dartdev-analytics',
-        negatable: false,
-        help: 'Disable anonymous analytics for this `dart *` run',
-        hide: true);
+    argParser.addFlag(
+      'disable-dartdev-analytics',
+      negatable: false,
+      help: 'Disable anonymous analytics for this `dart *` run',
+      hide: true,
+    );
+
+    // Another hidden flag used by the VM to indicate that DDS should be
+    // launched. Should be removed for all commands other than `run`.
+    argParser.addFlag('launch-dds',
+        negatable: false, hide: true, help: 'Launch DDS.');
 
     addCommand(AnalyzeCommand());
     addCommand(CreateCommand(verbose: verbose));
     addCommand(CompileCommand());
-    addCommand(FormatCommand());
-    addCommand(MigrateCommand(verbose: verbose));
+    addCommand(FixCommand());
+    addCommand(FormatCommand(verbose: verbose));
+    addCommand(MigrateCommand(
+      verbose: verbose,
+      hidden: Runtime.runtime.stableChannel,
+    ));
     addCommand(PubCommand());
-    addCommand(RunCommand());
+    addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
   }
 
   @override
+  String get usageFooter =>
+      'See https://dart.dev/tools/dart-tool for detailed documentation.';
+
+  @override
   String get invocation =>
       'dart [<vm-flags>] <command|dart-file> [<arguments>]';
+
+  void addExperimentalFlags(ArgParser argParser, bool verbose) {
+    List<ExperimentalFeature> features = experimentalFeatures;
+
+    Map<String, String> allowedHelp = {};
+    for (ExperimentalFeature feature in features) {
+      String suffix =
+          feature.isEnabledByDefault ? ' (no-op - enabled by default)' : '';
+      allowedHelp[feature.enableString] = '${feature.documentation}$suffix';
+    }
+
+    argParser.addMultiOption(
+      experimentFlagName,
+      valueHelp: 'experiment',
+      allowedHelp: verbose ? allowedHelp : null,
+      help: 'Enable one or more experimental features '
+          '(see dart.dev/go/experiments).',
+      hide: !verbose,
+    );
+  }
 
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
@@ -192,7 +298,7 @@ class DartdevRunner<int> extends CommandRunner {
         io.stderr.writeln(
             "Error when reading '$firstArg': No such file or directory.");
         // This is the exit code used by the frontend.
-        io.exit(254);
+        VmInteropHandler.exit(254);
       }
     }
 
@@ -216,24 +322,5 @@ class DartdevRunner<int> extends CommandRunner {
     }
 
     return await super.runCommand(topLevelResults);
-  }
-
-  void addExperimentalFlags(ArgParser argParser, bool verbose) {
-    List<ExperimentalFeature> features = experimentalFeatures;
-
-    Map<String, String> allowedHelp = {};
-    for (ExperimentalFeature feature in features) {
-      String suffix =
-          feature.isEnabledByDefault ? ' (no-op - enabled by default)' : '';
-      allowedHelp[feature.enableString] = '${feature.documentation}$suffix';
-    }
-
-    argParser.addMultiOption(
-      experimentFlagName,
-      valueHelp: 'experiment',
-      allowed: features.map((feature) => feature.enableString),
-      allowedHelp: verbose ? allowedHelp : null,
-      help: 'Enable one or more experimental features.',
-    );
   }
 }

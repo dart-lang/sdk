@@ -10,10 +10,10 @@ void main() {
   A a = new B();
   <B, Object>{a: 1};
   //          ^
-  // [analyzer] STATIC_WARNING.MAP_KEY_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.MAP_KEY_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
   <Object, B>{1: a};
   //             ^
-  // [analyzer] STATIC_WARNING.MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.MAP_VALUE_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 }

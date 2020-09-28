@@ -176,6 +176,15 @@ abstract class JClosedWorld implements World {
   bool fieldNeverChanges(MemberEntity element);
 
   /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
+  /// subclass of `Closure` using the [abstractValueDomain].
+  ///
+  /// Every implementation of `Closure` has a 'call' method with its own
+  /// signature so it cannot be modelled by a [FunctionEntity]. Also,
+  /// call-methods for tear-off are not part of the element model.
+  bool includesClosureCallInDomain(Selector selector, AbstractValue receiver,
+      AbstractValueDomain abstractValueDomain);
+
+  /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
   /// subclass of `Closure`.
   ///
   /// Every implementation of `Closure` has a 'call' method with its own
@@ -191,6 +200,13 @@ abstract class JClosedWorld implements World {
   /// implement the handling 'noSuchMethod' where the selected member is
   /// unimplemented.
   AbstractValue computeReceiverType(Selector selector, AbstractValue receiver);
+
+  /// Returns all the instance members that may be invoked with the [selector]
+  /// on the given [receiver] using the [abstractValueDomain]. The returned elements may include noSuchMethod
+  /// handlers that are potential targets indirectly through the noSuchMethod
+  /// mechanism.
+  Iterable<MemberEntity> locateMembersInDomain(Selector selector,
+      AbstractValue receiver, AbstractValueDomain abstractValueDomain);
 
   /// Returns all the instance members that may be invoked with the [selector]
   /// on the given [receiver]. The returned elements may include noSuchMethod

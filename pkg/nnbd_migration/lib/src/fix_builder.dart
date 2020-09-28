@@ -19,12 +19,12 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
@@ -752,6 +752,7 @@ abstract class _AssignmentLikeExpressionHandler {
         combinerType,
         rhsType,
         combiner.returnType,
+        combiner,
       );
       if (!fixBuilder._typeSystem.isSubtypeOf(combinerReturnType, writeType)) {
         (fixBuilder._getChange(node) as NodeChangeForAssignmentLike)
@@ -1035,8 +1036,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (!typeIsNonNullableByContext(node)) {
-      var type = decoratedType.type;
-      if (!type.isDynamic && !type.isVoid && !type.isDartCoreNull) {
+      if (!_typeIsNaturallyNullable(decoratedType.type)) {
         _makeTypeNameNullable(node, decoratedType);
       }
     }
@@ -1073,12 +1073,28 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   }
 
   void _makeTypeNameNullable(TypeAnnotation node, DecoratedType decoratedType) {
+    bool makeNullable = decoratedType.node.isNullable;
+    if (decoratedType.type.isDartAsyncFutureOr) {
+      var typeArguments = decoratedType.typeArguments;
+      if (typeArguments.length == 1) {
+        var typeArgument = typeArguments[0];
+        if ((_typeIsNaturallyNullable(typeArgument.type) ||
+            typeArgument.node.isNullable)) {
+          // FutureOr<T?>? is equivalent to FutureOr<T?>, so there is no need to
+          // make this type nullable.
+          makeNullable = false;
+        }
+      }
+    }
     (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
         .recordNullability(
-            decoratedType, decoratedType.node.isNullable,
+            decoratedType, makeNullable,
             nullabilityHint:
                 _fixBuilder._variables.getNullabilityHint(source, node));
   }
+
+  bool _typeIsNaturallyNullable(DartType type) =>
+      type.isDynamic || type.isVoid || type.isDartCoreNull;
 }
 
 /// Specialization of [_AssignmentLikeExpressionHandler] for

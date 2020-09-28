@@ -25,8 +25,7 @@ class ClassHierarchy {
   }
 
   /// Remove hierarchies for classes defined in specified libraries.
-  void removeOfLibraries(Iterable<String> uriStrIterable) {
-    var uriStrSet = uriStrIterable.toSet();
+  void removeOfLibraries(Set<String> uriStrSet) {
     _map.removeWhere((element, _) {
       var uriStr = '${element.librarySource.uri}';
       return uriStrSet.contains(uriStr);
@@ -48,31 +47,21 @@ class ClassHierarchy {
 
     var library = element.library as LibraryElementImpl;
     var typeSystem = library.typeSystem;
-    var map = <ClassElement, _ClassInterfaceType>{};
-
-    void appendOne(InterfaceType type) {
-      var element = type.element;
-      var classResult = map[element];
-      if (classResult == null) {
-        classResult = _ClassInterfaceType(typeSystem);
-        map[element] = classResult;
-      }
-      classResult.update(type);
-    }
+    var interfacesMerger = InterfacesMerger(typeSystem);
 
     void append(InterfaceType type) {
       if (type == null) {
         return;
       }
 
-      appendOne(type);
+      interfacesMerger.add(type);
 
       var substitution = Substitution.fromInterfaceType(type);
       var rawInterfaces = implementedInterfaces(type.element);
       for (var rawInterface in rawInterfaces) {
         var newInterface = substitution.substituteType(rawInterface);
         newInterface = library.toLegacyTypeIfOptOut(newInterface);
-        appendOne(newInterface);
+        interfacesMerger.add(newInterface);
       }
     }
 
@@ -89,7 +78,7 @@ class ClassHierarchy {
 
     var errors = <ClassHierarchyError>[];
     var interfaces = <InterfaceType>[];
-    for (var collector in map.values) {
+    for (var collector in interfacesMerger._map.values) {
       if (collector._error != null) {
         errors.add(collector._error);
       }
@@ -120,6 +109,36 @@ class IncompatibleInterfacesClassHierarchyError extends ClassHierarchyError {
   final InterfaceType second;
 
   IncompatibleInterfacesClassHierarchyError(this.first, this.second);
+}
+
+class InterfacesMerger {
+  final TypeSystemImpl _typeSystem;
+  final _map = <ClassElement, _ClassInterfaceType>{};
+
+  InterfacesMerger(this._typeSystem);
+
+  List<InterfaceType> get typeList {
+    return _map.values.map((e) => e.type).toList();
+  }
+
+  void add(InterfaceType type) {
+    var element = type.element;
+    var classResult = _map[element];
+    if (classResult == null) {
+      classResult = _ClassInterfaceType(_typeSystem);
+      _map[element] = classResult;
+    }
+    classResult.update(type);
+  }
+
+  void addWithSupertypes(InterfaceType type) {
+    if (type != null) {
+      for (var superType in type.allSupertypes) {
+        add(superType);
+      }
+      add(type);
+    }
+  }
 }
 
 class _ClassInterfaceType {

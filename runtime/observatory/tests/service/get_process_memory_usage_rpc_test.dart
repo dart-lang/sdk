@@ -12,9 +12,9 @@ var tests = <VMTest>[
     var result = await vm.invokeRpcNoUpgrade("getProcessMemoryUsage", {});
     expect(result['type'], equals('ProcessMemoryUsage'));
     checkProcessMemoryItem(item) {
-      expect(item['name'], isInstanceOf<String>());
-      expect(item['description'], isInstanceOf<String>());
-      expect(item['size'], isInstanceOf<int>());
+      expect(item['name'], isA<String>());
+      expect(item['description'], isA<String>());
+      expect(item['size'], isA<int>());
       expect(item['size'], greaterThanOrEqualTo(0));
       for (var child in item['children']) {
         checkProcessMemoryItem(child);

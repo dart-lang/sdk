@@ -15,8 +15,15 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
+
+Version languageVersionFromSdkVersion(String sdkVersionStr) {
+  var sdkVersionParts = sdkVersionStr.split('.');
+  var sdkVersionMajor = int.parse(sdkVersionParts[0]);
+  var sdkVersionMinor = int.parse(sdkVersionParts[1]);
+  return Version(sdkVersionMajor, sdkVersionMinor, 0);
+}
 
 /// An abstract implementation of a Dart SDK in which the available libraries
 /// are stored in a library map. Subclasses are responsible for populating the
@@ -199,11 +206,21 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _DART_COLON_PREFIX = 'dart:';
 
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
+
+  Version _languageVersion;
+
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
+  /// TODO(scheglov) Make [languageVersion] required.
+  /// https://github.com/dart-lang/sdk/issues/42890
   EmbedderSdk(
-      ResourceProvider resourceProvider, Map<Folder, YamlMap> embedderYamls) {
+    ResourceProvider resourceProvider,
+    Map<Folder, YamlMap> embedderYamls, {
+    Version languageVersion,
+  }) {
     this.resourceProvider = resourceProvider;
+    _languageVersion =
+        languageVersion ?? languageVersionFromSdkVersion(io.Platform.version);
     embedderYamls?.forEach(_processEmbedderYaml);
   }
 
@@ -222,6 +239,9 @@ class EmbedderSdk extends AbstractDartSdk {
     }
     return null;
   }
+
+  @override
+  Version get languageVersion => _languageVersion;
 
   @override
   // TODO(danrubel) Determine SDK version
@@ -366,6 +386,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// discovered.
   String _sdkVersion;
 
+  /// The cached language version of this SDK.
+  Version _languageVersion;
+
   /// The file containing the pub executable.
   File _pubExecutable;
 
@@ -396,6 +419,18 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   /// Return the directory containing documentation for the SDK.
   Folder get docDirectory =>
       _sdkDirectory.getChildAssumingFolder(_DOCS_DIRECTORY_NAME);
+
+  @override
+  Version get languageVersion {
+    if (_languageVersion == null) {
+      var sdkVersionStr = _sdkDirectory
+          .getChildAssumingFile(_VERSION_FILE_NAME)
+          .readAsStringSync();
+      _languageVersion = languageVersionFromSdkVersion(sdkVersionStr);
+    }
+
+    return _languageVersion;
+  }
 
   /// Return the directory within the SDK directory that contains the libraries.
   Folder get libraryDirectory {
@@ -522,58 +557,6 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       return null;
     }
   }
-
-  /// Return the default directory for the Dart SDK, or `null` if the directory
-  /// cannot be determined (or does not exist). The default directory is
-  /// provided by a system property named `com.google.dart.sdk`.
-  static Folder defaultSdkDirectory(ResourceProvider resourceProvider) {
-    // TODO(brianwilkerson) This is currently only being used in the analysis
-    // server's Driver class to find the default SDK. The command-line analyzer
-    // uses cli_utils to find the SDK. Not sure why they're different.
-    String sdkProperty = getSdkProperty(resourceProvider);
-    if (sdkProperty == null) {
-      return null;
-    }
-    Folder sdkDirectory = resourceProvider.getFolder(sdkProperty);
-    if (!sdkDirectory.exists) {
-      return null;
-    }
-    return sdkDirectory;
-  }
-
-  static String getSdkProperty(ResourceProvider resourceProvider) {
-    String exec = io.Platform.resolvedExecutable;
-    if (exec.isEmpty) {
-      return null;
-    }
-    pathos.Context pathContext = resourceProvider.pathContext;
-    if (pathContext.style != pathos.context.style) {
-      // This will only happen when running tests.
-      if (exec.startsWith(RegExp('[a-zA-Z]:'))) {
-        exec = exec.substring(2);
-      } else if (resourceProvider is MemoryResourceProvider) {
-        exec = resourceProvider.convertPath(exec);
-      }
-      exec = pathContext.fromUri(pathos.context.toUri(exec));
-    }
-    // Might be "xcodebuild/ReleaseIA32/dart" with "sdk" sibling
-    String outDir = pathContext.dirname(pathContext.dirname(exec));
-    String sdkPath = pathContext.join(pathContext.dirname(outDir), "sdk");
-    if (resourceProvider.getFolder(sdkPath).exists) {
-      // We are executing in the context of a test.  sdkPath is the path to the
-      // *source* files for the SDK.  But we want to test using the path to the
-      // *built* SDK if possible.
-      String builtSdkPath =
-          pathContext.join(pathContext.dirname(exec), 'dart-sdk');
-      if (resourceProvider.getFolder(builtSdkPath).exists) {
-        return builtSdkPath;
-      } else {
-        return sdkPath;
-      }
-    }
-    // probably be "dart-sdk/bin/dart"
-    return pathContext.dirname(pathContext.dirname(exec));
-  }
 }
 
 /// An object used to read and parse the libraries file
@@ -608,7 +591,7 @@ class SdkLibrariesReader {
   LibraryMap readFromSource(Source source, String libraryFileContents) {
     // TODO(paulberry): initialize the feature set appropriately based on the
     // version of the SDK we are reading, and enable flags.
-    var featureSet = FeatureSet.fromEnableFlags([]);
+    var featureSet = FeatureSet.latestLanguageVersion();
 
     var parseResult = parseString(
       content: libraryFileContents,

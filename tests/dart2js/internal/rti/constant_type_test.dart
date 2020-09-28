@@ -26,9 +26,9 @@ main() {
   check<Generic<int>>(const Generic<int>());
 
   check<Generic<dynamic>>(const Generic<dynamic>());
-  check<Generic<Object>>(const Generic<Object>());
-  check<Generic<Object>>(const Generic<dynamic>());
-  check<Generic<dynamic>>(const Generic<Object>());
+  check<Generic<Object?>>(const Generic<Object?>());
+  check<Generic<Object?>>(const Generic<dynamic>());
+  check<Generic<dynamic>>(const Generic<Object?>());
 
   check<List<int>>(const [1]);
   check<List<String>>(const ['one']);

@@ -43,23 +43,23 @@ main() {
   { int? i = c?.g(() => 1); Expect.equals(1, i); }
   { String? s = nullC()?.g(bad()); Expect.equals(null, s); }
   //            ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
   { String? s = c?.g(() => null); Expect.equals(null, s); }
   //            ^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //            ^
   // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
   { int? i = C?.staticG(() => 1); Expect.equals(1, i); }
   { int? i = h.C?.staticG(() => 1); Expect.equals(1, i); }
   { String? s = C?.staticG(() => null); Expect.equals(null, s); }
   //            ^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //               ^
   // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
   { String? s = h.C?.staticG(() => null); Expect.equals(null, s); }
   //            ^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                 ^
   // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
 
@@ -68,11 +68,11 @@ main() {
   // generated in the case of o?.m(...).
   { B? b = new C(); Expect.equals(1, b?.f(() => 1)); }
   //                                    ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] The method 'f' isn't defined for the class 'B'.
   { int? i = 1; Expect.equals(null, nullC()?.f(i)); }
   //                                           ^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'int?' can't be assigned to the parameter type 'dynamic Function()?'.
 
   // '?.' can't be used to access toplevel functions in libraries imported via
@@ -85,10 +85,10 @@ main() {
   // Nor can it be used to access the toString method on the class Type.
   Expect.throwsNoSuchMethodError(() => C?.toString());
   //                                      ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] Method not found: 'C.toString'.
   Expect.throwsNoSuchMethodError(() => h.C?.toString());
   //                                        ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] Method not found: 'C.toString'.
 }

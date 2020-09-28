@@ -587,7 +587,6 @@ void main(List<String> args) {
             .relevance));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38796')
   Future<void> test_project_suggestionRelevance_constructorsAndTypes() async {
     await addProjectFile('lib/a.dart', r'''
 class A { }

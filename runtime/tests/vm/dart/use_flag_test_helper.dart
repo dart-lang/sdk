@@ -146,7 +146,7 @@ Future<void> run(String executable, List<String> args) async {
   }
 }
 
-Future<Iterable<String>> runOutput(String executable, List<String> args) async {
+Future<List<String>> runOutput(String executable, List<String> args) async {
   final result = await runHelper(executable, args);
 
   if (result.exitCode != 0) {
@@ -160,7 +160,7 @@ Future<Iterable<String>> runOutput(String executable, List<String> args) async {
       .toList();
 }
 
-Future<Iterable<String>> runError(String executable, List<String> args) async {
+Future<List<String>> runError(String executable, List<String> args) async {
   final result = await runHelper(executable, args);
 
   if (result.exitCode == 0) {

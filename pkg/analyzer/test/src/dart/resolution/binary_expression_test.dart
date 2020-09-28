@@ -2,23 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/error/codes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BinaryExpressionResolutionTest);
-    defineReflectiveTests(BinaryExpressionResolutionWithNnbdTest);
+    defineReflectiveTests(BinaryExpressionResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class BinaryExpressionResolutionTest extends DriverResolutionTest {
+class BinaryExpressionResolutionTest extends PubPackageResolutionTest
+    with BinaryExpressionResolutionTestCases {}
+
+mixin BinaryExpressionResolutionTestCases on PubPackageResolutionTest {
   test_bangEq() async {
     await assertNoErrorsInCode(r'''
 f(int a, int b) {
@@ -36,6 +39,24 @@ f(int a, int b) {
     );
   }
 
+  test_bangEq_extensionOverride_left() async {
+    await assertErrorsInCode(r'''
+extension E on int {}
+
+void f(int a) {
+  E(a) != 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('!= 0'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
   test_eqEq() async {
     await assertNoErrorsInCode(r'''
 f(int a, int b) {
@@ -50,6 +71,24 @@ f(int a, int b) {
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'bool',
+    );
+  }
+
+  test_eqEq_extensionOverride_left() async {
+    await assertErrorsInCode(r'''
+extension E on int {}
+
+void f(int a) {
+  E(a) == 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('== 0'),
+      element: null,
+      type: 'dynamic',
     );
   }
 
@@ -73,8 +112,9 @@ f(int a, int b) {
   }
 
   test_ifNull() async {
-    await assertNoErrorsInCode(r'''
-f(int a, double b) {
+    var question = typeToStringWithNullability ? '?' : '';
+    await assertNoErrorsInCode('''
+f(int$question a, double b) {
   a ?? b;
 }
 ''');
@@ -114,6 +154,222 @@ f(bool a, bool b) {
     );
   }
 
+  test_minus_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a - f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_minus_int_double() async {
+    await assertNoErrorsInCode(r'''
+f(int a, double b) {
+  a - b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a - b'),
+      element: elementMatcher(
+        numElement.getMethod('-'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
+  test_minus_int_int() async {
+    await assertNoErrorsInCode(r'''
+f(int a, int b) {
+  a - b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a - b'),
+      element: elementMatcher(
+        numElement.getMethod('-'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+  }
+
+  test_mod_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a % f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_mod_int_double() async {
+    await assertNoErrorsInCode(r'''
+f(int a, double b) {
+  a % b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a % b'),
+      element: elementMatcher(
+        numElement.getMethod('%'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
+  test_mod_int_int() async {
+    await assertNoErrorsInCode(r'''
+f(int a, int b) {
+  a % b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a % b'),
+      element: elementMatcher(
+        numElement.getMethod('%'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+  }
+
+  test_plus_double_context_double() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(double a) {
+  h(a + f());
+}
+h(double x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_double_context_int() async {
+    await assertErrorsInCode('''
+T f<T>() => throw Error();
+g(double a) {
+  h(a + f());
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_double_context_none() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(double a) {
+  a + f();
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_double_dynamic() async {
+    await assertNoErrorsInCode(r'''
+f(double a, dynamic b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        doubleElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
+  test_plus_int_context_double() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a + f());
+}
+h(double x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'double' : 'num']);
+  }
+
+  test_plus_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a + f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_plus_int_context_int_target_rewritten() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int Function() a) {
+  h(a() + f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
+  test_plus_int_context_int_via_extension_explicit() async {
+    await assertErrorsInCode('''
+extension E on int {
+  String operator+(num x) => '';
+}
+T f<T>() => throw Error();
+g(int a) {
+  h(E(a) + f());
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 10),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_int_context_none() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  a + f();
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
   test_plus_int_double() async {
     await assertNoErrorsInCode(r'''
 f(int a, double b) {
@@ -131,6 +387,23 @@ f(int a, double b) {
     );
   }
 
+  test_plus_int_dynamic() async {
+    await assertNoErrorsInCode(r'''
+f(int a, dynamic b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'num',
+    );
+  }
+
   test_plus_int_int() async {
     await assertNoErrorsInCode(r'''
 f(int a, int b) {
@@ -145,6 +418,196 @@ f(int a, int b) {
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
+    );
+  }
+
+  test_plus_int_int_target_rewritten() async {
+    await assertNoErrorsInCode('''
+f(int Function() a, int b) {
+  a() + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a() + b'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
+  test_plus_int_int_via_extension_explicit() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  String operator+(int other) => '';
+}
+f(int a, int b) {
+  E(a) + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('E(a) + b'),
+      element: elementMatcher(
+        findElement.method('+', of: 'E'),
+        isLegacy: false,
+      ),
+      type: 'String',
+    );
+  }
+
+  test_plus_int_num() async {
+    await assertNoErrorsInCode(r'''
+f(int a, num b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'num',
+    );
+  }
+
+  test_plus_num_context_int() async {
+    await assertErrorsInCode(
+        '''
+T f<T>() => throw Error();
+g(num a) {
+  h(a + f());
+}
+h(int x) {}
+''',
+        expectedErrorsByNullability(nullable: [
+          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
+        ], legacy: []));
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_other_context_int() async {
+    await assertErrorsInCode(
+        '''
+abstract class A {
+  num operator+(String x);
+}
+T f<T>() => throw Error();
+g(A a) {
+  h(a + f());
+}
+h(int x) {}
+''',
+        expectedErrorsByNullability(nullable: [
+          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
+        ], legacy: []));
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['String']);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
+  test_plus_other_context_int_via_extension_explicit() async {
+    await assertErrorsInCode('''
+class A {}
+extension E on A {
+  String operator+(num x) => '';
+}
+T f<T>() => throw Error();
+g(A a) {
+  h(E(a) + f());
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 10),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_other_context_int_via_extension_implicit() async {
+    await assertErrorsInCode('''
+class A {}
+extension E on A {
+  String operator+(num x) => '';
+}
+T f<T>() => throw Error();
+g(A a) {
+  h(a + f());
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 7),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_other_double() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  String operator+(double other);
+}
+f(A a, double b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        findElement.method('+', of: 'A'),
+        isLegacy: false,
+      ),
+      type: 'String',
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
+  test_plus_other_int_via_extension_explicit() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  String operator+(int other) => '';
+}
+f(A a, int b) {
+  E(a) + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('E(a) + b'),
+      element: elementMatcher(
+        findElement.method('+', of: 'E'),
+        isLegacy: false,
+      ),
+      type: 'String',
+    );
+  }
+
+  test_plus_other_int_via_extension_implicit() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  String operator+(int other) => '';
+}
+f(A a, int b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        findElement.method('+', of: 'E'),
+        isLegacy: false,
+      ),
+      type: 'String',
     );
   }
 
@@ -196,6 +659,19 @@ f(int a, int b) {
     );
   }
 
+  test_star_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a * f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
   test_star_int_double() async {
     await assertNoErrorsInCode(r'''
 f(int a, double b) {
@@ -232,17 +708,9 @@ f(int a, int b) {
 }
 
 @reflectiveTest
-class BinaryExpressionResolutionWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    )
-    ..implicitCasts = false;
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class BinaryExpressionResolutionWithNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, BinaryExpressionResolutionTestCases {
   test_ifNull_left_nullableContext() async {
     await assertNoErrorsInCode(r'''
 T f<T>(T t) => t;
@@ -304,6 +772,34 @@ main(int? x) {
       findNode.binary('x ?? x'),
       element: null,
       type: 'int?',
+    );
+  }
+
+  test_plus_int_never() async {
+    await assertErrorsInCode('''
+f(int a, Never b) {
+  a + b;
+}
+''', []);
+
+    assertBinaryExpression(findNode.binary('a + b'),
+        element: numElement.getMethod('+'), type: 'num');
+  }
+
+  test_plus_never_int() async {
+    await assertErrorsInCode(r'''
+f(Never a, int b) {
+  a + b;
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
+      error(HintCode.DEAD_CODE, 26, 2),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: isNull,
+      type: 'Never',
     );
   }
 }

@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,12 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidAssignmentNnbdTest extends InvalidAssignmentTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
+class InvalidAssignmentNnbdTest extends InvalidAssignmentTest
+    with WithNullSafetyMixin {
   @override
   test_ifNullAssignment() async {
     await assertErrorsInCode('''
@@ -31,7 +25,7 @@ void f(int i) {
   d ??= i;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 37, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 1),
     ]);
   }
 
@@ -64,7 +58,7 @@ void f(Never x) {
 }
 ''', [
       error(HintCode.DEAD_CODE, 24, 5),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 24, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 4),
     ]);
   }
 
@@ -77,7 +71,7 @@ void f() {
 }
 ''', [
       error(HintCode.DEAD_CODE, 37, 5),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 37, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 4),
     ]);
   }
 
@@ -93,13 +87,13 @@ class B<T> {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 58, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 58, 1),
     ]);
   }
 }
 
 @reflectiveTest
-class InvalidAssignmentTest extends DriverResolutionTest {
+class InvalidAssignmentTest extends PubPackageResolutionTest {
   test_assignment_to_dynamic() async {
     await assertErrorsInCode(r'''
 f() {
@@ -108,6 +102,17 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
+  }
+
+  test_cascadeExpression() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  // ignore:unused_local_variable
+  String v = (a)..isEven;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 64, 1),
     ]);
   }
 
@@ -134,7 +139,7 @@ void main() {
 f({String x: 0}) {
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 13, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 13, 1),
     ]);
   }
 
@@ -148,7 +153,7 @@ f({String x: '0'}) {
     await assertErrorsInCode(r'''
 f([String x = 0]) {
 }''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 14, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 1),
     ]);
   }
 
@@ -159,23 +164,13 @@ f([String x = '0']) {
 ''');
   }
 
-  test_dynamic() async {
-    await assertErrorsInCode(r'''
-main() {
-  dynamic = 1;
-}
-''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 21, 1),
-    ]);
-  }
-
   test_functionExpressionInvocation() async {
     await assertErrorsInCode('''
 class C {
   String x = (() => 5)();
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 23, 11),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 11),
     ]);
   }
 
@@ -186,7 +181,7 @@ void f(int i) {
   d ??= i;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 36, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 36, 1),
     ]);
   }
 
@@ -297,7 +292,7 @@ f(var y) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 80, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 80, 1),
     ]);
   }
 
@@ -321,7 +316,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 21, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 21, 3),
     ]);
   }
 
@@ -334,7 +329,18 @@ f(var y) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 44, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 1),
+    ]);
+  }
+
+  test_parenthesizedExpression() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  // ignore:unused_local_variable
+  String v = (a);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 64, 1),
     ]);
   }
 
@@ -350,7 +356,7 @@ f(A a) {
   a++;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 65, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 65, 3),
     ]);
   }
 
@@ -382,7 +388,7 @@ f(C c) {
   c.a++;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 91, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 5),
     ]);
   }
 
@@ -414,7 +420,7 @@ f(A a) {
   ++a;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 65, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 65, 3),
     ]);
   }
 
@@ -446,7 +452,7 @@ f(C c) {
   ++c.a;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 91, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 5),
     ]);
   }
 
@@ -496,7 +502,7 @@ class C<T> {
   T t = int;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 21, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 21, 3),
     ]);
   }
 
@@ -509,7 +515,7 @@ f() {
   A.x = '0';
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 46, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 3),
     ]);
   }
 
@@ -524,7 +530,7 @@ f(var y) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 74, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 74, 1),
     ]);
   }
 
@@ -532,7 +538,7 @@ f(var y) {
     await assertErrorsInCode('''
 int x = 'string';
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 8, 8),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 8, 8),
     ]);
   }
 
@@ -546,7 +552,7 @@ class B<T> {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 57, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 1),
     ]);
   }
 
@@ -564,7 +570,7 @@ void f<X extends A, Y extends B>(X x) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 131, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 131, 1),
     ]);
   }
 
@@ -574,7 +580,7 @@ class A {
   int x = 'string';
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 20, 8),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 20, 8),
     ]);
   }
 
@@ -595,7 +601,7 @@ main() {
   print(n);
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 218, 7),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 218, 7),
     ]);
   }
 }

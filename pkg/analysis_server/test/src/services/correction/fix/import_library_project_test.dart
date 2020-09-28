@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,6 +36,32 @@ main() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_invalidUri_interpolation() async {
+    addSource('/home/test/lib/lib.dart', r'''
+class Test {
+  const Test();
+}
+''');
+    await resolveTestUnit(r'''
+import 'package:$foo/foo.dart';
+
+void f() {
+  Test();
+}
+''');
+    await assertHasFix(r'''
+import 'package:test/lib.dart';
+
+import 'package:$foo/foo.dart';
+
+void f() {
+  Test();
+}
+''',
+        errorFilter: (e) =>
+            e.errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION);
   }
 
   Future<void> test_lib() async {

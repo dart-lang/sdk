@@ -16,14 +16,14 @@ main() {
   Expect.throwsArgumentError(() => v.toStringAsPrecision(null));
   v.toStringAsPrecision(1.5);
   //                    ^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
   v.toStringAsPrecision("string");
   //                    ^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   v.toStringAsPrecision("3");
   //                    ^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 }

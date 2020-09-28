@@ -78,7 +78,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -99,7 +100,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -120,7 +122,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -141,7 +144,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -267,6 +271,19 @@
       "pattern": [
         "\\.dart$",
         "\\.crash_dart$"
+      ],
+      "exclude": []
+    },
+    {
+      "name": "parser_all",
+      "kind": "Chain",
+      "source": "test/parser_all_suite.dart",
+      "path": "../../",
+      "status": "parser_testcases/parser_all.status",
+      "pattern": [
+        "pkg/front_end/.*\\.dart$",
+        "pkg/front_end/.*\\.crash_dart$",
+        "tests/.*\\.dart$"
       ],
       "exclude": []
     },

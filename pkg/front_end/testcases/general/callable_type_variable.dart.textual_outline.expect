@@ -1,0 +1,13 @@
+class Class1<T extends Function> {
+  T field;
+  Class1(this.field);
+  method() {}
+}
+
+class Class2<T extends String Function(int)> {
+  T field;
+  Class2(this.field);
+  method() {}
+}
+
+main() {}

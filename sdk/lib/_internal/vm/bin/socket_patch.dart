@@ -226,14 +226,37 @@ class _InternetAddress implements InternetAddress {
       return _InternetAddress(
           InternetAddressType.unix, address, null, rawAddress);
     } else {
-      var in_addr = _parse(address);
-      if (in_addr == null) {
-        throw ArgumentError("Invalid internet address $address");
+      int index = address.indexOf('%');
+      String originalAddress = address;
+      String? scopeID;
+      if (index > 0) {
+        scopeID = address.substring(index, address.length);
+        address = address.substring(0, index);
       }
-      InternetAddressType type = in_addr.length == _IPv4AddrLength
+      var inAddr = _parse(address);
+      if (inAddr == null) {
+        throw ArgumentError('Invalid internet address $address');
+      }
+      InternetAddressType type = inAddr.length == _IPv4AddrLength
           ? InternetAddressType.IPv4
           : InternetAddressType.IPv6;
-      return _InternetAddress(type, address, null, in_addr);
+      if (scopeID != null && scopeID.length > 0) {
+        if (type != InternetAddressType.IPv6) {
+          throw ArgumentError.value(
+              address, 'address', 'IPv4 addresses cannot have a scope ID');
+        }
+
+        final scopeID = _parseScopedLinkLocalAddress(originalAddress);
+
+        if (scopeID is int) {
+          return _InternetAddress(
+              InternetAddressType.IPv6, originalAddress, null, inAddr, scopeID);
+        } else {
+          throw ArgumentError.value(
+              address, 'address', 'Invalid IPv6 address with scope ID');
+        }
+      }
+      return _InternetAddress(type, originalAddress, null, inAddr, 0);
     }
   }
 
@@ -262,12 +285,11 @@ class _InternetAddress implements InternetAddress {
 
   static _InternetAddress? tryParse(String address) {
     checkNotNullable(address, "address");
-    var addressBytes = _parse(address);
-    if (addressBytes == null) return null;
-    var type = addressBytes.length == _IPv4AddrLength
-        ? InternetAddressType.IPv4
-        : InternetAddressType.IPv6;
-    return _InternetAddress(type, address, null, addressBytes);
+    try {
+      return _InternetAddress.fromString(address);
+    } on ArgumentError catch (_) {
+      return null;
+    }
   }
 
   factory _InternetAddress.fixed(int id) {
@@ -297,7 +319,8 @@ class _InternetAddress implements InternetAddress {
 
   // Create a clone of this _InternetAddress replacing the host.
   _InternetAddress _cloneWithNewHost(String host) {
-    return _InternetAddress(type, address, host, Uint8List.fromList(_in_addr));
+    return _InternetAddress(
+        type, address, host, Uint8List.fromList(_in_addr), _scope_id);
   }
 
   bool operator ==(other) {
@@ -330,7 +353,8 @@ class _InternetAddress implements InternetAddress {
 
   static String _rawAddrToString(Uint8List address)
       native "InternetAddress_RawAddrToString";
-
+  static dynamic /* int | OSError */ _parseScopedLinkLocalAddress(
+      String address) native "InternetAddress_ParseScopedLinkLocalAddress";
   static Uint8List? _parse(String address) native "InternetAddress_Parse";
 }
 

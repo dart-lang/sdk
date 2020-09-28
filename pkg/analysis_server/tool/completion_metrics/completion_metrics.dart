@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
@@ -94,6 +93,11 @@ const String SKIP_OLD_RELEVANCE = 'skip-old-relevance';
 
 /// A flag that causes additional output to be produced.
 const String VERBOSE = 'verbose';
+
+/// A [Counter] to track the performance of the new relevance to the old
+/// relevance.
+Counter oldVsNewComparison =
+    Counter('use old vs new relevance rank comparison');
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
@@ -477,6 +481,12 @@ class CompletionMetricsComputer {
       printMetrics(metricsOldMode);
     }
     printMetrics(metricsNewMode);
+
+    print('');
+    print('====================');
+    oldVsNewComparison.printCounterValues();
+    print('====================');
+
     if (verbose) {
       printWorstResults(metricsNewMode);
       printSlowestResults(metricsNewMode);
@@ -485,7 +495,7 @@ class CompletionMetricsComputer {
     return resultCode;
   }
 
-  bool forEachExpectedCompletion(
+  int forEachExpectedCompletion(
       CompletionRequestImpl request,
       MetricsSuggestionListener listener,
       ExpectedCompletion expectedCompletion,
@@ -496,14 +506,14 @@ class CompletionMetricsComputer {
       bool doPrintMissedCompletions) {
     assert(suggestions != null);
 
-    var successfulCompletion;
+    var rank;
 
     var place = placementInSuggestionList(suggestions, expectedCompletion);
 
     metrics.mrrComputer.addRank(place.rank);
 
     if (place.denominator != 0) {
-      successfulCompletion = true;
+      rank = place.rank;
 
       metrics.completionCounter.count('successful');
 
@@ -518,7 +528,7 @@ class CompletionMetricsComputer {
       metrics.insertionLengthTheoretical
           .addValue(expectedCompletion.completion.length - charsBeforeTop);
     } else {
-      successfulCompletion = false;
+      rank = -1;
 
       metrics.completionCounter.count('unsuccessful');
 
@@ -544,7 +554,7 @@ class CompletionMetricsComputer {
         print('');
       }
     }
-    return successfulCompletion;
+    return rank;
   }
 
   void printMetrics(CompletionMetrics metrics) {
@@ -710,11 +720,7 @@ class CompletionMetricsComputer {
       suggestions = await DartCompletionManager(
         dartdocDirectiveInfo: DartdocDirectiveInfo(),
         listener: listener,
-      ).computeSuggestions(
-        performance,
-        request,
-        enableUriContributor: true,
-      );
+      ).computeSuggestions(performance, request);
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -728,11 +734,7 @@ class CompletionMetricsComputer {
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
-      ).computeSuggestions(
-        performance,
-        request,
-        enableUriContributor: true,
-      );
+      ).computeSuggestions(performance, request);
 
       computeIncludedSetList(declarationsTracker, request.result,
           includedSuggestionSetList, includedElementNames);
@@ -864,7 +866,7 @@ class CompletionMetricsComputer {
             // and results are collected with varying settings for
             // comparison:
 
-            Future<bool> handleExpectedCompletion(
+            Future<int> handleExpectedCompletion(
                 {MetricsSuggestionListener listener,
                 @required CompletionMetrics metrics,
                 @required bool printMissedCompletions,
@@ -910,9 +912,9 @@ class CompletionMetricsComputer {
 
             // First we compute the completions useNewRelevance set to
             // false:
-            var oldRelevanceSucceeded = false;
+            var oldRank;
             if (!skipOldRelevance) {
-              oldRelevanceSucceeded = await handleExpectedCompletion(
+              oldRank = await handleExpectedCompletion(
                   metrics: metricsOldMode,
                   printMissedCompletions: false,
                   useNewRelevance: false);
@@ -920,23 +922,29 @@ class CompletionMetricsComputer {
 
             // And again here with useNewRelevance set to true:
             var listener = MetricsSuggestionListener();
-            var newRelevanceSucceeded = await handleExpectedCompletion(
+            var newRank = await handleExpectedCompletion(
                 listener: listener,
                 metrics: metricsNewMode,
                 printMissedCompletions: verbose,
                 useNewRelevance: true);
 
-            if (!skipOldRelevance &&
-                verbose &&
-                oldRelevanceSucceeded != newRelevanceSucceeded) {
-              if (newRelevanceSucceeded) {
+            if (!skipOldRelevance && newRank != -1 && oldRank != -1) {
+              if (newRank <= oldRank) {
+                oldVsNewComparison.count('new relevance');
+              } else {
+                oldVsNewComparison.count('old relevance');
+              }
+            }
+
+            if (!skipOldRelevance && verbose) {
+              if (newRank > 0 && oldRank < 0) {
                 print('    ===========');
                 print(
                     '    The `useNewRelevance = true` generated a completion that `useNewRelevance = false` did not:');
                 print('    $expectedCompletion');
                 print('    ===========');
                 print('');
-              } else {
+              } else if (newRank < 0 && oldRank > 0) {
                 print('    ===========');
                 print(
                     '    The `useNewRelevance = false` generated a completion that `useNewRelevance = true` did not:');

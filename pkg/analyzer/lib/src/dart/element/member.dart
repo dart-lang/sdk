@@ -84,6 +84,9 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   }
 
   @override
+  InterfaceType get returnType => type.returnType as InterfaceType;
+
+  @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitConstructorElement(this);
 
@@ -208,8 +211,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   void visitChildren(ElementVisitor visitor) {
-    // TODO(brianwilkerson) We need to finish implementing the accessors used
-    // below so that we can safely invoke them.
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
   }
@@ -293,6 +294,9 @@ class FieldFormalParameterMember extends ParameterMember
   }
 
   @override
+  bool get hasDefaultValue => declaration.hasDefaultValue;
+
+  @override
   bool get isCovariant => declaration.isCovariant;
 
   @override
@@ -331,10 +335,19 @@ class FieldMember extends VariableMember implements FieldElement {
   }
 
   @override
+  bool get hasInitializer => declaration.hasInitializer;
+
+  @override
+  bool get isAbstract => declaration.isAbstract;
+
+  @override
   bool get isCovariant => declaration.isCovariant;
 
   @override
   bool get isEnumConstant => declaration.isEnumConstant;
+
+  @override
+  bool get isExternal => declaration.isExternal;
 
   @override
   PropertyAccessorElement get setter {
@@ -442,6 +455,9 @@ abstract class Member implements Element {
   bool get hasDeprecated => _declaration.hasDeprecated;
 
   @override
+  bool get hasDoNotStore => _declaration.hasDoNotStore;
+
+  @override
   bool get hasFactory => _declaration.hasFactory;
 
   @override
@@ -530,11 +546,6 @@ abstract class Member implements Element {
 
   /// Append a textual representation of this element to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
-
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  @override
-  E getAncestor<E extends Element>(Predicate<Element> predicate) =>
-      declaration.getAncestor(predicate);
 
   @override
   String getDisplayString({@required bool withNullability}) {
@@ -765,6 +776,9 @@ class ParameterMember extends VariableMember
   Element get enclosingElement => declaration.enclosingElement;
 
   @override
+  bool get hasDefaultValue => declaration.hasDefaultValue;
+
+  @override
   int get hashCode => declaration.hashCode;
 
   @override
@@ -772,6 +786,14 @@ class ParameterMember extends VariableMember
 
   @override
   bool get isInitializingFormal => declaration.isInitializingFormal;
+
+  @override
+  bool get isOptionalNamed {
+    if (isLegacy) {
+      return super.isNamed;
+    }
+    return super.isOptionalNamed;
+  }
 
   @override
   bool get isRequiredNamed {
@@ -800,16 +822,6 @@ class ParameterMember extends VariableMember
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
-  }
-
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  @override
-  E getAncestor<E extends Element>(Predicate<Element> predicate) {
-    Element element = declaration.getAncestor(predicate);
-    if (element is ExecutableElement) {
-      return ExecutableMember.from2(element, _substitution) as E;
-    }
-    return element as E;
   }
 
   @override
@@ -946,6 +958,12 @@ class TopLevelVariableMember extends VariableMember
   }
 
   @override
+  bool get hasInitializer => declaration.hasInitializer;
+
+  @override
+  bool get isExternal => declaration.isExternal;
+
+  @override
   PropertyAccessorElement get setter {
     var baseSetter = declaration.setter;
     if (baseSetter == null) {
@@ -1031,9 +1049,8 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   void visitChildren(ElementVisitor visitor) {
-    // TODO(brianwilkerson) We need to finish implementing the accessors used
-    // below so that we can safely invoke them.
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
     declaration.initializer?.accept(visitor);
   }
 }

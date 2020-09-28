@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field core::int i;
+static field core::Map<core::int, core::String>? nullableMap;
+static field core::List<core::int>? nullableList;
+static field dynamic dynamicMap;
+static field dynamic dynamicList;
+static field core::Map<dynamic, dynamic> map1;
+static field core::Set<dynamic> set1;
+static field core::List<dynamic> list1;
+static method testMap<X extends dynamic = dynamic, Y extends core::Map<core::int, core::String>? = core::Map<core::int, core::String>?, Z extends core::Map<core::int, core::String> = core::Map<core::int, core::String>>(self::testMap::X% x, self::testMap::Y% y, self::testMap::Z z) → dynamic
+  ;
+static method testIterables<X extends dynamic = dynamic, Y extends core::List<core::int>? = core::List<core::int>?, Z extends core::List<core::int> = core::List<core::int>>(self::testIterables::X% x, self::testIterables::Y% y, self::testIterables::Z z) → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -239,17 +239,26 @@ typedef struct _Dart_IsolateGroup* Dart_IsolateGroup;
  * The type Dart_PersistentHandle is a Dart_Handle and it is used to
  * document that a persistent handle is expected as a parameter to a call
  * or the return value from a call is a persistent handle.
+ *
+ * FinalizableHandles are persistent handles which are auto deleted when
+ * the object is garbage collected. It is never safe to use these handles
+ * unless you know the object is still reachable.
+ *
+ * WeakPersistentHandles are persistent handles which are auto deleted
+ * when the object is garbage collected.
  */
 typedef struct _Dart_Handle* Dart_Handle;
 typedef Dart_Handle Dart_PersistentHandle;
 typedef struct _Dart_WeakPersistentHandle* Dart_WeakPersistentHandle;
-// These three structs are versioned by DART_API_DL_MAJOR_VERSION, bump the
+typedef struct _Dart_FinalizableHandle* Dart_FinalizableHandle;
+// These structs are versioned by DART_API_DL_MAJOR_VERSION, bump the
 // version when changing this struct.
 
 typedef void (*Dart_WeakPersistentHandleFinalizer)(
     void* isolate_callback_data,
     Dart_WeakPersistentHandle handle,
     void* peer);
+typedef void (*Dart_HandleFinalizer)(void* isolate_callback_data, void* peer);
 
 /**
  * Is this an error handle?
@@ -444,6 +453,8 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
 
 /**
  * Deallocates a persistent handle.
+ *
+ * Requires there to be a current isolate group.
  */
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
 
@@ -457,16 +468,17 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  * calling Dart_DeleteWeakPersistentHandle.
  *
  * If the object becomes unreachable the callback is invoked with the weak
- * persistent handle and the peer as arguments. The callback can be executed
- * on any thread, will not have a current isolate, and can only call
- * Dart_DeletePersistentHandle or Dart_DeleteWeakPersistentHandle. The callback
- * must not call Dart_DeleteWeakPersistentHandle for the handle being finalized,
- * as it is automatically deleted by the VM after the callback returns.
- * This gives the embedder the ability to cleanup data associated with the
- * object and clear out any cached references to the handle. All references to
- * this handle after the callback will be invalid. It is illegal to call into
- * the VM from the callback. If the handle is deleted before the object becomes
- * unreachable, the callback is never invoked.
+ * persistent handle and the peer as arguments. The callback can be executed on
+ * any thread, will have an isolate group, but will not have a current isolate.
+ * The callback can only call Dart_DeletePersistentHandle or
+ * Dart_DeleteWeakPersistentHandle. The callback must not call
+ * Dart_DeleteWeakPersistentHandle for the handle being finalized, as it is
+ * automatically deleted by the VM after the callback returns. This gives the
+ * embedder the ability to cleanup data associated with the object and clear
+ * out any cached references to the handle. All references to this handle after
+ * the callback will be invalid. It is illegal to call into the VM with any
+ * other Dart_* functions from the callback. If the handle is deleted before
+ * the object becomes unreachable, the callback is never invoked.
  *
  * Requires there to be a current isolate.
  *
@@ -488,11 +500,85 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
                              intptr_t external_allocation_size,
                              Dart_WeakPersistentHandleFinalizer callback);
 
+/**
+ * Deletes the given weak persistent [object] handle.
+ *
+ * Requires there to be a current isolate group.
+ */
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object);
 
+/**
+ * Updates the external memory size for the given weak persistent handle.
+ *
+ * May trigger garbage collection.
+ */
 DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
                                          intptr_t external_allocation_size);
+
+/**
+ * Allocates a finalizable handle for an object.
+ *
+ * This handle has the lifetime of the current isolate group unless the object
+ * pointed to by the handle is garbage collected, in this case the VM
+ * automatically deletes the handle after invoking the callback associated
+ * with the handle. The handle can also be explicitly deallocated by
+ * calling Dart_DeleteFinalizableHandle.
+ *
+ * If the object becomes unreachable the callback is invoked with the
+ * the peer as argument. The callback can be executed on any thread, will have
+ * an isolate group, but will not have a current isolate. The callback can only
+ * call Dart_DeletePersistentHandle or Dart_DeleteWeakPersistentHandle.
+ * This gives the embedder the ability to cleanup data associated with the
+ * object and clear out any cached references to the handle. All references to
+ * this handle after the callback will be invalid. It is illegal to call into
+ * the VM with any other Dart_* functions from the callback. If the handle is
+ * deleted before the object becomes unreachable, the callback is never
+ * invoked.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param object An object.
+ * \param peer A pointer to a native object or NULL.  This value is
+ *   provided to callback when it is invoked.
+ * \param external_allocation_size The number of externally allocated
+ *   bytes for peer. Used to inform the garbage collector.
+ * \param callback A function pointer that will be invoked sometime
+ *   after the object is garbage collected, unless the handle has been deleted.
+ *   A valid callback needs to be specified it cannot be NULL.
+ *
+ * \return The finalizable handle or NULL. NULL is returned in case of bad
+ *   parameters.
+ */
+DART_EXPORT Dart_FinalizableHandle
+Dart_NewFinalizableHandle(Dart_Handle object,
+                          void* peer,
+                          intptr_t external_allocation_size,
+                          Dart_HandleFinalizer callback);
+
+/**
+ * Deletes the given finalizable [object] handle.
+ *
+ * The caller has to provide the actual Dart object the handle was created from
+ * to prove the object (and therefore the finalizable handle) is still alive.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_DeleteFinalizableHandle(Dart_FinalizableHandle object,
+                                              Dart_Handle strong_ref_to_object);
+
+/**
+ * Updates the external memory size for the given finalizable handle.
+ *
+ * The caller has to provide the actual Dart object the handle was created from
+ * to prove the object (and therefore the finalizable handle) is still alive.
+ *
+ * May trigger garbage collection.
+ */
+DART_EXPORT void Dart_UpdateFinalizableExternalSize(
+    Dart_FinalizableHandle object,
+    Dart_Handle strong_ref_to_object,
+    intptr_t external_allocation_size);
 
 /*
  * ==========================
@@ -535,6 +621,7 @@ typedef struct {
   bool load_vmservice_library;
   bool copy_parent_code;
   bool null_safety;
+  bool is_system_isolate;
 } Dart_IsolateFlags;
 
 /**
@@ -1053,6 +1140,18 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
  * there is one.
  */
 DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
+
+/**
+ * Notifies the VM that the embedder expects |size| bytes of memory have become
+ * unreachable. The VM may use this hint to adjust the garbage collector's
+ * growth policy.
+ *
+ * Multiple calls are interpreted as increasing, not replacing, the estimate of
+ * unreachable memory.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_HintFreed(intptr_t size);
 
 /**
  * Notifies the VM that the embedder expects to be idle until |deadline|. The VM
@@ -2272,7 +2371,9 @@ typedef enum {
   Dart_TypedData_kUint64,
   Dart_TypedData_kFloat32,
   Dart_TypedData_kFloat64,
+  Dart_TypedData_kInt32x4,
   Dart_TypedData_kFloat32x4,
+  Dart_TypedData_kFloat64x2,
   Dart_TypedData_kInvalid
 } Dart_TypedData_Type;
 
@@ -3029,6 +3130,59 @@ DART_EXPORT Dart_Handle
 Dart_SetLibraryTagHandler(Dart_LibraryTagHandler handler);
 
 /**
+ * Handles deferred loading requests. When this handler is invoked, it should
+ * eventually load the deferred loading unit with the given id and call
+ * Dart_DeferredLoadComplete or Dart_DeferredLoadCompleteError. It is
+ * recommended that the loading occur asynchronously, but it is permitted to
+ * call Dart_DeferredLoadComplete or Dart_DeferredLoadCompleteError before the
+ * handler returns.
+ *
+ * If an error is returned, it will be propogated through
+ * `prefix.loadLibrary()`. This is useful for synchronous
+ * implementations, which must propogate any unwind errors from
+ * Dart_DeferredLoadComplete or Dart_DeferredLoadComplete. Otherwise the handler
+ * should return a non-error such as `Dart_Null()`.
+ */
+typedef Dart_Handle (*Dart_DeferredLoadHandler)(intptr_t loading_unit_id);
+
+/**
+ * Sets the deferred load handler for the current isolate. This handler is
+ * used to handle loading deferred imports in an AppJIT or AppAOT program.
+ */
+DART_EXPORT Dart_Handle
+Dart_SetDeferredLoadHandler(Dart_DeferredLoadHandler handler);
+
+/**
+ * Notifies the VM that a deferred load completed successfully. This function
+ * will eventually cause the corresponding `prefix.loadLibrary()` futures to
+ * complete.
+ *
+ * Requires the current isolate to be the same current isolate during the
+ * invocation of the Dart_DeferredLoadHandler.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_DeferredLoadComplete(intptr_t loading_unit_id,
+                          const uint8_t* snapshot_data,
+                          const uint8_t* snapshot_instructions);
+
+/**
+ * Notifies the VM that a deferred load failed. This function
+ * will eventually cause the corresponding `prefix.loadLibrary()` futures to
+ * complete with an error.
+ *
+ * If `transient` is true, future invocations of `prefix.loadLibrary()` will
+ * trigger new load requests. If false, futures invocation will complete with
+ * the same error.
+ *
+ * Requires the current isolate to be the same current isolate during the
+ * invocation of the Dart_DeferredLoadHandler.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
+                               const char* error_message,
+                               bool transient);
+
+/**
  * Canonicalizes a url with respect to some library.
  *
  * The url is resolved with respect to the library's url and some url
@@ -3522,9 +3676,17 @@ Dart_LoadTypeFeedback(uint8_t* buffer, intptr_t buffer_length);
  */
 DART_EXPORT Dart_Handle Dart_Precompile();
 
+typedef void (*Dart_CreateLoadingUnitCallback)(
+    void* callback_data,
+    intptr_t loading_unit_id,
+    void** write_callback_data,
+    void** write_debug_callback_data);
 typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
                                             const uint8_t* buffer,
                                             intptr_t size);
+typedef void (*Dart_StreamingCloseCallback)(void* callback_data);
+
+DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
 
 // On Darwin systems, 'dlsym' adds an '_' to the beginning of the symbol name.
 // Use the '...CSymbol' definitions for resolving through 'dlsym'. The actual
@@ -3580,6 +3742,13 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                     void* callback_data,
                                     bool stripped,
                                     void* debug_callback_data);
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_CreateAppAOTSnapshotAsAssemblies(
+    Dart_CreateLoadingUnitCallback next_callback,
+    void* next_callback_data,
+    bool stripped,
+    Dart_StreamingWriteCallback write_callback,
+    Dart_StreamingCloseCallback close_callback);
 
 /**
  *  Creates a precompiled snapshot.
@@ -3613,6 +3782,12 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                                void* callback_data,
                                bool stripped,
                                void* debug_callback_data);
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
+                                void* next_callback_data,
+                                bool stripped,
+                                Dart_StreamingWriteCallback write_callback,
+                                Dart_StreamingCloseCallback close_callback);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes

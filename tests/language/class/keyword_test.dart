@@ -12,14 +12,14 @@ void main() {
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 //    ^^^^^
-// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] Expected an identifier, but got 'class'.
 //    ^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Setter not found: 'class'.
   print("$class");
   //      ^^^^^
-  // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Expected an identifier, but got 'class'.
   //      ^^^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER

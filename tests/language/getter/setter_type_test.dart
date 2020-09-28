@@ -8,7 +8,7 @@ int bar = 499;
 
 int get foo => bar;
 //      ^^^
-// [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+// [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
 // [cfe] unspecified
 
 void set foo(String str) {

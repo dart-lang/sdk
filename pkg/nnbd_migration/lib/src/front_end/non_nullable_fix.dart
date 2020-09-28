@@ -27,7 +27,7 @@ import 'package:yaml/yaml.dart';
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
   // TODO(srawlins): Refactor to use
-  //  `Feature.non_nullable.firstSupportedVersion` when this becomes non-null.
+  //  `Feature.non_nullable.releaseVersion` when this becomes non-null.
   static const String _intendedMinimumSdkVersion = '2.9.0';
 
   // In the package_config.json file, the patch number is omitted.
@@ -183,9 +183,11 @@ class NonNullableFix {
     _server = null;
   }
 
-  Future<void> startPreviewServer(MigrationState state) async {
+  Future<void> startPreviewServer(
+      MigrationState state, void Function() applyHook) async {
     if (_server == null) {
-      _server = HttpPreviewServer(state, rerun, bindAddress, preferredPort);
+      _server = HttpPreviewServer(
+          state, rerun, applyHook, bindAddress, preferredPort);
       _server.serveHttp();
       _allServers.add(_server);
       var serverHostname = await _server.boundHostname;

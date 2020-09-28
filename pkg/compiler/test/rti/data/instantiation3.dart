@@ -15,7 +15,7 @@ class B<S> {
   F<S> c;
 
   method() {
-    return () {
+    return /*spec.needsSignature*/() {
       c = f;
     };
   }

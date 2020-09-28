@@ -11,31 +11,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:args/args.dart';
-
-import 'results.dart';
-
-class Result {
-  final String configuration;
-  final String name;
-  final String outcome;
-  final String expectation;
-  final bool matches;
-  final bool flaked;
-
-  Result(this.configuration, this.name, this.outcome, this.expectation,
-      this.matches, this.flaked);
-
-  Result.fromMap(Map<String, dynamic> map, Map<String, dynamic> flakinessData)
-      : configuration = map["configuration"],
-        name = map["name"],
-        outcome = map["result"],
-        expectation = map["expected"],
-        matches = map["matches"],
-        flaked = flakinessData != null &&
-            flakinessData["outcomes"].contains(map["result"]);
-
-  String get key => "$configuration:$name";
-}
+import 'package:test_runner/bot_results.dart';
 
 class Event {
   final Result before;

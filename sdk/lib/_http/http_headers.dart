@@ -646,8 +646,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   String _originalHeaderName(String name) {
-    // TODO: Update syntax to_originalHeaderNames?[name].
-    return _originalHeaderNames?.[name] ?? name;
+    return _originalHeaderNames?[name] ?? name;
   }
 }
 
@@ -914,7 +913,7 @@ class _Cookie implements Cookie {
   DateTime? expires;
   int? maxAge;
   String? domain;
-  String? path;
+  String? _path;
   bool httpOnly = false;
   bool secure = false;
 
@@ -925,6 +924,13 @@ class _Cookie implements Cookie {
 
   String get name => _name;
   String get value => _value;
+
+  String? get path => _path;
+
+  set path(String? newPath) {
+    _validatePath(newPath);
+    _path = newPath;
+  }
 
   set name(String newName) {
     _validateName(newName);
@@ -1104,5 +1110,20 @@ class _Cookie implements Cookie {
       }
     }
     return newValue;
+  }
+
+  static void _validatePath(String? path) {
+    if (path == null) return;
+    for (int i = 0; i < path.length; i++) {
+      int codeUnit = path.codeUnitAt(i);
+      // According to RFC 6265, semicolon and controls should not occur in the
+      // path.
+      // path-value = <any CHAR except CTLs or ";">
+      // CTLs = %x00-1F / %x7F
+      if (codeUnit < 0x20 || codeUnit >= 0x7f || codeUnit == 0x3b /*;*/) {
+        throw FormatException(
+            "Invalid character in cookie path, code unit: '$codeUnit'");
+      }
+    }
   }
 }

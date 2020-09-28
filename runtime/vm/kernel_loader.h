@@ -223,6 +223,7 @@ class KernelLoader : public ValueObject {
   static void FinishLoading(const Class& klass);
 
   void ReadObfuscationProhibitions();
+  void ReadLoadingUnits();
 
  private:
   // Check for the presence of a (possibly const) constructor for the

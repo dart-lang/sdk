@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class RedirectToNonConstConstructorTest extends DriverResolutionTest {
+class RedirectToNonConstConstructorTest extends PubPackageResolutionTest {
   test_constRedirector_cannotResolveRedirectee() async {
     // No crash when redirectee cannot be resolved.
     await assertErrorsInCode(r'''
@@ -31,6 +31,20 @@ class A {
 class A {
   const A.a();
   const factory A.b() = A.a;
+}
+''');
+  }
+
+  test_constRedirector_constRedirectee_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A(T value) : this._(value);
+  const A._(T value) : value = value;
+  final T value;
+}
+
+void main(){
+  const A<int>(1);
 }
 ''');
   }

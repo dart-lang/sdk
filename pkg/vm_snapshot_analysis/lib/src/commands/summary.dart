@@ -20,6 +20,8 @@ import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 import 'package:vm_snapshot_analysis/v8_profile.dart';
 
+import 'utils.dart';
+
 class SummaryCommand extends Command<void> {
   @override
   final name = 'summary';
@@ -57,12 +59,21 @@ Precompiler trace to establish dependencies between libraries/packages.
 ''',
       )
       ..addOption(
-        'deps-collapse-depth',
-        abbr: 'd',
-        defaultsTo: '3',
+        'deps-start-depth',
+        abbr: 's',
+        defaultsTo: '2',
         help: '''
-Depth at which nodes in the dependency tree are collapsed together.
-Only has affect if --precompiler-trace is also passed.
+Depth at which to start the dependency tree. At this depth and above, nodes are
+collapsed together. Only has affect if --precompiler-trace is also passed.
+''',
+      )
+      ..addOption(
+        'deps-display-depth',
+        abbr: 'd',
+        defaultsTo: '4',
+        help: '''
+Display depth of the dependency tree. Nodes below this level will be displayed
+as a summary. Only has affect if --precompiler-trace is also passed.
 ''',
       )
       ..addFlag('collapse-anonymous-closures', help: '''
@@ -115,10 +126,17 @@ precisely based on their source position (which is included in their name).
           'Specified column width (${columnWidth}) is not an integer');
     }
 
-    final depthCollapseDepthStr = argResults['deps-collapse-depth'];
-    final depsCollapseDepth = int.tryParse(depthCollapseDepthStr);
-    if (depsCollapseDepth == null) {
-      usageException('Specified depthCollapseDepth (${depthCollapseDepthStr})'
+    final depsStartDepthStr = argResults['deps-start-depth'];
+    final depsStartDepth = int.tryParse(depsStartDepthStr);
+    if (depsStartDepth == null) {
+      usageException('Specified depsStartDepth (${depsStartDepthStr})'
+          ' is not an integer');
+    }
+
+    final depsDisplayDepthStr = argResults['deps-display-depth'];
+    final depsDisplayDepth = int.tryParse(depsDisplayDepthStr);
+    if (depsDisplayDepth == null) {
+      usageException('Specified depsDisplayDepth (${depsStartDepthStr})'
           ' is not an integer');
     }
 
@@ -128,7 +146,8 @@ precisely based on their source position (which is included in their name).
         collapseAnonymousClosures: argResults['collapse-anonymous-closures'],
         filter: argResults['where'],
         traceJson: traceJson != null ? File(traceJson) : null,
-        depsCollapseDepth: depsCollapseDepth);
+        depsStartDepth: depsStartDepth,
+        depsDisplayDepth: depsDisplayDepth);
   }
 
   static HistogramType _parseHistogramType(String value) {
@@ -152,39 +171,38 @@ void outputSummary(File input,
     HistogramType granularity = HistogramType.bySymbol,
     String filter,
     File traceJson,
-    int depsCollapseDepth = 3,
+    int depsStartDepth = 2,
+    int depsDisplayDepth = 4,
     int topToReport = 30}) async {
-  final info = await loadProgramInfo(input);
+  final inputJson = await loadJsonFromFile(input);
+  final info = loadProgramInfoFromJson(inputJson);
 
   // Compute histogram.
   var histogram = computeHistogram(info, granularity, filter: filter);
 
-  // If precompiler trace is provide collapse entries based on the dependency
+  // If precompiler trace is provided, collapse entries based on the dependency
   // graph (dominator tree) extracted from the trace.
   void Function() printDependencyTrees;
   if (traceJson != null &&
       (granularity == HistogramType.byLibrary ||
           granularity == HistogramType.byPackage)) {
-    var callGraph = await loadTrace(traceJson);
+    final traceJsonRaw = await loadJsonFromFile(traceJson);
 
-    // Convert call graph into the approximate dependency graph, dropping any
-    // dynamic and dispatch table based dependencies from the graph and only
-    // following the static call, field access and allocation edges.
-    callGraph = callGraph.collapse(
-        granularity == HistogramType.byLibrary
-            ? NodeType.libraryNode
-            : NodeType.packageNode,
-        dropCallNodes: true);
-    callGraph.computeDominators();
+    final callGraph = generateCallGraphWithDominators(
+      traceJsonRaw,
+      granularity == HistogramType.byLibrary
+          ? NodeType.libraryNode
+          : NodeType.packageNode,
+    );
 
     // Compute name mapping from histogram buckets to new coarser buckets, by
-    // collapsing dependency tree at [depsCollapseDepth] level: node 'Foo' with
+    // collapsing dependency tree at [depsStartDepth] level: node 'Foo' with
     // k dominated children (k > 0) becomes 'Foo (+k deps)' and all its children
     // are remapped to this bucket.
     final mapping = <String, String>{};
     final collapsed = <String, CallGraphNode>{};
     callGraph.root.visitDominatorTree((n, depth) {
-      if (depth >= depsCollapseDepth) {
+      if (depth >= depsStartDepth) {
         final children = <String>[];
         n.visitDominatorTree((child, depth) {
           if (n != child && child.data is ProgramInfoNode) {
@@ -244,7 +262,9 @@ void outputSummary(File input,
           print(
               '\n${n.data.qualifiedName} (total ${totalSizes[n.data.name]} bytes)');
           _printDominatedNodes(n,
-              totalSizes: totalSizes, totalCounts: totalCounts);
+              totalSizes: totalSizes,
+              totalCounts: totalCounts,
+              displayDepth: depsDisplayDepth);
         }
       }
     };
@@ -277,17 +297,19 @@ void outputSummary(File input,
 /// ├── F (total ... bytes)
 /// └── G (total ... bytes)
 ///
-/// Cuts the printing off at the given depth ([cutOffDepth]) and after the
+/// Stops printing at the given depth ([displayDepth]) and after the
 /// given amount of children at each node ([maxChildrenToPrint]).
 void _printDominatedNodes(CallGraphNode node,
-    {int cutOffDepth = 2,
+    {int displayDepth = 4,
     int maxChildrenToPrint = 10,
     List<bool> isLastPerLevel,
     @required Map<String, int> totalSizes,
     @required Map<String, int> totalCounts}) {
   isLastPerLevel ??= [];
 
-  if (isLastPerLevel.length >= cutOffDepth) {
+  // Subtract one to account for the parent node that is printed before the
+  // recursive call.
+  if (isLastPerLevel.length >= displayDepth - 1) {
     maxChildrenToPrint = 0;
   }
 
@@ -307,7 +329,7 @@ void _printDominatedNodes(CallGraphNode node,
     print(
         '${_treeLines(isLastPerLevel)}${n.data.qualifiedName} (total ${size} bytes)');
     _printDominatedNodes(n,
-        cutOffDepth: cutOffDepth,
+        displayDepth: displayDepth,
         isLastPerLevel: isLastPerLevel,
         totalCounts: totalCounts,
         totalSizes: totalSizes);

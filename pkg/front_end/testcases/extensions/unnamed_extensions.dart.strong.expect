@@ -9,15 +9,15 @@ class Class1 extends core::Object {
     ;
   method toString() → core::String*
     return "Class1(${this.{self::Class1::field}})";
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class2 extends core::Object {
   field core::int* field;
@@ -26,15 +26,15 @@ class Class2 extends core::Object {
     ;
   method toString() → core::String*
     return "Class2(${this.{self::Class2::field}})";
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 extension _extension#0 on self::Class1* {
   method method = self::_extension#0|method;
@@ -58,12 +58,12 @@ static method _extension#0|method(final self::Class1* #this) → core::int* {
 }
 static method _extension#0|get#method(final self::Class1* #this) → () →* core::int*
   return () → core::int* => self::_extension#0|method(#this);
-static method _extension#0|genericMethod<T extends core::num* = dynamic>(final self::Class1* #this, self::_extension#0|genericMethod::T* t) → core::int* {
+static method _extension#0|genericMethod<T extends core::num* = core::num*>(final self::Class1* #this, self::_extension#0|genericMethod::T* t) → core::int* {
   core::print("Extension1.genericMethod<${self::_extension#0|genericMethod::T*}>(${t}) on ${#this}");
   return #this.{self::Class1::field}.{core::num::+}(t) as{TypeError} core::int*;
 }
-static method _extension#0|get#genericMethod(final self::Class1* #this) → <T extends core::num* = dynamic>(T*) →* core::int*
-  return <T extends core::num* = dynamic>(T* t) → core::int* => self::_extension#0|genericMethod<T*>(#this, t);
+static method _extension#0|get#genericMethod(final self::Class1* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
+  return <T extends core::num* = core::num*>(T* t) → core::int* => self::_extension#0|genericMethod<T*>(#this, t);
 static method _extension#0|get#property(final self::Class1* #this) → core::int* {
   core::print("Extension1.property get on ${#this}");
   return #this.{self::Class1::field};
@@ -79,12 +79,12 @@ static method _extension#1|method(final self::Class2* #this) → core::int* {
 }
 static method _extension#1|get#method(final self::Class2* #this) → () →* core::int*
   return () → core::int* => self::_extension#1|method(#this);
-static method _extension#1|genericMethod<T extends core::num* = dynamic>(final self::Class2* #this, self::_extension#1|genericMethod::T* t) → core::int* {
+static method _extension#1|genericMethod<T extends core::num* = core::num*>(final self::Class2* #this, self::_extension#1|genericMethod::T* t) → core::int* {
   core::print("Extension2.genericMethod<${self::_extension#1|genericMethod::T*}>(${t}) on ${#this}");
   return #this.{self::Class2::field}.{core::num::+}(t).{core::num::+}(4) as{TypeError} core::int*;
 }
-static method _extension#1|get#genericMethod(final self::Class2* #this) → <T extends core::num* = dynamic>(T*) →* core::int*
-  return <T extends core::num* = dynamic>(T* t) → core::int* => self::_extension#1|genericMethod<T*>(#this, t);
+static method _extension#1|get#genericMethod(final self::Class2* #this) → <T extends core::num* = core::num*>(T*) →* core::int*
+  return <T extends core::num* = core::num*>(T* t) → core::int* => self::_extension#1|genericMethod<T*>(#this, t);
 static method _extension#1|get#property(final self::Class2* #this) → core::int* {
   core::print("Extension2.property get on ${#this}");
   return #this.{self::Class2::field}.{core::num::+}(5);

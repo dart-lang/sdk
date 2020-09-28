@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateConstructorSuper extends MultiCorrectionProducer {
@@ -64,12 +64,12 @@ class _CreateConstructor extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_CONSTRUCTOR_SUPER;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var constructorName = _constructor.name;
     var requiredParameters = _constructor.parameters
         .where((parameter) => parameter.isRequiredPositional);
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(_targetLocation.offset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(_targetLocation.offset, (builder) {
         void writeParameters(bool includeType) {
           var firstParameter = true;
           for (var parameter in requiredParameters) {

@@ -148,11 +148,12 @@ struct TypeTestABI {
   static const Register kInstantiatorTypeArgumentsReg = RDX;
   static const Register kFunctionTypeArgumentsReg = RCX;
   static const Register kSubtypeTestCacheReg = R9;
+  static const Register kScratchReg = RSI;
 
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg);
+      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg);
 
   // For call to InstanceOfStub.
   static const Register kResultReg = RAX;
@@ -198,6 +199,12 @@ struct AssertBooleanABI {
 struct RangeErrorABI {
   static const Register kLengthReg = RAX;
   static const Register kIndexReg = RBX;
+};
+
+// ABI for AllocateMint*Stub.
+struct AllocateMintABI {
+  static const Register kResultReg = RAX;
+  static const Register kTempReg = RBX;
 };
 
 // Registers used inside the implementation of type testing stubs.

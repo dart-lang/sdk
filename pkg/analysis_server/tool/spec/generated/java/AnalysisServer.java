@@ -469,6 +469,22 @@ public interface AnalysisServer {
   public void diagnostic_getServerPort(GetServerPortConsumer consumer);
 
   /**
+   * {@code edit.bulkFixes}
+   *
+   * Analyze the specified sources for fixes that can be applied in bulk and return a set of
+   * suggested edits for those sources. These edits may include changes to sources outside the set of
+   * specified sources if a change in a specified source requires it.
+   *
+   * @param included A list of the files and directories for which edits should be suggested. If a
+   *         request is made with a path that is invalid, e.g. is not absolute and normalized, an
+   *         error of type INVALID_FILE_PATH_FORMAT will be generated. If a request is made for a
+   *         file which does not exist, or which is not currently subject to analysis (e.g. because
+   *         it is not associated with any analysis root specified to analysis.setAnalysisRoots), an
+   *         error of type FILE_NOT_ANALYZED will be generated.
+   */
+  public void edit_bulkFixes(List<String> included, BulkFixesConsumer consumer);
+
+  /**
    * {@code edit.dartfix}
    *
    * Analyze the specified sources for recommended changes and return a set of suggested edits for

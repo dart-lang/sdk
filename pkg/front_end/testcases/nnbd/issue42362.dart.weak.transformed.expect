@@ -2,11 +2,11 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:41:16: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:45:16: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
 //   method3([int i]) {} // error
 //                ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:43:16: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:47:16: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
 //   method4({int i}) {} // error
 //                ^
 //
@@ -26,29 +26,45 @@ library /*isNonNullableByDefault*/;
 //   A.constructor4({int i}) // error
 //                       ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:98:12: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:41:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+//   factory A.factory8([int i]) => new A.constructor3(); // error
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:43:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+//   factory A.factory9({int i}) => new A.constructor4(); // error
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:106:12: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
 //   method3([i]) {} // error
 //            ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:100:12: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:108:12: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
 //   method4({i}) {} // error
 //            ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:73:24: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:77:24: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
 //   C.constructor1([this.i]); // error
 //                        ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:75:24: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:79:24: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
 //   C.constructor2({this.i}); // error
 //                        ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:77:23: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:81:23: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
 //   C.constructor3([int i]) : this.i = i; // error
 //                       ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:79:23: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/issue42362.dart:83:23: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
 //   C.constructor4({int i}) : this.i = i; // error
 //                       ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:102:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+//   factory C.factory8([int i]) => new C.constructor3(); // error
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:104:27: Error: Optional parameter 'i' should have a default value because its type 'int' doesn't allow null.
+//   factory C.factory9({int i}) => new C.constructor4(); // error
+//                           ^
 //
 // pkg/front_end/testcases/nnbd/issue42362.dart:19:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
 //       : this.i = i; // error
@@ -58,11 +74,11 @@ library /*isNonNullableByDefault*/;
 //       : this.i = i; // error
 //                  ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:81:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/nnbd/issue42362.dart:85:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
 //   C.constructor5([int? i]) : this.i = i; // error
 //                                       ^
 //
-// pkg/front_end/testcases/nnbd/issue42362.dart:83:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/nnbd/issue42362.dart:87:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
 //   C.constructor6({int? i}) : this.i = i; // error
 //                                       ^
 //
@@ -113,6 +129,10 @@ class A extends core::Object {
     let<BottomType> #redirecting_factory = self::A::constructor6 in invalid-expression;
   static factory factory7({required core::int i = #C1}) → self::A
     let<BottomType> #redirecting_factory = self::A::constructor7 in invalid-expression;
+  static factory factory8([core::int i = #C1]) → self::A
+    return new self::A::constructor3();
+  static factory factory9({core::int i = #C1}) → self::A
+    return new self::A::constructor4();
   method method3([core::int i = #C1]) → dynamic {}
   method method4({core::int i = #C1}) → dynamic {}
   method method5([core::int? i = #C1]) → dynamic {}
@@ -148,12 +168,12 @@ class C extends core::Object implements self::B {
     : self::C::i = i, super core::Object::•()
     ;
   constructor constructor5([core::int? i = #C1]) → self::C
-    : self::C::i = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:81:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
+    : self::C::i = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:85:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
   C.constructor5([int? i]) : this.i = i; // error
                                       ^" in i, super core::Object::•()
     ;
   constructor constructor6({core::int? i = #C1}) → self::C
-    : self::C::i = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:83:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
+    : self::C::i = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:87:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int'.
   C.constructor6({int? i}) : this.i = i; // error
                                       ^" in i, super core::Object::•()
     ;
@@ -170,6 +190,10 @@ class C extends core::Object implements self::B {
     let<BottomType> #redirecting_factory = self::C::constructor6 in invalid-expression;
   static factory factory7({required core::int i = #C1}) → self::C
     let<BottomType> #redirecting_factory = self::C::constructor7 in invalid-expression;
+  static factory factory8([core::int i = #C1]) → self::C
+    return new self::C::constructor3();
+  static factory factory9({core::int i = #C1}) → self::C
+    return new self::C::constructor4();
   method method3([core::int i = #C1]) → dynamic {}
   method method4({core::int i = #C1}) → dynamic {}
   method method5([core::int? i = #C1]) → dynamic {}

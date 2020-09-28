@@ -1,30 +1,40 @@
+class B {
+  final int x;
+  B(this.x);
+}
+class C extends B {
+  late ;
+  final y = x + 1;
+  C(int x) : super(x);
+  method() => x;
+}
 int? lateTopLevelField1Init;
-int initLateTopLevelField1(int value) { }
+int initLateTopLevelField1(int value) {}
 late ;
 final int lateTopLevelField1 = initLateTopLevelField1(123);
 class Class<T> {
   static int? lateStaticField1Init;
-  static int initLateStaticField1(int value) { }
+  static int initLateStaticField1(int value) {}
   static late ;
   final int lateStaticField1 = initLateStaticField1(87);
   static int? lateStaticField2Init;
-  static int initLateStaticField2(int value) { }
+  static int initLateStaticField2(int value) {}
   static late ;
   final int lateStaticField2 = initLateStaticField2(42);
-  static staticMethod() { }
+  static staticMethod() {}
   int? lateInstanceFieldInit;
-  int initLateInstanceField(int value) { }
+  int initLateInstanceField(int value) {}
   late ;
   final int lateInstanceField = initLateInstanceField(16);
   T? lateGenericFieldInit;
-  T initLateGenericField(T value) { }
+  T initLateGenericField(T value) {}
   final T field;
   late ;
   final T lateGenericField = initLateGenericField(field);
   Class(this.field);
-  instanceMethod() { }
+  instanceMethod() {}
 }
-extension Extension<T> ( ){ }
-on Class<T> (){ }
-main() { }
-expect(expected, actual) { }
+extension Extension<T> (){}
+on Class<T> (){}
+main() {}
+expect(expected, actual) {}

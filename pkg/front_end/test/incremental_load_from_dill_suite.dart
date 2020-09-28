@@ -26,6 +26,8 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
@@ -63,7 +65,8 @@ import 'package:kernel/kernel.dart'
         Name,
         Procedure,
         Supertype,
-        TreeNode;
+        TreeNode,
+        Version;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
@@ -112,6 +115,7 @@ class Context extends ChainContext {
   @override
   Future<void> cleanUp(TestDescription description, Result result) async {
     await cleanupHelper?.outDir?.delete(recursive: true);
+    cleanupHelper?.outDir = null;
   }
 
   TestData cleanupHelper;
@@ -328,6 +332,14 @@ class NewWorldTest {
   Component component2;
   Component component3;
 
+  String doStringReplacements(String input) {
+    Version enableNonNullableVersion =
+        experimentEnabledVersion[ExperimentalFlag.nonNullable];
+    String output = input.replaceAll("%NNBD_VERSION_MARKER%",
+        "${enableNonNullableVersion.major}.${enableNonNullableVersion.minor}");
+    return output;
+  }
+
   Future<Null> newWorldTest(
       TestData data,
       Context context,
@@ -458,6 +470,9 @@ class NewWorldTest {
         if (filename == ".packages") {
           packagesUri = uri;
         }
+        if (world["enableStringReplacement"] == true) {
+          data = doStringReplacements(data);
+        }
         fs.entityForUri(uri).writeAsStringSync(data);
       }
       if (world["dotPackagesFile"] != null) {
@@ -480,6 +495,16 @@ class NewWorldTest {
                   onError: (e) =>
                       throw "Error on parsing experiments flags: $e");
           options.experimentalFlags = experimentalFlags;
+        }
+        if (world["nnbdMode"] != null) {
+          String nnbdMode = world["nnbdMode"];
+          switch (nnbdMode) {
+            case "strong":
+              options.nnbdMode = NnbdMode.Strong;
+              break;
+            default:
+              throw "Not supported nnbd mode: $nnbdMode";
+          }
         }
       }
       if (packagesUri != null) {

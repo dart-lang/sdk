@@ -7,7 +7,7 @@ import 'dart:math';
 
 // Test that String interpolation works in some optimized cases.
 
-bool get inscrutableFalse => new Random().nextDouble() > 2;
+bool get inscrutableFalse => Random().nextDouble() > 2;
 
 returnsNullOrString(x) {
   if (inscrutableFalse) return 'hi';
@@ -27,7 +27,7 @@ spoil(a) {
 }
 
 void testString() {
-  var a = new List(100); // 'null' values in here are JavaScript undefined.
+  var a = []..length = 100; // 'null' values in here are JavaScript undefined.
   spoil(a);
   var s = returnsNullOrString('hi');
   var x = a[2];
@@ -39,7 +39,7 @@ void testString() {
 }
 
 void testInt() {
-  var a = new List(100); // 'null' values in here are JavaScript undefined.
+  var a = []..length = 100; // 'null' values in here are JavaScript undefined.
   spoil(a);
   var s = returnsNullOrInt(123);
   var x = a[2];

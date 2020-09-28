@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/status/pages.dart';
@@ -111,7 +110,10 @@ class ImpliedTypeCollector extends RecursiveAstVisitor<void> {
       var rhsType = node.initializer?.staticType;
       if (rhsType != null && !rhsType.isDynamic) {
         // Record the name with the type.
-        data.recordImpliedType(node.name.name, rhsType.getDisplayString());
+        data.recordImpliedType(
+          node.name.name,
+          rhsType.getDisplayString(withNullability: false),
+        );
       }
     }
   }

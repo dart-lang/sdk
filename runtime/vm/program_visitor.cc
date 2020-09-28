@@ -261,6 +261,16 @@ void ProgramVisitor::WalkProgram(Zone* zone,
       walker.AddToWorklist(function);
       ASSERT(!function.HasImplicitClosureFunction());
     }
+    // TODO(dartbug.com/43049): Use a more general solution and remove manual
+    // tracking through object_store->ffi_callback_functions.
+    const auto& ffi_callback_entries = GrowableObjectArray::Handle(
+        zone, object_store->ffi_callback_functions());
+    if (!ffi_callback_entries.IsNull()) {
+      for (intptr_t i = 0; i < ffi_callback_entries.Length(); i++) {
+        function ^= ffi_callback_entries.At(i);
+        walker.AddToWorklist(function);
+      }
+    }
   }
 
   if (visitor->IsCodeVisitor()) {
@@ -368,8 +378,7 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         if (target_.IsNull()) {
           target_ =
               Code::RawCast(view.Get<Code::kSCallTableCodeOrTypeTarget>());
-          ASSERT(!Code::Cast(target_).IsFunctionCode());
-          // Allocation stub or AllocateContext or AllocateArray or ...
+          ASSERT(!target_.IsNull());  // Already bound.
           continue;
         }
 
@@ -383,7 +392,7 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         // directly.
         //
         // In precompiled mode, the binder runs after tree shaking, during which
-        // all targets have been compiled, and so the binder replace all static
+        // all targets have been compiled, and so the binder replaces all static
         // calls with direct calls to the target.
         //
         // Cf. runtime entry PatchStaticCall called from CallStaticFunction
@@ -399,6 +408,9 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         ASSERT(FLAG_precompiled_mode);
         // In precompiled mode, the Dart runtime won't patch static calls
         // anymore, so drop the static call table to save space.
+        // Note: it is okay to drop the table fully even when generating
+        // V8 snapshot profile because code objects are linked through the
+        // pool.
         code.set_static_calls_target_table(Object::empty_array());
       }
     }
@@ -1092,7 +1104,7 @@ class InstructionsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Size(); }
+  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -1299,5 +1311,164 @@ void ProgramVisitor::Dedup(Thread* thread) {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
+
+#if defined(DART_PRECOMPILER)
+class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
+ public:
+  explicit AssignLoadingUnitsCodeVisitor(Zone* zone)
+      : heap_(Thread::Current()->heap()),
+        func_(Function::Handle(zone)),
+        cls_(Class::Handle(zone)),
+        lib_(Library::Handle(zone)),
+        unit_(LoadingUnit::Handle(zone)),
+        obj_(Object::Handle(zone)) {}
+
+  void VisitCode(const Code& code) {
+    intptr_t id;
+    if (code.IsFunctionCode()) {
+      func_ ^= code.function();
+      cls_ = func_.Owner();
+      lib_ = cls_.library();
+      unit_ = lib_.loading_unit();
+      id = unit_.id();
+    } else if (code.IsAllocationStubCode()) {
+      cls_ ^= code.owner();
+      lib_ = cls_.library();
+      unit_ = lib_.loading_unit();
+      id = unit_.id();
+    } else if (code.IsStubCode()) {
+      id = LoadingUnit::kRootId;
+    } else {
+      UNREACHABLE();
+    }
+
+    ASSERT(heap_->GetLoadingUnit(code.raw()) == WeakTable::kNoValue);
+    heap_->SetLoadingUnit(code.raw(), id);
+
+    obj_ = code.code_source_map();
+    MergeAssignment(obj_, id);
+    obj_ = code.compressed_stackmaps();
+    MergeAssignment(obj_, id);
+  }
+
+  void MergeAssignment(const Object& obj, intptr_t id) {
+    intptr_t old_id = heap_->GetLoadingUnit(obj_.raw());
+    if (old_id == WeakTable::kNoValue) {
+      heap_->SetLoadingUnit(obj_.raw(), id);
+    } else if (old_id == id) {
+      // Shared with another code in the same loading unit.
+    } else {
+      // Shared with another code in a different loading unit.
+      // Could assign to dominating loading unit.
+      heap_->SetLoadingUnit(obj_.raw(), LoadingUnit::kRootId);
+    }
+  }
+
+ private:
+  Heap* heap_;
+  Function& func_;
+  Class& cls_;
+  Library& lib_;
+  LoadingUnit& unit_;
+  Object& obj_;
+};
+
+void ProgramVisitor::AssignUnits(Thread* thread) {
+  StackZone stack_zone(thread);
+  HANDLESCOPE(thread);
+  Zone* zone = thread->zone();
+
+  // VM stubs.
+  Instructions& inst = Instructions::Handle(zone);
+  Code& code = Code::Handle(zone);
+  for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+    inst = StubCode::EntryAt(i).instructions();
+    thread->heap()->SetLoadingUnit(inst.raw(), LoadingUnit::kRootId);
+  }
+
+  // Isolate stubs.
+  ObjectStore* object_store = thread->isolate()->object_store();
+  ObjectPtr* from = object_store->from();
+  ObjectPtr* to = object_store->to_snapshot(Snapshot::kFullAOT);
+  for (ObjectPtr* p = from; p <= to; p++) {
+    if ((*p)->IsCode()) {
+      code ^= *p;
+      inst = code.instructions();
+      thread->heap()->SetLoadingUnit(inst.raw(), LoadingUnit::kRootId);
+    }
+  }
+
+  // Function code / allocation stubs.
+  AssignLoadingUnitsCodeVisitor visitor(zone);
+  WalkProgram(zone, thread->isolate(), &visitor);
+}
+
+class ProgramHashVisitor : public CodeVisitor {
+ public:
+  explicit ProgramHashVisitor(Zone* zone)
+      : str_(String::Handle(zone)),
+        pool_(ObjectPool::Handle(zone)),
+        obj_(Object::Handle(zone)),
+        instr_(Instructions::Handle(zone)),
+        hash_(0) {}
+
+  void VisitClass(const Class& cls) {
+    str_ = cls.Name();
+    VisitInstance(str_);
+  }
+
+  void VisitFunction(const Function& function) {
+    str_ = function.name();
+    VisitInstance(str_);
+  }
+
+  void VisitCode(const Code& code) {
+    pool_ = code.object_pool();
+    VisitPool(pool_);
+
+    instr_ = code.instructions();
+    hash_ = CombineHashes(hash_, instr_.Hash());
+  }
+
+  void VisitPool(const ObjectPool& pool) {
+    if (pool.IsNull()) return;
+
+    for (intptr_t i = 0; i < pool.Length(); i++) {
+      if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
+        obj_ = pool.ObjectAt(i);
+        if (obj_.IsInstance()) {
+          VisitInstance(Instance::Cast(obj_));
+        }
+      }
+    }
+  }
+
+  void VisitInstance(const Instance& instance) {
+    hash_ = CombineHashes(hash_, instance.CanonicalizeHash());
+  }
+
+  uint32_t hash() const { return FinalizeHash(hash_, String::kHashBits); }
+
+ private:
+  String& str_;
+  ObjectPool& pool_;
+  Object& obj_;
+  Instructions& instr_;
+  uint32_t hash_;
+};
+
+uint32_t ProgramVisitor::Hash(Thread* thread) {
+  StackZone stack_zone(thread);
+  HANDLESCOPE(thread);
+  Zone* zone = thread->zone();
+
+  ProgramHashVisitor visitor(zone);
+  WalkProgram(zone, thread->isolate(), &visitor);
+  visitor.VisitPool(ObjectPool::Handle(
+      zone, thread->isolate()->object_store()->global_object_pool()));
+  return visitor.hash();
+}
+
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

@@ -15,14 +15,14 @@ Future<String> test1() async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'Future<Future<String>>' can't be returned from an async function with return type 'Future<String>'.
 }
 
 Future<String> Function() test2 = () async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'Future<Future<String>>' can't be returned from an async function with return type 'Future<String>'.
 };
 
 void main() {

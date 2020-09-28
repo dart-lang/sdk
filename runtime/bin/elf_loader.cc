@@ -527,10 +527,6 @@ bool LoadedElf::ResolveSymbols(const uint8_t** vm_data,
     }
   }
 
-  CHECK_ERROR(vm_data == nullptr || *vm_data != nullptr,
-              "Could not find VM snapshot data.");
-  CHECK_ERROR(vm_instrs == nullptr || *vm_instrs != nullptr,
-              "Could not find VM snapshot instructions.");
   CHECK_ERROR(isolate_data == nullptr || *isolate_data != nullptr,
               "Could not find isolate snapshot data.");
   CHECK_ERROR(isolate_instrs == nullptr || *isolate_instrs != nullptr,

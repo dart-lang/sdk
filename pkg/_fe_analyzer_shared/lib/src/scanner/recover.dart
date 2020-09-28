@@ -66,7 +66,6 @@ String closeBraceFor(String openBrace) {
     '{': '}',
     '<': '>',
     r'${': '}',
-    '?.[': ']',
   }[openBrace];
 }
 

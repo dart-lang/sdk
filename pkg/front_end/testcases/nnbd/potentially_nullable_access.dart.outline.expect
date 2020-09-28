@@ -29,7 +29,7 @@ extension Extension on self::Class {
   get extensionFunctionTypeGetter = self::Extension|get#extensionFunctionTypeGetter;
   set extensionProperty = self::Extension|set#extensionProperty;
 }
-static field core::int? topLevelBinary;
+static field core::num topLevelBinary;
 static field core::int topLevelUnary;
 static field dynamic topLevelIndexGet;
 static field core::int topLevelIndexSet;

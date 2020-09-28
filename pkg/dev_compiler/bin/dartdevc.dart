@@ -12,6 +12,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:dev_compiler/src/compiler/shared_command.dart';
+import 'package:dev_compiler/src/kernel/expression_compiler_worker.dart';
 
 /// The entry point for the Dart Dev Compiler.
 ///
@@ -28,6 +29,18 @@ Future main(List<String> args, [SendPort sendPort]) async {
     await _CompilerWorker(parsedArgs, workerConnection).run();
   } else if (parsedArgs.isBatch) {
     await runBatch(parsedArgs);
+  } else if (parsedArgs.isExpressionCompiler) {
+    ExpressionCompilerWorker worker;
+    if (sendPort != null) {
+      var receivePort = ReceivePort();
+      sendPort.send(receivePort.sendPort);
+      worker = await ExpressionCompilerWorker.createFromArgs(parsedArgs.rest,
+          requestStream: receivePort.cast<Map<String, dynamic>>(),
+          sendResponse: sendPort.send);
+    } else {
+      worker = await ExpressionCompilerWorker.createFromArgs(parsedArgs.rest);
+    }
+    await worker.start();
   } else {
     var result = await compile(parsedArgs);
     exitCode = result.exitCode;

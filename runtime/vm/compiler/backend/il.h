@@ -35,12 +35,12 @@
 
 namespace dart {
 
+class BaseTextBuffer;
 class BinaryFeedback;
 class BitVector;
 class BlockEntryInstr;
 class BlockEntryWithInitialDefs;
 class BoxIntegerInstr;
-class BufferFormatter;
 class CallTargets;
 class CatchBlockEntryInstr;
 class CheckBoundBase;
@@ -145,7 +145,7 @@ class Value : public ZoneAllocated {
   void RefineReachingType(CompileType* type);
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
   SExpression* ToSExpression(FlowGraphSerializer* s) const;
@@ -550,14 +550,14 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
   DECLARE_COMPARISON_METHODS
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-#define PRINT_TO_SUPPORT virtual void PrintTo(BufferFormatter* f) const;
+#define PRINT_TO_SUPPORT virtual void PrintTo(BaseTextBuffer* f) const;
 #else
 #define PRINT_TO_SUPPORT
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual void PrintOperandsTo(BaseTextBuffer* f) const;
 #else
 #define PRINT_OPERANDS_TO_SUPPORT
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
@@ -911,8 +911,8 @@ class Instruction : public ZoneAllocated {
   // Printing support.
   const char* ToCString() const;
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-  virtual void PrintTo(BufferFormatter* f) const;
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  virtual void PrintTo(BaseTextBuffer* f) const;
+  virtual void PrintOperandsTo(BaseTextBuffer* f) const;
 #endif
   virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
   virtual void AddOperandsToSExpression(SExpList* sexp,
@@ -1253,6 +1253,15 @@ class MoveOperands : public ZoneAllocated {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) {}
 
+  MoveOperands(const MoveOperands& other)
+      : dest_(other.dest_), src_(other.src_) {}
+
+  MoveOperands& operator=(const MoveOperands& other) {
+    dest_ = other.dest_;
+    src_ = other.src_;
+    return *this;
+  }
+
   Location src() const { return src_; }
   Location dest() const { return dest_; }
 
@@ -1302,8 +1311,6 @@ class MoveOperands : public ZoneAllocated {
  private:
   Location dest_;
   Location src_;
-
-  DISALLOW_COPY_AND_ASSIGN(MoveOperands);
 };
 
 class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
@@ -1318,6 +1325,8 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
     UNREACHABLE();  // This instruction never visited by optimization passes.
     return false;
   }
+
+  const GrowableArray<MoveOperands*>& moves() const { return moves_; }
 
   MoveOperands* AddMove(Location dest, Location src) {
     MoveOperands* move = new MoveOperands(dest, src);
@@ -1614,7 +1623,7 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
   }
 
  protected:
-  void PrintInitialDefinitionsTo(BufferFormatter* f) const;
+  void PrintInitialDefinitionsTo(BaseTextBuffer* f) const;
 
  private:
   GrowableArray<Definition*> initial_definitions_;
@@ -3491,17 +3500,6 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
   virtual bool AttributesEqual(Instruction* other) const;
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-
-  bool IsUnboxedSignedIntegerConstant() const {
-    return representation() == kUnboxedInt32 ||
-           representation() == kUnboxedInt64;
-  }
-
-  int64_t GetUnboxedSignedIntegerConstantValue() const {
-    ASSERT(IsUnboxedSignedIntegerConstant());
-    return value_.IsSmi() ? Smi::Cast(value_).Value()
-                          : Mint::Cast(value_).value();
-  }
 
   void EmitMoveToLocation(FlowGraphCompiler* compiler,
                           const Location& destination,
@@ -5528,6 +5526,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   DECLARE_INSTRUCTION(LoadIndexed)
   virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0 || idx == 1);
@@ -5864,7 +5863,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  void PrintOperandsTo(BufferFormatter* f) const;
+  void PrintOperandsTo(BaseTextBuffer* f) const;
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -6400,8 +6399,14 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
 
   virtual Representation representation() const;
 
-  bool IsUnboxedLoad() const;
-  bool IsPotentialUnboxedLoad() const;
+  // Returns whether this instruction is an unboxed load from a _boxed_ Dart
+  // field. Unboxed Dart fields are handled similar to unboxed native fields.
+  bool IsUnboxedDartFieldLoad() const;
+
+  // Returns whether this instruction is an potential unboxed load from a
+  // _boxed_ Dart field. Unboxed Dart fields are handled similar to unboxed
+  // native fields.
+  bool IsPotentialUnboxedDartFieldLoad() const;
 
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
@@ -6655,65 +6660,21 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
 };
 
-class Boxing : public AllStatic {
- public:
-  static bool Supports(Representation rep) {
-    switch (rep) {
-      case kUnboxedDouble:
-      case kUnboxedFloat32x4:
-      case kUnboxedFloat64x2:
-      case kUnboxedInt32x4:
-      case kUnboxedInt64:
-      case kUnboxedInt32:
-      case kUnboxedUint32:
-        return true;
-      default:
-        return false;
-    }
-  }
+struct Boxing : public AllStatic {
+  // Whether the given representation can be boxed or unboxed.
+  static bool Supports(Representation rep);
 
-  static intptr_t ValueOffset(Representation rep) {
-    switch (rep) {
-      case kUnboxedFloat:
-      case kUnboxedDouble:
-        return Double::value_offset();
+  // Whether boxing this value requires allocating a new object.
+  static bool RequiresAllocation(Representation rep);
 
-      case kUnboxedFloat32x4:
-        return Float32x4::value_offset();
+  // The offset into the Layout object for the boxed value that can store
+  // the full range of values in the representation.
+  // Only defined for allocated boxes (i.e., RequiresAllocation must be true).
+  static intptr_t ValueOffset(Representation rep);
 
-      case kUnboxedFloat64x2:
-        return Float64x2::value_offset();
-
-      case kUnboxedInt32x4:
-        return Int32x4::value_offset();
-
-      case kUnboxedInt64:
-        return Mint::value_offset();
-
-      default:
-        UNREACHABLE();
-        return 0;
-    }
-  }
-
-  static intptr_t BoxCid(Representation rep) {
-    switch (rep) {
-      case kUnboxedInt64:
-        return kMintCid;
-      case kUnboxedDouble:
-      case kUnboxedFloat:
-        return kDoubleCid;
-      case kUnboxedFloat32x4:
-        return kFloat32x4Cid;
-      case kUnboxedFloat64x2:
-        return kFloat64x2Cid;
-      case kUnboxedInt32x4:
-        return kInt32x4Cid;
-      default:
-        UNREACHABLE();
-        return kIllegalCid;
-    }
-  }
+  // The class ID for the boxed value that can store the full range
+  // of values in the representation.
+  static intptr_t BoxCid(Representation rep);
 };
 
 class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -7537,6 +7498,14 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
       Value* left,
       Value* right,
       intptr_t deopt_id,
+      SpeculativeMode speculative_mode = kGuardInputs);
+
+  static BinaryIntegerOpInstr* Make(
+      Representation representation,
+      Token::Kind op_kind,
+      Value* left,
+      Value* right,
+      intptr_t deopt_id,
       bool can_overflow,
       bool is_truncating,
       Range* range,
@@ -7568,6 +7537,8 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
@@ -7594,9 +7565,11 @@ class BinarySmiOpInstr : public BinaryIntegerOpInstr {
   BinarySmiOpInstr(Token::Kind op_kind,
                    Value* left,
                    Value* right,
-                   intptr_t deopt_id)
+                   intptr_t deopt_id,
+                   // Provided by BinaryIntegerOpInstr::Make for constant RHS.
+                   Range* right_range = nullptr)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
-        right_range_(NULL) {}
+        right_range_(right_range) {}
 
   virtual bool ComputeCanDeoptimize() const;
 
@@ -7660,7 +7633,6 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
     return kUnboxedInt32;
   }
 
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
   virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(BinaryInt32Op)
@@ -7748,7 +7720,6 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
            (speculative_mode_ == other->AsBinaryInt64Op()->speculative_mode_);
   }
 
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
   virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(BinaryInt64Op)
@@ -7764,9 +7735,11 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
   ShiftIntegerOpInstr(Token::Kind op_kind,
                       Value* left,
                       Value* right,
-                      intptr_t deopt_id)
+                      intptr_t deopt_id,
+                      // Provided by BinaryIntegerOpInstr::Make for constant RHS
+                      Range* right_range = nullptr)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
-        shift_range_(NULL) {
+        shift_range_(right_range) {
     ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
     mark_truncating();
   }
@@ -7800,8 +7773,9 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
   ShiftInt64OpInstr(Token::Kind op_kind,
                     Value* left,
                     Value* right,
-                    intptr_t deopt_id)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
+                    intptr_t deopt_id,
+                    Range* right_range = nullptr)
+      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     return kNotSpeculative;
@@ -7831,8 +7805,9 @@ class SpeculativeShiftInt64OpInstr : public ShiftIntegerOpInstr {
   SpeculativeShiftInt64OpInstr(Token::Kind op_kind,
                                Value* left,
                                Value* right,
-                               intptr_t deopt_id)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
+                               intptr_t deopt_id,
+                               Range* right_range = nullptr)
+      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual bool ComputeCanDeoptimize() const {
     ASSERT(!can_overflow());
@@ -7861,8 +7836,9 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
   ShiftUint32OpInstr(Token::Kind op_kind,
                      Value* left,
                      Value* right,
-                     intptr_t deopt_id)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
+                     intptr_t deopt_id,
+                     Range* right_range = nullptr)
+      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     return kNotSpeculative;
@@ -7894,8 +7870,9 @@ class SpeculativeShiftUint32OpInstr : public ShiftIntegerOpInstr {
   SpeculativeShiftUint32OpInstr(Token::Kind op_kind,
                                 Value* left,
                                 Value* right,
-                                intptr_t deopt_id)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
+                                intptr_t deopt_id,
+                                Range* right_range = nullptr)
+      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual bool ComputeCanDeoptimize() const { return !IsShiftCountInRange(); }
 
@@ -8640,6 +8617,8 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   virtual CheckBoundBase* AsCheckBoundBase() { return this; }
   virtual const CheckBoundBase* AsCheckBoundBase() const { return this; }
   virtual Value* RedefinedValue() const;
@@ -8675,8 +8654,6 @@ class CheckArrayBoundInstr : public CheckBoundBase {
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   void mark_generalized() { generalized_ = true; }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   // Returns the length offset for array and string types.
   static intptr_t LengthOffsetFor(intptr_t class_id);
@@ -9330,7 +9307,7 @@ class Environment : public ZoneAllocated {
                        Definition* dead,
                        Definition* result) const;
 
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
   SExpression* ToSExpression(FlowGraphSerializer* s) const;
   const char* ToCString() const;
 

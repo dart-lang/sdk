@@ -18,6 +18,7 @@
 #include <sys/utime.h>  // NOLINT
 
 #include "bin/builtin.h"
+#include "bin/crypto.h"
 #include "bin/directory.h"
 #include "bin/namespace.h"
 #include "bin/utils.h"
@@ -517,6 +518,100 @@ bool File::RenameLink(Namespace* namespc,
   return (move_status != 0);
 }
 
+static wchar_t* CopyToDartScopeString(wchar_t* string) {
+  wchar_t* wide_path = reinterpret_cast<wchar_t*>(
+      Dart_ScopeAllocate(MAX_PATH * sizeof(wchar_t) + 1));
+  wcscpy(wide_path, string);
+  return wide_path;
+}
+
+static wchar_t* CopyIntoTempFile(const char* src, const char* dest) {
+  // This function will copy the file to a temp file in the destination
+  // directory and return the path of temp file.
+  // Creating temp file name has the same logic as Directory::CreateTemp(),
+  // which tries with the rng and falls back to a uuid if it failed.
+  const char* last_back_slash = strrchr(dest, '\\');
+  // It is possible the path uses forwardslash as path separator.
+  const char* last_forward_slash = strrchr(dest, '/');
+  const char* last_path_separator = NULL;
+  if (last_back_slash == NULL && last_forward_slash == NULL) {
+    return NULL;
+  } else if (last_forward_slash != NULL && last_forward_slash != NULL) {
+    // If both types occur in the path, use the one closer to the end.
+    if (last_back_slash - dest > last_forward_slash - dest) {
+      last_path_separator = last_back_slash;
+    } else {
+      last_path_separator = last_forward_slash;
+    }
+  } else {
+    last_path_separator =
+        (last_forward_slash == NULL) ? last_back_slash : last_forward_slash;
+  }
+  int length_of_parent_dir = last_path_separator - dest + 1;
+  if (length_of_parent_dir + 8 > MAX_PATH) {
+    return NULL;
+  }
+  uint32_t suffix_bytes = 0;
+  const int kSuffixSize = sizeof(suffix_bytes);
+  if (Crypto::GetRandomBytes(kSuffixSize,
+                             reinterpret_cast<uint8_t*>(&suffix_bytes))) {
+    PathBuffer buffer;
+    char* dir = reinterpret_cast<char*>(
+        Dart_ScopeAllocate(1 + sizeof(char) * length_of_parent_dir));
+    memmove(dir, dest, length_of_parent_dir);
+    dir[length_of_parent_dir] = '\0';
+    if (!buffer.Add(dir)) {
+      return NULL;
+    }
+
+    char suffix[8 + 1];
+    Utils::SNPrint(suffix, sizeof(suffix), "%x", suffix_bytes);
+    Utf8ToWideScope source_path(src);
+    if (!buffer.Add(suffix)) {
+      return NULL;
+    }
+    if (CopyFileExW(source_path.wide(), buffer.AsStringW(), NULL, NULL, NULL,
+                    0) != 0) {
+      return CopyToDartScopeString(buffer.AsStringW());
+    }
+    // If CopyFileExW() fails to copy to a temp file with random hex, fall
+    // back to copy to a uuid temp file.
+  }
+  // UUID has a total of 36 characters in the form of
+  // xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx.
+  if (length_of_parent_dir + 36 > MAX_PATH) {
+    return NULL;
+  }
+  UUID uuid;
+  RPC_STATUS status = UuidCreateSequential(&uuid);
+  if ((status != RPC_S_OK) && (status != RPC_S_UUID_LOCAL_ONLY)) {
+    return NULL;
+  }
+  RPC_WSTR uuid_string;
+  status = UuidToStringW(&uuid, &uuid_string);
+  if (status != RPC_S_OK) {
+    return NULL;
+  }
+  PathBuffer buffer;
+  char* dir = reinterpret_cast<char*>(
+      Dart_ScopeAllocate(1 + sizeof(char) * length_of_parent_dir));
+  memmove(dir, dest, length_of_parent_dir);
+  dir[length_of_parent_dir] = '\0';
+  Utf8ToWideScope dest_path(dir);
+  if (!buffer.AddW(dest_path.wide()) ||
+      !buffer.AddW(reinterpret_cast<wchar_t*>(uuid_string))) {
+    return NULL;
+  }
+
+  RpcStringFreeW(&uuid_string);
+  Utf8ToWideScope source_path(src);
+  if (CopyFileExW(source_path.wide(), buffer.AsStringW(), NULL, NULL, NULL,
+                  0) != 0) {
+    return CopyToDartScopeString(buffer.AsStringW());
+  }
+  return NULL;
+}
+
 bool File::Copy(Namespace* namespc,
                 const char* old_path,
                 const char* new_path) {
@@ -525,11 +620,29 @@ bool File::Copy(Namespace* namespc,
     SetLastError(ERROR_FILE_NOT_FOUND);
     return false;
   }
-  Utf8ToWideScope system_old_path(old_path);
-  Utf8ToWideScope system_new_path(new_path);
-  bool success = CopyFileExW(system_old_path.wide(), system_new_path.wide(),
-                             NULL, NULL, NULL, 0) != 0;
-  return success;
+
+  wchar_t* temp_file = CopyIntoTempFile(old_path, new_path);
+  if (temp_file == NULL) {
+    // If temp file creation fails, fall back on doing a direct copy.
+    Utf8ToWideScope system_old_path(old_path);
+    Utf8ToWideScope system_new_path(new_path);
+    return CopyFileExW(system_old_path.wide(), system_new_path.wide(), NULL,
+                       NULL, NULL, 0) != 0;
+  }
+  Utf8ToWideScope system_new_dest(new_path);
+
+  // Remove the existing file. Otherwise, renaming will fail.
+  if (Exists(namespc, new_path)) {
+    DeleteFileW(system_new_dest.wide());
+  }
+
+  if (!MoveFileW(temp_file, system_new_dest.wide())) {
+    DWORD error = GetLastError();
+    DeleteFileW(temp_file);
+    SetLastError(error);
+    return false;
+  }
+  return true;
 }
 
 int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
@@ -683,13 +796,18 @@ bool File::SetLastModified(Namespace* namespc,
   return _wutime64(system_name.wide(), &times) == 0;
 }
 
+// Keep this function synchronized with the behavior
+// of `FileSystemEntity.isAbsolute` in file_system_entity.dart.
 bool File::IsAbsolutePath(const char* pathname) {
-  // Should we consider network paths?
-  if (pathname == NULL) {
-    return false;
-  }
-  return ((strlen(pathname) > 2) && (pathname[1] == ':') &&
-          ((pathname[2] == '\\') || (pathname[2] == '/')));
+  if (pathname == NULL) return false;
+  char first = pathname[0];
+  if (pathname == 0) return false;
+  char second = pathname[1];
+  if (first == '\\' && second == '\\') return true;
+  if (second != ':') return false;
+  first |= 0x20;
+  char third = pathname[2];
+  return (first >= 'a') && (first <= 'z') && (third == '\\' || third == '/');
 }
 
 const char* File::GetCanonicalPath(Namespace* namespc,
@@ -768,15 +886,22 @@ File::Type File::GetType(Namespace* namespc,
     result = kDoesNotExist;
   } else if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     if (follow_links) {
-      HANDLE dir_handle =
+      HANDLE target_handle =
           CreateFileW(name.wide(), 0,
                       FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                       NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-      if (dir_handle == INVALID_HANDLE_VALUE) {
+      if (target_handle == INVALID_HANDLE_VALUE) {
         result = File::kIsLink;
       } else {
-        CloseHandle(dir_handle);
-        result = File::kIsDirectory;
+        BY_HANDLE_FILE_INFORMATION info;
+        if (!GetFileInformationByHandle(target_handle, &info)) {
+          CloseHandle(target_handle);
+          return File::kIsLink;
+        }
+        CloseHandle(target_handle);
+        return ((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+                   ? File::kIsDirectory
+                   : File::kIsFile;
       }
     } else {
       result = kIsLink;

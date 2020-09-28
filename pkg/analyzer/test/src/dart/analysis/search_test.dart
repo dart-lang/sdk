@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
@@ -21,7 +19,7 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
-    defineReflectiveTests(SearchWithNnbdTest);
+    defineReflectiveTests(SearchWithNullSafetyTest);
   });
 }
 
@@ -39,12 +37,12 @@ class ExpectedResult {
   @override
   bool operator ==(Object result) {
     return result is SearchResult &&
-        result.kind == this.kind &&
-        result.isResolved == this.isResolved &&
-        result.isQualified == this.isQualified &&
-        result.offset == this.offset &&
-        result.length == this.length &&
-        result.enclosingElement == this.enclosingElement;
+        result.kind == kind &&
+        result.isResolved == isResolved &&
+        result.isQualified == isQualified &&
+        result.offset == offset &&
+        result.length == length &&
+        result.enclosingElement == enclosingElement;
   }
 
   @override
@@ -1755,7 +1753,7 @@ class NoMatchABCDEF {}
   /// Create [ExpectedResult] for a qualified and resolved match.
   ExpectedResult _expectIdQ(
       Element element, SearchResultKind kind, String search,
-      {int length, bool isResolved = true}) {
+      {int length}) {
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
@@ -1817,7 +1815,7 @@ class NoMatchABCDEF {}
 }
 
 @reflectiveTest
-class SearchWithNnbdTest extends SearchTest {
+class SearchWithNullSafetyTest extends SearchTest {
   @override
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(

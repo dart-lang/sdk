@@ -34,6 +34,7 @@ if (verify_sdk_hash) {
                          [
                            "$_dart_root/tools/VERSION",
                            "$_dart_root/tools/utils.py",
+                           "$default_git_folder/logs/HEAD",
                          ])
 } else {
   sdk_hash = "0000000000"

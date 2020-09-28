@@ -17,5 +17,10 @@ library /*isNonNullableByDefault*/;
 import self as fro;
 import "dart:core" as core;
 
-static const field core::List<core::int> a = const <core::int>[];
-static const field core::List<core::int?> b = const <core::int?>[];
+static const field core::List<core::int> a = #C1;
+static const field core::List<core::int?> b = #C2;
+
+constants  {
+  #C1 = <core::int>[]
+  #C2 = <core::int?>[]
+}

@@ -23,6 +23,7 @@ import 'add_missing_parameter_required_test.dart'
 import 'add_missing_required_argument_test.dart'
     as add_missing_required_argument;
 import 'add_ne_null_test.dart' as add_ne_null;
+import 'add_null_check_test.dart' as add_null_check;
 import 'add_override_test.dart' as add_override;
 import 'add_required_test.dart' as add_required;
 import 'add_return_type_test.dart' as add_return_type;
@@ -31,6 +32,7 @@ import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'analysis_options/test_all.dart' as analysis_options;
+import 'bulk/test_all.dart' as bulk;
 import 'change_argument_name_test.dart' as change_argument_name;
 import 'change_to_nearest_precise_value_test.dart'
     as change_to_nearest_precise_value;
@@ -76,6 +78,7 @@ import 'create_missing_overrides_test.dart' as create_missing_overrides;
 import 'create_mixin_test.dart' as create_mixin;
 import 'create_no_such_method_test.dart' as create_no_such_method;
 import 'create_setter_test.dart' as create_setter;
+import 'data_driven/test_all.dart' as data_driven;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
 import 'fix_test.dart' as fix;
 import 'import_async_test.dart' as import_async;
@@ -89,6 +92,7 @@ import 'insert_semicolon_test.dart' as insert_semicolon;
 import 'make_class_abstract_test.dart' as make_class_abstract;
 import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_final_test.dart' as make_final;
+import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'organize_imports_test.dart' as organize_imports;
@@ -131,6 +135,7 @@ import 'remove_unused_local_variable_test.dart' as remove_unused_local_variable;
 import 'remove_unused_parameter_test.dart' as remove_unused_parameter;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
+import 'replace_cascade_with_dot_test.dart' as replace_cascade_with_dot;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
@@ -147,6 +152,7 @@ import 'replace_with_identifier_test.dart' as replace_with_identifier;
 import 'replace_with_interpolation_test.dart' as replace_with_interpolation;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
+import 'replace_with_not_null_aware_test.dart' as replace_with_not_null_aware;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
@@ -178,6 +184,7 @@ void main() {
     add_missing_parameter_required.main();
     add_missing_required_argument.main();
     add_ne_null.main();
+    add_null_check.main();
     add_override.main();
     add_required.main();
     add_return_type.main();
@@ -185,6 +192,7 @@ void main() {
     add_super_constructor_invocation.main();
     add_type_annotation.main();
     analysis_options.main();
+    bulk.main();
     change_argument_name.main();
     change_to.main();
     change_to_nearest_precise_value.main();
@@ -225,6 +233,7 @@ void main() {
     create_mixin.main();
     create_no_such_method.main();
     create_setter.main();
+    data_driven.main();
     extend_class_for_mixin.main();
     fix.main();
     import_async.main();
@@ -238,6 +247,7 @@ void main() {
     make_class_abstract.main();
     make_field_not_final.main();
     make_final.main();
+    make_return_type_nullable.main();
     make_variable_not_final.main();
     move_type_arguments_to_class.main();
     organize_imports.main();
@@ -277,6 +287,7 @@ void main() {
     remove_unused_parameter.main();
     rename_to_camel_case.main();
     replace_boolean_with_bool.main();
+    replace_cascade_with_dot.main();
     replace_colon_with_equals.main();
     replace_final_with_const.main();
     replace_new_with_const.main();
@@ -292,6 +303,7 @@ void main() {
     replace_with_interpolation.main();
     replace_with_is_empty.main();
     replace_with_is_not_empty.main();
+    replace_with_not_null_aware.main();
     replace_with_null_aware.main();
     replace_with_tear_off.main();
     replace_with_var.main();

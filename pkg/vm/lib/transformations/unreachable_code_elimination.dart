@@ -37,8 +37,8 @@ class SimpleUnreachableCodeElimination extends Transformer {
   Expression _createBoolLiteral(bool value, int fileOffset) =>
       new BoolLiteral(value)..fileOffset = fileOffset;
 
-  Statement _makeEmptyBlockIfNull(Statement node) =>
-      node == null ? Block(<Statement>[]) : node;
+  Statement _makeEmptyBlockIfNull(Statement node, TreeNode parent) =>
+      node == null ? (Block(<Statement>[])..parent = parent) : node;
 
   @override
   TreeNode visitIfStatement(IfStatement node) {
@@ -48,7 +48,7 @@ class SimpleUnreachableCodeElimination extends Transformer {
       final value = _getBoolConstantValue(condition);
       return value ? node.then : node.otherwise;
     }
-    node.then = _makeEmptyBlockIfNull(node.then);
+    node.then = _makeEmptyBlockIfNull(node.then, node);
     return node;
   }
 
@@ -175,28 +175,28 @@ class SimpleUnreachableCodeElimination extends Transformer {
   @override
   TreeNode visitWhileStatement(WhileStatement node) {
     node.transformChildren(this);
-    node.body = _makeEmptyBlockIfNull(node.body);
+    node.body = _makeEmptyBlockIfNull(node.body, node);
     return node;
   }
 
   @override
   TreeNode visitDoStatement(DoStatement node) {
     node.transformChildren(this);
-    node.body = _makeEmptyBlockIfNull(node.body);
+    node.body = _makeEmptyBlockIfNull(node.body, node);
     return node;
   }
 
   @override
   TreeNode visitForStatement(ForStatement node) {
     node.transformChildren(this);
-    node.body = _makeEmptyBlockIfNull(node.body);
+    node.body = _makeEmptyBlockIfNull(node.body, node);
     return node;
   }
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
     node.transformChildren(this);
-    node.body = _makeEmptyBlockIfNull(node.body);
+    node.body = _makeEmptyBlockIfNull(node.body, node);
     return node;
   }
 }

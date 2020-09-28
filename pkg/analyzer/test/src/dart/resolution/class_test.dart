@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/elements_types_mixin.dart';
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class ClassDriverResolutionTest extends DriverResolutionTest
+class ClassDriverResolutionTest extends PubPackageResolutionTest
     with ElementsTypesMixin {
   test_element_allSupertypes() async {
     await assertNoErrorsInCode(r'''
@@ -530,7 +530,7 @@ main() {
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 33, 1),
       error(
-          StaticWarningCode
+          CompileTimeErrorCode
               .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
           60,
           1),
@@ -681,7 +681,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_GETTER, 58, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 58, 1),
     ]);
   }
 
@@ -694,7 +694,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD, 56, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 56, 1),
     ]);
   }
 
@@ -707,7 +707,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 70, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 1),
     ]);
   }
 
@@ -720,8 +720,8 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
     ]);
   }
 
@@ -734,7 +734,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 70, 11),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 11),
     ]);
   }
 
@@ -747,7 +747,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 71, 7),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 71, 7),
     ]);
   }
 
@@ -760,7 +760,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_SETTER, 49, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_SETTER, 49, 1),
     ]);
   }
 }

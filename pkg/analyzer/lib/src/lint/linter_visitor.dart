@@ -19,9 +19,21 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   LinterVisitor(this.registry, this.exceptionHandler);
 
   @override
+  void visitAdjacentStrings(AdjacentStrings node) {
+    _runSubscriptions(node, registry._forAdjacentStrings);
+    super.visitAdjacentStrings(node);
+  }
+
+  @override
   void visitAnnotation(Annotation node) {
     _runSubscriptions(node, registry._forAnnotation);
     super.visitAnnotation(node);
+  }
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    _runSubscriptions(node, registry._forArgumentList);
+    super.visitArgumentList(node);
   }
 
   @override
@@ -481,6 +493,18 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNativeClause(NativeClause node) {
+    _runSubscriptions(node, registry._forNativeClause);
+    super.visitNativeClause(node);
+  }
+
+  @override
+  void visitNativeFunctionBody(NativeFunctionBody node) {
+    _runSubscriptions(node, registry._forNativeFunctionBody);
+    super.visitNativeFunctionBody(node);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _runSubscriptions(node, registry._forNullLiteral);
     super.visitNullLiteral(node);
@@ -551,6 +575,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   void visitReturnStatement(ReturnStatement node) {
     _runSubscriptions(node, registry._forReturnStatement);
     super.visitReturnStatement(node);
+  }
+
+  @override
+  void visitScriptTag(ScriptTag node) {
+    _runSubscriptions(node, registry._forScriptTag);
+    super.visitScriptTag(node);
   }
 
   @override
@@ -734,7 +764,9 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
 /// The container to register visitors for separate AST node types.
 class NodeLintRegistry {
   final bool enableTiming;
+  final List<_Subscription<AdjacentStrings>> _forAdjacentStrings = [];
   final List<_Subscription<Annotation>> _forAnnotation = [];
+  final List<_Subscription<ArgumentList>> _forArgumentList = [];
   final List<_Subscription<AsExpression>> _forAsExpression = [];
   final List<_Subscription<AssertInitializer>> _forAssertInitializer = [];
   final List<_Subscription<AssertStatement>> _forAssertStatement = [];
@@ -777,8 +809,8 @@ class NodeLintRegistry {
       [];
   final List<_Subscription<ExpressionStatement>> _forExpressionStatement = [];
   final List<_Subscription<ExtendsClause>> _forExtendsClause = [];
-  final List<_Subscription<ExtendsClause>> _forExtensionDeclaration = [];
-  final List<_Subscription<ExtendsClause>> _forExtensionOverride = [];
+  final List<_Subscription<ExtensionDeclaration>> _forExtensionDeclaration = [];
+  final List<_Subscription<ExtensionOverride>> _forExtensionOverride = [];
   final List<_Subscription<FieldDeclaration>> _forFieldDeclaration = [];
   final List<_Subscription<FieldFormalParameter>> _forFieldFormalParameter = [];
   final List<_Subscription<ForEachPartsWithDeclaration>>
@@ -826,6 +858,8 @@ class NodeLintRegistry {
   final List<_Subscription<MethodInvocation>> _forMethodInvocation = [];
   final List<_Subscription<MixinDeclaration>> _forMixinDeclaration = [];
   final List<_Subscription<NamedExpression>> _forNamedExpression = [];
+  final List<_Subscription<NativeClause>> _forNativeClause = [];
+  final List<_Subscription<NativeFunctionBody>> _forNativeFunctionBody = [];
   final List<_Subscription<NullLiteral>> _forNullLiteral = [];
   final List<_Subscription<OnClause>> _forOnClause = [];
   final List<_Subscription<ParenthesizedExpression>>
@@ -840,6 +874,7 @@ class NodeLintRegistry {
       _forRedirectingConstructorInvocation = [];
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
   final List<_Subscription<ReturnStatement>> _forReturnStatement = [];
+  final List<_Subscription<ScriptTag>> _forScriptTag = [];
   final List<_Subscription<SetOrMapLiteral>> _forSetOrMapLiteral = [];
   final List<_Subscription<ShowCombinator>> _forShowCombinator = [];
   final List<_Subscription<SimpleFormalParameter>> _forSimpleFormalParameter =
@@ -875,8 +910,16 @@ class NodeLintRegistry {
 
   NodeLintRegistry(this.enableTiming);
 
+  void addAdjacentStrings(LintRule linter, AstVisitor visitor) {
+    _forAdjacentStrings.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addAnnotation(LintRule linter, AstVisitor visitor) {
     _forAnnotation.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addArgumentList(LintRule linter, AstVisitor visitor) {
+    _forArgumentList.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addAsExpression(LintRule linter, AstVisitor visitor) {
@@ -1217,6 +1260,15 @@ class NodeLintRegistry {
     _forNamedExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addNativeClause(LintRule linter, AstVisitor visitor) {
+    _forNativeClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addNativeFunctionBody(LintRule linter, AstVisitor visitor) {
+    _forNativeFunctionBody
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addNullLiteral(LintRule linter, AstVisitor visitor) {
     _forNullLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1269,6 +1321,10 @@ class NodeLintRegistry {
 
   void addReturnStatement(LintRule linter, AstVisitor visitor) {
     _forReturnStatement.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addScriptTag(LintRule linter, AstVisitor visitor) {
+    _forScriptTag.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addSetOrMapLiteral(LintRule linter, AstVisitor visitor) {

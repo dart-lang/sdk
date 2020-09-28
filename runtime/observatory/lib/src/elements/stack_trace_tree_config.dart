@@ -86,7 +86,8 @@ class StackTraceTreeConfigElement extends CustomElement implements Renderable {
     return e;
   }
 
-  StackTraceTreeConfigElement.created() : super.created('stack-trace-tree-config');
+  StackTraceTreeConfigElement.created()
+      : super.created('stack-trace-tree-config');
 
   @override
   void attached() {

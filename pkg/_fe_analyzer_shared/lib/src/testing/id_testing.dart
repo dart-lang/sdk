@@ -643,6 +643,20 @@ typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(TestData testData,
     Map<String, List<String>> skipMap,
     Uri nullUri});
 
+/// Compute the file: URI of the file located at `path`, where `path` is
+/// relative to the root of the SDK repository.
+///
+/// We find the root of the SDK repository by looking for the parent of the
+/// directory named `pkg`.
+Uri _fileUriFromSdkRoot(String path) {
+  Uri uri = Platform.script;
+  List<String> pathSegments = uri.pathSegments;
+  return uri.replace(pathSegments: [
+    ...pathSegments.sublist(0, pathSegments.lastIndexOf('pkg')),
+    ...path.split('/')
+  ]);
+}
+
 class MarkerOptions {
   final Map<String, Uri> markers;
 
@@ -669,7 +683,7 @@ class MarkerOptions {
       }
       String marker = line.substring(0, eqPos);
       String tester = line.substring(eqPos + 1);
-      File testerFile = new File(tester);
+      File testerFile = new File.fromUri(_fileUriFromSdkRoot(tester));
       if (!testerFile.existsSync()) {
         throw new ArgumentError(
             "Tester '$tester' does not exist for marker '$marker' in "
@@ -709,6 +723,14 @@ class MarkerOptions {
     if (!allOk) {
       throw "Error(s) occurred.";
     }
+  }
+}
+
+String getTestName(FileSystemEntity entity) {
+  if (entity is Directory) {
+    return entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
+  } else {
+    return entity.uri.pathSegments.last;
   }
 }
 
@@ -752,16 +774,14 @@ Future<void> runTests<T>(Directory dataDir,
           !entity.path.endsWith('~') && !entity.path.endsWith('marker.options'))
       .toList();
   if (shards > 1) {
+    entities.sort((a, b) => getTestName(a).compareTo(getTestName(b)));
     int start = entities.length * shardIndex ~/ shards;
     int end = entities.length * (shardIndex + 1) ~/ shards;
     entities = entities.sublist(start, end);
   }
   int testCount = 0;
   for (FileSystemEntity entity in entities) {
-    String name = entity.uri.pathSegments.last;
-    if (entity is Directory) {
-      name = entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
-    }
+    String name = getTestName(entity);
     if (args.isNotEmpty && !args.contains(name) && !continued) continue;
     if (shouldContinue) continued = true;
     testCount++;
@@ -894,12 +914,15 @@ bool skipForConfig(
 /// This assumes that the current working directory is the repository root.
 Future<void> updateAllTests(List<String> relativeTestPaths) async {
   for (String testPath in relativeTestPaths) {
-    List<String> arguments = [
-      '--packages=${Platform.packageConfig}',
+    List<String> arguments = [];
+    if (Platform.packageConfig != null) {
+      arguments.add('--packages=${Platform.packageConfig}');
+    }
+    arguments.addAll([
       testPath,
       '-g',
-      '--run-all'
-    ];
+      '--run-all',
+    ]);
     print('Running: ${Platform.resolvedExecutable} ${arguments.join(' ')}');
     Process process = await Process.start(
         Platform.resolvedExecutable, arguments,

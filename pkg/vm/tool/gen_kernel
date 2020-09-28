@@ -8,25 +8,6 @@
 
 set -e
 
-ABI_VERSION=""
-HAS_PLATFORM=""
-ARGV=()
-
-for arg in "$@"; do
-  case $arg in
-    --use-abi-version=*)
-    ABI_VERSION="$(echo "$arg" | sed "s|--use-abi-version=||")"
-    ;;
-    --platform*)
-    HAS_PLATFORM="TRUE"
-    ARGV+=("$arg")
-    ;;
-    *)
-    ARGV+=("$arg")
-    ;;
-  esac
-done
-
 function follow_links() {
   file="$1"
   while [ -h "$file" ]; do
@@ -54,18 +35,4 @@ else
   OUT_DIR="$SDK_DIR/out"
 fi
 
-export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
-BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
-
-if [ $ABI_VERSION ]; then
-  ABI_DIR="$BIN_DIR/dart-sdk/lib/_internal/abiversions/$ABI_VERSION"
-  PLATFORM=()
-  if [ -z $HAS_PLATFORM ]; then
-    PLATFORM+=("--platform" "$ABI_DIR/vm_platform_strong.dill")
-  fi
-  exec "$BIN_DIR/dart" $DART_VM_FLAGS --enable-interpreter \
-    "$ABI_DIR/gen_kernel_bytecode.dill" "${PLATFORM[@]}" "${ARGV[@]}"
-else
-  exec "$DART" $DART_VM_FLAGS \
-    "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" "${ARGV[@]}"
-fi
+exec "$DART" $DART_VM_FLAGS "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" $@

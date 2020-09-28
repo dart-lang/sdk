@@ -23,6 +23,17 @@ class _List<E> extends FixedLengthListBase<E> {
     return result;
   }
 
+  // Specialization of List.generate constructor for growable == false.
+  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  @pragma("vm:prefer-inline")
+  factory _List.generate(int length, E generator(int index)) {
+    final result = _List<E>(length);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = generator(i);
+    }
+    return result;
+  }
+
   E operator [](int index) native "List_getIndexed";
 
   void operator []=(int index, E value) {

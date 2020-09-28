@@ -929,6 +929,12 @@ class BinaryBuilder {
     return name?.getReference();
   }
 
+  Reference readInstanceMemberReference({bool allowNull: false}) {
+    var reference = readMemberReference(allowNull: allowNull);
+    readMemberReference(allowNull: true); // Skip origin
+    return reference;
+  }
+
   Reference getMemberReferenceFromInt(int index, {bool allowNull: false}) {
     var name = getCanonicalNameReferenceFromInt(index);
     if (name == null && !allowNull) {
@@ -1414,6 +1420,7 @@ class BinaryBuilder {
         readMemberReference(allowNull: true);
     var forwardingStubInterfaceTargetReference =
         readMemberReference(allowNull: true);
+    var memberSignatureTargetReference = readMemberReference(allowNull: true);
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -1432,10 +1439,14 @@ class BinaryBuilder {
         forwardingStubSuperTargetReference;
     node.forwardingStubInterfaceTargetReference =
         forwardingStubInterfaceTargetReference;
+    node.memberSignatureOriginReference = memberSignatureTargetReference;
 
     assert((node.forwardingStubSuperTargetReference != null) ||
         !(node.isForwardingStub && node.function.body != null));
-    _byteOffset = endOffset;
+    assert(
+        !(node.isMemberSignature &&
+            node.memberSignatureOriginReference == null),
+        "No member signature origin for member signature $node.");
     return node;
   }
 
@@ -1689,35 +1700,35 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.PropertyGet:
         int offset = readOffset();
-        return new PropertyGet.byReference(
-            readExpression(), readName(), readMemberReference(allowNull: true))
+        return new PropertyGet.byReference(readExpression(), readName(),
+            readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.PropertySet:
         int offset = readOffset();
         return new PropertySet.byReference(readExpression(), readName(),
-            readExpression(), readMemberReference(allowNull: true))
+            readExpression(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.SuperPropertyGet:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperPropertyGet.byReference(
-            readName(), readMemberReference(allowNull: true))
+            readName(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.SuperPropertySet:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertySet.byReference(
-            readName(), readExpression(), readMemberReference(allowNull: true))
+        return new SuperPropertySet.byReference(readName(), readExpression(),
+            readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.DirectPropertyGet:
         int offset = readOffset();
         return new DirectPropertyGet.byReference(
-            readExpression(), readMemberReference())
+            readExpression(), readInstanceMemberReference())
           ..fileOffset = offset;
       case Tag.DirectPropertySet:
         int offset = readOffset();
         return new DirectPropertySet.byReference(
-            readExpression(), readMemberReference(), readExpression())
+            readExpression(), readInstanceMemberReference(), readExpression())
           ..fileOffset = offset;
       case Tag.StaticGet:
         int offset = readOffset();
@@ -1731,18 +1742,18 @@ class BinaryBuilder {
       case Tag.MethodInvocation:
         int offset = readOffset();
         return new MethodInvocation.byReference(readExpression(), readName(),
-            readArguments(), readMemberReference(allowNull: true))
+            readArguments(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperMethodInvocation.byReference(
-            readName(), readArguments(), readMemberReference(allowNull: true))
+        return new SuperMethodInvocation.byReference(readName(),
+            readArguments(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.DirectMethodInvocation:
         int offset = readOffset();
         return new DirectMethodInvocation.byReference(
-            readExpression(), readMemberReference(), readArguments())
+            readExpression(), readInstanceMemberReference(), readArguments())
           ..fileOffset = offset;
       case Tag.StaticInvocation:
         int offset = readOffset();

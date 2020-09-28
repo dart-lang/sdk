@@ -325,7 +325,7 @@ class SuperCallResolutionTransformer extends Transformer {
         hierarchy.getDispatchTarget(lookupClass, new Name("noSuchMethod"));
     String methodNameUsed = (isGetter)
         ? "get:$methodName"
-        : (isSetter) ? "set:$methodName" : methodName;
+        : (isSetter) ? "set:$methodName=" : methodName;
     if (noSuchMethod != null &&
         noSuchMethod.function.positionalParameters.length == 1 &&
         noSuchMethod.function.namedParameters.isEmpty) {
