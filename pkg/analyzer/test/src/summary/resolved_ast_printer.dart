@@ -1148,7 +1148,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SimpleIdentifier');
     _withIndent(() {
-      _writeAuxiliaryElements('auxiliaryElements', node.auxiliaryElements);
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
       _writeToken('token', node.token);
@@ -1675,14 +1674,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _indent = '$_indent  ';
     f();
     _indent = indent;
-  }
-
-  void _writeAuxiliaryElements(String name, AuxiliaryElements elements) {
-    if (elements != null) {
-      _sink.write(_indent);
-      _sink.write('$name: ');
-      _writeElement0(elements.staticElement);
-    }
   }
 
   void _writeElement(String name, Element element) {

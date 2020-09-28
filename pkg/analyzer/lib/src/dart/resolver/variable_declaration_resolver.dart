@@ -51,6 +51,8 @@ class VariableDeclarationResolver {
     InferenceContext.setTypeFromNode(initializer, node);
     if (isTopLevel) {
       _flowAnalysis?.topLevelDeclaration_enter(node, null, null);
+    } else if (element.isLate) {
+      _flowAnalysis?.flow?.lateInitializer_begin(node);
     }
 
     initializer.accept(_resolver);
@@ -62,6 +64,8 @@ class VariableDeclarationResolver {
 
     if (isTopLevel) {
       _flowAnalysis?.topLevelDeclaration_exit();
+    } else if (element.isLate) {
+      _flowAnalysis?.flow?.lateInitializer_end();
     }
 
     // Note: in addition to cloning the initializers for const variables, we

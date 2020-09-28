@@ -5630,8 +5630,10 @@ class InferenceVisitor
       VariableSet node, DartType typeContext) {
     VariableDeclarationImpl variable = node.variable;
     bool isDefinitelyAssigned = false;
+    bool isDefinitelyUnassigned = false;
     if (inferrer.isNonNullableByDefault) {
       isDefinitelyAssigned = inferrer.flowAnalysis.isAssigned(variable);
+      isDefinitelyUnassigned = inferrer.flowAnalysis.isUnassigned(variable);
     }
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     DartType promotedType;
@@ -5677,6 +5679,17 @@ class InferenceVisitor
                     node.fileOffset,
                     node.variable.name.length));
           }
+        } else if (variable.isStaticLate) {
+          if (!isDefinitelyUnassigned) {
+            return new ExpressionInferenceResult(
+                resultType,
+                inferrer.helper.wrapInProblem(
+                    resultExpression,
+                    templateFinalPossiblyAssignedError
+                        .withArguments(node.variable.name),
+                    node.fileOffset,
+                    node.variable.name.length));
+          }
         }
       }
     }
@@ -5692,9 +5705,15 @@ class InferenceVisitor
     ExpressionInferenceResult initializerResult;
     inferrer.flowAnalysis.declare(node, node.initializer != null);
     if (node.initializer != null) {
+      if (node.isLate) {
+        inferrer.flowAnalysis.lateInitializer_begin(node);
+      }
       initializerResult = inferrer.inferExpression(node.initializer,
           declaredType, !inferrer.isTopLevel || node.isImplicitlyTyped,
           isVoidAllowed: true);
+      if (node.isLate) {
+        inferrer.flowAnalysis.lateInitializer_end();
+      }
       inferredType = inferrer.inferDeclarationType(
           initializerResult.inferredType,
           forSyntheticVariable: node.name == null);

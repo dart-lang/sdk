@@ -1094,6 +1094,43 @@ void f(A a) {
     assertType(assignment.rightHandSide, 'int');
   }
 
+  test_propertyAccess_instance_fromMixins_compound() async {
+    await assertNoErrorsInCode('''
+class M1 {
+  int get x => 0;
+  set x(num _) {}
+}
+
+class M2 {
+  int get x => 0;
+  set x(num _) {}
+}
+
+class C with M1, M2 {
+}
+
+void f(C c) {
+  (c).x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x', of: 'M2'),
+      readType: 'int',
+      writeElement: findElement.setter('x', of: 'M2'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
   test_propertyAccess_instance_simple() async {
     await assertNoErrorsInCode(r'''
 class A {
