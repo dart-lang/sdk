@@ -4470,37 +4470,6 @@ ErrorPtr Debugger::PauseStepping() {
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != NULL);
 
-  // Since lazy async stacks doesn't use the _asyncStackTraceHelper runtime
-  // entry, we need to manually set a synthetic breakpoint for async_op before
-  // we enter it.
-  if (FLAG_lazy_async_stacks) {
-    // async and async* functions always contain synthetic async_ops.
-    if ((frame->function().IsAsyncFunction() ||
-         frame->function().IsAsyncGenerator())) {
-      ASSERT(!frame->GetSavedCurrentContext().IsNull());
-      ASSERT(frame->GetSavedCurrentContext().num_variables() >
-             Context::kAsyncCompleterIndex);
-
-      const Object& jump_var = Object::Handle(
-          frame->GetSavedCurrentContext().At(Context::kAsyncCompleterIndex));
-
-      // Only set breakpoint when entering async_op the first time.
-      // :async_completer_var should be uninitialised at this point:
-      if (jump_var.IsNull()) {
-        const Function& async_op =
-            Function::Handle(frame->function().GetGeneratedClosure());
-        if (!async_op.IsNull()) {
-          SetBreakpointAtAsyncOp(async_op);
-          // After setting the breakpoint we stop stepping and continue the
-          // debugger until the next breakpoint, to step over all the
-          // synthetic code.
-          Continue();
-          return Error::null();
-        }
-      }
-    }
-  }
-
   if (FLAG_async_debugger) {
     if ((async_stepping_fp_ != 0) && (top_frame_awaiter_ != Object::null())) {
       // Check if the user has single stepped out of an async function with
@@ -4536,6 +4505,37 @@ ErrorPtr Debugger::PauseStepping() {
       // stepping breaks for it. Pause at the next appropriate location
       // and let the user set the "interesting" frame again.
       ResetSteppingFramePointers();
+    }
+  }
+
+  // Since lazy async stacks doesn't use the _asyncStackTraceHelper runtime
+  // entry, we need to manually set a synthetic breakpoint for async_op before
+  // we enter it.
+  if (FLAG_lazy_async_stacks) {
+    // async and async* functions always contain synthetic async_ops.
+    if ((frame->function().IsAsyncFunction() ||
+         frame->function().IsAsyncGenerator())) {
+      ASSERT(!frame->GetSavedCurrentContext().IsNull());
+      ASSERT(frame->GetSavedCurrentContext().num_variables() >
+             Context::kAsyncCompleterIndex);
+
+      const Object& async_completer = Object::Handle(
+          frame->GetSavedCurrentContext().At(Context::kAsyncCompleterIndex));
+
+      // Only set breakpoint when entering async_op the first time.
+      // :async_completer_var should be uninitialised at this point:
+      if (async_completer.IsNull()) {
+        const Function& async_op =
+            Function::Handle(frame->function().GetGeneratedClosure());
+        if (!async_op.IsNull()) {
+          SetBreakpointAtAsyncOp(async_op);
+          // After setting the breakpoint we stop stepping and continue the
+          // debugger until the next breakpoint, to step over all the
+          // synthetic code.
+          Continue();
+          return Error::null();
+        }
+      }
     }
   }
 

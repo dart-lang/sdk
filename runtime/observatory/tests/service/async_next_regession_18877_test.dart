@@ -38,10 +38,12 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver, // foo()
+  stoppedAtLine(LINE_A),
   asyncNext,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   stepOver, // foo()
+  stoppedAtLine(LINE_B),
   asyncNext,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),

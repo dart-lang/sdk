@@ -30,13 +30,8 @@ var tests = <IsolateTest>[
     // See issue #27128.
     var frame = stack['frames'][0];
     expect(frame.function.qualifiedName, equals('helper.async_op'));
-    if (useCausalAsyncStacks) {
-      expect(await frame.location.getLine(), equals(14));
-      expect(await frame.location.getColumn(), equals(1));
-    } else {
-      expect(await frame.location.getLine(), equals(12));
-      expect(await frame.location.getColumn(), equals(7));
-    }
+    expect(await frame.location.getLine(), equals(14));
+    expect(await frame.location.getColumn(), equals(1));
 
     frame = stack['frames'][1];
     expect(frame.function.name, equals('testMain'));
