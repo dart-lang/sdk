@@ -2870,6 +2870,7 @@ sufficient
 sufficiently
 suffix
 suffixes
+sugar
 suggested
 suitable
 suites
@@ -2997,6 +2998,7 @@ throwing
 thrown
 throws
 thumb
+thunk
 thus
 time
 timeline

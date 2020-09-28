@@ -3578,7 +3578,7 @@ class _AssignedVariablesHarness {
   void function(_Node node, void Function() callback) {
     _assignedVariables.beginNode();
     callback();
-    _assignedVariables.endNode(node, isClosure: true);
+    _assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
   }
 
   void nest(_Node node, void Function() callback) {

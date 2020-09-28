@@ -2394,10 +2394,30 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginVariableInitializer(Token token) {
+    if ((currentLocalVariableModifiers & lateMask) != 0) {
+      // This is matched by the call to [endNode] in [endVariableInitializer].
+      typeInferrer?.assignedVariables?.beginNode();
+    }
+  }
+
+  @override
   void endVariableInitializer(Token assignmentOperator) {
     debugEvent("VariableInitializer");
     assert(assignmentOperator.stringValue == "=");
+    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo;
+    bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
+    if (isLate) {
+      assignedVariablesInfo = typeInferrer?.assignedVariables
+          ?.deferNode(isClosureOrLateVariableInitializer: true);
+    }
     pushNewLocalVariable(popForValue(), equalsToken: assignmentOperator);
+    if (isLate) {
+      VariableDeclaration node = peek();
+      // This is matched by the call to [beginNode] in
+      // [beginVariableInitializer].
+      typeInferrer?.assignedVariables?.storeInfo(node, assignedVariablesInfo);
+    }
   }
 
   @override
@@ -4847,8 +4867,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..fileOffset = formals.charOffset;
         exitLocalScope();
         // This is matched by the call to [beginNode] in [enterFunction].
-        typeInferrer?.assignedVariables
-            ?.endNode(variable.initializer, isClosure: true);
+        typeInferrer?.assignedVariables?.endNode(variable.initializer,
+            isClosureOrLateVariableInitializer: true);
         Expression expression = new NamedFunctionExpressionJudgment(variable);
         if (oldInitializer != null) {
           // This must have been a compile-time error.
@@ -4879,7 +4899,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           push(declaration);
         }
         // This is matched by the call to [beginNode] in [enterFunction].
-        typeInferrer?.assignedVariables?.endNode(declaration, isClosure: true);
+        typeInferrer?.assignedVariables
+            ?.endNode(declaration, isClosureOrLateVariableInitializer: true);
       }
     } else {
       return unhandled("${declaration.runtimeType}", "pushNamedFunction",
@@ -4928,7 +4949,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     push(result);
     // This is matched by the call to [beginNode] in [enterFunction].
-    typeInferrer?.assignedVariables?.endNode(result, isClosure: true);
+    typeInferrer?.assignedVariables
+        ?.endNode(result, isClosureOrLateVariableInitializer: true);
   }
 
   @override

@@ -17,7 +17,8 @@ main() {
     assignedVariables.write(v1);
     assignedVariables.beginNode();
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(), isClosure: true);
+    assignedVariables.endNode(_Node(),
+        isClosureOrLateVariableInitializer: true);
     assignedVariables.write(v3);
     assignedVariables.finish();
     expect(assignedVariables.capturedAnywhere, {v2});
@@ -32,7 +33,8 @@ main() {
     assignedVariables.declare(v2);
     assignedVariables.write(v1);
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(), isClosure: true);
+    assignedVariables.endNode(_Node(),
+        isClosureOrLateVariableInitializer: true);
     assignedVariables.finish();
     expect(assignedVariables.capturedAnywhere, {v1});
   });
@@ -48,7 +50,8 @@ main() {
     assignedVariables.write(v1);
     assignedVariables.beginNode();
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(), isClosure: true);
+    assignedVariables.endNode(_Node(),
+        isClosureOrLateVariableInitializer: true);
     assignedVariables.write(v3);
     assignedVariables.finish();
     expect(assignedVariables.writtenAnywhere, {v1, v2, v3});
@@ -102,7 +105,7 @@ main() {
     assignedVariables.beginNode();
     assignedVariables.write(v1);
     var node = _Node();
-    assignedVariables.endNode(node, isClosure: true);
+    assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
     assignedVariables.finish();
     expect(assignedVariables.writtenInNode(node), {v1});
   });
@@ -115,13 +118,15 @@ main() {
     assignedVariables.declare(v2);
     assignedVariables.beginNode();
     assignedVariables.write(v1);
-    assignedVariables.endNode(_Node(), isClosure: true);
+    assignedVariables.endNode(_Node(),
+        isClosureOrLateVariableInitializer: true);
     assignedVariables.beginNode();
     var node = _Node();
     assignedVariables.endNode(node);
     assignedVariables.beginNode();
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(), isClosure: true);
+    assignedVariables.endNode(_Node(),
+        isClosureOrLateVariableInitializer: true);
     assignedVariables.finish();
     expect(assignedVariables.capturedInNode(node), isEmpty);
   });
@@ -133,7 +138,8 @@ main() {
     assignedVariables.beginNode();
     assignedVariables.beginNode();
     assignedVariables.write(v1);
-    assignedVariables.endNode(_Node(), isClosure: true);
+    assignedVariables.endNode(_Node(),
+        isClosureOrLateVariableInitializer: true);
     var node = _Node();
     assignedVariables.endNode(node);
     assignedVariables.finish();
@@ -153,9 +159,11 @@ main() {
       assignedVariables.write(v1);
       assignedVariables.beginNode();
       assignedVariables.write(v2);
-      assignedVariables.endNode(_Node(), isClosure: true);
+      assignedVariables.endNode(_Node(),
+          isClosureOrLateVariableInitializer: true);
       var innerNode = _Node();
-      assignedVariables.endNode(innerNode, isClosure: false);
+      assignedVariables.endNode(innerNode,
+          isClosureOrLateVariableInitializer: false);
       var outerNode = _Node();
       assignedVariables.endNode(outerNode);
       assignedVariables.finish();
@@ -176,9 +184,11 @@ main() {
       assignedVariables.write(v1);
       assignedVariables.beginNode();
       assignedVariables.write(v2);
-      assignedVariables.endNode(_Node(), isClosure: true);
+      assignedVariables.endNode(_Node(),
+          isClosureOrLateVariableInitializer: true);
       var innerNode = _Node();
-      assignedVariables.endNode(innerNode, isClosure: true);
+      assignedVariables.endNode(innerNode,
+          isClosureOrLateVariableInitializer: true);
       var outerNode = _Node();
       assignedVariables.endNode(outerNode);
       assignedVariables.finish();
@@ -233,7 +243,8 @@ main() {
     assignedVariables.beginNode();
     assignedVariables.write(v1);
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(), isClosure: true);
+    assignedVariables.endNode(_Node(),
+        isClosureOrLateVariableInitializer: true);
     assignedVariables.discardNode();
     assignedVariables.endNode(node);
     assignedVariables.finish();
@@ -254,7 +265,8 @@ main() {
     assignedVariables.declare(v3);
     assignedVariables.beginNode();
     assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(), isClosure: true);
+    assignedVariables.endNode(_Node(),
+        isClosureOrLateVariableInitializer: true);
     var info = assignedVariables.deferNode();
     assignedVariables.beginNode();
     assignedVariables.write(v4);

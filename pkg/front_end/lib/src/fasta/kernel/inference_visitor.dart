@@ -5705,9 +5705,15 @@ class InferenceVisitor
     ExpressionInferenceResult initializerResult;
     inferrer.flowAnalysis.declare(node, node.initializer != null);
     if (node.initializer != null) {
+      if (node.isLate) {
+        inferrer.flowAnalysis.lateInitializer_begin(node);
+      }
       initializerResult = inferrer.inferExpression(node.initializer,
           declaredType, !inferrer.isTopLevel || node.isImplicitlyTyped,
           isVoidAllowed: true);
+      if (node.isLate) {
+        inferrer.flowAnalysis.lateInitializer_end();
+      }
       inferredType = inferrer.inferDeclarationType(
           initializerResult.inferredType,
           forSyntheticVariable: node.name == null);

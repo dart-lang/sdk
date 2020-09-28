@@ -46,9 +46,8 @@ class AssignedVariables<Node, Variable> {
 
   /// This method should be called during pre-traversal, to mark the start of a
   /// loop statement, switch statement, try statement, loop collection element,
-  /// local function, or closure which might need to be queried later.
-  ///
-  /// [isClosure] should be true if the node is a local function or closure.
+  /// local function, closure, or late variable initializer which might need to
+  /// be queried later.
   ///
   /// The span between the call to [beginNode] and [endNode] should cover any
   /// statements and expressions that might be crossed by a backwards jump.  So
@@ -71,23 +70,26 @@ class AssignedVariables<Node, Variable> {
 
   /// This method may be called during pre-traversal, to mark the end of a
   /// loop statement, switch statement, try statement, loop collection element,
-  /// local function, or closure which might need to be queried later.
+  /// local function, closure, or late variable initializer which might need to
+  /// be queried later.
   ///
-  /// [isClosure] should be true if the node is a local function or closure.
+  /// [isClosureOrLateVariableInitializer] should be true if the node is a local
+  /// function or closure, or a late variable initializer.
   ///
   /// In contrast to [endNode], this method doesn't store the data gathered for
   /// the node for later use; instead it returns it to the caller.  At a later
   /// time, the caller should pass the returned data to [storeNodeInfo].
   ///
   /// See [beginNode] for more details.
-  AssignedVariablesNodeInfo<Variable> deferNode({bool isClosure: false}) {
+  AssignedVariablesNodeInfo<Variable> deferNode(
+      {bool isClosureOrLateVariableInitializer: false}) {
     AssignedVariablesNodeInfo<Variable> info = _stack.removeLast();
     info._written.removeAll(info._declared);
     info._captured.removeAll(info._declared);
     AssignedVariablesNodeInfo<Variable> last = _stack.last;
     last._written.addAll(info._written);
     last._captured.addAll(info._captured);
-    if (isClosure) {
+    if (isClosureOrLateVariableInitializer) {
       last._captured.addAll(info._written);
       _anywhere._captured.addAll(info._written);
     }
@@ -117,16 +119,22 @@ class AssignedVariables<Node, Variable> {
 
   /// This method should be called during pre-traversal, to mark the end of a
   /// loop statement, switch statement, try statement, loop collection element,
-  /// local function, or closure which might need to be queried later.
+  /// local function, closure, or late variable initializer which might need to
+  /// be queried later.
   ///
-  /// [isClosure] should be true if the node is a local function or closure.
+  /// [isClosureOrLateVariableInitializer] should be true if the node is a local
+  /// function or closure, or a late variable initializer.
   ///
   /// This is equivalent to a call to [deferNode] followed immediately by a call
   /// to [storeInfo].
   ///
   /// See [beginNode] for more details.
-  void endNode(Node node, {bool isClosure: false}) {
-    storeInfo(node, deferNode(isClosure: isClosure));
+  void endNode(Node node, {bool isClosureOrLateVariableInitializer: false}) {
+    storeInfo(
+        node,
+        deferNode(
+            isClosureOrLateVariableInitializer:
+                isClosureOrLateVariableInitializer));
   }
 
   /// Call this after visiting the code to be analyzed, to check invariants.
@@ -568,6 +576,12 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
 
   /// Call this method after visiting a labeled statement.
   void labeledStatement_end();
+
+  /// Call this method just before visiting the initializer of a late variable.
+  void lateInitializer_begin(Node node);
+
+  /// Call this method just after visiting the initializer of a late variable.
+  void lateInitializer_end();
 
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
@@ -1034,6 +1048,17 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   void labeledStatement_end() {
     return _wrap(
         'labeledStatement_end()', () => _wrapped.labeledStatement_end());
+  }
+
+  @override
+  void lateInitializer_begin(Node node) {
+    _wrap('lateInitializer_begin($node)',
+        () => _wrapped.lateInitializer_begin(node));
+  }
+
+  @override
+  void lateInitializer_end() {
+    _wrap('lateInitializer_end()', () => _wrapped.lateInitializer_end());
   }
 
   @override
@@ -2840,6 +2865,26 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _BranchTargetContext<Variable, Type> context =
         _stack.removeLast() as _BranchTargetContext<Variable, Type>;
     _current = _join(_current, context._breakModel);
+  }
+
+  @override
+  void lateInitializer_begin(Node node) {
+    // Late initializers are treated the same as function expressions.
+    // Essentially we act as though `late x = expr;` is syntactic sugar for
+    // `late x = LAZY_MAGIC(() => expr);` (where `LAZY_MAGIC` creates a lazy
+    // evaluation thunk that gets replaced by the result of `expr` once it is
+    // evaluated).
+    functionExpression_begin(node);
+  }
+
+  @override
+  void lateInitializer_end() {
+    // Late initializers are treated the same as function expressions.
+    // Essentially we act as though `late x = expr;` is syntactic sugar for
+    // `late x = LAZY_MAGIC(() => expr);` (where `LAZY_MAGIC` creates a lazy
+    // evaluation thunk that gets replaced by the result of `expr` once it is
+    // evaluated).
+    functionExpression_end();
   }
 
   @override
