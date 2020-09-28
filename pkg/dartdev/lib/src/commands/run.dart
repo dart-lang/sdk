@@ -179,7 +179,9 @@ class RunCommand extends DartdevCommand<int> {
       // The arg.contains('.') matches a file name pattern, i.e. some 'foo.dart'
       if (arg.contains('.')) {
         argsContainFile = true;
-      } else if (arg == '--help' || arg == '-h' || arg == 'help') {
+      } else if (!argsContainFile &&
+          (arg == '--help' || arg == '-h' || arg == 'help')) {
+        // Only print usage if a help flag is provided before the script name.
         printUsage();
         return 0;
       }
