@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'invalid_value_one_of_test.dart' as invalid_value_one_of;
 import 'invalid_value_test.dart' as invalid_value;
 import 'missing_key_test.dart' as missing_key;
 import 'missing_template_end_test.dart' as missing_template_end;
@@ -13,6 +14,7 @@ import 'yaml_syntax_error_test.dart' as yaml_syntax_error;
 
 void main() {
   defineReflectiveSuite(() {
+    invalid_value_one_of.main();
     invalid_value.main();
     missing_key.main();
     missing_template_end.main();

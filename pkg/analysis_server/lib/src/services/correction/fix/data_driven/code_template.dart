@@ -17,7 +17,9 @@ class CodeTemplate {
 
   /// Initialize a newly generated code template with the given [kind] and
   /// [components].
-  CodeTemplate(this.kind, this.components);
+  CodeTemplate(this.kind, this.components)
+      : assert(kind != null),
+        assert(components != null);
 
   /// Use the [context] to validate that this template will be able to generate
   /// a value.

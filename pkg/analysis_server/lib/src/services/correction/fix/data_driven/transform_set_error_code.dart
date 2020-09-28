@@ -20,6 +20,15 @@ class TransformSetErrorCode extends ErrorCode {
 
   /**
    * Parameters:
+   * 0: the key with which the value is associated
+   * 1: the allowed values as a comma-separated list
+   */
+  static const TransformSetErrorCode invalidValueOneOf = TransformSetErrorCode(
+      'invalid_value_one_of',
+      "The value of '{0}' must be one of the following: '{1}'.");
+
+  /**
+   * Parameters:
    * 0: the missing key
    */
   static const TransformSetErrorCode missingKey =

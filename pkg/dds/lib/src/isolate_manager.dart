@@ -160,6 +160,9 @@ class _IsolateManager {
 
   /// Initializes the set of running isolates.
   Future<void> initialize() async {
+    if (_initialized) {
+      return;
+    }
     final vm = await dds._vmServiceClient.sendRequest('getVM');
     final List<Map> isolateRefs = vm['isolates'].cast<Map<String, dynamic>>();
     // Check the pause event for each isolate to determine whether or not the
@@ -179,6 +182,7 @@ class _IsolateManager {
         isolateStarted(id, name);
       }
     }
+    _initialized = true;
   }
 
   /// Initializes state for a newly started isolate.
@@ -232,6 +236,7 @@ class _IsolateManager {
     return resumeResult;
   }
 
+  bool _initialized = false;
   final _DartDevelopmentService dds;
   final Map<String, _RunningIsolate> isolates = {};
 }
