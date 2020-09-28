@@ -147,19 +147,21 @@ class TransformSetParser {
             TransformSetErrorCode.missingTemplateEnd,
             templateOffset + variableStart,
             2);
-        return null;
+        // Ignore the invalid component, treating it as if it extended to the
+        // end of the template.
+        return components;
       } else {
         var name = template.substring(variableStart + 2, endIndex).trim();
-        var extractor = generators[name];
-        if (extractor == null) {
+        var generator = generators[name];
+        if (generator == null) {
           errorReporter.reportErrorForOffset(
               TransformSetErrorCode.undefinedVariable,
               templateOffset + template.indexOf(name, variableStart),
               name.length,
               [name]);
-          return null;
+          // Ignore the invalid component.
         } else {
-          components.add(TemplateVariable(extractor));
+          components.add(TemplateVariable(generator));
         }
       }
       textStart = endIndex + 2;
