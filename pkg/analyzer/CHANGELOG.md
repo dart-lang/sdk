@@ -1,3 +1,7 @@
+## 0.40.4-dev
+* Deprecated `IndexExpression.auxiliaryElements` and
+  `SimpleIdentifier.auxiliaryElements`. Use `CompoundAssignmentExpression`.
+
 ## 0.40.3
 * Updated the current language version to `2.11`.
 * Bug fixes: 43541, 27896, 28066, 28066, 43497, 43478, 28066, 43465,

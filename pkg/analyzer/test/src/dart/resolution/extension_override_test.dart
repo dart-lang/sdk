@@ -593,6 +593,7 @@ f(C c) => E(c).a;
       if (access.propertyName.inGetterContext()) {
         PropertyAccessorElement expectedGetter = extension.getGetter('s');
         Element actualGetter =
+            // ignore: deprecated_member_use_from_same_package
             access.propertyName.auxiliaryElements.staticElement;
         expect(actualGetter, expectedGetter);
       }

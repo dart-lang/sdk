@@ -683,6 +683,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (hasRead) {
       var readElement = assignment.readElement;
       if (readElement is PropertyAccessorElement) {
+        // ignore: deprecated_member_use_from_same_package
         leftIdentifier.auxiliaryElements = AuxiliaryElements(readElement);
       }
     }
