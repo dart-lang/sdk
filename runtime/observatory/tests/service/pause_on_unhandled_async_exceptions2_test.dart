@@ -44,20 +44,13 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     expect(stack['asyncCausalFrames'], isNotNull);
     var asyncStack = stack['asyncCausalFrames'];
-    if (useCausalAsyncStacks) {
-      expect(asyncStack.length, greaterThanOrEqualTo(4));
-      expect(asyncStack[0].toString(), contains('doThrow'));
-      expect(asyncStack[1].toString(), contains('asyncThrower'));
-      expect(asyncStack[2].kind, equals(M.FrameKind.asyncSuspensionMarker));
-      expect(asyncStack[3].toString(), contains('testeeMain'));
-      expect(await asyncStack[3].location.toUserString(),
-          contains('.dart:$LINE_A'));
-    } else {
-      expect(asyncStack.length, greaterThanOrEqualTo(2));
-      expect(asyncStack[0].toString(), contains('doThrow'));
-      expect(asyncStack[1].toString(), contains('asyncThrower'));
-      // There was no await'er for "doThrow()".
-    }
+    expect(asyncStack.length, greaterThanOrEqualTo(4));
+    expect(asyncStack[0].toString(), contains('doThrow'));
+    expect(asyncStack[1].toString(), contains('asyncThrower'));
+    expect(asyncStack[2].kind, equals(M.FrameKind.asyncSuspensionMarker));
+    expect(asyncStack[3].toString(), contains('testeeMain'));
+    expect(
+        await asyncStack[3].location.toUserString(), contains('.dart:$LINE_A'));
   }
 ];
 
