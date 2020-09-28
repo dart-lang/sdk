@@ -1,3 +1,9 @@
+# 1.4.0
+- Added `done` property to `DartDevelopmentService`.
+- Throw `DartDeveloperServiceException` when shutdown occurs during startup.
+- Fixed issue where `StateError` was thrown when DDS was shutdown with pending
+  requests.
+
 # 1.3.5
 
 - Fixed issue where clients subscribing to the `Service` stream were not being
