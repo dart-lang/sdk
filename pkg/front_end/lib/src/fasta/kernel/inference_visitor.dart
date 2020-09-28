@@ -5630,8 +5630,10 @@ class InferenceVisitor
       VariableSet node, DartType typeContext) {
     VariableDeclarationImpl variable = node.variable;
     bool isDefinitelyAssigned = false;
+    bool isDefinitelyUnassigned = false;
     if (inferrer.isNonNullableByDefault) {
       isDefinitelyAssigned = inferrer.flowAnalysis.isAssigned(variable);
+      isDefinitelyUnassigned = inferrer.flowAnalysis.isUnassigned(variable);
     }
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     DartType promotedType;
@@ -5673,6 +5675,17 @@ class InferenceVisitor
                 inferrer.helper.wrapInProblem(
                     resultExpression,
                     templateNonNullableLateDefinitelyAssignedError
+                        .withArguments(node.variable.name),
+                    node.fileOffset,
+                    node.variable.name.length));
+          }
+        } else if (variable.isStaticLate) {
+          if (!isDefinitelyUnassigned) {
+            return new ExpressionInferenceResult(
+                resultType,
+                inferrer.helper.wrapInProblem(
+                    resultExpression,
+                    templateFinalPossiblyAssignedError
                         .withArguments(node.variable.name),
                     node.fileOffset,
                     node.variable.name.length));

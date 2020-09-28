@@ -4230,6 +4230,17 @@ NonNullableLateDefinitelyAssignedError:
       t = 0;
     }
 
+FinalPossiblyAssignedError:
+  template: "Final variable '#name' might already be assigned at this point."
+  analyzerCode: ASSIGNMENT_TO_FINAL_LOCAL
+  configuration: nnbd-strong
+  script: |
+    method() {
+      final int i;
+      i = 0;
+      i = 0;
+    }
+
 NonAgnosticConstant:
   template: "Constant value is not strong/weak mode agnostic."
 

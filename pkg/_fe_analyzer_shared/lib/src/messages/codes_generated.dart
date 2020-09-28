@@ -4039,6 +4039,32 @@ Message _withArgumentsFinalNotAssignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFinalPossiblyAssignedError = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Final variable '#name' might already be assigned at this point.""",
+    withArguments: _withArgumentsFinalPossiblyAssignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFinalPossiblyAssignedError =
+    const Code<Message Function(String name)>(
+        "FinalPossiblyAssignedError", templateFinalPossiblyAssignedError,
+        analyzerCodes: <String>["ASSIGNMENT_TO_FINAL_LOCAL"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalPossiblyAssignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalPossiblyAssignedError,
+      message:
+          """Final variable '${name}' might already be assigned at this point.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeForInLoopExactlyOneVariable =
     messageForInLoopExactlyOneVariable;
 
