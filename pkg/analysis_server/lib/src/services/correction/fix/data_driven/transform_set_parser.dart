@@ -219,6 +219,15 @@ class TransformSetParser {
     return null;
   }
 
+  /// Report that the value represented by the [node] does not have the
+  /// [expectedType], using the [context] to get the key to use in the message.
+  Null _reportInvalidValueOneOf(
+      YamlNode node, ErrorContext context, List<String> allowedValues) {
+    _reportError(TransformSetErrorCode.invalidValueOneOf, node,
+        [context.key, allowedValues.join(', ')]);
+    return null;
+  }
+
   /// Report that a required key is missing, using the [context] to locate the
   /// node associated with the diagnostic and the key to use in the message.
   Null _reportMissingKey(ErrorContext context) {
@@ -374,19 +383,25 @@ class TransformSetParser {
     if (node is YamlMap) {
       var kind = _translateString(node.valueAt(_kindKey),
           ErrorContext(key: _kindKey, parentNode: node));
-      if (kind == _addTypeParameterKind) {
-        return _translateAddTypeParameterChange(node);
-      } else if (kind == _renameKind) {
-        return _translateRenameChange(node);
+      if (kind == null) {
+        return null;
       } else if (kind == _addParameterKind) {
         _translateAddParameterChange(node);
         return null;
+      } else if (kind == _addTypeParameterKind) {
+        return _translateAddTypeParameterChange(node);
       } else if (kind == _removeParameterKind) {
         _translateRemoveParameterChange(node);
         return null;
+      } else if (kind == _renameKind) {
+        return _translateRenameChange(node);
       }
-      // TODO(brianwilkerson) Report the invalid change kind.
-      return null;
+      return _reportInvalidValueOneOf(node, context, [
+        _addParameterKind,
+        _addTypeParameterKind,
+        _removeParameterKind,
+        _renameKind,
+      ]);
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }
@@ -427,10 +442,11 @@ class TransformSetParser {
           return null;
         }
       }
-      var extractors = _translateTemplateVariables(node.valueAt(_variablesKey),
+      // TODO(brianwilkerson) We should report unreferenced variables.
+      var generators = _translateTemplateVariables(node.valueAt(_variablesKey),
           ErrorContext(key: _variablesKey, parentNode: node));
       var components =
-          _extractTemplateComponents(template, extractors, templateOffset);
+          _extractTemplateComponents(template, generators, templateOffset);
       return CodeTemplate(kind, components);
     } else if (node == null) {
       if (required) {
@@ -670,7 +686,7 @@ class TransformSetParser {
       for (var entry in node.nodes.entries) {
         var name = _translateKey(entry.key);
         if (name != null) {
-          var value = _translateValueExtractor(
+          var value = _translateValueGenerator(
               entry.value, ErrorContext(key: name, parentNode: node));
           if (value != null) {
             generators[name] = value;
@@ -784,17 +800,21 @@ class TransformSetParser {
   /// extractor, or `null` if the [node] does not represent a valid value
   /// extractor. If the [node] is not valid, use the [context] to report the
   /// error.
-  ValueGenerator _translateValueExtractor(YamlNode node, ErrorContext context) {
+  ValueGenerator _translateValueGenerator(YamlNode node, ErrorContext context) {
     if (node is YamlMap) {
       var kind = _translateString(node.valueAt(_kindKey),
           ErrorContext(key: _kindKey, parentNode: node));
-      if (kind == _argumentKind) {
+      if (kind == null) {
+        return null;
+      } else if (kind == _argumentKind) {
         return _translateArgumentExtractor(node);
       } else if (kind == _importKind) {
         return _translateImportValue(node);
       }
-      // TODO(brianwilkerson) Report the invalid extractor kind.
-      return null;
+      return _reportInvalidValueOneOf(node, context, [
+        _argumentKind,
+        _importKind,
+      ]);
     } else if (node == null) {
       return _reportMissingKey(context);
     } else {
