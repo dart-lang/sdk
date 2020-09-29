@@ -813,24 +813,97 @@ dart_ci_sandbox_builder(
     },
 )
 
-# vm|nnbd
+# vm|nnbd|jit
 dart_vm_extra_builder(
     "vm-kernel-nnbd-linux-debug-x64",
-    category = "vm|nnbd|d",
+    category = "vm|nnbd|jit|d",
     on_cq = True,
 )
 dart_vm_extra_builder(
     "vm-kernel-nnbd-linux-release-x64",
-    category = "vm|nnbd|r",
+    category = "vm|nnbd|jit|r",
     on_cq = True,
 )
+nightly_builder(
+    "vm-kernel-nnbd-linux-debug-ia32",
+    category = "vm|nnbd|jit|d3",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-nnbd-linux-release-ia32",
+    category = "vm|nnbd|jit|r3",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-nnbd-linux-release-simarm",
+    category = "vm|nnbd|jit|ra",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-nnbd-linux-release-simarm64",
+    category = "vm|nnbd|jit|ra6",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-nnbd-mac-debug-x64",
+    category = "vm|nnbd|jit|md",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-nnbd-mac-release-x64",
+    category = "vm|nnbd|jit|mr",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-nnbd-win-release-ia32",
+    category = "vm|nnbd|jit|wr3",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-nnbd-win-debug-x64",
+    category = "vm|nnbd|jit|wd",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-nnbd-win-release-x64",
+    category = "vm|nnbd|jit|wr",
+    channels = ["try"],
+)
+
+# vm|nnbd|aot
 dart_vm_extra_builder(
     "vm-kernel-precomp-nnbd-linux-release-x64",
     category = "vm|nnbd|aot|r",
 )
-dart_vm_extra_builder(
+nightly_builder(
+    "vm-kernel-precomp-nnbd-linux-debug-simarm_x64",
+    category = "vm|nnbd|aot|da",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-precomp-nnbd-linux-release-simarm_x64",
+    category = "vm|nnbd|aot|ra",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-precomp-nnbd-linux-debug-x64",
+    category = "vm|nnbd|aot|d",
+    channels = ["try"],
+)
+nightly_builder(
     "vm-kernel-precomp-nnbd-linux-release-simarm64",
-    category = "vm|nnbd|aot|a64",
+    category = "vm|nnbd|aot|ra6",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-precomp-nnbd-mac-release-simarm64",
+    category = "vm|nnbd|aot|ma6",
+    channels = ["try"],
+)
+nightly_builder(
+    "vm-kernel-precomp-nnbd-win-release-x64",
+    category = "vm|nnbd|aot|wr",
+    channels = ["try"],
 )
 
 # vm|app-kernel
