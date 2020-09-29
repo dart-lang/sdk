@@ -2804,7 +2804,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
     AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
-        typeInferrer?.assignedVariables?.deferNode();
+        typeInferrer?.assignedVariables?.popNode();
 
     Object variableOrExpression = pop();
     exitLocalScope();
@@ -2812,6 +2812,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     transformCollections = true;
     List<VariableDeclaration> variables =
         _buildForLoopVariableDeclarations(variableOrExpression);
+    typeInferrer?.assignedVariables?.pushNode(assignedVariablesNodeInfo);
     Expression condition;
     if (conditionStatement is ExpressionStatement) {
       condition = conditionStatement.expression;
@@ -2821,14 +2822,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (entry is MapEntry) {
       ForMapEntry result = forest.createForMapEntry(
           offsetForToken(forToken), variables, condition, updates, entry);
-      typeInferrer?.assignedVariables
-          ?.storeInfo(result, assignedVariablesNodeInfo);
+      typeInferrer?.assignedVariables?.endNode(result);
       push(result);
     } else {
       ForElement result = forest.createForElement(offsetForToken(forToken),
           variables, condition, updates, toValue(entry));
-      typeInferrer?.assignedVariables
-          ?.storeInfo(result, assignedVariablesNodeInfo);
+      typeInferrer?.assignedVariables?.endNode(result);
       push(result);
     }
   }
@@ -5039,7 +5038,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     // This is matched by the call to [beginNode] in [handleForInLoopParts].
     AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
-        typeInferrer?.assignedVariables?.deferNode();
+        typeInferrer?.assignedVariables?.popNode();
 
     Expression iterable = popForValue();
     Object lvalue = pop(); // lvalue
@@ -5048,6 +5047,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     transformCollections = true;
     ForInElements elements =
         _computeForInElements(forToken, inToken, lvalue, null);
+    typeInferrer?.assignedVariables?.pushNode(assignedVariablesNodeInfo);
     VariableDeclaration variable = elements.variable;
     Expression problem = elements.expressionProblem;
     if (entry is MapEntry) {
@@ -5060,8 +5060,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           entry,
           problem,
           isAsync: awaitToken != null);
-      typeInferrer?.assignedVariables
-          ?.storeInfo(result, assignedVariablesNodeInfo);
+      typeInferrer?.assignedVariables?.endNode(result);
       push(result);
     } else {
       ForInElement result = forest.createForInElement(
@@ -5073,8 +5072,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           toValue(entry),
           problem,
           isAsync: awaitToken != null);
-      typeInferrer?.assignedVariables
-          ?.storeInfo(result, assignedVariablesNodeInfo);
+      typeInferrer?.assignedVariables?.endNode(result);
       push(result);
     }
   }

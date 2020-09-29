@@ -155,6 +155,22 @@ class AssignedVariables<Node, Variable> {
     }());
   }
 
+  /// Call this method between calls to [beginNode] and [endNode]/[deferNode],
+  /// if it is necessary to temporarily process some code outside the current
+  /// node.  Returns a data structure that should be passed to [pushNode].
+  ///
+  /// This is used by the front end when building for-elements in lists, maps,
+  /// and sets; their initializers are partially built after building their
+  /// loop conditions but before completely building their bodies.
+  AssignedVariablesNodeInfo<Variable> popNode() {
+    return _stack.removeLast();
+  }
+
+  /// Call this method to un-do the effect of [popNode].
+  void pushNode(AssignedVariablesNodeInfo<Variable> node) {
+    _stack.add(node);
+  }
+
   /// Call this method to register that the node [from] for which information
   /// has been stored is replaced by the node [to].
   // TODO(johnniwinther): Remove this when unified collections are encoded as
