@@ -40,6 +40,9 @@ import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
+const M = 1024 * 1024 /*1 MiB*/;
+const memoryCacheSize = 200 * M;
+
 class FileContext {
   final AnalysisOptionsImpl analysisOptions;
   final FileState file;
@@ -113,7 +116,7 @@ class FileResolver {
         getFileDigest = getFileDigest,
         prefetchFiles = prefetchFiles,
         workspace = workspace {
-    byteStore ??= CiderMemoryByteStore();
+    byteStore ??= CiderCachedByteStore(memoryCacheSize);
     this.byteStore = byteStore;
     _libraryContextReset = _LibraryContextReset(
       fileResolver: this,

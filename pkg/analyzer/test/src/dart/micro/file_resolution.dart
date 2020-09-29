@@ -22,7 +22,8 @@ import '../resolution/resolution.dart';
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   static final String _testFile = '/workspace/dart/test/lib/test.dart';
 
-  final CiderByteStore byteStore = CiderMemoryByteStore();
+  final CiderByteStore byteStore =
+      CiderCachedByteStore(20 * 1024 * 1024 /* 20 MB */);
 
   final StringBuffer logBuffer = StringBuffer();
   PerformanceLog logger;

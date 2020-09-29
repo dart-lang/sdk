@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:collection/collection.dart';
 
 /// Store of bytes associated with string keys and a hash.
@@ -23,19 +24,16 @@ abstract class CiderByteStore {
   void put(String key, List<int> signature, List<int> bytes);
 }
 
-class CiderCacheEntry {
-  final List<int> signature;
-  final List<int> bytes;
+class CiderCachedByteStore implements CiderByteStore {
+  final Cache<String, CiderCacheEntry> _cache;
 
-  CiderCacheEntry(this.signature, this.bytes);
-}
-
-class CiderMemoryByteStore implements CiderByteStore {
-  final Map<String, CiderCacheEntry> _map = {};
+  CiderCachedByteStore(int maxCacheSize)
+      : _cache =
+            Cache<String, CiderCacheEntry>(maxCacheSize, (v) => v.bytes.length);
 
   @override
   List<int> get(String key, List<int> signature) {
-    var entry = _map[key];
+    var entry = _cache.get(key, () => null);
 
     if (entry != null &&
         const ListEquality<int>().equals(entry.signature, signature)) {
@@ -46,6 +44,13 @@ class CiderMemoryByteStore implements CiderByteStore {
 
   @override
   void put(String key, List<int> signature, List<int> bytes) {
-    _map[key] = CiderCacheEntry(signature, bytes);
+    _cache.put(key, CiderCacheEntry(signature, bytes));
   }
+}
+
+class CiderCacheEntry {
+  final List<int> signature;
+  final List<int> bytes;
+
+  CiderCacheEntry(this.signature, this.bytes);
 }
