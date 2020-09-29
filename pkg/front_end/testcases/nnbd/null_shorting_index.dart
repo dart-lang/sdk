@@ -26,8 +26,6 @@ main() {
   c1?[0] = 1 + c1[0];
   c1?[0] += 1;
   c1?[0] += 1 + c1[0];
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  //  update.
   ++c1?[0];
   c1?[0]++;
   c1?[0] ??= 1;
@@ -39,8 +37,6 @@ main() {
   c2?[0] = 1 + c2[0];
   c2?[0] += 1;
   c2?[0] += 1 + c2[0];
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  //  update.
   ++c2?[0];
   c2?[0]++;
   c2?[0] ??= 1;
@@ -51,8 +47,6 @@ main() {
   Extension(c2)?[0] = 1 + Extension(c2)[0];
   Extension(c2)?[0] += 1;
   Extension(c2)?[0] += 1 + Extension(c2)[0];
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  //  update.
   ++Extension(c2)?[0];
   Extension(c2)?[0]++;
   Extension(c2)?[0] ??= 1;
@@ -63,8 +57,6 @@ main() {
   c1?.field?[0] = 1 + c1[0];
   c1?.field?[0] += 1;
   c1?.field?[0] += 1 + c1[0];
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  //  update.
   ++c1?.field?[0];
   c1?.field?[0]++;
   c1?.field?[0] ??= 1;
@@ -72,13 +64,11 @@ main() {
 
   Extension(c1?.field)?[0];
   Extension(c1?.field)?[0] = 1;
-  Extension(c1?.field)?[0] = 1 + Extension(c2)?[0]!;
+  Extension(c1?.field)?[0] = 1 + (Extension(c2)?[0]! as int);
   Extension(c1?.field)?[0] += 1;
-  Extension(c1?.field)?[0] += 1 + Extension(c2)?[0]!;
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  //  update.
+  Extension(c1?.field)?[0] += 1 + (Extension(c2)?[0]! as int);
   ++Extension(c1?.field)?[0];
   Extension(c1?.field)?[0]++;
   Extension(c1?.field)?[0] ??= 1;
-  Extension(c1?.field)?[0] ??= 1 + Extension(c2)?[1]!;
+  Extension(c1?.field)?[0] ??= 1 + (Extension(c2)?[1]! as int);
 }
