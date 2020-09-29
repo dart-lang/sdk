@@ -175,6 +175,9 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "flutter_goldens_client": {
     ExperimentalFlag.nonNullable,
   },
+  "intl": {
+    ExperimentalFlag.nonNullable,
+  },
   "js": {
     ExperimentalFlag.nonNullable,
   },
