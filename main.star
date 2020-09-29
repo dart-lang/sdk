@@ -28,9 +28,6 @@ RELEASE_CHANNELS = ["beta", "dev", "stable"]
 CHANNELS = RELEASE_CHANNELS + ["try"]
 BRANCHES = ["master"] + RELEASE_CHANNELS
 
-# TODO(athom): remove this when 89fe12b gets merged into stable.
-RBE_MAC_CHANNELS = [None, "dev", "try"]
-
 TEST_PY_PATHS = "pkg/(async_helper|expect|smith|status_file|test_runner)/.+"
 
 STANDARD_PATHS = [
@@ -418,8 +415,6 @@ def with_goma_rbe(goma_rbe, channel, dimensions, properties):
     Returns:
         A copy of the properties with GOMA on RBE properties set if applicable.
     """
-    if dimensions["os"] == "Mac" and channel not in RBE_MAC_CHANNELS:
-        return properties
     if goma_rbe in (None, True):
         goma_properties = {}
         goma_properties.update(GOMA_RBE)
