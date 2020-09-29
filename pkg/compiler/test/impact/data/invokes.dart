@@ -993,40 +993,48 @@ testLocalFunctionTyped() {
   def:localFunction,
   localFunction(0),
   setRuntimeTypeInfo(2)],
-  type=[inst:Function,
+ type=[
+  inst:Function,
   inst:JSArray<dynamic>,
   inst:JSExtendableArray<dynamic>,
   inst:JSFixedArray<dynamic>,
   inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>]*/
+  inst:JSUnmodifiableArray<dynamic>]
+*/
 testLocalFunctionInvoke() {
   localFunction() {}
   localFunction();
 }
 
-/*member: testLocalFunctionGet:static=[
+/*member: testLocalFunctionGet:
+ static=[
   def:localFunction,
   setRuntimeTypeInfo(2)],
-  type=[inst:Function,
+ type=[
+  inst:Function,
   inst:JSArray<dynamic>,
   inst:JSExtendableArray<dynamic>,
   inst:JSFixedArray<dynamic>,
   inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>]*/
+  inst:JSUnmodifiableArray<dynamic>]
+*/
 testLocalFunctionGet() {
   localFunction() {}
   localFunction;
 }
 
-/*member: testClosure:static=[
+/*member: testClosure:
+ static=[
   def:<anonymous>,
   setRuntimeTypeInfo(2)],
-  type=[inst:Function,
+ type=[
+  inst:Function,
   inst:JSArray<dynamic>,
   inst:JSExtendableArray<dynamic>,
   inst:JSFixedArray<dynamic>,
   inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>]*/
+  inst:JSUnmodifiableArray<dynamic>]
+*/
 testClosure() {
   () {};
 }
@@ -1036,7 +1044,8 @@ testClosure() {
  static=[
   def:<anonymous>,
   setRuntimeTypeInfo(2)],
-  type=[inst:Function,
+ type=[
+  inst:Function,
   inst:JSArray<dynamic>,
   inst:JSExtendableArray<dynamic>,
   inst:JSFixedArray<dynamic>,

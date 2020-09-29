@@ -13,6 +13,7 @@ import 'runtime_type_analysis.dart';
 import 'scope.dart';
 import 'static_type_base.dart';
 import 'static_type_cache.dart';
+import 'util.dart';
 
 /// Enum values for how the target of a static type should be interpreted.
 enum ClassRelation {
@@ -706,7 +707,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       ir.Expression right = node.arguments.positional[0];
       TypeMap afterInvocation = typeMap;
       if (left is ir.VariableGet &&
-          right is ir.NullLiteral &&
+          isNullLiteral(right) &&
           !_invalidatedVariables.contains(left.variable)) {
         // If `left == null` is true, we promote the type of the variable to
         // `Null` by registering that is known _not_ to be of its declared type.
@@ -716,7 +717,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .promote(left.variable, left.variable.type, isTrue: true);
       }
       if (right is ir.VariableGet &&
-          left is ir.NullLiteral &&
+          isNullLiteral(left) &&
           !_invalidatedVariables.contains(right.variable)) {
         // If `null == right` is true, we promote the type of the variable to
         // `Null` by registering that is known _not_ to be of its declared type.

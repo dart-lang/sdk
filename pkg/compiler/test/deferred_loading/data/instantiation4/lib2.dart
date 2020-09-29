@@ -11,7 +11,8 @@ typedef dynamic G<T, S>(T v, S w);
 
 /*member: m:
  OutputUnit(3, {c}),
- constants=[FunctionConstant(getFoo)=OutputUnit(3, {c})]
+ constants=[
+  InstantiationConstant([int*, int*],FunctionConstant(getFoo))=OutputUnit(3, {c})]
 */
 m(int x, int y, {G<int, int> f}) {
   f ??= getFoo;

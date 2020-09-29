@@ -124,7 +124,7 @@ class KFieldAnalysis {
     _classData[class_] = new ClassData(constructors, fieldData);
   }
 
-  void registerStaticField(KField field, InitializerComplexity complexity) {
+  void registerStaticField(KField field, EvaluationComplexity complexity) {
     ir.Field node = _elementMap.getMemberNode(field);
     ir.Expression expression = node.initializer;
     ConstantValue value = _elementMap.getConstantValue(
@@ -156,7 +156,7 @@ class ClassData {
 
 class StaticFieldData {
   final ConstantValue initialValue;
-  final InitializerComplexity complexity;
+  final EvaluationComplexity complexity;
 
   StaticFieldData(this.initialValue, this.complexity);
 
@@ -468,7 +468,7 @@ class JFieldAnalysis {
           if (!isEager) {
             // The field might be eager depending on the initializer complexity
             // and its dependencies.
-            InitializerComplexity complexity = staticFieldData.complexity;
+            EvaluationComplexity complexity = staticFieldData.complexity;
             isEager = complexity?.isEager ?? false;
             if (isEager && complexity.fields != null) {
               for (ir.Field node in complexity.fields) {

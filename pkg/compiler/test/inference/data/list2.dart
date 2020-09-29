@@ -39,7 +39,7 @@ main() {
 bool boolFlag = true;
 
 /*member: data:Container([exact=JSExtendableArray], element: [subclass=JSInt], length: null)*/
-List<int> data = [/*invoke: [exact=JSUInt31]*/ -1, 1];
+List<int> data = [-1, 1];
 
 // -------- List.empty --------
 

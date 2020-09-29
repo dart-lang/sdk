@@ -520,7 +520,7 @@ ir.Node getFieldInitializer(JsToElementMap elementMap, FieldEntity field) {
   ir.Field node = definition.node;
   if (node.isInstanceMember &&
       !node.isFinal &&
-      node.initializer is ir.NullLiteral) {
+      isNullLiteral(node.initializer)) {
     return null;
   }
   return node.initializer;

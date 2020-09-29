@@ -18,10 +18,7 @@ void main() {
       'DeferredGlobalConstant(StringConstant("string1"))': {'lib1'},
       'DeferredGlobalConstant(StringConstant("string2"))': {'lib1'},
       // "string4" is shared between lib1 and lib2, but it can be inlined.
-      'DeferredGlobalConstant(StringConstant("string4"))':
-          // TODO(johnniwinther): Should we inline CFE constants within deferred
-          // library boundaries?
-          {'lib12'},
+      'DeferredGlobalConstant(StringConstant("string4"))': {},
       // C(1) is shared between main, lib1 and lib2. Test that lib1 and lib2
       // each has a reference to it. It is defined in the main output file.
       'ConstructedConstant(C(p=IntConstant(1)))': {'main'},

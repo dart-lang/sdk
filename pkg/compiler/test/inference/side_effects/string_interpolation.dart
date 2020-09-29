@@ -5,9 +5,9 @@
 // @dart = 2.7
 
 /*member: stringInterpolation:SideEffects(reads nothing; writes anything)*/
-stringInterpolation() => '${null}';
+stringInterpolation(o) => '${o}';
 
 /*member: main:SideEffects(reads nothing; writes anything)*/
 main() {
-  stringInterpolation();
+  stringInterpolation(null);
 }
