@@ -1,6 +1,8 @@
-## 0.40.4-dev
+## 0.40.4
 * Deprecated `IndexExpression.auxiliaryElements` and
   `SimpleIdentifier.auxiliaryElements`. Use `CompoundAssignmentExpression`.
+* Removed internal `getReadType`, use `CompoundAssignmentExpression`.
+* Bug fixes: 34699, 43524, 42990.
 
 ## 0.40.3
 * Updated the current language version to `2.11`.
