@@ -555,6 +555,14 @@ def dart_builder(
     dimensions = defaults.dimensions(dimensions)
     properties = defaults.properties(properties)
 
+    os = dimensions["os"]
+    if "win" in name and os != "Windows":
+        fail("builder %s should be a Windows builder" % name)
+    if "mac" in name and os != "Mac":
+        fail("builder %s should be a macOS builder" % name)
+    if "linux" in name and os != "Linux":
+        fail("builder %s should be a Linux builder" % name)
+
     if lkgr:
         lkgr_builders.append({"project": "dart", "bucket": bucket, "builder": name})
 
@@ -848,26 +856,31 @@ nightly_builder(
     "vm-kernel-nnbd-mac-debug-x64",
     category = "vm|nnbd|jit|md",
     channels = ["try"],
+    dimensions = mac(),
 )
 nightly_builder(
     "vm-kernel-nnbd-mac-release-x64",
     category = "vm|nnbd|jit|mr",
     channels = ["try"],
+    dimensions = mac(),
 )
 nightly_builder(
     "vm-kernel-nnbd-win-release-ia32",
     category = "vm|nnbd|jit|wr3",
     channels = ["try"],
+    dimensions = windows(),
 )
 nightly_builder(
     "vm-kernel-nnbd-win-debug-x64",
     category = "vm|nnbd|jit|wd",
     channels = ["try"],
+    dimensions = windows(),
 )
 nightly_builder(
     "vm-kernel-nnbd-win-release-x64",
     category = "vm|nnbd|jit|wr",
     channels = ["try"],
+    dimensions = windows(),
 )
 
 # vm|nnbd|aot
@@ -899,11 +912,13 @@ nightly_builder(
     "vm-kernel-precomp-nnbd-mac-release-simarm64",
     category = "vm|nnbd|aot|ma6",
     channels = ["try"],
+    dimensions = mac(),
 )
 nightly_builder(
     "vm-kernel-precomp-nnbd-win-release-x64",
     category = "vm|nnbd|aot|wr",
     channels = ["try"],
+    dimensions = windows(),
 )
 
 # vm|app-kernel
