@@ -31,6 +31,10 @@ abstract class MigrationResolutionHooks
   DartType modifyInferredParameterType(
       ParameterElement parameter, DartType type);
 
+  /// Called after the resolver has determined the read and write types
+  /// of the assignment expression.
+  void setCompoundAssignmentExpressionTypes(CompoundAssignmentExpression node);
+
   /// Called when the resolver starts or stops making use of a [FlowAnalysis]
   /// instance.
   void setFlowAnalysis(

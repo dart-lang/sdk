@@ -26,7 +26,6 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -471,20 +470,18 @@ class MigrationResolutionHooksImpl
       _wrapExceptions(node, () => type, () {
         var parent = node.parent;
         if (parent is AssignmentExpression) {
-          return (_assignmentLikeExpressionHandlers[parent] ??=
-                  _AssignmentExpressionHandler(parent))
-              .modifySubexpressionType(this, node, type);
+          if (parent.leftHandSide == node) {
+            return type;
+          }
+          return _assignmentLikeExpressionHandlers[parent]
+              .modifyAssignmentRhs(this, node, type);
         } else if (parent is PrefixExpression) {
           if (_isIncrementOrDecrementOperator(parent.operator.type)) {
-            return (_assignmentLikeExpressionHandlers[parent] ??=
-                    _PrefixExpressionHandler(parent))
-                .modifySubexpressionType(this, node, type);
+            return type;
           }
         } else if (parent is PostfixExpression) {
           if (_isIncrementOrDecrementOperator(parent.operator.type)) {
-            return (_assignmentLikeExpressionHandlers[parent] ??=
-                    _PostfixExpressionHandler(parent))
-                .modifySubexpressionType(this, node, type);
+            return type;
           }
         }
         return _modifyRValueType(node, type);
@@ -500,6 +497,30 @@ class MigrationResolutionHooksImpl
       return postMigrationType;
     }
     return type;
+  }
+
+  @override
+  void setCompoundAssignmentExpressionTypes(CompoundAssignmentExpression node) {
+    assert(_assignmentLikeExpressionHandlers[node] == null);
+    if (node is AssignmentExpression) {
+      var handler = _AssignmentExpressionHandler(node);
+      _assignmentLikeExpressionHandlers[node] = handler;
+      handler.handleLValueType(this, node.readType, node.writeType);
+    } else if (node is PrefixExpression) {
+      assert(_isIncrementOrDecrementOperator(node.operator.type));
+      var handler = _PrefixExpressionHandler(node);
+      _assignmentLikeExpressionHandlers[node] = handler;
+      handler.handleLValueType(this, node.readType, node.writeType);
+      handler.handleAssignmentRhs(this, _fixBuilder.typeProvider.intType);
+    } else if (node is PostfixExpression) {
+      assert(_isIncrementOrDecrementOperator(node.operator.type));
+      var handler = _PostfixExpressionHandler(node);
+      _assignmentLikeExpressionHandlers[node] = handler;
+      handler.handleLValueType(this, node.readType, node.writeType);
+      handler.handleAssignmentRhs(this, _fixBuilder.typeProvider.intType);
+    } else {
+      throw StateError('(${node.runtimeType}) $node');
+    }
   }
 
   @override
@@ -765,37 +786,21 @@ abstract class _AssignmentLikeExpressionHandler {
   /// [writeType], and [rhsContextType].  Also verifies that for compound
   /// assignments, the [readType] is non-nullable, and that for null-aware
   /// assignments, the [readType] is nullable.
-  void handleLValueType(
-      MigrationResolutionHooksImpl hooks, DartType resolvedType) {
-    assert(resolvedType.nullabilitySuffix != NullabilitySuffix.star);
-    // Provisionally store the resolved type as the type of the target, so that
-    // getReadType can fall back on it if necessary.
-    var target = this.target;
-    target.staticType = resolvedType;
-    // The type passed in by the resolver for the LHS of an assignment is the
-    // "write type".
-    var writeType = resolvedType;
-    if (target is SimpleIdentifier) {
-      var element = target.staticElement;
-      if (element is PromotableElement) {
-        // However, if the LHS is a reference to a local variable that has
-        // been promoted, the resolver passes in the promoted type.  We
-        // want to use the variable element's type, so that we consider it
-        // ok to assign a value to the variable that un-does the
-        // promotion.  See https://github.com/dart-lang/sdk/issues/41411.
-        writeType = element.type;
-      }
-    }
-    assert(writeType.nullabilitySuffix != NullabilitySuffix.star);
-    this.writeType = writeType;
+  void handleLValueType(MigrationResolutionHooksImpl hooks,
+      DartType readTypeToSet, DartType writeTypeToSet) {
+    assert(writeTypeToSet.nullabilitySuffix != NullabilitySuffix.star);
+    writeType = writeTypeToSet;
+    // TODO(scheglov) Remove this after the analyzer breaking change that
+    // will top setting types for LHS.
+    target.staticType = writeTypeToSet;
     var fixBuilder = hooks._fixBuilder;
     if (combinerType == TokenType.EQ) {
-      rhsContextType = writeType;
+      rhsContextType = writeTypeToSet;
     } else {
-      readType = getReadType(target);
+      readType = readTypeToSet;
       assert(readType.nullabilitySuffix != NullabilitySuffix.star);
       if (combinerType == TokenType.QUESTION_QUESTION_EQ) {
-        rhsContextType = writeType;
+        rhsContextType = writeTypeToSet;
         if (fixBuilder._typeSystem.isNonNullable(readType)) {
           (fixBuilder._getChange(node) as NodeChangeForAssignment)
               .isWeakNullAware = true;
@@ -810,26 +815,13 @@ abstract class _AssignmentLikeExpressionHandler {
     }
   }
 
-  /// Called after visiting the LHS or the RHS of the assignment.
-  DartType modifySubexpressionType(MigrationResolutionHooksImpl hooks,
+  /// Called after visiting the RHS of the assignment.
+  DartType modifyAssignmentRhs(MigrationResolutionHooksImpl hooks,
       Expression subexpression, DartType type) {
-    if (identical(subexpression, target)) {
-      handleLValueType(hooks, type);
-      if (node is! AssignmentExpression) {
-        // Must be a pre or post increment/decrement, so the "RHS" is implicitly
-        // the integer 1.
-        handleAssignmentRhs(hooks, hooks._fixBuilder.typeProvider.intType);
-      }
-      return type;
-    } else {
-      var node = this.node;
-      assert(node is AssignmentExpression &&
-          identical(subexpression, node.rightHandSide));
-      type =
-          hooks._modifyRValueType(subexpression, type, context: rhsContextType);
-      handleAssignmentRhs(hooks, type);
-      return type;
-    }
+    type =
+        hooks._modifyRValueType(subexpression, type, context: rhsContextType);
+    handleAssignmentRhs(hooks, type);
+    return type;
   }
 }
 

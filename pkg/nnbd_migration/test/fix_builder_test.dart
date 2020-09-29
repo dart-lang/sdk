@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
@@ -3364,10 +3362,8 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
           identical(ElementTypeProvider.current, const ElementTypeProvider()));
       ElementTypeProvider.current = fixBuilder.migrationResolutionHooks;
       var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
-      var isReadWrite = assignment.operator.type != TokenType.EQ;
-      var readType =
-          isReadWrite ? getReadType(node) ?? typeProvider.dynamicType : null;
-      var writeType = node.staticType;
+      var readType = assignment.readType;
+      var writeType = assignment.writeType;
       return AssignmentTargetInfo(readType, writeType);
     } finally {
       ElementTypeProvider.current = const ElementTypeProvider();
