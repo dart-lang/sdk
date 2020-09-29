@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Non-nullable late variable 'local' without initializer is definitely unassigned.
+// pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
 //   local += 0;
 //   ^^^^^
 //
@@ -38,7 +38,7 @@ static method error() → dynamic {
       return local = #t6;
     else
       throw new _in::LateInitializationErrorImpl::•("Local 'local' has already been initialized.");
-  #local#set.call((let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Non-nullable late variable 'local' without initializer is definitely unassigned.
+  #local#set.call((let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
   local += 0;
   ^^^^^" in #local#get.call()).{core::num::+}(0));
 }

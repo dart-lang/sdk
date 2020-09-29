@@ -165,41 +165,42 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
   void buildOutlineExpressions(LibraryBuilder library) {
-    // For modular compilation we need to include initializers for optional
-    // and named parameters of const constructors into the outline - to enable
-    // constant evaluation. Similarly we need to include initializers for
-    // optional and named parameters of instance methods because these might be
-    // needed to generated noSuchMethod forwarders.
-    bool isConstConstructorParameter = false;
-    if (parent is ConstructorBuilder) {
-      isConstConstructorParameter = parent.isConst;
-    } else if (parent is ProcedureBuilder) {
-      isConstConstructorParameter = parent.isFactory && parent.isConst;
-    }
-    if ((isConstConstructorParameter || parent.isClassInstanceMember) &&
-        initializerToken != null) {
-      final ClassBuilder classBuilder = parent.parent;
-      Scope scope = classBuilder.scope;
-      BodyBuilder bodyBuilder = library.loader
-          .createBodyBuilderForOutlineExpression(
-              library, classBuilder, this, scope, fileUri);
-      bodyBuilder.constantContext = ConstantContext.required;
-      assert(!initializerWasInferred);
-      Expression initializer =
-          bodyBuilder.parseFieldInitializer(initializerToken);
-      initializer = bodyBuilder.typeInferrer?.inferParameterInitializer(
-          bodyBuilder, initializer, variable.type, hasDeclaredInitializer);
-      variable.initializer = initializer..parent = variable;
-      if (library.loader is SourceLoader) {
-        SourceLoader loader = library.loader;
-        loader.transformPostInference(
-            variable,
-            bodyBuilder.transformSetLiterals,
-            bodyBuilder.transformCollections,
-            library.library);
+    if (initializerToken != null) {
+      // For modular compilation we need to include initializers for optional
+      // and named parameters of const constructors into the outline - to enable
+      // constant evaluation. Similarly we need to include initializers for
+      // optional and named parameters of instance methods because these might
+      // be needed to generated noSuchMethod forwarders.
+      bool isConstConstructorParameter = false;
+      if (parent is ConstructorBuilder) {
+        isConstConstructorParameter = parent.isConst;
+      } else if (parent is ProcedureBuilder) {
+        isConstConstructorParameter = parent.isFactory && parent.isConst;
       }
-      initializerWasInferred = true;
-      bodyBuilder.resolveRedirectingFactoryTargets();
+      if (isConstConstructorParameter || parent.isClassInstanceMember) {
+        final ClassBuilder classBuilder = parent.parent;
+        Scope scope = classBuilder.scope;
+        BodyBuilder bodyBuilder = library.loader
+            .createBodyBuilderForOutlineExpression(
+                library, classBuilder, this, scope, fileUri);
+        bodyBuilder.constantContext = ConstantContext.required;
+        assert(!initializerWasInferred);
+        Expression initializer =
+            bodyBuilder.parseFieldInitializer(initializerToken);
+        initializer = bodyBuilder.typeInferrer?.inferParameterInitializer(
+            bodyBuilder, initializer, variable.type, hasDeclaredInitializer);
+        variable.initializer = initializer..parent = variable;
+        if (library.loader is SourceLoader) {
+          SourceLoader loader = library.loader;
+          loader.transformPostInference(
+              variable,
+              bodyBuilder.transformSetLiterals,
+              bodyBuilder.transformCollections,
+              library.library);
+        }
+        initializerWasInferred = true;
+        bodyBuilder.resolveRedirectingFactoryTargets();
+      }
     }
     initializerToken = null;
   }

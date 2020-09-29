@@ -80,11 +80,13 @@ class DartUnitSignatureComputer {
 
   ParameterInfo _convertParam(ParameterElement param) {
     return ParameterInfo(
-        param.isOptionalPositional
-            ? ParameterKind.OPTIONAL
-            : param.isPositional
-                ? ParameterKind.REQUIRED
-                : ParameterKind.NAMED,
+        param.isOptionalNamed
+            ? ParameterKind.OPTIONAL_NAMED
+            : param.isOptionalPositional
+                ? ParameterKind.OPTIONAL_POSITIONAL
+                : param.isRequiredNamed
+                    ? ParameterKind.REQUIRED_NAMED
+                    : ParameterKind.REQUIRED_POSITIONAL,
         param.displayName,
         param.type.getDisplayString(withNullability: false),
         defaultValue: param.defaultValueCode);

@@ -1454,11 +1454,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               function.positionalParameters[i];
           final Constant value = (i < positionalArguments.length)
               ? positionalArguments[i]
+              // TODO(johnniwinther): This should call [_evaluateSubexpression].
               : _evaluateNullableSubexpression(parameter.initializer);
           env.addVariableValue(parameter, value);
         }
         for (final VariableDeclaration parameter in function.namedParameters) {
           final Constant value = namedArguments[parameter.name] ??
+              // TODO(johnniwinther): This should call [_evaluateSubexpression].
               _evaluateNullableSubexpression(parameter.initializer);
           env.addVariableValue(parameter, value);
         }

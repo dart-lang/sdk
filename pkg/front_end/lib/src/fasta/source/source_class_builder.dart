@@ -619,14 +619,14 @@ class SourceClassBuilder extends ClassBuilderImpl
     });
   }
 
-  void addSyntheticConstructor(Constructor constructor) {
-    String name = constructor.name.text;
-    cls.constructors.add(constructor);
-    constructor.parent = cls;
-    DillMemberBuilder memberBuilder = new DillMemberBuilder(constructor, this);
-    memberBuilder.next = constructorScopeBuilder[name];
-    constructorScopeBuilder.addMember(name, memberBuilder);
-    if (constructor.isConst) {
+  void addSyntheticConstructor(SyntheticConstructorBuilder constructorBuilder) {
+    String name = constructorBuilder.name;
+    constructorBuilder.next = constructorScopeBuilder[name];
+    constructorScopeBuilder.addMember(name, constructorBuilder);
+    // Synthetic constructors are created after the component has been built
+    // so we need to add the constructor to the class.
+    cls.addMember(constructorBuilder.member);
+    if (constructorBuilder.isConst) {
       cls.hasConstConstructor = true;
     }
   }

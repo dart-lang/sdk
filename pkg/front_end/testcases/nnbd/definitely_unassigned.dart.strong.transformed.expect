@@ -6,7 +6,7 @@ library /*isNonNullableByDefault*/;
 //   local1; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:17:3: Error: Non-nullable late variable 'local2' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:17:3: Error: Late variable 'local2' without initializer is definitely unassigned.
 //   local2; // error
 //   ^^^^^^
 //
@@ -14,7 +14,7 @@ library /*isNonNullableByDefault*/;
 //   local3; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:19:3: Error: Non-nullable late variable 'local4' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:19:3: Error: Late variable 'local4' without initializer is definitely unassigned.
 //   local4; // error
 //   ^^^^^^
 //
@@ -22,7 +22,7 @@ library /*isNonNullableByDefault*/;
 //   local5; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:21:3: Error: Non-nullable late variable 'local6' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:21:3: Error: Late variable 'local6' without initializer is definitely unassigned.
 //   local6; // error
 //   ^^^^^^
 //
@@ -30,7 +30,7 @@ library /*isNonNullableByDefault*/;
 //   local1; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:35:3: Error: Non-nullable late variable 'local2' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:35:3: Error: Late variable 'local2' without initializer is definitely unassigned.
 //   local2; // error
 //   ^^^^^^
 //
@@ -38,7 +38,7 @@ library /*isNonNullableByDefault*/;
 //   local3; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:37:3: Error: Non-nullable late variable 'local4' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:37:3: Error: Late variable 'local4' without initializer is definitely unassigned.
 //   local4; // error
 //   ^^^^^^
 //
@@ -46,7 +46,7 @@ library /*isNonNullableByDefault*/;
 //   local5; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:39:3: Error: Non-nullable late variable 'local6' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:39:3: Error: Late variable 'local6' without initializer is definitely unassigned.
 //   local6; // error
 //   ^^^^^^
 //
@@ -78,7 +78,7 @@ library /*isNonNullableByDefault*/;
 //   local3 += 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:104:3: Error: Non-nullable late variable 'local4' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:104:3: Error: Late variable 'local4' without initializer is definitely unassigned.
 //   local4 += 0; // error
 //   ^^^^^^
 //
@@ -86,7 +86,7 @@ library /*isNonNullableByDefault*/;
 //   local3 += 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:112:3: Error: Non-nullable late variable 'local4' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:112:3: Error: Late variable 'local4' without initializer is definitely unassigned.
 //   local4 += 0; // error
 //   ^^^^^^
 //
@@ -108,19 +108,19 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:34:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
   local1; // error
   ^^^^^^" in local1;
-  let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:35:3: Error: Non-nullable late variable 'local2' without initializer is definitely unassigned.
+  let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:35:3: Error: Late variable 'local2' without initializer is definitely unassigned.
   local2; // error
   ^^^^^^" in local2;
   let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:36:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
   local3; // error
   ^^^^^^" in local3;
-  let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:37:3: Error: Non-nullable late variable 'local4' without initializer is definitely unassigned.
+  let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:37:3: Error: Late variable 'local4' without initializer is definitely unassigned.
   local4; // error
   ^^^^^^" in local4;
   let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:38:3: Error: Non-nullable variable 'local5' must be assigned before it can be used.
   local5; // error
   ^^^^^^" in local5;
-  let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:39:3: Error: Non-nullable late variable 'local6' without initializer is definitely unassigned.
+  let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:39:3: Error: Late variable 'local6' without initializer is definitely unassigned.
   local6; // error
   ^^^^^^" in local6;
   local7;
@@ -164,7 +164,7 @@ static field () → core::Null? fieldCompound = () → core::Null? {
   local3 = (let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:111:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
   local3 += 0; // error
   ^^^^^^" in local3).{core::num::+}(0);
-  local4 = (let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:112:3: Error: Non-nullable late variable 'local4' without initializer is definitely unassigned.
+  local4 = (let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:112:3: Error: Late variable 'local4' without initializer is definitely unassigned.
   local4 += 0; // error
   ^^^^^^" in local4).{core::num::+}(0);
 };
@@ -181,19 +181,19 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:16:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
   local1; // error
   ^^^^^^" in local1;
-  let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:17:3: Error: Non-nullable late variable 'local2' without initializer is definitely unassigned.
+  let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:17:3: Error: Late variable 'local2' without initializer is definitely unassigned.
   local2; // error
   ^^^^^^" in local2;
   let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:18:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
   local3; // error
   ^^^^^^" in local3;
-  let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:19:3: Error: Non-nullable late variable 'local4' without initializer is definitely unassigned.
+  let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:19:3: Error: Late variable 'local4' without initializer is definitely unassigned.
   local4; // error
   ^^^^^^" in local4;
   let final<BottomType> #t16 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:20:3: Error: Non-nullable variable 'local5' must be assigned before it can be used.
   local5; // error
   ^^^^^^" in local5;
-  let final<BottomType> #t17 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:21:3: Error: Non-nullable late variable 'local6' without initializer is definitely unassigned.
+  let final<BottomType> #t17 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:21:3: Error: Late variable 'local6' without initializer is definitely unassigned.
   local6; // error
   ^^^^^^" in local6;
   local7;
@@ -237,7 +237,7 @@ static method methodCompound() → dynamic {
   local3 = (let final<BottomType> #t21 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:103:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
   local3 += 0; // error
   ^^^^^^" in local3).{core::num::+}(0);
-  local4 = (let final<BottomType> #t22 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:104:3: Error: Non-nullable late variable 'local4' without initializer is definitely unassigned.
+  local4 = (let final<BottomType> #t22 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:104:3: Error: Late variable 'local4' without initializer is definitely unassigned.
   local4 += 0; // error
   ^^^^^^" in local4).{core::num::+}(0);
 }

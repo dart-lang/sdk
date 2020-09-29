@@ -19,5 +19,5 @@ main() {
   i; // Variable is definitely unassigned
 //^
 // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-// [cfe] Non-nullable late variable 'i' without initializer is definitely unassigned.
+// [cfe] Late variable 'i' without initializer is definitely unassigned.
 }

@@ -69,6 +69,7 @@ import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -189,7 +190,7 @@ class KernelTarget extends TargetImplementation {
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
 
-  final List<Object> clonedFormals = <Object>[];
+  final List<ClonedFunctionNode> clonedFunctionNodes = <ClonedFunctionNode>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator,
@@ -555,7 +556,7 @@ class KernelTarget extends TargetImplementation {
     /// >default constructor C() : super() {}, unless C is class Object.
     // The superinitializer is installed below in [finishConstructors].
     builder.addSyntheticConstructor(
-        makeDefaultConstructor(builder.cls, referenceFrom));
+        _makeDefaultConstructor(builder, referenceFrom));
   }
 
   void installForwardingConstructors(SourceClassBuilder builder) {
@@ -601,23 +602,30 @@ class KernelTarget extends TargetImplementation {
     }
 
     if (supertype is ClassBuilder) {
-      if (supertype.cls.constructors.isEmpty) {
-        builder.addSyntheticConstructor(
-            makeDefaultConstructor(builder.cls, referenceFrom));
-      } else {
-        Map<TypeParameter, DartType> substitutionMap =
-            builder.getSubstitutionMap(supertype.cls);
-        for (Constructor constructor in supertype.cls.constructors) {
-          Constructor referenceFrom =
-              indexedClass?.lookupConstructor(constructor.name.text);
+      ClassBuilder superclassBuilder = supertype;
+      bool isConstructorAdded = false;
+      Map<TypeParameter, DartType> substitutionMap;
 
-          builder.addSyntheticConstructor(makeMixinApplicationConstructor(
-              builder.cls,
+      void addSyntheticConstructor(String name, MemberBuilder memberBuilder) {
+        if (memberBuilder.member is Constructor) {
+          substitutionMap ??= builder.getSubstitutionMap(superclassBuilder.cls);
+          Constructor referenceFrom = indexedClass?.lookupConstructor(name);
+          builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
+              builder,
               builder.cls.mixin,
-              constructor,
+              memberBuilder,
               substitutionMap,
               referenceFrom));
+          isConstructorAdded = true;
         }
+      }
+
+      superclassBuilder.forEachConstructor(addSyntheticConstructor,
+          includeInjectedConstructors: true);
+
+      if (!isConstructorAdded) {
+        builder.addSyntheticConstructor(
+            _makeDefaultConstructor(builder, referenceFrom));
       }
     } else if (supertype is InvalidTypeDeclarationBuilder ||
         supertype is TypeVariableBuilder ||
@@ -625,21 +633,20 @@ class KernelTarget extends TargetImplementation {
         supertype is VoidTypeDeclarationBuilder ||
         supertype is NeverTypeDeclarationBuilder) {
       builder.addSyntheticConstructor(
-          makeDefaultConstructor(builder.cls, referenceFrom));
+          _makeDefaultConstructor(builder, referenceFrom));
     } else {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
     }
   }
 
-  Constructor makeMixinApplicationConstructor(
-      Class cls,
+  SyntheticConstructorBuilder _makeMixinApplicationConstructor(
+      SourceClassBuilder classBuilder,
       Class mixin,
-      Constructor constructor,
+      MemberBuilderImpl memberBuilder,
       Map<TypeParameter, DartType> substitutionMap,
       Constructor referenceFrom) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
-      // TODO(ahe): Handle initializers.
       VariableDeclaration copy = new VariableDeclaration(formal.name,
           isFinal: formal.isFinal, isConst: formal.isConst);
       if (formal.type != null) {
@@ -651,10 +658,14 @@ class KernelTarget extends TargetImplementation {
       return copy;
     }
 
+    Class cls = classBuilder.cls;
+    Constructor constructor = memberBuilder.member;
+    bool isConst = constructor.isConst && mixin.fields.isEmpty;
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     List<Expression> positional = <Expression>[];
     List<NamedExpression> named = <NamedExpression>[];
+
     for (VariableDeclaration formal
         in constructor.function.positionalParameters) {
       positionalParameters.add(copyFormal(formal));
@@ -662,7 +673,6 @@ class KernelTarget extends TargetImplementation {
     }
     for (VariableDeclaration formal in constructor.function.namedParameters) {
       VariableDeclaration clone = copyFormal(formal);
-      clonedFormals..add(formal)..add(clone)..add(substitutionMap);
       namedParameters.add(clone);
       named.add(new NamedExpression(
           formal.name, new VariableGet(namedParameters.last)));
@@ -674,46 +684,56 @@ class KernelTarget extends TargetImplementation {
         returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
         constructor, new Arguments(positional, named: named));
-    return new Constructor(function,
-        name: constructor.name,
-        initializers: <Initializer>[initializer],
-        isSynthetic: true,
-        isConst: constructor.isConst && mixin.fields.isEmpty,
-        reference: referenceFrom?.reference)
-      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
+    ClonedFunctionNode clonedFunctionNode =
+        new ClonedFunctionNode(substitutionMap, constructor.function, function);
+    if (!isConst) {
+      // For constant constructors default values are computed and cloned part
+      // of the outline expression and therefore passed to the
+      // [SyntheticConstructorBuilder] below.
+      //
+      // For non-constant constructors default values are cloned as part of the
+      // full compilation using [clonedFunctionNodes].
+      clonedFunctionNodes.add(clonedFunctionNode);
+    }
+    return new SyntheticConstructorBuilder(
+        classBuilder,
+        new Constructor(function,
+            name: constructor.name,
+            initializers: <Initializer>[initializer],
+            isSynthetic: true,
+            isConst: isConst,
+            reference: referenceFrom?.reference)
+          ..isNonNullableByDefault =
+              cls.enclosingLibrary.isNonNullableByDefault,
+        // If the constructor is constant, the default values must be part of
+        // the outline expressions. We pass on the original constructor and
+        // cloned function nodes to ensure that the default values are computed
+        // and cloned for the outline.
+        origin: isConst ? memberBuilder : null,
+        clonedFunctionNode: isConst ? clonedFunctionNode : null);
   }
 
   void finishClonedParameters() {
-    for (int i = 0; i < clonedFormals.length; i += 3) {
-      // Note that [original] may itself be clone. If so, it was added to
-      // [clonedFormals] before [clone], so it's initializers are already in
-      // place.
-      VariableDeclaration original = clonedFormals[i];
-      VariableDeclaration clone = clonedFormals[i + 1];
-      if (original.initializer != null) {
-        // TODO(ahe): It is unclear if it is legal to use type variables in
-        // default values, but Fasta is currently allowing it, and the VM
-        // accepts it. If it isn't legal, the we can speed this up by using a
-        // single cloner without substitution.
-        CloneVisitorNotMembers cloner =
-            new CloneVisitorNotMembers(typeSubstitution: clonedFormals[i + 2]);
-        clone.initializer = cloner.clone(original.initializer)..parent = clone;
-      }
+    for (ClonedFunctionNode clonedFunctionNode in clonedFunctionNodes) {
+      clonedFunctionNode.cloneDefaultValues();
     }
-    clonedFormals.clear();
+    clonedFunctionNodes.clear();
     ticker.logMs("Cloned default values of formals");
   }
 
-  Constructor makeDefaultConstructor(
-      Class enclosingClass, Constructor referenceFrom) {
-    return new Constructor(
-        new FunctionNode(new EmptyStatement(),
-            returnType: makeConstructorReturnType(enclosingClass)),
-        name: new Name(""),
-        isSynthetic: true,
-        reference: referenceFrom?.reference)
-      ..isNonNullableByDefault =
-          enclosingClass.enclosingLibrary.isNonNullableByDefault;
+  SyntheticConstructorBuilder _makeDefaultConstructor(
+      SourceClassBuilder classBuilder, Constructor referenceFrom) {
+    Class enclosingClass = classBuilder.cls;
+    return new SyntheticConstructorBuilder(
+        classBuilder,
+        new Constructor(
+            new FunctionNode(new EmptyStatement(),
+                returnType: makeConstructorReturnType(enclosingClass)),
+            name: new Name(""),
+            isSynthetic: true,
+            reference: referenceFrom?.reference)
+          ..isNonNullableByDefault =
+              enclosingClass.enclosingLibrary.isNonNullableByDefault);
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
@@ -1285,5 +1305,41 @@ class DelayedParameterType {
   void updateType() {
     assert(source.type != null, "No type computed for $source.");
     target.type = substitute(source.type, substitutionMap);
+  }
+}
+
+class ClonedFunctionNode {
+  final Map<TypeParameter, DartType> _typeSubstitution;
+  final FunctionNode _original;
+  final FunctionNode _clone;
+
+  ClonedFunctionNode(this._typeSubstitution, this._original, this._clone);
+
+  void cloneDefaultValues() {
+    // TODO(ahe): It is unclear if it is legal to use type variables in
+    // default values, but Fasta is currently allowing it, and the VM
+    // accepts it. If it isn't legal, the we can speed this up by using a
+    // single cloner without substitution.
+    CloneVisitorNotMembers cloner;
+
+    void cloneInitializer(VariableDeclaration originalParameter,
+        VariableDeclaration clonedParameter) {
+      if (originalParameter.initializer != null) {
+        cloner ??=
+            new CloneVisitorNotMembers(typeSubstitution: _typeSubstitution);
+        clonedParameter.initializer = cloner
+            .clone(originalParameter.initializer)
+              ..parent = clonedParameter;
+      }
+    }
+
+    for (int i = 0; i < _original.positionalParameters.length; i++) {
+      cloneInitializer(
+          _original.positionalParameters[i], _clone.positionalParameters[i]);
+    }
+
+    for (int i = 0; i < _original.namedParameters.length; i++) {
+      cloneInitializer(_original.namedParameters[i], _clone.namedParameters[i]);
+    }
   }
 }
