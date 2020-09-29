@@ -251,6 +251,13 @@ abstract class ClassBuilder implements DeclarationBuilder {
   ///
   /// If [isSuper] is `true`, constructors in the superclass are searched.
   Constructor lookupConstructor(Name name, {bool isSuper: false});
+
+  /// Calls [f] for each constructor declared in this class.
+  ///
+  /// If [includeInjectedConstructors] is `true`, constructors only declared in
+  /// the patch class, if any, are included.
+  void forEachConstructor(void Function(String, MemberBuilder) f,
+      {bool includeInjectedConstructors: false});
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
@@ -332,6 +339,24 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   List<ConstructorReferenceBuilder> get constructorReferences => null;
+
+  void forEachConstructor(void Function(String, MemberBuilder) f,
+      {bool includeInjectedConstructors: false}) {
+    if (isPatch) {
+      actualOrigin.forEachConstructor(f,
+          includeInjectedConstructors: includeInjectedConstructors);
+    } else {
+      constructors.forEach(f);
+      if (includeInjectedConstructors && _patchBuilder != null) {
+        _patchBuilder.constructors
+            .forEach((String name, MemberBuilder builder) {
+          if (!builder.isPatch) {
+            f(name, builder);
+          }
+        });
+      }
+    }
+  }
 
   @override
   void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {

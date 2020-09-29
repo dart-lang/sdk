@@ -396,10 +396,10 @@ class WidgetCreatorTracker {
         _creationLocationParameterName,
       ));
       final VariableDeclaration variable = new VariableDeclaration(
-        _creationLocationParameterName,
-        type:
-            new InterfaceType(_locationClass, clazz.enclosingLibrary.nullable),
-      );
+          _creationLocationParameterName,
+          type: new InterfaceType(
+              _locationClass, clazz.enclosingLibrary.nullable),
+          initializer: new NullLiteral());
       if (!_maybeAddNamedParameter(constructor.function, variable)) {
         return;
       }
@@ -541,7 +541,8 @@ class WidgetCreatorTracker {
           procedure.function,
           new VariableDeclaration(_creationLocationParameterName,
               type: new InterfaceType(
-                  _locationClass, clazz.enclosingLibrary.nullable)),
+                  _locationClass, clazz.enclosingLibrary.nullable),
+              initializer: new NullLiteral()),
         );
       }
     }
@@ -564,7 +565,8 @@ class WidgetCreatorTracker {
       final VariableDeclaration variable = new VariableDeclaration(
           _creationLocationParameterName,
           type: new InterfaceType(
-              _locationClass, clazz.enclosingLibrary.nullable));
+              _locationClass, clazz.enclosingLibrary.nullable),
+          initializer: new NullLiteral());
       if (_hasNamedParameter(
           constructor.function, _creationLocationParameterName)) {
         // Constructor was already rewritten. TODO(jacobr): is this case actually hit?

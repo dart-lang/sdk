@@ -8942,8 +8942,16 @@ class StringConstant extends PrimitiveConstant<String> {
   R accept<R>(ConstantVisitor<R> v) => v.visitStringConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitStringConstantReference(this);
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.stringRawType(context.nonNullable);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('"');
+    printer.write(escapeString(value));
+    printer.write('"');
+  }
 }
 
 class SymbolConstant extends Constant {

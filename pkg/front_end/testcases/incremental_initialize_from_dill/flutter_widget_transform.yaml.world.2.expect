@@ -13,7 +13,7 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
   }
   abstract class Widget extends fra::Bar implements wid::_HasCreationLocation {
     final field wid::_Location* _location /* from null */;
-    synthetic constructor •({wid::_Location* $creationLocationd_0dea112b090073317d4}) → fra::Widget*
+    synthetic constructor •({wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → fra::Widget*
       : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
       ;
   }
@@ -53,7 +53,7 @@ library from "org-dartlang-test:///main.dart" as main {
   import "package:flutter/src/widgets/widget_inspector.dart";
 
   class Foo extends fra::Widget {
-    synthetic constructor •({wid::_Location* $creationLocationd_0dea112b090073317d4}) → main::Foo*
+    synthetic constructor •({wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → main::Foo*
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
   }
