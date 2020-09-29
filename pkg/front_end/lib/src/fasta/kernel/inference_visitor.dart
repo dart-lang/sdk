@@ -2493,13 +2493,24 @@ class InferenceVisitor
       NullCheck node, DartType typeContext) {
     ExpressionInferenceResult operandResult = inferrer.inferExpression(
         node.operand, inferrer.computeNullable(typeContext), true);
-    node.operand = operandResult.expression..parent = node;
+    Link<NullAwareGuard> nullAwareGuards;
+    Expression operand;
+    DartType operandType;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuards = operandResult.nullAwareGuards;
+      operand = operandResult.nullAwareAction;
+      operandType = operandResult.nullAwareActionType;
+    } else {
+      operand = operandResult.expression;
+      operandType = operandResult.inferredType;
+    }
+    node.operand = operand..parent = node;
     reportNonNullableInNullAwareWarningIfNeeded(
-        operandResult.inferredType, "!", node.operand.fileOffset);
+        operandType, "!", node.operand.fileOffset);
     inferrer.flowAnalysis.nonNullAssert_end(node.operand);
-    DartType nonNullableResultType =
-        inferrer.computeNonNullable(operandResult.inferredType);
-    return new ExpressionInferenceResult(nonNullableResultType, node);
+    DartType nonNullableResultType = inferrer.computeNonNullable(operandType);
+    return inferrer.createNullAwareExpressionInferenceResult(
+        nonNullableResultType, node, nullAwareGuards);
   }
 
   ExpressionInferenceResult visitNullAwareMethodInvocation(
