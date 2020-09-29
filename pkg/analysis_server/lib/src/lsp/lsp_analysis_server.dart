@@ -118,6 +118,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// The set of analysis roots explicitly added to the workspace.
   final _explicitAnalysisRoots = HashSet<String>();
 
+  /// A [Future] that completes once the client has acknowledged the request to
+  /// create a progress token for Analyzing events. If this completes with an
+  /// error, progress notifications should not be sent.
+  Future<ResponseMessage> analyzingProgressTokenCreate;
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -495,7 +500,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     channel.sendNotification(notification);
   }
 
-  /// Send the given [request] to the client and wait for a response.
+  /// Send the given [request] to the client and wait for a response. Completes
+  /// with the raw [ResponseMessage] which could be an error response.
   Future<ResponseMessage> sendRequest(Method method, Object params) {
     final requestId = nextRequestId++;
     final completer = Completer<ResponseMessage>();
@@ -530,11 +536,40 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Send status notification to the client. The state of analysis is given by
   /// the [status] information.
   void sendStatusNotification(nd.AnalysisStatus status) {
-    channel.sendNotification(NotificationMessage(
-      method: CustomMethods.AnalyzerStatus,
-      params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
-      jsonrpc: jsonRpcVersion,
-    ));
+    // Send old custom notifications to clients that do not support $/progress.
+    // TODO(dantup): Remove this custom notification (and related classes) when
+    // it's unlikely to be in use by any clients.
+    if (clientCapabilities.window?.workDoneProgress != true) {
+      channel.sendNotification(NotificationMessage(
+        method: CustomMethods.AnalyzerStatus,
+        params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
+        jsonrpc: jsonRpcVersion,
+      ));
+      return;
+    }
+
+    // We must ask the client to create a progress token before we can report
+    // any progress using it.
+    analyzingProgressTokenCreate ??= sendRequest(
+        Method.window_workDoneProgress_create,
+        WorkDoneProgressCreateParams(token: analyzingProgressToken));
+
+    // Only send notifications after the token creation response has completed.
+    analyzingProgressTokenCreate.then((response) async {
+      // Don't try to send progress notifications if the client responded with an
+      // error.
+      if (response.error != null) return;
+
+      sendNotification(NotificationMessage(
+          method: Method.progress,
+          params: ProgressParams(
+            token: analyzingProgressToken,
+            value: status.isAnalyzing
+                ? analyzingProgressBegin
+                : analyzingProgressEnd,
+          ),
+          jsonrpc: jsonRpcVersion));
+    });
   }
 
   /// Returns `true` if closing labels should be sent for [file] with the given

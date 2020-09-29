@@ -154,6 +154,8 @@ mixin ClientCapabilitiesHelperMixin {
 
   final emptyWorkspaceClientCapabilities = ClientCapabilitiesWorkspace();
 
+  final emptyWindowClientCapabilities = ClientCapabilitiesWindow();
+
   TextDocumentClientCapabilities extendTextDocumentCapabilities(
     TextDocumentClientCapabilities source,
     Map<String, dynamic> textDocumentCapabilities,
@@ -165,6 +167,19 @@ mixin ClientCapabilitiesHelperMixin {
       });
     }
     return TextDocumentClientCapabilities.fromJson(json);
+  }
+
+  ClientCapabilitiesWindow extendWindowCapabilities(
+    ClientCapabilitiesWindow source,
+    Map<String, dynamic> windowCapabilities,
+  ) {
+    final json = source.toJson();
+    if (windowCapabilities != null) {
+      windowCapabilities.keys.forEach((key) {
+        json[key] = windowCapabilities[key];
+      });
+    }
+    return ClientCapabilitiesWindow.fromJson(json);
   }
 
   ClientCapabilitiesWorkspace extendWorkspaceCapabilities(
@@ -383,6 +398,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   final startOfDocRange = Range(
       start: Position(line: 0, character: 0),
       end: Position(line: 0, character: 0));
+
+  /// The client capabilities sent to the server during initialization.
+  ///
+  /// null if an initialization request has not yet been sent.
+  ClientCapabilities _clientCapabilities;
+
+  final validProgressTokens = <Either2<num, String>>{};
 
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
@@ -951,6 +973,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
   }) async {
+    _clientCapabilities = ClientCapabilities(
+      workspace: workspaceCapabilities,
+      textDocument: textDocumentCapabilities,
+      window: windowCapabilities,
+    );
+
+    // Handle any standard incoming requests that aren't test-specific, for example
+    // accepting requests to create progress tokens.
+    requestsFromServer.listen((request) async {
+      if (request.method == Method.window_workDoneProgress_create) {
+        respondTo(request, await _handleWorkDoneProgressCreate(request));
+      }
+    });
+
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
     if (rootPath == null &&
@@ -965,11 +1001,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           rootPath: rootPath,
           rootUri: rootUri?.toString(),
           initializationOptions: initializationOptions,
-          capabilities: ClientCapabilities(
-            workspace: workspaceCapabilities,
-            textDocument: textDocumentCapabilities,
-            window: windowCapabilities,
-          ),
+          capabilities: _clientCapabilities,
           workspaceFolders: workspaceFolders?.map(toWorkspaceFolder)?.toList(),
         ));
     final response = await sendRequestToServer(request);
@@ -1262,23 +1294,56 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
-  Future<AnalyzerStatusParams> waitForAnalysisComplete() =>
-      waitForAnalysisStatus(false);
+  Future<void> waitForAnalysisComplete() => waitForAnalysisStatus(false);
 
-  Future<AnalyzerStatusParams> waitForAnalysisStart() =>
-      waitForAnalysisStatus(true);
+  Future<void> waitForAnalysisStart() => waitForAnalysisStatus(true);
 
-  Future<AnalyzerStatusParams> waitForAnalysisStatus(bool analyzing) async {
-    AnalyzerStatusParams params;
+  Future<void> waitForAnalysisStatus(bool analyzing) async {
     await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage &&
-          message.method == CustomMethods.AnalyzerStatus) {
-        params = AnalyzerStatusParams.fromJson(message.params);
-        return params.isAnalyzing == analyzing;
+      if (message is NotificationMessage) {
+        if (message.method == CustomMethods.AnalyzerStatus) {
+          if (_clientCapabilities.window?.workDoneProgress == true) {
+            throw Exception(
+                'Recieved ${CustomMethods.AnalyzerStatus} notification '
+                'but client supports workDoneProgress');
+          }
+
+          final params = AnalyzerStatusParams.fromJson(message.params);
+          return params.isAnalyzing == analyzing;
+        } else if (message.method == Method.progress) {
+          if (_clientCapabilities.window?.workDoneProgress != true) {
+            throw Exception(
+                'Recieved ${CustomMethods.AnalyzerStatus} notification '
+                'but client supports workDoneProgress');
+          }
+
+          final params = ProgressParams.fromJson(message.params);
+          if (!validProgressTokens.contains(params.token)) {
+            throw Exception('Server sent a progress notification for a token '
+                'that has not been created: ${params.token}');
+          }
+
+          // Skip unrelated progress notifications.
+          if (params.token != analyzingProgressToken) {
+            return false;
+          }
+
+          if (params.value is Map<String, dynamic>) {
+            final isDesiredStatusMessage = analyzing
+                ? WorkDoneProgressBegin.canParse(
+                    params.value, nullLspJsonReporter)
+                : WorkDoneProgressEnd.canParse(
+                    params.value, nullLspJsonReporter);
+
+            return isDesiredStatusMessage;
+          } else {
+            throw Exception('\$/progress params value was not valid');
+          }
+        }
       }
+      // Message is not what we're waiting for.
       return false;
     });
-    return params;
   }
 
   Future<List<ClosingLabel>> waitForClosingLabels(Uri uri) async {
@@ -1355,6 +1420,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   List<T> Function(List<dynamic>) _fromJsonList<T>(
           T Function(Map<String, dynamic>) fromJson) =>
       (input) => input.cast<Map<String, dynamic>>().map(fromJson).toList();
+
+  Future<void> _handleWorkDoneProgressCreate(RequestMessage request) async {
+    if (_clientCapabilities.window?.workDoneProgress != true) {
+      throw Exception('Server sent ${Method.window_workDoneProgress_create} '
+          'but client capabilities do not allow');
+    }
+    final params = WorkDoneProgressCreateParams.fromJson(request.params);
+    if (validProgressTokens.contains(params.token)) {
+      throw Exception('Server tried to create the same progress token twice');
+    }
+    validProgressTokens.add(params.token);
+  }
 
   /// Checks whether a notification is likely an error from the server (for
   /// example a window/showMessage). This is useful for tests that want to
