@@ -5943,13 +5943,12 @@ class InferenceVisitor
             !variable.isLocalFunction &&
             declaredOrInferredType is! InvalidType) {
           if (variable.isLate || variable.lateGetter != null) {
-            if (isDefinitelyUnassigned &&
-                declaredOrInferredType.isPotentiallyNonNullable) {
+            if (isDefinitelyUnassigned) {
               return new ExpressionInferenceResult(
                   resultType,
                   inferrer.helper.wrapInProblem(
                       resultExpression,
-                      templateNonNullableLateDefinitelyUnassignedError
+                      templateLateDefinitelyUnassignedError
                           .withArguments(node.variable.name),
                       node.fileOffset,
                       node.variable.name.length));

@@ -38,7 +38,7 @@ void testDefiniteUnassignment(bool b) {
     use(y);
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // Unreachable code inherits the state from the paths leading into it
@@ -54,7 +54,7 @@ void testDefiniteUnassignment(bool b) {
     use(y);
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // An empty conditional does not change unassignment state
@@ -69,7 +69,7 @@ void testDefiniteUnassignment(bool b) {
     use(y);
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // Assignments in a branch that returns do not change unassignment state.
@@ -88,7 +88,7 @@ void testDefiniteUnassignment(bool b) {
     use(y);
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   //  Assignments in a different branch do not change unassignment state.
@@ -106,7 +106,7 @@ void testDefiniteUnassignment(bool b) {
       use(y);
       //  ^
       // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-      // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+      // [cfe] Late variable 'y' without initializer is definitely unassigned.
     }
   }
 
@@ -123,7 +123,7 @@ void testDefiniteUnassignment(bool b) {
     y ??= 3;
 //  ^
 // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-// [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+// [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // A while loop which does no assignments does not change unassignment state.
@@ -138,7 +138,7 @@ void testDefiniteUnassignment(bool b) {
     use(y);
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // Uses inside a while loop which does no assignments are definitely
@@ -154,7 +154,7 @@ void testDefiniteUnassignment(bool b) {
       use(y);
       //  ^
       // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-      // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+      // [cfe] Late variable 'y' without initializer is definitely unassigned.
     }
   }
 
@@ -171,7 +171,7 @@ void testDefiniteUnassignment(bool b) {
       use(y);
       //  ^
       // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-      // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+      // [cfe] Late variable 'y' without initializer is definitely unassigned.
     } while (b);
   }
 
@@ -193,7 +193,7 @@ void testDefiniteUnassignment(bool b) {
         use(y);
       //    ^
       // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-      // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+      // [cfe] Late variable 'y' without initializer is definitely unassigned.
     }
   }
 
@@ -217,7 +217,7 @@ void testDefiniteUnassignment(bool b) {
     use(y);
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // Assignments in a closure do not affect definite unassignment before the
@@ -232,7 +232,7 @@ void testDefiniteUnassignment(bool b) {
     use(y);
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
     var f = () {
       x = 3;
       y = 3;
@@ -252,7 +252,7 @@ void testDefiniteUnassignment(bool b) {
       use(y);
       //  ^
       // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-      // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+      // [cfe] Late variable 'y' without initializer is definitely unassigned.
     };
   }
 
@@ -268,7 +268,7 @@ void testDefiniteUnassignment(bool b) {
     use(y);
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
     late int z1 = x = 3;
     late int z2 = y = 3;
   }
@@ -285,7 +285,7 @@ void testDefiniteUnassignment(bool b) {
     for (; y < 0;) {}
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // Uses in a for loop element test which are not assigned before or in the
@@ -300,7 +300,7 @@ void testDefiniteUnassignment(bool b) {
     [for (; y < 0;) 0];
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // Uses in a for loop increment which are not assigned before or in the loop
@@ -315,7 +315,7 @@ void testDefiniteUnassignment(bool b) {
     for (;; y) {}
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 
   // Uses in a for loop element increment which are not assigned before or in
@@ -330,7 +330,7 @@ void testDefiniteUnassignment(bool b) {
     [for (;; y) 0];
     //       ^
     // [analyzer] COMPILE_TIME_ERROR.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE
-    // [cfe] Non-nullable late variable 'y' without initializer is definitely unassigned.
+    // [cfe] Late variable 'y' without initializer is definitely unassigned.
   }
 }
 

@@ -4212,8 +4212,8 @@ FinalNotAssignedError:
       i;
     }
 
-NonNullableLateDefinitelyUnassignedError:
-  template: "Non-nullable late variable '#name' without initializer is definitely unassigned."
+LateDefinitelyUnassignedError:
+  template: "Late variable '#name' without initializer is definitely unassigned."
   configuration: nnbd-strong
   script: |
     method<T>() {
