@@ -49,6 +49,8 @@ abstract class AbstractLspAnalysisServerTest
   TestPluginManager pluginManager;
   LspAnalysisServer server;
 
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions();
+
   @override
   Stream<Message> get serverToClient => channel.serverToClient;
 
@@ -121,7 +123,7 @@ abstract class AbstractLspAnalysisServerTest
     server = LspAnalysisServer(
         channel,
         resourceProvider,
-        AnalysisServerOptions(),
+        serverOptions,
         DartSdkManager(convertPath('/sdk')),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);

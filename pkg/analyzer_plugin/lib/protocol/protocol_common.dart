@@ -4358,27 +4358,34 @@ class ParameterInfo implements HasToJson {
 /// ParameterKind
 ///
 /// enum {
-///   NAMED
-///   OPTIONAL
-///   REQUIRED
+///   OPTIONAL_NAMED
+///   OPTIONAL_POSITIONAL
+///   REQUIRED_NAMED
+///   REQUIRED_POSITIONAL
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ParameterKind implements Enum {
-  /// A named parameter.
-  static const ParameterKind NAMED = ParameterKind._('NAMED');
+  /// An optional named parameter.
+  static const ParameterKind OPTIONAL_NAMED = ParameterKind._('OPTIONAL_NAMED');
 
-  /// An optional parameter.
-  static const ParameterKind OPTIONAL = ParameterKind._('OPTIONAL');
+  /// An optional positional parameter.
+  static const ParameterKind OPTIONAL_POSITIONAL =
+      ParameterKind._('OPTIONAL_POSITIONAL');
 
-  /// A required parameter.
-  static const ParameterKind REQUIRED = ParameterKind._('REQUIRED');
+  /// A required named parameter.
+  static const ParameterKind REQUIRED_NAMED = ParameterKind._('REQUIRED_NAMED');
+
+  /// A required positional parameter.
+  static const ParameterKind REQUIRED_POSITIONAL =
+      ParameterKind._('REQUIRED_POSITIONAL');
 
   /// A list containing all of the enum values that are defined.
   static const List<ParameterKind> VALUES = <ParameterKind>[
-    NAMED,
-    OPTIONAL,
-    REQUIRED
+    OPTIONAL_NAMED,
+    OPTIONAL_POSITIONAL,
+    REQUIRED_NAMED,
+    REQUIRED_POSITIONAL
   ];
 
   @override
@@ -4388,12 +4395,14 @@ class ParameterKind implements Enum {
 
   factory ParameterKind(String name) {
     switch (name) {
-      case 'NAMED':
-        return NAMED;
-      case 'OPTIONAL':
-        return OPTIONAL;
-      case 'REQUIRED':
-        return REQUIRED;
+      case 'OPTIONAL_NAMED':
+        return OPTIONAL_NAMED;
+      case 'OPTIONAL_POSITIONAL':
+        return OPTIONAL_POSITIONAL;
+      case 'REQUIRED_NAMED':
+        return REQUIRED_NAMED;
+      case 'REQUIRED_POSITIONAL':
+        return REQUIRED_POSITIONAL;
     }
     throw Exception('Illegal enum value: $name');
   }

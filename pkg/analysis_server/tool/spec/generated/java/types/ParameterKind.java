@@ -16,18 +16,23 @@ package org.dartlang.analysis.server.protocol;
 public class ParameterKind {
 
   /**
-   * A named parameter.
+   * An optional named parameter.
    */
-  public static final String NAMED = "NAMED";
+  public static final String OPTIONAL_NAMED = "OPTIONAL_NAMED";
 
   /**
-   * An optional parameter.
+   * An optional positional parameter.
    */
-  public static final String OPTIONAL = "OPTIONAL";
+  public static final String OPTIONAL_POSITIONAL = "OPTIONAL_POSITIONAL";
 
   /**
-   * A required parameter.
+   * A required named parameter.
    */
-  public static final String REQUIRED = "REQUIRED";
+  public static final String REQUIRED_NAMED = "REQUIRED_NAMED";
+
+  /**
+   * A required positional parameter.
+   */
+  public static final String REQUIRED_POSITIONAL = "REQUIRED_POSITIONAL";
 
 }
