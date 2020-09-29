@@ -158,8 +158,6 @@ for command; do
       .packages \
       .dart_tool/package_config.json \
       pkg \
-      runtime/bin \
-      runtime/lib \
       benchmarks \
       || (rm -f linux-ia32.tar.gz; exit 1)
   elif [ "$command" = linux-ia32-benchmark ]; then
@@ -309,8 +307,6 @@ EOF
       .packages \
       .dart_tool/package_config.json \
       pkg \
-      runtime/bin \
-      runtime/lib \
       benchmarks \
       || (rm -f linux-x64.tar.gz; exit 1)
   elif [ "$command" = linux-x64-benchmark ]; then
