@@ -2165,10 +2165,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when
-  // [definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
-  // analysis shows that a local variable that's marked as `late` is read before
-  // being assigned.
+  // The analyzer produces this diagnostic when [definite assignment][] analysis
+  // shows that a local variable that's marked as `late` is read before being
+  // assigned.
   //
   // #### Example
   //
@@ -7147,8 +7146,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // - Doesn't have an initializer.
   // - Isn't marked as `late`.
   // - The analyzer can't prove that the local variable will be assigned before
-  //   the reference based on the specification of
-  //   [definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md).
+  //   the reference based on the specification of [definite assignment.][]
   //
   // #### Example
   //
@@ -11026,7 +11024,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // `length` can't return a `null` value. Either way, `isEven` can't be invoked
   // on a `null` value, so the null-aware operator is neither necessary nor
   // allowed. See
-  // [Understanding null safety](https://dart.dev/null-safety/understanding-null-safety#smarter-null-aware-methods)
+  // [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
   // for more details.
   //
   // #### Common fixes

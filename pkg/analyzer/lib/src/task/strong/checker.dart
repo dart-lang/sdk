@@ -22,50 +22,6 @@ import 'package:analyzer/src/error/codes.dart'
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:meta/meta.dart';
 
-@Deprecated('Use CompoundAssignmentExpression.readType')
-DartType getReadType(Expression expression) {
-  if (expression is IndexExpression) {
-    var aux = expression.auxiliaryElements;
-    if (aux != null) {
-      var staticElement = aux.staticElement;
-      return staticElement == null
-          ? DynamicTypeImpl.instance
-          : staticElement.returnType;
-    }
-    return expression.staticType;
-  }
-  {
-    Element setter;
-    if (expression is PrefixedIdentifier) {
-      setter = expression.staticElement;
-    } else if (expression is PropertyAccess) {
-      setter = expression.propertyName.staticElement;
-    } else if (expression is SimpleIdentifier) {
-      setter = expression.staticElement;
-    }
-    if (setter is PropertyAccessorElement && setter.isSetter) {
-      var getter = setter.variable.getter;
-      if (getter != null) {
-        var type = getter.returnType;
-        // The return type might be `null` when we perform top-level inference.
-        // The first stage collects references to build the dependency graph.
-        // TODO(scheglov) Maybe preliminary set types to `dynamic`?
-        return type ?? DynamicTypeImpl.instance;
-      }
-    }
-  }
-  if (expression is SimpleIdentifier) {
-    var aux = expression.auxiliaryElements;
-    if (aux != null) {
-      var staticElement = aux.staticElement;
-      return staticElement == null
-          ? DynamicTypeImpl.instance
-          : staticElement.returnType;
-    }
-  }
-  return expression.staticType;
-}
-
 DartType _elementType(Element e) {
   if (e == null) {
     // Malformed code - just return dynamic.

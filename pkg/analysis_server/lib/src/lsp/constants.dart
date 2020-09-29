@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 
 /// The characters that will cause the editor to automatically commit the selected
 /// completion item.
@@ -48,6 +49,14 @@ const dartSignatureHelpTriggerCharacters = <String>['('];
 /// Characters to trigger formatting when format-on-type is enabled.
 const dartTypeFormattingCharacters = ['}', ';'];
 
+final analyzingProgressBegin =
+    WorkDoneProgressBegin(kind: 'begin', title: 'Analyzing…');
+
+final analyzingProgressEnd = WorkDoneProgressEnd(kind: 'end');
+
+/// A [ProgressToken] used for reporting progress when the server is analyzing.
+final analyzingProgressToken = Either2<num, String>.t2('ANALYZING');
+
 /// Constants for command IDs that are exchanged between LSP client/server.
 abstract class Commands {
   /// A list of all commands IDs that can be sent to the client to inform which
@@ -74,6 +83,8 @@ abstract class CustomMethods {
   static const PublishFlutterOutline =
       Method('dart/textDocument/publishFlutterOutline');
   static const Super = Method('dart/textDocument/super');
+  // TODO(dantup): Remove custom AnalyzerStatus status method soon as no clients
+  // should be relying on it and we now support proper $/progress events.
   static const AnalyzerStatus = Method(r'$/analyzerStatus');
 }
 

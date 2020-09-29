@@ -62,6 +62,8 @@ class PostfixExpressionResolver {
     var operand = node.operand;
     _resolver.setReadElement(operand, readElement);
     _resolver.setWriteElement(operand, writeElement);
+    _resolver.migrationResolutionHooks
+        ?.setCompoundAssignmentExpressionTypes(node);
 
     _resolver.setAssignmentBackwardCompatibility(
       assignment: node,
@@ -82,8 +84,8 @@ class PostfixExpressionResolver {
   ///
   /// TODO(scheglov) this is duplicate
   void _checkForInvalidAssignmentIncDec(
-      AstNode node, Expression operand, DartType type) {
-    var operandWriteType = _getWriteType(operand);
+      PostfixExpression node, Expression operand, DartType type) {
+    var operandWriteType = node.writeType;
     if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
@@ -127,16 +129,6 @@ class PostfixExpressionResolver {
       throw UnsupportedError(
           'Unsupported postfix operator ${expression.operator.lexeme}');
     }
-  }
-
-  DartType _getWriteType(Expression node) {
-    if (node is SimpleIdentifier) {
-      var element = node.staticElement;
-      if (element is PromotableElement) {
-        return element.type;
-      }
-    }
-    return node.staticType;
   }
 
   void _resolve1(PostfixExpression node, DartType receiverType) {

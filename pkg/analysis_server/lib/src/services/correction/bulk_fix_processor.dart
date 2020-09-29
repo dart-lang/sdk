@@ -27,6 +27,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_relative
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
+import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
@@ -240,6 +241,78 @@ class BulkFixProcessor {
     ],
   };
 
+  /// A map from error codes to a list of generators used to create multiple
+  /// correction producers used to build fixes for those diagnostics. The
+  /// generators used for lint rules are in the [lintMultiProducerMap].
+  static const Map<ErrorCode, List<MultiProducerGenerator>>
+      nonLintMultiProducerMap = {
+    CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+      DataDriven.newInstance,
+    ],
+    // TODO(brianwilkerson) Uncomment the entries below as we add tests for
+    //  them.
+    // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
+    //   DataDriven.newInstance,
+    // ],
+    CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+      DataDriven.newInstance,
+    ],
+    // CompileTimeErrorCode.INVALID_OVERRIDE: [
+    //   DataDriven.newInstance,
+    // ],
+    CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
+      DataDriven.newInstance,
+    ],
+    // CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.UNDEFINED_CLASS: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.UNDEFINED_GETTER: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.UNDEFINED_METHOD: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.UNDEFINED_SETTER: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
+    //   DataDriven.newInstance,
+    // ],
+    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
+    //   DataDriven.newInstance,
+    // ],
+    // HintCode.DEPRECATED_MEMBER_USE: [
+    //   DataDriven.newInstance,
+    // ],
+    // HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+    //   DataDriven.newInstance,
+    // ],
+    // HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+    //   DataDriven.newInstance,
+    // ],
+  };
+
   /// A map from an error code to a generator used to create the correction
   /// producer used to build a fix for that diagnostic. The generators used for
   /// lint rules are in the [lintProducerMap].
@@ -314,6 +387,16 @@ class BulkFixProcessor {
       var generator = nonLintProducerMap[errorCode];
       if (generator != null) {
         await compute(generator());
+      }
+      var multiGenerators = nonLintMultiProducerMap[errorCode];
+      if (multiGenerators != null) {
+        for (var multiGenerator in multiGenerators) {
+          var multiProducer = multiGenerator();
+          multiProducer.configure(context);
+          for (var producer in multiProducer.producers) {
+            await compute(producer);
+          }
+        }
       }
     }
   }

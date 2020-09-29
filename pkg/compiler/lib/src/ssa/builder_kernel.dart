@@ -4108,10 +4108,44 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     }
   }
 
-  void _handleCreateInvocationMirror(ir.StaticInvocation invocation) {
-    ir.StringLiteral nameLiteral = invocation.arguments.positional[0];
-    String name = nameLiteral.value;
+  String _readStringLiteral(ir.Expression node) {
+    if (node is ir.StringLiteral) {
+      return node.value;
+    } else if (node is ir.ConstantExpression &&
+        node.constant is ir.StringConstant) {
+      ir.StringConstant constant = node.constant;
+      return constant.value;
+    } else {
+      return reporter.internalError(
+          _elementMap.getSpannable(targetElement, node),
+          "Unexpected string literal: "
+          "${node is ir.ConstantExpression ? node.constant : node}");
+    }
+  }
 
+  int _readIntLiteral(ir.Expression node) {
+    if (node is ir.IntLiteral) {
+      return node.value;
+    } else if (node is ir.ConstantExpression &&
+        node.constant is ir.IntConstant) {
+      ir.IntConstant constant = node.constant;
+      return constant.value;
+    } else if (node is ir.ConstantExpression &&
+        node.constant is ir.DoubleConstant) {
+      ir.DoubleConstant constant = node.constant;
+      assert(constant.value.floor() == constant.value,
+          "Unexpected int literal value ${constant.value}.");
+      return constant.value.toInt();
+    } else {
+      return reporter.internalError(
+          _elementMap.getSpannable(targetElement, node),
+          "Unexpected int literal: "
+          "${node is ir.ConstantExpression ? node.constant : node}");
+    }
+  }
+
+  void _handleCreateInvocationMirror(ir.StaticInvocation invocation) {
+    String name = _readStringLiteral(invocation.arguments.positional[0]);
     ir.ListLiteral typeArgumentsLiteral = invocation.arguments.positional[1];
     List<DartType> typeArguments =
         typeArgumentsLiteral.expressions.map((ir.Expression expression) {
@@ -4123,11 +4157,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         invocation.arguments.positional[2];
     ir.Expression namedArgumentsLiteral = invocation.arguments.positional[3];
     Map<String, ir.Expression> namedArguments = {};
-    ir.IntLiteral kindLiteral = invocation.arguments.positional[4];
+    int kind = _readIntLiteral(invocation.arguments.positional[4]);
 
     Name memberName = new Name(name, _currentFrame.member.library);
     Selector selector;
-    switch (kindLiteral.value) {
+    switch (kind) {
       case invocationMirrorGetterKind:
         selector = new Selector.getter(memberName);
         break;
@@ -4142,8 +4176,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         } else {
           if (namedArgumentsLiteral is ir.MapLiteral) {
             namedArgumentsLiteral.entries.forEach((ir.MapEntry entry) {
-              ir.StringLiteral key = entry.key;
-              namedArguments[key.value] = entry.value;
+              String key = _readStringLiteral(entry.key);
+              namedArguments[key] = entry.value;
             });
           } else if (namedArgumentsLiteral is ir.ConstantExpression &&
               namedArgumentsLiteral.constant is ir.MapConstant) {
@@ -6871,6 +6905,11 @@ class InlineWeeder extends ir.Visitor {
   visitConstantExpression(ir.ConstantExpression node) {
     registerRegularNode();
     registerReductiveNode();
+    ir.Constant constant = node.constant;
+    // Avoid copying long strings into call site.
+    if (constant is ir.StringConstant && isLongString(constant.value)) {
+      data.hasLongString = true;
+    }
   }
 
   @override
@@ -7014,12 +7053,16 @@ class InlineWeeder extends ir.Visitor {
     node.visitChildren(this);
   }
 
+  /// Returns `true` if [value] is considered a long string for which copying
+  /// should be avoided.
+  bool isLongString(String value) => value.length > 14;
+
   @override
   visitStringLiteral(ir.StringLiteral node) {
     registerRegularNode();
     registerReductiveNode();
     // Avoid copying long strings into call site.
-    if (node.value.length > 14) {
+    if (isLongString(node.value)) {
       data.hasLongString = true;
     }
   }

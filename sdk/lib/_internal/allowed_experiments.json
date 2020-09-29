@@ -67,6 +67,9 @@
     "flutter_goldens_client": {
       "experimentSet": "nullSafety"
     },
+    "intl": {
+      "experimentSet": "nullSafety"
+    },
     "js": {
       "experimentSet": "nullSafety"
     },

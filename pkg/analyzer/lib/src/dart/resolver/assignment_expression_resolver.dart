@@ -67,6 +67,8 @@ class AssignmentExpressionResolver {
       _resolver.setReadElement(left, readElement);
     }
     _resolver.setWriteElement(left, writeElement);
+    _resolver.migrationResolutionHooks
+        ?.setCompoundAssignmentExpressionTypes(node);
 
     _resolver.setAssignmentBackwardCompatibility(
       assignment: node,

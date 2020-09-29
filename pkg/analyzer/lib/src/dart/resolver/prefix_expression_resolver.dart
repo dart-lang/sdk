@@ -65,6 +65,8 @@ class PrefixExpressionResolver {
       var operand = node.operand;
       _resolver.setReadElement(operand, readElement);
       _resolver.setWriteElement(operand, writeElement);
+      _resolver.migrationResolutionHooks
+          ?.setCompoundAssignmentExpressionTypes(node);
 
       _resolver.setAssignmentBackwardCompatibility(
         assignment: node,

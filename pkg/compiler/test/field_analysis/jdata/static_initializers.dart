@@ -126,8 +126,7 @@ var field3f = [
 /*member: field3g:final,lazy*/
 var field3g = [method()];
 
-// TODO(johnniwinther): Recognize this as of eager complexity.
-/*member: field3h:final,lazy*/
+/*member: field3h:final,eager*/
 var field3h = [1 + 3];
 
 /*member: field4a:constant=IntConstant(5)*/

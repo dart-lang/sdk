@@ -114,15 +114,13 @@ var field3f = [
 /*member: field3g:complexity=lazy*/
 var field3g = [method()];
 
-// TODO(johnniwinther): Recognize this as of eager complexity.
-/*member: field3h:complexity=lazy*/
+/*member: field3h:complexity=eager*/
 var field3h = [1 + 3];
 
-// TODO(johnniwinther): Recognize `field4*` as of constant complexity.
-/*member: field4a:complexity=lazy,initial=IntConstant(5)*/
+/*member: field4a:complexity=constant,initial=IntConstant(5)*/
 final field4a = 2 + 3;
 
-/*member: field4b:complexity=lazy,initial=IntConstant(5)*/
+/*member: field4b:complexity=constant,initial=IntConstant(5)*/
 var field4b = 2 + 3;
 
 const field4c = 2 + 3;

@@ -73,13 +73,16 @@ main() {
 /*member: testNot:type=[inst:JSBool]*/
 testNot() => !false;
 
-/*member: testUnaryMinus:
- dynamic=[int.unary-],
- type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]
-*/
+/*member: testUnaryMinus:type=[
+  inst:JSDouble,
+  inst:JSInt,
+  inst:JSNumber,
+  inst:JSPositiveInt,
+  inst:JSUInt31,
+  inst:JSUInt32]*/
 testUnaryMinus() => -1;
 
-/*member: testConditional:type=[inst:JSBool,inst:JSNull,inst:JSString]*/
+/*member: testConditional:type=[inst:JSNull]*/
 // ignore: DEAD_CODE
 testConditional() => true ? null : '';
 
@@ -107,634 +110,45 @@ testPreInc(o) => ++o;
 */
 testPreDec(o) => --o;
 
-/*member: testIs:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  is:Class*]
-*/
+/*member: testIs:type=[inst:JSBool]*/
 testIs() => null is Class;
 
-/*member: testIsGeneric:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  is:GenericClass<int*,String*>*]
-*/
+/*member: testIsGeneric:type=[inst:JSBool]*/
 testIsGeneric() => null is GenericClass<int, String>;
 
-/*member: testIsGenericRaw:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  is:GenericClass<dynamic,dynamic>*]
-*/
+/*member: testIsGenericRaw:type=[inst:JSBool]*/
 testIsGenericRaw() => null is GenericClass;
 
-/*member: testIsGenericDynamic:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  is:GenericClass<dynamic,dynamic>*]
-*/
+/*member: testIsGenericDynamic:type=[inst:JSBool]*/
 testIsGenericDynamic() => null is GenericClass<dynamic, dynamic>;
 
-/*member: testIsNot:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  is:Class*]
-*/
+/*member: testIsNot:type=[inst:JSBool]*/
 testIsNot() => null is! Class;
 
-/*member: testIsNotGeneric:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  is:GenericClass<int*,String*>*]
-*/
+/*member: testIsNotGeneric:type=[inst:JSBool]*/
 testIsNotGeneric() => null is! GenericClass<int, String>;
 
-/*member: testIsNotGenericRaw:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  is:GenericClass<dynamic,dynamic>*]
-*/
+/*member: testIsNotGenericRaw:type=[inst:JSBool]*/
 testIsNotGenericRaw() => null is! GenericClass;
 
-/*member: testIsNotGenericDynamic:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  is:GenericClass<dynamic,dynamic>*]
-*/
+/*member: testIsNotGenericDynamic:type=[inst:JSBool]*/
 testIsNotGenericDynamic() => null is! GenericClass<dynamic, dynamic>;
 
-/*member: testIsTypedef:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  is:dynamic Function()*]
-*/
+/*member: testIsTypedef:type=[inst:JSBool]*/
 testIsTypedef() => null is Typedef;
 
-/*member: testIsTypedefGeneric:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  is:int* Function(String*)*]
-*/
+/*member: testIsTypedefGeneric:type=[inst:JSBool]*/
 testIsTypedefGeneric() => null is GenericTypedef<int, String>;
 
-/*member: testIsTypedefGenericRaw:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  is:dynamic Function(dynamic)*]
-*/
+/*member: testIsTypedefGenericRaw:type=[inst:JSBool]*/
 testIsTypedefGenericRaw() => null is GenericTypedef;
 
-/*member: testIsTypedefGenericDynamic:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  is:dynamic Function(dynamic)*]
-*/
+/*member: testIsTypedefGenericDynamic:type=[inst:JSBool]*/
 testIsTypedefGenericDynamic() => null is GenericTypedef<dynamic, dynamic>;
 
-/*member: testIsTypedefDeep:
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _generalNullableAsCheckImplementation(1),
-  _generalNullableIsTestImplementation(1),
-  _installSpecializedAsCheck(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1),
-  setRuntimeTypeInfo(2)],
- type=[
-  inst:Closure,
-  inst:JSArray<dynamic>,
-  inst:JSBool,
-  inst:JSExtendableArray<dynamic>,
-  inst:JSFixedArray<dynamic>,
-  inst:JSMutableArray<dynamic>,
-  inst:JSNull,
-  inst:JSUnmodifiableArray<dynamic>,
-  is:List<int* Function(dynamic Function(dynamic)*)*>*]
-*/
+/*member: testIsTypedefDeep:type=[inst:JSBool]*/
 testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
 
-// ignore: UNNECESSARY_CAST
 /*member: testAs:
  static=[
   Rti._bind(1),
@@ -777,9 +191,9 @@ testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
   inst:Closure,
   inst:JSBool]
 */
+// ignore: UNNECESSARY_CAST
 testAs(dynamic o) => o as Class;
 
-// ignore: UNNECESSARY_CAST
 /*member: testAsGeneric:
  static=[
   Rti._bind(1),
@@ -828,9 +242,9 @@ testAs(dynamic o) => o as Class;
   inst:JSMutableArray<dynamic>,
   inst:JSUnmodifiableArray<dynamic>]
 */
+// ignore: UNNECESSARY_CAST
 testAsGeneric(dynamic o) => o as GenericClass<int, String>;
 
-// ignore: UNNECESSARY_CAST
 /*member: testAsGenericRaw:
  static=[
   Rti._bind(1),
@@ -873,9 +287,9 @@ testAsGeneric(dynamic o) => o as GenericClass<int, String>;
   inst:Closure,
   inst:JSBool]
 */
+// ignore: UNNECESSARY_CAST
 testAsGenericRaw(dynamic o) => o as GenericClass;
 
-// ignore: UNNECESSARY_CAST
 /*member: testAsGenericDynamic:
  static=[
   Rti._bind(1),
@@ -918,6 +332,7 @@ testAsGenericRaw(dynamic o) => o as GenericClass;
   inst:Closure,
   inst:JSBool]
 */
+// ignore: UNNECESSARY_CAST
 testAsGenericDynamic(dynamic o) => o as GenericClass<dynamic, dynamic>;
 
 /*member: testThrow:

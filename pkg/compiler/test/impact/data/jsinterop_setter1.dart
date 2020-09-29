@@ -11,7 +11,6 @@ import 'dart:html' show File;
 
 import 'package:js/js.dart';
 
-@JS()
 /*member: foo=:
  static=[
   Rti._bind(1),
@@ -65,6 +64,7 @@ import 'package:js/js.dart';
   native:SqlError,
   param:Function*]
 */
+@JS()
 external set foo(Function f);
 
 /*member: _doStuff:

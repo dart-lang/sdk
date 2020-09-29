@@ -10,7 +10,7 @@ import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 class ScopeModel {
   final ClosureScopeModel closureScopeModel;
   final VariableScopeModel variableScopeModel;
-  final InitializerComplexity initializerComplexity;
+  final EvaluationComplexity initializerComplexity;
 
   const ScopeModel(
       {this.closureScopeModel,

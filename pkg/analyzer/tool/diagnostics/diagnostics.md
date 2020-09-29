@@ -15,9 +15,15 @@ For more information about the analyzer, see
 
 ## Glossary
 
-This page uses the following terms.
+This page uses the following terms:
+
+* [constant context][]
+* [definite assignment][]
+* [override inference][]
+* [potentially non-nullable][]
 
 [constant context]: #constant-context
+[definite assignment]: #definite-assignment
 [override inference]: #override-inference
 [potentially non-nullable]: #potentially-non-nullable
 
@@ -60,6 +66,92 @@ contexts:
     }
   }
   ```
+### Definite assignment
+
+Definite assignment analysis is the process of determining, for each local
+variable at each point in the code, which of the following is true:
+- The variable has definitely been assigned a value (_definitely assigned_).
+- The variable has definitely not been assigned a value (_definitely
+  unassigned_).
+- The variable might or might not have been assigned a value, depending on the
+  execution path taken to arrive at that point.
+
+Definite assignment analysis helps find problems in code, such as places where a
+variable that might not have been assigned a value is being referenced, or
+places where a variable that can only be assigned a value one time is being
+assigned after it might already have been assigned a value.
+
+For example, in the following code the variable `s` is definitely unassigned
+when it’s passed as an argument to `print`:
+
+```dart
+void f() {
+  late String s;
+  print(s);
+}
+```
+
+But in the following code, the variable `s` is definitely assigned: 
+
+```dart
+void f(String name) {
+  String s = 'Hello $name!';
+  print(s);
+}
+```
+
+Definite assignment analysis can even tell whether a variable is definitely
+assigned (or unassigned) when there are multiple possible execution paths. In
+the following code the `print` function is called if execution goes through
+either the true or the false branch of the `if` statement, but because `s` is
+assigned no matter which branch is taken, it’s definitely assigned before it’s
+passed to `print`:
+
+```dart
+void f(String name, bool casual) {
+  late String s;
+  if (casual) {
+    s = 'Hi $name!';
+  } else {
+    s = 'Hello $name!';
+  }
+  print(s);
+}
+```
+
+In flow analysis, the end of the `if` statement is referred to as a _join_—a
+place where two or more execution paths merge back together. Where there's a
+join, the analysis says that a variable is definitely assigned if it’s
+definitely assigned along all of the paths that are merging, and definitely
+unassigned if it’s definitely unassigned along all of the paths.
+
+Sometimes a variable is assigned a value on one path but not on another, in
+which case the variable might or might not have been assigned a value. In the
+following example, the true branch of the `if` statement might or might not be
+executed, so the variable might or might be assigned a value:
+
+```dart
+void f(String name, bool casual) {
+  late String s;
+  if (casual) {
+    s = 'Hi $name!';
+  }
+  print(s);
+}
+```
+
+The same is true if there is a false branch that doesn’t assign a value to `s`.
+
+The analysis of loops is a little more complicated, but it follows the same
+basic reasoning. For example, the condition in a `while` loop is always
+executed, but the body might or might not be. So just like an `if` statement,
+there's a join at the end of the `while` statement between the path in which the
+condition is `true` and the path in which the condition is `false`.
+
+For additional details, see the
+[specification of definite assignment][definiteAssignmentSpec].
+
+[definiteAssignmentSpec](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
 
 ### Override inference
 
@@ -1696,10 +1788,9 @@ _The late local variable '{0}' is definitely unassigned at this point._
 
 #### Description
 
-The analyzer produces this diagnostic when
-[definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
-analysis shows that a local variable that's marked as `late` is read before
-being assigned.
+The analyzer produces this diagnostic when [definite assignment][] analysis
+shows that a local variable that's marked as `late` is read before being
+assigned.
 
 #### Example
 
@@ -3835,7 +3926,7 @@ operator following `s` short-circuits the evaluation of both `length` and
 `length` can't return a `null` value. Either way, `isEven` can't be invoked
 on a `null` value, so the null-aware operator is neither necessary nor
 allowed. See
-[Understanding null safety](https://dart.dev/null-safety/understanding-null-safety#smarter-null-aware-methods)
+[Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
 for more details.
 
 #### Common fixes
@@ -5532,8 +5623,7 @@ and has all these characteristics:
 - Doesn't have an initializer.
 - Isn't marked as `late`.
 - The analyzer can't prove that the local variable will be assigned before
-  the reference based on the specification of
-  [definite assignment](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md).
+  the reference based on the specification of [definite assignment.][]
 
 #### Example
 
@@ -9240,4 +9330,4 @@ int f(C c) => c.m(2);
 
 ### undefined_super_method
 
-See [undefined_super_member](#undefined-super-member).
+See [undefined_super_member](#undefined_super_member).
