@@ -897,6 +897,7 @@ nightly_builder(
     "vm-kernel-precomp-nnbd-linux-debug-x64",
     category = "vm|nnbd|aot|d",
     channels = ["try"],
+    properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
 nightly_builder(
     "vm-kernel-precomp-nnbd-linux-release-simarm64",
