@@ -641,7 +641,11 @@ void _writeJsonMapAssignment(
       ..writeIndentedln('if (${field.name} != null) {')
       ..indent();
   }
-  buffer..writeIndented('''$mapName['${field.name}'] = ${field.name}''');
+  // Suppress the ? operator if we've output a null check already.
+  final nullOp = shouldBeOmittedIfNoValue ? '' : '?';
+  final valueCode =
+      _isSpecType(field.type) ? '${field.name}$nullOp.toJson()' : field.name;
+  buffer..writeIndented('''$mapName['${field.name}'] = $valueCode''');
   if (!field.allowsUndefined && !field.allowsNull) {
     buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
   }

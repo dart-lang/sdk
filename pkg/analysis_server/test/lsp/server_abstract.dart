@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -159,12 +158,7 @@ mixin ClientCapabilitiesHelperMixin {
     TextDocumentClientCapabilities source,
     Map<String, dynamic> textDocumentCapabilities,
   ) {
-    // TODO(dantup): Figure out why we need to do this to get a map...
-    // source.toJson() doesn't recursively called toJson() so we end up with
-    // objects (instead of maps) in child properties, which means multiple
-    // calls to this function do not work correctly. For now, calling jsonEncode
-    // then jsonDecode will force recursive serialisation.
-    final json = jsonDecode(jsonEncode(source));
+    final json = source.toJson();
     if (textDocumentCapabilities != null) {
       textDocumentCapabilities.keys.forEach((key) {
         json[key] = textDocumentCapabilities[key];
@@ -177,9 +171,7 @@ mixin ClientCapabilitiesHelperMixin {
     ClientCapabilitiesWorkspace source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
-    // TODO(dantup): As above - it seems like this round trip should be
-    // unnecessary.
-    final json = jsonDecode(jsonEncode(source));
+    final json = source.toJson();
     if (workspaceCapabilities != null) {
       workspaceCapabilities.keys.forEach((key) {
         json[key] = workspaceCapabilities[key];
