@@ -75,6 +75,15 @@ mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 
+[ $runtime == vm && $system == windows ]
+isolate/detect_nullsafety_1_test: Skip # Issue 43583
+isolate/nnbd_spawn_autodetect_1_test: Skip # Issue 43583
+isolate/nnbd_spawn_autodetect_2_test: Skip # Issue 43583
+isolate/nnbd_spawnuri_autodetect_1_test: Skip # Issue 43583
+isolate/nnbd_spawnuri_autodetect_2_test: Skip # Issue 43583
+isolate/nnbd_spawnuri_autodetect_3_test: Skip # Issue 43583
+isolate/nnbd_spawnuri_autodetect_4_test: Skip # Issue 43583
+
 [ $runtime == vm && ($arch == simarm || $arch == simarmv6) ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 

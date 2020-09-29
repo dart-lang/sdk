@@ -630,6 +630,16 @@
         "builder-tag": "crossword"
       }
     },
+    "dartkp-weak-asserts-linux-(debug|product|release)-simarm-crossword": {
+      "options": {
+        "builder-tag": "crossword"
+      }
+    },
+    "dartkp-strong-linux-(debug|product|release)-simarm-crossword": {
+      "options": {
+        "builder-tag": "crossword"
+      }
+    },
     "dartkp-(win|mac)-(debug|product|release)-simarm-crossword": {
       "options": {
         "builder-tag": "crossword",
@@ -703,13 +713,13 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
+    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
+    "dartk-strong-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)": {
       "options": {
         "builder-tag": "vm_nnbd"
       }
@@ -1077,8 +1087,11 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-nnbd-linux-debug-x64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64",
-        "vm-kernel-precomp-nnbd-linux-release-x64"
+        "vm-kernel-precomp-nnbd-linux-release-x64",
+        "vm-kernel-precomp-nnbd-mac-release-simarm64",
+        "vm-kernel-precomp-nnbd-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the VM AOT nnbd builder group."
@@ -1096,29 +1109,35 @@
           "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "benchmark_smoke",
             "corelib",
             "ffi",
             "language",
             "lib",
-            "standalone/io",
+            "samples",
+            "standalone",
+            "utils",
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 4
+          "shards": 6
         },
         {
           "name": "vm nnbd tests in strong mode",
           "arguments": [
             "-ndartkp-strong-${system}-${mode}-${arch}",
+            "benchmark_smoke",
             "corelib",
             "ffi",
             "language",
             "lib",
-            "standalone/io",
+            "samples",
+            "standalone",
+            "utils",
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 4
+          "shards": 6
         },
         {
           "name": "co19 nnbd tests in strong mode",
@@ -1127,7 +1146,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 6
+          "shards": 10
         },
         {
           "name": "co19 nnbd tests in weak mode with asserts",
@@ -1136,7 +1155,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 6
+          "shards": 10
         }
       ]
     },
@@ -1447,8 +1466,17 @@
     },
     {
       "builders": [
+        "vm-kernel-nnbd-linux-debug-ia32",
+        "vm-kernel-nnbd-linux-debug-x64",
+        "vm-kernel-nnbd-linux-release-ia32",
+        "vm-kernel-nnbd-linux-release-simarm",
+        "vm-kernel-nnbd-linux-release-simarm64",
         "vm-kernel-nnbd-linux-release-x64",
-        "vm-kernel-nnbd-linux-debug-x64"
+        "vm-kernel-nnbd-mac-debug-x64",
+        "vm-kernel-nnbd-mac-release-x64",
+        "vm-kernel-nnbd-win-release-ia32",
+        "vm-kernel-nnbd-win-debug-x64",
+        "vm-kernel-nnbd-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the VM nnbd builder group."
@@ -1463,34 +1491,56 @@
           ]
         },
         {
-          "name": "vm nnbd test in weak mode with asserts",
+          "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "benchmark_smoke",
             "corelib",
             "ffi",
             "language",
             "lib",
-            "co19",
-            "standalone/io",
+            "samples",
+            "standalone",
+            "utils",
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 2
+          "shards": 6
+        },
+        {
+          "name": "vm co19 nnbd tests in weak mode with asserts",
+          "arguments": [
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         },
         {
           "name": "vm nnbd tests in strong mode",
           "arguments": [
             "-ndartk-strong-${system}-${mode}-${arch}",
+            "benchmark_smoke",
             "corelib",
             "ffi",
             "language",
             "lib",
-            "co19",
-            "standalone/io",
+            "samples",
+            "standalone",
+            "utils",
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 2
+          "shards": 6
+        },
+        {
+          "name": "vm co19 nnbd tests in strong mode",
+          "arguments": [
+            "-ndartk-strong-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
@@ -3309,6 +3359,67 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${system}-${mode}-simarm-crossword"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-nnbd-linux-debug-simarm_x64",
+        "vm-kernel-precomp-nnbd-linux-release-simarm_x64"
+      ],
+      "meta": {
+        "description": "This configuration runs tests for the simarm_x64 architecture."
+      },
+      "steps": [
+        {
+          "name": "build dart for simarm_x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart for simarm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simarm",
+            "dart_precompiled_runtime",
+            "vm_platform"
+          ]
+        },
+        {
+          "name": "vm weak tests",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-simarm-crossword",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-strong-${system}-${mode}-simarm-crossword",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
           ],
           "fileset": "vm-kernel",
           "shards": 10
