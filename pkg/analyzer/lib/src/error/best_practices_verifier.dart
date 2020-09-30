@@ -48,6 +48,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// is deprecated.
   bool _inDeprecatedMember;
 
+  /// A flag indicating whether a surrounding member is annotated as
+  /// `@doNotStore`.
+  bool _inDoNotStoreMember;
+
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
 
@@ -101,6 +105,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             _errorReporter, _currentLibrary, workspacePackage),
         _workspacePackage = workspacePackage {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
+    _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
 
     _linterContext = LinterContextImpl(
       null /* allUnits */,
@@ -305,8 +310,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _invalidAccessVerifier._enclosingClass = element;
 
     bool wasInDeprecatedMember = _inDeprecatedMember;
+    bool wasInDoNotStoreMember = _inDoNotStoreMember;
     if (element != null && element.hasDeprecated) {
       _inDeprecatedMember = true;
+    }
+    if (element != null && element.hasDoNotStore) {
+      _inDoNotStoreMember = true;
     }
 
     try {
@@ -319,6 +328,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
       _inDeprecatedMember = wasInDeprecatedMember;
+      _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
 
@@ -433,9 +443,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDeprecatedMember = _inDeprecatedMember;
+    bool wasInDoNotStoreMember = _inDoNotStoreMember;
     ExecutableElement element = node.declaredElement;
     if (element != null && element.hasDeprecated) {
       _inDeprecatedMember = true;
+    }
+    if (element != null && element.hasDoNotStore) {
+      _inDoNotStoreMember = true;
     }
     try {
       _checkForMissingReturn(
@@ -450,6 +464,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       super.visitFunctionDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
+      _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
 
@@ -549,6 +564,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDeprecatedMember = _inDeprecatedMember;
+    bool wasInDoNotStoreMember = _inDoNotStoreMember;
     ExecutableElement element = node.declaredElement;
     Element enclosingElement = element?.enclosingElement;
 
@@ -571,6 +587,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     if (element != null && element.hasDeprecated) {
       _inDeprecatedMember = true;
+    }
+    if (element != null && element.hasDoNotStore) {
+      _inDoNotStoreMember = true;
     }
     try {
       // This was determined to not be a good hint, see: dartbug.com/16029
@@ -598,6 +617,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       super.visitMethodDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
+      _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
 
@@ -1359,17 +1379,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForReturnOfDoNotStore(Expression expression) {
+    if (_inDoNotStoreMember) {
+      return;
+    }
     var element = _getElement(expression);
     if (element != null && element.hasOrInheritsDoNotStore) {
-      var parent = expression.thisOrAncestorMatching(
+      Declaration parent = expression.thisOrAncestorMatching(
           (e) => e is FunctionDeclaration || e is MethodDeclaration);
-      if (parent is Declaration && !parent.declaredElement.hasDoNotStore) {
-        _errorReporter.reportErrorForNode(
-          HintCode.RETURN_OF_DO_NOT_STORE,
-          expression,
-          [element.name, parent.declaredElement.displayName],
-        );
-      }
+      _errorReporter.reportErrorForNode(
+        HintCode.RETURN_OF_DO_NOT_STORE,
+        expression,
+        [element.name, parent.declaredElement.displayName],
+      );
     }
   }
 
