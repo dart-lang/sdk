@@ -1014,6 +1014,32 @@ main() {
       });
     });
 
+    test(
+        'functionExpression_end does not propagate "definitely unassigned" data',
+        () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int');
+      var functionNode = _Node();
+      h.assignedVariables((vars) {
+        vars.function(functionNode, () {});
+        vars.write(x);
+      });
+      h.run((flow) {
+        flow.declare(x, false);
+        expect(flow.isUnassigned(x), true);
+        flow.functionExpression_begin(functionNode);
+        // The function expression could be called at any time, so x might be
+        // assigned now.
+        expect(flow.isUnassigned(x), false);
+        flow.functionExpression_end();
+        // But now that we are back outside the function expression, we once
+        // again know that x is unassigned.
+        expect(flow.isUnassigned(x), true);
+        flow.write(x, _Type('int'));
+        expect(flow.isUnassigned(x), false);
+      });
+    });
+
     test('ifNullExpression allows ensure guarding', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');

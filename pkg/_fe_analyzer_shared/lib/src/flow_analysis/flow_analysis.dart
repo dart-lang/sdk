@@ -2755,11 +2755,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void functionExpression_end() {
     --_functionNestingLevel;
     assert(_functionNestingLevel >= 0);
-    FlowModel<Variable, Type> afterBody = _current;
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
     _current = context._previous;
-    _current = _current.joinUnassigned(afterBody);
   }
 
   @override
