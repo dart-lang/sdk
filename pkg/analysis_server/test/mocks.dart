@@ -80,6 +80,12 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     if (!_closed.isCompleted) {
       _closed.complete();
     }
+    if (!_serverToClient.isClosed) {
+      _serverToClient.close();
+    }
+    if (!_clientToServer.isClosed) {
+      _clientToServer.close();
+    }
   }
 
   @override

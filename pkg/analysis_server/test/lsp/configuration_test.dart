@@ -86,12 +86,15 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_configurationRequest_notSupported() async {
-    final configRequest = requestsFromServer
-        .firstWhere((n) => n.method == Method.workspace_configuration);
-    expect(configRequest, doesNotComplete);
+    var didGetConfigRequest = false;
+    requestsFromServer
+        .where((n) => n.method == Method.workspace_configuration)
+        .listen((_) => didGetConfigRequest = true);
 
     await initialize();
     pumpEventQueue();
+
+    expect(didGetConfigRequest, isFalse);
   }
 
   Future<void> test_configurationRequest_supported() async {

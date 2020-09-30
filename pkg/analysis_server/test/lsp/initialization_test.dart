@@ -88,10 +88,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Set a flag if any registerCapability request comes through.
     var didGetRegisterCapabilityRequest = false;
     requestsFromServer
-        .firstWhere((n) => n.method == Method.client_registerCapability)
-        .then((params) {
-      didGetRegisterCapabilityRequest = true;
-    });
+        .where((n) => n.method == Method.client_registerCapability)
+        .listen((_) => didGetRegisterCapabilityRequest = true);
 
     // Initialize with no dynamic registrations advertised.
     final initResponse = await initialize();

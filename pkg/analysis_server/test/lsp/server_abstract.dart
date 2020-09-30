@@ -1370,8 +1370,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         return diagnosticParams.uri == uri.toString();
       }
       return false;
-    });
-    return diagnosticParams.diagnostics;
+    }, orElse: () => null);
+    return diagnosticParams?.diagnostics;
   }
 
   Future<FlutterOutline> waitForFlutterOutline(Uri uri) async {
