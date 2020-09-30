@@ -93,7 +93,7 @@ else
     gem install coveralls-lcov
     coveralls-lcov var/lcov.info
 
-    exit status
+    exit $status
   fi
 fi
 
