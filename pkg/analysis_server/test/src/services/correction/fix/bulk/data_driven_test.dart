@@ -13,7 +13,9 @@ void main() {
     defineReflectiveTests(ExtraPositionalArgumentsCouldBeNamedTest);
     defineReflectiveTests(ExtraPositionalArgumentsTest);
     defineReflectiveTests(ImplementsNonClassTest);
+    defineReflectiveTests(InvalidOverrideTest);
     defineReflectiveTests(MixinOfNonClassTest);
+    defineReflectiveTests(NewWithUndefinedConstructorDefaultTest);
     defineReflectiveTests(NotEnoughPositionalArgumentsTest);
     defineReflectiveTests(OverrideOnNonOverridingMethodTest);
     defineReflectiveTests(UndefinedClassTest);
@@ -22,6 +24,10 @@ void main() {
     defineReflectiveTests(UndefinedIdentifierTest);
     defineReflectiveTests(UndefinedMethodTest);
     defineReflectiveTests(UndefinedSetterTest);
+    defineReflectiveTests(WrongNumberOfTypeArgumentsConstructorTest);
+    defineReflectiveTests(WrongNumberOfTypeArgumentsExtensionTest);
+    defineReflectiveTests(WrongNumberOfTypeArgumentsMethodTest);
+    defineReflectiveTests(WrongNumberOfTypeArgumentsTest);
   });
 }
 
@@ -172,6 +178,104 @@ class B implements New {}
 }
 
 @reflectiveTest
+class InvalidOverrideTest extends _DataDrivenTest {
+  @failingTest
+  Future<void> test_addParameter() async {
+    // This functionality hasn't been implemented yet.
+    setPackageContent('''
+class C {
+  void m(int x, int y) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add parameter'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addParameter'
+      index: 1
+      name: 'y'
+      style: required_positional
+      argumentValue:
+        expression: '0'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+class A extends C {
+  @override
+  void m(int x) {}
+}
+class B extends C {
+  @override
+  void m(int x) {}
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+class A extends C {
+  @override
+  void m(int x, int y) {}
+}
+class B extends C {
+  @override
+  void m(int x, int y) {}
+}
+''');
+  }
+
+  Future<void> test_addTypeParameter() async {
+    setPackageContent('''
+class C {
+  void m<T>() {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add type parameter'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'T'
+      argumentValue:
+        expression: 'int'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+class A extends C {
+  @override
+  void m() {}
+}
+class B extends C {
+  @override
+  void m() {}
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+class A extends C {
+  @override
+  void m<T>() {}
+}
+class B extends C {
+  @override
+  void m<T>() {}
+}
+''');
+  }
+}
+
+@reflectiveTest
 class MixinOfNonClassTest extends _DataDrivenTest {
   Future<void> test_rename() async {
     setPackageContent('''
@@ -198,6 +302,38 @@ class B with Old {}
 import '$importUri';
 class A with New {}
 class B with New {}
+''');
+  }
+}
+
+@reflectiveTest
+class NewWithUndefinedConstructorDefaultTest extends _DataDrivenTest {
+  Future<void> test_rename() async {
+    setPackageContent('''
+class C {
+  C.new([C c]);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    constructor: ''
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+C c() => C(C());
+''');
+    await assertHasFix('''
+import '$importUri';
+C c() => C.new(C.new());
 ''');
   }
 }
@@ -484,6 +620,180 @@ import '$importUri';
 void f(C a, C b) {
   a.new = b.new = 1;
 }
+''');
+  }
+}
+
+@reflectiveTest
+class WrongNumberOfTypeArgumentsConstructorTest extends _DataDrivenTest {
+  Future<void> test_addTypeParameter() async {
+    setPackageContent('''
+class C<S, T> {
+  C.c([C c]);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add type parameter'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    class: 'C'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 1
+      name: 'T'
+      argumentValue:
+        expression: 'int'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+C f() => C<String>.c(C<String>.c());
+''');
+    await assertHasFix('''
+import '$importUri';
+C f() => C<String, int>.c(C<String, int>.c());
+''');
+  }
+}
+
+@reflectiveTest
+class WrongNumberOfTypeArgumentsExtensionTest extends _DataDrivenTest {
+  Future<void> test_addTypeParameter() async {
+    setPackageContent('''
+extension E<S, T> on String {
+  int m(int x) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add type parameter'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    extension: 'E'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 1
+      name: 'T'
+      argumentValue:
+        expression: 'int'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+void f(String s) {
+  E<String>(s).m(E<String>(s).m(0));
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(String s) {
+  E<String, int>(s).m(E<String, int>(s).m(0));
+}
+''');
+  }
+}
+
+@reflectiveTest
+class WrongNumberOfTypeArgumentsMethodTest extends _DataDrivenTest {
+  Future<void> test_addTypeParameter() async {
+    setPackageContent('''
+class C {
+  int m<S, T>(int x) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add type parameter'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 1
+      name: 'T'
+      argumentValue:
+        expression: 'int'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+void f(C c) {
+  c.m<String>(c.m<String>(0));
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(C c) {
+  c.m<String, int>(c.m<String, int>(0));
+}
+''');
+  }
+}
+
+@reflectiveTest
+class WrongNumberOfTypeArgumentsTest extends _DataDrivenTest {
+  Future<void> test_addTypeParameter() async {
+    setPackageContent('''
+class C<S, T> {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add type parameter'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    class: 'C'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 1
+      name: 'T'
+      argumentValue:
+        expression: 'int'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+void f(C<String> c) {}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(C<String, int> c) {}
+''');
+  }
+
+  Future<void> test_addTypeParameter_unnamedConstructor() async {
+    setPackageContent('''
+class C<S, T> {
+  C([C c]);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add type parameter'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    class: 'C'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 1
+      name: 'T'
+      argumentValue:
+        expression: 'int'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+C f() => C<String>(C<String>());
+''');
+    await assertHasFix('''
+import '$importUri';
+C f() => C<String, int>(C<String, int>());
 ''');
   }
 }

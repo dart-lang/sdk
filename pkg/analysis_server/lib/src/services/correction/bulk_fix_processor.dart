@@ -262,17 +262,15 @@ class BulkFixProcessor {
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       DataDriven.newInstance,
     ],
-    // TODO(brianwilkerson) Uncomment the entries below as we add tests for
-    //  them.
-    // CompileTimeErrorCode.INVALID_OVERRIDE: [
-    //   DataDriven.newInstance,
-    // ],
+    CompileTimeErrorCode.INVALID_OVERRIDE: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       DataDriven.newInstance,
     ],
-    // CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
-    //   DataDriven.newInstance,
-    // ],
+    CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
       DataDriven.newInstance,
     ],
@@ -294,18 +292,20 @@ class BulkFixProcessor {
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
     ],
-    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
-    //   DataDriven.newInstance,
-    // ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
+      DataDriven.newInstance,
+    ],
+    // TODO(brianwilkerson) Uncomment the entries below as we add tests for
+    //  them.
     // HintCode.DEPRECATED_MEMBER_USE: [
     //   DataDriven.newInstance,
     // ],
