@@ -5820,30 +5820,6 @@ Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateLateDefinitelyAssignedError =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Late final variable '#name' definitely assigned.""",
-        withArguments: _withArgumentsLateDefinitelyAssignedError);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeLateDefinitelyAssignedError =
-    const Code<Message Function(String name)>(
-  "LateDefinitelyAssignedError",
-  templateLateDefinitelyAssignedError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsLateDefinitelyAssignedError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeLateDefinitelyAssignedError,
-      message: """Late final variable '${name}' definitely assigned.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -6643,6 +6619,32 @@ const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     "NonInstanceTypeVariableUse",
     analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
     message: r"""Can only use type variables in instance methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateNonNullableLateDefinitelyAssignedError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Non-nullable late final variable '#name' definitely assigned.""",
+        withArguments: _withArgumentsNonNullableLateDefinitelyAssignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeNonNullableLateDefinitelyAssignedError =
+    const Code<Message Function(String name)>(
+  "NonNullableLateDefinitelyAssignedError",
+  templateNonNullableLateDefinitelyAssignedError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonNullableLateDefinitelyAssignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonNullableLateDefinitelyAssignedError,
+      message:
+          """Non-nullable late final variable '${name}' definitely assigned.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

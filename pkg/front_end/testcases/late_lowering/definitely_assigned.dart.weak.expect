@@ -2,59 +2,59 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Late final variable 'local2' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Non-nullable late final variable 'local2' definitely assigned.
 //   local2 = value; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Late final variable 'local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Non-nullable late final variable 'local4' definitely assigned.
 //   local4 = 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Late final variable 'local6' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Non-nullable late final variable 'local6' definitely assigned.
 //   local6 = 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Late final variable 'local2' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Non-nullable late final variable 'local2' definitely assigned.
 //   local2 = value; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Late final variable 'local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Non-nullable late final variable 'local4' definitely assigned.
 //   local4 = 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Late final variable 'local6' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Non-nullable late final variable 'local6' definitely assigned.
 //   local6 = 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Late final variable 'local2' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Non-nullable late final variable 'local2' definitely assigned.
 //   local2 = value; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Late final variable 'local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Non-nullable late final variable 'local4' definitely assigned.
 //   local4 = 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Late final variable 'local6' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Non-nullable late final variable 'local6' definitely assigned.
 //   local6 = 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Late final variable 'local2' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Non-nullable late final variable 'local2' definitely assigned.
 //   local2 = value; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Late final variable 'local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Non-nullable late final variable 'local4' definitely assigned.
 //   local4 = 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Late final variable 'local6' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Non-nullable late final variable 'local6' definitely assigned.
 //   local6 = 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Late final variable 'local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Non-nullable late final variable 'local4' definitely assigned.
 //   local4 += 0; // error
 //   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Late final variable 'local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Non-nullable late final variable 'local4' definitely assigned.
 //   local4 += 0; // error
 //   ^^^^^^
 //
@@ -101,13 +101,13 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   #local2#set.call(value);
   #local4#set.call(0);
   #local6#set.call(0);
-  let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Late final variable 'local2' definitely assigned.
+  let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Non-nullable late final variable 'local2' definitely assigned.
   local2 = value; // error
   ^^^^^^" in #local2#set.call(value);
-  let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Late final variable 'local4' definitely assigned.
+  let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Non-nullable late final variable 'local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^" in #local4#set.call(0);
-  let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Late final variable 'local6' definitely assigned.
+  let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Non-nullable late final variable 'local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^" in #local6#set.call(0);
 };
@@ -153,13 +153,13 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   #local2#set.call(value);
   #local4#set.call(0);
   #local6#set.call(0);
-  let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Late final variable 'local2' definitely assigned.
+  let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Non-nullable late final variable 'local2' definitely assigned.
   local2 = value; // error
   ^^^^^^" in #local2#set.call(value);
-  let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Late final variable 'local4' definitely assigned.
+  let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Non-nullable late final variable 'local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^" in #local4#set.call(0);
-  let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Late final variable 'local6' definitely assigned.
+  let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Non-nullable late final variable 'local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^" in #local6#set.call(0);
 };
@@ -176,7 +176,7 @@ static field () → core::Null? fieldCompound = () → core::Null? {
       return local4 = #t13;
     }
   #local4#set.call(0);
-  let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Late final variable 'local4' definitely assigned.
+  let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Non-nullable late final variable 'local4' definitely assigned.
   local4 += 0; // error
   ^^^^^^" in #local4#set.call(#local4#get.call().{core::num::+}(0));
 };
@@ -217,13 +217,13 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   #local2#set.call(value);
   #local4#set.call(0);
   #local6#set.call(0);
-  let final<BottomType> #t18 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Late final variable 'local2' definitely assigned.
+  let final<BottomType> #t18 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Non-nullable late final variable 'local2' definitely assigned.
   local2 = value; // error
   ^^^^^^" in #local2#set.call(value);
-  let final<BottomType> #t19 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Late final variable 'local4' definitely assigned.
+  let final<BottomType> #t19 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Non-nullable late final variable 'local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^" in #local4#set.call(0);
-  let final<BottomType> #t20 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Late final variable 'local6' definitely assigned.
+  let final<BottomType> #t20 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Non-nullable late final variable 'local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^" in #local6#set.call(0);
 }
@@ -269,13 +269,13 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   #local2#set.call(value);
   #local4#set.call(0);
   #local6#set.call(0);
-  let final<BottomType> #t24 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Late final variable 'local2' definitely assigned.
+  let final<BottomType> #t24 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Non-nullable late final variable 'local2' definitely assigned.
   local2 = value; // error
   ^^^^^^" in #local2#set.call(value);
-  let final<BottomType> #t25 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Late final variable 'local4' definitely assigned.
+  let final<BottomType> #t25 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Non-nullable late final variable 'local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^" in #local4#set.call(0);
-  let final<BottomType> #t26 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Late final variable 'local6' definitely assigned.
+  let final<BottomType> #t26 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Non-nullable late final variable 'local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^" in #local6#set.call(0);
 }
@@ -292,7 +292,7 @@ static method methodCompound() → dynamic {
       return local4 = #t27;
     }
   #local4#set.call(0);
-  let final<BottomType> #t28 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Late final variable 'local4' definitely assigned.
+  let final<BottomType> #t28 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Non-nullable late final variable 'local4' definitely assigned.
   local4 += 0; // error
   ^^^^^^" in #local4#set.call(#local4#get.call().{core::num::+}(0));
 }
