@@ -16,7 +16,9 @@ static method main() → dynamic {
       return lateLocal = #t1;
     }
   self::throws(() → core::int? => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
-  self::expect(123, #lateLocal#set.call(123));
+  if(1.{core::num::==}(1)) {
+    self::expect(123, #lateLocal#set.call(123));
+  }
   self::expect(123, #lateLocal#get.call());
   self::throws(() → core::int => #lateLocal#set.call(124), "Write value to initialized lateLocal");
   function local<T extends core::Object? = dynamic>(T? value) → core::Null? {
@@ -32,7 +34,9 @@ static method main() → dynamic {
         return lateGenericLocal = #t2;
       }
     self::throws(() → T? => #lateGenericLocal#get.call(), "Read value from uninitialized lateGenericLocal");
-    self::expect(value, #lateGenericLocal#set.call(value));
+    if(1.{core::num::==}(1)) {
+      self::expect(value, #lateGenericLocal#set.call(value));
+    }
     self::expect(value, #lateGenericLocal#get.call());
     self::throws(() → T? => #lateGenericLocal#set.call(value), "Write value to initialized lateGenericLocal");
   }
