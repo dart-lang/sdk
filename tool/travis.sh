@@ -67,6 +67,8 @@ else
   # Install dart_coveralls; gather and send coverage data.
   if [ "$COVERALLS_TOKEN" ]; then
 
+    status=$?  
+
     pub global activate coverage
 
     echo "Collecting coverage on port $OBS_PORT..."
@@ -91,6 +93,7 @@ else
     gem install coveralls-lcov
     coveralls-lcov var/lcov.info
 
+    exit status
   fi
 fi
 
