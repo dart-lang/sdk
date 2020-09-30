@@ -368,7 +368,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool get useLegacySubtyping {
     assert(nullSafetyMode != NullSafetyMode.unspecified,
         "Null safety mode unspecified");
-    return nullSafetyMode == NullSafetyMode.unsound;
+    return !enableNonNullable || (nullSafetyMode == NullSafetyMode.unsound);
   }
 
   /// The path to the file that contains the profiled allocations.

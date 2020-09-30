@@ -75,6 +75,7 @@ class KernelLoaderTask extends CompilerTask {
       var isDill = resolvedUri.path.endsWith('.dill');
 
       void inferNullSafetyMode(bool isSound) {
+        if (isSound) assert(_options.enableNonNullable);
         if (_options.nullSafetyMode == NullSafetyMode.unspecified) {
           _options.nullSafetyMode =
               isSound ? NullSafetyMode.sound : NullSafetyMode.unsound;
@@ -83,6 +84,9 @@ class KernelLoaderTask extends CompilerTask {
 
       void validateNullSafety() {
         assert(_options.nullSafetyMode != NullSafetyMode.unspecified);
+        if (_options.nullSafetyMode == NullSafetyMode.sound) {
+          assert(_options.enableNonNullable);
+        }
       }
 
       if (isDill) {
@@ -146,7 +150,7 @@ class KernelLoaderTask extends CompilerTask {
           ..onDiagnostic = onDiagnostic;
         bool isLegacy =
             await fe.uriUsesLegacyLanguageVersion(resolvedUri, options);
-        inferNullSafetyMode(!isLegacy);
+        inferNullSafetyMode(_options.enableNonNullable && !isLegacy);
 
         List<Uri> dependencies = [];
         if (_options.platformBinaries != null) {
@@ -157,13 +161,6 @@ class KernelLoaderTask extends CompilerTask {
           dependencies.addAll(_options.dillDependencies);
         }
 
-        fe.NnbdMode nnbdMode;
-        if (_options.enableNonNullable) {
-          nnbdMode = _options.useLegacySubtyping
-              ? fe.NnbdMode.Weak
-              : fe.NnbdMode.Strong;
-        }
-
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
             target,
@@ -171,7 +168,9 @@ class KernelLoaderTask extends CompilerTask {
             dependencies,
             _options.packageConfig,
             experimentalFlags: _options.languageExperiments,
-            nnbdMode: nnbdMode);
+            nnbdMode: _options.useLegacySubtyping
+                ? fe.NnbdMode.Weak
+                : fe.NnbdMode.Strong);
         component = await fe.compile(initializedCompilerState, verbose,
             fileSystem, onDiagnostic, resolvedUri);
         if (component == null) return null;
