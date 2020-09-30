@@ -12,6 +12,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 
 final _manager = _RefactorManager();
 
@@ -89,6 +90,9 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
 
           final edit = createWorkspaceEdit(server, change.edits);
           return await sendWorkspaceEditToClient(edit);
+        } on InconsistentAnalysisException {
+          return error(ErrorCodes.ContentModified,
+              'Content was modified before refactor was applied');
         } finally {
           _manager.end(cancellationToken);
         }

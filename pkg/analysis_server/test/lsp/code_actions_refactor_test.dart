@@ -105,6 +105,31 @@ void newMethod() {
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
+  Future<void> test_contentModified() async {
+    const content = '''
+main() {
+  print('Test!');
+  [[print('Test!');]]
+}
+    ''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+    expect(codeAction, isNotNull);
+
+    // Send an edit request immediately after the refactor request.
+    final req1 = executeCodeAction(codeAction);
+    await replaceFile(100, mainFileUri, 'new test content');
+
+    // Expect the first to fail because of the modified content.
+    await expectLater(
+        req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
+  }
+
   Future<void> test_invalidLocation() async {
     const content = '''
 import 'dart:convert';
