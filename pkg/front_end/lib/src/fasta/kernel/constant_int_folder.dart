@@ -73,6 +73,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
       case '~':
         return new IntConstant(~operand.value);
       default:
+        // Probably unreachable.
         return evaluator.reportInvalid(node, "Invalid unary operator $op");
     }
   }
@@ -107,6 +108,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
       case '>>':
         return new IntConstant(a >> b);
       case '>>>':
+        // Currently unreachable as int hasn't defined '>>>'.
         int result = b >= 64 ? 0 : (a >> b) & ((1 << (64 - b)) - 1);
         return new IntConstant(result);
       case '<':
@@ -118,6 +120,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
       case '>':
         return evaluator.makeBoolConstant(a > b);
       default:
+        // Probably unreachable.
         return evaluator.reportInvalid(node, "Invalid binary operator $op");
     }
   }
@@ -154,7 +157,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
   @override
   DoubleConstant makeIntConstant(int value, {bool unsigned: false}) {
     double doubleValue = value.toDouble();
-    assert(doubleValue.toInt() == value);
+    // Invalid assert: assert(doubleValue.toInt() == value);
     if (unsigned) {
       const double twoTo64 = 18446744073709551616.0;
       if (value < 0) doubleValue += twoTo64;
@@ -172,6 +175,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
         int intValue = _toUint32(operand.value);
         return new DoubleConstant(_truncate32(~intValue).toDouble());
       default:
+        // Probably unreachable.
         return evaluator.reportInvalid(node, "Invalid unary operator $op");
     }
   }
@@ -212,6 +216,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
         }
         return new DoubleConstant(_truncate32(ai >> b.toInt()).toDouble());
       case '>>>':
+        // Currently unreachable as int hasn't defined '>>>'.
         int ai = _toUint32(a);
         return new DoubleConstant(_truncate32(ai >> b.toInt()).toDouble());
       case '<':
@@ -223,6 +228,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
       case '>':
         return evaluator.makeBoolConstant(a > b);
       default:
+        // Probably unreachable.
         return evaluator.reportInvalid(node, "Invalid binary operator $op");
     }
   }

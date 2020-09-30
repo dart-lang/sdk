@@ -1,0 +1,39 @@
+ConstClassWithFailingAssertWithEmptyMessage failedAssertEmptyMessage =
+    const ConstClassWithFailingAssertWithEmptyMessage();
+
+abstract class AbstractClass {}
+
+class ConstClassWithFailingAssertWithEmptyMessage {
+  const ConstClassWithFailingAssertWithEmptyMessage() : assert(false, "");
+}
+
+class Foo {
+  const Foo(int x)
+      : this.x = x,
+        this.y = "hello".length;
+  final int x;
+  final int y;
+}
+
+class NotAbstractClass {
+  @AbstractClass()
+  Object foo;
+}
+
+const Foo foo = const Foo(42);
+const Symbol barFoo = const Symbol("Foo");
+const bool barFromEnv = const bool.fromEnvironment("bar");
+const bool hasBarEnv = const bool.hasEnvironment("bar");
+const function_const = () {};
+const x1 = --x;
+const x2 = ++x;
+const x3 = x--;
+const x4 = x++;
+const y = 1;
+const y1 = --y;
+const y2 = ++y;
+const y3 = y--;
+const y4 = y++;
+main() {}
+var function_var = () {};
+var x = 1;

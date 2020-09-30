@@ -453,6 +453,8 @@ class ConstantsTransformer extends Transformer {
   @override
   RedirectingFactoryConstructor visitRedirectingFactoryConstructor(
       RedirectingFactoryConstructor node) {
+    // Currently unreachable as the compiler doesn't produce
+    // RedirectingFactoryConstructor.
     StaticTypeContext oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
@@ -1209,6 +1211,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
     final Class klass = constructor.enclosingClass;
     if (klass.isAbstract) {
+      // Probably unreachable.
       return reportInvalid(
           node, 'Constructor "$node" belongs to abstract class "${klass}".');
     }
@@ -1245,6 +1248,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
     // Fill in any missing type arguments with "dynamic".
     for (int i = typeArguments.length; i < klass.typeParameters.length; i++) {
+      // Probably unreachable.
       typeArguments.add(const DynamicType());
     }
 
@@ -1276,6 +1280,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     if (constructor.function.body != null &&
         constructor.function.body is! EmptyStatement) {
+      // Probably unreachable.
       reportInvalid(
           node,
           'Constructor "$node" has non-trivial body '
@@ -1303,6 +1308,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (shouldBeUnevaluated) {
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
       }
+      // We can get here when re-evaluating a previously unevaluated constant.
       return canonicalize(instanceBuilder.buildInstance());
     });
   }
@@ -1501,6 +1507,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           } else if (init is AssertInitializer) {
             checkAssert(init.statement);
           } else {
+            // InvalidInitializer or new Initializers.
+            // Probably unreachable. InvalidInitializer is (currently) only
+            // created for classes with no constructors that doesn't have a
+            // super that takes no arguments. It thus cannot be const.
+            // Explicit constructors with incorrect super calls will get a
+            // ShadowInvalidInitializer which is actually a LocalInitializer.
             return reportInvalid(
                 constructor,
                 'No support for handling initializer of type '
@@ -1574,7 +1586,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   @override
   Constant visitMethodInvocation(MethodInvocation node) {
     // We have no support for generic method invocation atm.
-    assert(node.arguments.named.isEmpty);
+    if (node.arguments.named.isNotEmpty) {
+      return reportInvalid(node, "generic method invocation");
+    }
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
     final List<Constant> arguments =
@@ -1782,10 +1796,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             templateConstEvalInvalidMethodInvocation.withArguments(
                 node.operator, left, isNonNullableByDefault));
       case '??':
+        // Unreachable. LogicalExpression never created with `??`.
         return (left is! NullConstant)
             ? left
             : _evaluateSubexpression(node.right);
       default:
+        // Probably unreachable.
         return report(
             node,
             templateConstEvalInvalidMethodInvocation.withArguments(
@@ -1823,15 +1839,22 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   @override
   Constant visitPropertyGet(PropertyGet node) {
     if (node.receiver is ThisExpression) {
+      // Probably unreachable unless trying to evaluate non-const stuff as
+      // const.
       // Access "this" during instance creation.
       if (instanceBuilder == null) {
         return report(node, messageNotAConstantExpression);
       }
+
       for (final Field field in instanceBuilder.fields.keys) {
         if (field.name == node.name) {
           return instanceBuilder.fields[field];
         }
       }
+
+      // Meant as a "stable backstop for situations where Fasta fails to
+      // rewrite various erroneous constructs into invalid expressions".
+      // Probably unreachable.
       return reportInvalid(node,
           'Could not evaluate field get ${node.name} on incomplete instance');
     }
@@ -1983,7 +2006,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         .singleWhere((v) => v.name == 'defaultValue');
     return variable.initializer != null
         ? _evaluateExpressionInContext(target, variable.initializer)
-        : nullConstant;
+        :
+        // Not reachable unless a defaultValue in fromEnvironment in dart:core
+        // becomes null.
+        nullConstant;
   }
 
   Constant _handleFromEnvironment(
@@ -2002,6 +2028,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         } else if (defaultValue is NullConstant) {
           boolConstant = nullConstant;
         } else {
+          // Probably unreachable.
           boolConstant = falseConstant;
         }
       } else {
@@ -2039,6 +2066,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       }
       return stringConstant;
     }
+    // Unreachable until fromEnvironment is added to other classes in dart:core
+    // than bool, int and String.
     throw new UnsupportedError(
         'Unexpected fromEnvironment constructor: $target');
   }
@@ -2174,6 +2203,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         //    Otherwise return NNBD_SUBTYPE(S, T)
         if (constant is NullConstant &&
             type.nullability == Nullability.legacy) {
+          // Unreachable: Mixed strong mode is no longer supported.
           return typeEnvironment.isSubtypeOf(type, typeEnvironment.nullType,
                   SubtypeCheckMode.ignoringNullabilities) ||
               typeEnvironment.isSubtypeOf(typeEnvironment.objectLegacyRawType,
@@ -2278,6 +2308,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return canonicalize(
             new PartialInstantiationConstant(constant, typeArguments));
       }
+      // Probably unreachable.
       return reportInvalid(
           node,
           'The number of type arguments supplied in the partial instantiation '
@@ -2285,6 +2316,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     // The inner expression in an instantiation can never be null, since
     // instantiations are only inferred on direct references to declarations.
+    // Probably unreachable.
     return reportInvalid(
         node, 'Only tear-off constants can be partially instantiated.');
   }
@@ -2347,6 +2379,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (targetingJavaScript && !result) {
       if (constantType is InterfaceType &&
           constantType.classNode == typeEnvironment.coreTypes.intClass) {
+        // Probably unreachable.
         // With JS semantics, an integer is also a double.
         result = typeEnvironment.isSubtypeOf(
             new InterfaceType(typeEnvironment.coreTypes.doubleClass,
@@ -2514,6 +2547,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return makeBoolConstant(a > b);
     }
 
+    // Probably unreachable.
     return reportInvalid(node, "Unexpected binary numeric operation '$op'.");
   }
 
@@ -2710,6 +2744,7 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
 
   @override
   bool defaultDartType(DartType node) {
+    // Probably unreachable.
     throw 'A visitor method seems to be unimplemented!';
   }
 
@@ -2754,6 +2789,7 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
 
   @override
   bool visitTypedefType(TypedefType node) {
+    // Probably unreachable.
     return node.unalias.accept(this);
   }
 

@@ -4342,6 +4342,7 @@ class Not extends Expression {
 /// Expression of form `x && y` or `x || y`
 class LogicalExpression extends Expression {
   Expression left;
+  // TODO(jensj): `??` is not supported and we shouldn't say so.
   String operator; // && or || or ??
   Expression right;
 
@@ -8952,6 +8953,8 @@ class StringConstant extends PrimitiveConstant<String> {
     printer.write(escapeString(value));
     printer.write('"');
   }
+
+  String toString() => 'StringConstant(${toStringInternal()})';
 }
 
 class SymbolConstant extends Constant {
@@ -8966,7 +8969,7 @@ class SymbolConstant extends Constant {
   R acceptReference<R>(Visitor<R> v) => v.visitSymbolConstantReference(this);
 
   @override
-  String toString() => 'StringConstant(${toStringInternal()})';
+  String toString() => 'SymbolConstant(${toStringInternal()})';
 
   int get hashCode => _Hash.hash2(name, libraryReference);
 

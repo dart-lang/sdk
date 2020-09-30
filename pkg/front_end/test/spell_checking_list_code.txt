@@ -82,6 +82,7 @@ b2i
 b2m
 b2n
 backping
+backstop
 badly
 bang
 bar
@@ -1036,6 +1037,7 @@ stdin
 stdio
 stdlib
 stdout
+sticky
 stmt
 str
 strategies

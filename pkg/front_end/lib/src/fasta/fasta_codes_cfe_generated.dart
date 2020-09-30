@@ -353,34 +353,34 @@ Message _withArgumentsConstEvalFreeTypeParameter(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-        Message Function(String string, Constant _constant, DartType _type,
-            DartType _type2, bool isNonNullableByDefault)>
+        Message Function(String stringOKEmpty, Constant _constant,
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateConstEvalInvalidBinaryOperandType = const Template<
-            Message Function(String string, Constant _constant, DartType _type,
-                DartType _type2, bool isNonNullableByDefault)>(
+            Message Function(String stringOKEmpty, Constant _constant,
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
+            r"""Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'.""",
         withArguments: _withArgumentsConstEvalInvalidBinaryOperandType);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(String string, Constant _constant, DartType _type,
-            DartType _type2, bool isNonNullableByDefault)>
+        Message Function(String stringOKEmpty, Constant _constant,
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
     codeConstEvalInvalidBinaryOperandType = const Code<
-        Message Function(String string, Constant _constant, DartType _type,
-            DartType _type2, bool isNonNullableByDefault)>(
+        Message Function(String stringOKEmpty, Constant _constant,
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
   "ConstEvalInvalidBinaryOperandType",
   templateConstEvalInvalidBinaryOperandType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidBinaryOperandType(
-    String string,
+    String stringOKEmpty,
     Constant _constant,
     DartType _type,
     DartType _type2,
     bool isNonNullableByDefault) {
-  if (string.isEmpty) throw 'No string provided';
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   List<Object> typeParts = labeler.labelType(_type);
@@ -390,10 +390,10 @@ Message _withArgumentsConstEvalInvalidBinaryOperandType(
   String type2 = type2Parts.join();
   return new Message(codeConstEvalInvalidBinaryOperandType,
       message:
-          """Binary operator '${string}' on '${constant}' requires operand of type '${type}', but was of type '${type2}'.""" +
+          """Binary operator '${stringOKEmpty}' on '${constant}' requires operand of type '${type}', but was of type '${type2}'.""" +
               labeler.originMessages,
       arguments: {
-        'string': string,
+        'stringOKEmpty': stringOKEmpty,
         'constant': _constant,
         'type': _type,
         'type2': _type2
@@ -439,21 +439,21 @@ Message _withArgumentsConstEvalInvalidEqualsOperandType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-        Message Function(
-            String string, Constant _constant, bool isNonNullableByDefault)>
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)>
     templateConstEvalInvalidMethodInvocation = const Template<
-            Message Function(String string, Constant _constant,
+            Message Function(String stringOKEmpty, Constant _constant,
                 bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""The method '#string' can't be invoked on '#constant' in a constant expression.""",
+            r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
         withArguments: _withArgumentsConstEvalInvalidMethodInvocation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            String string, Constant _constant, bool isNonNullableByDefault)>
-    codeConstEvalInvalidMethodInvocation = const Code<
-            Message Function(String string, Constant _constant,
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)> codeConstEvalInvalidMethodInvocation =
+    const Code<
+            Message Function(String stringOKEmpty, Constant _constant,
                 bool isNonNullableByDefault)>(
         "ConstEvalInvalidMethodInvocation",
         templateConstEvalInvalidMethodInvocation,
@@ -461,51 +461,51 @@ const Code<
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidMethodInvocation(
-    String string, Constant _constant, bool isNonNullableByDefault) {
-  if (string.isEmpty) throw 'No string provided';
+    String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidMethodInvocation,
       message:
-          """The method '${string}' can't be invoked on '${constant}' in a constant expression.""" +
+          """The method '${stringOKEmpty}' can't be invoked on '${constant}' in a constant expression.""" +
               labeler.originMessages,
-      arguments: {'string': string, 'constant': _constant});
+      arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-        Message Function(
-            String string, Constant _constant, bool isNonNullableByDefault)>
-    templateConstEvalInvalidPropertyGet = const Template<
-            Message Function(String string, Constant _constant,
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)> templateConstEvalInvalidPropertyGet =
+    const Template<
+            Message Function(String stringOKEmpty, Constant _constant,
                 bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""The property '#string' can't be accessed on '#constant' in a constant expression.""",
+            r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
         withArguments: _withArgumentsConstEvalInvalidPropertyGet);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
-        Message Function(
-            String string, Constant _constant, bool isNonNullableByDefault)>
-    codeConstEvalInvalidPropertyGet = const Code<
-            Message Function(String string, Constant _constant,
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)> codeConstEvalInvalidPropertyGet =
+    const Code<
+            Message Function(String stringOKEmpty, Constant _constant,
                 bool isNonNullableByDefault)>(
         "ConstEvalInvalidPropertyGet", templateConstEvalInvalidPropertyGet,
         analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidPropertyGet(
-    String string, Constant _constant, bool isNonNullableByDefault) {
-  if (string.isEmpty) throw 'No string provided';
+    String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> constantParts = labeler.labelConstant(_constant);
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidPropertyGet,
       message:
-          """The property '${string}' can't be accessed on '${constant}' in a constant expression.""" +
+          """The property '${stringOKEmpty}' can't be accessed on '${constant}' in a constant expression.""" +
               labeler.originMessages,
-      arguments: {'string': string, 'constant': _constant});
+      arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

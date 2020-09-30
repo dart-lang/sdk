@@ -1,0 +1,47 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+const int shiftNegative1 = 2 << -1;
+const int shiftNegative2 = 2 >>> -1;
+const int shiftNegative3 = 2 >> -1;
+const int modZero = 2 % 0;
+const int divZero = 2 / 0;
+const int intdivZero = 2 ~/ 0;
+const int unaryMinus = -2;
+const int unaryTilde = ~2;
+const int unaryPlus = +2;
+
+const int binaryPlus = 40 + 2;
+const int binaryMinus = 44 - 2;
+const int binaryTimes = 21 * 2;
+const double binaryDiv = 84 / 2;
+const int binaryTildeDiv = 84~/ 2;
+const int binaryMod = 85 % 43;
+const int binaryOr = 32 | 10;
+const int binaryAnd = 63 & 106;
+const int binaryXor = 63 ^ 21;
+const int binaryShift1 = 21 << 1;
+
+// These aren't currently defined on int :(.
+const int binaryShift2 = 84 >>> 1;
+const int binaryShift3 = 21 >>> 64;
+
+const int binaryShift4 = 84 >> 1;
+const int binaryShift5 = -1 >> 1;
+const bool binaryLess = 42 < 42;
+const bool binaryLessEqual = 42 <= 42;
+const bool binaryGreaterEqual = 42 >= 42;
+const bool binaryGreater = 42 > 42;
+
+const int doubleTruncateDiv = 84.2 ~/ 2;
+const int doubleTruncateDivZero = 84.2 ~/ 0;
+const int doubleTruncateDivNull = 84.2 ~/ null;
+const double doubleNan = 0/0;
+const int doubleTruncateDivNaN = 84.2 ~/ doubleNan;
+
+const int bigNumber = 0x8000000000000000;
+
+main() {
+
+}
