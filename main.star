@@ -1258,11 +1258,6 @@ dart_ci_sandbox_builder(
     category = "dart2js|safari|m",
     dimensions = mac(),
 )
-dart_ci_sandbox_builder(
-    "dart2js-strong-win-x64-ie11",
-    category = "dart2js|ms|ie",
-    dimensions = windows(),
-)
 
 # analyzer
 dart_ci_sandbox_builder(
