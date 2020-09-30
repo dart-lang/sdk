@@ -143,3 +143,10 @@ extension ExtensionOnGoodWithTypeAndMixin on GoodWithTypeAndMixin {
     this.toString(); // OK
   }
 }
+
+extension on int Function(int) {
+  void extendedGood() {
+    toString(); // OK
+    this.toString(); // OK
+  }
+}
