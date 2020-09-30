@@ -49,10 +49,9 @@ const dartSignatureHelpTriggerCharacters = <String>['('];
 /// Characters to trigger formatting when format-on-type is enabled.
 const dartTypeFormattingCharacters = ['}', ';'];
 
-final analyzingProgressBegin =
-    WorkDoneProgressBegin(kind: 'begin', title: 'Analyzing…');
+final analyzingProgressBegin = WorkDoneProgressBegin(title: 'Analyzing…');
 
-final analyzingProgressEnd = WorkDoneProgressEnd(kind: 'end');
+final analyzingProgressEnd = WorkDoneProgressEnd();
 
 /// A [ProgressToken] used for reporting progress when the server is analyzing.
 final analyzingProgressToken = Either2<num, String>.t2('ANALYZING');
