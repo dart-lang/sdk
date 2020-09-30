@@ -2215,24 +2215,22 @@ main() {
     var intQVar = _Var('x', _Type('int?'));
     var objectQVar = _Var('x', _Type('Object?'));
     var nullVar = _Var('x', _Type('Null'));
-    group('setReachable', () {
+    group('setUnreachable', () {
       var unreachable = FlowModel<_Var, _Type>(false);
       var reachable = FlowModel<_Var, _Type>(true);
       test('unchanged', () {
-        expect(unreachable.setReachable(false), same(unreachable));
-        expect(reachable.setReachable(true), same(reachable));
+        expect(unreachable.setUnreachable(), same(unreachable));
       });
 
       test('changed', () {
-        void _check(FlowModel<_Var, _Type> initial, bool newReachability) {
-          var s = initial.setReachable(newReachability);
+        void _check(FlowModel<_Var, _Type> initial) {
+          var s = initial.setUnreachable();
           expect(s, isNot(same(initial)));
-          expect(s.reachable, newReachability);
+          expect(s.reachable, false);
           expect(s.variableInfo, same(initial.variableInfo));
         }
 
-        _check(unreachable, true);
-        _check(reachable, false);
+        _check(reachable);
       });
     });
 
@@ -2953,7 +2951,7 @@ main() {
       test('reachability', () {
         var h = _Harness();
         var reachable = FlowModel<_Var, _Type>(true);
-        var unreachable = reachable.setReachable(false);
+        var unreachable = reachable.setUnreachable();
         expect(reachable.restrict(h, reachable, Set()), same(reachable));
         expect(reachable.restrict(h, unreachable, Set()), same(unreachable));
         expect(unreachable.restrict(h, unreachable, Set()), same(unreachable));
