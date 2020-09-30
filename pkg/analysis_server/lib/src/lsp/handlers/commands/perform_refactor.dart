@@ -6,11 +6,14 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+
+final _manager = _RefactorManager();
 
 class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   PerformRefactorCommandHandler(LspAnalysisServer server) : super(server);
@@ -19,7 +22,8 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Perform Refactor';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic> arguments) async {
+  Future<ErrorOr<void>> handle(
+      List<dynamic> arguments, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
         arguments[0] is! String || // kind
@@ -49,24 +53,45 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
       return _getRefactoring(
               RefactoringKind(kind), result, offset, length, options)
           .mapResult((refactoring) async {
-        final status = await refactoring.checkAllConditions();
-
-        if (status.hasError) {
-          return error(ServerErrorCodes.RefactorFailed, status.message);
+        // If the token we were given is not cancellable, replace it with one that
+        // is for the rest of this request, as a future refactor may need to cancel
+        // this request.
+        if (cancellationToken is! CancelableToken) {
+          cancellationToken = CancelableToken();
         }
+        _manager.begin(cancellationToken);
 
-        final change = await refactoring.createChange();
+        try {
+          final status = await refactoring.checkAllConditions();
 
-        // If the file changed while we were validating and preparing the change,
-        // we should fail to avoid sending bad edits.
-        if (docVersion != null &&
-            docVersion != server.getVersionedDocumentIdentifier(path).version) {
-          return error(ErrorCodes.ContentModified,
-              'Content was modified before refactor was applied');
+          if (status.hasError) {
+            return error(ServerErrorCodes.RefactorFailed, status.message);
+          }
+
+          if (cancellationToken.isCancellationRequested) {
+            return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+          }
+
+          final change = await refactoring.createChange();
+
+          if (cancellationToken.isCancellationRequested) {
+            return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+          }
+
+          // If the file changed while we were validating and preparing the change,
+          // we should fail to avoid sending bad edits.
+          if (docVersion != null &&
+              docVersion !=
+                  server.getVersionedDocumentIdentifier(path).version) {
+            return error(ErrorCodes.ContentModified,
+                'Content was modified before refactor was applied');
+          }
+
+          final edit = createWorkspaceEdit(server, change.edits);
+          return await sendWorkspaceEditToClient(edit);
+        } finally {
+          _manager.end(cancellationToken);
         }
-
-        final edit = createWorkspaceEdit(server, change.edits);
-        return await sendWorkspaceEditToClient(edit);
       });
     });
   }
@@ -109,6 +134,25 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
       default:
         return error(ServerErrorCodes.InvalidCommandArguments,
             'Unknown RefactoringKind $kind was supplied to $commandName');
+    }
+  }
+}
+
+/// Manages a running refactor to help ensure only one refactor runs at a time.
+class _RefactorManager {
+  /// The cancellation token for the current in-progress refactor (or null).
+  CancelableToken _currentRefactoringCancellationToken;
+
+  /// Begins a new refactor, cancelling any other in-progress refactors.
+  void begin(CancelableToken cancelToken) {
+    _currentRefactoringCancellationToken?.cancel();
+    _currentRefactoringCancellationToken = cancelToken;
+  }
+
+  /// Marks a refactor as no longer current.
+  void end(CancelableToken cancelToken) {
+    if (_currentRefactoringCancellationToken == cancelToken) {
+      _currentRefactoringCancellationToken = null;
     }
   }
 }

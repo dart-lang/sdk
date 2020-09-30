@@ -47,7 +47,8 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
     this.server = server;
   }
 
-  Future<ErrorOr<void>> handle(List<dynamic> arguments);
+  Future<ErrorOr<void>> handle(
+      List<dynamic> arguments, CancellationToken cancellationToken);
 }
 
 mixin Handler<P, R> {

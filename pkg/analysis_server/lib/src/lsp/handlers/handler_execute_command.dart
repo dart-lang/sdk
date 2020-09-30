@@ -41,6 +41,6 @@ class ExecuteCommandHandler
       return error(ServerErrorCodes.UnknownCommand,
           '${params.command} is not a valid command identifier', null);
     }
-    return handler.handle(params.arguments);
+    return handler.handle(params.arguments, token);
   }
 }

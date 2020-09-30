@@ -186,7 +186,8 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
         (throwOnError &&
             message is lsp.NotificationMessage &&
             message.method == Method.window_showMessage &&
-            message.params?.type == MessageType.Error));
+            lsp.ShowMessageParams.fromJson(message.params).type ==
+                MessageType.Error));
 
     if (response is lsp.ResponseMessage) {
       return response;

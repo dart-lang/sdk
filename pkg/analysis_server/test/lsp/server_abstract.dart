@@ -585,6 +585,15 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await sendNotificationToServer(notification);
   }
 
+  Future<Object> executeCodeAction(
+      Either2<Command, CodeAction> codeAction) async {
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command,
+    );
+    return executeCommand(command);
+  }
+
   Future<Object> executeCommand(Command command) async {
     final request = makeRequest(
       Method.workspace_executeCommand,
@@ -939,13 +948,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     @required FutureOr<RR> Function(R) handler,
     Duration timeout = const Duration(seconds: 5),
   }) async {
-    FutureOr<T> outboundRequest;
+    Future<T> outboundRequest;
 
     // Run [f] and wait for the incoming request from the server.
     final incomingRequest = await expectRequest(method, () {
       // Don't return/await the response yet, as this may not complete until
       // after we have handled the request that comes from the server.
       outboundRequest = f();
+
+      // Because we don't await this future until "later", if it throws the
+      // error is treated as unhandled and will fail the test. Attaching an
+      // error handler prevents that, though since the Future completed with
+      // an error it will still be handled as such when the future is later
+      // awaited.
+      outboundRequest.catchError((_) {});
     });
 
     // Handle the request from the server and send the response back.
