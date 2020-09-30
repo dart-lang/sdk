@@ -56,3 +56,9 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   }
   throw "${message}: ${value}";
 }
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///late_final_nullable_local_without_initializer.dart:12:9 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///late_final_nullable_local_without_initializer.dart:26:11 -> BoolConstant(true)
+Extra constant evaluation: tries: 81, successes: 2

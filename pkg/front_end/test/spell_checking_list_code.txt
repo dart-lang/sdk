@@ -757,6 +757,7 @@ overlap
 overloader
 overlooked
 overshadowed
+oversight
 overwrite
 overwriting
 ownership

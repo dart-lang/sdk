@@ -41,15 +41,19 @@ abstract class ConstantIntFolder {
 
   Constant truncatingDivide(MethodInvocation node, num left, num right);
 
-  void _checkOperands(MethodInvocation node, String op, num left, num right) {
+  /// Returns [null] on success and an error-"constant" on failure, as such the
+  /// return value should be checked.
+  AbortConstant _checkOperands(
+      MethodInvocation node, String op, num left, num right) {
     if ((op == '<<' || op == '>>' || op == '>>>') && right < 0) {
-      evaluator.report(node,
+      return evaluator.createErrorConstant(node,
           templateConstEvalNegativeShift.withArguments(op, '$left', '$right'));
     }
     if ((op == '%' || op == '~/') && right == 0) {
-      evaluator.report(
+      return evaluator.createErrorConstant(
           node, templateConstEvalZeroDivisor.withArguments(op, '$left'));
     }
+    return null;
   }
 }
 
@@ -74,7 +78,8 @@ class VmConstantIntFolder extends ConstantIntFolder {
         return new IntConstant(~operand.value);
       default:
         // Probably unreachable.
-        return evaluator.reportInvalid(node, "Invalid unary operator $op");
+        return evaluator.createInvalidExpressionConstant(
+            node, "Invalid unary operator $op");
     }
   }
 
@@ -83,7 +88,8 @@ class VmConstantIntFolder extends ConstantIntFolder {
       MethodInvocation node, String op, IntConstant left, IntConstant right) {
     int a = left.value;
     int b = right.value;
-    _checkOperands(node, op, a, b);
+    AbortConstant error = _checkOperands(node, op, a, b);
+    if (error != null) return error;
     switch (op) {
       case '+':
         return new IntConstant(a + b);
@@ -121,7 +127,8 @@ class VmConstantIntFolder extends ConstantIntFolder {
         return evaluator.makeBoolConstant(a > b);
       default:
         // Probably unreachable.
-        return evaluator.reportInvalid(node, "Invalid binary operator $op");
+        return evaluator.createInvalidExpressionConstant(
+            node, "Invalid binary operator $op");
     }
   }
 
@@ -130,7 +137,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
     try {
       return new IntConstant(left ~/ right);
     } catch (e) {
-      return evaluator.report(node,
+      return evaluator.createErrorConstant(node,
           templateConstEvalTruncateError.withArguments('$left', '$right'));
     }
   }
@@ -176,7 +183,8 @@ class JsConstantIntFolder extends ConstantIntFolder {
         return new DoubleConstant(_truncate32(~intValue).toDouble());
       default:
         // Probably unreachable.
-        return evaluator.reportInvalid(node, "Invalid unary operator $op");
+        return evaluator.createInvalidExpressionConstant(
+            node, "Invalid unary operator $op");
     }
   }
 
@@ -185,7 +193,8 @@ class JsConstantIntFolder extends ConstantIntFolder {
       DoubleConstant left, DoubleConstant right) {
     double a = left.value;
     double b = right.value;
-    _checkOperands(node, op, a, b);
+    AbortConstant error = _checkOperands(node, op, a, b);
+    if (error != null) return error;
     switch (op) {
       case '+':
         return new DoubleConstant(a + b);
@@ -229,7 +238,8 @@ class JsConstantIntFolder extends ConstantIntFolder {
         return evaluator.makeBoolConstant(a > b);
       default:
         // Probably unreachable.
-        return evaluator.reportInvalid(node, "Invalid binary operator $op");
+        return evaluator.createInvalidExpressionConstant(
+            node, "Invalid binary operator $op");
     }
   }
 
@@ -237,7 +247,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
   Constant truncatingDivide(MethodInvocation node, num left, num right) {
     double division = (left / right);
     if (division.isNaN || division.isInfinite) {
-      return evaluator.report(node,
+      return evaluator.createErrorConstant(node,
           templateConstEvalTruncateError.withArguments('$left', '${right}'));
     }
     double result = division.truncateToDouble();
