@@ -177,7 +177,7 @@ F tearoffInterop<F extends Function?>(F f) {
 /// we disable type checks for in these cases, and allow any JS object to work
 /// as if it were an instance of this JS type.
 class LazyJSType extends DartType {
-  Function()? _getRawJSTypeFn;
+  Function() _getRawJSTypeFn;
   @notNull
   final String _dartName;
   Object? _rawJSType;
@@ -199,14 +199,14 @@ class LazyJSType extends DartType {
     // overhead, especially if exceptions are being thrown. Also it means the
     // behavior of a given type check can change later on.
     try {
-      raw = _getRawJSTypeFn!();
+      raw = _getRawJSTypeFn();
     } catch (e) {}
 
     if (raw == null) {
       _warn('Cannot find native JavaScript type ($_dartName) for type check');
     } else {
       _rawJSType = raw;
-      _getRawJSTypeFn = null; // Free the function that computes the JS type.
+      JS('', '#.push(() => # = null)', _resetFields, _rawJSType);
     }
     return raw;
   }

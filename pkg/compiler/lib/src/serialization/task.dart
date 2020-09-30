@@ -113,6 +113,7 @@ class SerializationTask extends CompilerTask {
     }
 
     if (component.mode == ir.NonNullableByDefaultCompiledMode.Strong) {
+      assert(_options.enableNonNullable);
       _options.nullSafetyMode = NullSafetyMode.sound;
     } else {
       _options.nullSafetyMode = NullSafetyMode.unsound;

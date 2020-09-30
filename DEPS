@@ -79,7 +79,7 @@ vars = {
   "collection_rev": "52e219581f72a3eac013d6f5550c580962677425",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
-  "csslib_rev": "681a6603f86bbbe64e8af42d722aef63b028d241",
+  "csslib_rev": "6f77b3dcee957d3e2d5083f666221a220e9ed1f1",
   "dart2js_info_rev" : "0632a623b08e1f601c7eba99e0186a581ae799e9",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -106,7 +106,7 @@ vars = {
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
   "http_parser_rev": "6e63a97b5aaa2b4d1215fe01683e51fb73258e54",
   "http_retry_tag": "0.1.1",
-  "http_rev": "7b55a2c62a5f6fb680ad7a4607bab7281a235563",
+  "http_rev": "ca418355b5fc60cf981de3bd7364ec0dd943fa8f",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "79326efe26e5440f530963704c3c0ff965b3a4ac",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",

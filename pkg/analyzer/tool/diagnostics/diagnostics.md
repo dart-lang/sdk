@@ -66,6 +66,7 @@ contexts:
     }
   }
   ```
+
 ### Definite assignment
 
 Definite assignment analysis is the process of determining, for each local
@@ -86,12 +87,12 @@ when it’s passed as an argument to `print`:
 
 ```dart
 void f() {
-  late String s;
+  String s;
   print(s);
 }
 ```
 
-But in the following code, the variable `s` is definitely assigned: 
+But in the following code, the variable `s` is definitely assigned:
 
 ```dart
 void f(String name) {
@@ -109,7 +110,7 @@ passed to `print`:
 
 ```dart
 void f(String name, bool casual) {
-  late String s;
+  String s;
   if (casual) {
     s = 'Hi $name!';
   } else {
@@ -132,7 +133,7 @@ executed, so the variable might or might be assigned a value:
 
 ```dart
 void f(String name, bool casual) {
-  late String s;
+  String s;
   if (casual) {
     s = 'Hi $name!';
   }
