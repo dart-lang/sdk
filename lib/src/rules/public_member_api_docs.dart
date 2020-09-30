@@ -297,6 +297,8 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
+    if (!isInLibFolder) return;
+
     if (!isPrivate(node.name)) {
       check(node);
     }
