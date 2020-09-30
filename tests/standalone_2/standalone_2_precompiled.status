@@ -51,6 +51,7 @@ package/scenarios/packages_file_strange_formatting/empty_lines_test: Skip
 package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Skip
 package/scenarios/packages_option_only/packages_option_only_noimports_test: Skip
 package/scenarios/packages_option_only/packages_option_only_test: Skip
+regress_41329_*: SkipByDesign # Expects to be running from 'dart' instead of 'dart_precompiled_runtime'
 
 [ $arch == arm && $mode == release && $runtime == dart_precompiled && $system == android ]
 io/socket_cancel_connect_test: RuntimeError # Issue 34142
