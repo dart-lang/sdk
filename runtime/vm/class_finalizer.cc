@@ -680,7 +680,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
   if (type.IsFinalized()) {
     // Ensure type is canonical if canonicalization is requested.
     if ((finalization >= kCanonicalize) && !type.IsCanonical()) {
-      return type.Canonicalize();
+      return type.Canonicalize(Thread::Current(), nullptr);
     }
     return type.raw();
   }
@@ -737,7 +737,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
       ASSERT(type_parameter.IsCanonical());
       return type_parameter.raw();
     }
-    return type_parameter.Canonicalize();
+    return type_parameter.Canonicalize(Thread::Current(), nullptr);
   }
 
   // At this point, we can only have a Type.
@@ -821,13 +821,13 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
     if (FLAG_trace_type_finalization) {
       THR_Print("Canonicalizing type '%s'\n",
                 String::Handle(zone, type.Name()).ToCString());
-      AbstractType& canonical_type =
-          AbstractType::Handle(zone, type.Canonicalize());
+      AbstractType& canonical_type = AbstractType::Handle(
+          zone, type.Canonicalize(Thread::Current(), nullptr));
       THR_Print("Done canonicalizing type '%s'\n",
                 String::Handle(zone, canonical_type.Name()).ToCString());
       return canonical_type.raw();
     }
-    return type.Canonicalize();
+    return type.Canonicalize(Thread::Current(), nullptr);
   } else {
     return type.raw();
   }
@@ -1273,8 +1273,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   enum_value = Instance::New(enum_cls, Heap::kOld);
   enum_value.SetField(index_field, Smi::Handle(zone, Smi::New(-1)));
   enum_value.SetField(name_field, enum_ident);
-  const char* error_msg = NULL;
-  enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
+  enum_value = enum_value.Canonicalize(thread);
   ASSERT(!enum_value.IsNull());
   ASSERT(enum_value.IsCanonical());
   const Field& sentinel = Field::Handle(

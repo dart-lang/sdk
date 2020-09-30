@@ -2547,7 +2547,7 @@ DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance) {
   }
   const AbstractType& type =
       AbstractType::Handle(Instance::Cast(obj).GetType(Heap::kNew));
-  return Api::NewHandle(T, type.Canonicalize());
+  return Api::NewHandle(T, type.Canonicalize(T, nullptr));
 }
 
 DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
@@ -4444,7 +4444,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       redirect_type ^= redirect_type.InstantiateFrom(
           type_arguments, Object::null_type_arguments(), kNoneFree, Heap::kNew);
-      redirect_type ^= redirect_type.Canonicalize();
+      redirect_type ^= redirect_type.Canonicalize(T, nullptr);
     }
 
     type_obj = redirect_type.raw();

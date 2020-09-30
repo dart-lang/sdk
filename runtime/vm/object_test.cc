@@ -251,8 +251,8 @@ ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   OS::PrintErr("2: %s\n", type_arguments2.ToCString());
   EXPECT(type_arguments1.Equals(type_arguments2));
   TypeArguments& type_arguments3 = TypeArguments::Handle();
-  type_arguments1.Canonicalize();
-  type_arguments3 ^= type_arguments2.Canonicalize();
+  type_arguments1.Canonicalize(thread, nullptr);
+  type_arguments3 ^= type_arguments2.Canonicalize(thread, nullptr);
   EXPECT_EQ(type_arguments1.raw(), type_arguments3.raw());
 }
 

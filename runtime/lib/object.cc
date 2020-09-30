@@ -367,7 +367,8 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
         type_arg = interface_type_args.TypeAt(offset + i);
         extracted_type_args.SetTypeAt(i, type_arg);
       }
-      extracted_type_args = extracted_type_args.Canonicalize();  // Can be null.
+      extracted_type_args =
+          extracted_type_args.Canonicalize(thread, nullptr);  // Can be null.
     }
   }
   // Call the closure 'extract'.

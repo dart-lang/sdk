@@ -1048,7 +1048,7 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
     result = TypeRef::Cast(result).type();
   }
   ASSERT(result.IsInstantiated());
-  result = result.Canonicalize();
+  result = result.Canonicalize(T, nullptr);
   SetValue(instr, result);
 }
 
@@ -1113,7 +1113,7 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       Z, type_arguments.InstantiateFrom(
              instantiator_type_args, function_type_args, kAllFree, Heap::kOld));
   ASSERT(result.IsInstantiated());
-  result = result.Canonicalize();
+  result = result.Canonicalize(T, nullptr);
   SetValue(instr, result);
 }
 
@@ -1709,10 +1709,8 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
     if ((constant_value_.IsString() || constant_value_.IsMint() ||
          constant_value_.IsDouble()) &&
         !constant_value_.IsCanonical()) {
-      const char* error_str = nullptr;
-      constant_value_ =
-          Instance::Cast(constant_value_).CheckAndCanonicalize(T, &error_str);
-      ASSERT(!constant_value_.IsNull() && (error_str == nullptr));
+      constant_value_ = Instance::Cast(constant_value_).Canonicalize(T);
+      ASSERT(!constant_value_.IsNull());
     }
     if (auto call = defn->AsStaticCall()) {
       ASSERT(!call->HasPushArguments());

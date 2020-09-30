@@ -24,7 +24,7 @@ static void FinalizeAndCanonicalize(const Class& klass, AbstractType* type) {
 }
 
 static void CanonicalizeTAV(TypeArguments* tav) {
-  *tav = tav->Canonicalize();
+  *tav = tav->Canonicalize(Thread::Current(), nullptr);
 }
 
 static void RunTTSTest(

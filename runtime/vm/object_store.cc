@@ -378,7 +378,7 @@ void ObjectStore::LazyInitFutureTypes() {
     type = Type::New(cls, type_args, TokenPosition::kNoSource,
                      Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     set_non_nullable_future_never_type(type);
     type = null_type();
     ASSERT(!type.IsNull());
@@ -387,7 +387,7 @@ void ObjectStore::LazyInitFutureTypes() {
     type = Type::New(cls, type_args, TokenPosition::kNoSource,
                      Nullability::kNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     set_nullable_future_null_type(type);
     type ^= cls.RareType();
     set_non_nullable_future_rare_type(type);

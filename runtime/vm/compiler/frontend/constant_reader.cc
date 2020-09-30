@@ -278,7 +278,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
         type_arguments.SetTypeAt(j, type_translator.BuildType());
       }
-      type_arguments = type_arguments.Canonicalize();
+      type_arguments = type_arguments.Canonicalize(Thread::Current(), nullptr);
       // Make a copy of the old closure, and set delayed type arguments.
       Closure& closure = Closure::Handle(Z, Closure::RawCast(constant.raw()));
       Function& function = Function::Handle(Z, closure.function());
