@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.da
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -23,8 +24,8 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Perform Refactor';
 
   @override
-  Future<ErrorOr<void>> handle(
-      List<dynamic> arguments, CancellationToken cancellationToken) async {
+  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+      ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
         arguments[0] is! String || // kind
@@ -63,6 +64,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         _manager.begin(cancellationToken);
 
         try {
+          reporter.begin('Refactoring…');
           final status = await refactoring.checkAllConditions();
 
           if (status.hasError) {
@@ -95,6 +97,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
               'Content was modified before refactor was applied');
         } finally {
           _manager.end(cancellationToken);
+          reporter.end();
         }
       });
     });

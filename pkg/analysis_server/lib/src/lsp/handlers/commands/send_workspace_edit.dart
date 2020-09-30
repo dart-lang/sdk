@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 
 /// This command allows a client to request the server send it a
 /// workspace/applyEdit command, simply passing through the edits provided
@@ -23,8 +24,8 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Send Workspace Edit';
 
   @override
-  Future<ErrorOr<void>> handle(
-      List<dynamic> arguments, CancellationToken cancellationToken) async {
+  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+      ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 1 ||
         arguments[0] is! Map<String, dynamic>) {

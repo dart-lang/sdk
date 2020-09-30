@@ -201,6 +201,7 @@ class ServerCapabilitiesComputer {
             ),
       executeCommandProvider: ExecuteCommandOptions(
         commands: Commands.serverSupportedCommands,
+        workDoneProgress: true,
       ),
       workspaceSymbolProvider: true,
       workspace: ServerCapabilitiesWorkspace(

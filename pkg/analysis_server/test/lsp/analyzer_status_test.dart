@@ -34,10 +34,7 @@ abstract class AnalyzerStatusTest extends AbstractLspAnalysisServerTest {
   bool get progressSupport;
 
   ClientCapabilitiesWindow get _windowCapabilities => progressSupport
-      ? extendWindowCapabilities(
-          emptyWindowClientCapabilities,
-          {'workDoneProgress': true},
-        )
+      ? withWorkDoneProgressSupport(emptyWindowClientCapabilities)
       : emptyWindowClientCapabilities;
 
   Future<void> test_afterDocumentEdits() async {

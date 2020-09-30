@@ -48,6 +48,8 @@ abstract class AbstractLspAnalysisServerTest
   TestPluginManager pluginManager;
   LspAnalysisServer server;
 
+  final testWorkDoneToken = Either2<num, String>.t2('test');
+
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
   @override
@@ -380,6 +382,11 @@ mixin ClientCapabilitiesHelperMixin {
       'synchronization': {'dynamicRegistration': true}
     });
   }
+
+  ClientCapabilitiesWindow withWorkDoneProgressSupport(
+      ClientCapabilitiesWindow source) {
+    return extendWindowCapabilities(source, {'workDoneProgress': true});
+  }
 }
 
 mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
@@ -594,12 +601,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return executeCommand(command);
   }
 
-  Future<Object> executeCommand(Command command) async {
+  Future<Object> executeCommand(Command command,
+      {Either2<num, String> workDoneToken}) async {
     final request = makeRequest(
       Method.workspace_executeCommand,
       ExecuteCommandParams(
         command: command.command,
         arguments: command.arguments,
+        workDoneToken: workDoneToken,
       ),
     );
     return expectSuccessfulResponseTo(request, (result) => result);

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.da
 import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 
 /// Handles workspace/executeCommand messages by delegating to a specific handler
 /// based on the command.
@@ -35,12 +36,18 @@ class ExecuteCommandHandler
 
   @override
   Future<ErrorOr<Object>> handle(
-      ExecuteCommandParams params, CancellationToken token) async {
+      ExecuteCommandParams params, CancellationToken cancellationToken) async {
     final handler = commandHandlers[params.command];
     if (handler == null) {
       return error(ServerErrorCodes.UnknownCommand,
           '${params.command} is not a valid command identifier', null);
     }
-    return handler.handle(params.arguments, token);
+
+    final progress = params.workDoneToken != null
+        ? ProgressReporter.clientProvided(server, params.workDoneToken)
+        : server.clientCapabilities.window?.workDoneProgress == true
+            ? ProgressReporter.serverCreated(server)
+            : ProgressReporter.noop;
+    return handler.handle(params.arguments, progress, cancellationToken);
   }
 }

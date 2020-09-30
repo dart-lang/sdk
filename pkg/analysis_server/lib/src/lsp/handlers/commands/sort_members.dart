@@ -8,6 +8,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 
 class SortMembersCommandHandler extends SimpleEditCommandHandler {
@@ -17,8 +18,8 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Sort Members';
 
   @override
-  Future<ErrorOr<void>> handle(
-      List<dynamic> arguments, CancellationToken cancellationToken) async {
+  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+      ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.InvalidCommandArguments,
