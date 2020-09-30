@@ -796,7 +796,6 @@ dart_ci_sandbox_builder(
             "build_tests",
             "framework_coverage",
             "framework_tests",
-            "hostonly_devicelab_tests",
             "tool_coverage",
             "tool_tests",
         ],
