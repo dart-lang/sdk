@@ -170,3 +170,12 @@ static method main() → dynamic {}
 constants  {
   #C1 = self::Annotation {}
 }
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:26:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:38:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:49:18 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:61:25 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:16:16 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:72:25 -> IntConstant(0)
+Extra constant evaluation: tries: 268, successes: 6

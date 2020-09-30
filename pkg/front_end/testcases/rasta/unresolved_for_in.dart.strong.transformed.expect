@@ -258,3 +258,11 @@ static method main(dynamic arguments) → dynamic {
     }
   }
 }
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:15:13 -> TypeLiteralConstant(Fisk*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:21:13 -> TypeLiteralConstant(void Function()*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:35:11 -> TypeLiteralConstant(Fisk*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:41:11 -> TypeLiteralConstant(void Function()*)
+Extra constant evaluation: tries: 85, successes: 4

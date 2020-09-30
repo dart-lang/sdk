@@ -50,3 +50,8 @@ class Hest extends core::Object implements self::Bar {
 }
 static method main() → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///override_check_generic_method_f_bounded.dart:15:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: tries: 1, successes: 1

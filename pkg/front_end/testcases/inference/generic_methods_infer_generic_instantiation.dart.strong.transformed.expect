@@ -125,3 +125,34 @@ constants  {
   #C1 = tearoff math::max
   #C2 = tearoff math::min
 }
+
+Extra constant evaluation status:
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:16:16 -> PartialInstantiationConstant(max<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:17:16 -> PartialInstantiationConstant(max<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:18:16 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:19:16 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:20:16 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:21:16 -> PartialInstantiationConstant(max<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:22:16 -> PartialInstantiationConstant(max<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:23:16 -> PartialInstantiationConstant(max<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:24:16 -> PartialInstantiationConstant(max<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:26:70 -> PartialInstantiationConstant(max<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:28:73 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:30:73 -> PartialInstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:31:70 -> PartialInstantiationConstant(max<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:32:70 -> PartialInstantiationConstant(max<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:35:11 -> PartialInstantiationConstant(min<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:36:11 -> PartialInstantiationConstant(min<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:37:11 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:38:11 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:39:11 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:40:11 -> PartialInstantiationConstant(min<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:41:11 -> PartialInstantiationConstant(min<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:42:11 -> PartialInstantiationConstant(min<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:43:11 -> PartialInstantiationConstant(min<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:45:65 -> PartialInstantiationConstant(min<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:46:72 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:47:72 -> PartialInstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:48:65 -> PartialInstantiationConstant(min<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:49:65 -> PartialInstantiationConstant(min<Object*>)
+Extra constant evaluation: tries: 133, successes: 28

@@ -372,3 +372,35 @@ abstract class J extends self::I implements self::Bar {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:10:8 -> SymbolConstant(#interfaceMethod2)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:10:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:10:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:10:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:21:3 -> SymbolConstant(#abstractMethod)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:21:3 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:21:3 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:21:3 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:6:8 -> SymbolConstant(#interfaceMethod1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:6:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:6:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:6:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:16:8 -> SymbolConstant(#interfaceMethod3)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:16:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:16:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:16:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:24:12 -> SymbolConstant(#property3=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:24:12 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:24:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:12:7 -> SymbolConstant(#interfaceMethod1=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:12:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:12:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:22:12 -> SymbolConstant(#property1=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:22:12 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:22:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:23:12 -> SymbolConstant(#property2=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:23:12 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:23:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: tries: 73, successes: 28

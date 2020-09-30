@@ -113,3 +113,41 @@ static set Extension|finalExtensionStaticField(core::int #t14) → void;
 static get Extension|finalExtensionStaticFieldWithInitializer() → core::int;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:19:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:19:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:22:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:22:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:25:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:28:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:28:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:31:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:31:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:34:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:34:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:37:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:42:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:42:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:45:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:45:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:48:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:51:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:51:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:54:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:54:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:57:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:57:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:60:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:9:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:9:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:12:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:12:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:15:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:65:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:65:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:68:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:68:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:71:4 -> InstanceConstant(const Annotation{})
+Extra constant evaluation: tries: 34, successes: 34

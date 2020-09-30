@@ -262,3 +262,14 @@ static method projectionTest(core::int* n) → void
   ;
 static method change(self::Variable* v, core::int* newValue) → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:88:24 -> InstanceConstant(const Strength{Strength.value: 0, Strength.name: "required"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:89:32 -> InstanceConstant(const Strength{Strength.value: 1, Strength.name: "strongPreferred"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:90:25 -> InstanceConstant(const Strength{Strength.value: 2, Strength.name: "preferred"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:91:30 -> InstanceConstant(const Strength{Strength.value: 3, Strength.name: "strongDefault"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:92:22 -> InstanceConstant(const Strength{Strength.value: 4, Strength.name: "normal"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:93:28 -> InstanceConstant(const Strength{Strength.value: 5, Strength.name: "weakDefault"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:94:23 -> InstanceConstant(const Strength{Strength.value: 6, Strength.name: "weakest"})
+Extra constant evaluation: tries: 10, successes: 7

@@ -128,3 +128,16 @@ constants  {
   #C12 = eval self::Foo{x:#C10, assert(#C7, "${#C11}${const core::bool::fromEnvironment(#C1)}")}
   #C13 = eval self::Foo{x:#C6, assert(const core::bool::fromEnvironment(#C1).==(#C7), "${#C8}${const core::bool::fromEnvironment(#C1)}"), assert(const core::bool::fromEnvironment(#C1).==(#C7))}
 }
+
+Extra constant evaluation status:
+Evaluated with empty environment: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:10:50 -> BoolConstant(true)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:10:22 -> BoolConstant(false)
+Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:11:59 -> StringConstant("foo was false")
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:11:30 -> BoolConstant(false)
+Evaluated with empty environment: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:12:50 -> BoolConstant(true)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:12:22 -> BoolConstant(false)
+Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:14:73 -> StringConstant("btw foo was false")
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:14:44 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:25:24 -> InstanceConstant(const Foo{Foo.x: 1})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:25:24 -> InstanceConstant(const Foo{Foo.x: 1})
+Extra constant evaluation: tries: 34, successes: 10

@@ -282,6 +282,15 @@ class MatchExpectation
       printer.endLine();
     });
     printer.writeConstantTable(componentToText);
+
+    if (result.extraConstantStrings.isNotEmpty) {
+      buffer.writeln("");
+      buffer.writeln("Extra constant evaluation status:");
+      for (String extraConstantString in result.extraConstantStrings) {
+        buffer.writeln(extraConstantString);
+      }
+    }
+
     String actual = "$buffer";
     String binariesPath =
         relativizeUri(Uri.base, platformBinariesLocation, isWindows);
@@ -483,6 +492,7 @@ class ComponentResult {
   final Uri outputUri;
   final ProcessedOptions options;
   final KernelTarget sourceTarget;
+  final List<String> extraConstantStrings = [];
 
   ComponentResult(this.description, this.component, this.userLibraries,
       this.options, this.sourceTarget,

@@ -42,3 +42,9 @@ static method main() → dynamic {
   new self::C::•();
   new self::D::•();
 }
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///issue_000026.dart:8:13 -> IntConstant(3)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///issue_000026.dart:14:13 -> IntConstant(-1)
+Extra constant evaluation: tries: 4, successes: 2

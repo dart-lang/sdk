@@ -11,3 +11,9 @@ static method main() → dynamic {
       #t1.{core::List::add}("cd");
   } =>#t1;
 }
+
+
+Extra constant evaluation status:
+Evaluated: StringConcatenation @ org-dartlang-testcase:///string_concatenation.dart:7:3 -> StringConstant("ab")
+Evaluated: StringConcatenation @ org-dartlang-testcase:///string_concatenation.dart:7:18 -> StringConstant("cd")
+Extra constant evaluation: tries: 10, successes: 2

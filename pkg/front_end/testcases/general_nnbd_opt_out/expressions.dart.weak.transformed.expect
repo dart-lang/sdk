@@ -93,3 +93,12 @@ constants  {
   #C1 = null
   #C2 = core::Object {}
 }
+
+Extra constant evaluation status:
+Evaluated: StringConcatenation @ org-dartlang-testcase:///expressions.dart:23:8 -> StringConstant("foobar")
+Evaluated: TypeLiteral @ org-dartlang-testcase:///expressions.dart:72:10 -> TypeLiteralConstant(int*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///expressions.dart:73:9 -> TypeLiteralConstant(int*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///expressions.dart:74:9 -> TypeLiteralConstant(int*)
+Evaluated: VariableGetImpl @ org-dartlang-testcase:///expressions.dart:74:9 -> TypeLiteralConstant(int*)
+Evaluated: VariableGet @ org-dartlang-testcase:///expressions.dart:74:9 -> TypeLiteralConstant(int*)
+Extra constant evaluation: tries: 138, successes: 6

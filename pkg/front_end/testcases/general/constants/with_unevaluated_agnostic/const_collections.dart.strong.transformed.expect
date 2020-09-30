@@ -81,3 +81,11 @@ constants  {
   #C28 = "hello"
   #C29 = <core::String>{#C28}
 }
+
+Extra constant evaluation status:
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections.dart:5:40 -> ListConstant(const <bool>[false, false, true])
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections.dart:10:46 -> ListConstant(const <bool>[true, false, false, true, false])
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections.dart:5:40 -> ListConstant(const <bool>[false, false, true])
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections.dart:10:46 -> ListConstant(const <bool>[true, false, false, true, false])
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections.dart:27:38 -> MapConstant(const <bool, bool>{false: false})
+Extra constant evaluation: tries: 16, successes: 5

@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'dart:convert' show jsonDecode;
 
-import 'dart:io' show Directory, File, Platform, stdout;
+import 'dart:io' show Directory, File, Platform;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 
@@ -75,13 +75,16 @@ import 'package:kernel/ast.dart'
         AwaitExpression,
         BasicLiteral,
         Component,
+        Constant,
         ConstantExpression,
         Expression,
         FileUriExpression,
+        FileUriNode,
         InvalidExpression,
         Library,
         Member,
         Node,
+        TreeNode,
         UnevaluatedConstant,
         Version,
         Visitor;
@@ -273,7 +276,6 @@ class FastaContext extends ChainContext with MatchContext {
   final bool skipVm;
   final bool verify;
   final bool weak;
-  final bool stressConstantEvaluator;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, List<Iterable<String>>> componentToDiagnostics =
@@ -304,7 +306,6 @@ class FastaContext extends ChainContext with MatchContext {
       bool ignoreExpectations,
       this.updateExpectations,
       bool updateComments,
-      this.stressConstantEvaluator,
       this.skipVm,
       bool kernelTextSerialization,
       bool fullCompile,
@@ -323,6 +324,14 @@ class FastaContext extends ChainContext with MatchContext {
     } else {
       fullPrefix = '.strong';
       outlinePrefix = '.outline';
+    }
+
+    if (!fullCompile) {
+      // If not doing a full compile this is the only expect file so we run the
+      // extra constant evaluation now. If we do a full compilation, we'll do
+      // if after the transformation. That also ensures we don't get the same
+      // 'extra constant evaluation' output twice (in .transformed and not).
+      steps.add(const StressConstantEvaluatorStep());
     }
     if (!ignoreExpectations) {
       steps.add(new MatchExpectation(
@@ -343,31 +352,19 @@ class FastaContext extends ChainContext with MatchContext {
     }
     if (fullCompile) {
       steps.add(const Transform());
+      steps.add(const StressConstantEvaluatorStep());
       if (!ignoreExpectations) {
-        steps.add(new MatchExpectation(
-            fullCompile
-                ? "$fullPrefix.transformed.expect"
-                : "$outlinePrefix.transformed.expect",
-            serializeFirst: false,
-            isLastMatchStep: updateExpectations));
+        steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+            serializeFirst: false, isLastMatchStep: updateExpectations));
         if (!updateExpectations) {
-          steps.add(new MatchExpectation(
-              fullCompile
-                  ? "$fullPrefix.transformed.expect"
-                  : "$outlinePrefix.transformed.expect",
-              serializeFirst: true,
-              isLastMatchStep: true));
+          steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+              serializeFirst: true, isLastMatchStep: true));
         }
       }
       steps.add(const EnsureNoErrors());
       if (!skipVm) {
         steps.add(const WriteDill());
-        if (stressConstantEvaluator) {
-          steps.add(const StressConstantEvaluatorStep());
-        }
         steps.add(const Run());
-      } else if (stressConstantEvaluator) {
-        steps.add(const StressConstantEvaluatorStep());
       }
     }
   }
@@ -692,8 +689,6 @@ class FastaContext extends ChainContext with MatchContext {
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
     bool updateExpectations = environment["updateExpectations"] == "true";
     bool updateComments = environment["updateComments"] == "true";
-    bool stressConstantEvaluator =
-        environment["stressConstantEvaluator"] == "true";
     bool skipVm = environment["skipVm"] == "true";
     bool verify = environment["verify"] != "false";
     bool kernelTextSerialization =
@@ -713,7 +708,6 @@ class FastaContext extends ChainContext with MatchContext {
         ignoreExpectations,
         updateExpectations,
         updateComments,
-        stressConstantEvaluator,
         skipVm,
         kernelTextSerialization,
         environment.containsKey(ENABLE_FULL_COMPILE),
@@ -791,15 +785,16 @@ class StressConstantEvaluatorStep
       result.options.errorOnUnevaluatedConstant,
       target.getConstantEvaluationModeForTesting(),
     );
-    Stopwatch stopwatch = new Stopwatch()..start();
     for (Library lib in result.component.libraries) {
       if (!result.isUserLibrary(lib)) continue;
       lib.accept(stressConstantEvaluatorVisitor);
     }
-    stdout.writeln("\nDid extra constant evaluation in "
-        "${stopwatch.elapsedMilliseconds} ms. "
-        "Tries: ${stressConstantEvaluatorVisitor.tries}, "
-        "successes: ${stressConstantEvaluatorVisitor.success}");
+    if (stressConstantEvaluatorVisitor.success > 0) {
+      result.extraConstantStrings.addAll(stressConstantEvaluatorVisitor.output);
+      result.extraConstantStrings.add("Extra constant evaluation: "
+          "tries: ${stressConstantEvaluatorVisitor.tries}, "
+          "successes: ${stressConstantEvaluatorVisitor.success}");
+    }
     return pass(result);
   }
 }
@@ -810,6 +805,7 @@ class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
   ConstantEvaluator constantEvaluatorWithEmptyEnvironment;
   int tries = 0;
   int success = 0;
+  List<String> output = [];
 
   StressConstantEvaluatorVisitor(
       ConstantsBackend backend,
@@ -831,6 +827,14 @@ class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: evaluationMode);
+  }
+
+  Library currentLibrary;
+  Library visitLibrary(Library node) {
+    currentLibrary = node;
+    node.visitChildren(this);
+    currentLibrary = null;
+    return node;
   }
 
   Member currentMember;
@@ -863,9 +867,15 @@ class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
 
     // Try to evaluate it as a constant.
     tries++;
-    var x = constantEvaluator.evaluate(
-        new StaticTypeContext(currentMember, constantEvaluator.typeEnvironment),
-        node);
+    StaticTypeContext staticTypeContext;
+    if (currentMember == null) {
+      staticTypeContext = new StaticTypeContext.forAnnotations(
+          currentLibrary, constantEvaluator.typeEnvironment);
+    } else {
+      staticTypeContext = new StaticTypeContext(
+          currentMember, constantEvaluator.typeEnvironment);
+    }
+    Constant x = constantEvaluator.evaluate(staticTypeContext, node);
     bool evaluatedWithEmptyEnvironment = false;
     if (x is UnevaluatedConstant && x.expression is! InvalidExpression) {
       // try with an environment
@@ -889,18 +899,32 @@ class StressConstantEvaluatorVisitor extends RecursiveVisitor<Node>
     } else {
       success++;
       if (!evaluatedWithEmptyEnvironment) {
-        stdout
-            .writeln("Evaluated: ${node.runtimeType} @ ${node.location} -> $x");
+        output
+            .add("Evaluated: ${node.runtimeType} @ ${getLocation(node)} -> $x");
         // Don't recurse into children - theoretically we could replace this
         // node with a constant expression.
       } else {
-        stdout.writeln("Evaluated with empty environment: "
-            "${node.runtimeType} @ ${node.location} -> $x");
+        output.add("Evaluated with empty environment: "
+            "${node.runtimeType} @ ${getLocation(node)} -> $x");
         // Here we (for now) recurse into children.
         node.visitChildren(this);
       }
     }
     return node;
+  }
+
+  String getLocation(TreeNode node) {
+    try {
+      return node.location.toString();
+    } catch (e) {
+      TreeNode n = node;
+      while (n != null && n is! FileUriNode) {
+        n = n.parent;
+      }
+      if (n == null) return "(unknown location)";
+      FileUriNode fileUriNode = n;
+      return ("(unknown position in ${fileUriNode.fileUri})");
+    }
   }
 
   @override

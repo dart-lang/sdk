@@ -91,3 +91,10 @@ static method bar<T extends self::C = self::C>(self::C c, self::bar::T t) → dy
                           ^" in t as{TypeError,ForNonNullableByDefault} () →? core::int);
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///tearoff_from_nullable_receiver.dart:14:24 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///tearoff_from_nullable_receiver.dart:14:24 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///tearoff_from_nullable_receiver.dart:14:24 -> NullConstant(null)
+Extra constant evaluation: tries: 58, successes: 3

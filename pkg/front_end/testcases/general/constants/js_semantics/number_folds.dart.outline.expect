@@ -77,3 +77,31 @@ static const field core::int* doubleTruncateDivNaN = 84.2.{core::double::~/}(sel
 static const field core::int* bigNumber = -9223372036854775808;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:5:33 -> DoubleConstant(-1.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:7:33 -> DoubleConstant(-1.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:9:23 -> DoubleConstant(Infinity)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:11:24 -> DoubleConstant(-2.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:12:24 -> DoubleConstant(4294967293.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:15:27 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:16:28 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:17:28 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:18:29 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:19:30 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:20:26 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:21:25 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:22:26 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:23:26 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:24:29 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:30:29 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:31:29 -> DoubleConstant(4294967295.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:32:28 -> BoolConstant(false)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:33:33 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:34:36 -> BoolConstant(true)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:35:31 -> BoolConstant(false)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:37:36 -> DoubleConstant(42.0)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:40:27 -> DoubleConstant(NaN)
+Evaluated: StaticGet @ org-dartlang-testcase:///number_folds.dart:41:42 -> DoubleConstant(NaN)
+Extra constant evaluation: tries: 38, successes: 24

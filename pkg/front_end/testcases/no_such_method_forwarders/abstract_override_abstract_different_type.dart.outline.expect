@@ -35,3 +35,19 @@ class You extends self::Base {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:8:7 -> SymbolConstant(#push=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:8:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:8:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:9:7 -> SymbolConstant(#float=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:9:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:9:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:16:7 -> SymbolConstant(#push=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:16:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:16:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> SymbolConstant(#float=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: tries: 40, successes: 12

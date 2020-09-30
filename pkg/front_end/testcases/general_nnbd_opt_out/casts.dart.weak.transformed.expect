@@ -16,3 +16,16 @@ static method main() → dynamic {
   core::print(1.0 is core::int*);
   core::print(1.0 is core::double*);
 }
+
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:12:12 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:13:12 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:14:12 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:16:11 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:17:11 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:18:11 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:20:13 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:21:13 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:22:13 -> BoolConstant(true)
+Extra constant evaluation: tries: 21, successes: 9

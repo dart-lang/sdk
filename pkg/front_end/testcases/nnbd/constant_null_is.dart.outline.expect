@@ -49,3 +49,32 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual, core::String message) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:9:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:10:17 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:11:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:12:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:13:17 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:14:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:15:17 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:16:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:17:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:18:17 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:19:18 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:20:18 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:21:18 -> BoolConstant(true)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:22:18 -> InstanceConstant(const Class<int>{Class.field: false})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:23:18 -> InstanceConstant(const Class<int?>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:24:18 -> InstanceConstant(const Class<Null?>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:25:18 -> InstanceConstant(const Class<int>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:26:18 -> InstanceConstant(const Class<int?>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:27:18 -> InstanceConstant(const Class<Null?>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:28:18 -> InstanceConstant(const Class<int>{Class.field: false})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:29:18 -> InstanceConstant(const Class<int?>{Class.field: false})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:30:18 -> InstanceConstant(const Class<Null?>{Class.field: false})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:31:19 -> InstanceConstant(const Class<int>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:32:19 -> InstanceConstant(const Class<int?>{Class.field: true})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:33:19 -> InstanceConstant(const Class<Null?>{Class.field: true})
+Extra constant evaluation: tries: 33, successes: 25

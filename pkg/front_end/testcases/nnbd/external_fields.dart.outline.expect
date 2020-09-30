@@ -118,3 +118,32 @@ external static set Extension|untypedExtensionStaticField(dynamic #externalField
 external static get Extension|untypedFinalExtensionStaticField() → dynamic;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:21:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:21:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:24:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:27:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:27:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:30:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:30:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:33:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:48:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:48:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:51:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:54:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:54:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:57:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:57:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:60:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:10:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:10:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:13:2 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:75:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:75:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:78:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:81:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:81:4 -> InstanceConstant(const Annotation{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:84:4 -> InstanceConstant(const Annotation{})
+Extra constant evaluation: tries: 25, successes: 25

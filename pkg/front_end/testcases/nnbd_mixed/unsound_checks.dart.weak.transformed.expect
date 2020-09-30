@@ -619,3 +619,24 @@ constants  {
   #C7 = null
   #C8 = <uns::E*>[#C3, #C6]
 }
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks.dart:73:33 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks.dart:73:33 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks.dart:26:77 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks.dart:26:77 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks.dart:32:60 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks.dart:32:60 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks.dart:43:58 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks.dart:43:58 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:69:33 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:69:33 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:22:74 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:22:74 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:28:58 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:28:58 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
+Extra constant evaluation: tries: 720, successes: 18

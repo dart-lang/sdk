@@ -49,3 +49,10 @@ static method localFunctions() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///return_null.dart:43:6 -> ListConstant(const <Enum>[const Enum{Enum.index: 0, Enum._name: "Enum.a"}, const Enum{Enum.index: 1, Enum._name: "Enum.b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///return_null.dart:43:13 -> InstanceConstant(const Enum{Enum.index: 0, Enum._name: "Enum.a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///return_null.dart:43:16 -> InstanceConstant(const Enum{Enum.index: 1, Enum._name: "Enum.b"})
+Extra constant evaluation: tries: 7, successes: 3

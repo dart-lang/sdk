@@ -128,3 +128,10 @@ constants  {
   #C24 = tearoff core::identical
   #C25 = eval const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>
 }
+
+Extra constant evaluation status:
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:15:28 -> PartialInstantiationConstant(id2<int>)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:37:5 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:37:5 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2_lib.dart:20:39 -> PartialInstantiationConstant(id2<int>)
+Extra constant evaluation: tries: 41, successes: 4

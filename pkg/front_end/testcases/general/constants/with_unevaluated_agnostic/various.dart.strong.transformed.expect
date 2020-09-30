@@ -261,3 +261,30 @@ constants  {
   #C55 = eval self::Foo<core::int>{saved:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), saved2:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), initialized:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), value:#C21}
   #C56 = eval self::Foo<core::int>{saved:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), saved2:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), initialized:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), value:#C21}
 }
+
+Extra constant evaluation status:
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:32:27 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:33:21 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:28:13 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:110:38 -> InstanceConstant(const Class<A>{})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:111:38 -> InstanceConstant(const Class<B>{})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:112:38 -> InstanceConstant(const Subclass<A>{})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:113:38 -> InstanceConstant(const Subclass<B>{})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:37:17 -> InstanceConstant(const Foo<int>{Foo.saved: false, Foo.saved2: false, Foo.initialized: false, Foo.value: 42})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:37:17 -> InstanceConstant(const Foo<int>{Foo.saved: false, Foo.saved2: false, Foo.initialized: false, Foo.value: 42})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:37:17 -> InstanceConstant(const Foo<int>{Foo.saved: false, Foo.saved2: false, Foo.initialized: false, Foo.value: 42})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:7:31 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:8:30 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:9:67 -> NullConstant(null)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:37:17 -> InstanceConstant(const Foo<int>{Foo.saved: false, Foo.saved2: false, Foo.initialized: false, Foo.value: 42})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:42:46 -> BoolConstant(true)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:43:38 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:76:11 -> SymbolConstant(#)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:110:38 -> InstanceConstant(const Class<A>{})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:111:38 -> InstanceConstant(const Class<B>{})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:112:38 -> InstanceConstant(const Subclass<A>{})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:113:38 -> InstanceConstant(const Subclass<B>{})
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:127:35 -> BoolConstant(false)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:128:33 -> BoolConstant(true)
+Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:130:33 -> NullConstant(null)
+Extra constant evaluation: tries: 66, successes: 24

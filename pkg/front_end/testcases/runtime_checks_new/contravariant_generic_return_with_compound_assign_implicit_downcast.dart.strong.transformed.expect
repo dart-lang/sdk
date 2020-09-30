@@ -89,3 +89,7 @@ constants  {
   #C1 = tearoff self::numToInt
   #C2 = tearoff self::numToNum
 }
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_generic_return_with_compound_assign_implicit_downcast.dart:50:21 -> IntConstant(0)
+Extra constant evaluation: tries: 58, successes: 1

@@ -69,3 +69,17 @@ abstract class HungryCat extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:8:8 -> SymbolConstant(#eatFood)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:8:8 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:8:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:23:8 -> SymbolConstant(#eatFood)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:23:8 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:23:8 -> SymbolConstant(#amount)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:26:7 -> SymbolConstant(#eatFood)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:26:7 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:26:7 -> SymbolConstant(#amount)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:26:7 -> SymbolConstant(#yetAnother)
+Extra constant evaluation: tries: 39, successes: 10

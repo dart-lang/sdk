@@ -24,3 +24,10 @@ static method test() → void {
              ^" in x as{TypeError,ForNonNullableByDefault} core::String;
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///type_constraint_solving_closures_in_upper_and_lower_bounds.dart:10:3 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///type_constraint_solving_closures_in_upper_and_lower_bounds.dart:10:15 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///type_constraint_solving_closures_in_upper_and_lower_bounds.dart:10:3 -> NullConstant(null)
+Extra constant evaluation: tries: 12, successes: 3

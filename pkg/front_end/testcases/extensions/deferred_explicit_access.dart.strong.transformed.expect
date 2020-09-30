@@ -94,3 +94,10 @@ static set topLevelProperty(core::int* value) → void {
 }
 static method topLevelMethod() → dynamic
   return def::Extension|staticField;
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///deferred_explicit_access.dart:12:31 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///deferred_explicit_access.dart:12:45 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///deferred_explicit_access.dart:12:45 -> IntConstant(42)
+Extra constant evaluation: tries: 95, successes: 3

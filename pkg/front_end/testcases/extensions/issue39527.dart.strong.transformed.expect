@@ -37,3 +37,11 @@ static method main() → dynamic {
   let final self::C* #t8 = c in let final core::int* #t9 = 42 in self::Extension1|[]=(#t8, #t9, self::Extension1|-(self::Extension1|[](#t8, #t9), 1));
   self::Extension1|[]=(c, 42, self::Extension1|-(self::Extension1|[](c, 42), 1));
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///issue39527.dart:19:19 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///issue39527.dart:19:19 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///issue39527.dart:22:17 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///issue39527.dart:22:17 -> IntConstant(42)
+Extra constant evaluation: tries: 56, successes: 4

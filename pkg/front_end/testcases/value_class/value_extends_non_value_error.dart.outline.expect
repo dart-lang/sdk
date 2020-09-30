@@ -41,3 +41,9 @@ class JenkinsSmiHash extends core::Object {
     ;
 }
 static const field core::String valueClass = "valueClass";
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///value_extends_non_value_error.dart:11:2 -> StringConstant("valueClass")
+Evaluated: StaticGet @ org-dartlang-testcase:///value_extends_non_value_error.dart:18:2 -> StringConstant("valueClass")
+Extra constant evaluation: tries: 2, successes: 2

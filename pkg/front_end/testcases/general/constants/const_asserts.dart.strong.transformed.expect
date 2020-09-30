@@ -207,3 +207,10 @@ constants  {
   #C3 = 1
   #C4 = self::Foo {x:#C3}
 }
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:11:50 -> BoolConstant(true)
+Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:12:59 -> StringConstant("foo was false")
+Evaluated: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:13:50 -> BoolConstant(true)
+Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:15:73 -> StringConstant("btw foo was false")
+Extra constant evaluation: tries: 34, successes: 4

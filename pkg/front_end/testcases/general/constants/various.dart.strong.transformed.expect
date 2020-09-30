@@ -627,3 +627,7 @@ constants  {
   #C21 = tearoff self::id1
   #C22 = partial-instantiation self::id1 <core::int*>
 }
+
+Extra constant evaluation status:
+Evaluated: PropertyGet @ org-dartlang-testcase:///various.dart:111:26 -> IntConstant(5)
+Extra constant evaluation: tries: 12, successes: 1

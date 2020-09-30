@@ -84,3 +84,14 @@ static const field self::Bar* bar5 = const self::Bar::withEmptyMessage(1);
 static const field self::Bar* bar6 = const self::Bar::withEmptyMessage(0);
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:11:50 -> BoolConstant(true)
+Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:12:59 -> StringConstant("foo was false")
+Evaluated: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:13:50 -> BoolConstant(true)
+Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:15:73 -> StringConstant("btw foo was false")
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:19:21 -> NullConstant(null)
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:21:22 -> NullConstant(null)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:31:24 -> InstanceConstant(const Foo{Foo.x: 1})
+Extra constant evaluation: tries: 48, successes: 7

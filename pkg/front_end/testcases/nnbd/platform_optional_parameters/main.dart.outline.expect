@@ -61,3 +61,10 @@ static method method([core::int i]) → void
 external static method patchedMethod([core::int i]) → void;
 static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i]) → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:22 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:11:2 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: tries: 3, successes: 3

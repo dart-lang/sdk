@@ -46,3 +46,16 @@ static const field self::Bar bar3 = const self::Bar::withoutMessage(1);
 static const field self::Bar bar4 = const self::Bar::withoutMessage(0);
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:10:50 -> BoolConstant(true)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:10:22 -> BoolConstant(false)
+Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:11:59 -> StringConstant("foo was false")
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:11:30 -> BoolConstant(false)
+Evaluated with empty environment: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:12:50 -> BoolConstant(true)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:12:22 -> BoolConstant(false)
+Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:14:73 -> StringConstant("btw foo was false")
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:14:44 -> BoolConstant(false)
+Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:25:24 -> InstanceConstant(const Foo{Foo.x: 1})
+Extra constant evaluation: tries: 39, successes: 9
