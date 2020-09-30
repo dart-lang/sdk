@@ -174,10 +174,9 @@ class _Visitor extends SimpleAstVisitor {
     }
   }
 
-  // targetType is allowed to be null, because _isSimpleIdDeclByCoreObj will
-  // fail before NPE.
   bool _isToStringOnCoreTypeClass(
           InterfaceType targetType, SimpleIdentifier methodIdentifier) =>
+      targetType != null &&
       methodIdentifier.name == 'toString' &&
       _isSimpleIdDeclByCoreObj(methodIdentifier) &&
       typeSystem.isSubtypeOf(targetType, typeType);
