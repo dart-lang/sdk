@@ -57,6 +57,10 @@ void SSLCertContext::RegisterCallbacks(SSL* ssl) {
   // verification mechanism.
 }
 
+TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() const {
+  return nullptr;
+}
+
 }  // namespace bin
 }  // namespace dart
 
