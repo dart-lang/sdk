@@ -335,6 +335,8 @@ class DartFixKind {
       FixKind('dart.fix.remove.argument', 50, 'Remove argument');
   static const REMOVE_AWAIT =
       FixKind('dart.fix.remove.await', 50, 'Remove await');
+  static const REMOVE_COMPARISON =
+      FixKind('dart.fix.remove.comparison', 50, 'Remove comparison');
   static const REMOVE_CONST =
       FixKind('dart.fix.remove.const', 50, 'Remove const');
   static const REMOVE_DEAD_CODE =
