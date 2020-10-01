@@ -38,20 +38,18 @@
 /// 'baz'.
 library dart2js_info.deferred_library_check;
 
-import 'package:quiver/collection.dart';
-
 import 'info.dart';
 
 List<ManifestComplianceFailure> checkDeferredLibraryManifest(
     AllInfo info, Map manifest) {
-  var includedPackages = new Multimap<String, String>();
-  var excludedPackages = new Multimap<String, String>();
+  var includedPackages = new Map<String, Set<String>>();
+  var excludedPackages = new Map<String, Set<String>>();
   for (var part in manifest.keys) {
     for (var package in manifest[part]['include'] ?? []) {
-      includedPackages.add(part, package);
+      (includedPackages[part] ??= {}).add(package);
     }
     for (var package in manifest[part]['exclude'] ?? []) {
-      excludedPackages.add(part, package);
+      (excludedPackages[part] ??= {}).add(package);
     }
   }
 
@@ -77,10 +75,11 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
     return partNameFailures;
   }
 
-  var mentionedPackages = new Set()
-    ..addAll(includedPackages.values)
-    ..addAll(excludedPackages.values);
-  var actualIncludedPackages = new Multimap<String, String>();
+  var mentionedPackages = {
+    for (var values in includedPackages.values) ...values,
+    for (var values in excludedPackages.values) ...values
+  };
+  var actualIncludedPackages = new Map<String, Set<String>>();
 
   var failures = <ManifestComplianceFailure>[];
 
@@ -97,7 +96,7 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
         containingParts.addAll(info.outputUnit.imports);
       }
       for (var part in containingParts) {
-        actualIncludedPackages.add(part, packageName);
+        (actualIncludedPackages[part] ??= {}).add(packageName);
         if (excludedPackages[part].contains(packageName)) {
           failures
               .add(new _PartContainedExcludedPackage(part, packageName, info));
@@ -109,10 +108,12 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
   info.functions.forEach(checkInfo);
   info.fields.forEach(checkInfo);
 
-  includedPackages.forEach((part, package) {
-    if (!actualIncludedPackages.containsKey(part) ||
-        !actualIncludedPackages[part].contains(package)) {
-      failures.add(new _PartDidNotContainPackage(part, package));
+  includedPackages.forEach((part, packages) {
+    for (var package in packages) {
+      if (!actualIncludedPackages.containsKey(part) ||
+          !actualIncludedPackages[part].contains(package)) {
+        failures.add(new _PartDidNotContainPackage(part, package));
+      }
     }
   });
   return failures;
