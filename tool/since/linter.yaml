@@ -48,6 +48,7 @@ camel_case_types: 0.1.1
 camel_case_extensions: 0.1.97+1
 cancel_subscriptions: 0.1.20
 cascade_invocations: 0.1.29
+cast_nullable_to_non_nullable : 0.1.120
 close_sinks: 0.1.19
 comment_references: 0.1.17
 control_flow_in_finally: 0.1.16
@@ -80,6 +81,7 @@ no_duplicate_case_values: 0.1.30
 no_logic_in_create_state : 0.1.106
 non_constant_identifier_names: 0.1.1
 no_runtimeType_toString : 0.1.110
+null_check_on_nullable_type_parameter : 0.1.120
 null_closures: 0.1.56
 one_member_abstracts: 0.1.1
 omit_local_variable_types: 0.1.30
@@ -140,6 +142,7 @@ sort_unnamed_constructors_first: 0.1.11
 super_goes_last: 0.1.1
 test_types_in_equals: 0.1.16
 throw_in_finally: 0.1.16
+tighten_type_of_initializing_formals : 0.1.120
 type_annotate_public_apis: 0.1.5
 type_init_formals: 0.1.1
 unawaited_futures: 0.1.19
