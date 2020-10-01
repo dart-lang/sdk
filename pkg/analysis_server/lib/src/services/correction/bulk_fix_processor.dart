@@ -70,12 +70,13 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// A fix producer that produces changes to fix multiple diagnostics.
 class BulkFixProcessor {
   /// A map from the name of a lint rule to a list of generators used to create
-  /// the correction producer used to build a fix for that diagnostic. Most
-  /// entries will have only one generator.  In cases where there is more than
-  /// one, they will be applied in series and the expectation is that only one
-  /// will produce a change for a given fix. If more than one change is produced
-  /// the result will almost certainly be invalid code. The generators used for
-  /// non-lint diagnostics are in the [nonLintProducerMap].
+  /// the correction producer used to build a fix for that diagnostic. The
+  /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
+  ///
+  /// Most entries will have only one generator. In cases where there is more
+  /// than one, they will be applied in series and the expectation is that only
+  /// one will produce a change for a given fix. If more than one change is
+  /// produced the result will almost certainly be invalid code.
   static const Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.annotate_overrides: [
       AddOverride.newInstance,
@@ -241,9 +242,13 @@ class BulkFixProcessor {
     ],
   };
 
-  /// A map from error codes to a list of generators used to create multiple
+  /// A map from an error code to a list of generators used to create multiple
   /// correction producers used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintMultiProducerMap].
+  ///
+  /// The expectation is that only one of the correction producers will produce
+  /// a change for a given fix. If more than one change is produced the result
+  /// will almost certainly be invalid code.
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
@@ -304,14 +309,12 @@ class BulkFixProcessor {
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
       DataDriven.newInstance,
     ],
-    // TODO(brianwilkerson) Uncomment the entries below as we add tests for
-    //  them.
-    // HintCode.DEPRECATED_MEMBER_USE: [
-    //   DataDriven.newInstance,
-    // ],
-    // HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
-    //   DataDriven.newInstance,
-    // ],
+    HintCode.DEPRECATED_MEMBER_USE: [
+      DataDriven.newInstance,
+    ],
+    HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+      DataDriven.newInstance,
+    ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.newInstance,
     ],
@@ -322,16 +325,22 @@ class BulkFixProcessor {
   /// lint rules are in the [lintProducerMap].
   static const Map<ErrorCode, ProducerGenerator> nonLintProducerMap = {};
 
+  /// Information about the workspace containing the libraries in which changes
+  /// will be produced.
   final DartChangeWorkspace workspace;
 
   /// The change builder used to build the changes required to fix the
   /// diagnostics.
   ChangeBuilder builder;
 
+  /// Initialize a newly created processor to create fixes for diagnostics in
+  /// libraries in the [workspace].
   BulkFixProcessor(this.workspace) {
     builder = ChangeBuilder(workspace: workspace);
   }
 
+  /// Return a change builder that has been used to create fixes for the
+  /// diagnostics in the libraries at the given [libraryPaths].
   Future<ChangeBuilder> fixErrorsInLibraries(List<String> libraryPaths) async {
     for (var path in libraryPaths) {
       var session = workspace.getSession(path);
@@ -344,8 +353,10 @@ class BulkFixProcessor {
     return builder;
   }
 
-  Future<void> _fixErrorsInLibrary(ResolvedLibraryResult libraryResult) async {
-    for (var unitResult in libraryResult.units) {
+  /// Use the change [builder] to create fixes for the diagnostics in the
+  /// library associated with the analysis [result].
+  Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
+    for (var unitResult in result.units) {
       final fixContext = DartFixContextImpl(
         workspace,
         unitResult,
@@ -358,14 +369,17 @@ class BulkFixProcessor {
     }
   }
 
+  /// Use the change [builder] and the [fixContext] to create a fix for the
+  /// given [diagnostic] in the compilation unit associated with the analysis
+  /// [result].
   Future<void> _fixSingleError(DartFixContext fixContext,
-      ResolvedUnitResult unitResult, AnalysisError error) async {
+      ResolvedUnitResult result, AnalysisError diagnostic) async {
     var context = CorrectionProducerContext(
       dartFixContext: fixContext,
-      diagnostic: error,
-      resolvedResult: unitResult,
-      selectionOffset: error.offset,
-      selectionLength: error.length,
+      diagnostic: diagnostic,
+      resolvedResult: result,
+      selectionOffset: diagnostic.offset,
+      selectionLength: diagnostic.length,
       workspace: workspace,
     );
 
@@ -379,7 +393,7 @@ class BulkFixProcessor {
       await producer.compute(builder);
     }
 
-    var errorCode = error.errorCode;
+    var errorCode = diagnostic.errorCode;
     if (errorCode is LintCode) {
       var generators = lintProducerMap[errorCode.name];
       if (generators != null) {

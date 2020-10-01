@@ -33,7 +33,37 @@ void main() {
 
 @reflectiveTest
 class ExtendsNonClassTest extends _DataDrivenTest {
-  Future<void> test_rename() async {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+@deprecated
+class Old {}
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+class A extends Old {}
+class B extends Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+class A extends New {}
+class B extends New {}
+''');
+  }
+
+  Future<void> test_rename_removed() async {
     setPackageContent('''
 class New {}
 ''');
@@ -66,9 +96,10 @@ class B extends New {}
 class ExtraPositionalArgumentsCouldBeNamedTest extends _DataDrivenTest {
   @failingTest
   Future<void> test_replaceParameter() async {
-    // This fails because we grab the argument from the outer invocation before
-    // we modify it, but then we add the edits to modify it, which causes the
-    // wrong code to be put in the wrong places.
+    // This fails for two reasons. First, we grab the argument from the outer
+    // invocation before we modify it, which causes the unmodified version of
+    // the argument to be used for the added named parameter. Second, we produce
+    // overlapping edits.
     setPackageContent('''
 int f(int x, {int y = 0}) => x;
 ''');
@@ -148,7 +179,37 @@ void g() {
 
 @reflectiveTest
 class ImplementsNonClassTest extends _DataDrivenTest {
-  Future<void> test_rename() async {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+@deprecated
+class Old {}
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+class A implements Old {}
+class B implements Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+class A implements New {}
+class B implements New {}
+''');
+  }
+
+  Future<void> test_rename_removed() async {
     setPackageContent('''
 class New {}
 ''');
@@ -277,7 +338,37 @@ class B extends C {
 
 @reflectiveTest
 class MixinOfNonClassTest extends _DataDrivenTest {
-  Future<void> test_rename() async {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+@deprecated
+class Old {}
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+class A with Old {}
+class B with Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+class A with New {}
+class B with New {}
+''');
+  }
+
+  Future<void> test_rename_removed() async {
     setPackageContent('''
 class New {}
 ''');
@@ -308,7 +399,38 @@ class B with New {}
 
 @reflectiveTest
 class NewWithUndefinedConstructorDefaultTest extends _DataDrivenTest {
-  Future<void> test_rename() async {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  C([C c]);
+  C.new([C c]);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    constructor: ''
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+C c() => C(C());
+''');
+    await assertHasFix('''
+import '$importUri';
+C c() => C.new(C.new());
+''');
+  }
+
+  Future<void> test_rename_removed() async {
     setPackageContent('''
 class C {
   C.new([C c]);
@@ -340,7 +462,7 @@ C c() => C.new(C.new());
 
 @reflectiveTest
 class NotEnoughPositionalArgumentsTest extends _DataDrivenTest {
-  Future<void> test_removeParameter() async {
+  Future<void> test_addParameter() async {
     setPackageContent('''
 int f(int x, int y) => x + y;
 ''');
@@ -423,7 +545,35 @@ class E extends C {
 
 @reflectiveTest
 class UndefinedClassTest extends _DataDrivenTest {
-  Future<void> test_rename() async {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+@deprecated
+class Old {}
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+void f(Old a, Old b) {}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(New a, New b) {}
+''');
+  }
+
+  Future<void> test_rename_removed() async {
     setPackageContent('''
 class New {}
 ''');
@@ -452,7 +602,39 @@ void f(New a, New b) {}
 
 @reflectiveTest
 class UndefinedFunctionTest extends _DataDrivenTest {
-  Future<void> test_rename() async {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+@deprecated
+int old(int x) => x + 1;
+int new(int x) => x + 1;
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    function: 'old'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+void f() {
+  old(old(0));
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  new(new(0));
+}
+''');
+  }
+
+  Future<void> test_rename_removed() async {
     setPackageContent('''
 int new(int x) => x + 1;
 ''');
@@ -485,7 +667,42 @@ void f() {
 
 @reflectiveTest
 class UndefinedGetterTest extends _DataDrivenTest {
-  Future<void> test_rename() async {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get old => 0;
+  int get new => 0;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    getter: 'old'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+void f(C a, C b) {
+  a.old + b.old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(C a, C b) {
+  a.new + b.new;
+}
+''');
+  }
+
+  Future<void> test_rename_removed() async {
     setPackageContent('''
 class C {
   int get new => 0;
@@ -521,7 +738,39 @@ void f(C a, C b) {
 
 @reflectiveTest
 class UndefinedIdentifierTest extends _DataDrivenTest {
-  Future<void> test_rename_topLevelVariable() async {
+  Future<void> test_rename_topLevelVariable_deprecated() async {
+    setPackageContent('''
+@deprecated
+int old = 0;
+int new = 0;
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    function: 'old'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+void f() {
+  old + old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f() {
+  new + new;
+}
+''');
+  }
+
+  Future<void> test_rename_topLevelVariable_removed() async {
     setPackageContent('''
 int new = 0;
 ''');
@@ -554,7 +803,42 @@ void f() {
 
 @reflectiveTest
 class UndefinedMethodTest extends _DataDrivenTest {
-  Future<void> test_rename() async {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int old(int x) => x + 1;
+  int new(int x) => x + 1;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    method: 'old'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+void f(C a, C b) {
+  a.old(b.old(0));
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(C a, C b) {
+  a.new(b.new(0));
+}
+''');
+  }
+
+  Future<void> test_rename_removed() async {
     setPackageContent('''
 class C {
   int new(int x) => x + 1;
@@ -590,7 +874,42 @@ void f(C a, C b) {
 
 @reflectiveTest
 class UndefinedSetterTest extends _DataDrivenTest {
-  Future<void> test_rename() async {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  set new(int x) {}
+  set new(int x) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    setter: 'old'
+    inClass: 'C'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+void f(C a, C b) {
+  a.old = b.old = 1;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(C a, C b) {
+  a.new = b.new = 1;
+}
+''');
+  }
+
+  Future<void> test_rename_removed() async {
     setPackageContent('''
 class C {
   set new(int x) {}
