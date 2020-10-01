@@ -1,3 +1,11 @@
+# 0.1.120
+
+* new lint: `cast_nullable_to_non_nullable`
+* new lint: `null_check_on_nullable_type_parameter`
+* new lint: `tighten_type_of_initializing_formals`
+* update `public_member_apis` to check generic type aliases
+* (internal): update to new analyzer APIs
+
 # 0.1.119
 
 * fix `close_sinks` to handle `this`-prefixed property accesses
