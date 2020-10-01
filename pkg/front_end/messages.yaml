@@ -4232,8 +4232,8 @@ LateDefinitelyUnassignedError:
       late T t; t;
     }
 
-NonNullableLateDefinitelyAssignedError:
-  template: "Non-nullable late final variable '#name' definitely assigned."
+LateDefinitelyAssignedError:
+  template: "Late final variable '#name' definitely assigned."
   configuration: nnbd-strong
   script: |
     method() {

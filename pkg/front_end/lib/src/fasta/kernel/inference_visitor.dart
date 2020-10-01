@@ -5679,13 +5679,12 @@ class InferenceVisitor
           declaredOrInferredType is! InvalidType) {
         if ((variable.isLate && variable.isFinal) ||
             variable.isLateFinalWithoutInitializer) {
-          if (isDefinitelyAssigned &&
-              declaredOrInferredType.isPotentiallyNonNullable) {
+          if (isDefinitelyAssigned) {
             return new ExpressionInferenceResult(
                 resultType,
                 inferrer.helper.wrapInProblem(
                     resultExpression,
-                    templateNonNullableLateDefinitelyAssignedError
+                    templateLateDefinitelyAssignedError
                         .withArguments(node.variable.name),
                     node.fileOffset,
                     node.variable.name.length));
