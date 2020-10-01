@@ -63,3 +63,9 @@ static method _hasFailingTestAnnotation(mir::MethodMirror* method) → core::boo
   ;
 static method _hasAnnotationInstance(mir::DeclarationMirror* declaration, dynamic instance) → core::bool*
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///bug33099.dart:14:4 -> InstanceConstant(const _FailingTest{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///bug33099.dart:7:40 -> InstanceConstant(const _FailingTest{})
+Extra constant evaluation: tries: 2, successes: 2

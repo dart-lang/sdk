@@ -25,3 +25,8 @@ static const field core::int* forFactoryItself = 2;
 static const field core::int* anotherForParameter = 3;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///redirecting_factory_metadata.dart:13:4 -> IntConstant(2)
+Extra constant evaluation: tries: 5, successes: 1

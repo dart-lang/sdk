@@ -33,3 +33,9 @@ static method main() → dynamic {
   core::List<core::Null?>* l = <core::Null?>[null];
   let final core::List<core::Null?>* #t2 = l in let final core::int* #t3 = 0 in #t2.{core::List::[]}(#t3).{core::Object::==}(null) ?{core::String*} #t2.{core::List::[]=}(#t3, "fisk" as{TypeError} core::Null?) : null;
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///issue_000081.dart:22:5 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///issue_000081.dart:22:5 -> IntConstant(0)
+Extra constant evaluation: tries: 33, successes: 2

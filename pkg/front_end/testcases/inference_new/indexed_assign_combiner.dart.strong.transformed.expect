@@ -123,3 +123,19 @@ static method test3(self::G* g) → void {
   self::A* x = let final self::G* #t17 = g in let final core::int* #t18 = 0 in let final self::A* #t19 = #t17.{self::G::[]}(#t18) in let final void #t20 = #t17.{self::G::[]=}(#t18, #t19.{self::A::+}(1)) in #t19;
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:36:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:36:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:37:64 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:37:64 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:43:59 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:43:59 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:45:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:45:7 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:49:41 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:49:41 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:51:45 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:51:45 -> IntConstant(0)
+Extra constant evaluation: tries: 78, successes: 12

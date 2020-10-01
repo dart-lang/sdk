@@ -18,3 +18,11 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: NullCheck @ org-dartlang-testcase:///constant_null_check.dart:6:16 -> IntConstant(42)
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_null_check.dart:9:16 -> NullConstant(null)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_check.dart:16:23 -> InstanceConstant(const Class{Class.y: 42})
+Evaluated: StaticGet @ org-dartlang-testcase:///constant_null_check.dart:17:29 -> NullConstant(null)
+Extra constant evaluation: tries: 8, successes: 4

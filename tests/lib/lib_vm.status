@@ -77,6 +77,7 @@ mirrors/library_uri_package_test: RuntimeError
 
 [ $runtime == vm && $system == windows ]
 isolate/detect_nullsafety_1_test: Skip # Issue 43583
+isolate/detect_nullsafety_2_test: Skip # Issue 43583
 isolate/nnbd_spawn_autodetect_1_test: Skip # Issue 43583
 isolate/nnbd_spawn_autodetect_2_test: Skip # Issue 43583
 isolate/nnbd_spawnuri_autodetect_1_test: Skip # Issue 43583

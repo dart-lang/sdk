@@ -28,3 +28,12 @@ class E extends core::Object /*isEnum*/  {
 static const field dynamic a = null;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///metadata_enum.dart:7:2 -> NullConstant(null)
+Evaluated: ListLiteral @ org-dartlang-testcase:///metadata_enum.dart:8:6 -> ListConstant(const <E*>[const E{E.index: 0, E._name: "E.E1"}, const E{E.index: 1, E._name: "E.E2"}, const E{E.index: 2, E._name: "E.E3"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///metadata_enum.dart:8:10 -> InstanceConstant(const E{E.index: 0, E._name: "E.E1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///metadata_enum.dart:8:14 -> InstanceConstant(const E{E.index: 1, E._name: "E.E2"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///metadata_enum.dart:8:18 -> InstanceConstant(const E{E.index: 2, E._name: "E.E3"})
+Extra constant evaluation: tries: 9, successes: 5

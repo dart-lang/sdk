@@ -112,3 +112,7 @@ constants  {
   #C5 = <core::Object*>[#C4]
   #C6 = <core::Object*>[#C1]
 }
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_variable_uses.dart:10:11 -> TypeLiteralConstant(<invalid>)
+Extra constant evaluation: tries: 4, successes: 1

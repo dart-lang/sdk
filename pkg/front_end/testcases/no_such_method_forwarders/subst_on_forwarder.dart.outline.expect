@@ -54,3 +54,11 @@ class A extends self::_A&Object&M implements self::I<core::int*> {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///subst_on_forwarder.dart:10:5 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///subst_on_forwarder.dart:10:5 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///subst_on_forwarder.dart:10:5 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///subst_on_forwarder.dart:10:5 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: tries: 9, successes: 4

@@ -21,3 +21,11 @@ class A extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///same.dart:14:8 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///same.dart:14:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///same.dart:14:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///same.dart:14:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: tries: 8, successes: 4

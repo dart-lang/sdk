@@ -29,3 +29,21 @@ static method main() → dynamic
 constants  {
   #C1 = null
 }
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:661:13 -> SymbolConstant(#catchError)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:661:13 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:661:13 -> SymbolConstant(#test)
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:698:13 -> SymbolConstant(#whenComplete)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:698:13 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:698:13 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:725:13 -> SymbolConstant(#timeout)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:725:13 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:725:13 -> SymbolConstant(#onTimeout)
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:622:13 -> SymbolConstant(#then)
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:622:13 -> SymbolConstant(#onError)
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:709:13 -> SymbolConstant(#asStream)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:709:13 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:709:13 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:709:13 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: tries: 61, successes: 15

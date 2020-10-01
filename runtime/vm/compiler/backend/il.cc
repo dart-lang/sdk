@@ -3109,7 +3109,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     if (new_dst_type.IsTypeRef()) {
       new_dst_type = TypeRef::Cast(new_dst_type).type();
     }
-    new_dst_type = new_dst_type.Canonicalize();
+    new_dst_type = new_dst_type.Canonicalize(Thread::Current(), nullptr);
 
     // Successfully instantiated destination type: update the type attached
     // to this instruction and set type arguments to null because we no

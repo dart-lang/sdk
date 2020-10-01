@@ -82,6 +82,7 @@ b2i
 b2m
 b2n
 backping
+backstop
 badly
 bang
 bar
@@ -756,6 +757,7 @@ overlap
 overloader
 overlooked
 overshadowed
+oversight
 overwrite
 overwriting
 ownership
@@ -1036,6 +1038,7 @@ stdin
 stdio
 stdlib
 stdout
+sticky
 stmt
 str
 strategies

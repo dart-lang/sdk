@@ -81,3 +81,8 @@ Try correcting the operator to an existing operator, or defining a '>>' operator
 }
 static method main() → dynamic {}
 static abstract method PropertyState() → dynamic;
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///issue42997.dart:12:24 -> TypeLiteralConstant(Object*)
+Extra constant evaluation: tries: 2, successes: 1

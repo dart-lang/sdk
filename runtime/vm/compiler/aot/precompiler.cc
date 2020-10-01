@@ -2073,31 +2073,33 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 
       constants = cls.constants();
       retained_constants = GrowableObjectArray::New();
-      for (intptr_t j = 0; j < constants.Length(); j++) {
-        constant ^= constants.At(j);
-        bool retain = consts_to_retain_.HasKey(&constant);
-        if (retain) {
-          retained_constants.Add(constant);
+      if (!constants.IsNull()) {
+        for (intptr_t j = 0; j < constants.Length(); j++) {
+          constant ^= constants.At(j);
+          bool retain = consts_to_retain_.HasKey(&constant);
+          if (retain) {
+            retained_constants.Add(constant);
+          }
         }
       }
       intptr_t cid = cls.id();
       if (cid == kDoubleCid) {
         // Rehash.
-        cls.set_constants(Object::empty_array());
+        cls.set_constants(Object::null_array());
         for (intptr_t j = 0; j < retained_constants.Length(); j++) {
           constant ^= retained_constants.At(j);
           cls.InsertCanonicalDouble(Z, Double::Cast(constant));
         }
       } else if (cid == kMintCid) {
         // Rehash.
-        cls.set_constants(Object::empty_array());
+        cls.set_constants(Object::null_array());
         for (intptr_t j = 0; j < retained_constants.Length(); j++) {
           constant ^= retained_constants.At(j);
           cls.InsertCanonicalMint(Z, Mint::Cast(constant));
         }
       } else {
         // Rehash.
-        cls.set_constants(Object::empty_array());
+        cls.set_constants(Object::null_array());
         for (intptr_t j = 0; j < retained_constants.Length(); j++) {
           constant ^= retained_constants.At(j);
           cls.InsertCanonicalConstant(Z, constant);
@@ -2271,7 +2273,7 @@ void Precompiler::DropClasses() {
 
     ASSERT(!cls.is_allocated());
     constants = cls.constants();
-    ASSERT(constants.Length() == 0);
+    ASSERT(constants.IsNull() || (constants.Length() == 0));
 
     dropped_class_count_++;
     if (FLAG_trace_precompiler) {

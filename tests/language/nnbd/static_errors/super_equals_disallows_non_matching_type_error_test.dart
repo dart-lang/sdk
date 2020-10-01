@@ -24,7 +24,7 @@ class Base {
 class Derived extends Base {
   void test() {
     String string = 'foo';
-    String? stringQuestion = 'foo';
+    var stringQuestion = 'foo' as String?;
     super == string;
     //       ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE

@@ -276,7 +276,7 @@ class ClassSerializationCluster : public SerializationCluster {
     // mode.
     if (cls->ptr()->host_type_arguments_field_offset_in_words_ ==
             Class::kNoTypeArguments ||
-        cls->ptr()->constants_ == Object::empty_array().raw()) {
+        cls->ptr()->constants_ == Array::null()) {
       return false;
     }
     Zone* zone = Thread::Current()->zone();
@@ -3974,7 +3974,7 @@ class MintDeserializationCluster : public DeserializationCluster {
     if (is_canonical && (d->isolate() != Dart::vm_isolate())) {
       const Class& mint_cls = Class::Handle(
           d->zone(), Isolate::Current()->object_store()->mint_class());
-      mint_cls.set_constants(Object::empty_array());
+      mint_cls.set_constants(Object::null_array());
       Object& number = Object::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         number = refs.At(i);

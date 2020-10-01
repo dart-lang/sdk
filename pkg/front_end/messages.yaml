@@ -61,7 +61,12 @@
 # `#unicode` a Unicode short identifier (U+xxxx). We use this to represent code
 #  units or code points.
 #
-# `#name`, `#name2`, `#name3`, `#name4`: names (as strings).
+# `#name`, `#name2`, `#name3`, `#name4`: names (as strings). Note that asserts
+#    check if these are empty. If they can be empty use an available `OKEmpty`
+#    version (or add the missing needed one(s)) to avoid triggering an assert.
+#
+# `#nameOKEmpty`: name (as string). Will use an "(unnamed)" default message if
+#    the string is null or empty. Otherwise see the describtion above.
 #
 # `#names`: A list of names (strings).
 #
@@ -71,6 +76,13 @@
 #    Note: as a rule of thumb, avoid using the `#string` keys. In particular,
 #    do not use them for composing error messages, see [diagnostics.md](
 #    lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
+#    Note that asserts check if these are empty. If they can be empty use an
+#    available `OKEmpty` version (or add the missing needed one(s)) to avoid
+#    triggering an assert.
+#
+# `#stringOKEmpty`: string (that isn't a name). Will use an "(empty)" default
+#    message if the string is null or empty.
+#    Otherwise see the describtion above.
 #
 # `#type`, #type2`, `#type3`: Kernel types.
 #
@@ -117,7 +129,7 @@ ConstEvalInvalidType:
   template: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
 
 ConstEvalInvalidBinaryOperandType:
-  template: "Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'."
+  template: "Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'."
 
 ConstEvalInvalidEqualsOperandType:
   template: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
@@ -136,11 +148,11 @@ ConstEvalNonNull:
   template: "Constant expression must be non-null."
 
 ConstEvalInvalidMethodInvocation:
-  template: "The method '#string' can't be invoked on '#constant' in a constant expression."
+  template: "The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
 
 ConstEvalInvalidPropertyGet:
-  template: "The property '#string' can't be accessed on '#constant' in a constant expression."
+  template: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalInvalidStringInterpolationOperand:
@@ -150,7 +162,7 @@ ConstEvalInvalidStringInterpolationOperand:
   analyzerCode: CONST_EVAL_TYPE_BOOL_NUM_STRING
 
 ConstEvalInvalidStaticInvocation:
-  template: "The invocation of '#name' is not allowed in a constant expression."
+  template: "The invocation of '#nameOKEmpty' is not allowed in a constant expression."
   analyzerCode: CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 
 ConstEvalInvalidSymbolName:
@@ -162,16 +174,16 @@ ConstEvalFailedAssertion:
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalFailedAssertionWithMessage:
-  template: "This assertion failed with message: #string"
+  template: "This assertion failed with message: #stringOKEmpty"
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalNonConstantVariableGet:
-  template: "The variable '#string' is not a constant, only constant expressions are allowed."
+  template: "The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed."
   analyzerCode: NON_CONSTANT_VALUE_IN_INITIALIZER
 
 ConstEvalDeferredLibrary:
   template: >
-    '#name' can't be used in a constant expression because it's marked as
+    '#nameOKEmpty' can't be used in a constant expression because it's marked as
     'deferred' which means it isn't available until loaded.
   tip: >
     Try moving the constant from the deferred library, or removing 'deferred'
@@ -4220,8 +4232,8 @@ LateDefinitelyUnassignedError:
       late T t; t;
     }
 
-NonNullableLateDefinitelyAssignedError:
-  template: "Non-nullable late final variable '#name' definitely assigned."
+LateDefinitelyAssignedError:
+  template: "Late final variable '#name' definitely assigned."
   configuration: nnbd-strong
   script: |
     method() {

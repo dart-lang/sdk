@@ -1024,6 +1024,7 @@ void testDefinitelyAssignedReadForms() {
     x++;
 //  ^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
@@ -1032,6 +1033,7 @@ void testDefinitelyAssignedReadForms() {
     ++x;
 //    ^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
@@ -1046,6 +1048,7 @@ void testDefinitelyAssignedReadForms() {
     x += 3;
 //  ^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {
@@ -1054,6 +1057,7 @@ void testDefinitelyAssignedReadForms() {
     x ??= 3;
 //  ^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+// [cfe] Final variable 'x' might already be assigned at this point.
   }
 
   {

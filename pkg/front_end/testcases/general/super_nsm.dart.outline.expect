@@ -44,3 +44,11 @@ class D extends self::C {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///super_nsm.dart:6:3 -> SymbolConstant(#interfaceMethod)
+Evaluated: ListLiteral @ org-dartlang-testcase:///super_nsm.dart:6:3 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///super_nsm.dart:6:3 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///super_nsm.dart:6:3 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: tries: 9, successes: 4

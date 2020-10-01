@@ -1194,33 +1194,32 @@ const MessageCode messageConstEvalContext =
 const Template<
     Message Function(
         String
-            name)> templateConstEvalDeferredLibrary = const Template<
-        Message Function(String name)>(
+            nameOKEmpty)> templateConstEvalDeferredLibrary = const Template<
+        Message Function(String nameOKEmpty)>(
     messageTemplate:
-        r"""'#name' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+        r"""'#nameOKEmpty' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
     tipTemplate:
         r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.
 """,
     withArguments: _withArgumentsConstEvalDeferredLibrary);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConstEvalDeferredLibrary =
-    const Code<Message Function(String name)>(
+const Code<Message Function(String nameOKEmpty)> codeConstEvalDeferredLibrary =
+    const Code<Message Function(String nameOKEmpty)>(
         "ConstEvalDeferredLibrary", templateConstEvalDeferredLibrary,
         analyzerCodes: <String>[
       "NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY"
     ]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDeferredLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsConstEvalDeferredLibrary(String nameOKEmpty) {
+  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalDeferredLibrary,
       message:
-          """'${name}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+          """'${nameOKEmpty}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
       tip: """Try moving the constant from the deferred library, or removing 'deferred' from the import.
 """,
-      arguments: {'name': name});
+      arguments: {'nameOKEmpty': nameOKEmpty});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1243,53 +1242,53 @@ const MessageCode messageConstEvalFailedAssertion = const MessageCode(
     message: r"""This assertion failed.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
+const Template<Message Function(String stringOKEmpty)>
     templateConstEvalFailedAssertionWithMessage =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""This assertion failed with message: #string""",
+    const Template<Message Function(String stringOKEmpty)>(
+        messageTemplate:
+            r"""This assertion failed with message: #stringOKEmpty""",
         withArguments: _withArgumentsConstEvalFailedAssertionWithMessage);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)>
+const Code<Message Function(String stringOKEmpty)>
     codeConstEvalFailedAssertionWithMessage =
-    const Code<Message Function(String string)>(
+    const Code<Message Function(String stringOKEmpty)>(
         "ConstEvalFailedAssertionWithMessage",
         templateConstEvalFailedAssertionWithMessage,
         analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalFailedAssertionWithMessage(String string) {
-  if (string.isEmpty) throw 'No string provided';
+Message _withArgumentsConstEvalFailedAssertionWithMessage(
+    String stringOKEmpty) {
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   return new Message(codeConstEvalFailedAssertionWithMessage,
-      message: """This assertion failed with message: ${string}""",
-      arguments: {'string': string});
+      message: """This assertion failed with message: ${stringOKEmpty}""",
+      arguments: {'stringOKEmpty': stringOKEmpty});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateConstEvalInvalidStaticInvocation = const Template<
-        Message Function(String name)>(
-    messageTemplate:
-        r"""The invocation of '#name' is not allowed in a constant expression.""",
-    withArguments: _withArgumentsConstEvalInvalidStaticInvocation);
+const Template<Message Function(String nameOKEmpty)>
+    templateConstEvalInvalidStaticInvocation =
+    const Template<Message Function(String nameOKEmpty)>(
+        messageTemplate:
+            r"""The invocation of '#nameOKEmpty' is not allowed in a constant expression.""",
+        withArguments: _withArgumentsConstEvalInvalidStaticInvocation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConstEvalInvalidStaticInvocation =
-    const Code<Message Function(String name)>(
+const Code<Message Function(String nameOKEmpty)>
+    codeConstEvalInvalidStaticInvocation =
+    const Code<Message Function(String nameOKEmpty)>(
         "ConstEvalInvalidStaticInvocation",
         templateConstEvalInvalidStaticInvocation,
         analyzerCodes: <String>["CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidStaticInvocation(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsConstEvalInvalidStaticInvocation(String nameOKEmpty) {
+  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalInvalidStaticInvocation,
       message:
-          """The invocation of '${name}' is not allowed in a constant expression.""",
-      arguments: {'name': name});
+          """The invocation of '${nameOKEmpty}' is not allowed in a constant expression.""",
+      arguments: {'nameOKEmpty': nameOKEmpty});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1328,27 +1327,27 @@ Message _withArgumentsConstEvalNegativeShift(
 const Template<
     Message Function(
         String
-            string)> templateConstEvalNonConstantVariableGet = const Template<
-        Message Function(String string)>(
+            nameOKEmpty)> templateConstEvalNonConstantVariableGet = const Template<
+        Message Function(String nameOKEmpty)>(
     messageTemplate:
-        r"""The variable '#string' is not a constant, only constant expressions are allowed.""",
+        r"""The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed.""",
     withArguments: _withArgumentsConstEvalNonConstantVariableGet);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)>
+const Code<Message Function(String nameOKEmpty)>
     codeConstEvalNonConstantVariableGet =
-    const Code<Message Function(String string)>(
+    const Code<Message Function(String nameOKEmpty)>(
         "ConstEvalNonConstantVariableGet",
         templateConstEvalNonConstantVariableGet,
         analyzerCodes: <String>["NON_CONSTANT_VALUE_IN_INITIALIZER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
-  if (string.isEmpty) throw 'No string provided';
+Message _withArgumentsConstEvalNonConstantVariableGet(String nameOKEmpty) {
+  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalNonConstantVariableGet,
       message:
-          """The variable '${string}' is not a constant, only constant expressions are allowed.""",
-      arguments: {'string': string});
+          """The variable '${nameOKEmpty}' is not a constant, only constant expressions are allowed.""",
+      arguments: {'nameOKEmpty': nameOKEmpty});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5821,6 +5820,30 @@ Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateLateDefinitelyAssignedError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Late final variable '#name' definitely assigned.""",
+        withArguments: _withArgumentsLateDefinitelyAssignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeLateDefinitelyAssignedError =
+    const Code<Message Function(String name)>(
+  "LateDefinitelyAssignedError",
+  templateLateDefinitelyAssignedError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLateDefinitelyAssignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeLateDefinitelyAssignedError,
+      message: """Late final variable '${name}' definitely assigned.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -6620,32 +6643,6 @@ const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     "NonInstanceTypeVariableUse",
     analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
     message: r"""Can only use type variables in instance methods.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateNonNullableLateDefinitelyAssignedError =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Non-nullable late final variable '#name' definitely assigned.""",
-        withArguments: _withArgumentsNonNullableLateDefinitelyAssignedError);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeNonNullableLateDefinitelyAssignedError =
-    const Code<Message Function(String name)>(
-  "NonNullableLateDefinitelyAssignedError",
-  templateNonNullableLateDefinitelyAssignedError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableLateDefinitelyAssignedError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeNonNullableLateDefinitelyAssignedError,
-      message:
-          """Non-nullable late final variable '${name}' definitely assigned.""",
-      arguments: {'name': name});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

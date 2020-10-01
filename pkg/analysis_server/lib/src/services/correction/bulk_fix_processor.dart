@@ -249,68 +249,72 @@ class BulkFixProcessor {
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       DataDriven.newInstance,
     ],
-    // TODO(brianwilkerson) Uncomment the entries below as we add tests for
-    //  them.
+    // TODO(brianwilkerson) The following fix fails if an invocation of the
+    //  function is the argument that needs to be removed.
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
     //   DataDriven.newInstance,
     // ],
+    // TODO(brianwilkerson) The following fix fails if an invocation of the
+    //  function is the argument that needs to be updated.
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
     //   DataDriven.newInstance,
     // ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       DataDriven.newInstance,
     ],
-    // CompileTimeErrorCode.INVALID_OVERRIDE: [
-    //   DataDriven.newInstance,
-    // ],
+    CompileTimeErrorCode.INVALID_OVERRIDE: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       DataDriven.newInstance,
     ],
-    // CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.UNDEFINED_CLASS: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.UNDEFINED_FUNCTION: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.UNDEFINED_GETTER: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.UNDEFINED_METHOD: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.UNDEFINED_SETTER: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
-    //   DataDriven.newInstance,
-    // ],
-    // CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
-    //   DataDriven.newInstance,
-    // ],
+    CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_CLASS: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_GETTER: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_METHOD: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_SETTER: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
+      DataDriven.newInstance,
+    ],
+    // TODO(brianwilkerson) Uncomment the entries below as we add tests for
+    //  them.
     // HintCode.DEPRECATED_MEMBER_USE: [
     //   DataDriven.newInstance,
     // ],
     // HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
     //   DataDriven.newInstance,
     // ],
-    // HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
-    //   DataDriven.newInstance,
-    // ],
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+      DataDriven.newInstance,
+    ],
   };
 
   /// A map from an error code to a generator used to create the correction

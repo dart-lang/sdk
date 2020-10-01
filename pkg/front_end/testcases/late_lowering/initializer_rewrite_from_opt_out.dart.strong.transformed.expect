@@ -101,3 +101,10 @@ static method computeInitialValue() → core::int
   return let final<BottomType> #t22 = invalid-expression "pkg/front_end/testcases/late_lowering/initializer_rewrite_from_opt_out_lib.dart:7:30: Error: A value of type 'Null' can't be returned from a function with return type 'int'.
 int computeInitialValue() => null;
                              ^" in let core::Null? #t23 = null in #t23.==(null) ?{core::int} #t23 as{TypeError,ForNonNullableByDefault} core::int : #t23{core::int};
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///initializer_rewrite_from_opt_out_lib.dart:7:30 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///initializer_rewrite_from_opt_out_lib.dart:7:30 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///initializer_rewrite_from_opt_out_lib.dart:7:30 -> NullConstant(null)
+Extra constant evaluation: tries: 185, successes: 3

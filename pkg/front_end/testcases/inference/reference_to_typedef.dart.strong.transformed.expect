@@ -5,3 +5,8 @@ import "dart:core" as core;
 typedef F = () →* void;
 static final field core::Type* x = () →* void;
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///reference_to_typedef.dart:9:11 -> TypeLiteralConstant(void Function()*)
+Extra constant evaluation: tries: 1, successes: 1

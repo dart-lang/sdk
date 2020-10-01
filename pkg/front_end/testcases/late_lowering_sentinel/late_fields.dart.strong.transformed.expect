@@ -46,3 +46,9 @@ static get nullableFinalTopLevelFieldWithInitializer() → core::int?
 static get nonNullableFinalTopLevelFieldWithInitializer() → core::int
   return let final core::int? #t15 = self::_#nonNullableFinalTopLevelFieldWithInitializer in #t15.==(null) ?{core::int} let final core::int #t16 = 0 in self::_#nonNullableFinalTopLevelFieldWithInitializer.==(null) ?{core::int} self::_#nonNullableFinalTopLevelFieldWithInitializer = #t16 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableFinalTopLevelFieldWithInitializer' has been assigned during initialization.") : #t15{core::int};
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///late_fields.dart:11:17 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_fields.dart:12:16 -> IntConstant(0)
+Extra constant evaluation: tries: 98, successes: 2

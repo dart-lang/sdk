@@ -365,3 +365,8 @@ Try correcting the operator to an existing operator, or defining a 'unary-' oper
   print(foo ~ 2);
             ^");
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///operator_method_not_found.dart:31:18 -> IntConstant(2)
+Extra constant evaluation: tries: 74, successes: 1

@@ -272,25 +272,42 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndented('${interface.name}({')
     ..write(allFields.map((field) {
-      final annotation =
-          !field.allowsNull && !field.allowsUndefined ? '@required' : '';
-      return '$annotation this.${field.name}';
+      final isLiteral = field.type is LiteralType;
+      final isRequired =
+          !isLiteral && !field.allowsNull && !field.allowsUndefined;
+      final annotation = isRequired ? '@required' : '';
+      final valueCode =
+          isLiteral ? ' = ${(field.type as LiteralType).literal}' : '';
+      return '$annotation this.${field.name}$valueCode';
     }).join(', '))
     ..write('})');
-  final fieldsWithValidation =
-      allFields.where((f) => !f.allowsNull && !f.allowsUndefined).toList();
+  final fieldsWithValidation = allFields
+      .where(
+          (f) => (!f.allowsNull && !f.allowsUndefined) || f.type is LiteralType)
+      .toList();
   if (fieldsWithValidation.isNotEmpty) {
     buffer
       ..writeIndentedln(' {')
       ..indent();
     for (var field in fieldsWithValidation) {
-      buffer
-        ..writeIndentedln('if (${field.name} == null) {')
-        ..indent()
-        ..writeIndentedln(
-            "throw '${field.name} is required but was not provided';")
-        ..outdent()
-        ..writeIndentedln('}');
+      final type = field.type;
+      if (type is LiteralType) {
+        buffer
+          ..writeIndentedln('if (${field.name} != ${type.literal}) {')
+          ..indent()
+          ..writeIndentedln(
+              "throw '${field.name} may only be the literal ${type.literal.replaceAll("'", "\\'")}';")
+          ..outdent()
+          ..writeIndentedln('}');
+      } else if (!field.allowsNull && !field.allowsUndefined) {
+        buffer
+          ..writeIndentedln('if (${field.name} == null) {')
+          ..indent()
+          ..writeIndentedln(
+              "throw '${field.name} is required but was not provided';")
+          ..outdent()
+          ..writeIndentedln('}');
+      }
     }
     buffer
       ..outdent()

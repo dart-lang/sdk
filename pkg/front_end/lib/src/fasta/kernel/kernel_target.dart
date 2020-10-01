@@ -1190,6 +1190,9 @@ class KernelTarget extends TargetImplementation {
         logger: (String msg) => ticker.logMs(msg));
   }
 
+  constants.EvaluationMode getConstantEvaluationModeForTesting() =>
+      _getConstantEvaluationMode();
+
   constants.EvaluationMode _getConstantEvaluationMode() {
     constants.EvaluationMode evaluationMode;
     // If nnbd is not enabled we will use weak evaluation mode. This is needed

@@ -53,3 +53,8 @@ static method fisk() → dynamic async
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///later.dart:46:18 -> IntConstant(42)
+Extra constant evaluation: tries: 17, successes: 1

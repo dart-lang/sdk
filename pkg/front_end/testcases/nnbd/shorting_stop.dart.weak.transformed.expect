@@ -111,3 +111,11 @@ static method throwsInStrong(() → void f) → void {
     f.call();
   }
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///shorting_stop.dart:26:13 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///shorting_stop.dart:26:13 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///shorting_stop.dart:27:11 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///shorting_stop.dart:27:11 -> IntConstant(0)
+Extra constant evaluation: tries: 165, successes: 4

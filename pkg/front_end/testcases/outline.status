@@ -14,6 +14,7 @@ general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
 general/abstract_members: TypeCheckError
 general/bug30695: TypeCheckError
+general/constants/const_collections: TypeCheckError
 general/covariant_field: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError

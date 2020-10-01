@@ -50,3 +50,11 @@ class Bar extends core::Object {
 }
 static method baz(pri::Bar* bar) → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> SymbolConstant(#_f)
+Evaluated: ListLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: tries: 8, successes: 4

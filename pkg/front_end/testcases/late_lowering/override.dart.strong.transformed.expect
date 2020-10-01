@@ -119,3 +119,8 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   }
   throw "${message}: ${value}";
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///override.dart:16:18 -> IntConstant(0)
+Extra constant evaluation: tries: 232, successes: 1

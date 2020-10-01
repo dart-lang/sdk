@@ -6,7 +6,9 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
+import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 
 class SortMembersCommandHandler extends SimpleEditCommandHandler {
@@ -16,7 +18,8 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Sort Members';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic> arguments) async {
+  Future<ErrorOr<void>> handle(List<dynamic> arguments,
+      ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.InvalidCommandArguments,
@@ -33,6 +36,11 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
 
     var driver = server.getAnalysisDriver(path);
     final result = await driver?.parseFile(path);
+
+    if (cancellationToken.isCancellationRequested) {
+      return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+    }
+
     if (result == null) {
       return ErrorOr.error(ResponseError(
         code: ServerErrorCodes.FileNotAnalyzed,

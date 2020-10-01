@@ -1151,8 +1151,10 @@ class FrontendCompiler implements CompilerInterface {
   /// The resulting class name is written as a String to
   /// `_kernelBinaryFilename`.widget_cache, or else the file is deleted
   /// if it exists.
+  ///
+  /// Should not run if a full component is requested.
   void _updateWidgetCache(Component partialComponent) {
-    if (_widgetCache == null) {
+    if (_widgetCache == null || _generator.fullComponent) {
       return;
     }
     final String singleModifiedClassName =

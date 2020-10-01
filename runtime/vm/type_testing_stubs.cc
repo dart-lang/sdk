@@ -644,7 +644,7 @@ const TypeArguments& TypeArgumentInstantiator::InstantiateTypeArguments(
             AbstractType::Handle(TypeRef::Cast(type_).type()).IsCanonical()));
   }
   *instantiated_type_arguments =
-      instantiated_type_arguments->Canonicalize(NULL);
+      instantiated_type_arguments->Canonicalize(Thread::Current(), nullptr);
   return *instantiated_type_arguments;
 }
 
@@ -687,7 +687,7 @@ AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     *to_type_arguments = from.arguments();
     to->set_arguments(InstantiateTypeArguments(klass_, *to_type_arguments));
     to->SetIsFinalized();
-    *to ^= to->Canonicalize(NULL);
+    *to ^= to->Canonicalize(Thread::Current(), nullptr);
 
     return to->raw();
   }

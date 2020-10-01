@@ -27,7 +27,7 @@ second() {
 }
 
 main() {
-  int? one = 1;
+  var one = 1 as int?;
   Expect.equals(1, one ?? bad());
   Expect.equals(2, first() ?? second());
 }

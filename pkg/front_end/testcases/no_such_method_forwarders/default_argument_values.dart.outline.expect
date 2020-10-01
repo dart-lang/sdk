@@ -29,3 +29,14 @@ class B extends self::A {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///default_argument_values.dart:21:10 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///default_argument_values.dart:21:10 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///default_argument_values.dart:21:10 -> ListConstant(const <dynamic>[])
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///default_argument_values.dart:21:10 -> SymbolConstant(#bar)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///default_argument_values.dart:22:7 -> SymbolConstant(#hest)
+Evaluated: ListLiteral @ org-dartlang-testcase:///default_argument_values.dart:22:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///default_argument_values.dart:22:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: tries: 22, successes: 7

@@ -53,3 +53,8 @@ class C extends core::Object {
 static const field core::int* foo = const core::int::fromEnvironment("fisk");
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///nested_implicit_const_with_env_var.dart:5:23 -> IntConstant(0)
+Extra constant evaluation: tries: 3, successes: 1

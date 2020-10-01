@@ -30,3 +30,7 @@ static method main() → dynamic {}
 constants  {
   #C1 = tearoff self::h
 }
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///dynamic_invocation_of_getter.dart:14:7 -> DoubleConstant(1.5)
+Extra constant evaluation: tries: 10, successes: 1

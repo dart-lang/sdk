@@ -185,3 +185,8 @@ static method main() → dynamic {}
 constants  {
   #C1 = <dynamic>[]
 }
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_from_complex_expressions_if_outer_most_value_is_precise.dart:27:25 -> IntConstant(5)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_from_complex_expressions_if_outer_most_value_is_precise.dart:30:32 -> IntConstant(-3)
+Extra constant evaluation: tries: 74, successes: 2

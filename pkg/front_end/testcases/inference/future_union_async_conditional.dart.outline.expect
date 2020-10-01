@@ -40,3 +40,20 @@ static method g3(core::bool* x) → asy::Future<core::int*>* async
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> SymbolConstant(#catchError)
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> SymbolConstant(#test)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> SymbolConstant(#whenComplete)
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> SymbolConstant(#asStream)
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> SymbolConstant(#timeout)
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_union_async_conditional.dart:10:7 -> SymbolConstant(#onTimeout)
+Extra constant evaluation: tries: 46, successes: 13

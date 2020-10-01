@@ -340,12 +340,7 @@ NameIndex TranslationHelper::EnclosingName(NameIndex name) {
 InstancePtr TranslationHelper::Canonicalize(const Instance& instance) {
   if (instance.IsNull()) return instance.raw();
 
-  const char* error_str = NULL;
-  InstancePtr result = instance.CheckAndCanonicalize(thread(), &error_str);
-  if (result == Object::null()) {
-    ReportError("Invalid const object %s", error_str);
-  }
-  return result;
+  return instance.Canonicalize(thread());
 }
 
 const String& TranslationHelper::DartString(const char* content,
@@ -3263,7 +3258,7 @@ const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {
     }
 
     if (finalize_) {
-      type_arguments = type_arguments.Canonicalize();
+      type_arguments = type_arguments.Canonicalize(Thread::Current(), nullptr);
     }
   }
   return type_arguments;

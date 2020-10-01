@@ -1525,12 +1525,11 @@ class FlowModel<Variable, Type> {
     return _identicalOrNew(this, other, newReachable, newVariableInfo);
   }
 
-  /// Updates the state to indicate whether the control flow path is
-  /// [reachable].
-  FlowModel<Variable, Type> setReachable(bool reachable) {
-    if (this.reachable == reachable) return this;
+  /// Updates the state to indicate that the control flow path is unreachable.
+  FlowModel<Variable, Type> setUnreachable() {
+    if (!reachable) return this;
 
-    return new FlowModel<Variable, Type>.withInfo(reachable, variableInfo);
+    return new FlowModel<Variable, Type>.withInfo(false, variableInfo);
   }
 
   @override
@@ -2547,7 +2546,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void booleanLiteral(Expression expression, bool value) {
-    FlowModel<Variable, Type> unreachable = _current.setReachable(false);
+    FlowModel<Variable, Type> unreachable = _current.setUnreachable();
     _storeExpressionInfo(
         expression,
         value
@@ -2676,7 +2675,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   void for_bodyBegin(Statement node, Expression condition) {
     ExpressionInfo<Variable, Type> conditionInfo = condition == null
-        ? new ExpressionInfo(_current, _current, _current.setReachable(false))
+        ? new ExpressionInfo(_current, _current, _current.setUnreachable())
         : _expressionEnd(condition);
     _WhileContext<Variable, Type> context =
         new _WhileContext<Variable, Type>(conditionInfo);
@@ -2755,11 +2754,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void functionExpression_end() {
     --_functionNestingLevel;
     assert(_functionNestingLevel >= 0);
-    FlowModel<Variable, Type> afterBody = _current;
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
     _current = context._previous;
-    _current = _current.joinUnassigned(afterBody);
   }
 
   @override
@@ -2768,7 +2765,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     if (context != null) {
       context._breakModel = _join(context._breakModel, _current);
     }
-    _current = _current.setReachable(false);
+    _current = _current.setUnreachable();
   }
 
   @override
@@ -2777,12 +2774,12 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     if (context != null) {
       context._continueModel = _join(context._continueModel, _current);
     }
-    _current = _current.setReachable(false);
+    _current = _current.setUnreachable();
   }
 
   @override
   void handleExit() {
-    _current = _current.setReachable(false);
+    _current = _current.setUnreachable();
   }
 
   @override

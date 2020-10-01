@@ -3371,7 +3371,7 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   // do not appear in the type arguments to a any Pointer classes in an FFI
   // signature.
   ASSERT(args.IsNull() || args.IsInstantiated());
-  args = args.Canonicalize();
+  args = args.Canonicalize(thread_, nullptr);
 
   Fragment code;
   code += Constant(args);

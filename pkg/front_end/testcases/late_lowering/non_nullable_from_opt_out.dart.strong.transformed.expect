@@ -215,3 +215,28 @@ static method throws(() → void f) → dynamic {
   }
   throw "Missing exception";
 }
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:10:19 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:10:19 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:10:19 -> NullConstant(null)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:14:21 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:14:21 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:14:21 -> NullConstant(null)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:16:28 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:16:28 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:16:28 -> NullConstant(null)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:17:33 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:17:33 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:17:33 -> NullConstant(null)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:19:23 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:19:23 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:19:23 -> NullConstant(null)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:33:46 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:33:46 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:33:46 -> NullConstant(null)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:36:16 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:36:16 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:36:16 -> NullConstant(null)
+Extra constant evaluation: tries: 291, successes: 21

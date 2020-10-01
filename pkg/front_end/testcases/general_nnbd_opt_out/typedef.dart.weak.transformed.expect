@@ -14,3 +14,9 @@ static method main() → dynamic {
 constants  {
   #C1 = tearoff self::main
 }
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///typedef.dart:12:14 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///typedef.dart:13:14 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///typedef.dart:14:14 -> BoolConstant(false)
+Extra constant evaluation: tries: 6, successes: 3

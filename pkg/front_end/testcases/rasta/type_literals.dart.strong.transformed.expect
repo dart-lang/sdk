@@ -530,3 +530,19 @@ static method use(dynamic x) → dynamic {
 static method main() → dynamic {
   new self::C::•<dynamic>().{self::C::test}();
 }
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:11:5 -> TypeLiteralConstant(C<dynamic>*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:12:9 -> TypeLiteralConstant(C<dynamic>*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:13:5 -> TypeLiteralConstant(dynamic)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:14:9 -> TypeLiteralConstant(dynamic)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:17:5 -> TypeLiteralConstant(void Function()*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literals.dart:18:9 -> TypeLiteralConstant(void Function()*)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///type_literals.dart:74:7 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///type_literals.dart:75:11 -> TypeLiteralConstant(C<dynamic>*)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///type_literals.dart:76:13 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///type_literals.dart:77:17 -> TypeLiteralConstant(dynamic)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///type_literals.dart:80:10 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///type_literals.dart:81:14 -> TypeLiteralConstant(void Function()*)
+Extra constant evaluation: tries: 72, successes: 12

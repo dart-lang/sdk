@@ -33,3 +33,11 @@ import "dart:core" as core;
 static const field core::int* b1 = 2;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_consts_transitively_2_a.dart:10:12 -> IntConstant(2)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_consts_transitively_2_a.dart:11:12 -> IntConstant(2)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_consts_transitively_2.dart:10:12 -> IntConstant(2)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_consts_transitively_2.dart:11:12 -> IntConstant(2)
+Extra constant evaluation: tries: 4, successes: 4

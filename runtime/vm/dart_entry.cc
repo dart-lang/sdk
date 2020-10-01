@@ -526,11 +526,7 @@ ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
 
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
-  const char* error_str = NULL;
-  descriptor ^= descriptor.CheckAndCanonicalize(thread, &error_str);
-  if (error_str != NULL) {
-    FATAL1("Failed to canonicalize: %s", error_str);
-  }
+  descriptor ^= descriptor.Canonicalize(thread);
   ASSERT(!descriptor.IsNull());
   return descriptor.raw();
 }
@@ -584,11 +580,7 @@ ArrayPtr ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
   if (canonicalize) {
-    const char* error_str = NULL;
-    descriptor ^= descriptor.CheckAndCanonicalize(thread, &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
+    descriptor ^= descriptor.Canonicalize(thread);
   }
   ASSERT(!descriptor.IsNull());
   return descriptor.raw();

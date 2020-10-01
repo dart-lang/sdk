@@ -1014,6 +1014,32 @@ main() {
       });
     });
 
+    test(
+        'functionExpression_end does not propagate "definitely unassigned" data',
+        () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int');
+      var functionNode = _Node();
+      h.assignedVariables((vars) {
+        vars.function(functionNode, () {});
+        vars.write(x);
+      });
+      h.run((flow) {
+        flow.declare(x, false);
+        expect(flow.isUnassigned(x), true);
+        flow.functionExpression_begin(functionNode);
+        // The function expression could be called at any time, so x might be
+        // assigned now.
+        expect(flow.isUnassigned(x), false);
+        flow.functionExpression_end();
+        // But now that we are back outside the function expression, we once
+        // again know that x is unassigned.
+        expect(flow.isUnassigned(x), true);
+        flow.write(x, _Type('int'));
+        expect(flow.isUnassigned(x), false);
+      });
+    });
+
     test('ifNullExpression allows ensure guarding', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
@@ -2189,24 +2215,22 @@ main() {
     var intQVar = _Var('x', _Type('int?'));
     var objectQVar = _Var('x', _Type('Object?'));
     var nullVar = _Var('x', _Type('Null'));
-    group('setReachable', () {
+    group('setUnreachable', () {
       var unreachable = FlowModel<_Var, _Type>(false);
       var reachable = FlowModel<_Var, _Type>(true);
       test('unchanged', () {
-        expect(unreachable.setReachable(false), same(unreachable));
-        expect(reachable.setReachable(true), same(reachable));
+        expect(unreachable.setUnreachable(), same(unreachable));
       });
 
       test('changed', () {
-        void _check(FlowModel<_Var, _Type> initial, bool newReachability) {
-          var s = initial.setReachable(newReachability);
+        void _check(FlowModel<_Var, _Type> initial) {
+          var s = initial.setUnreachable();
           expect(s, isNot(same(initial)));
-          expect(s.reachable, newReachability);
+          expect(s.reachable, false);
           expect(s.variableInfo, same(initial.variableInfo));
         }
 
-        _check(unreachable, true);
-        _check(reachable, false);
+        _check(reachable);
       });
     });
 
@@ -2927,7 +2951,7 @@ main() {
       test('reachability', () {
         var h = _Harness();
         var reachable = FlowModel<_Var, _Type>(true);
-        var unreachable = reachable.setReachable(false);
+        var unreachable = reachable.setUnreachable();
         expect(reachable.restrict(h, reachable, Set()), same(reachable));
         expect(reachable.restrict(h, unreachable, Set()), same(unreachable));
         expect(unreachable.restrict(h, unreachable, Set()), same(unreachable));

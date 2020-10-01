@@ -52,3 +52,9 @@ class Baz extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations.dart:13:2 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations.dart:16:2 -> InstanceConstant(const Foo{})
+Extra constant evaluation: tries: 2, successes: 2

@@ -479,7 +479,7 @@ void StreamingFlowGraphBuilder::ReadDefaultFunctionTypeArguments(
     }
     helper.Finish();
   }
-  default_types = default_types.Canonicalize();
+  default_types = default_types.Canonicalize(thread(), nullptr);
   parsed_function()->SetDefaultFunctionTypeArguments(default_types);
 }
 
@@ -3417,7 +3417,7 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
       TypeArguments& canonicalized_type_arguments =
           TypeArguments::ZoneHandle(Z, type.arguments());
       canonicalized_type_arguments =
-          canonicalized_type_arguments.Canonicalize();
+          canonicalized_type_arguments.Canonicalize(thread(), nullptr);
       instructions += Constant(canonicalized_type_arguments);
     } else {
       const TypeArguments& type_arguments =

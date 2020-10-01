@@ -4897,9 +4897,9 @@ class CreateFile implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(CreateFile.canParse, CreateFile.fromJson);
 
-  CreateFile({@required this.kind, @required this.uri, this.options}) {
-    if (kind == null) {
-      throw 'kind is required but was not provided';
+  CreateFile({this.kind = 'create', @required this.uri, this.options}) {
+    if (kind != 'create') {
+      throw 'kind may only be the literal \'create\'';
     }
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -5922,9 +5922,9 @@ class DeleteFile implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(DeleteFile.canParse, DeleteFile.fromJson);
 
-  DeleteFile({@required this.kind, @required this.uri, this.options}) {
-    if (kind == null) {
-      throw 'kind is required but was not provided';
+  DeleteFile({this.kind = 'delete', @required this.uri, this.options}) {
+    if (kind != 'delete') {
+      throw 'kind may only be the literal \'delete\'';
     }
     if (uri == null) {
       throw 'uri is required but was not provided';
@@ -16615,12 +16615,12 @@ class RenameFile implements ToJsonable {
       LspJsonHandler(RenameFile.canParse, RenameFile.fromJson);
 
   RenameFile(
-      {@required this.kind,
+      {this.kind = 'rename',
       @required this.oldUri,
       @required this.newUri,
       this.options}) {
-    if (kind == null) {
-      throw 'kind is required but was not provided';
+    if (kind != 'rename') {
+      throw 'kind may only be the literal \'rename\'';
     }
     if (oldUri == null) {
       throw 'oldUri is required but was not provided';
@@ -23768,13 +23768,13 @@ class WorkDoneProgressBegin implements ToJsonable {
       WorkDoneProgressBegin.canParse, WorkDoneProgressBegin.fromJson);
 
   WorkDoneProgressBegin(
-      {@required this.kind,
+      {this.kind = 'begin',
       @required this.title,
       this.cancellable,
       this.message,
       this.percentage}) {
-    if (kind == null) {
-      throw 'kind is required but was not provided';
+    if (kind != 'begin') {
+      throw 'kind may only be the literal \'begin\'';
     }
     if (title == null) {
       throw 'title is required but was not provided';
@@ -24088,9 +24088,9 @@ class WorkDoneProgressEnd implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       WorkDoneProgressEnd.canParse, WorkDoneProgressEnd.fromJson);
 
-  WorkDoneProgressEnd({@required this.kind, this.message}) {
-    if (kind == null) {
-      throw 'kind is required but was not provided';
+  WorkDoneProgressEnd({this.kind = 'end', this.message}) {
+    if (kind != 'end') {
+      throw 'kind may only be the literal \'end\'';
     }
   }
   static WorkDoneProgressEnd fromJson(Map<String, dynamic> json) {
@@ -24433,9 +24433,9 @@ class WorkDoneProgressReport implements ToJsonable {
       WorkDoneProgressReport.canParse, WorkDoneProgressReport.fromJson);
 
   WorkDoneProgressReport(
-      {@required this.kind, this.cancellable, this.message, this.percentage}) {
-    if (kind == null) {
-      throw 'kind is required but was not provided';
+      {this.kind = 'report', this.cancellable, this.message, this.percentage}) {
+    if (kind != 'report') {
+      throw 'kind may only be the literal \'report\'';
     }
   }
   static WorkDoneProgressReport fromJson(Map<String, dynamic> json) {

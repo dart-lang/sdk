@@ -70,8 +70,8 @@ main() {
   //                           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'bad' isn't defined for the class 'C'.
-  { B? b = new C(1); Expect.equals(1, b?.v); }
-  //                                     ^
+  { var b = new C(1) as B?; Expect.equals(1, b?.v); }
+  //                                            ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'v' isn't defined for the class 'B'.
 

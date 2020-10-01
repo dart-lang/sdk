@@ -7348,17 +7348,10 @@ class Instance : public Object {
     return (clazz()->ptr()->host_instance_size_in_words_ * kWordSize);
   }
 
-  // Returns Instance::null() if instance cannot be canonicalized.
-  // Any non-canonical number of string will be canonicalized here.
-  // An instance cannot be canonicalized if it still contains non-canonical
-  // instances in its fields.
-  // Returns error in error_str, pass NULL if an error cannot occur.
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const;
-
-  // Returns true if all fields are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const;
+  InstancePtr Canonicalize(Thread* thread) const;
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
 
   InstancePtr CopyShallowToOldSpace(Thread* thread) const;
 
@@ -7729,13 +7722,13 @@ class TypeArguments : public Instance {
   // Return true if this vector contains a recursive type argument.
   bool IsRecursive() const;
 
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const {
-    return Canonicalize();
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
+    return Canonicalize(thread, nullptr);
   }
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
-  TypeArgumentsPtr Canonicalize(TrailPtr trail = nullptr) const;
+  TypeArgumentsPtr Canonicalize(Thread* thread, TrailPtr trail = nullptr) const;
 
   // Add the class name and URI of each type argument of this vector to the uris
   // list and mark ambiguous triplets to be printed.
@@ -7922,13 +7915,13 @@ class AbstractType : public Instance {
       Heap::Space space,
       TrailPtr trail = nullptr) const;
 
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const {
-    return Canonicalize();
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
+    return Canonicalize(thread, nullptr);
   }
 
   // Return the canonical version of this type.
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 
 #if defined(DEBUG)
   // Check if abstract type is canonical.
@@ -8185,7 +8178,7 @@ class Type : public AbstractType {
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -8342,7 +8335,7 @@ class TypeRef : public AbstractType {
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if typeref is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -8434,7 +8427,7 @@ class TypeParameter : public AbstractType {
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type parameter is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -8489,8 +8482,8 @@ class Number : public Instance {
   StringPtr ToString(Heap::Space space) const;
 
   // Numbers are canonicalized differently from other instances/strings.
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const;
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
 
 #if defined(DEBUG)
   // Check if number is canonical.
@@ -8695,6 +8688,7 @@ class Mint : public Integer {
   static MintPtr New(int64_t value, Heap::Space space = Heap::kNew);
 
   static MintPtr NewCanonical(int64_t value);
+  static MintPtr NewCanonicalLocked(Thread* thread, int64_t value);
 
  private:
   void set_value(int64_t value) const;
@@ -8721,6 +8715,7 @@ class Double : public Number {
 
   // Returns a canonical double object allocated in the old gen space.
   static DoublePtr NewCanonical(double d);
+  static DoublePtr NewCanonicalLocked(Thread* thread, double d);
 
   // Returns a canonical double object (allocated in the old gen space) or
   // Double::null() if str points to a string that does not convert to a
@@ -8879,8 +8874,8 @@ class String : public Instance {
   bool EndsWith(const String& other) const;
 
   // Strings are canonicalized using the symbol table.
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const;
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
 
 #if defined(DEBUG)
   // Check if string is canonical.
@@ -9714,9 +9709,7 @@ class Array : public Instance {
                                  (len * kBytesPerElement));
   }
 
-  // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
 
   // Make the array immutable to Dart code by switching the class pointer
   // to ImmutableArray.
@@ -9891,8 +9884,7 @@ class GrowableObjectArray : public Instance {
   }
 
   // We don't expect a growable object array to be canonicalized.
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const {
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
     UNREACHABLE();
     return Instance::null();
   }
@@ -10693,10 +10685,8 @@ class Closure : public Instance {
   }
 
   // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const {
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const {
     // None of the fields of a closure are instances.
-    return true;
   }
   virtual uint32_t CanonicalizeHash() const {
     return Function::Handle(function()).Hash();

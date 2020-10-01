@@ -5679,13 +5679,12 @@ class InferenceVisitor
           declaredOrInferredType is! InvalidType) {
         if ((variable.isLate && variable.isFinal) ||
             variable.isLateFinalWithoutInitializer) {
-          if (isDefinitelyAssigned &&
-              declaredOrInferredType.isPotentiallyNonNullable) {
+          if (isDefinitelyAssigned) {
             return new ExpressionInferenceResult(
                 resultType,
                 inferrer.helper.wrapInProblem(
                     resultExpression,
-                    templateNonNullableLateDefinitelyAssignedError
+                    templateLateDefinitelyAssignedError
                         .withArguments(node.variable.name),
                     node.fileOffset,
                     node.variable.name.length));
@@ -5741,8 +5740,17 @@ class InferenceVisitor
     }
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
-      if (node.isImplicitlyTyped && initializerType is TypeParameterType) {
-        inferrer.flowAnalysis.promote(node, initializerType);
+      if (node.isImplicitlyTyped) {
+        if (initializerType is TypeParameterType) {
+          inferrer.flowAnalysis.promote(node, initializerType);
+        }
+      } else if (!node.isFinal) {
+        // TODO(paulberry): `initializerType` is sometimes `null` during top
+        // level inference.  Figure out how to prevent this.
+        if (initializerType != null) {
+          inferrer.flowAnalysis
+              .write(node, initializerType, viaInitializer: true);
+        }
       }
       Expression initializer = inferrer.ensureAssignableResult(
           node.type, initializerResult,

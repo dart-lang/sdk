@@ -7,3 +7,11 @@ static const field core::List<core::int?> b = const <core::int?>[];
 static const field core::bool c = core::identical(self::a, self::b);
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///identical.dart:5:16 -> ListConstant(const <int>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///identical.dart:6:17 -> ListConstant(const <int?>[])
+Evaluated: StaticGet @ org-dartlang-testcase:///identical.dart:7:21 -> ListConstant(const <int>[])
+Evaluated: StaticGet @ org-dartlang-testcase:///identical.dart:7:24 -> ListConstant(const <int?>[])
+Extra constant evaluation: tries: 5, successes: 4

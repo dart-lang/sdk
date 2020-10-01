@@ -1751,7 +1751,7 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
           Type::Handle(Z, Type::New(cls, type_arguments,
                                     TokenPosition::kNoSource, nullability));
       type.SetIsFinalized();
-      return type.Canonicalize();
+      return type.Canonicalize(thread_, nullptr);
     }
     case kRecursiveGenericType: {
       const intptr_t id = reader_.ReadUInt();
@@ -1789,7 +1789,7 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
         // as not all TypeRef objects are filled up at this point.
         return type.raw();
       }
-      return type.Canonicalize();
+      return type.Canonicalize(thread_, nullptr);
     }
     case kRecursiveTypeRef: {
       const intptr_t id = reader_.ReadUInt();
@@ -1937,7 +1937,7 @@ TypeArgumentsPtr BytecodeReaderHelper::ReadTypeArguments() {
     ASSERT(pending_recursive_types_ != nullptr);
     return type_arguments.raw();
   }
-  return type_arguments.Canonicalize();
+  return type_arguments.Canonicalize(thread_, nullptr);
 }
 
 void BytecodeReaderHelper::ReadAttributes(const Object& key) {

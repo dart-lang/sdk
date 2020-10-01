@@ -457,6 +457,7 @@ LanguageVersionMismatchInPatch/analyzerCode: Fail
 LanguageVersionMismatchInPatch/example: Fail
 LanguageVersionTooHigh/analyzerCode: Fail
 LanguageVersionTooHigh/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LateDefinitelyAssignedError/analyzerCode: Fail
 LateDefinitelyUnassignedError/analyzerCode: Fail
 LibraryDirectiveNotFirst/part_wrapped_script1: Fail # Defining library name in the (now) part.
 LibraryDirectiveNotFirst/part_wrapped_script2: Fail
@@ -516,7 +517,6 @@ NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonNullableInNullAware/analyzerCode: Fail
 NonNullableInNullAware/example: Fail
-NonNullableLateDefinitelyAssignedError/analyzerCode: Fail
 NonNullableNotAssignedError/analyzerCode: Fail
 NonNullableNotAssignedWarning/analyzerCode: Fail
 NonNullableNotAssignedWarning/example: Fail

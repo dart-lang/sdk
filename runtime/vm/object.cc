@@ -550,6 +550,7 @@ void Object::InitNullAndBool(Isolate* isolate) {
     null_ = static_cast<InstancePtr>(address + kHeapObjectTag);
     // The call below is using 'null_' to initialize itself.
     InitializeObject(address, kNullCid, Instance::InstanceSize());
+    null_->ptr()->SetCanonical();
   }
 
   // Allocate and initialize the bool instances.
@@ -1740,7 +1741,7 @@ ErrorPtr Object::Init(Isolate* isolate,
         Type::New(Class::Handle(zone, cls.raw()), TypeArguments::Handle(zone),
                   TokenPosition::kNoSource, Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     object_store->set_array_type(type);
     type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
     object_store->set_legacy_array_type(type);
@@ -2195,7 +2196,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = Type::New(cls, Object::null_type_arguments(),
                      TokenPosition::kNoSource, Nullability::kNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     object_store->set_null_type(type);
     ASSERT(type.IsNullable());
 
@@ -2207,7 +2208,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = Type::New(cls, Object::null_type_arguments(),
                      TokenPosition::kNoSource, Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     object_store->set_never_type(type);
 
     // Create and cache commonly used type arguments <int>, <double>,
@@ -2215,87 +2216,87 @@ ErrorPtr Object::Init(Isolate* isolate,
     type_args = TypeArguments::New(1);
     type = object_store->int_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_int(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->legacy_int_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_int(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->non_nullable_int_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_int(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->double_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_double(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->legacy_double_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_double(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->non_nullable_double_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_double(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_string(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->legacy_string_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_string(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->non_nullable_string_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_string(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, Object::dynamic_type());
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_string_dynamic(type_args);
     type_args = TypeArguments::New(2);
     type = object_store->legacy_string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, Object::dynamic_type());
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_string_dynamic(type_args);
     type_args = TypeArguments::New(2);
     type = object_store->non_nullable_string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, Object::dynamic_type());
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_string_dynamic(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_string_string(type_args);
     type_args = TypeArguments::New(2);
     type = object_store->legacy_string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_string_legacy_string(type_args);
     type_args = TypeArguments::New(2);
     type = object_store->non_nullable_string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_string_non_nullable_string(
         type_args);
 
@@ -2900,7 +2901,7 @@ void Class::InitEmptyFields() {
     return;
   }
   StorePointer(&raw_ptr()->interfaces_, Object::empty_array().raw());
-  StorePointer(&raw_ptr()->constants_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->constants_, Object::null_array().raw());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->fields_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->invocation_dispatcher_cache_,
@@ -4992,7 +4993,6 @@ ArrayPtr Class::constants() const {
 }
 
 void Class::set_constants(const Array& value) const {
-  ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->constants_, value.raw());
 }
 
@@ -5654,7 +5654,7 @@ typedef UnorderedHashSet<CanonicalNumberTraits<Mint, CanonicalMintKey> >
 // Returns an instance of Double or Double::null().
 DoublePtr Class::LookupCanonicalDouble(Zone* zone, double value) const {
   ASSERT(this->raw() == Isolate::Current()->object_store()->double_class());
-  if (this->constants() == Object::empty_array().raw()) return Double::null();
+  if (this->constants() == Array::null()) return Double::null();
 
   Double& canonical_value = Double::Handle(zone);
   CanonicalDoubleSet constants(zone, this->constants());
@@ -5666,7 +5666,7 @@ DoublePtr Class::LookupCanonicalDouble(Zone* zone, double value) const {
 // Returns an instance of Mint or Mint::null().
 MintPtr Class::LookupCanonicalMint(Zone* zone, int64_t value) const {
   ASSERT(this->raw() == Isolate::Current()->object_store()->mint_class());
-  if (this->constants() == Object::empty_array().raw()) return Mint::null();
+  if (this->constants() == Array::null()) return Mint::null();
 
   Mint& canonical_value = Mint::Handle(zone);
   CanonicalMintSet constants(zone, this->constants());
@@ -5727,7 +5727,7 @@ InstancePtr Class::LookupCanonicalInstance(Zone* zone,
   ASSERT(this->raw() == value.clazz());
   ASSERT(is_finalized() || is_prefinalized());
   Instance& canonical_value = Instance::Handle(zone);
-  if (this->constants() != Object::empty_array().raw()) {
+  if (this->constants() != Array::null()) {
     CanonicalInstancesSet constants(zone, this->constants());
     canonical_value ^= constants.GetOrNull(CanonicalInstanceKey(value));
     this->set_constants(constants.Release());
@@ -5739,7 +5739,7 @@ InstancePtr Class::InsertCanonicalConstant(Zone* zone,
                                            const Instance& constant) const {
   ASSERT(this->raw() == constant.clazz());
   Instance& canonical_value = Instance::Handle(zone);
-  if (this->constants() == Object::empty_array().raw()) {
+  if (this->constants() == Array::null()) {
     CanonicalInstancesSet constants(
         HashTables::New<CanonicalInstancesSet>(128, Heap::kOld));
     canonical_value ^= constants.InsertNewOrGet(CanonicalInstanceKey(constant));
@@ -5754,7 +5754,7 @@ InstancePtr Class::InsertCanonicalConstant(Zone* zone,
 }
 
 void Class::InsertCanonicalDouble(Zone* zone, const Double& constant) const {
-  if (this->constants() == Object::empty_array().raw()) {
+  if (this->constants() == Array::null()) {
     this->set_constants(Array::Handle(
         zone, HashTables::New<CanonicalDoubleSet>(128, Heap::kOld)));
   }
@@ -5764,7 +5764,7 @@ void Class::InsertCanonicalDouble(Zone* zone, const Double& constant) const {
 }
 
 void Class::InsertCanonicalMint(Zone* zone, const Mint& constant) const {
-  if (this->constants() == Object::empty_array().raw()) {
+  if (this->constants() == Array::null()) {
     this->set_constants(Array::Handle(
         zone, HashTables::New<CanonicalMintSet>(128, Heap::kOld)));
   }
@@ -5782,9 +5782,9 @@ void Class::RehashConstants(Zone* zone) const {
   }
 
   const Array& old_constants = Array::Handle(zone, constants());
-  if (old_constants.Length() == 0) return;
+  if (old_constants.IsNull()) return;
 
-  set_constants(Object::empty_array());
+  set_constants(Object::null_array());
 
   CanonicalInstancesSet set(zone, old_constants.raw());
   Instance& constant = Instance::Handle(zone);
@@ -5915,7 +5915,7 @@ TypeArgumentsPtr TypeArguments::Prepend(Zone* zone,
     type = IsNull() ? Type::DynamicType() : TypeAt(i - other_length);
     result.SetTypeAt(i, type);
   }
-  return result.Canonicalize();
+  return result.Canonicalize(Thread::Current(), nullptr);
 }
 
 TypeArgumentsPtr TypeArguments::ConcatenateTypeParameters(
@@ -6397,7 +6397,7 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
   result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
                            kAllFree, Heap::kOld);
   // Canonicalize type arguments.
-  result = result.Canonicalize();
+  result = result.Canonicalize(thread, nullptr);
   // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
   // indirectly, so the prior_instantiations array cannot have grown.
   ASSERT(prior_instantiations.raw() == instantiations());
@@ -6476,7 +6476,8 @@ void TypeArguments::SetLength(intptr_t value) const {
   StoreSmi(&raw_ptr()->length_, Smi::New(value));
 }
 
-TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
+TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
+                                             TrailPtr trail) const {
   if (IsNull() || IsCanonical()) {
     ASSERT(IsOld());
     return this->raw();
@@ -6485,7 +6486,6 @@ TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
   if (IsRaw(0, num_types)) {
     return TypeArguments::null();
   }
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
@@ -6502,7 +6502,7 @@ TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
     AbstractType& type_arg = AbstractType::Handle(zone);
     for (intptr_t i = 0; i < num_types; i++) {
       type_arg = TypeAt(i);
-      type_arg = type_arg.Canonicalize(trail);
+      type_arg = type_arg.Canonicalize(thread, trail);
       if (IsCanonical()) {
         // Canonicalizing this type_arg canonicalized this type.
         ASSERT(IsRecursive());
@@ -18340,42 +18340,26 @@ class CheckForPointers : public ObjectPointerVisitor {
 };
 #endif  // DEBUG
 
-bool Instance::CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const {
-  ASSERT(error_str != NULL);
-  ASSERT(*error_str == NULL);
+void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
   const intptr_t class_id = GetClassId();
   if (class_id >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
     Zone* zone = thread->zone();
-    Object& obj = Object::Handle(zone);
+    Instance& obj = Instance::Handle(zone);
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
         thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            GetClassId());
+            class_id);
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kWordSize) {
       if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
         continue;
       }
-      obj = *this->FieldAddrAtOffset(offset);
-      if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
-        if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, error_str);
-          if (*error_str != NULL) {
-            return false;
-          }
-          ASSERT(!obj.IsNull());
-          this->SetFieldAtOffset(offset, obj);
-        } else {
-          char* chars = OS::SCreate(zone, "field: %s, owner: %s\n",
-                                    obj.ToCString(), ToCString());
-          *error_str = chars;
-          return false;
-        }
-      }
+      obj ^= *this->FieldAddrAtOffset(offset);
+      obj = obj.CanonicalizeLocked(thread);
+      this->SetFieldAtOffset(offset, obj);
     }
   } else {
 #if defined(DEBUG)
@@ -18385,45 +18369,40 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
     ASSERT(!has_pointers.has_pointers());
 #endif  // DEBUG
   }
-  return true;
 }
 
 InstancePtr Instance::CopyShallowToOldSpace(Thread* thread) const {
   return Instance::RawCast(Object::Clone(*this, Heap::kOld));
 }
 
-InstancePtr Instance::CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const {
-  ASSERT(error_str != NULL);
-  ASSERT(*error_str == NULL);
-  ASSERT(!IsNull());
+InstancePtr Instance::Canonicalize(Thread* thread) const {
+  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  return CanonicalizeLocked(thread);
+}
+
+InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
   if (this->IsCanonical()) {
     return this->raw();
   }
-  if (!CheckAndCanonicalizeFields(thread, error_str)) {
-    return Instance::null();
-  }
+  ASSERT(!IsNull());
+  CanonicalizeFieldsLocked(thread);
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  {
-    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    result = cls.LookupCanonicalInstance(zone, *this);
-    if (!result.IsNull()) {
-      return result.raw();
-    }
-    if (IsNew()) {
-      ASSERT((isolate == Dart::vm_isolate()) || !InVMIsolateHeap());
-      // Create a canonical object in old space.
-      result ^= Object::Clone(*this, Heap::kOld);
-    } else {
-      result = this->raw();
-    }
-    ASSERT(result.IsOld());
-    result.SetCanonical();
-    return cls.InsertCanonicalConstant(zone, result);
+  Instance& result =
+      Instance::Handle(zone, cls.LookupCanonicalInstance(zone, *this));
+  if (!result.IsNull()) {
+    return result.raw();
   }
+  if (IsNew()) {
+    ASSERT((thread->isolate() == Dart::vm_isolate()) || !InVMIsolateHeap());
+    // Create a canonical object in old space.
+    result ^= Object::Clone(*this, Heap::kOld);
+  } else {
+    result = this->raw();
+  }
+  ASSERT(result.IsOld());
+  result.SetCanonical();
+  return cls.InsertCanonicalConstant(zone, result);
 }
 
 #if defined(DEBUG)
@@ -18497,7 +18476,9 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
   if (IsNull()) {
     return Type::NullType();
   }
-  const Class& cls = Class::Handle(clazz());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, clazz());
   if (!cls.is_finalized()) {
     // Various predefined classes can be instantiated by the VM or
     // Dart_NewString/Integer/TypedData/... before the class is finalized.
@@ -18505,29 +18486,28 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
     cls.EnsureDeclarationLoaded();
   }
   if (cls.IsClosureClass()) {
-    Function& signature =
-        Function::Handle(Closure::Cast(*this).GetInstantiatedSignature(
-            Thread::Current()->zone()));
-    Type& type = Type::Handle(signature.SignatureType());
+    Function& signature = Function::Handle(
+        zone, Closure::Cast(*this).GetInstantiatedSignature(zone));
+    Type& type = Type::Handle(zone, signature.SignatureType());
     if (!type.IsFinalized()) {
       type.SetIsFinalized();
     }
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     return type.raw();
   }
-  Type& type = Type::Handle();
+  Type& type = Type::Handle(zone);
   if (!cls.IsGeneric()) {
     type = cls.DeclarationType();
   }
   if (type.IsNull()) {
-    TypeArguments& type_arguments = TypeArguments::Handle();
+    TypeArguments& type_arguments = TypeArguments::Handle(zone);
     if (cls.NumTypeArguments() > 0) {
       type_arguments = GetTypeArguments();
     }
     type = Type::New(cls, type_arguments, TokenPosition::kNoSource,
                      Nullability::kNonNullable, space);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
   }
   return type.raw();
 }
@@ -19155,7 +19135,8 @@ AbstractTypePtr AbstractType::InstantiateFrom(
   return NULL;
 }
 
-AbstractTypePtr AbstractType::Canonicalize(TrailPtr trail) const {
+AbstractTypePtr AbstractType::Canonicalize(Thread* thread,
+                                           TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -19808,7 +19789,7 @@ TypePtr Type::NewNonParameterizedType(const Class& type_class) {
                      Object::null_type_arguments(), TokenPosition::kNoSource,
                      Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(Thread::Current(), nullptr);
     type_class.set_declaration_type(type);
   }
   ASSERT(type.IsFinalized());
@@ -19862,7 +19843,7 @@ TypePtr Type::ToNullability(Nullability value, Heap::Space space) const {
   if (IsCanonical()) {
     // Object::Clone does not clone canonical bit.
     ASSERT(!type.IsCanonical());
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(Thread::Current(), nullptr);
   }
   return type.raw();
 }
@@ -20193,13 +20174,12 @@ bool Type::IsDeclarationTypeOf(const Class& cls) const {
   return nullability() == Nullability::kNonNullable;
 }
 
-AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
+AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
   ASSERT(IsFinalized());
   if (IsCanonical()) {
     ASSERT(TypeArguments::Handle(arguments()).IsOld());
     return this->raw();
   }
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
@@ -20226,7 +20206,7 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
              (isolate == Dart::vm_isolate()));
       // Canonicalize the type arguments of the supertype, if any.
       TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-      type_args = type_args.Canonicalize(trail);
+      type_args = type_args.Canonicalize(thread, trail);
       if (IsCanonical()) {
         // Canonicalizing type_args canonicalized this type.
         ASSERT(IsRecursive());
@@ -20292,7 +20272,7 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
         SetHash(0);  // Flush cached hash value.
       }
     }
-    type_args = type_args.Canonicalize(trail);
+    type_args = type_args.Canonicalize(thread, trail);
     if (IsCanonical()) {
       // Canonicalizing type_args canonicalized this type as a side effect.
       ASSERT(IsRecursive());
@@ -20619,7 +20599,7 @@ void TypeRef::set_type(const AbstractType& value) const {
 // Consider the type Derived, where class Derived extends Base<Derived>.
 // The first type argument of its flattened type argument vector is Derived,
 // represented by a TypeRef pointing to itself.
-AbstractTypePtr TypeRef::Canonicalize(TrailPtr trail) const {
+AbstractTypePtr TypeRef::Canonicalize(Thread* thread, TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
     return raw();
   }
@@ -20627,7 +20607,7 @@ AbstractTypePtr TypeRef::Canonicalize(TrailPtr trail) const {
   // referenced recursive type.
   AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsNull());
-  ref_type = ref_type.Canonicalize(trail);
+  ref_type = ref_type.Canonicalize(thread, trail);
   set_type(ref_type);
   return raw();
 }
@@ -20735,7 +20715,7 @@ TypeParameterPtr TypeParameter::ToNullability(Nullability value,
     // Object::Clone does not clone canonical bit.
     ASSERT(!type_parameter.IsCanonical());
     if (IsFinalized()) {
-      type_parameter ^= type_parameter.Canonicalize();
+      type_parameter ^= type_parameter.Canonicalize(Thread::Current(), nullptr);
     }
   }
   return type_parameter.raw();
@@ -20955,12 +20935,12 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
   return result.NormalizeFutureOrType(space);
 }
 
-AbstractTypePtr TypeParameter::Canonicalize(TrailPtr trail) const {
+AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
+                                            TrailPtr trail) const {
   ASSERT(IsFinalized());
   if (IsCanonical()) {
     return this->raw();
   }
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
@@ -21159,16 +21139,15 @@ const char* TypeParameter::ToCString() const {
   return printer.buffer();
 }
 
-InstancePtr Number::CheckAndCanonicalize(Thread* thread,
-                                         const char** error_str) const {
+InstancePtr Number::CanonicalizeLocked(Thread* thread) const {
   intptr_t cid = GetClassId();
   switch (cid) {
     case kSmiCid:
       return static_cast<SmiPtr>(raw_value());
     case kMintCid:
-      return Mint::NewCanonical(Mint::Cast(*this).value());
+      return Mint::NewCanonicalLocked(thread, Mint::Cast(*this).value());
     case kDoubleCid:
-      return Double::NewCanonical(Double::Cast(*this).value());
+      return Double::NewCanonicalLocked(thread, Double::Cast(*this).value());
     default:
       UNREACHABLE();
   }
@@ -21541,33 +21520,28 @@ MintPtr Mint::New(int64_t val, Heap::Space space) {
 }
 
 MintPtr Mint::NewCanonical(int64_t value) {
+  Thread* thread = Thread::Current();
+  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  return NewCanonicalLocked(thread, value);
+}
+
+MintPtr Mint::NewCanonicalLocked(Thread* thread, int64_t value) {
   // Do not allocate a Mint if Smi would do.
   ASSERT(!Smi::IsValid(value));
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, isolate->object_store()->mint_class());
-  Mint& canonical_value = Mint::Handle(zone);
-  canonical_value = cls.LookupCanonicalMint(zone, value);
+  Mint& canonical_value =
+      Mint::Handle(zone, cls.LookupCanonicalMint(zone, value));
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
-  {
-    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    // Retry lookup.
-    {
-      canonical_value = cls.LookupCanonicalMint(zone, value);
-      if (!canonical_value.IsNull()) {
-        return canonical_value.raw();
-      }
-    }
-    canonical_value = Mint::New(value, Heap::kOld);
-    canonical_value.SetCanonical();
-    // The value needs to be added to the constants list. Grow the list if
-    // it is full.
-    cls.InsertCanonicalMint(zone, canonical_value);
-    return canonical_value.raw();
-  }
+  canonical_value = Mint::New(value, Heap::kOld);
+  canonical_value.SetCanonical();
+  // The value needs to be added to the constants list. Grow the list if
+  // it is full.
+  cls.InsertCanonicalMint(zone, canonical_value);
+  return canonical_value.raw();
 }
 
 bool Mint::Equals(const Instance& other) const {
@@ -21674,32 +21648,27 @@ DoublePtr Double::New(const String& str, Heap::Space space) {
 
 DoublePtr Double::NewCanonical(double value) {
   Thread* thread = Thread::Current();
+  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  return NewCanonicalLocked(thread, value);
+}
+
+DoublePtr Double::NewCanonicalLocked(Thread* thread, double value) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  const Class& cls = Class::Handle(isolate->object_store()->double_class());
+  const Class& cls =
+      Class::Handle(zone, isolate->object_store()->double_class());
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
-  Double& canonical_value = Double::Handle(zone);
-
-  canonical_value = cls.LookupCanonicalDouble(zone, value);
+  Double& canonical_value =
+      Double::Handle(zone, cls.LookupCanonicalDouble(zone, value));
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
-  {
-    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    // Retry lookup.
-    {
-      canonical_value = cls.LookupCanonicalDouble(zone, value);
-      if (!canonical_value.IsNull()) {
-        return canonical_value.raw();
-      }
-    }
-    canonical_value = Double::New(value, Heap::kOld);
-    canonical_value.SetCanonical();
-    // The value needs to be added to the constants list.
-    cls.InsertCanonicalDouble(zone, canonical_value);
-    return canonical_value.raw();
-  }
+  canonical_value = Double::New(value, Heap::kOld);
+  canonical_value.SetCanonical();
+  // The value needs to be added to the constants list.
+  cls.InsertCanonicalDouble(zone, canonical_value);
+  return canonical_value.raw();
 }
 
 DoublePtr Double::NewCanonical(const String& str) {
@@ -21998,8 +21967,7 @@ bool String::EndsWith(const String& other) const {
   return true;
 }
 
-InstancePtr String::CheckAndCanonicalize(Thread* thread,
-                                         const char** error_str) const {
+InstancePtr String::CanonicalizeLocked(Thread* thread) const {
   if (IsCanonical()) {
     return this->raw();
   }
@@ -23273,7 +23241,7 @@ ArrayPtr Array::New(intptr_t len,
   if (!element_type.IsDynamicType()) {
     TypeArguments& type_args = TypeArguments::Handle(TypeArguments::New(1));
     type_args.SetTypeAt(0, element_type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(Thread::Current(), nullptr);
     result.SetTypeArguments(type_args);
   }
   return result.raw();
@@ -23434,36 +23402,17 @@ ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,
   return array.raw();
 }
 
-bool Array::CheckAndCanonicalizeFields(Thread* thread,
-                                       const char** error_str) const {
-  ASSERT(error_str != NULL);
-  ASSERT(*error_str == NULL);
+void Array::CanonicalizeFieldsLocked(Thread* thread) const {
   intptr_t len = Length();
   if (len > 0) {
     Zone* zone = thread->zone();
-    Object& obj = Object::Handle(zone);
-    // Iterate over all elements, canonicalize numbers and strings, expect all
-    // other instances to be canonical otherwise report error (return false).
+    Instance& obj = Instance::Handle(zone);
     for (intptr_t i = 0; i < len; i++) {
-      obj = At(i);
-      if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
-        if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, error_str);
-          if (*error_str != NULL) {
-            return false;
-          }
-          ASSERT(!obj.IsNull());
-          this->SetAt(i, obj);
-        } else {
-          char* chars = OS::SCreate(zone, "element at index %" Pd ": %s\n", i,
-                                    obj.ToCString());
-          *error_str = chars;
-          return false;
-        }
-      }
+      obj ^= At(i);
+      obj = obj.CanonicalizeLocked(thread);
+      this->SetAt(i, obj);
     }
   }
-  return true;
 }
 
 ImmutableArrayPtr ImmutableArray::New(intptr_t len, Heap::Space space) {
@@ -24035,7 +23984,7 @@ PointerPtr Pointer::New(const AbstractType& type_arg,
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
   type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
-  type_args = type_args.Canonicalize();
+  type_args = type_args.Canonicalize(thread, nullptr);
 
   const Class& cls =
       Class::Handle(Isolate::Current()->class_table()->At(kFfiPointerCid));
