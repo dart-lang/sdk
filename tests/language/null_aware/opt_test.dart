@@ -23,17 +23,17 @@ getNull() => null;
 
 test() {
   var c;
-  var d = new C(5) as C?;
+  C? d = new C(5);
   Expect.equals(null, c?.m(bomb()));
   Expect.equals(null, getNull()?.anything(bomb()));
   Expect.equals(1, d?.m(1));
 
-  var c2 = new C(1) as C?;
+  C? c2 = new C(1);
   Expect.equals(1, c2?.f);
   Expect.equals(null, c?.v);
   Expect.equals(10, c ?? 10);
   Expect.equals(d, d ?? bomb());
-  var list = [[3]] as List<List<int>>?;
+  List<List<int>>? list = [[3]];
   Expect.equals(
       3,
       list?.expand((i) => i).toList()[0]);
@@ -58,7 +58,7 @@ test() {
   e?.f++;
   Expect.equals(201, e.f);
 
-  var five = 5 as int?;
+  int? five = 5;
   var x = five ?? bomb();
 }
 

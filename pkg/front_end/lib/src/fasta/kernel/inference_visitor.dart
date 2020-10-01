@@ -5740,17 +5740,8 @@ class InferenceVisitor
     }
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
-      if (node.isImplicitlyTyped) {
-        if (initializerType is TypeParameterType) {
-          inferrer.flowAnalysis.promote(node, initializerType);
-        }
-      } else if (!node.isFinal) {
-        // TODO(paulberry): `initializerType` is sometimes `null` during top
-        // level inference.  Figure out how to prevent this.
-        if (initializerType != null) {
-          inferrer.flowAnalysis
-              .write(node, initializerType, viaInitializer: true);
-        }
+      if (node.isImplicitlyTyped && initializerType is TypeParameterType) {
+        inferrer.flowAnalysis.promote(node, initializerType);
       }
       Expression initializer = inferrer.ensureAssignableResult(
           node.type, initializerResult,

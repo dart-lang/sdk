@@ -11,7 +11,7 @@ class C {
 }
 
 main() {
-  var c = new C() as C?;
+  C? c = new C();
   A a = new B();
   c?.f(a);
 //     ^

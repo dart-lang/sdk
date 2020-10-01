@@ -4626,7 +4626,7 @@ void test() {
   // here non-null is OK.
   int i1 = 0, i2 = i1.gcd(2);
   // here non-null is not OK.
-  int? i3 = 0, i4 = i3.gcd(2), i5 = null;
+  int? i3 = 0, i4 = i3!.gcd(2), i5 = null;
 }
 ''';
 

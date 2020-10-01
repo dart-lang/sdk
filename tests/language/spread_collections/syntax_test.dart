@@ -17,11 +17,11 @@ void main() {
 
   var a = [0];
   Expect.listEquals([1, 2, 3], [1, ...a = [2], 3]);
-  var nullableA = [0] as List<int>?;
+  List<int>? nullableA = [0];
   Expect.listEquals([1, 3], [1, ...?nullableA = null, 3]);
 
   var b = [2];
   Expect.listEquals([1, 2, 3, 4], [1, ...b..add(3), 4]);
-  var nullableB = [2] as List<int>?;
+  List<int>? nullableB = [2];
   Expect.listEquals([1, 2, 3, 4], [1, ...?nullableB?..add(3), 4]);
 }

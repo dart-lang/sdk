@@ -52,7 +52,7 @@ main() {
 
 
   // The static type of e1?.v++ is the same as the static type of e1.v.
-  { E e1 = new E(); var d = new D(e1) as D?; E? e2 = d?.v++; Expect.identical(e1, e2); }
+  { E e1 = new E(); D? d = new D(e1); E? e2 = d?.v++; Expect.identical(e1, e2); }
 
 
 

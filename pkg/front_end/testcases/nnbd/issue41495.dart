@@ -10,7 +10,7 @@ class A {
 main() {}
 
 errors() {
-  A? a1 = new A() as A?;
+  A? a1 = new A();
   a1.c1;
   a1.test;
 }

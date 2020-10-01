@@ -57,7 +57,7 @@ main() {
 
 
   // The static type of e1?.v = e2 is the static type of e2.
-  { var d = new D(new E()) as D?; G g = new G(); F? f = (d?.v = g); Expect.identical(f, g); }
+  { D? d = new D(new E()); G g = new G(); F? f = (d?.v = g); Expect.identical(f, g); }
 
 
 

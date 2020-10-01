@@ -35,7 +35,7 @@ main() {
 
 
   // The static type of e1?.d is the static type of e1.id.
-  var c = new C(1) as C?;
+  C? c = new C(1);
   { int? i = c?.v; Expect.equals(1, i); }
 
 

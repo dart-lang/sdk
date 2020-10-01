@@ -43,8 +43,8 @@ void testList() {
       const <int>[...<int>[...<int>[1, 2], ...<int>[3, 4]]]);
 
   // Null-aware.
-  const list23 = <int>[2, 3] as List<int>?;
-  const list4 = <int>[4] as List<int>?;
+  const List<int>? list23 = <int>[2, 3];
+  const List<int>? list4 = <int>[4];
   Expect.identical(list,
       const <int>[1, ...?list23, ...?(null), ...?list4]);
 
@@ -98,8 +98,8 @@ void testMap() {
   });
 
   // Null-aware.
-  const map23 = <int, int>{2: 2, 3: 3} as Map<int, int>?;
-  const map4 = <int, int>{4: 4} as Map<int, int>?;
+  const Map<int, int>? map23 = <int, int>{2: 2, 3: 3};
+  const Map<int, int>? map4 = <int, int>{4: 4};
   Expect.identical(map, const <int, int>{
     1: 1,
     ...?map23,
@@ -155,8 +155,8 @@ void testSet() {
   Expect.identical(set, const <int>{...<int>{...<int>[1, 2], ...<int>[3, 4]}});
 
   // Null-aware.
-  const list23 = <int>[2, 3] as List<int>?;
-  const list4 = <int>[4] as List<int>?;
+  const List<int>? list23 = <int>[2, 3];
+  const List<int>? list4 = <int>[4];
   Expect.identical(set,
       const <int>{1, ...?list23, ...?(null), ...?list4});
 

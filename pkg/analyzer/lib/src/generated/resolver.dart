@@ -1994,17 +1994,12 @@ class ResolverVisitor extends ScopedVisitor {
     }
 
     var initializer = node.initializer;
-    var parent = node.parent as VariableDeclarationList;
-    TypeAnnotation declaredType = parent.type;
-    if (initializer != null) {
+    var parent = node.parent;
+    TypeAnnotation declaredType = (parent as VariableDeclarationList).type;
+    if (declaredType == null && initializer != null) {
       var initializerStaticType = initializer.staticType;
-      if (declaredType == null) {
-        if (initializerStaticType is TypeParameterType) {
-          _flowAnalysis?.flow?.promote(declaredElement, initializerStaticType);
-        }
-      } else if (!parent.isFinal) {
-        _flowAnalysis?.flow?.write(declaredElement, initializerStaticType,
-            viaInitializer: true);
+      if (initializerStaticType is TypeParameterType) {
+        _flowAnalysis?.flow?.promote(declaredElement, initializerStaticType);
       }
     }
   }

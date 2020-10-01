@@ -23,7 +23,7 @@ class C extends B {
 C? nullC() => null;
 
 main() {
-  var c = C() as C?;
+  C? c = C();
 
   // Make sure the "none" test fails if method invocation using "?." is not
   // implemented.  This makes status files easier to maintain.
@@ -66,12 +66,12 @@ main() {
   // Let T be the static type of o and let y be a fresh variable of type T.
   // Exactly the same static warnings that would be caused by y.m(...) are also
   // generated in the case of o?.m(...).
-  { var b = new C() as B?; Expect.equals(1, b?.f(() => 1)); }
-  //                                           ^
+  { B? b = new C(); Expect.equals(1, b?.f(() => 1)); }
+  //                                    ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] The method 'f' isn't defined for the class 'B'.
-  { var i = 1 as int?; Expect.equals(null, nullC()?.f(i)); }
-  //                                                  ^
+  { int? i = 1; Expect.equals(null, nullC()?.f(i)); }
+  //                                           ^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'int?' can't be assigned to the parameter type 'dynamic Function()?'.
 
