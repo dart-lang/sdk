@@ -84,7 +84,7 @@ main() {
 
 
   // The static type of ++e1?.v is the same as the static type of e1.v + 1.
-  { D? d = new D(new E()); F? f = ++d?.v; Expect.identical(d!.v, f); }
+  { var d = new D(new E()) as D?; F? f = ++d?.v; Expect.identical(d!.v, f); }
 
 
 

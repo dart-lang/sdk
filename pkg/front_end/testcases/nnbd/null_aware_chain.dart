@@ -11,6 +11,6 @@ class Class {
 }
 
 main() {
-  Class? c = new Class();
+  Class? c = new Class() as Class?;
   c?.getter1.getter2?.getter1.getter2?.field = c;
 }

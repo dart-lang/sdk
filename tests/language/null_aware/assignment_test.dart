@@ -59,9 +59,9 @@ main() {
   { h.C.staticInt = 1; Expect.equals(2, h.C?.staticInt = 2); Expect.equals(2, h.C.staticInt); }
 
   // The static type of e1?.v = e2 is the static type of e2.
-  { D? d = new D(new E()); G g = new G(); F? f = (d?.v = g); Expect.identical(f, g); }
-  { D? d = new D(new E()); E e = new G(); F? f = (d?.v = e); }
-  //                                              ^^^^^^^^
+  { var d = new D(new E()) as D?; G g = new G(); F? f = (d?.v = g); Expect.identical(f, g); }
+  { var d = new D(new E()) as D?; E e = new G(); F? f = (d?.v = e); }
+  //                                                     ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'E?' can't be assigned to a variable of type 'F?'.
   { D.staticE = new E(); G g = new G(); F? f = (D?.staticE = g); Expect.identical(f, g); }
