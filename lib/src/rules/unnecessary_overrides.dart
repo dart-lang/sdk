@@ -255,14 +255,10 @@ class _UnnecessarySetterOverrideVisitor
                 node.rightHandSide)) {
       final leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
-        _visitPropertyAccess(leftPart);
+        if (node.writeElement == inheritedMethod) {
+          leftPart.target?.accept(this);
+        }
       }
-    }
-  }
-
-  void _visitPropertyAccess(PropertyAccess node) {
-    if (node.propertyName.staticElement == inheritedMethod) {
-      node.target?.accept(this);
     }
   }
 }

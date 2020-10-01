@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../ast.dart';
 
 const _desc = r'Prefer putting asserts in initializer list.';
 
@@ -59,7 +60,7 @@ class _AssertVisitor extends RecursiveAstVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    final element = node.staticElement;
+    final element = getWriteOrReadElement(node);
 
     // use method
     needInstance = needInstance ||

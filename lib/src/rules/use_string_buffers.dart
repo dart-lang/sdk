@@ -43,11 +43,6 @@ String foo() {
 
 ''';
 
-SimpleIdentifier _getSimpleIdentifier(Expression rawExpression) {
-  final expression = rawExpression.unParenthesized;
-  return expression is SimpleIdentifier ? expression : null;
-}
-
 bool _isEmptyInterpolationString(AstNode node) =>
     node is InterpolationString && node.value == '';
 
@@ -125,17 +120,16 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
     if (node.operator.type != TokenType.PLUS_EQ &&
         node.operator.type != TokenType.EQ) return;
 
-    final identifier = _getSimpleIdentifier(node.leftHandSide);
-    if (identifier != null &&
-        DartTypeUtilities.isClass(
-            identifier.staticType, 'String', 'dart.core')) {
+    var left = node.leftHandSide;
+    if (left is SimpleIdentifier &&
+        DartTypeUtilities.isClass(node.writeType, 'String', 'dart.core')) {
       if (node.operator.type == TokenType.PLUS_EQ &&
-          !localElements.contains(DartTypeUtilities.getCanonicalElement(
-              identifier.staticElement))) {
+          !localElements.contains(
+              DartTypeUtilities.getCanonicalElement(node.writeElement))) {
         rule.reportLint(node);
       }
       if (node.operator.type == TokenType.EQ) {
-        final visitor = _IdentifierIsPrefixVisitor(rule, identifier);
+        final visitor = _IdentifierIsPrefixVisitor(rule, left);
         node.rightHandSide.accept(visitor);
       }
     }

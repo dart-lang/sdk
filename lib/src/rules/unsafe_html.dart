@@ -92,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitAssignmentExpression(AssignmentExpression node) {
     final leftPart = node.leftHandSide.unParenthesized;
     if (leftPart is SimpleIdentifier) {
-      var leftPartElement = leftPart.staticElement;
+      var leftPartElement = node.writeElement;
       if (leftPartElement == null) return;
       var enclosingElement = leftPartElement.enclosingElement;
       if (enclosingElement is ClassElement) {

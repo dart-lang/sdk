@@ -90,8 +90,7 @@ Iterable<ConstructorFieldInitializer>
         node.initializers.whereType<ConstructorFieldInitializer>();
 
 Element _getLeftElement(AssignmentExpression assignment) =>
-    DartTypeUtilities.getCanonicalElementFromIdentifier(
-        assignment.leftHandSide);
+    DartTypeUtilities.getCanonicalElement(assignment.writeElement);
 
 Iterable<Element> _getParameters(ConstructorDeclaration node) =>
     node.parameters.parameters.map((e) => e.identifier.staticElement);

@@ -74,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    final type = node.leftHandSide?.staticType;
+    final type = node.writeType;
     _check(type, node.rightHandSide?.staticType, node,
         checkedNode: node.rightHandSide);
   }

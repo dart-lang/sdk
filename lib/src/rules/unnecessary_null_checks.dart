@@ -89,7 +89,7 @@ DartType getExpectedType(PostfixExpression node) {
   }
   // assignment
   if (parent is AssignmentExpression) {
-    return parent.leftHandSide.staticType;
+    return parent.writeType;
   }
   // in variable declaration
   if (parent is VariableDeclaration) {

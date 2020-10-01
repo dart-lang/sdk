@@ -99,9 +99,16 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitNode(AstNode node) {
-    var element = DartTypeUtilities.getCanonicalElementFromIdentifier(node);
+    var parent = node.parent;
+
+    Element element;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      element = DartTypeUtilities.getCanonicalElement(parent.writeElement);
+    } else {
+      element = DartTypeUtilities.getCanonicalElementFromIdentifier(node);
+    }
+
     if (element != null) {
-      var parent = node.parent;
       if (parent is Expression) {
         parent = (parent as Expression).unParenthesized;
       }

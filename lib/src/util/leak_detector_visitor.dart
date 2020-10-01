@@ -112,7 +112,7 @@ Iterable<AstNode> _findVariableAssignments(
 
   return containerNodes.where((n) =>
       n is AssignmentExpression &&
-      (_isSimpleIdentifierElementEqualToVariable(n.leftHandSide, variable) ||
+      (_isElementEqualToVariable(n.writeElement, variable) ||
           // Assignment to VariableDeclaration as setter.
           (n.leftHandSide is PropertyAccess &&
               (n.leftHandSide as PropertyAccess).propertyName.token.lexeme ==
@@ -128,6 +128,14 @@ bool _hasMatch(Map<DartTypePredicate, String> predicates, DartType type,
         false,
         (bool previous, DartTypePredicate p) =>
             previous || p(type) && predicates[p] == methodName);
+
+bool _isElementEqualToVariable(
+    Element propertyElement, VariableDeclaration variable) {
+  var variableElement = variable.declaredElement;
+  return propertyElement == variableElement ||
+      propertyElement is PropertyAccessorElement &&
+          propertyElement.variable == variableElement;
+}
 
 bool _isInvocationThroughCascadeExpression(
     MethodInvocation invocation, VariableDeclaration variable) {
@@ -156,20 +164,14 @@ bool _isPropertyAccessThroughThis(Expression n, VariableDeclaration variable) {
   }
 
   var property = (n as PropertyAccess).propertyName;
-  return property.staticElement == variable.name.staticElement ||
-      (property.staticElement is PropertyAccessorElement &&
-          (property.staticElement as PropertyAccessorElement).variable ==
-              variable.name.staticElement);
+  var propertyElement = property.staticElement;
+  return _isElementEqualToVariable(propertyElement, variable);
 }
 
 bool _isSimpleIdentifierElementEqualToVariable(
         AstNode n, VariableDeclaration variable) =>
     n is SimpleIdentifier &&
-    // Assignment to VariableDeclaration as variable.
-    (n.staticElement == variable.name.staticElement ||
-        (n.staticElement is PropertyAccessorElement &&
-            (n.staticElement as PropertyAccessorElement).variable ==
-                variable.name.staticElement));
+    _isElementEqualToVariable(n.staticElement, variable);
 
 typedef DartTypePredicate = bool Function(DartType type);
 

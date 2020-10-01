@@ -121,13 +121,13 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _addMutatedFieldElement(node.leftHandSide);
+    _addMutatedFieldElement(node);
     super.visitAssignmentExpression(node);
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _addMutatedFieldElement(node.operand);
+    _addMutatedFieldElement(node);
     super.visitPostfixExpression(node);
   }
 
@@ -136,14 +136,14 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
     final operator = node.operator;
     if (operator.type == TokenType.MINUS_MINUS ||
         operator.type == TokenType.PLUS_PLUS) {
-      _addMutatedFieldElement(node.operand);
+      _addMutatedFieldElement(node);
     }
     super.visitPrefixExpression(node);
   }
 
-  void _addMutatedFieldElement(Expression expression) {
+  void _addMutatedFieldElement(CompoundAssignmentExpression assignment) {
     final element =
-        DartTypeUtilities.getCanonicalElementFromIdentifier(expression);
+        DartTypeUtilities.getCanonicalElement(assignment.writeElement);
     if (element is FieldElement) {
       _mutatedFields.add(element);
     }

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../ast.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 
@@ -85,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     Element element;
     if (parent is PropertyAccess && !parent.isNullAware) {
-      element = parent.propertyName.staticElement;
+      element = getWriteOrReadElement(parent.propertyName);
     } else if (parent is MethodInvocation && !parent.isNullAware) {
       element = parent.methodName.staticElement;
     } else {

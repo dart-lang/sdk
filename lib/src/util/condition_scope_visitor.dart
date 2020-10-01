@@ -10,8 +10,7 @@ import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
 
 Element _getLeftElement(AssignmentExpression assignment) =>
-    DartTypeUtilities.getCanonicalElementFromIdentifier(
-        assignment.leftHandSide);
+    DartTypeUtilities.getCanonicalElement(assignment.writeElement);
 
 List<Expression> _splitConjunctions(Expression rawExpression) {
   final expression = rawExpression?.unParenthesized;

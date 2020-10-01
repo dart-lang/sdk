@@ -47,6 +47,17 @@ AstNode getNodeToAnnotate(Declaration node) {
   return mostSpecific ?? node;
 }
 
+/// If the [node] is the finishing identifier of an assignment, return its
+/// "writeElement", otherwise return its "staticElement", which might be
+/// thought as the "readElement".
+Element getWriteOrReadElement(SimpleIdentifier node) {
+  var writeElement = _getWriteElement(node);
+  if (writeElement != null) {
+    return writeElement;
+  }
+  return node.staticElement;
+}
+
 bool hasConstantError(LinterContext context, Expression node) {
   var result = context.evaluateConstant(node);
   return result.errors.isNotEmpty;
@@ -262,13 +273,13 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   var leftHandSide = assignment.leftHandSide;
   var rightHandSide = assignment.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
-    var leftElement = leftHandSide.staticElement;
+    var leftElement = assignment.writeElement;
     if (leftElement is! PropertyAccessorElement || !leftElement.isSynthetic) {
       return false;
     }
 
     // To guard against setters used as type constraints
-    if (leftHandSide.staticType != rightHandSide.staticType) {
+    if (assignment.writeType != rightHandSide.staticType) {
       return false;
     }
 
@@ -323,6 +334,33 @@ AstNode _getNodeToAnnotate(Declaration node) {
   if (node is VariableDeclaration) {
     return node.name;
   }
+  return null;
+}
+
+/// If the [node] is the target of a [CompoundAssignmentExpression],
+/// return the corresponding "writeElement", which is the local variable,
+/// the setter referenced with a [SimpleIdentifier] or a [PropertyAccess],
+/// or the `[]=` operator.
+Element _getWriteElement(AstNode node) {
+  var parent = node.parent;
+  if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    return parent.writeElement;
+  }
+  if (parent is PostfixExpression) {
+    return parent.writeElement;
+  }
+  if (parent is PrefixExpression) {
+    return parent.writeElement;
+  }
+
+  if (parent is PrefixedIdentifier && parent.identifier == node) {
+    return _getWriteElement(parent);
+  }
+
+  if (parent is PropertyAccess && parent.propertyName == node) {
+    return _getWriteElement(parent);
+  }
+
   return null;
 }
 

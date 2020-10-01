@@ -9,6 +9,8 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 import 'package:meta/meta.dart';
 
+import '../ast.dart';
+
 typedef AstNodePredicate = bool Function(AstNode node);
 
 class DartTypeUtilities {
@@ -100,8 +102,8 @@ class DartTypeUtilities {
 
     if (expression1 is SimpleIdentifier) {
       return expression2 is SimpleIdentifier &&
-          canonicalElementsAreEqual(
-              expression1.staticElement, expression2.staticElement);
+          canonicalElementsAreEqual(getWriteOrReadElement(expression1),
+              getWriteOrReadElement(expression2));
     }
 
     if (expression1 is PrefixedIdentifier) {
@@ -109,15 +111,17 @@ class DartTypeUtilities {
           canonicalElementsAreEqual(expression1.prefix.staticElement,
               expression2.prefix.staticElement) &&
           canonicalElementsAreEqual(
-              expression1.staticElement, expression2.staticElement);
+              getWriteOrReadElement(expression1.identifier),
+              getWriteOrReadElement(expression2.identifier));
     }
 
     if (expression1 is PropertyAccess && expression2 is PropertyAccess) {
       final target1 = expression1.target;
       final target2 = expression2.target;
       return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
-          canonicalElementsAreEqual(expression1.propertyName.staticElement,
-              expression2.propertyName.staticElement);
+          canonicalElementsAreEqual(
+              getWriteOrReadElement(expression1.propertyName),
+              getWriteOrReadElement(expression2.propertyName));
     }
 
     return false;
