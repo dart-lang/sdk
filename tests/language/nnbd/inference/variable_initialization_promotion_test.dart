@@ -271,7 +271,7 @@ void initializersOnFinalDoNotPromote() {
 /// Check that when an initializer is a promoted type variable `X & T`, the
 /// inferred type of the variable is `X`, but that the variable is immediately
 /// promoted to `X & T`.
-void typeVariableTypedVariableInferencePromotes<T>(T x0, T x1) {
+void typeVariableTypedVariableInferencePromotes<T>(T x0, T x1, bool b) {
   if (x0 is num) {
     // Promote `x0` to T & num
 
@@ -282,8 +282,9 @@ void typeVariableTypedVariableInferencePromotes<T>(T x0, T x1) {
       // Check that y is assignable to z, and hence that y is still promoted to
       // T & num
       num z = y;
-      // Check that y can be demoted to T.
-      y = x1;
+      // Check that y can be demoted to T, but do it conditionally so that T &
+      // num remains a type of interest.
+      if (b) y = x1;
       // T & num is still a type of interest, and hence this assignment should
       // promote to T & num.
       y = x0;
@@ -299,8 +300,9 @@ void typeVariableTypedVariableInferencePromotes<T>(T x0, T x1) {
       // Check that y is assignable to z, and hence that y is still promoted to
       // T & num
       num z = y;
-      // Check that y can be demoted to T.
-      y = x1;
+      // Check that y can be demoted to T, but do it conditionally so that T &
+      // num remains a type of interest.
+      if (b) y = x1;
       // T & num is still a type of interest, and hence this assignment should
       // promote to T & num.
       y = x0;
@@ -334,5 +336,5 @@ void main() {
   inferredTypeIsATypeOfInterest();
   initializersOnVarPromote();
   initializersOnFinalDoNotPromote();
-  typeVariableTypedVariableInferencePromotes<num>(3, 3.5);
+  typeVariableTypedVariableInferencePromotes<num>(3, 3.5, true);
 }
