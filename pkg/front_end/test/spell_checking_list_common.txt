@@ -1377,6 +1377,7 @@ holding
 holds
 hood
 hooks
+horns
 horribly
 host
 hostnames

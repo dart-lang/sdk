@@ -1,4 +1,15 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:21: Error: Optional parameter 'bar' should have a default value because its type 'int' doesn't allow null.
+//   Foo copyWith({int bar, int bar2}) {
+//                     ^^^
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:20:30: Error: Optional parameter 'bar2' should have a default value because its type 'int' doesn't allow null.
+//   Foo copyWith({int bar, int bar2}) {
+//                              ^^^^
+//
 import self as self;
 import "dart:core" as core;
 import "value_class_support_lib.dart" as val;
@@ -6,14 +17,27 @@ import "value_class_support_lib.dart" as val;
 import "org-dartlang-testcase:///value_class_support_lib.dart";
 
 class Animal extends core::Object {
-  final field core::int numberOfLegs;
-  constructor •({required core::int numberOfLegs}) → self::Animal
+  final field core::int? numberOfLegs;
+  constructor •({required core::int? numberOfLegs}) → self::Animal
     ;
 }
 @val::valueClass
 class Cat extends self::Animal {
-  final field core::int numberOfWhiskers;
+  final field core::int? numberOfWhiskers;
   synthetic constructor •() → self::Cat
+    ;
+}
+class Foo extends core::Object {
+  field core::int? bar;
+  field core::int? bar2;
+  constructor •({core::int? bar, core::int? bar2}) → self::Foo
+    ;
+  method copyWith({core::int bar, core::int bar2}) → self::Foo
+    ;
+}
+@val::valueClass
+class A extends core::Object {
+  synthetic constructor •() → self::A
     ;
 }
 static method main() → dynamic
@@ -36,4 +60,5 @@ static const field core::String valueClass = "valueClass";
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///copy_with_call_sites.dart:12:2 -> StringConstant("valueClass")
-Extra constant evaluation: evaluated: 1, effectively constant: 1
+Evaluated: StaticGet @ org-dartlang-testcase:///copy_with_call_sites.dart:25:2 -> StringConstant("valueClass")
+Extra constant evaluation: evaluated: 2, effectively constant: 2
