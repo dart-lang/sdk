@@ -76,7 +76,6 @@ void transformComponent(Component node, CoreTypes coreTypes,
 
 void transformValueClass(Class cls, CoreTypes coreTypes,
     ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
-  List<VariableDeclaration> allVariables = queryAllInstanceVariables(cls);
   Constructor syntheticConstructor = null;
   for (Constructor constructor in cls.constructors) {
     if (constructor.isSynthetic) {
@@ -84,11 +83,16 @@ void transformValueClass(Class cls, CoreTypes coreTypes,
     }
   }
 
+  List<VariableDeclaration> allVariables = queryAllInstanceVariables(cls);
+  List<VariableDeclaration> allVariablesList = allVariables.toList();
+  allVariablesList.sort((a, b) => a.name.compareTo(b.name));
+
   addConstructor(cls, coreTypes, syntheticConstructor);
-  addEqualsOperator(cls, coreTypes, hierarchy, allVariables.toList());
-  addHashCode(cls, coreTypes, hierarchy, allVariables.toList());
-  addCopyWith(cls, coreTypes, hierarchy, allVariables.toList(),
-      syntheticConstructor, typeEnvironment);
+  addEqualsOperator(cls, coreTypes, hierarchy, allVariablesList);
+  addHashCode(cls, coreTypes, hierarchy, allVariablesList);
+  addToString(cls, coreTypes, hierarchy, allVariablesList);
+  addCopyWith(cls, coreTypes, hierarchy, allVariablesList, syntheticConstructor,
+      typeEnvironment);
 }
 
 void addConstructor(
@@ -128,7 +132,8 @@ void addConstructor(
 }
 
 void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariables) {
+    List<VariableDeclaration> allVariablesList) {
+  List<VariableDeclaration> allVariables = allVariablesList.toList();
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Operator &&
         procedure.name.text == "==") {
@@ -136,9 +141,7 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
       return;
     }
   }
-  DartType returnType = cls.enclosingLibrary.isNonNullableByDefault
-      ? coreTypes.boolNonNullableRawType
-      : coreTypes.boolLegacyRawType;
+  DartType returnType = coreTypes.boolRawType(cls.enclosingLibrary.nonNullable);
   DartType myType = coreTypes.thisInterfaceType(cls, Nullability.nonNullable);
 
   VariableDeclaration other = VariableDeclaration("other",
@@ -184,7 +187,8 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
 }
 
 void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariables) {
+    List<VariableDeclaration> allVariablesList) {
+  List<VariableDeclaration> allVariables = allVariablesList.toList();
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Getter &&
         procedure.name.text == "hashCode") {
@@ -192,9 +196,7 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
       return;
     }
   }
-  DartType returnType = cls.enclosingLibrary.isNonNullableByDefault
-      ? coreTypes.intNonNullableRawType
-      : coreTypes.intLegacyRawType;
+  DartType returnType = coreTypes.intRawType(cls.enclosingLibrary.nonNullable);
 
   Procedure hashCombine, hashFinish;
   HashCombineMethodsScanner hashCombineMethodsScanner =
@@ -252,13 +254,48 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
     ..fileOffset = cls.fileOffset);
 }
 
+void addToString(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
+    List<VariableDeclaration> allVariablesList) {
+  List<Expression> wording = [StringLiteral("${cls.name}(")];
+
+  for (VariableDeclaration variable in allVariablesList) {
+    wording.add(StringLiteral("${variable.name}: "));
+    wording.add(MethodInvocation(
+        PropertyGet(ThisExpression(), Name(variable.name),
+            hierarchy.getInterfaceMember(cls, Name(variable.name))),
+        Name("toString"),
+        Arguments([]),
+        (variable.type is InterfaceType)
+            ? hierarchy.getInterfaceMember(
+                (variable.type as InterfaceType).classNode, Name("toString"))
+            : null));
+    wording.add(StringLiteral(", "));
+  }
+  if (allVariablesList.length != 0) {
+    wording[wording.length - 1] = StringLiteral(")");
+  } else {
+    wording.add(StringLiteral(")"));
+  }
+  DartType returnType =
+      coreTypes.stringRawType(cls.enclosingLibrary.nonNullable);
+  cls.addMember(Procedure(
+      Name("toString"),
+      ProcedureKind.Method,
+      FunctionNode(ReturnStatement(StringConcatenation(wording)),
+          returnType: returnType),
+      fileUri: cls.fileUri)
+    ..fileOffset = cls.fileOffset);
+}
+
 void addCopyWith(
     Class cls,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariables,
+    List<VariableDeclaration> allVariablesList,
     Constructor syntheticConstructor,
     TypeEnvironment typeEnvironment) {
+  List<VariableDeclaration> allVariables = allVariablesList.toList();
+
   Map<VariableDeclaration, Member> targetsEquals = new Map();
   Map<VariableDeclaration, Member> targets = new Map();
   for (VariableDeclaration variable in allVariables) {

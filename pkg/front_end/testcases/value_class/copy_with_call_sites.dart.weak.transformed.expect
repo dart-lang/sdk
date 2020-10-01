@@ -61,6 +61,8 @@ class Cat extends self::Animal {
     return other is self::Cat && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Animal::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
   get /*isNullableByDefault*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///copy_with_call_sites.dartCat".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}), this.{self::Cat::numberOfWhiskers}.{core::num::hashCode}));
+  method /*isNullableByDefault*/ toString() → core::String
+    return "Cat(numberOfLegs: ${this.{self::Animal::numberOfLegs}.{core::int::toString}()}, numberOfWhiskers: ${this.{self::Cat::numberOfWhiskers}.{core::int::toString}()})";
   method /*isNullableByDefault*/ copyWith({core::int? numberOfLegs, core::int? numberOfWhiskers}) → dynamic
     return new self::Cat::•(numberOfLegs: numberOfLegs, numberOfWhiskers: numberOfWhiskers);
 }
@@ -85,6 +87,8 @@ class A extends core::Object {
     return other is self::A;
   get /*isNullableByDefault*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///copy_with_call_sites.dartA".{core::String::hashCode});
+  method /*isNullableByDefault*/ toString() → core::String
+    return "A()";
   method /*isNullableByDefault*/ copyWith() → dynamic
     return new self::A::•();
 }
@@ -134,3 +138,7 @@ constants  {
   #C1 = null
   #C2 = "valueClass"
 }
+
+Extra constant evaluation status:
+Evaluated: StringConcatenation @ org-dartlang-testcase:///copy_with_call_sites.dart:26:7 -> StringConstant("A()")
+Extra constant evaluation: evaluated: 128, effectively constant: 1

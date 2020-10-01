@@ -43,6 +43,8 @@ class Animal extends core::Object {
     return other is self::Animal && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Animal}.{self::Animal::numberOfLegs});
   get /*isNullableByDefault*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine("org-dartlang-testcase:///simple.dartAnimal".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}));
+  method /*isNullableByDefault*/ toString() → core::String
+    return "Animal(numberOfLegs: ${this.{self::Animal::numberOfLegs}.{core::int::toString}()})";
   method /*isNullableByDefault*/ copyWith({core::int numberOfLegs}) → dynamic
     return new self::Animal::•(numberOfLegs: numberOfLegs);
 }

@@ -13,6 +13,8 @@ class EmptyClass extends core::Object {
     return other is self::EmptyClass;
   get /*isNullableByDefault*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///empty.dartEmptyClass".{core::String::hashCode});
+  method /*isNullableByDefault*/ toString() → core::String
+    return "EmptyClass()";
   method /*isNullableByDefault*/ copyWith() → dynamic
     return new self::EmptyClass::•();
 }
@@ -42,3 +44,7 @@ static const field core::String valueClass = #C1;
 constants  {
   #C1 = "valueClass"
 }
+
+Extra constant evaluation status:
+Evaluated: StringConcatenation @ org-dartlang-testcase:///empty.dart:8:7 -> StringConstant("EmptyClass()")
+Extra constant evaluation: evaluated: 40, effectively constant: 1
