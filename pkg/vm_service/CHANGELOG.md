@@ -2,6 +2,9 @@
 
 ## 5.3.0
 - Added support for `dart:io` extensions version 1.4.
+- Update to version `3.40.0` of the spec.
+- Added `IsolateFlag` class.
+- Added `isolateFlags` property to `Isolate`.
 
 ## 5.2.0
 - Added support for `dart:io` extensions version 1.3.

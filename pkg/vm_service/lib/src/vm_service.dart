@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.39.0';
+const String vmServiceVersion = '3.40.0';
 
 /// @optional
 const String optional = 'optional';
@@ -139,6 +139,7 @@ Map<String, Function> _typeFactories = {
   'Instance': Instance.parse,
   '@Isolate': IsolateRef.parse,
   'Isolate': Isolate.parse,
+  'IsolateFlag': IsolateFlag.parse,
   '@IsolateGroup': IsolateGroupRef.parse,
   'IsolateGroup': IsolateGroup.parse,
   'InboundReferences': InboundReferences.parse,
@@ -4745,6 +4746,10 @@ class Isolate extends Response implements IsolateRef {
   /// internal use. If `false`, this isolate is likely running user code.
   bool isSystemIsolate;
 
+  /// The list of isolate flags provided to this isolate. See Dart_IsolateFlags
+  /// in dart_api.h for the list of accepted isolate flags.
+  List<IsolateFlag> isolateFlags;
+
   /// The time that the VM started in milliseconds since the epoch.
   ///
   /// Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
@@ -4794,6 +4799,7 @@ class Isolate extends Response implements IsolateRef {
     @required this.number,
     @required this.name,
     @required this.isSystemIsolate,
+    @required this.isolateFlags,
     @required this.startTime,
     @required this.runnable,
     @required this.livePorts,
@@ -4812,6 +4818,8 @@ class Isolate extends Response implements IsolateRef {
     number = json['number'];
     name = json['name'];
     isSystemIsolate = json['isSystemIsolate'];
+    isolateFlags = List<IsolateFlag>.from(
+        createServiceObject(json['isolateFlags'], const ['IsolateFlag']) ?? []);
     startTime = json['startTime'];
     runnable = json['runnable'];
     livePorts = json['livePorts'];
@@ -4838,6 +4846,7 @@ class Isolate extends Response implements IsolateRef {
       'number': number,
       'name': name,
       'isSystemIsolate': isSystemIsolate,
+      'isolateFlags': isolateFlags.map((f) => f.toJson()).toList(),
       'startTime': startTime,
       'runnable': runnable,
       'livePorts': livePorts,
@@ -4859,6 +4868,40 @@ class Isolate extends Response implements IsolateRef {
   operator ==(other) => other is Isolate && id == other.id;
 
   String toString() => '[Isolate]';
+}
+
+/// Represents the value of a single isolate flag. See [Isolate].
+class IsolateFlag {
+  static IsolateFlag parse(Map<String, dynamic> json) =>
+      json == null ? null : IsolateFlag._fromJson(json);
+
+  /// The name of the flag.
+  String name;
+
+  /// The value of this flag as a string.
+  String valueAsString;
+
+  IsolateFlag({
+    @required this.name,
+    @required this.valueAsString,
+  });
+
+  IsolateFlag._fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    valueAsString = json['valueAsString'];
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'name': name,
+      'valueAsString': valueAsString,
+    });
+    return json;
+  }
+
+  String toString() =>
+      '[IsolateFlag name: ${name}, valueAsString: ${valueAsString}]';
 }
 
 /// `IsolateGroupRef` is a reference to an `IsolateGroup` object.

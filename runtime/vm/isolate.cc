@@ -1511,29 +1511,24 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
 #define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
   api_flags->isolate_flag = flag;
-  ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
+  BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
   api_flags->entry_points = NULL;
-  api_flags->load_vmservice_library = false;
   api_flags->copy_parent_code = false;
-  api_flags->null_safety = false;
-  api_flags->is_system_isolate = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
 #define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
   api_flags->isolate_flag = name();
-  ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
+  BOOL_ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
   api_flags->entry_points = NULL;
-  api_flags->load_vmservice_library = should_load_vmservice();
   api_flags->copy_parent_code = false;
-  api_flags->null_safety = null_safety();
-  api_flags->is_system_isolate = is_system_isolate();
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
+  const bool copy_parent_code_ = copy_parent_code();
 #if defined(DART_PRECOMPILER)
 #define FLAG_FOR_PRECOMPILER(action) action
 #else
@@ -1552,16 +1547,16 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
   FLAG_FOR_##when(isolate_flags_ = bitname##Bit::update(                       \
                       api_flags.isolate_flag, isolate_flags_));
 
-  ISOLATE_FLAG_LIST(SET_FROM_FLAG)
-
+  BOOL_ISOLATE_FLAG_LIST(SET_FROM_FLAG)
+  isolate_flags_ = CopyParentCodeBit::update(copy_parent_code_, isolate_flags_);
+  // Needs to be called manually, otherwise we don't set the null_safety_set
+  // bit.
+  set_null_safety(api_flags.null_safety);
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
 #undef SET_FROM_FLAG
 
-  set_should_load_vmservice(api_flags.load_vmservice_library);
-  set_null_safety(api_flags.null_safety);
-  set_is_system_isolate(api_flags.is_system_isolate);
   // Copy entry points list.
   ASSERT(embedder_entry_points_ == NULL);
   if (api_flags.entry_points != NULL) {
@@ -3086,6 +3081,25 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     JSONObject jsheap(&jsobj, "_heaps");
     heap()->PrintToJSONObject(Heap::kNew, &jsheap);
     heap()->PrintToJSONObject(Heap::kOld, &jsheap);
+  }
+
+  {
+// Stringification macros
+// See https://gcc.gnu.org/onlinedocs/gcc-4.8.5/cpp/Stringification.html
+#define TO_STRING(s) STR(s)
+#define STR(s) #s
+
+#define ADD_ISOLATE_FLAGS(when, name, bitname, isolate_flag_name, flag_name)   \
+  {                                                                            \
+    JSONObject jsflag(&jsflags);                                               \
+    jsflag.AddProperty("name", TO_STRING(name));                               \
+    jsflag.AddProperty("valueAsString", name() ? "true" : "false");            \
+  }
+    JSONArray jsflags(&jsobj, "isolateFlags");
+    BOOL_ISOLATE_FLAG_LIST(ADD_ISOLATE_FLAGS)
+#undef ADD_ISOLATE_FLAGS
+#undef TO_STRING
+#undef STR
   }
 
   jsobj.AddProperty("runnable", is_runnable());

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.39
+# Dart VM Service Protocol 3.40
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.39_ of the Dart VM Service Protocol. This
+This document describes of _version 3.40_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -102,6 +102,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Instance](#instance)
   - [InstanceSet](#instanceset)
   - [Isolate](#isolate)
+  - [IsolateFlag](#isolateflag)
   - [IsolateGroup](#isolategroup)
   - [Library](#library)
   - [LibraryDependency](#librarydependency)
@@ -2785,6 +2786,10 @@ class Isolate extends Response {
   // internal use. If `false`, this isolate is likely running user code.
   bool isSystemIsolate;
 
+  // The list of isolate flags provided to this isolate. See Dart_IsolateFlags
+  // in dart_api.h for the list of accepted isolate flags.
+  IsolateFlag[] isolateFlags;
+
   // The time that the VM started in milliseconds since the epoch.
   //
   // Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
@@ -2830,6 +2835,20 @@ class Isolate extends Response {
 
 An _Isolate_ object provides information about one isolate in the VM.
 
+### IsolateFlag
+
+```
+class IsolateFlag {
+  // The name of the flag.
+  string name;
+
+  // The value of this flag as a string.
+  string valueAsString;
+}
+```
+
+Represents the value of a single isolate flag. See [Isolate](#isolate).
+
 ### IsolateGroup
 
 ```
@@ -2845,7 +2864,7 @@ class @IsolateGroup extends Response {
 
   // Specifies whether the isolate group was spawned by the VM or embedder for
   // internal use. If `false`, this isolate group is likely running user code.
-  bool isSystemIsolateGroup;  
+  bool isSystemIsolateGroup;
 }
 ```
 
@@ -2865,7 +2884,7 @@ class IsolateGroup extends Response {
 
   // Specifies whether the isolate group was spawned by the VM or embedder for
   // internal use. If `false`, this isolate group is likely running user code.
-  bool isSystemIsolateGroup;  
+  bool isSystemIsolateGroup;
 
   // A list of all isolates in this isolate group.
   @Isolate[] isolates;
@@ -3835,5 +3854,6 @@ version | comments
 3.37 | Added `getWebSocketTarget` RPC and `WebSocketTarget` object.
 3.38 | Added `isSystemIsolate` property to `@Isolate` and `Isolate`, `isSystemIsolateGroup` property to `@IsolateGroup` and `IsolateGroup`, and properties `systemIsolates` and `systemIsolateGroups` to `VM`.
 3.39 | Removed the following deprecated RPCs and objects: `getClientName`, `getWebSocketTarget`, `setClientName`, `requireResumeApproval`, `ClientName`, and `WebSocketTarget`.
+3.40 | Added `IsolateFlag` object and `isolateFlags` property to `Isolate`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
