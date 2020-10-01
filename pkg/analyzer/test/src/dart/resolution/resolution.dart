@@ -703,7 +703,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertType(Object typeOrNode, String expected) {
     DartType actual;
-    if (typeOrNode is DartType) {
+    if (typeOrNode == null) {
+      actual = typeOrNode;
+    } else if (typeOrNode is DartType) {
       actual = typeOrNode;
     } else if (typeOrNode is Expression) {
       actual = typeOrNode.staticType;
@@ -772,6 +774,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertTypeNull(Expression node) {
     expect(node.staticType, isNull);
+  }
+
+  void assertTypeParameterType(
+    TypeParameterTypeImpl type, {
+    @required TypeParameterElement element,
+    @required String promotedBound,
+  }) {
+    assertElement(type.element, element);
+    assertType(type.promotedBound, promotedBound);
   }
 
   Matcher elementMatcher(
