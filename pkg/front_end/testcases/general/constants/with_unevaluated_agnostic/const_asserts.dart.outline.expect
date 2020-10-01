@@ -58,4 +58,4 @@ Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dar
 Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:14:73 -> StringConstant("btw foo was false")
 Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:14:44 -> BoolConstant(false)
 Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:25:24 -> InstanceConstant(const Foo{Foo.x: 1})
-Extra constant evaluation: tries: 39, successes: 9
+Extra constant evaluation: evaluated: 39, effectively constant: 9

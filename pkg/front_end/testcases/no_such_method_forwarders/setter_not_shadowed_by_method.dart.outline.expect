@@ -39,4 +39,4 @@ Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///setter_not_shadowed_by_method.dart:12:12 -> SymbolConstant(#foo=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///setter_not_shadowed_by_method.dart:12:12 -> ListConstant(const <Type*>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///setter_not_shadowed_by_method.dart:12:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Extra constant evaluation: tries: 10, successes: 3
+Extra constant evaluation: evaluated: 10, effectively constant: 3

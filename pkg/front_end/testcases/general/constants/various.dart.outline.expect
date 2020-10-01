@@ -453,4 +453,4 @@ Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:212:25 
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:213:40 -> BoolConstant(false)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:214:25 -> NullConstant(null)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:215:40 -> BoolConstant(false)
-Extra constant evaluation: tries: 136, successes: 84
+Extra constant evaluation: evaluated: 136, effectively constant: 84

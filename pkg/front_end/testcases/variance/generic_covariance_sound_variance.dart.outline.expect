@@ -180,4 +180,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_varian
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:5 -> SymbolConstant(#x=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:5 -> ListConstant(const <Type*>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:5 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Extra constant evaluation: tries: 42, successes: 13
+Extra constant evaluation: evaluated: 42, effectively constant: 13

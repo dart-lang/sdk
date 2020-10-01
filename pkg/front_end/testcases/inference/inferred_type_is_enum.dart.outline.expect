@@ -30,4 +30,4 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///inferred_type_is_enum.dart:8:6 -> ListConstant(const <E*>[const E{E.index: 0, E._name: "E.v1"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inferred_type_is_enum.dart:8:10 -> InstanceConstant(const E{E.index: 0, E._name: "E.v1"})
-Extra constant evaluation: tries: 6, successes: 2
+Extra constant evaluation: evaluated: 6, effectively constant: 2

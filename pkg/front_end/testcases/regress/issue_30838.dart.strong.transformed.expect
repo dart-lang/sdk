@@ -37,4 +37,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///issue_30838.dart:15:15 -> StringConstant("hello")
-Extra constant evaluation: tries: 7, successes: 1
+Extra constant evaluation: evaluated: 7, effectively constant: 1

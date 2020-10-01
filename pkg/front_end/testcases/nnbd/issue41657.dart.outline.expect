@@ -19,4 +19,4 @@ Evaluated: IsExpression @ org-dartlang-testcase:///issue41657.dart:6:38 -> BoolC
 Evaluated: IsExpression @ org-dartlang-testcase:///issue41657.dart:8:38 -> BoolConstant(false)
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue41657.dart:10:38 -> ListConstant(const <Null?>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue41657.dart:12:38 -> ListConstant(const <int?>[])
-Extra constant evaluation: tries: 6, successes: 4
+Extra constant evaluation: evaluated: 6, effectively constant: 4

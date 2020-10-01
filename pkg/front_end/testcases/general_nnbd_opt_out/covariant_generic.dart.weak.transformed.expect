@@ -52,4 +52,4 @@ static method main() → dynamic {
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///covariant_generic.dart:45:31 -> IntConstant(3)
 Evaluated: VariableGet @ org-dartlang-testcase:///covariant_generic.dart:46:31 -> DoubleConstant(2.5)
-Extra constant evaluation: tries: 58, successes: 2
+Extra constant evaluation: evaluated: 58, effectively constant: 2

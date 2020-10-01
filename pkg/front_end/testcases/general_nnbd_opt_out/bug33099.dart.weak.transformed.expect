@@ -87,4 +87,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///bug33099.dart:23:42 -> TypeLiteralConstant(MyTest2*)
-Extra constant evaluation: tries: 33, successes: 1
+Extra constant evaluation: evaluated: 33, effectively constant: 1

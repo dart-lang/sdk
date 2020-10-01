@@ -50,4 +50,4 @@ constants  {
 Extra constant evaluation status:
 Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_nested_generic_instantiation.dart:28:71 -> PartialInstantiationConstant(max<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_nested_generic_instantiation.dart:29:67 -> PartialInstantiationConstant(max<int*>)
-Extra constant evaluation: tries: 16, successes: 2
+Extra constant evaluation: evaluated: 16, effectively constant: 2

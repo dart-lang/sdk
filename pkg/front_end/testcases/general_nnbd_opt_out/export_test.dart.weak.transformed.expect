@@ -14,4 +14,4 @@ static method main() → dynamic {
 
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///export_test.dart:16:9 -> TypeLiteralConstant(UserTag*)
-Extra constant evaluation: tries: 2, successes: 1
+Extra constant evaluation: evaluated: 2, effectively constant: 1

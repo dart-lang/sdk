@@ -141,4 +141,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_acc
 Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:93:41 -> IntConstant(23)
 Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:95:41 -> IntConstant(67)
 Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:95:41 -> IntConstant(67)
-Extra constant evaluation: tries: 217, successes: 6
+Extra constant evaluation: evaluated: 217, effectively constant: 6

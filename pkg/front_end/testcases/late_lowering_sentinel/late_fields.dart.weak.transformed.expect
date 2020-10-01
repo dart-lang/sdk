@@ -51,4 +51,4 @@ static method main() → dynamic {}
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///late_fields.dart:11:17 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///late_fields.dart:12:16 -> IntConstant(0)
-Extra constant evaluation: tries: 98, successes: 2
+Extra constant evaluation: evaluated: 98, effectively constant: 2

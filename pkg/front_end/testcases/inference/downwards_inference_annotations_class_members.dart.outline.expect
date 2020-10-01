@@ -44,4 +44,4 @@ Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_class_members.dart:13:4 -> InstanceConstant(const Foo{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_class_members.dart:19:4 -> InstanceConstant(const Foo{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_class_members.dart:16:4 -> InstanceConstant(const Foo{})
-Extra constant evaluation: tries: 3, successes: 3
+Extra constant evaluation: evaluated: 3, effectively constant: 3

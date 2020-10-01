@@ -62,4 +62,4 @@ Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:27:2 -> Inst
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:28:2 -> InstanceConstant(const A{})
 Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:27:2 -> InstanceConstant(const Object{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:28:2 -> InstanceConstant(const A{})
-Extra constant evaluation: tries: 11, successes: 11
+Extra constant evaluation: evaluated: 11, effectively constant: 11

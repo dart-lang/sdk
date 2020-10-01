@@ -272,4 +272,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:91:30
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:92:22 -> InstanceConstant(const Strength{Strength.value: 4, Strength.name: "normal"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:93:28 -> InstanceConstant(const Strength{Strength.value: 5, Strength.name: "weakDefault"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///DeltaBlue.dart:94:23 -> InstanceConstant(const Strength{Strength.value: 6, Strength.name: "weakest"})
-Extra constant evaluation: tries: 10, successes: 7
+Extra constant evaluation: evaluated: 10, effectively constant: 7

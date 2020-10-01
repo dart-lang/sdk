@@ -178,4 +178,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:49:18 ->
 Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:61:25 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:16:16 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///late_annotations.dart:72:25 -> IntConstant(0)
-Extra constant evaluation: tries: 268, successes: 6
+Extra constant evaluation: evaluated: 268, effectively constant: 6

@@ -287,4 +287,4 @@ Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:127:35 -> BoolConstant(false)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:128:33 -> BoolConstant(true)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:130:33 -> NullConstant(null)
-Extra constant evaluation: tries: 66, successes: 24
+Extra constant evaluation: evaluated: 66, effectively constant: 24

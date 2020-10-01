@@ -34,4 +34,4 @@ static method main() → dynamic {
 
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///issue41273.dart:16:21 -> TypeLiteralConstant(Object)
-Extra constant evaluation: tries: 175, successes: 1
+Extra constant evaluation: evaluated: 175, effectively constant: 1

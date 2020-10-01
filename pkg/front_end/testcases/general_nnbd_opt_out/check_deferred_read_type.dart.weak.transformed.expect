@@ -39,4 +39,4 @@ static method m(dynamic x) → dynamic
 
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///check_deferred_read_type.dart:11:13 -> TypeLiteralConstant(C*)
-Extra constant evaluation: tries: 4, successes: 1
+Extra constant evaluation: evaluated: 4, effectively constant: 1

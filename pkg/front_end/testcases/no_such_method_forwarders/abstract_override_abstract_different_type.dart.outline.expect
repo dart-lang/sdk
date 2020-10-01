@@ -50,4 +50,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_diff
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> SymbolConstant(#float=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> ListConstant(const <Type*>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_abstract_different_type.dart:17:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Extra constant evaluation: tries: 40, successes: 12
+Extra constant evaluation: evaluated: 40, effectively constant: 12

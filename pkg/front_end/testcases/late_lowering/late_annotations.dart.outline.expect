@@ -150,4 +150,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dar
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:68:4 -> InstanceConstant(const Annotation{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:68:4 -> InstanceConstant(const Annotation{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///late_annotations.dart:71:4 -> InstanceConstant(const Annotation{})
-Extra constant evaluation: tries: 34, successes: 34
+Extra constant evaluation: evaluated: 34, effectively constant: 34

@@ -33,4 +33,4 @@ static method main() → dynamic {
 
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///void_methods.dart:9:24 -> IntConstant(0)
-Extra constant evaluation: tries: 36, successes: 1
+Extra constant evaluation: evaluated: 36, effectively constant: 1

@@ -358,4 +358,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.da
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:63:45 -> InstanceConstant(const CustomMap{})
 Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:64:51 -> InstanceConstant(const CustomMap{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:66:9 -> InstanceConstant(const WithEquals{WithEquals.i: 42})
-Extra constant evaluation: tries: 90, successes: 59
+Extra constant evaluation: evaluated: 90, effectively constant: 59

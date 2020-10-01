@@ -33,4 +33,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///dynamic_invocation_of_getter.dart:14:7 -> DoubleConstant(1.5)
-Extra constant evaluation: tries: 10, successes: 1
+Extra constant evaluation: evaluated: 10, effectively constant: 1

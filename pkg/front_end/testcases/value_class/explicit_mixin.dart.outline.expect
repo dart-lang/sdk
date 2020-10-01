@@ -55,4 +55,4 @@ static const field core::String valueClass = "valueClass";
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///explicit_mixin.dart:7:2 -> StringConstant("valueClass")
 Evaluated: StaticGet @ org-dartlang-testcase:///explicit_mixin.dart:17:2 -> StringConstant("valueClass")
-Extra constant evaluation: tries: 2, successes: 2
+Extra constant evaluation: evaluated: 2, effectively constant: 2

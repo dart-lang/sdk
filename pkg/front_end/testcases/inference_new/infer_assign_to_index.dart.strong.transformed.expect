@@ -11,4 +11,4 @@ Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index.dart:9:34 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index.dart:9:39 -> DoubleConstant(1.0)
 Evaluated: VariableGet @ org-dartlang-testcase:///infer_assign_to_index.dart:9:39 -> DoubleConstant(1.0)
-Extra constant evaluation: tries: 11, successes: 3
+Extra constant evaluation: evaluated: 11, effectively constant: 3

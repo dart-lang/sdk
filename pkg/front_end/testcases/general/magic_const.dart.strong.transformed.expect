@@ -72,4 +72,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///magic_const.dart:21:8 -> BoolConstant(false)
-Extra constant evaluation: tries: 2, successes: 1
+Extra constant evaluation: evaluated: 2, effectively constant: 1

@@ -18,4 +18,4 @@ static method main() → dynamic {}
 
 Extra constant evaluation status:
 Evaluated: Let @ org-dartlang-testcase:///issue_31180.dart:6:10 -> NullConstant(null)
-Extra constant evaluation: tries: 1, successes: 1
+Extra constant evaluation: evaluated: 1, effectively constant: 1

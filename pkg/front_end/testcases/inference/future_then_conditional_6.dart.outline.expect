@@ -52,4 +52,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///future_then_conditional_6.dart:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_conditional_6.dart:10:7 -> SymbolConstant(#timeout)
 Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_conditional_6.dart:10:7 -> ListConstant(const <Type*>[])
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_conditional_6.dart:10:7 -> SymbolConstant(#onTimeout)
-Extra constant evaluation: tries: 46, successes: 13
+Extra constant evaluation: evaluated: 46, effectively constant: 13

@@ -51,4 +51,4 @@ constants  {
 Extra constant evaluation status:
 Evaluated: Instantiation @ org-dartlang-testcase:///instantiate_tearoff.dart:25:10 -> PartialInstantiationConstant(f<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///instantiate_tearoff.dart:27:12 -> PartialInstantiationConstant(C.g<int*>)
-Extra constant evaluation: tries: 18, successes: 2
+Extra constant evaluation: evaluated: 18, effectively constant: 2

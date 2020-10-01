@@ -64,4 +64,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:27
 Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:27:5 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:28:13 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:28:13 -> IntConstant(0)
-Extra constant evaluation: tries: 58, successes: 4
+Extra constant evaluation: evaluated: 58, effectively constant: 4

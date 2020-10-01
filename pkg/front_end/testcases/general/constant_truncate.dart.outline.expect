@@ -95,4 +95,4 @@ Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:44:19 -> 
 Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:44:38 -> DoubleConstant(-Infinity)
 Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:45:19 -> DoubleConstant(-Infinity)
 Evaluated: StaticGet @ org-dartlang-testcase:///constant_truncate.dart:45:46 -> DoubleConstant(-Infinity)
-Extra constant evaluation: tries: 76, successes: 46
+Extra constant evaluation: evaluated: 76, effectively constant: 46

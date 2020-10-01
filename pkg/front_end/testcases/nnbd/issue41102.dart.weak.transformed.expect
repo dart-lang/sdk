@@ -135,4 +135,4 @@ Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///issue41102.dart:37:15 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///issue41102.dart:37:20 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///issue41102.dart:37:20 -> IntConstant(0)
-Extra constant evaluation: tries: 55, successes: 3
+Extra constant evaluation: evaluated: 55, effectively constant: 3

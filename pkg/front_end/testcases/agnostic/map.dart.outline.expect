@@ -14,4 +14,4 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///map.dart:5:16 -> ListConstant(
 Evaluated: ListLiteral @ org-dartlang-testcase:///map.dart:6:17 -> ListConstant(const <int?>[])
 Evaluated: StaticGet @ org-dartlang-testcase:///map.dart:7:12 -> ListConstant(const <int>[])
 Evaluated: StaticGet @ org-dartlang-testcase:///map.dart:7:18 -> ListConstant(const <int?>[])
-Extra constant evaluation: tries: 5, successes: 4
+Extra constant evaluation: evaluated: 5, effectively constant: 4

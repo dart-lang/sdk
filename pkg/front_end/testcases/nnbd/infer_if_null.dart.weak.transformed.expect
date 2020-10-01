@@ -84,4 +84,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:15 -> Do
 Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:21 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:28 -> StringConstant("bar")
 Evaluated: VariableGet @ org-dartlang-testcase:///infer_if_null.dart:60:28 -> StringConstant("bar")
-Extra constant evaluation: tries: 112, successes: 14
+Extra constant evaluation: evaluated: 112, effectively constant: 14

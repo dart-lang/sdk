@@ -62,4 +62,4 @@ static method main() → dynamic {
 Extra constant evaluation status:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///implicit_scope_test.dart:14:18 -> BoolConstant(true)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///implicit_scope_test.dart:35:49 -> BoolConstant(false)
-Extra constant evaluation: tries: 28, successes: 2
+Extra constant evaluation: evaluated: 28, effectively constant: 2

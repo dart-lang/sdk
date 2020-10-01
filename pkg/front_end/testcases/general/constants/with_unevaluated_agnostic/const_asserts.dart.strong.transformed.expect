@@ -140,4 +140,4 @@ Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase://
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:14:44 -> BoolConstant(false)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:25:24 -> InstanceConstant(const Foo{Foo.x: 1})
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_asserts.dart:25:24 -> InstanceConstant(const Foo{Foo.x: 1})
-Extra constant evaluation: tries: 34, successes: 10
+Extra constant evaluation: evaluated: 34, effectively constant: 10

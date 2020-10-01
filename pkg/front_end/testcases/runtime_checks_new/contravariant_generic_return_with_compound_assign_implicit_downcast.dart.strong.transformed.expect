@@ -92,4 +92,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_generic_return_with_compound_assign_implicit_downcast.dart:50:21 -> IntConstant(0)
-Extra constant evaluation: tries: 58, successes: 1
+Extra constant evaluation: evaluated: 58, effectively constant: 1

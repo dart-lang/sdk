@@ -54,4 +54,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_v
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:18:4 -> InstanceConstant(const Fisk<int*>{Fisk.x: 42})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:19:3 -> InstanceConstant(const Foo{Foo.index: 1, Foo._name: "Foo.baz"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:20:3 -> InstanceConstant(const Foo{Foo.index: 2, Foo._name: "Foo.cafebabe"})
-Extra constant evaluation: tries: 11, successes: 6
+Extra constant evaluation: evaluated: 11, effectively constant: 6

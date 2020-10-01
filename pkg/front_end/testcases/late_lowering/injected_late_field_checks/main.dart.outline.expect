@@ -27,4 +27,4 @@ class Class extends core::Object {
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
-Extra constant evaluation: tries: 1, successes: 1
+Extra constant evaluation: evaluated: 1, effectively constant: 1

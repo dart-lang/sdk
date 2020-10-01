@@ -226,4 +226,4 @@ Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:
 Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///various.dart:130:10 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:130:35 -> BoolConstant(false)
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///various.dart:131:37 -> NullConstant(null)
-Extra constant evaluation: tries: 112, successes: 68
+Extra constant evaluation: evaluated: 112, effectively constant: 68

@@ -45,4 +45,4 @@ Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:9:5 -> InstanceC
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:9:43 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:15:19 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:28:17 -> InstanceConstant(const _Patch{})
-Extra constant evaluation: tries: 6, successes: 4
+Extra constant evaluation: evaluated: 6, effectively constant: 4

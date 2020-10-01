@@ -16,4 +16,4 @@ Extra constant evaluation status:
 Evaluated: Not @ org-dartlang-testcase:///infer_prefix_expression.dart:8:13 -> BoolConstant(false)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_prefix_expression.dart:9:38 -> IntConstant(-2)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_prefix_expression.dart:10:39 -> IntConstant(-1)
-Extra constant evaluation: tries: 6, successes: 3
+Extra constant evaluation: evaluated: 6, effectively constant: 3

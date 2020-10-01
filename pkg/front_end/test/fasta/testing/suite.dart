@@ -792,8 +792,8 @@ class StressConstantEvaluatorStep
     if (stressConstantEvaluatorVisitor.success > 0) {
       result.extraConstantStrings.addAll(stressConstantEvaluatorVisitor.output);
       result.extraConstantStrings.add("Extra constant evaluation: "
-          "tries: ${stressConstantEvaluatorVisitor.tries}, "
-          "successes: ${stressConstantEvaluatorVisitor.success}");
+          "evaluated: ${stressConstantEvaluatorVisitor.tries}, "
+          "effectively constant: ${stressConstantEvaluatorVisitor.success}");
     }
     return pass(result);
   }

@@ -88,4 +88,4 @@ Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections.dart:5:40 -> ListConstant(const <bool>[false, false, true])
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections.dart:10:46 -> ListConstant(const <bool>[true, false, false, true, false])
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///const_collections.dart:27:38 -> MapConstant(const <bool, bool>{false: false})
-Extra constant evaluation: tries: 16, successes: 5
+Extra constant evaluation: evaluated: 16, effectively constant: 5

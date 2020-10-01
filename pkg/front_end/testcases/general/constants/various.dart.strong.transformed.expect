@@ -630,4 +630,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: PropertyGet @ org-dartlang-testcase:///various.dart:111:26 -> IntConstant(5)
-Extra constant evaluation: tries: 12, successes: 1
+Extra constant evaluation: evaluated: 12, effectively constant: 1

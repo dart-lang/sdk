@@ -36,4 +36,4 @@ Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///rudimentary_test_01.dart:6:18 -> StringConstant("hello world!")
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///rudimentary_test_01.dart:6:18 -> StringConstant("hello world!")
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///rudimentary_test_01.dart:6:18 -> StringConstant("hello world!")
-Extra constant evaluation: tries: 8, successes: 4
+Extra constant evaluation: evaluated: 8, effectively constant: 4

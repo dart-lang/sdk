@@ -31,4 +31,4 @@ Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///enum.dart:5:6 -> ListConstant(const <Foo*>[const Foo{Foo.index: 0, Foo._name: "Foo.ec1"}, const Foo{Foo.index: 1, Foo._name: "Foo.ec2"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:6:3 -> InstanceConstant(const Foo{Foo.index: 0, Foo._name: "Foo.ec1"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:7:3 -> InstanceConstant(const Foo{Foo.index: 1, Foo._name: "Foo.ec2"})
-Extra constant evaluation: tries: 7, successes: 3
+Extra constant evaluation: evaluated: 7, effectively constant: 3

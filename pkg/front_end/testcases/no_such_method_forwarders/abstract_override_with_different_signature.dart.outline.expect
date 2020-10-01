@@ -82,4 +82,4 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_diffe
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:26:7 -> ListConstant(const <Type*>[])
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:26:7 -> SymbolConstant(#amount)
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:26:7 -> SymbolConstant(#yetAnother)
-Extra constant evaluation: tries: 39, successes: 10
+Extra constant evaluation: evaluated: 39, effectively constant: 10

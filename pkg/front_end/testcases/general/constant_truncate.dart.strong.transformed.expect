@@ -427,4 +427,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:67
 Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:71:8 -> DoubleConstant(-0.0)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:78:8 -> DoubleConstant(-0.0)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///constant_truncate.dart:85:8 -> DoubleConstant(-0.0)
-Extra constant evaluation: tries: 115, successes: 12
+Extra constant evaluation: evaluated: 115, effectively constant: 12

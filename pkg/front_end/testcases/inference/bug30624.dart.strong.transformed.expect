@@ -49,4 +49,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///bug30624.dart:40:35 -> IntConstant(-1)
-Extra constant evaluation: tries: 47, successes: 1
+Extra constant evaluation: evaluated: 47, effectively constant: 1

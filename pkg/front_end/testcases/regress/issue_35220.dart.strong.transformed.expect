@@ -36,4 +36,4 @@ static method main() → dynamic {}
 
 Extra constant evaluation status:
 Evaluated: Not @ org-dartlang-testcase:///issue_35220.dart:6:25 -> BoolConstant(true)
-Extra constant evaluation: tries: 3, successes: 1
+Extra constant evaluation: evaluated: 3, effectively constant: 1

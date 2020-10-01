@@ -25,4 +25,4 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///static_method_tear_off.dart:8:13 -> TearOffConstant(C.f)
-Extra constant evaluation: tries: 1, successes: 1
+Extra constant evaluation: evaluated: 1, effectively constant: 1

@@ -107,4 +107,4 @@ Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:55:15 -
 Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:56:15 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:57:15 -> BoolConstant(true)
 Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:7:40 -> BoolConstant(false)
-Extra constant evaluation: tries: 102, successes: 14
+Extra constant evaluation: evaluated: 102, effectively constant: 14

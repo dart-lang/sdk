@@ -239,4 +239,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart
 Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:36:16 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:36:16 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:36:16 -> NullConstant(null)
-Extra constant evaluation: tries: 291, successes: 21
+Extra constant evaluation: evaluated: 291, effectively constant: 21

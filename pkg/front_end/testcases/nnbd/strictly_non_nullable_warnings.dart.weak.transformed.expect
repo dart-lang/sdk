@@ -221,4 +221,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings
 Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:42:8 -> IntConstant(42)
 Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:43:5 -> IntConstant(42)
 Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:43:5 -> IntConstant(42)
-Extra constant evaluation: tries: 221, successes: 6
+Extra constant evaluation: evaluated: 221, effectively constant: 6

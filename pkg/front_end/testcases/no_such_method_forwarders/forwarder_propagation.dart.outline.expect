@@ -132,4 +132,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///forwarder_propagation_lib.dart:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///forwarder_propagation_lib.dart:6:7 -> SymbolConstant(#_privateField=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///forwarder_propagation_lib.dart:6:7 -> ListConstant(const <Type*>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///forwarder_propagation_lib.dart:6:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Extra constant evaluation: tries: 79, successes: 29
+Extra constant evaluation: evaluated: 79, effectively constant: 29
