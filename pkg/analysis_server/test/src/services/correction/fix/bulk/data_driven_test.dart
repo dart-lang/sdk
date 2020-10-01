@@ -751,7 +751,7 @@ transforms:
   date: 2020-09-01
   element:
     uris: ['$importUri']
-    function: 'old'
+    variable: 'old'
   changes:
     - kind: 'rename'
       newName: 'new'
@@ -781,7 +781,7 @@ transforms:
   date: 2020-09-01
   element:
     uris: ['$importUri']
-    function: 'old'
+    variable: 'old'
   changes:
     - kind: 'rename'
       newName: 'new'
