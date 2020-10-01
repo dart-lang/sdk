@@ -350,6 +350,7 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
   bool get isRedirect {
     if (_httpRequest.method == "GET" || _httpRequest.method == "HEAD") {
       return statusCode == HttpStatus.movedPermanently ||
+          statusCode == HttpStatus.permanentRedirect ||
           statusCode == HttpStatus.found ||
           statusCode == HttpStatus.seeOther ||
           statusCode == HttpStatus.temporaryRedirect;

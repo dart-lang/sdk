@@ -106,6 +106,7 @@ Future<HttpServer> setupServer() {
     addRedirectHandler(n++, HttpStatus.movedTemporarily);
     addRedirectHandler(n++, HttpStatus.seeOther);
     addRedirectHandler(n++, HttpStatus.temporaryRedirect);
+    addRedirectHandler(n++, HttpStatus.permanentRedirect);
     for (int i = n; i < 10; i++) {
       addRedirectHandler(i, HttpStatus.movedPermanently);
     }

@@ -2,6 +2,11 @@
 
 ### Core libraries
 
+#### `dart:io`
+
+*   `HttpRequest` will now correctly follow HTTP 308 redirects
+    (`HttpStatus.permanentRedirect`).
+
 ### Dart VM
 
 ### Dart2JS
