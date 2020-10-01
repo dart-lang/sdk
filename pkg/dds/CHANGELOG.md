@@ -1,3 +1,8 @@
+# 1.4.1
+- Fixed issue where `evaluate` and `evaluateInFrame` requests were not being
+  forwarded to the VM service properly when no external compilation service
+  was registered.
+
 # 1.4.0
 - Added `done` property to `DartDevelopmentService`.
 - Throw `DartDeveloperServiceException` when shutdown occurs during startup.
