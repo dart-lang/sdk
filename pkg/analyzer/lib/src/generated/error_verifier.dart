@@ -304,6 +304,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAssertInitializer(AssertInitializer node) {
+    _isInConstructorInitializer = true;
+    try {
+      super.visitAssertInitializer(node);
+    } finally {
+      _isInConstructorInitializer = false;
+    }
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
