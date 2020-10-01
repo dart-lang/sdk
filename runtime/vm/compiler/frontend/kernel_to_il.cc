@@ -1822,8 +1822,10 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     Fragment* checks = is_covariant ? explicit_checks : implicit_checks;
 
     *checks += LoadLocal(param);
-    *checks += CheckAssignable(*target_type, name,
-                               AssertAssignableInstr::kParameterCheck);
+    *checks += AssertAssignableLoadTypeArguments(
+        TokenPosition::kNoSource, *target_type, name,
+        AssertAssignableInstr::kParameterCheck);
+    *checks += StoreLocal(param);
     *checks += Drop();
 
     if (!is_covariant && implicit_redefinitions != nullptr && optimizing_) {
