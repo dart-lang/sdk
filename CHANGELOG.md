@@ -23,8 +23,13 @@
 
 #### Linter
 
-Updated the Linter to `0.1.119`, which includes:
+Updated the Linter to `0.1.120`, which includes:
 
+* New lint: `cast_nullable_to_non_nullable`.
+* New lint: `null_check_on_nullable_type_parameter`.
+* New lint: `tighten_type_of_initializing_formals`.
+* Updates to `public_member_apis` to check generic type aliases.
+* (Internal): updates to adopt new analyzer APIs.
 * Fixed `close_sinks` to handle `this`-prefixed property accesses.
 * New lint: `unnecessary_null_checks`.
 * Fixed `unawaited_futures` to handle `Future` subtypes.
