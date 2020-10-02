@@ -11,7 +11,7 @@
 
 ### Dart2JS
 
-* Removed `--no-defer-class-types` and `--no-new-deferred-split'.
+* Removed `--no-defer-class-types` and `--no-new-deferred-split`.
 
 ### Tools
 
