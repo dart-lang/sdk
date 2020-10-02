@@ -78,6 +78,10 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    if (!isInLibDir(context.currentUnit.unit, context.package)) {
+      return;
+    }
+
     final visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
@@ -97,8 +101,6 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
   final LinterContext context;
-
-  bool isInLibFolder;
 
   _Visitor(this.rule, this.context);
 
@@ -136,8 +138,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    if (!isInLibFolder) return;
-
     if (!isPrivate(node.name)) {
       check(node);
     }
@@ -145,10 +145,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    // Ignore this compilation unit if it's not in the lib/ folder.
-    isInLibFolder = isInLibDir(node, context.package);
-    if (!isInLibFolder) return;
-
     final getters = <String, FunctionDeclaration>{};
     final setters = <FunctionDeclaration>[];
 
@@ -197,8 +193,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (!isInLibFolder) return;
-
     if (!inPrivateMember(node) && !isPrivate(node.name)) {
       check(node);
     }
@@ -206,8 +200,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    if (!isInLibFolder) return;
-
     if (!inPrivateMember(node) && !isPrivate(node.name)) {
       check(node);
     }
@@ -215,8 +207,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (!isInLibFolder) return;
-
     if (!isPrivate(node.name)) {
       check(node);
     }
@@ -224,8 +214,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (!isInLibFolder) return;
-
     if (node.name == null || isPrivate(node.name)) {
       return;
     }
@@ -275,8 +263,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    if (!isInLibFolder) return;
-
     if (!inPrivateMember(node)) {
       for (var field in node.fields.variables) {
         if (!isPrivate(field.name)) {
@@ -288,8 +274,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (!isInLibFolder) return;
-
     if (!isPrivate(node.name)) {
       check(node);
     }
@@ -297,8 +281,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (!isInLibFolder) return;
-
     if (!isPrivate(node.name)) {
       check(node);
     }
@@ -311,8 +293,6 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (!isInLibFolder) return;
-
     for (var decl in node.variables.variables) {
       if (!isPrivate(decl.name)) {
         check(decl);
@@ -321,8 +301,6 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   void _visitClassOrMixin(ClassOrMixinDeclaration node) {
-    if (!isInLibFolder) return;
-
     if (isPrivate(node.name)) return;
 
     check(node);
