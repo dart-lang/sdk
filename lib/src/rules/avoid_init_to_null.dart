@@ -69,7 +69,6 @@ class AvoidInitToNull extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addVariableDeclaration(this, visitor);
     registry.addDefaultFormalParameter(this, visitor);
   }
@@ -79,16 +78,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 
-  bool nnbdEnabled = false;
-  _Visitor(this.rule, this.context);
+  final bool nnbdEnabled;
+  _Visitor(this.rule, this.context)
+      : nnbdEnabled = context.isEnabled(Feature.non_nullable);
 
   bool isNullable(DartType type) =>
       !nnbdEnabled || (type != null && context.typeSystem.isNullable(type));
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    nnbdEnabled = node.featureSet.isEnabled(Feature.non_nullable);
-  }
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
