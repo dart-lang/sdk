@@ -166,6 +166,9 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "flutter": {
     ExperimentalFlag.nonNullable,
   },
+  "flutter_driver": {
+    ExperimentalFlag.nonNullable,
+  },
   "flutter_test": {
     ExperimentalFlag.nonNullable,
   },

@@ -58,6 +58,9 @@
     "flutter": {
       "experimentSet": "nullSafety"
     },
+    "flutter_driver": {
+      "experimentSet": "nullSafety"
+    },
     "flutter_test": {
       "experimentSet": "nullSafety"
     },
