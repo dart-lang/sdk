@@ -143,8 +143,8 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   bool is_server_;
   char* hostname_;
 
-  Dart_Port reply_port_;
-  Dart_Port trust_evaluate_reply_port_;
+  Dart_Port reply_port_ = ILLEGAL_PORT;
+  Dart_Port trust_evaluate_reply_port_ = ILLEGAL_PORT;
 
   static bool IsBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;
