@@ -79,22 +79,23 @@ class SimpleUnreachableCodeElimination extends Transformer {
     node.transformChildren(this);
     final left = node.left;
     final right = node.right;
-    final operator = node.operator;
+    final operatorEnum = node.operatorEnum;
     if (_isBoolConstant(left)) {
       final leftValue = _getBoolConstantValue(left);
       if (_isBoolConstant(right)) {
         final rightValue = _getBoolConstantValue(right);
-        if (operator == '||') {
+        if (operatorEnum == LogicalExpressionOperator.OR) {
           return _createBoolLiteral(leftValue || rightValue, node.fileOffset);
-        } else if (operator == '&&') {
+        } else if (operatorEnum == LogicalExpressionOperator.AND) {
           return _createBoolLiteral(leftValue && rightValue, node.fileOffset);
         } else {
-          throw 'Unexpected LogicalExpression operator ${operator}: $node';
+          throw 'Unexpected LogicalExpression operator ${operatorEnum}: $node';
         }
       } else {
-        if (leftValue && operator == '||') {
+        if (leftValue && operatorEnum == LogicalExpressionOperator.OR) {
           return _createBoolLiteral(true, node.fileOffset);
-        } else if (!leftValue && operator == '&&') {
+        } else if (!leftValue &&
+            operatorEnum == LogicalExpressionOperator.AND) {
           return _createBoolLiteral(false, node.fileOffset);
         }
       }

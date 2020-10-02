@@ -1773,6 +1773,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
+  /// Handle `a && b` and `a || b`.
   void doLogicalExpression(Token token) {
     Expression argument = popForValue();
     Expression receiver = pop();

@@ -57,7 +57,7 @@ main() {
       VariableDeclaration variable = test.makeVariable();
       test.addNode(LogicalExpression(
           new Let(variable, new VariableGet(variable)),
-          '&&',
+          LogicalExpressionOperator.AND,
           new VariableGet(variable)));
       return variable;
     },

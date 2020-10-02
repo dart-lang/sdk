@@ -203,7 +203,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitLogicalExpression(LogicalExpression node) {
     return new LogicalExpression(
-        clone(node.left), node.operator, clone(node.right));
+        clone(node.left), node.operatorEnum, clone(node.right));
   }
 
   visitConditionalExpression(ConditionalExpression node) {

@@ -351,7 +351,7 @@ class ExpressionLifter extends Transformer {
         new MethodInvocation(expr.right, new Name('=='),
             new Arguments(<Expression>[new BoolLiteral(true)])))));
     var then, otherwise;
-    if (expr.operator == '&&') {
+    if (expr.operatorEnum == LogicalExpressionOperator.AND) {
       then = rightBody;
       otherwise = null;
     } else {

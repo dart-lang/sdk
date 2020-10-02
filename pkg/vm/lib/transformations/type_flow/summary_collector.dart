@@ -1317,8 +1317,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       _variableValues = null;
       return;
     } else if (node is LogicalExpression) {
-      assert(node.operator == '||' || node.operator == '&&');
-      final isOR = (node.operator == '||');
+      final isOR = (node.operatorEnum == LogicalExpressionOperator.OR);
       _visitCondition(node.left, trueState, falseState);
       if (isOR) {
         // expr1 || expr2

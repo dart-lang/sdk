@@ -1635,8 +1635,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (condition is Not) {
       _genConditionAndJumpIf(condition.operand, !value, dest);
     } else if (condition is LogicalExpression) {
-      assert(condition.operator == '||' || condition.operator == '&&');
-      final isOR = (condition.operator == '||');
+      final isOR = (condition.operatorEnum == LogicalExpressionOperator.OR);
 
       Label shortCircuit, done;
       if (isOR == value) {
@@ -3221,12 +3220,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitLogicalExpression(LogicalExpression node) {
-    assert(node.operator == '||' || node.operator == '&&');
-
     final Label shortCircuit = new Label();
     final Label done = new Label();
     final int temp = locals.tempIndexInFrame(node);
-    final isOR = (node.operator == '||');
+    final isOR = (node.operatorEnum == LogicalExpressionOperator.OR);
 
     _genConditionAndJumpIf(node.left, isOR, shortCircuit);
 

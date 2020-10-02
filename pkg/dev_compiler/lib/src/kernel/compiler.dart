@@ -3434,9 +3434,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return js.call(code, [_visitTest(node.left), _visitTest(node.right)]);
       }
 
-      var op = node.operator;
-      if (op == '&&') return shortCircuit('# && #');
-      if (op == '||') return shortCircuit('# || #');
+      var op = node.operatorEnum;
+      if (op == LogicalExpressionOperator.AND) return shortCircuit('# && #');
+      if (op == LogicalExpressionOperator.OR) return shortCircuit('# || #');
     }
 
     if (node is AsExpression && node.isTypeError) {

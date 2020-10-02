@@ -45,7 +45,7 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitInvalidExpression(InvalidExpression _) => "invalid";
   String visitNot(Not _) => "not";
   String visitLogicalExpression(LogicalExpression expression) {
-    return expression.operator;
+    return logicalExpressionOperatorToString(expression.operatorEnum);
   }
 
   String visitStringConcatenation(StringConcatenation _) => "concat";
@@ -143,7 +143,8 @@ Tuple2<Expression, Expression> unwrapLogicalExpression(
 }
 
 LogicalExpression wrapLogicalAnd(Tuple2<Expression, Expression> tuple) {
-  return new LogicalExpression(tuple.first, '&&', tuple.second);
+  return new LogicalExpression(
+      tuple.first, LogicalExpressionOperator.AND, tuple.second);
 }
 
 TextSerializer<LogicalExpression> logicalOrSerializer = new Wrapped(
@@ -152,7 +153,8 @@ TextSerializer<LogicalExpression> logicalOrSerializer = new Wrapped(
     new Tuple2Serializer(expressionSerializer, expressionSerializer));
 
 LogicalExpression wrapLogicalOr(Tuple2<Expression, Expression> tuple) {
-  return new LogicalExpression(tuple.first, '||', tuple.second);
+  return new LogicalExpression(
+      tuple.first, LogicalExpressionOperator.OR, tuple.second);
 }
 
 TextSerializer<StringConcatenation> stringConcatenationSerializer = new Wrapped(

@@ -177,8 +177,8 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
                   targetsEquals[f]))
               .fold(
                   IsExpression(VariableGet(other), myType),
-                  (previousValue, element) =>
-                      LogicalExpression(previousValue, '&&', element))),
+                  (previousValue, element) => LogicalExpression(
+                      previousValue, LogicalExpressionOperator.AND, element))),
           returnType: returnType,
           positionalParameters: [other]),
       fileUri: cls.fileUri)

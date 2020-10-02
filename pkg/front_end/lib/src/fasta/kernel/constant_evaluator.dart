@@ -1864,11 +1864,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       Constant right = _evaluateSubexpression(node.right);
       if (right is AbortConstant) return right;
       leaveLazy();
-      return unevaluated(node,
-          new LogicalExpression(extract(left), node.operator, extract(right)));
+      return unevaluated(
+          node,
+          new LogicalExpression(
+              extract(left), node.operatorEnum, extract(right)));
     }
-    switch (node.operator) {
-      case '||':
+    switch (node.operatorEnum) {
+      case LogicalExpressionOperator.OR:
         if (left is BoolConstant) {
           if (left.value) return trueConstant;
 
@@ -1881,7 +1883,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           return createErrorConstant(
               node,
               templateConstEvalInvalidBinaryOperandType.withArguments(
-                  node.operator,
+                  logicalExpressionOperatorToString(node.operatorEnum),
                   left,
                   typeEnvironment.coreTypes.boolLegacyRawType,
                   right.getType(_staticTypeContext),
@@ -1890,8 +1892,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return createErrorConstant(
             node,
             templateConstEvalInvalidMethodInvocation.withArguments(
-                node.operator, left, isNonNullableByDefault));
-      case '&&':
+                logicalExpressionOperatorToString(node.operatorEnum),
+                left,
+                isNonNullableByDefault));
+      case LogicalExpressionOperator.AND:
         if (left is BoolConstant) {
           if (!left.value) return falseConstant;
 
@@ -1904,7 +1908,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           return createErrorConstant(
               node,
               templateConstEvalInvalidBinaryOperandType.withArguments(
-                  node.operator,
+                  logicalExpressionOperatorToString(node.operatorEnum),
                   left,
                   typeEnvironment.coreTypes.boolLegacyRawType,
                   right.getType(_staticTypeContext),
@@ -1913,18 +1917,17 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return createErrorConstant(
             node,
             templateConstEvalInvalidMethodInvocation.withArguments(
-                node.operator, left, isNonNullableByDefault));
-      case '??':
-        // Unreachable. LogicalExpression never created with `??`.
-        return (left is! NullConstant)
-            ? left
-            : _evaluateSubexpression(node.right);
+                logicalExpressionOperatorToString(node.operatorEnum),
+                left,
+                isNonNullableByDefault));
       default:
         // Probably unreachable.
         return createErrorConstant(
             node,
             templateConstEvalInvalidMethodInvocation.withArguments(
-                node.operator, left, isNonNullableByDefault));
+                logicalExpressionOperatorToString(node.operatorEnum),
+                left,
+                isNonNullableByDefault));
     }
   }
 

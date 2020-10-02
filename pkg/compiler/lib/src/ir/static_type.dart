@@ -879,7 +879,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitLogicalExpression(ir.LogicalExpression node) {
-    if (node.operator == '&&') {
+    if (node.operatorEnum == ir.LogicalExpressionOperator.AND) {
       visitNode(node.left);
       TypeMap afterLeftWhenTrue = typeMapWhenTrue;
       TypeMap afterLeftWhenFalse = typeMapWhenFalse;

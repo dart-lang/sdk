@@ -1383,9 +1383,10 @@ class Printer extends Visitor<Null> {
   }
 
   visitLogicalExpression(LogicalExpression node) {
-    int precedence = Precedence.binaryPrecedence[node.operator];
+    int precedence = Precedence
+        .binaryPrecedence[logicalExpressionOperatorToString(node.operatorEnum)];
     writeExpression(node.left, precedence);
-    writeSpaced(node.operator);
+    writeSpaced(logicalExpressionOperatorToString(node.operatorEnum));
     writeExpression(node.right, precedence + 1);
   }
 
@@ -2484,7 +2485,7 @@ class Precedence extends ExpressionVisitor<int> {
   int visitNot(Not node) => PREFIX;
   int visitNullCheck(NullCheck node) => PRIMARY;
   int visitLogicalExpression(LogicalExpression node) =>
-      binaryPrecedence[node.operator];
+      binaryPrecedence[logicalExpressionOperatorToString(node.operatorEnum)];
   int visitConditionalExpression(ConditionalExpression node) => CONDITIONAL;
   int visitStringConcatenation(StringConcatenation node) => PRIMARY;
   int visitIsExpression(IsExpression node) => RELATIONAL;
