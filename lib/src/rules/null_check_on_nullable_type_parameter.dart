@@ -56,8 +56,12 @@ class NullCheckOnNullableTypeParameter extends LintRule
         );
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
+    if (!context.isEnabled(Feature.non_nullable)) {
+      return;
+    }
+
     final visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addPostfixExpression(this, visitor);
@@ -70,16 +74,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 
-  bool _isNonNullableEnabled;
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _isNonNullableEnabled = node.featureSet.isEnabled(Feature.non_nullable);
-  }
-
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    if (!_isNonNullableEnabled) return;
     if (node.operator.type != TokenType.BANG) return;
 
     final expectedType = getExpectedType(node);

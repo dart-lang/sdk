@@ -39,8 +39,12 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
+    if (!context.isEnabled(Feature.non_nullable)) {
+      return;
+    }
+
     final visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addFieldDeclaration(this, visitor);
@@ -55,17 +59,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 
-  bool _isNonNullableEnabled;
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _isNonNullableEnabled = node.featureSet.isEnabled(Feature.non_nullable);
-  }
-
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    if (!_isNonNullableEnabled) return;
-
     for (var variable in node.fields.variables) {
       if (Identifier.isPrivateName(variable.name.name) || node.isStatic) {
         _visit(variable);
@@ -75,15 +70,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (!_isNonNullableEnabled) return;
-
     node.variables.variables.forEach(_visit);
   }
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    if (!_isNonNullableEnabled) return;
-
     node.variables.variables.forEach(_visit);
   }
 

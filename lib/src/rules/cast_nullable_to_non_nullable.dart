@@ -48,10 +48,13 @@ class CastNullableToNonNullable extends LintRule implements NodeLintRule {
         );
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
+    if (!context.isEnabled(Feature.non_nullable)) {
+      return;
+    }
+
     final visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addAsExpression(this, visitor);
   }
 }
@@ -62,17 +65,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 
-  bool _isNonNullableEnabled;
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _isNonNullableEnabled = node.featureSet.isEnabled(Feature.non_nullable);
-  }
-
   @override
   void visitAsExpression(AsExpression node) {
-    if (!_isNonNullableEnabled) return;
-
     final expressionType = node.expression.staticType;
     final type = node.type.type;
     if (!expressionType.isDynamic &&
