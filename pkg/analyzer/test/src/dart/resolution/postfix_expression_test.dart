@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -753,14 +751,8 @@ void f<T>(T? x) {
       writeElement: null,
       writeType: null,
       element: null,
-      type: 'T',
+      type: 'T & Object',
     );
-    expect(
-        postfixExpression.staticType,
-        TypeMatcher<TypeParameterType>().having(
-            (t) => t.bound.getDisplayString(withNullability: true),
-            'bound',
-            'Object'));
   }
 
   test_nullCheck_typeParameter_already_promoted() async {
@@ -780,13 +772,7 @@ void f<T>(T? x) {
       writeElement: null,
       writeType: null,
       element: null,
-      type: 'T',
+      type: 'T & num',
     );
-    expect(
-        postfixExpression.staticType,
-        TypeMatcher<TypeParameterType>().having(
-            (t) => t.bound.getDisplayString(withNullability: true),
-            'bound',
-            'num'));
   }
 }
