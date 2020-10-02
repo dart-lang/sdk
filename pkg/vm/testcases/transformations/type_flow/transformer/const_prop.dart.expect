@@ -15,7 +15,7 @@ class B extends core::Object /*isEnum*/  {
 [@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4] [@vm.unboxing-info.metadata=()->i]  final field core::int* index;
 [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "B.b2")] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  final field core::String* _name;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  method toString() → core::String*
-    return [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "B.b2")] this.{=self::B::_name};
+    return [@vm.direct-call.metadata=#lib::B._name] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "B.b2")] this.{self::B::_name};
 }
 [@vm.unboxing-info.metadata=(i)->b]static method test0([@vm.inferred-type.metadata=dart.core::_Smi (value: 40)] core::int* arg) → void {
   core::print(arg);

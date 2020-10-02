@@ -69,7 +69,7 @@ class Enum extends core::Object /*isEnum*/  {
     : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{=self::Enum::_name};
+    return this.{self::Enum::_name};
 }
 static method returnImplicit() → core::String {
   core::print("foo");

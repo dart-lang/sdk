@@ -24,7 +24,7 @@ t5 = _Call direct [dart.core::Object.] (%this)
 RESULT: _T {}?
 ------------ TestEnum.toString ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
-t1* = _Call direct get [#lib::TestEnum._name] (%this)
+t1* = _Call virtual get [#lib::TestEnum._name] (%this)
 RESULT: t1
 ------------ TestEnum.values ------------
 
