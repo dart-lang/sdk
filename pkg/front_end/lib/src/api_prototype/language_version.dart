@@ -7,7 +7,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show LanguageVersionToken, Scanner, ScannerConfiguration, scan;
 
-import 'package:kernel/ast.dart' show Version, defaultLanguageVersion;
+import 'package:kernel/ast.dart' show Version;
 export 'package:kernel/ast.dart' show Version;
 
 import 'package:package_config/package_config.dart'
@@ -23,6 +23,8 @@ import '../fasta/uri_translator.dart' show UriTranslator;
 
 import 'compiler_options.dart' show CompilerOptions;
 
+import 'experimental_flags.dart'
+    show ExperimentalFlag, experimentReleasedVersion;
 import 'file_system.dart' show FileSystem, FileSystemException;
 
 /// Gets the language version for a specific URI.
@@ -125,11 +127,13 @@ Future<Version> languageVersionForUri(Uri uri, CompilerOptions options) async {
   });
 }
 
+/// Returns `true` if the language version of [uri] does not support null
+/// safety.
 Future<bool> uriUsesLegacyLanguageVersion(
     Uri uri, CompilerOptions options) async {
   // This method is here in order to use the opt out hack here for test
   // sources.
   if (SourceLibraryBuilder.isOptOutTest(uri)) return true;
   Version uriVersion = await languageVersionForUri(uri, options);
-  return (uriVersion < defaultLanguageVersion);
+  return (uriVersion < experimentReleasedVersion[ExperimentalFlag.nonNullable]);
 }
