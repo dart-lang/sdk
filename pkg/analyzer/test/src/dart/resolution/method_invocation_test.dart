@@ -405,10 +405,9 @@ void f<S>(S s) {
 
 ''');
 
-    assertTypeParameterType(
-      findNode.methodInvocation('test(s)').typeArgumentTypes[0],
-      element: findElement.typeParameter('S'),
-      promotedBound: null,
+    assertTypeArgumentTypes(
+      findNode.methodInvocation('test(s)'),
+      ['S'],
     );
   }
 
