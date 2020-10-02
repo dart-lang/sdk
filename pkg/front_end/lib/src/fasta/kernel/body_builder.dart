@@ -2408,11 +2408,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(assignmentOperator.stringValue == "=");
     AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo;
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
+    Expression initializer = popForValue();
     if (isLate) {
       assignedVariablesInfo = typeInferrer?.assignedVariables
           ?.deferNode(isClosureOrLateVariableInitializer: true);
     }
-    pushNewLocalVariable(popForValue(), equalsToken: assignmentOperator);
+    pushNewLocalVariable(initializer, equalsToken: assignmentOperator);
     if (isLate) {
       VariableDeclaration node = peek();
       // This is matched by the call to [beginNode] in
