@@ -964,11 +964,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js_ast.ClassExpression(
             _emitTemporaryId(mixinName), baseClass, forwardingMethodStubs)
       ]));
-      // Emit a deferred superclass statement for virtual mixin classes since
-      // dart.mixinOn requires the virtual object to have a valid prototype.
-      var virtualSupertype = baseClass ?? emitDeferredType(supertype);
-      body.add(
-          runtimeStatement('setBaseClass(#, #)', [mixinId, virtualSupertype]));
 
       emitMixinConstructors(mixinId, mixinType);
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(mixinClass);
