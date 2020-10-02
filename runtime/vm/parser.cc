@@ -211,6 +211,9 @@ void ParsedFunction::AllocateVariables() {
       if (variable->is_explicit_covariant_parameter()) {
         raw_parameter->set_is_explicit_covariant_parameter();
       }
+      if (variable->needs_covariant_check_in_method()) {
+        raw_parameter->set_needs_covariant_check_in_method();
+      }
       raw_parameter->set_type_check_mode(variable->type_check_mode());
       if (function().HasOptionalParameters()) {
         bool ok = scope->AddVariable(raw_parameter);
