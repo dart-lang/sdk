@@ -161,8 +161,8 @@ late_lowering/late_nullable_field_without_initializer: FormatterCrash
 late_lowering/later: FormatterCrash
 late_lowering/override: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
-late_lowering_sentinel/late_fields: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
+late_lowering_sentinel/late_fields: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
 nnbd/extension_bounds: FormatterCrash
@@ -177,6 +177,7 @@ nnbd/issue41349: FormatterCrash
 nnbd/issue41597: FormatterCrash
 nnbd/issue42967: FormatterCrash
 nnbd/issue43278: FormatterCrash
+nnbd/issue43354: FormatterCrash
 nnbd/late: FormatterCrash
 nnbd/later: FormatterCrash
 nnbd/no_null_shorting_explicit_extension: FormatterCrash

@@ -55,12 +55,12 @@ library /*isNonNullableByDefault*/;
 //   late String s2 = '${fisk}${await hest()}${fisk}';
 //                              ^^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:46:9: Error: Constructor is marked 'const' so fields can't be late.
-//   const B();
-//         ^
-// pkg/front_end/testcases/nnbd/later.dart:44:18: Context: Field is late, but constructor is 'const'.
+// pkg/front_end/testcases/nnbd/later.dart:44:18: Error: Can't have a late final field in a class with a const constructor.
 //   late final int x = 42;
 //                  ^
+// pkg/front_end/testcases/nnbd/later.dart:46:9: Context: This constructor is const.
+//   const B();
+//         ^
 //
 import self as self;
 import "dart:core" as core;

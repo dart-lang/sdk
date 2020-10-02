@@ -1111,17 +1111,17 @@ const Code<Null> codeConstConstructorLateFinalFieldCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorLateFinalFieldCause =
     const MessageCode("ConstConstructorLateFinalFieldCause",
-        severity: Severity.context,
-        message: r"""Field is late, but constructor is 'const'.""");
+        severity: Severity.context, message: r"""This constructor is const.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorLateFinalFieldError =
     messageConstConstructorLateFinalFieldError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorLateFinalFieldError =
-    const MessageCode("ConstConstructorLateFinalFieldError",
-        message: r"""Constructor is marked 'const' so fields can't be late.""");
+const MessageCode messageConstConstructorLateFinalFieldError = const MessageCode(
+    "ConstConstructorLateFinalFieldError",
+    message:
+        r"""Can't have a late final field in a class with a const constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorNonFinalField =

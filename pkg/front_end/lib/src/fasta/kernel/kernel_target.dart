@@ -932,13 +932,14 @@ class KernelTarget extends TargetImplementation {
         SourceLibraryBuilder library = builder.library;
         if (library.isNonNullableByDefault) {
           if (constructor.isConst && lateFinalFields.isNotEmpty) {
-            builder.addProblem(messageConstConstructorLateFinalFieldError,
-                constructor.fileOffset, noLength,
-                context: lateFinalFields
-                    .map((field) =>
-                        messageConstConstructorLateFinalFieldCause.withLocation(
-                            field.fileUri, field.charOffset, noLength))
-                    .toList());
+            for (FieldBuilder field in lateFinalFields) {
+              builder.addProblem(messageConstConstructorLateFinalFieldError,
+                  field.charOffset, noLength,
+                  context: [
+                    messageConstConstructorLateFinalFieldCause.withLocation(
+                        constructor.fileUri, constructor.fileOffset, noLength)
+                  ]);
+            }
             lateFinalFields.clear();
           }
         }

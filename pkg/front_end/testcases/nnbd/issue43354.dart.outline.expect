@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  late final field core::int foo = 42;
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object /*hasConstConstructor*/  {
+  late final field core::int foo = 42;
+  late final field core::String bar = "foobar";
+  const constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object /*hasConstConstructor*/  {
+  late final field core::int foo = 42;
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+  const constructor another() → self::C
+    : super core::Object::•()
+    ;
+}
+class D extends core::Object /*hasConstConstructor*/  {
+  late final field core::int foo = 42;
+  late final field core::String bar = "foobar";
+  const constructor •() → self::D
+    : super core::Object::•()
+    ;
+  const constructor another() → self::D
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic
+  ;

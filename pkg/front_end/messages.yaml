@@ -2960,10 +2960,10 @@ ConstConstructorNonFinalFieldCause:
   severity: CONTEXT
 
 ConstConstructorLateFinalFieldError:
-  template: "Constructor is marked 'const' so fields can't be late."
+  template: "Can't have a late final field in a class with a const constructor."
 
 ConstConstructorLateFinalFieldCause:
-  template: "Field is late, but constructor is 'const'."
+  template: "This constructor is const."
   severity: CONTEXT
 
 ConstConstructorRedirectionToNonConst:
