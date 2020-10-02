@@ -57,8 +57,11 @@ class AlwaysUsePackageImports extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    if (!isInLibDir(context.currentUnit.unit, context.package)) {
+      return;
+    }
+
     final visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addImportDirective(this, visitor);
   }
 }
@@ -67,14 +70,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 
-  bool isInLibFolder;
-
   _Visitor(this.rule, this.context);
 
   bool isRelativeImport(ImportDirective node) {
-    // Ignore this compilation unit if it's not in the lib/ folder.
-    if (!isInLibFolder) return false;
-
     try {
       final uri = Uri.parse(node.uriContent);
       return uri.scheme.isEmpty;
@@ -83,11 +81,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Ignore.
     }
     return false;
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    isInLibFolder = isInLibDir(node, context.package);
   }
 
   @override

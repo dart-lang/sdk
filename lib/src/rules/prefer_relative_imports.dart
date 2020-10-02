@@ -44,8 +44,11 @@ class PreferRelativeImports extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    if (!isInLibDir(context.currentUnit.unit, context.package)) {
+      return;
+    }
+
     final visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addImportDirective(this, visitor);
   }
 }
@@ -54,14 +57,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   final PreferRelativeImports rule;
   final LinterContext context;
 
-  bool isInLibFolder;
-
   _Visitor(this.rule, this.context);
 
   bool isPackageSelfReference(ImportDirective node) {
-    // Ignore this compilation unit if it's not in the lib/ folder.
-    if (!isInLibFolder) return false;
-
     // Is it a package: import?
     final importUriContent = node.uriContent;
     if (importUriContent?.startsWith('package:') != true) return false;
@@ -75,11 +73,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // todo (pq): context.package.contains(source) should work (but does not)
     return path.isWithin(context.package.root, source.fullName);
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    isInLibFolder = isInLibDir(node, context.package);
   }
 
   @override

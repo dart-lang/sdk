@@ -55,9 +55,12 @@ class AvoidRenamingMethodParameters extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    if (!isInLibDir(context.currentUnit.unit, context.package)) {
+      return;
+    }
+
     final visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
-    registry.addCompilationUnit(this, visitor);
   }
 }
 
@@ -65,21 +68,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 
-  /// Tracks if we are in a compilation unit within a `lib/` dir so we can
-  /// short-circuit needless checking of method declarations.
-  bool isInLib;
-
   _Visitor(this.rule, this.context);
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    isInLib = isInLibDir(node, context.package);
-  }
-
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (!isInLib) return;
-
     if (node.isStatic) return;
     if (node.documentationComment != null) return;
 
