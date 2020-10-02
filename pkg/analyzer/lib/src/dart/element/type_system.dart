@@ -755,6 +755,56 @@ class TypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  /// A dynamic bounded type is either `dynamic` itself, or a type variable
+  /// whose bound is dynamic bounded, or an intersection (promoted type
+  /// parameter type) whose second operand is dynamic bounded.
+  bool isDynamicBounded(DartType type) {
+    if (identical(type, DynamicTypeImpl.instance)) {
+      return true;
+    }
+
+    if (type is TypeParameterTypeImpl) {
+      var bound = type.element.bound;
+      if (bound != null && isDynamicBounded(bound)) {
+        return true;
+      }
+
+      var promotedBound = type.promotedBound;
+      if (promotedBound != null && isDynamicBounded(promotedBound)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// A function bounded type is either `Function` itself, or a type variable
+  /// whose bound is function bounded, or an intersection (promoted type
+  /// parameter type) whose second operand is function bounded.
+  bool isFunctionBounded(DartType type) {
+    if (type is FunctionType) {
+      return type.nullabilitySuffix != NullabilitySuffix.question;
+    }
+
+    if (type is InterfaceType && type.isDartCoreFunction) {
+      return type.nullabilitySuffix != NullabilitySuffix.question;
+    }
+
+    if (type is TypeParameterTypeImpl) {
+      var bound = type.element.bound;
+      if (bound != null && isFunctionBounded(bound)) {
+        return true;
+      }
+
+      var promotedBound = type.promotedBound;
+      if (promotedBound != null && isFunctionBounded(promotedBound)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /// Defines an (almost) total order on bottom and `Null` types. This does not
   /// currently consistently order two different type variables with the same
   /// bound.

@@ -136,27 +136,14 @@ class MethodInvocationResolver {
     }
 
     DartType receiverType = receiver.staticType;
-    receiverType = _resolveTypeParameter(receiverType);
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
-        _typeSystem.isNonNullableByDefault) {
-      receiverType = _typeSystem.promoteToNonNull(receiverType);
-    }
-
-    if (receiverType is InterfaceType) {
-      _resolveReceiverInterfaceType(
-          node, receiver, receiverType, nameNode, name);
+    if (_typeSystem.isDynamicBounded(receiverType)) {
+      _resolveReceiverDynamicBounded(node);
       return;
     }
 
-    if (receiverType is DynamicTypeImpl) {
-      _resolveReceiverDynamic(node);
-      return;
-    }
-
-    if (receiverType is FunctionType) {
-      _resolveReceiverFunctionType(
-          node, receiver, receiverType, nameNode, name);
+    if (receiverType is NeverTypeImpl) {
+      _resolveReceiverNever(node, receiver, receiverType);
       return;
     }
 
@@ -165,10 +152,25 @@ class MethodInvocationResolver {
       return;
     }
 
-    if (receiverType is NeverTypeImpl) {
-      _resolveReceiverNever(node, receiver, receiverType);
+    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
+        _typeSystem.isNonNullableByDefault) {
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
+    }
+
+    if (_typeSystem.isFunctionBounded(receiverType)) {
+      _resolveReceiverFunctionBounded(
+          node, receiver, receiverType, nameNode, name);
       return;
     }
+
+    _resolveReceiverType(
+      node: node,
+      receiver: receiver,
+      receiverType: receiverType,
+      nameNode: nameNode,
+      name: name,
+      receiverErrorNode: receiver,
+    );
   }
 
   bool _isCoreFunction(DartType type) {
@@ -382,7 +384,7 @@ class MethodInvocationResolver {
     _setResolution(node, member.type);
   }
 
-  void _resolveReceiverDynamic(MethodInvocationImpl node) {
+  void _resolveReceiverDynamicBounded(MethodInvocation node) {
     var nameNode = node.methodName;
 
     var objectElement = _typeSystem.typeProvider.objectElement;
@@ -411,8 +413,13 @@ class MethodInvocationResolver {
     node.argumentList.accept(_resolver);
   }
 
-  void _resolveReceiverFunctionType(MethodInvocation node, Expression receiver,
-      FunctionType receiverType, SimpleIdentifier nameNode, String name) {
+  void _resolveReceiverFunctionBounded(
+    MethodInvocation node,
+    Expression receiver,
+    DartType receiverType,
+    SimpleIdentifier nameNode,
+    String name,
+  ) {
     if (name == FunctionElement.CALL_METHOD_NAME) {
       _setResolution(node, receiverType);
       // TODO(scheglov) Replace this with using FunctionType directly.
@@ -429,18 +436,6 @@ class MethodInvocationResolver {
       nameNode: nameNode,
       name: name,
       receiverErrorNode: nameNode,
-    );
-  }
-
-  void _resolveReceiverInterfaceType(MethodInvocation node, Expression receiver,
-      InterfaceType receiverType, SimpleIdentifier nameNode, String name) {
-    _resolveReceiverType(
-      node: node,
-      receiver: receiver,
-      receiverType: receiverType,
-      nameNode: nameNode,
-      name: name,
-      receiverErrorNode: receiver,
     );
   }
 
