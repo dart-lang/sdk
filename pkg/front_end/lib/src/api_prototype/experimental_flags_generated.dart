@@ -208,6 +208,9 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "process": {
     ExperimentalFlag.nonNullable,
   },
+  "pub_semver": {
+    ExperimentalFlag.nonNullable,
+  },
   "sky_engine": {
     ExperimentalFlag.nonNullable,
   },
