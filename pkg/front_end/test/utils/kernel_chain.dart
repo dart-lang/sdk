@@ -66,6 +66,8 @@ final Uri platformBinariesLocation = computePlatformBinariesLocation();
 abstract class MatchContext implements ChainContext {
   bool get updateExpectations;
 
+  String get updateExpectationsOption;
+
   ExpectationSet get expectationSet;
 
   Expectation get expectationFileMismatch =>
@@ -93,7 +95,10 @@ abstract class MatchContext implements ChainContext {
         String diff = await runDiff(expectedFile.uri, actual);
         onMismatch ??= expectationFileMismatch;
         return new Result<O>(output, onMismatch,
-            "$uri doesn't match ${expectedFile.uri}\n$diff", null);
+            "$uri doesn't match ${expectedFile.uri}\n$diff", null,
+            autoFixCommand: onMismatch == expectationFileMismatch
+                ? updateExpectationsOption
+                : null);
       } else {
         return new Result<O>.pass(output);
       }
@@ -108,7 +113,8 @@ abstract class MatchContext implements ChainContext {
           """
 Please create file ${expectedFile.path} with this content:
 $actual""",
-          null);
+          null,
+          autoFixCommand: updateExpectationsOption);
     }
   }
 

@@ -22,6 +22,7 @@ import 'package:testing/testing.dart'
         runMe;
 
 import '../utils/kernel_chain.dart' show MatchContext;
+import 'testing/suite.dart' show UPDATE_EXPECTATIONS;
 
 const List<Map<String, String>> EXPECTATIONS = [
   {
@@ -52,6 +53,10 @@ main([List<String> arguments = const []]) =>
 
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
+
+  @override
+  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+
   Context(this.updateExpectations);
 
   final List<Step> steps = const <Step>[
