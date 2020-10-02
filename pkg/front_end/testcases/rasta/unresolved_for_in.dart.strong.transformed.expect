@@ -265,4 +265,4 @@ Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:15:13 -
 Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:21:13 -> TypeLiteralConstant(void Function()*)
 Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:35:11 -> TypeLiteralConstant(Fisk*)
 Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:41:11 -> TypeLiteralConstant(void Function()*)
-Extra constant evaluation: tries: 85, successes: 4
+Extra constant evaluation: evaluated: 85, effectively constant: 4

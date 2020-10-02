@@ -41,7 +41,7 @@ main() {
   // The static type of o?.m(...) is the same as the static type of
   // o.m(...).
 
-  var c = new C() as C?;
+  C? c = new C();
   { int? i = c?.g(() => 1); Expect.equals(1, i); }
 
 

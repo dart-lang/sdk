@@ -1549,11 +1549,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.operand);
   }
 
-  int logicalOperatorIndex(String operator) {
+  int logicalOperatorIndex(LogicalExpressionOperator operator) {
     switch (operator) {
-      case '&&':
+      case LogicalExpressionOperator.AND:
         return 0;
-      case '||':
+      case LogicalExpressionOperator.OR:
         return 1;
     }
     throw new ArgumentError('Not a logical operator: $operator');
@@ -1563,7 +1563,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitLogicalExpression(LogicalExpression node) {
     writeByte(Tag.LogicalExpression);
     writeNode(node.left);
-    writeByte(logicalOperatorIndex(node.operator));
+    writeByte(logicalOperatorIndex(node.operatorEnum));
     writeNode(node.right);
   }
 

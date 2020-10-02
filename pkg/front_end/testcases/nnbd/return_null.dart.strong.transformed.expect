@@ -644,4 +644,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:69:12 -> Null
 Evaluated: MethodInvocation @ org-dartlang-testcase:///return_null.dart:75:14 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:75:14 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:75:14 -> NullConstant(null)
-Extra constant evaluation: tries: 428, successes: 12
+Extra constant evaluation: evaluated: 428, effectively constant: 12

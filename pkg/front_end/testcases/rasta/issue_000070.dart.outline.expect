@@ -54,4 +54,4 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue_000070.dart:22:33 -> ListConstant(const <Null?>[null])
-Extra constant evaluation: tries: 1, successes: 1
+Extra constant evaluation: evaluated: 1, effectively constant: 1

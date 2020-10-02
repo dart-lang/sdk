@@ -194,4 +194,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:72:25
 Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:72:25 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:73:25 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///null_shorting_index.dart:73:25 -> IntConstant(0)
-Extra constant evaluation: tries: 702, successes: 60
+Extra constant evaluation: evaluated: 702, effectively constant: 60

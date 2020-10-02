@@ -18,6 +18,9 @@ namespace bin {
 // Forward declaration
 class SSLFilter;
 
+typedef void (*TrustEvaluateHandlerFunc)(Dart_Port dest_port_id,
+                                         Dart_CObject* message);
+
 class SSLCertContext : public ReferenceCounted<SSLCertContext> {
  public:
   static const intptr_t kApproximateSize;
@@ -83,6 +86,7 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   void set_trust_builtin(bool trust_builtin) { trust_builtin_ = trust_builtin; }
 
   void RegisterCallbacks(SSL* ssl);
+  TrustEvaluateHandlerFunc GetTrustEvaluateHandler() const;
 
  private:
   void AddCompiledInCerts();

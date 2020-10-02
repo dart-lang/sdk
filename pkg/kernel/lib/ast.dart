@@ -4339,14 +4339,25 @@ class Not extends Expression {
   }
 }
 
+enum LogicalExpressionOperator { AND, OR }
+
+String logicalExpressionOperatorToString(LogicalExpressionOperator operator) {
+  switch (operator) {
+    case LogicalExpressionOperator.AND:
+      return "&&";
+    case LogicalExpressionOperator.OR:
+      return "||";
+  }
+  throw "Unhandled LogicalExpressionOperator: ${operator}";
+}
+
 /// Expression of form `x && y` or `x || y`
 class LogicalExpression extends Expression {
   Expression left;
-  // TODO(jensj): `??` is not supported and we shouldn't say so.
-  String operator; // && or || or ??
+  LogicalExpressionOperator operatorEnum; // AND (&&) or OR (||).
   Expression right;
 
-  LogicalExpression(this.left, this.operator, this.right) {
+  LogicalExpression(this.left, this.operatorEnum, this.right) {
     left?.parent = this;
     right?.parent = this;
   }
@@ -4383,7 +4394,7 @@ class LogicalExpression extends Expression {
   void toTextInternal(AstPrinter printer) {
     int minimumPrecedence = precedence;
     printer.writeExpression(left, minimumPrecedence: minimumPrecedence);
-    printer.write(' $operator ');
+    printer.write(' ${logicalExpressionOperatorToString(operatorEnum)} ');
     printer.writeExpression(right, minimumPrecedence: minimumPrecedence + 1);
   }
 }

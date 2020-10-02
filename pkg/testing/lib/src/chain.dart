@@ -354,7 +354,12 @@ class Result<O> {
 
   final List<String> logs = <String>[];
 
-  Result(this.output, this.outcome, this.error, this.trace);
+  /// If set, running the test with '-D$autoFixCommand' will automatically
+  /// update the test to match new expectations.
+  final String autoFixCommand;
+
+  Result(this.output, this.outcome, this.error, this.trace,
+      {this.autoFixCommand});
 
   Result.pass(O output) : this(output, Expectation.Pass, null, null);
 

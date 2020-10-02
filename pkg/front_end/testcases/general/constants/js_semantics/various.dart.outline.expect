@@ -68,4 +68,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:42:24 -> Boo
 Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:43:29 -> BoolConstant(true)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///various.dart:44:30 -> BoolConstant(false)
 Evaluated: StringConcatenation @ org-dartlang-testcase:///various.dart:47:30 -> StringConstant("hello1764")
-Extra constant evaluation: tries: 29, successes: 29
+Extra constant evaluation: evaluated: 29, effectively constant: 29

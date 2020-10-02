@@ -130,4 +130,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///various_2_lib.dart:34:39 -> Map
 Evaluated: ListConcatenation @ org-dartlang-testcase:///various_2_lib.dart:38:32 -> ListConstant(const <int>[0])
 Evaluated: SetConcatenation @ org-dartlang-testcase:///various_2_lib.dart:39:31 -> SetConstant(const <int>{0})
 Evaluated: MapConcatenation @ org-dartlang-testcase:///various_2_lib.dart:40:7 -> MapConstant(const <int, String>{0: "foo"})
-Extra constant evaluation: tries: 54, successes: 53
+Extra constant evaluation: evaluated: 54, effectively constant: 53

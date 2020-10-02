@@ -36,4 +36,4 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///metadata_enum.dart:8:6 -> List
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///metadata_enum.dart:8:10 -> InstanceConstant(const E{E.index: 0, E._name: "E.E1"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///metadata_enum.dart:8:14 -> InstanceConstant(const E{E.index: 1, E._name: "E.E2"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///metadata_enum.dart:8:18 -> InstanceConstant(const E{E.index: 2, E._name: "E.E3"})
-Extra constant evaluation: tries: 9, successes: 5
+Extra constant evaluation: evaluated: 9, effectively constant: 5

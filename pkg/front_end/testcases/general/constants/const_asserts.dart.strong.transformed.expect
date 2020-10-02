@@ -213,4 +213,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:11:50 
 Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:12:59 -> StringConstant("foo was false")
 Evaluated: MethodInvocation @ org-dartlang-testcase:///const_asserts.dart:13:50 -> BoolConstant(true)
 Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:15:73 -> StringConstant("btw foo was false")
-Extra constant evaluation: tries: 34, successes: 4
+Extra constant evaluation: evaluated: 34, effectively constant: 4

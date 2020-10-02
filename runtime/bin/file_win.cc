@@ -5,13 +5,15 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 
-#include "bin/file.h"
+#include <functional>
+#include <memory>
+#include <string>
 
+#include <Shlwapi.h>  // NOLINT
 #include <WinIoCtl.h>  // NOLINT
 #include <fcntl.h>     // NOLINT
 #include <io.h>        // NOLINT
-#include <Shlwapi.h>   // NOLINT
-#undef StrDup  // defined in Shlwapi.h as StrDupW
+#undef StrDup          // defined in Shlwapi.h as StrDupW
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
@@ -20,6 +22,8 @@
 #include "bin/builtin.h"
 #include "bin/crypto.h"
 #include "bin/directory.h"
+#include "bin/file.h"
+#include "bin/file_win.h"
 #include "bin/namespace.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
@@ -298,8 +302,146 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
+class StringRAII {
+ public:
+  explicit StringRAII(const char* s) : s_(s), own_(false) {}
+  explicit StringRAII(char* s) : s_(s), own_(true) {}
+  ~StringRAII() {
+    if (own_) {
+      free(const_cast<char*>(s_));
+    }
+  }
+  const char* str() const { return s_; }
+  const char* release() {
+    own_ = false;
+    return s_;
+  }
+
+ private:
+  bool own_;
+  const char* s_;
+};
+
+class Wchart {
+ public:
+  explicit Wchart(int size) {
+    buf_ = reinterpret_cast<wchar_t*>(malloc(size * sizeof(wchar_t)));
+  }
+  ~Wchart() { free(buf_); }
+  wchar_t* buf() const { return buf_; }
+
+ private:
+  wchar_t* buf_;
+};
+
+static StringRAII ConvertToAbsolutePath(const char* path,
+                                        bool* p_has_converted_successfully) {
+  const int kPathLength = 16384;
+  Wchart buffer(kPathLength);  // use some reasonably large initial buffer
+  Utf8ToWideScope path_utf8_to_wide(path);
+  *p_has_converted_successfully = true;
+  int full_path_length =
+      GetFullPathNameW(path_utf8_to_wide.wide(), kPathLength, buffer.buf(),
+                       /*lpFilePart=*/nullptr);
+  if (full_path_length == 0) {
+    *p_has_converted_successfully = false;
+    // GetFullPathNameW failed
+    return StringRAII(path);
+  }
+  if (full_path_length < kPathLength) {
+    WideToUtf8Scope scope(buffer.buf());
+    return StringRAII(strdup(scope.utf8()));
+  }
+
+  // Try again with bigger buffer.
+  Wchart bigger_buffer(full_path_length);
+  if (GetFullPathNameW(path_utf8_to_wide.wide(), full_path_length,
+                       bigger_buffer.buf(),
+                       /*lpFilePart=*/nullptr) == 0) {
+    *p_has_converted_successfully = false;
+    // GetFullPathNameW failed
+    return StringRAII(path);
+  }
+  WideToUtf8Scope scope(bigger_buffer.buf());
+  return StringRAII(strdup(scope.utf8()));
+}
+
+static StringRAII PrefixLongPathIfExceedLimit(
+    const char* path,
+    bool is_file,
+    std::function<char*(int)> allocate) {
+  // File name and Directory name have different size limit.
+  // Reference: https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
+  const int path_short_limit = is_file ? MAX_PATH : MAX_DIRECTORY_PATH;
+
+  const char* kLongPathPrefix = "\\\\?\\";
+  const int kLongPathPrefixLength = 4;
+
+  // if absolute path is short or already prefixed, just return it.
+  if ((File::IsAbsolutePath(path) && strlen(path) < path_short_limit) ||
+      strncmp(path, kLongPathPrefix, kLongPathPrefixLength) == 0) {
+    return StringRAII(path);
+  }
+
+  // Long relative path have to be converted to absolute path before prefixing.
+  bool is_ok = true;
+  StringRAII absolute_path_raii = File::IsAbsolutePath(path)
+                                      ? StringRAII(path)
+                                      : ConvertToAbsolutePath(path, &is_ok);
+  if (!is_ok) {
+    return StringRAII(path);
+  }
+  const char* absolute_path = absolute_path_raii.str();
+  int length = strlen(absolute_path);
+  if (length < path_short_limit) {
+    // No need for a prefix if absolute path is short
+    return StringRAII(path);
+  }
+  if (strncmp(absolute_path, kLongPathPrefix, kLongPathPrefixLength) == 0) {
+    // Relative path converted to absolute could get a prefix.
+    return StringRAII(absolute_path);
+  }
+
+  // Add prefix and replace forward slashes with backward slashes.
+  char* result = allocate((kLongPathPrefixLength + length + 1) * sizeof(char));
+  strncpy(result, kLongPathPrefix, kLongPathPrefixLength);
+  for (int i = 0; i < length; i++) {
+    result[kLongPathPrefixLength + i] =
+        absolute_path[i] == '/' ? '\\' : absolute_path[i];
+  }
+  result[length + kLongPathPrefixLength] = '\0';
+  return StringRAII(result);
+}
+
+static const char* PrefixLongFilePath(const char* path) {
+  return PrefixLongPathIfExceedLimit(
+             path, /*is_file=*/true,
+             [](int size) {
+               return reinterpret_cast<char*>(Dart_ScopeAllocate(size));
+             })
+      .release();
+}
+
+static StringRAII PrefixLongFilePathNoScope(const char* path) {
+  return PrefixLongPathIfExceedLimit(path, /*is_file=*/true, [](int size) {
+    return reinterpret_cast<char*>(malloc(size));
+  });
+}
+
+const char* PrefixLongDirectoryPath(const char* path) {
+  return PrefixLongPathIfExceedLimit(
+             path, /*is_file=*/false,
+             [](int size) {
+               return reinterpret_cast<char*>(Dart_ScopeAllocate(size));
+             })
+      .release();
+}
+
 File* File::Open(Namespace* namespc, const char* path, FileOpenMode mode) {
-  Utf8ToWideScope system_name(path);
+  // File::Open can be called without scope(when launching isolate),
+  // so it mallocs prefixed path
+  StringRAII string_raii = PrefixLongFilePathNoScope(path);
+  Utf8ToWideScope system_name(string_raii.str());
   File* file = FileOpenW(system_name.wide(), mode);
   return file;
 }
@@ -364,8 +506,9 @@ static bool StatHelper(wchar_t* path, struct __stat64* st) {
 }
 
 bool File::Exists(Namespace* namespc, const char* name) {
+  StringRAII string_raii = PrefixLongFilePathNoScope(name);
+  Utf8ToWideScope system_name(string_raii.str());
   struct __stat64 st;
-  Utf8ToWideScope system_name(name);
   return StatHelper(system_name.wide(), &st);
 }
 
@@ -379,7 +522,7 @@ bool File::ExistsUri(Namespace* namespc, const char* uri) {
 }
 
 bool File::Create(Namespace* namespc, const char* name) {
-  Utf8ToWideScope system_name(name);
+  Utf8ToWideScope system_name(PrefixLongFilePath(name));
   int fd = _wopen(system_name.wide(), O_RDONLY | O_CREAT, 0666);
   if (fd < 0) {
     return false;
@@ -426,8 +569,8 @@ static const int kMountPointHeaderSize = 4 * sizeof(USHORT);
 bool File::CreateLink(Namespace* namespc,
                       const char* utf8_name,
                       const char* utf8_target) {
-  Utf8ToWideScope name(utf8_name);
-  Utf8ToWideScope target(utf8_target);
+  Utf8ToWideScope name(PrefixLongFilePath(utf8_name));
+  Utf8ToWideScope target(PrefixLongFilePath(utf8_target));
   DWORD flags = SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
 
   File::Type type = File::GetType(namespc, utf8_target, true);
@@ -449,13 +592,13 @@ bool File::CreateLink(Namespace* namespc,
 }
 
 bool File::Delete(Namespace* namespc, const char* name) {
-  Utf8ToWideScope system_name(name);
+  Utf8ToWideScope system_name(PrefixLongFilePath(name));
   int status = _wremove(system_name.wide());
   return status != -1;
 }
 
 bool File::DeleteLink(Namespace* namespc, const char* name) {
-  Utf8ToWideScope system_name(name);
+  Utf8ToWideScope system_name(PrefixLongFilePath(name));
   bool result = false;
   DWORD attributes = GetFileAttributesW(system_name.wide());
   if ((attributes == INVALID_FILE_ATTRIBUTES) ||
@@ -477,13 +620,15 @@ bool File::DeleteLink(Namespace* namespc, const char* name) {
 bool File::Rename(Namespace* namespc,
                   const char* old_path,
                   const char* new_path) {
-  File::Type type = GetType(namespc, old_path, false);
+  const char* prefixed_old_path = PrefixLongFilePath(old_path);
+  File::Type type = GetType(namespc, prefixed_old_path, false);
   if (type != kIsFile) {
     SetLastError(ERROR_FILE_NOT_FOUND);
     return false;
   }
-  Utf8ToWideScope system_old_path(old_path);
-  Utf8ToWideScope system_new_path(new_path);
+  const char* prefixed_new_path = PrefixLongFilePath(new_path);
+  Utf8ToWideScope system_old_path(prefixed_old_path);
+  Utf8ToWideScope system_new_path(prefixed_new_path);
   DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
   int move_status =
       MoveFileExW(system_old_path.wide(), system_new_path.wide(), flags);
@@ -493,23 +638,25 @@ bool File::Rename(Namespace* namespc,
 bool File::RenameLink(Namespace* namespc,
                       const char* old_path,
                       const char* new_path) {
-  File::Type type = GetType(namespc, old_path, false);
+  const char* prefixed_old_path = PrefixLongFilePath(old_path);
+  File::Type type = GetType(namespc, prefixed_old_path, false);
   if (type != kIsLink) {
     SetLastError(ERROR_FILE_NOT_FOUND);
     return false;
   }
-  Utf8ToWideScope system_old_path(old_path);
-  Utf8ToWideScope system_new_path(new_path);
+  Utf8ToWideScope system_old_path(prefixed_old_path);
+  const char* prefixed_new_path = PrefixLongFilePath(new_path);
+  Utf8ToWideScope system_new_path(prefixed_new_path);
   DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
 
   // Junction links on Windows appear as special directories. MoveFileExW's
   // MOVEFILE_REPLACE_EXISTING does not allow for replacement of directories,
   // so we need to remove it before renaming a link. This step is only
   // necessary for junctions created by the old Link.create implementation.
-  if ((Directory::Exists(namespc, new_path) == Directory::EXISTS) &&
-      (GetType(namespc, new_path, false) == kIsLink)) {
+  if ((Directory::Exists(namespc, prefixed_new_path) == Directory::EXISTS) &&
+      (GetType(namespc, prefixed_new_path, false) == kIsLink)) {
     // Bail out if the DeleteLink call fails.
-    if (!DeleteLink(namespc, new_path)) {
+    if (!DeleteLink(namespc, prefixed_new_path)) {
       return false;
     }
   }
@@ -615,24 +762,26 @@ static wchar_t* CopyIntoTempFile(const char* src, const char* dest) {
 bool File::Copy(Namespace* namespc,
                 const char* old_path,
                 const char* new_path) {
-  File::Type type = GetType(namespc, old_path, false);
+  const char* prefixed_old_path = PrefixLongFilePath(old_path);
+  const char* prefixed_new_path = PrefixLongFilePath(new_path);
+  File::Type type = GetType(namespc, prefixed_old_path, false);
   if (type != kIsFile) {
     SetLastError(ERROR_FILE_NOT_FOUND);
     return false;
   }
 
-  wchar_t* temp_file = CopyIntoTempFile(old_path, new_path);
+  wchar_t* temp_file = CopyIntoTempFile(prefixed_old_path, prefixed_new_path);
   if (temp_file == NULL) {
     // If temp file creation fails, fall back on doing a direct copy.
-    Utf8ToWideScope system_old_path(old_path);
-    Utf8ToWideScope system_new_path(new_path);
+    Utf8ToWideScope system_old_path(prefixed_old_path);
+    Utf8ToWideScope system_new_path(prefixed_new_path);
     return CopyFileExW(system_old_path.wide(), system_new_path.wide(), NULL,
                        NULL, NULL, 0) != 0;
   }
-  Utf8ToWideScope system_new_dest(new_path);
+  Utf8ToWideScope system_new_dest(prefixed_new_path);
 
   // Remove the existing file. Otherwise, renaming will fail.
-  if (Exists(namespc, new_path)) {
+  if (Exists(namespc, prefixed_new_path)) {
     DeleteFileW(system_new_dest.wide());
   }
 
@@ -647,7 +796,7 @@ bool File::Copy(Namespace* namespc,
 
 int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
   struct __stat64 st;
-  Utf8ToWideScope system_name(name);
+  Utf8ToWideScope system_name(PrefixLongFilePath(name));
   if (!StatHelper(system_name.wide(), &st)) {
     return -1;
   }
@@ -658,7 +807,8 @@ const char* File::LinkTarget(Namespace* namespc,
                              const char* pathname,
                              char* dest,
                              int dest_size) {
-  const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
+  const wchar_t* name =
+      StringUtilsWin::Utf8ToWide(PrefixLongFilePath(pathname));
   HANDLE dir_handle = CreateFileW(
       name, GENERIC_READ,
       FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
@@ -668,8 +818,10 @@ const char* File::LinkTarget(Namespace* namespc,
     return NULL;
   }
 
+  // Allocate a buffer for regular paths (smaller than MAX_PATH). If buffer is
+  // too small for a long path, allocate a bigger buffer and try again.
   int buffer_size =
-      sizeof(REPARSE_DATA_BUFFER) + 2 * (MAX_PATH + 1) * sizeof(WCHAR);
+      sizeof(REPARSE_DATA_BUFFER) + (MAX_PATH + 1) * sizeof(WCHAR);
   REPARSE_DATA_BUFFER* buffer =
       reinterpret_cast<REPARSE_DATA_BUFFER*>(Dart_ScopeAllocate(buffer_size));
   DWORD received_bytes;  // Value is not used.
@@ -677,9 +829,26 @@ const char* File::LinkTarget(Namespace* namespc,
                                buffer, buffer_size, &received_bytes, NULL);
   if (result == 0) {
     DWORD error = GetLastError();
-    CloseHandle(dir_handle);
-    SetLastError(error);
-    return NULL;
+    // If ERROR_MORE_DATA is thrown, the target path exceeds the size limit. A
+    // bigger buffer will be required.
+    if (error == ERROR_MORE_DATA) {
+      // Allocate a bigger buffer with MAX_LONG_PATH
+      buffer_size =
+          sizeof(REPARSE_DATA_BUFFER) + (MAX_LONG_PATH + 1) * sizeof(WCHAR);
+      buffer = reinterpret_cast<REPARSE_DATA_BUFFER*>(
+          Dart_ScopeAllocate(buffer_size));
+      result = DeviceIoControl(dir_handle, FSCTL_GET_REPARSE_POINT, NULL, 0,
+                               buffer, buffer_size, &received_bytes, NULL);
+      if (result == 0) {
+        // Overwrite the ERROR_MORE_DATA.
+        error = GetLastError();
+      }
+    }
+    if (result == 0) {
+      CloseHandle(dir_handle);
+      SetLastError(error);
+      return NULL;
+    }
   }
   if (CloseHandle(dir_handle) == 0) {
     return NULL;
@@ -726,11 +895,12 @@ const char* File::LinkTarget(Namespace* namespc,
 }
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
-  File::Type type = GetType(namespc, name, false);
+  const char* prefixed_name = PrefixLongFilePath(name);
+  File::Type type = GetType(namespc, prefixed_name, false);
   data[kType] = type;
   if (type != kDoesNotExist) {
     struct _stat64 st;
-    Utf8ToWideScope system_name(name);
+    Utf8ToWideScope system_name(prefixed_name);
     int stat_status = _wstat64(system_name.wide(), &st);
     if (stat_status == 0) {
       data[kCreatedTime] = st.st_ctime * 1000;
@@ -746,7 +916,7 @@ void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
 
 time_t File::LastAccessed(Namespace* namespc, const char* name) {
   struct __stat64 st;
-  Utf8ToWideScope system_name(name);
+  Utf8ToWideScope system_name(PrefixLongFilePath(name));
   if (!StatHelper(system_name.wide(), &st)) {
     return -1;
   }
@@ -755,7 +925,7 @@ time_t File::LastAccessed(Namespace* namespc, const char* name) {
 
 time_t File::LastModified(Namespace* namespc, const char* name) {
   struct __stat64 st;
-  Utf8ToWideScope system_name(name);
+  Utf8ToWideScope system_name(PrefixLongFilePath(name));
   if (!StatHelper(system_name.wide(), &st)) {
     return -1;
   }
@@ -767,7 +937,7 @@ bool File::SetLastAccessed(Namespace* namespc,
                            int64_t millis) {
   // First get the current times.
   struct __stat64 st;
-  Utf8ToWideScope system_name(name);
+  Utf8ToWideScope system_name(PrefixLongFilePath(name));
   if (!StatHelper(system_name.wide(), &st)) {
     return false;
   }
@@ -784,7 +954,7 @@ bool File::SetLastModified(Namespace* namespc,
                            int64_t millis) {
   // First get the current times.
   struct __stat64 st;
-  Utf8ToWideScope system_name(name);
+  Utf8ToWideScope system_name(PrefixLongFilePath(name));
   if (!StatHelper(system_name.wide(), &st)) {
     return false;
   }
@@ -801,7 +971,6 @@ bool File::SetLastModified(Namespace* namespc,
 bool File::IsAbsolutePath(const char* pathname) {
   if (pathname == NULL) return false;
   char first = pathname[0];
-  if (pathname == 0) return false;
   char second = pathname[1];
   if (first == '\\' && second == '\\') return true;
   if (second != ':') return false;
@@ -814,7 +983,7 @@ const char* File::GetCanonicalPath(Namespace* namespc,
                                    const char* pathname,
                                    char* dest,
                                    int dest_size) {
-  Utf8ToWideScope system_name(pathname);
+  Utf8ToWideScope system_name(PrefixLongFilePath(pathname));
   HANDLE file_handle =
       CreateFileW(system_name.wide(), 0, FILE_SHARE_READ, NULL, OPEN_EXISTING,
                   FILE_FLAG_BACKUP_SEMANTICS, NULL);
@@ -838,9 +1007,8 @@ const char* File::GetCanonicalPath(Namespace* namespc,
 
   // Remove leading \\?\ if possible, unless input used it.
   int offset = 0;
-  if ((result_size < MAX_PATH - 1 + 4) && (result_size > 4) &&
-      (wcsncmp(path.get(), L"\\\\?\\", 4) == 0) &&
-      (wcsncmp(system_name.wide(), L"\\\\?\\", 4) != 0)) {
+  if ((result_size > 4) && (wcsncmp(path.get(), L"\\\\?\\", 4) == 0) &&
+      (strncmp(pathname, "\\\\?\\", 4) != 0)) {
     offset = 4;
   }
   int utf8_size = WideCharToMultiByte(CP_UTF8, 0, path.get() + offset, -1,
@@ -878,8 +1046,13 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
 File::Type File::GetType(Namespace* namespc,
                          const char* pathname,
                          bool follow_links) {
+  // File::GetType can be called without scope(when launching isolate),
+  // so it mallocs prefixed path.
+  StringRAII string_raii = PrefixLongFilePathNoScope(pathname);
+  const char* prefixed_path = string_raii.str();
+
   // Convert to wchar_t string.
-  Utf8ToWideScope name(pathname);
+  Utf8ToWideScope name(prefixed_path);
   DWORD attributes = GetFileAttributesW(name.wide());
   File::Type result = kIsFile;
   if (attributes == INVALID_FILE_ATTRIBUTES) {
@@ -919,7 +1092,8 @@ File::Identical File::AreIdentical(Namespace* namespc_1,
   USE(namespc_1);
   USE(namespc_2);
   BY_HANDLE_FILE_INFORMATION file_info[2];
-  const char* file_names[2] = {file_1, file_2};
+  const char* file_names[2] = {PrefixLongFilePath(file_1),
+                               PrefixLongFilePath(file_2)};
   for (int i = 0; i < 2; ++i) {
     Utf8ToWideScope wide_name(file_names[i]);
     HANDLE file_handle = CreateFileW(

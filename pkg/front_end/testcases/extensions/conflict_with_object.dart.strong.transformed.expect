@@ -93,4 +93,4 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 Extra constant evaluation status:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///conflict_with_object.dart:21:19 -> BoolConstant(true)
-Extra constant evaluation: tries: 37, successes: 1
+Extra constant evaluation: evaluated: 37, effectively constant: 1

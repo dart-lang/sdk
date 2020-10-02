@@ -50,4 +50,4 @@ static method main() → dynamic {}
 
 Extra constant evaluation status:
 Evaluated: AsExpression @ org-dartlang-testcase:///invalid_type.dart:14:9 -> NullConstant(null)
-Extra constant evaluation: tries: 3, successes: 1
+Extra constant evaluation: evaluated: 3, effectively constant: 1

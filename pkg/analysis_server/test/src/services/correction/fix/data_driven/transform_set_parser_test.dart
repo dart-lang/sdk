@@ -426,6 +426,24 @@ transforms:
     expect(transform.changes, isEmpty);
   }
 
+  void test_element_variable() {
+    parse('''
+version: 1
+transforms:
+- title: 'Rename v'
+  date: 2020-10-01
+  element:
+    uris: ['test.dart']
+    variable: 'v'
+  changes: []
+''');
+    var transforms = result.transformsFor('v', uris);
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename v');
+    expect(transform.changes, isEmpty);
+  }
+
   void test_incomplete() {
     parse('''
 version: 1

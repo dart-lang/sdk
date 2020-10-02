@@ -47,6 +47,13 @@ List<String> assertListOfString(List<String> list) {
   return list;
 }
 
+List<vms.IsolateFlag> assertListOfIsolateFlag(List<vms.IsolateFlag> list) {
+  for (vms.IsolateFlag elem in list) {
+    assertIsolateFlag(elem);
+  }
+  return list;
+}
+
 String assertString(String obj) {
   assertNotNull(obj);
   if (obj.isEmpty) throw 'expected non-zero length string';
@@ -667,6 +674,7 @@ vms.Isolate assertIsolate(vms.Isolate obj) {
   assertString(obj.number);
   assertString(obj.name);
   assertBool(obj.isSystemIsolate);
+  assertListOfIsolateFlag(obj.isolateFlags);
   assertInt(obj.startTime);
   assertBool(obj.runnable);
   assertInt(obj.livePorts);
@@ -675,6 +683,13 @@ vms.Isolate assertIsolate(vms.Isolate obj) {
   assertListOfLibraryRef(obj.libraries);
   assertListOfBreakpoint(obj.breakpoints);
   assertExceptionPauseMode(obj.exceptionPauseMode);
+  return obj;
+}
+
+vms.IsolateFlag assertIsolateFlag(vms.IsolateFlag obj) {
+  assertNotNull(obj);
+  assertString(obj.name);
+  assertString(obj.valueAsString);
   return obj;
 }
 

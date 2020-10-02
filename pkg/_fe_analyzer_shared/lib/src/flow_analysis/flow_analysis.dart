@@ -1050,7 +1050,8 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
 
   @override
   bool isUnassigned(Variable variable) {
-    return _wrap('isUnassigned($variable)', () => _wrapped.isAssigned(variable),
+    return _wrap(
+        'isUnassigned($variable)', () => _wrapped.isUnassigned(variable),
         isQuery: true);
   }
 

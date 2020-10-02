@@ -6,7 +6,7 @@ part of dart.io;
 
 // TODO(bkonyi): refactor into io_resource_info.dart
 const int _versionMajor = 1;
-const int _versionMinor = 3;
+const int _versionMinor = 4;
 
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
@@ -57,7 +57,15 @@ abstract class _NetworkProfiling {
           responseJson = _setHttpEnableTimelineLogging(parameters);
           break;
         case _kHttpEnableTimelineLogging:
-          if (parameters.containsKey('enable')) {
+          if (parameters.containsKey('enabled') ||
+              parameters.containsKey('enable')) {
+            // TODO(bkonyi): Backwards compatibility.
+            // See https://github.com/dart-lang/sdk/issues/43638.
+            assert(_versionMajor == 1,
+                "'enable' is deprecated and should be removed (See #43638)");
+            if (parameters.containsKey('enabled')) {
+              parameters['enable'] = parameters['enabled']!;
+            }
             _setHttpEnableTimelineLogging(parameters);
           }
           responseJson = _getHttpEnableTimelineLogging();

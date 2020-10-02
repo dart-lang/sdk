@@ -52,4 +52,4 @@ Evaluated: SymbolLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dar
 Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:11:8 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:11:8 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///no_such_method_forwarder.dart:11:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Extra constant evaluation: tries: 16, successes: 8
+Extra constant evaluation: evaluated: 16, effectively constant: 8

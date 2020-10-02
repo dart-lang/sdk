@@ -13,11 +13,11 @@ Future<int?> f() async {
 }
 
 main() async {
-  var x = 1 as int?;
+  int? x = 1;
   x ??= await f();
   Expect.equals(1, x);
 
-  var y = 1 as int?;
+  int? y = 1;
   y = y ?? await f();
   Expect.equals(1, y);
 }

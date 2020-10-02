@@ -155,4 +155,4 @@ Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generi
 Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:47:72 -> PartialInstantiationConstant(min<num*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:48:65 -> PartialInstantiationConstant(min<Object*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:49:65 -> PartialInstantiationConstant(min<Object*>)
-Extra constant evaluation: tries: 133, successes: 28
+Extra constant evaluation: evaluated: 133, effectively constant: 28

@@ -6,7 +6,7 @@ description: >
 publish_to: none
 
 environment:
-  sdk: '>=2.0.0 <3.0.0'
+  sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
   front_end: ^0.1.0

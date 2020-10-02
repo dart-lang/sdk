@@ -43,8 +43,8 @@ void testList() {
   Expect.listEquals(list, <int>[...<int>[...<int>[1, 2], ...<int>[3, 4]]]);
 
   // Null-aware.
-  var list23 = [2, 3] as List<int>?;
-  var list4 = [4] as List<int>?;
+  List<int>? list23 = [2, 3];
+  List<int>? list4 = [4];
   Expect.listEquals(list, <int>[1, ...?list23, ...?(null), ...?list4]);
 
   // Does not deep flatten.
@@ -94,8 +94,8 @@ void testMap() {
   });
 
   // Null-aware.
-  var map23 = {2: 2, 3: 3} as Map<int, int>?;
-  var map4 = {4: 4} as Map<int, int>?;
+  Map<int, int>? map23 = {2: 2, 3: 3};
+  Map<int, int>? map4 = {4: 4};
   Expect.mapEquals(map, <int, int>{
     1: 1,
     ...?map23,
@@ -147,8 +147,8 @@ void testSet() {
   Expect.setEquals(set, <int>{...<int>{...<int>[1, 2], ...<int>[3, 4]}});
 
   // Null-aware.
-  var list23 = [2, 3] as List<int>?;
-  var list4 = [4] as List<int>?;
+  List<int>? list23 = [2, 3];
+  List<int>? list4 = [4];
   Expect.setEquals(set, <int>{1, ...?list23, ...?(null), ...?list4});
 
   // Does not deep flatten.

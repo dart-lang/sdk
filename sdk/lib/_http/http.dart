@@ -1945,8 +1945,9 @@ abstract class HttpClientRequest implements IOSink {
    * and only for the status codes [HttpStatus.movedPermanently]
    * (301), [HttpStatus.found] (302),
    * [HttpStatus.movedTemporarily] (302, alias for
-   * [HttpStatus.found]), [HttpStatus.seeOther] (303) and
-   * [HttpStatus.temporaryRedirect] (307). For
+   * [HttpStatus.found]), [HttpStatus.seeOther] (303),
+   * [HttpStatus.temporaryRedirect] (307) and
+   * [HttpStatus.permanentRedirect] (308). For
    * [HttpStatus.seeOther] (303) automatic redirect will also happen
    * for "POST" requests with the method changed to "GET" when
    * following the redirect.

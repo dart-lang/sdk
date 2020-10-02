@@ -31,4 +31,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///from_agnostic.dart:8:12 -> Inst
 Evaluated: SetLiteral @ org-dartlang-testcase:///from_agnostic.dart:9:12 -> InstanceConstant(const _UnmodifiableSet<List<int?>>{_UnmodifiableSet._map: const _ImmutableMap<List<int?>, Null?>{_ImmutableMap._kvPairs: const <dynamic>[const <int>[], null, const <int?>[], null]}})
 Evaluated: StaticGet @ org-dartlang-testcase:///from_agnostic.dart:10:12 -> ListConstant(const <int>[])
 Evaluated: StaticGet @ org-dartlang-testcase:///from_agnostic.dart:11:12 -> ListConstant(const <int?>[])
-Extra constant evaluation: tries: 5, successes: 5
+Extra constant evaluation: evaluated: 5, effectively constant: 5

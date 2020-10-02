@@ -46,4 +46,4 @@ static method main() → void
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///potentially_constant_type_is.dart:22:36 -> IntConstant(3)
 Evaluated: Instantiation @ org-dartlang-testcase:///potentially_constant_type_is.dart:11:43 -> PartialInstantiationConstant(idFunction<int>)
-Extra constant evaluation: tries: 11, successes: 2
+Extra constant evaluation: evaluated: 11, effectively constant: 2

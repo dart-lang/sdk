@@ -124,4 +124,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///instance_tearoff.dart:54:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///instance_tearoff.dart:58:19 -> IntConstant(-7)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///instance_tearoff.dart:73:19 -> IntConstant(-4)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///instance_tearoff.dart:77:19 -> IntConstant(-7)
-Extra constant evaluation: tries: 144, successes: 4
+Extra constant evaluation: evaluated: 144, effectively constant: 4

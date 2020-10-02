@@ -101,4 +101,4 @@ Evaluated: TypeLiteral @ org-dartlang-testcase:///expressions.dart:73:9 -> TypeL
 Evaluated: TypeLiteral @ org-dartlang-testcase:///expressions.dart:74:9 -> TypeLiteralConstant(int*)
 Evaluated: VariableGetImpl @ org-dartlang-testcase:///expressions.dart:74:9 -> TypeLiteralConstant(int*)
 Evaluated: VariableGet @ org-dartlang-testcase:///expressions.dart:74:9 -> TypeLiteralConstant(int*)
-Extra constant evaluation: tries: 138, successes: 6
+Extra constant evaluation: evaluated: 138, effectively constant: 6

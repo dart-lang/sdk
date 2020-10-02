@@ -3010,12 +3010,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   @override
   void visitLogicalExpression(ir.LogicalExpression node) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this);
-    String operator = node.operator;
-    // ir.LogicalExpression claims to allow '??' as an operator but currently
-    // that is expanded into a let-tree.
-    assert(operator == '&&' || operator == '||');
     _handleLogicalExpression(node.left, () => node.right.accept(this), brancher,
-        operator, _sourceInformationBuilder.buildBinary(node));
+        node.operatorEnum, _sourceInformationBuilder.buildBinary(node));
   }
 
   /// Optimizes logical binary expression where the left has the same logical
@@ -3031,22 +3027,22 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       ir.Expression left,
       void visitRight(),
       SsaBranchBuilder brancher,
-      String operator,
+      ir.LogicalExpressionOperator operatorEnum,
       SourceInformation sourceInformation) {
-    if (left is ir.LogicalExpression && left.operator == operator) {
+    if (left is ir.LogicalExpression && left.operatorEnum == operatorEnum) {
       ir.Expression innerLeft = left.left;
       ir.Expression middle = left.right;
       _handleLogicalExpression(
           innerLeft,
-          () => _handleLogicalExpression(middle, visitRight, brancher, operator,
-              _sourceInformationBuilder.buildBinary(middle)),
+          () => _handleLogicalExpression(middle, visitRight, brancher,
+              operatorEnum, _sourceInformationBuilder.buildBinary(middle)),
           brancher,
-          operator,
+          operatorEnum,
           sourceInformation);
     } else {
       brancher.handleLogicalBinary(
           () => left.accept(this), visitRight, sourceInformation,
-          isAnd: operator == '&&');
+          isAnd: operatorEnum == ir.LogicalExpressionOperator.AND);
     }
   }
 

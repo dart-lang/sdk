@@ -97,4 +97,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///constants_lib.dart:24:33 -> Ins
 Evaluated: ListConcatenation @ org-dartlang-testcase:///constants_lib.dart:25:32 -> ListConstant(const <int>[0])
 Evaluated: SetConcatenation @ org-dartlang-testcase:///constants_lib.dart:26:31 -> InstanceConstant(const _UnmodifiableSet<int>{_UnmodifiableSet._map: const _ImmutableMap<int, Null?>{_ImmutableMap._kvPairs: const <dynamic>[0, null]}})
 Evaluated: MapConcatenation @ org-dartlang-testcase:///constants_lib.dart:27:7 -> InstanceConstant(const _ImmutableMap<int, String>{_ImmutableMap._kvPairs: const <dynamic>[0, "foo"]})
-Extra constant evaluation: tries: 35, successes: 34
+Extra constant evaluation: evaluated: 35, effectively constant: 34

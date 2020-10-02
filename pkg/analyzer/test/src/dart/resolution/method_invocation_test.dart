@@ -393,6 +393,25 @@ f(A a, int b, int c) {
         expectedType: 'String');
   }
 
+  test_demoteType() async {
+    await assertNoErrorsInCode(r'''
+void test<T>(T t) {}
+
+void f<S>(S s) {
+  if (s is int) {
+    test(s);
+  }
+}
+
+''');
+
+    assertTypeParameterType(
+      findNode.methodInvocation('test(s)').typeArgumentTypes[0],
+      element: findElement.typeParameter('S'),
+      promotedBound: null,
+    );
+  }
+
   test_error_ambiguousImport_topFunction() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 void foo(int _) {}

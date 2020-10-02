@@ -91,4 +91,4 @@ static method throws(() → dynamic f, core::String message) → dynamic {
 
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///override_getter_setter.dart:18:18 -> IntConstant(2)
-Extra constant evaluation: tries: 119, successes: 1
+Extra constant evaluation: evaluated: 119, effectively constant: 1

@@ -28,4 +28,4 @@ Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:16:11 -> BoolConst
 Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:18:13 -> BoolConstant(false)
 Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:19:13 -> BoolConstant(false)
 Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:20:13 -> BoolConstant(true)
-Extra constant evaluation: tries: 21, successes: 9
+Extra constant evaluation: evaluated: 21, effectively constant: 9

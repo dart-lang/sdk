@@ -43,4 +43,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_double_int.d
 Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_double_int.dart:17:45 -> BoolConstant(false)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_double_int.dart:18:42 -> BoolConstant(true)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///infer_binary_double_int.dart:19:41 -> DoubleConstant(1.0)
-Extra constant evaluation: tries: 24, successes: 12
+Extra constant evaluation: evaluated: 24, effectively constant: 12

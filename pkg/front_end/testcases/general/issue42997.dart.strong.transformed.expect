@@ -85,4 +85,4 @@ static abstract method PropertyState() → dynamic;
 
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///issue42997.dart:12:24 -> TypeLiteralConstant(Object*)
-Extra constant evaluation: tries: 2, successes: 1
+Extra constant evaluation: evaluated: 2, effectively constant: 1

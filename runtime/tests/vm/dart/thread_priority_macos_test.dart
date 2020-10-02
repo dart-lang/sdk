@@ -29,7 +29,7 @@ final pthreadGetSchedParam = DynamicLibrary.process()
 //  struct sched_param { int sched_priority; }
 class SchedParam extends Struct {
   @Int32()
-  int schedPriority;
+  external int schedPriority;
 }
 
 main(args) {

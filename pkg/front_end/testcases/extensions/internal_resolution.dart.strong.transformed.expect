@@ -55,4 +55,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:23:28
 Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:23:28 -> IntConstant(42)
 Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:25:28 -> IntConstant(87)
 Evaluated: VariableGet @ org-dartlang-testcase:///internal_resolution.dart:25:28 -> IntConstant(87)
-Extra constant evaluation: tries: 49, successes: 4
+Extra constant evaluation: evaluated: 49, effectively constant: 4

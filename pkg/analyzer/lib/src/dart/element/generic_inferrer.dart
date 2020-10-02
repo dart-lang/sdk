@@ -479,6 +479,9 @@ class GenericInferrer {
         types[i] = _typeSystem.nonNullifyLegacy(types[i]);
       }
     }
+    for (var i = 0; i < types.length; i++) {
+      types[i] = _typeSystem.demoteType(types[i]);
+    }
   }
 
   /// If in a legacy library, return the legacy version of the [type].

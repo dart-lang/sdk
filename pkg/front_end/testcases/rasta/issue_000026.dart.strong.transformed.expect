@@ -47,4 +47,4 @@ static method main() → dynamic {
 Extra constant evaluation status:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///issue_000026.dart:8:13 -> IntConstant(3)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///issue_000026.dart:14:13 -> IntConstant(-1)
-Extra constant evaluation: tries: 4, successes: 2
+Extra constant evaluation: evaluated: 4, effectively constant: 2

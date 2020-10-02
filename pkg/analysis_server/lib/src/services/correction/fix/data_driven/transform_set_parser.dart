@@ -65,6 +65,7 @@ class TransformSetParser {
   static const String _transformsKey = 'transforms';
   static const String _typedefKey = 'typedef';
   static const String _urisKey = 'uris';
+  static const String _variableKey = 'variable';
   static const String _variablesKey = 'variables';
   static const String _versionKey = 'version';
 
@@ -499,7 +500,8 @@ class TransformSetParser {
         _methodKey,
         _mixinKey,
         _setterKey,
-        _typedefKey
+        _typedefKey,
+        _variableKey
       ]);
       if (elementKey == null) {
         // The error has already been reported.

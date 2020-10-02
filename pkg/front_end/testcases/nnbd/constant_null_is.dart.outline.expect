@@ -77,4 +77,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dar
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:31:19 -> InstanceConstant(const Class<int>{Class.field: true})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:32:19 -> InstanceConstant(const Class<int?>{Class.field: true})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constant_null_is.dart:33:19 -> InstanceConstant(const Class<Null?>{Class.field: true})
-Extra constant evaluation: tries: 33, successes: 25
+Extra constant evaluation: evaluated: 33, effectively constant: 25

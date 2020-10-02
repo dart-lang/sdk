@@ -488,11 +488,11 @@ static method ifNullSuperIndexSetOptInForEffect(core::int i) → dynamic {
   new uns::OptInClass4::•().{uns::OptInClass4::methodForEffect}(i);
 }
 static method nullAwareIfNullSetOptIn(core::int i) → dynamic {
-  uns::OptInClass5? o = new uns::OptInClass5::•(i) as{ForNonNullableByDefault} uns::OptInClass5?;
+  uns::OptInClass5? o = new uns::OptInClass5::•(i);
   return let final uns::OptInClass5? #t66 = o in #t66.{core::Object::==}(null) ?{core::int?} null : let final core::int #t67 = #t66.{uns::OptInClass5::field} in #t67.{core::num::==}(null) ?{core::int} #t66.{uns::OptInClass5::field} = 42 : #t67;
 }
 static method nullAwareIfNullSetOptInForEffect(core::int i) → dynamic {
-  uns::OptInClass5? o = new uns::OptInClass5::•(i) as{ForNonNullableByDefault} uns::OptInClass5?;
+  uns::OptInClass5? o = new uns::OptInClass5::•(i);
   let final uns::OptInClass5? #t68 = o in #t68.{core::Object::==}(null) ?{core::int?} null : #t68.{uns::OptInClass5::field}.{core::num::==}(null) ?{core::int} #t68.{uns::OptInClass5::field} = 42 : null;
 }
 static method isTestOptIn(core::int i) → dynamic

@@ -18,4 +18,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///issue_31846.dart:6:14 -> BoolConstant(true)
-Extra constant evaluation: tries: 26, successes: 1
+Extra constant evaluation: evaluated: 26, effectively constant: 1

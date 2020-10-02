@@ -8,7 +8,7 @@ class B extends A {}
 
 void main() {
   B? b;
-  var a = new B() as A?;
+  A? a = new B();
   b ??= a;
 //      ^
 // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT

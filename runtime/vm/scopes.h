@@ -91,7 +91,7 @@ class LocalVariable : public ZoneAllocated {
         is_invisible_(false),
         is_captured_parameter_(false),
         is_forced_stack_(false),
-        is_explicit_covariant_parameter_(false),
+        covariance_mode_(kNotCovariant),
         is_late_(false),
         is_chained_future_(false),
         expected_context_index_(-1),
@@ -147,10 +147,17 @@ class LocalVariable : public ZoneAllocated {
   }
 
   bool is_explicit_covariant_parameter() const {
-    return is_explicit_covariant_parameter_;
+    return covariance_mode_ == kExplicit;
   }
-  void set_is_explicit_covariant_parameter() {
-    is_explicit_covariant_parameter_ = true;
+  void set_is_explicit_covariant_parameter() { covariance_mode_ = kExplicit; }
+
+  bool needs_covariant_check_in_method() const {
+    return covariance_mode_ != kNotCovariant;
+  }
+  void set_needs_covariant_check_in_method() {
+    if (covariance_mode_ == kNotCovariant) {
+      covariance_mode_ = kImplicit;
+    }
   }
 
   enum TypeCheckMode {
@@ -208,6 +215,12 @@ class LocalVariable : public ZoneAllocated {
   bool Equals(const LocalVariable& other) const;
 
  private:
+  enum CovarianceMode {
+    kNotCovariant,
+    kImplicit,
+    kExplicit,
+  };
+
   static const int kUninitializedIndex = INT_MIN;
 
   const TokenPosition declaration_pos_;
@@ -228,7 +241,7 @@ class LocalVariable : public ZoneAllocated {
   bool is_invisible_;
   bool is_captured_parameter_;
   bool is_forced_stack_;
-  bool is_explicit_covariant_parameter_;
+  CovarianceMode covariance_mode_;
   bool is_late_;
   bool is_chained_future_;
   intptr_t expected_context_index_;

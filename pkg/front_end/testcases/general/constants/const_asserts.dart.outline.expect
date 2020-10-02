@@ -94,4 +94,4 @@ Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:15:
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:19:21 -> NullConstant(null)
 Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_asserts.dart:21:22 -> NullConstant(null)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_asserts.dart:31:24 -> InstanceConstant(const Foo{Foo.x: 1})
-Extra constant evaluation: tries: 48, successes: 7
+Extra constant evaluation: evaluated: 48, effectively constant: 7

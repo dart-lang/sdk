@@ -146,4 +146,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:81:4 -> InstanceConstant(const Annotation{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:81:4 -> InstanceConstant(const Annotation{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external_fields.dart:84:4 -> InstanceConstant(const Annotation{})
-Extra constant evaluation: tries: 25, successes: 25
+Extra constant evaluation: evaluated: 25, effectively constant: 25

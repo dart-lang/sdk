@@ -14,7 +14,7 @@ worlds:
         main() {
           dynamic x;
           print(x >>> 2);
-          Class? c = new Class() as Class?;
+          Class? c = new Class();
           print(c!);
         }
         class Class {}

@@ -1590,7 +1590,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitLogicalExpression(ir.LogicalExpression node) {
-    if (node.operator == '&&') {
+    if (node.operatorEnum == ir.LogicalExpressionOperator.AND) {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
       TypeInformation leftInfo = handleCondition(node.left);
@@ -1615,7 +1615,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       }
       // TODO(sra): Add a selector/mux node to improve precision.
       return _types.boolType;
-    } else if (node.operator == '||') {
+    } else if (node.operatorEnum == ir.LogicalExpressionOperator.OR) {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
       TypeInformation leftInfo = handleCondition(node.left);
@@ -1642,7 +1642,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       return _types.boolType;
     }
     failedAt(CURRENT_ELEMENT_SPANNABLE,
-        "Unexpected logical operator '${node.operator}'.");
+        "Unexpected logical operator '${node.operatorEnum}'.");
     return null;
   }
 

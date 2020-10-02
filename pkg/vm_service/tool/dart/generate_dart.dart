@@ -936,6 +936,13 @@ List<String> assertListOfString(List<String> list) {
   return list;
 }
 
+List<vms.IsolateFlag> assertListOfIsolateFlag(List<vms.IsolateFlag> list) {
+  for (vms.IsolateFlag elem in list) {
+    assertIsolateFlag(elem);
+  }
+  return list;
+}
+
 String assertString(String obj) {
   assertNotNull(obj);
   if (obj.isEmpty) throw 'expected non-zero length string';

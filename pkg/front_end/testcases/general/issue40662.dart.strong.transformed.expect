@@ -88,4 +88,4 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 Extra constant evaluation status:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///issue40662.dart:8:10 -> IntConstant(-1)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///issue40662.dart:9:10 -> IntConstant(-1)
-Extra constant evaluation: tries: 99, successes: 2
+Extra constant evaluation: evaluated: 99, effectively constant: 2

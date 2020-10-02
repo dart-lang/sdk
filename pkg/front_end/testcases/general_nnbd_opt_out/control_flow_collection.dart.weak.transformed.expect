@@ -107,4 +107,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.d
 Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:20:26 -> IntConstant(-1)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:29:29 -> IntConstant(-1)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:29:33 -> IntConstant(-1)
-Extra constant evaluation: tries: 160, successes: 4
+Extra constant evaluation: evaluated: 160, effectively constant: 4

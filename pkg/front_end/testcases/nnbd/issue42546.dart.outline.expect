@@ -46,4 +46,4 @@ Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:709:13 
 Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:709:13 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:709:13 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:709:13 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Extra constant evaluation: tries: 61, successes: 15
+Extra constant evaluation: evaluated: 61, effectively constant: 15

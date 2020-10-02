@@ -53,4 +53,4 @@ Extra constant evaluation status:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///issue41700b.dart:8:12 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///issue41700b.dart:8:12 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///issue41700b.dart:8:12 -> NullConstant(null)
-Extra constant evaluation: tries: 7, successes: 3
+Extra constant evaluation: evaluated: 7, effectively constant: 3

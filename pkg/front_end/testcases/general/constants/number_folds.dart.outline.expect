@@ -101,4 +101,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:34:31 -
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:36:36 -> IntConstant(42)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///number_folds.dart:39:27 -> DoubleConstant(NaN)
 Evaluated: StaticGet @ org-dartlang-testcase:///number_folds.dart:40:42 -> DoubleConstant(NaN)
-Extra constant evaluation: tries: 37, successes: 23
+Extra constant evaluation: evaluated: 37, effectively constant: 23

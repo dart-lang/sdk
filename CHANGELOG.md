@@ -2,11 +2,16 @@
 
 ### Core libraries
 
+#### `dart:io`
+
+*   `HttpRequest` will now correctly follow HTTP 308 redirects
+    (`HttpStatus.permanentRedirect`).
+
 ### Dart VM
 
 ### Dart2JS
 
-* Removed `--no-defer-class-types` and `--no-new-deferred-split'.
+* Removed `--no-defer-class-types` and `--no-new-deferred-split`.
 
 ### Tools
 
@@ -18,8 +23,13 @@
 
 #### Linter
 
-Updated the Linter to `0.1.119`, which includes:
+Updated the Linter to `0.1.120`, which includes:
 
+* New lint: `cast_nullable_to_non_nullable`.
+* New lint: `null_check_on_nullable_type_parameter`.
+* New lint: `tighten_type_of_initializing_formals`.
+* Updates to `public_member_apis` to check generic type aliases.
+* (Internal): updates to adopt new analyzer APIs.
 * Fixed `close_sinks` to handle `this`-prefixed property accesses.
 * New lint: `unnecessary_null_checks`.
 * Fixed `unawaited_futures` to handle `Future` subtypes.
@@ -157,9 +167,14 @@ applications (issue [flutter/flutter#63038][]).
 *   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
     `InternetAddress` with `address` starting with '@' and type being
     `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+*   On Windows, file APIs can now handle files and directories identified by
+    long paths (greater than 260 characters). It complies with all restrictions
+    from [Long Path on Windows][]. Note that `Directory.current` does not work
+    with long path.
 
 [#42006]: https://github.com/dart-lang/sdk/issues/42006
 [Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
+[Long Path on Windows]: https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
 
 #### `dart:html`
 

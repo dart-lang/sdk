@@ -1739,15 +1739,15 @@ class InferenceVisitor
         isVoidAllowed: false);
     Expression left = inferrer.ensureAssignableResult(boolType, leftResult);
     node.left = left..parent = node;
-    inferrer.flowAnalysis
-        .logicalBinaryOp_rightBegin(node.left, isAnd: node.operator == '&&');
+    inferrer.flowAnalysis.logicalBinaryOp_rightBegin(node.left,
+        isAnd: node.operatorEnum == LogicalExpressionOperator.AND);
     ExpressionInferenceResult rightResult = inferrer.inferExpression(
         node.right, boolType, !inferrer.isTopLevel,
         isVoidAllowed: false);
     Expression right = inferrer.ensureAssignableResult(boolType, rightResult);
     node.right = right..parent = node;
-    inferrer.flowAnalysis
-        .logicalBinaryOp_end(node, node.right, isAnd: node.operator == '&&');
+    inferrer.flowAnalysis.logicalBinaryOp_end(node, node.right,
+        isAnd: node.operatorEnum == LogicalExpressionOperator.AND);
     return new ExpressionInferenceResult(boolType, node);
   }
 
@@ -5740,17 +5740,8 @@ class InferenceVisitor
     }
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
-      if (node.isImplicitlyTyped) {
-        if (initializerType is TypeParameterType) {
-          inferrer.flowAnalysis.promote(node, initializerType);
-        }
-      } else if (!node.isFinal) {
-        // TODO(paulberry): `initializerType` is sometimes `null` during top
-        // level inference.  Figure out how to prevent this.
-        if (initializerType != null) {
-          inferrer.flowAnalysis
-              .write(node, initializerType, viaInitializer: true);
-        }
+      if (node.isImplicitlyTyped && initializerType is TypeParameterType) {
+        inferrer.flowAnalysis.promote(node, initializerType);
       }
       Expression initializer = inferrer.ensureAssignableResult(
           node.type, initializerResult,

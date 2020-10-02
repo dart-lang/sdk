@@ -6,6 +6,8 @@
 // doesn't execute immediately, so it may refer to other late variables that
 // aren't assigned yet.
 
+void use(Object? x) {}
+
 eagerInitializerRefersToLateVar() {
   late int x;
   int y = /*unassigned*/ x;
@@ -16,4 +18,10 @@ lateInitializerRefersToLateVar() {
   late int x;
   late int y = x;
   x = 0;
+}
+
+lateInitializerIsAssignment() {
+  late int y;
+  late int z1 = y = 3;
+  use(y);
 }

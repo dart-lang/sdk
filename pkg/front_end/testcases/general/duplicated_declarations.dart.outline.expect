@@ -585,4 +585,4 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:8
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:88:3 -> InstanceConstant(const AnotherEnum{AnotherEnum.index: 0, AnotherEnum._name: "AnotherEnum.a"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:89:3 -> InstanceConstant(const AnotherEnum{AnotherEnum.index: 1, AnotherEnum._name: "AnotherEnum.b"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:90:3 -> InstanceConstant(const AnotherEnum{AnotherEnum.index: 2, AnotherEnum._name: "AnotherEnum.c"})
-Extra constant evaluation: tries: 46, successes: 22
+Extra constant evaluation: evaluated: 46, effectively constant: 22

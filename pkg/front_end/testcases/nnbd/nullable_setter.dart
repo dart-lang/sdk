@@ -19,7 +19,7 @@ extension on C? {
 }
 
 main() {
-  C? c = new C() as C?;
+  C? c = new C();
   expect("", c?.m);
   c.setter = "42";
   expect("42", c?.m);

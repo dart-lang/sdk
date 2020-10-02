@@ -93,7 +93,7 @@ main() {
 
   // --e1?.v is equivalent to e1?.v -= 1.
 
-  { var c = new C(1) as C?; Expect.equals(0, --c?.v); Expect.equals(0, c!.v); }
+  { C? c = new C(1); Expect.equals(0, --c?.v); Expect.equals(0, c!.v); }
 
   // --C?.v is equivalent to C?.v -= 1.
 

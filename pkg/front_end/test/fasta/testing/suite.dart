@@ -153,6 +153,9 @@ export 'package:testing/testing.dart' show Chain, runMe;
 
 const String ENABLE_FULL_COMPILE = " full compile ";
 
+const String UPDATE_EXPECTATIONS = "updateExpectations";
+const String UPDATE_COMMENTS = "updateComments";
+
 const String EXPECTATIONS = '''
 [
   {
@@ -288,6 +291,9 @@ class FastaContext extends ChainContext with MatchContext {
 
   @override
   final bool updateExpectations;
+
+  @override
+  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
 
   @override
   final ExpectationSet expectationSet =
@@ -687,8 +693,8 @@ class FastaContext extends ChainContext with MatchContext {
     bool weak = environment["weak"] == "true";
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
-    bool updateExpectations = environment["updateExpectations"] == "true";
-    bool updateComments = environment["updateComments"] == "true";
+    bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
+    bool updateComments = environment[UPDATE_COMMENTS] == "true";
     bool skipVm = environment["skipVm"] == "true";
     bool verify = environment["verify"] != "false";
     bool kernelTextSerialization =
@@ -792,8 +798,8 @@ class StressConstantEvaluatorStep
     if (stressConstantEvaluatorVisitor.success > 0) {
       result.extraConstantStrings.addAll(stressConstantEvaluatorVisitor.output);
       result.extraConstantStrings.add("Extra constant evaluation: "
-          "tries: ${stressConstantEvaluatorVisitor.tries}, "
-          "successes: ${stressConstantEvaluatorVisitor.success}");
+          "evaluated: ${stressConstantEvaluatorVisitor.tries}, "
+          "effectively constant: ${stressConstantEvaluatorVisitor.success}");
     }
     return pass(result);
   }
@@ -1098,7 +1104,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
                     description, p, userLibraries, options, sourceTarget),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
-                null);
+                null,
+                autoFixCommand: '${UPDATE_COMMENTS}=true');
           }
         }
       }

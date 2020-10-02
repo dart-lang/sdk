@@ -40,4 +40,4 @@ Evaluated: StaticGet @ org-dartlang-testcase:///infer_consts_transitively_2.dart
 Evaluated: StaticGet @ org-dartlang-testcase:///infer_consts_transitively_2.dart:11:12 -> IntConstant(2)
 Evaluated: StaticGet @ org-dartlang-testcase:///infer_consts_transitively_2_a.dart:10:12 -> IntConstant(2)
 Evaluated: StaticGet @ org-dartlang-testcase:///infer_consts_transitively_2_a.dart:11:12 -> IntConstant(2)
-Extra constant evaluation: tries: 4, successes: 4
+Extra constant evaluation: evaluated: 4, effectively constant: 4

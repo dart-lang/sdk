@@ -1638,12 +1638,12 @@ class BinaryBuilder {
     return variableStack[index];
   }
 
-  String logicalOperatorToString(int index) {
+  LogicalExpressionOperator logicalOperatorToEnum(int index) {
     switch (index) {
       case 0:
-        return '&&';
+        return LogicalExpressionOperator.AND;
       case 1:
-        return '||';
+        return LogicalExpressionOperator.OR;
       default:
         throw fail('unexpected logical operator index: $index');
     }
@@ -1786,7 +1786,7 @@ class BinaryBuilder {
         return new NullCheck(readExpression())..fileOffset = offset;
       case Tag.LogicalExpression:
         return new LogicalExpression(readExpression(),
-            logicalOperatorToString(readByte()), readExpression());
+            logicalOperatorToEnum(readByte()), readExpression());
       case Tag.ConditionalExpression:
         return new ConditionalExpression(readExpression(), readExpression(),
             readExpression(), readDartTypeOption());

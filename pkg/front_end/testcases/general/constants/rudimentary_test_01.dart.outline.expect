@@ -19,4 +19,4 @@ Evaluated: StringConcatenation @ org-dartlang-testcase:///rudimentary_test_01.da
 Evaluated: MethodInvocation @ org-dartlang-testcase:///rudimentary_test_01.dart:8:35 -> StringConstant("hello2 2hello 42!")
 Evaluated: LogicalExpression @ org-dartlang-testcase:///rudimentary_test_01.dart:9:50 -> BoolConstant(true)
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///rudimentary_test_01.dart:10:19 -> SymbolConstant(#_x)
-Extra constant evaluation: tries: 5, successes: 5
+Extra constant evaluation: evaluated: 5, effectively constant: 5

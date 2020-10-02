@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -9,12 +10,40 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InstanceCreationDriverResolutionTest);
+    defineReflectiveTests(InstanceCreationTest);
+    defineReflectiveTests(InstanceCreationWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InstanceCreationDriverResolutionTest extends PubPackageResolutionTest {
+class InstanceCreationTest extends PubPackageResolutionTest
+    with InstanceCreationTestCases {}
+
+mixin InstanceCreationTestCases on PubPackageResolutionTest {
+  test_demoteType() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A(T t);
+}
+
+void f<S>(S s) {
+  if (s is int) {
+    A(s);
+  }
+}
+
+''');
+
+    var creation = findNode.instanceCreation('A(s)');
+    var creationType = creation.staticType as InterfaceType;
+
+    assertTypeParameterType(
+      creationType.typeArguments[0],
+      element: findElement.typeParameter('S'),
+      promotedBound: null,
+    );
+  }
+
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
     await assertErrorsInCode(r'''
 final foo = Map<int>();
@@ -147,3 +176,7 @@ main() {
     );
   }
 }
+
+@reflectiveTest
+class InstanceCreationWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, InstanceCreationTestCases {}

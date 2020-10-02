@@ -134,4 +134,4 @@ Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:37:5 -> BoolConstant(false)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2.dart:37:5 -> BoolConstant(false)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various_2_lib.dart:20:39 -> PartialInstantiationConstant(id2<int>)
-Extra constant evaluation: tries: 41, successes: 4
+Extra constant evaluation: evaluated: 41, effectively constant: 4

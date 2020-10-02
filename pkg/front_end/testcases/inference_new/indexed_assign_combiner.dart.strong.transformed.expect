@@ -138,4 +138,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:4
 Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:49:41 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:51:45 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///indexed_assign_combiner.dart:51:45 -> IntConstant(0)
-Extra constant evaluation: tries: 78, successes: 12
+Extra constant evaluation: evaluated: 78, effectively constant: 12

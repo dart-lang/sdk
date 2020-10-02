@@ -545,4 +545,4 @@ Evaluated: ConditionalExpression @ org-dartlang-testcase:///type_literals.dart:7
 Evaluated: Let @ org-dartlang-testcase:///type_literals.dart:77:17 -> TypeLiteralConstant(dynamic)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///type_literals.dart:80:10 -> NullConstant(null)
 Evaluated: Let @ org-dartlang-testcase:///type_literals.dart:81:14 -> TypeLiteralConstant(void Function()*)
-Extra constant evaluation: tries: 72, successes: 12
+Extra constant evaluation: evaluated: 72, effectively constant: 12

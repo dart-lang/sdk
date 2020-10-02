@@ -48,4 +48,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:9:4
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:14:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:17:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:21:2 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
-Extra constant evaluation: tries: 8, successes: 5
+Extra constant evaluation: evaluated: 8, effectively constant: 5

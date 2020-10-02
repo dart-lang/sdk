@@ -1,4 +1,4 @@
-# Dart VM Service Protocol Extension 1.2
+# Dart VM Service Protocol Extension 1.4
 
 This protocol describes service extensions that are made available through
 the Dart core libraries, but are not part of the core
@@ -10,7 +10,7 @@ invoked by prepending the service extension name (e.g.,
 
 ## dart:io Extensions
 
-This section describes _version 1.2_ of the dart:io service protocol extensions.
+This section describes _version 1.4_ of the dart:io service protocol extensions.
 
 ### getVersion
 
@@ -135,13 +135,13 @@ See [Success](#success).
 ### httpEnableTimelineLogging
 
 ```
-HttpTimelineLoggingState httpEnableTimelineLogging(string isolateId, bool enable [optional])
+HttpTimelineLoggingState httpEnableTimelineLogging(string isolateId, bool enabled [optional])
 ```
 
 The _httpEnableTimelineLogging_ RPC is used to set and inspect the value of
 `HttpClient.enableTimelineLogging`, which determines if HTTP client requests
-should be logged to the timeline. If `enable` is provided, the state of
-`HttpClient.enableTimelineLogging` will be updated to the value of `enable`.
+should be logged to the timeline. If `enabled` is provided, the state of
+`HttpClient.enableTimelineLogging` will be updated to the value of `enabled`.
 
 If the value of `HttpClient.enableTimelineLogging` is changed, a
 `HttpTimelineLoggingStateChange` event will be sent on the `Extension` stream.
@@ -344,3 +344,4 @@ version | comments
 1.1 | Added `lastReadTime` and `lastWriteTime` properties to `SocketStatistic`.
 1.2 | Added `getOpenFiles`, `getOpenFileById`, `getSpawnedProcesses`, and `getSpawnedProcessById` RPCs and added `OpenFile` and `SpawnedProcess` objects.
 1.3 | Added `httpEnableTimelineLogging` RPC and `HttpTimelineLoggingStateChange` event, deprecated `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging`.
+1.4 | Updated `httpEnableTimelineLogging` parameter `enable` to `enabled`. `enable` will continue to be accepted.

@@ -204,4 +204,4 @@ Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:157:10 -
 Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:160:10 -> IntConstant(-23)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:161:10 -> IntConstant(-11)
 Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:162:10 -> IntConstant(-11)
-Extra constant evaluation: tries: 354, successes: 17
+Extra constant evaluation: evaluated: 354, effectively constant: 17

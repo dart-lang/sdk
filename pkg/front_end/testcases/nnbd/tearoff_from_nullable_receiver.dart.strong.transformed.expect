@@ -97,4 +97,4 @@ Extra constant evaluation status:
 Evaluated: MethodInvocation @ org-dartlang-testcase:///tearoff_from_nullable_receiver.dart:14:24 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///tearoff_from_nullable_receiver.dart:14:24 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///tearoff_from_nullable_receiver.dart:14:24 -> NullConstant(null)
-Extra constant evaluation: tries: 58, successes: 3
+Extra constant evaluation: evaluated: 58, effectively constant: 3

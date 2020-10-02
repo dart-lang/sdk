@@ -87,6 +87,7 @@ import 'package:analysis_server/src/services/correction/dart/qualify_reference.d
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
@@ -1012,12 +1013,21 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.newInstance,
     ],
-    // TODO(brianwilkerson) Add a fix to remove the method.
-//    HintCode.UNNECESSARY_NO_SUCH_METHOD: [],
-    // TODO(brianwilkerson) Add a fix to remove the type check.
-//    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [],
-    // TODO(brianwilkerson) Add a fix to remove the type check.
-//    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [],
+//    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
+// TODO(brianwilkerson) Add a fix to remove the method.
+//    ],
+    HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
+      RemoveComparison.newInstance,
+    ],
+    HintCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
+      RemoveComparison.newInstance,
+    ],
+//    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
+// TODO(brianwilkerson) Add a fix to remove the type check.
+//    ],
+//    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
+// TODO(brianwilkerson) Add a fix to remove the type check.
+//    ],
     HintCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.newInstance,
     ],

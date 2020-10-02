@@ -1571,16 +1571,17 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
 
     const intptr_t receiver_index = call->FirstArgIndex();
 
-    CompileType* receiver_type = call->ArgumentAt(receiver_index + 0)->Type();
+    CompileType* receiver_type =
+        call->ArgumentValueAt(receiver_index + 0)->Type();
 
     CompileType* index_type = nullptr;
     if (is_index_get || is_index_set) {
-      index_type = call->ArgumentAt(receiver_index + 1)->Type();
+      index_type = call->ArgumentValueAt(receiver_index + 1)->Type();
     }
 
     CompileType* value_type = nullptr;
     if (is_index_set) {
-      value_type = call->ArgumentAt(receiver_index + 2)->Type();
+      value_type = call->ArgumentValueAt(receiver_index + 2)->Type();
     }
 
     auto& type_class = Class::Handle(zone_);

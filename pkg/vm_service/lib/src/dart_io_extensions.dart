@@ -12,6 +12,14 @@ import 'vm_service.dart';
 
 extension DartIOExtension on VmService {
   static bool _factoriesRegistered = false;
+  static Map<String, Version> _isolateVersion = {};
+
+  Future<Version> _version(String isolateId) async {
+    if (_isolateVersion[isolateId] == null) {
+      _isolateVersion[isolateId] = await getDartIOVersion(isolateId);
+    }
+    return _isolateVersion[isolateId];
+  }
 
   /// The `getDartIOVersion` RPC returns the available version of the dart:io
   /// service protocol extensions.
@@ -58,11 +66,26 @@ extension DartIOExtension on VmService {
         'enable': enable,
       });
 
+  /// The _httpEnableTimelineLogging_ RPC is used to set and inspect the value of
+  /// `HttpClient.enableTimelineLogging`, which determines if HTTP client requests
+  /// should be logged to the timeline. If `enabled` is provided, the state of
+  /// `HttpClient.enableTimelineLogging` will be updated to the value of `enabled`.
+  ///
+  /// If the value of `HttpClient.enableTimelineLogging` is changed, a
+  /// `HttpTimelineLoggingStateChange` event will be sent on the `Extension` stream.
   Future<HttpTimelineLoggingState> httpEnableTimelineLogging(String isolateId,
-          [bool enable]) =>
-      _callHelper('ext.dart.io.httpEnableTimelineLogging', isolateId, args: {
-        if (enable != null) 'enable': enable,
-      });
+      [bool enabled]) async {
+    final version = await _version(isolateId);
+    // Parameter name changed in version 1.4.
+    final enableKey =
+        ((version.major == 1 && version.minor > 3) || version.major >= 2)
+            ? 'enabled'
+            : 'enable';
+    return _callHelper('ext.dart.io.httpEnableTimelineLogging', isolateId,
+        args: {
+          if (enabled != null) enableKey: enabled,
+        });
+  }
 
   /// The `getOpenFiles` RPC is used to retrieve the list of files currently
   /// opened files by `dart:io` from a given isolate.

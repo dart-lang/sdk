@@ -13,6 +13,8 @@ class A extends core::Object {
     return other is self::A;
   get /*isNullableByDefault*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode});
+  method /*isNullableByDefault*/ toString() → core::String
+    return "A()";
   method /*isNullableByDefault*/ copyWith() → dynamic
     return new self::A::•();
 }
