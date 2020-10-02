@@ -49,13 +49,16 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   @override
   ir.Constant evaluate(
       ir.StaticTypeContext staticTypeContext, ir.Expression node,
-      {bool requireConstant: true, bool replaceImplicitConstant: true}) {
+      {ir.TreeNode contextNode,
+      bool requireConstant: true,
+      bool replaceImplicitConstant: true}) {
     errorReporter.requiresConstant = requireConstant;
     if (node is ir.ConstantExpression) {
       ir.Constant constant = node.constant;
       if (constant is ir.UnevaluatedConstant) {
-        ir.Constant result =
-            super.evaluate(staticTypeContext, constant.expression);
+        ir.Constant result = super.evaluate(
+            staticTypeContext, constant.expression,
+            contextNode: contextNode);
         assert(
             result is ir.UnevaluatedConstant ||
                 !result.accept(const UnevaluatedConstantFinder()),
@@ -68,10 +71,11 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
       return constant;
     }
     if (requireConstant) {
-      return super.evaluate(staticTypeContext, node);
+      return super.evaluate(staticTypeContext, node, contextNode: contextNode);
     } else {
       try {
-        ir.Constant constant = super.evaluate(staticTypeContext, node);
+        ir.Constant constant =
+            super.evaluate(staticTypeContext, node, contextNode: contextNode);
         if (constant is ir.UnevaluatedConstant &&
             constant.expression is ir.InvalidExpression) {
           return null;

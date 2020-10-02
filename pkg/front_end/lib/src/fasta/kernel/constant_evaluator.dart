@@ -727,9 +727,8 @@ class ConstantsTransformer extends Transformer {
       return constantEvaluator.evaluate(_staticTypeContext, node);
     }
 
-    return constantEvaluator.runInsideContext(treeContext, () {
-      return constantEvaluator.evaluate(_staticTypeContext, node);
-    });
+    return constantEvaluator.evaluate(_staticTypeContext, node,
+        contextNode: treeContext);
   }
 
   Expression makeConstantExpression(Constant constant, Expression node) {
@@ -779,8 +778,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final NullConstant nullConstant = new NullConstant();
   final BoolConstant trueConstant = new BoolConstant(true);
   final BoolConstant falseConstant = new BoolConstant(false);
-
-  final List<TreeNode> contextChain = [];
 
   InstanceBuilder instanceBuilder;
   EvaluationEnvironment env;
@@ -882,7 +879,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// Returns UnevaluatedConstant if the constant could not be evaluated.
   /// If the expression in the UnevaluatedConstant is an InvalidExpression,
   /// an error occurred during constant evaluation.
-  Constant evaluate(StaticTypeContext context, Expression node) {
+  Constant evaluate(StaticTypeContext context, Expression node,
+      {TreeNode contextNode}) {
     _staticTypeContext = context;
     seenUnevaluatedChild = false;
     lazyDepth = 0;
@@ -898,10 +896,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           locatedMessageActualError
         ];
         if (result.context != null) contextMessages.addAll(result.context);
-        for (final TreeNode node in contextChain) {
-          if (node == result.node) continue;
-          final Uri uri = getFileUri(node);
-          final int fileOffset = getFileOffset(uri, node);
+        if (contextNode != null && contextNode != result.node) {
+          final Uri uri = getFileUri(contextNode);
+          final int fileOffset = getFileOffset(uri, contextNode);
           contextMessages.add(
               messageConstEvalContext.withLocation(uri, fileOffset, noLength));
         }
@@ -1060,32 +1057,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return _evaluateSubexpression(node);
   }
 
-  T runInsideContext<T>(TreeNode node, T fun()) {
-    try {
-      pushContext(node);
-      return fun();
-    } finally {
-      popContext(node);
-    }
-  }
-
-  T runInsideContextIfNoContext<T>(TreeNode node, T fun()) {
-    if (contextChain.isEmpty) {
-      return runInsideContext(node, fun);
-    } else {
-      return fun();
-    }
-  }
-
-  void pushContext(TreeNode contextNode) {
-    contextChain.add(contextNode);
-  }
-
-  void popContext(TreeNode contextNode) {
-    assert(contextChain.last == contextNode);
-    contextChain.length = contextChain.length - 1;
-  }
-
   @override
   Constant defaultTreeNode(Node node) {
     // Only a subset of the expression language is valid for constant
@@ -1142,9 +1113,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     Constant constant = node.constant;
     Constant result = constant;
     if (constant is UnevaluatedConstant) {
-      result = runInsideContext(constant.expression, () {
-        return _evaluateSubexpression(constant.expression);
-      });
+      result = _evaluateSubexpression(constant.expression);
       if (result is AbortConstant) return result;
     }
     // If there were already constants in the AST then we make sure we
@@ -1313,25 +1282,23 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
     // Start building a new instance.
     return withNewInstanceBuilder(klass, typeArguments, () {
-      return runInsideContextIfNoContext(node, () {
-        // "Run" the constructor (and any super constructor calls), which will
-        // initialize the fields of the new instance.
-        if (shouldBeUnevaluated) {
-          enterLazy();
-          AbortConstant error = handleConstructorInvocation(
-              constructor, typeArguments, positionals, named);
-          if (error != null) return error;
-          leaveLazy();
-          return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
-        }
+      // "Run" the constructor (and any super constructor calls), which will
+      // initialize the fields of the new instance.
+      if (shouldBeUnevaluated) {
+        enterLazy();
         AbortConstant error = handleConstructorInvocation(
             constructor, typeArguments, positionals, named);
         if (error != null) return error;
-        if (shouldBeUnevaluated) {
-          return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
-        }
-        return canonicalize(instanceBuilder.buildInstance());
-      });
+        leaveLazy();
+        return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
+      }
+      AbortConstant error = handleConstructorInvocation(
+          constructor, typeArguments, positionals, named);
+      if (error != null) return error;
+      if (shouldBeUnevaluated) {
+        return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
+      }
+      return canonicalize(instanceBuilder.buildInstance());
     });
   }
 
@@ -1524,140 +1491,136 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
       Map<String, Constant> namedArguments) {
-    return runInsideContext(constructor, () {
-      return withNewEnvironment(() {
-        final Class klass = constructor.enclosingClass;
-        final FunctionNode function = constructor.function;
+    return withNewEnvironment(() {
+      final Class klass = constructor.enclosingClass;
+      final FunctionNode function = constructor.function;
 
-        // We simulate now the constructor invocation.
+      // We simulate now the constructor invocation.
 
-        // Step 1) Map type arguments and normal arguments from caller to
-        //         callee.
-        for (int i = 0; i < klass.typeParameters.length; i++) {
-          env.addTypeParameterValue(klass.typeParameters[i], typeArguments[i]);
-        }
-        for (int i = 0; i < function.positionalParameters.length; i++) {
-          final VariableDeclaration parameter =
-              function.positionalParameters[i];
-          final Constant value = (i < positionalArguments.length)
-              ? positionalArguments[i]
-              // TODO(johnniwinther): This should call [_evaluateSubexpression].
-              : _evaluateNullableSubexpression(parameter.initializer);
-          if (value is AbortConstant) return value;
-          env.addVariableValue(parameter, value);
-        }
-        for (final VariableDeclaration parameter in function.namedParameters) {
-          final Constant value = namedArguments[parameter.name] ??
-              // TODO(johnniwinther): This should call [_evaluateSubexpression].
-              _evaluateNullableSubexpression(parameter.initializer);
-          if (value is AbortConstant) return value;
-          env.addVariableValue(parameter, value);
-        }
+      // Step 1) Map type arguments and normal arguments from caller to
+      //         callee.
+      for (int i = 0; i < klass.typeParameters.length; i++) {
+        env.addTypeParameterValue(klass.typeParameters[i], typeArguments[i]);
+      }
+      for (int i = 0; i < function.positionalParameters.length; i++) {
+        final VariableDeclaration parameter = function.positionalParameters[i];
+        final Constant value = (i < positionalArguments.length)
+            ? positionalArguments[i]
+            // TODO(johnniwinther): This should call [_evaluateSubexpression].
+            : _evaluateNullableSubexpression(parameter.initializer);
+        if (value is AbortConstant) return value;
+        env.addVariableValue(parameter, value);
+      }
+      for (final VariableDeclaration parameter in function.namedParameters) {
+        final Constant value = namedArguments[parameter.name] ??
+            // TODO(johnniwinther): This should call [_evaluateSubexpression].
+            _evaluateNullableSubexpression(parameter.initializer);
+        if (value is AbortConstant) return value;
+        env.addVariableValue(parameter, value);
+      }
 
-        // Step 2) Run all initializers (including super calls) with environment
-        //         setup.
-        for (final Field field in klass.fields) {
-          if (!field.isStatic) {
-            Constant constant =
-                _evaluateNullableSubexpression(field.initializer);
-            if (constant is AbortConstant) return constant;
-            instanceBuilder.setFieldValue(field, constant);
+      // Step 2) Run all initializers (including super calls) with environment
+      //         setup.
+      for (final Field field in klass.fields) {
+        if (!field.isStatic) {
+          Constant constant = _evaluateNullableSubexpression(field.initializer);
+          if (constant is AbortConstant) return constant;
+          instanceBuilder.setFieldValue(field, constant);
+        }
+      }
+      for (final Initializer init in constructor.initializers) {
+        if (init is FieldInitializer) {
+          Constant constant = _evaluateSubexpression(init.value);
+          if (constant is AbortConstant) return constant;
+          instanceBuilder.setFieldValue(init.field, constant);
+        } else if (init is LocalInitializer) {
+          final VariableDeclaration variable = init.variable;
+          Constant constant = _evaluateSubexpression(variable.initializer);
+          if (constant is AbortConstant) return constant;
+          env.addVariableValue(variable, constant);
+        } else if (init is SuperInitializer) {
+          AbortConstant error = checkConstructorConst(init, constructor);
+          if (error != null) return error;
+          List<DartType> types = _evaluateSuperTypeArguments(
+              init, constructor.enclosingClass.supertype);
+          if (types == null && _gotError != null) {
+            AbortConstant error = _gotError;
+            _gotError = null;
+            return error;
           }
-        }
-        for (final Initializer init in constructor.initializers) {
-          if (init is FieldInitializer) {
-            Constant constant = _evaluateSubexpression(init.value);
-            if (constant is AbortConstant) return constant;
-            instanceBuilder.setFieldValue(init.field, constant);
-          } else if (init is LocalInitializer) {
-            final VariableDeclaration variable = init.variable;
-            Constant constant = _evaluateSubexpression(variable.initializer);
-            if (constant is AbortConstant) return constant;
-            env.addVariableValue(variable, constant);
-          } else if (init is SuperInitializer) {
-            AbortConstant error = checkConstructorConst(init, constructor);
-            if (error != null) return error;
-            List<DartType> types = _evaluateSuperTypeArguments(
-                init, constructor.enclosingClass.supertype);
-            if (types == null && _gotError != null) {
-              AbortConstant error = _gotError;
-              _gotError = null;
-              return error;
-            }
-            assert(_gotError == null);
-            assert(types != null);
+          assert(_gotError == null);
+          assert(types != null);
 
-            List<Constant> positionalArguments =
-                _evaluatePositionalArguments(init.arguments);
-            if (positionalArguments == null && _gotError != null) {
-              AbortConstant error = _gotError;
-              _gotError = null;
-              return error;
-            }
-            assert(_gotError == null);
-            assert(positionalArguments != null);
-            Map<String, Constant> namedArguments =
-                _evaluateNamedArguments(init.arguments);
-            if (namedArguments == null && _gotError != null) {
-              AbortConstant error = _gotError;
-              _gotError = null;
-              return error;
-            }
-            assert(_gotError == null);
-            assert(namedArguments != null);
-            error = handleConstructorInvocation(
-                init.target, types, positionalArguments, namedArguments);
-            if (error != null) return error;
-          } else if (init is RedirectingInitializer) {
-            // Since a redirecting constructor targets a constructor of the same
-            // class, we pass the same [typeArguments].
-            AbortConstant error = checkConstructorConst(init, constructor);
-            if (error != null) return error;
-            List<Constant> positionalArguments =
-                _evaluatePositionalArguments(init.arguments);
-            if (positionalArguments == null && _gotError != null) {
-              AbortConstant error = _gotError;
-              _gotError = null;
-              return error;
-            }
-            assert(_gotError == null);
-            assert(positionalArguments != null);
-
-            Map<String, Constant> namedArguments =
-                _evaluateNamedArguments(init.arguments);
-            if (namedArguments == null && _gotError != null) {
-              AbortConstant error = _gotError;
-              _gotError = null;
-              return error;
-            }
-            assert(_gotError == null);
-            assert(namedArguments != null);
-
-            error = handleConstructorInvocation(init.target, typeArguments,
-                positionalArguments, namedArguments);
-            if (error != null) return error;
-          } else if (init is AssertInitializer) {
-            AbortConstant error = checkAssert(init.statement);
-            if (error != null) return error;
-          } else {
-            // InvalidInitializer or new Initializers.
-            // Probably unreachable. InvalidInitializer is (currently) only
-            // created for classes with no constructors that doesn't have a
-            // super that takes no arguments. It thus cannot be const.
-            // Explicit constructors with incorrect super calls will get a
-            // ShadowInvalidInitializer which is actually a LocalInitializer.
-            return createInvalidExpressionConstant(
-                constructor,
-                'No support for handling initializer of type '
-                '"${init.runtimeType}".');
+          List<Constant> positionalArguments =
+              _evaluatePositionalArguments(init.arguments);
+          if (positionalArguments == null && _gotError != null) {
+            AbortConstant error = _gotError;
+            _gotError = null;
+            return error;
           }
-        }
+          assert(_gotError == null);
+          assert(positionalArguments != null);
+          Map<String, Constant> namedArguments =
+              _evaluateNamedArguments(init.arguments);
+          if (namedArguments == null && _gotError != null) {
+            AbortConstant error = _gotError;
+            _gotError = null;
+            return error;
+          }
+          assert(_gotError == null);
+          assert(namedArguments != null);
+          error = handleConstructorInvocation(
+              init.target, types, positionalArguments, namedArguments);
+          if (error != null) return error;
+        } else if (init is RedirectingInitializer) {
+          // Since a redirecting constructor targets a constructor of the same
+          // class, we pass the same [typeArguments].
+          AbortConstant error = checkConstructorConst(init, constructor);
+          if (error != null) return error;
+          List<Constant> positionalArguments =
+              _evaluatePositionalArguments(init.arguments);
+          if (positionalArguments == null && _gotError != null) {
+            AbortConstant error = _gotError;
+            _gotError = null;
+            return error;
+          }
+          assert(_gotError == null);
+          assert(positionalArguments != null);
 
-        for (UnevaluatedConstant constant in env.unevaluatedUnreadConstants) {
-          instanceBuilder.unusedArguments.add(extract(constant));
+          Map<String, Constant> namedArguments =
+              _evaluateNamedArguments(init.arguments);
+          if (namedArguments == null && _gotError != null) {
+            AbortConstant error = _gotError;
+            _gotError = null;
+            return error;
+          }
+          assert(_gotError == null);
+          assert(namedArguments != null);
+
+          error = handleConstructorInvocation(
+              init.target, typeArguments, positionalArguments, namedArguments);
+          if (error != null) return error;
+        } else if (init is AssertInitializer) {
+          AbortConstant error = checkAssert(init.statement);
+          if (error != null) return error;
+        } else {
+          // InvalidInitializer or new Initializers.
+          // Probably unreachable. InvalidInitializer is (currently) only
+          // created for classes with no constructors that doesn't have a
+          // super that takes no arguments. It thus cannot be const.
+          // Explicit constructors with incorrect super calls will get a
+          // ShadowInvalidInitializer which is actually a LocalInitializer.
+          return createInvalidExpressionConstant(
+              constructor,
+              'No support for handling initializer of type '
+              '"${init.runtimeType}".');
         }
-        return null;
-      });
+      }
+
+      for (UnevaluatedConstant constant in env.unevaluatedUnreadConstants) {
+        instanceBuilder.unusedArguments.add(extract(constant));
+      }
+      return null;
     });
   }
 
@@ -2073,16 +2036,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Constant _evaluateExpressionInContext(Member member, Expression expression) {
     StaticTypeContext oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(member, typeEnvironment);
-    Constant constant = runInsideContext(member, () {
-      Constant constant = _evaluateSubexpression(expression);
-      if (constant is AbortConstant) return constant;
+    Constant constant = _evaluateSubexpression(expression);
+    if (constant is! AbortConstant) {
       if (_staticTypeContext.nonNullableByDefaultCompiledMode ==
               NonNullableByDefaultCompiledMode.Agnostic &&
           evaluationMode == EvaluationMode.weak) {
         constant = _weakener.visitConstant(constant) ?? constant;
       }
-      return constant;
-    });
+    }
     _staticTypeContext = oldStaticTypeContext;
     return constant;
   }
@@ -2753,22 +2714,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   T withNewInstanceBuilder<T>(
       Class klass, List<DartType> typeArguments, T fn()) {
     InstanceBuilder old = instanceBuilder;
-    try {
-      instanceBuilder = new InstanceBuilder(this, klass, typeArguments);
-      return fn();
-    } finally {
-      instanceBuilder = old;
-    }
+    instanceBuilder = new InstanceBuilder(this, klass, typeArguments);
+    T result = fn();
+    instanceBuilder = old;
+    return result;
   }
 
   T withNewEnvironment<T>(T fn()) {
     final EvaluationEnvironment oldEnv = env;
-    try {
-      env = new EvaluationEnvironment();
-      return fn();
-    } finally {
-      env = oldEnv;
-    }
+    env = new EvaluationEnvironment();
+    T result = fn();
+    env = oldEnv;
+    return result;
   }
 
   /// Binary operation between two operands, at least one of which is a double.
