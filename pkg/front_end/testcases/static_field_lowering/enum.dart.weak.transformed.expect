@@ -12,7 +12,7 @@ class A extends core::Object /*isEnum*/  {
     : self::A::index = index, self::A::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{=self::A::_name};
+    return this.{self::A::_name};
 }
 static method main() → dynamic {}
 

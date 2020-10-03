@@ -647,12 +647,11 @@ class PromoteToNonNullTest extends _NullableBase {
   test_typeParameter_bound_dynamic() {
     var element = typeParameter('T', bound: dynamicNone);
 
-    var result = typeSystem.promoteToNonNull(
+    _checkTypeParameter(
       typeParameterTypeNone(element),
-    ) as TypeParameterTypeImpl;
-    expect(result.element, same(element));
-    expect(result.promotedBound, isNull);
-    expect(result.nullabilitySuffix, NullabilitySuffix.none);
+      element: element,
+      promotedBound: null,
+    );
   }
 
   test_typeParameter_bound_none() {

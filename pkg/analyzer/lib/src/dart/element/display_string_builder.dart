@@ -190,6 +190,11 @@ class ElementDisplayStringBuilder {
   void writeTypeParameterType(TypeParameterTypeImpl type) {
     _write(type.element.displayName);
     _writeNullability(type.nullabilitySuffix);
+
+    if (type.promotedBound != null) {
+      _write(' & ');
+      _writeType(type.promotedBound);
+    }
   }
 
   void writeUnknownInferredType() {

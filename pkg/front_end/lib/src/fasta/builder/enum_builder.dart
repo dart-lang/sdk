@@ -11,7 +11,6 @@ import 'package:kernel/ast.dart'
         Class,
         Constructor,
         ConstructorInvocation,
-        DirectPropertyGet,
         Expression,
         Field,
         FieldInitializer,
@@ -20,6 +19,7 @@ import 'package:kernel/ast.dart'
         ListLiteral,
         Procedure,
         ProcedureKind,
+        PropertyGet,
         ReturnStatement,
         StaticGet,
         StringLiteral,
@@ -386,7 +386,7 @@ class EnumBuilder extends SourceClassBuilder {
     Field nameField = nameFieldBuilder.field;
     ProcedureBuilder toStringBuilder = firstMemberNamed("toString");
     toStringBuilder.body = new ReturnStatement(
-        new DirectPropertyGet(new ThisExpression(), nameField));
+        new PropertyGet(new ThisExpression(), nameField.name, nameField));
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo enumConstantInfo in enumConstantInfos) {

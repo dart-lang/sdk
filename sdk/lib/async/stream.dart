@@ -667,12 +667,12 @@ abstract class Stream<T> {
    * If this stream sends an error that matches [test], then it is intercepted
    * by the [onError] function.
    *
-   * The [onError] callback must be of type `void onError(Object error)` or
-   * `void onError(Object error, StackTrace stackTrace)`.
+   * The [onError] callback must be of type `void Function(Object error)` or
+   * `void Function(Object error, StackTrace)`.
    * The function type determines whether [onError] is invoked with a stack
    * trace argument.
-   * The stack trace argument may be `null` if this stream received an error
-   * without a stack trace.
+   * The stack trace argument may be [StackTrace.empty] if this stream received
+   * an error without a stack trace.
    *
    * An asynchronous error `error` is matched by a test function if
    *`test(error)` returns true. If [test] is omitted, every error is considered

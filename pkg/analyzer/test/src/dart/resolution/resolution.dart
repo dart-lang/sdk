@@ -776,15 +776,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  void assertTypeParameterType(
-    TypeParameterTypeImpl type, {
-    @required TypeParameterElement element,
-    @required String promotedBound,
-  }) {
-    assertElement(type.element, element);
-    assertType(type.promotedBound, promotedBound);
-  }
-
   Matcher elementMatcher(
     Element declaration, {
     bool isLegacy = false,
