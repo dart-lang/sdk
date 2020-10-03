@@ -1345,14 +1345,6 @@ class Printer extends Visitor<Null> {
     writeNode(node.arguments);
   }
 
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.{=');
-    writeMemberReferenceFromReference(node.targetReference);
-    writeSymbol('}');
-    writeNode(node.arguments);
-  }
-
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeWord('super');
     writeSymbol('.');
@@ -1768,22 +1760,6 @@ class Printer extends Visitor<Null> {
     writeWord('super');
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
-    writeSpaced('=');
-    writeExpression(node.value);
-  }
-
-  visitDirectPropertyGet(DirectPropertyGet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.{=');
-    writeMemberReferenceFromReference(node.targetReference);
-    writeSymbol('}');
-  }
-
-  visitDirectPropertySet(DirectPropertySet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.{=');
-    writeMemberReferenceFromReference(node.targetReference);
-    writeSymbol('}');
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -2479,7 +2455,6 @@ class Precedence extends ExpressionVisitor<int> {
   int visitInvalidExpression(InvalidExpression node) => CALLEE;
   int visitMethodInvocation(MethodInvocation node) => CALLEE;
   int visitSuperMethodInvocation(SuperMethodInvocation node) => CALLEE;
-  int visitDirectMethodInvocation(DirectMethodInvocation node) => CALLEE;
   int visitStaticInvocation(StaticInvocation node) => CALLEE;
   int visitConstructorInvocation(ConstructorInvocation node) => CALLEE;
   int visitNot(Not node) => PREFIX;
@@ -2511,8 +2486,6 @@ class Precedence extends ExpressionVisitor<int> {
   int visitPropertySet(PropertySet node) => EXPRESSION;
   int visitSuperPropertyGet(SuperPropertyGet node) => PRIMARY;
   int visitSuperPropertySet(SuperPropertySet node) => EXPRESSION;
-  int visitDirectPropertyGet(DirectPropertyGet node) => PRIMARY;
-  int visitDirectPropertySet(DirectPropertySet node) => EXPRESSION;
   int visitStaticGet(StaticGet node) => PRIMARY;
   int visitStaticSet(StaticSet node) => EXPRESSION;
   int visitLet(Let node) => EXPRESSION;

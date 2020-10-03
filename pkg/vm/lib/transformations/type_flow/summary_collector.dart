@@ -1502,53 +1502,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   @override
-  TypeExpr visitDirectMethodInvocation(DirectMethodInvocation node) {
-    final receiver = _visit(node.receiver);
-    final args = _visitArguments(receiver, node.arguments);
-    final target = node.target;
-    assert(target is! Field);
-    assert(!target.isGetter && !target.isSetter);
-    if (receiver is ThisExpression) {
-      _entryPointsListener.recordMemberCalledViaThis(target);
-    } else {
-      // Conservatively record direct invocations with non-this receiver
-      // as being done via interface selectors.
-      _entryPointsListener.recordMemberCalledViaInterfaceSelector(target);
-    }
-    return _makeCall(node, new DirectSelector(target), args);
-  }
-
-  @override
-  TypeExpr visitDirectPropertyGet(DirectPropertyGet node) {
-    final receiver = _visit(node.receiver);
-    final args = new Args<TypeExpr>([receiver]);
-    final target = node.target;
-    // No need to record this invocation as performed via this or via interface
-    // selector as PropertyGet invocations are not tracked at all.
-    return _makeCall(
-        node, new DirectSelector(target, callKind: CallKind.PropertyGet), args);
-  }
-
-  @override
-  TypeExpr visitDirectPropertySet(DirectPropertySet node) {
-    final receiver = _visit(node.receiver);
-    final value = _visit(node.value);
-    final args = new Args<TypeExpr>([receiver, value]);
-    final target = node.target;
-    assert((target is Field) || ((target is Procedure) && target.isSetter));
-    if (receiver is ThisExpression) {
-      _entryPointsListener.recordMemberCalledViaThis(target);
-    } else {
-      // Conservatively record direct invocations with non-this receiver
-      // as being done via interface selectors.
-      _entryPointsListener.recordMemberCalledViaInterfaceSelector(target);
-    }
-    _makeCall(
-        node, new DirectSelector(target, callKind: CallKind.PropertySet), args);
-    return value;
-  }
-
-  @override
   TypeExpr visitFunctionExpression(FunctionExpression node) {
     _handleNestedFunctionNode(node.function);
     // TODO(alexmarkov): support function types.

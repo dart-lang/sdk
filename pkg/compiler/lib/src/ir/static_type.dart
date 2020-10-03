@@ -325,61 +325,6 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return valueType;
   }
 
-  void handleDirectPropertyGet(ir.DirectPropertyGet node,
-      ir.DartType receiverType, ir.DartType resultType) {}
-
-  @override
-  ir.DartType visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.Class superclass = node.target.enclosingClass;
-    receiverType = getTypeAsInstanceOf(receiverType, superclass);
-    ir.DartType resultType = ir.Substitution.fromInterfaceType(receiverType)
-        .substituteType(node.target.getterType);
-    _expressionTypeCache[node] = resultType;
-    handleDirectPropertyGet(node, receiverType, resultType);
-    return resultType;
-  }
-
-  void handleDirectMethodInvocation(
-      ir.DirectMethodInvocation node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {}
-
-  @override
-  ir.DartType visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ArgumentTypes argumentTypes = _visitArguments(node.arguments);
-    ir.DartType returnType;
-    if (typeEnvironment.isSpecialCasedBinaryOperator(node.target)) {
-      ir.DartType argumentType = argumentTypes.positional[0];
-      returnType = typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
-          receiverType, argumentType);
-    } else {
-      ir.Class superclass = node.target.enclosingClass;
-      receiverType = getTypeAsInstanceOf(receiverType, superclass);
-      ir.DartType returnType = ir.Substitution.fromInterfaceType(receiverType)
-          .substituteType(node.target.function.returnType);
-      returnType = ir.Substitution.fromPairs(
-              node.target.function.typeParameters, node.arguments.types)
-          .substituteType(returnType);
-    }
-    _expressionTypeCache[node] = returnType;
-    handleDirectMethodInvocation(node, receiverType, argumentTypes, returnType);
-    return returnType;
-  }
-
-  void handleDirectPropertySet(ir.DirectPropertySet node,
-      ir.DartType receiverType, ir.DartType valueType) {}
-
-  @override
-  ir.DartType visitDirectPropertySet(ir.DirectPropertySet node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType valueType = super.visitDirectPropertySet(node);
-    handleDirectPropertySet(node, receiverType, valueType);
-    return valueType;
-  }
-
   /// Returns `true` if [interfaceTarget] is an arithmetic operator whose result
   /// type is computed using both the receiver type and the argument type.
   ///

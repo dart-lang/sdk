@@ -2332,17 +2332,6 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();              // read value.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
-    case kDirectPropertyGet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipInterfaceMemberNameReference();  // read target_reference.
-      return;
-    case kDirectPropertySet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipInterfaceMemberNameReference();  // read target_reference.
-      SkipExpression();              // read value·
-      return;
     case kStaticGet:
       ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
@@ -2364,12 +2353,6 @@ void KernelReaderHelper::SkipExpression() {
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
-      return;
-    case kDirectMethodInvocation:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipInterfaceMemberNameReference();  // read target_reference.
-      SkipArguments();               // read arguments.
       return;
     case kStaticInvocation:
       ReadPosition();                // read position.

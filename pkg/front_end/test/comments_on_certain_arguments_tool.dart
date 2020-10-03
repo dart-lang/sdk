@@ -170,11 +170,6 @@ class InvocationVisitor extends RecursiveVisitor<void> {
     }
   }
 
-  void visitDirectMethodInvocation(DirectMethodInvocation node) {
-    super.visitDirectMethodInvocation(node);
-    note(node.targetReference.node, node.arguments, node);
-  }
-
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     super.visitSuperMethodInvocation(node);
     note(node.interfaceTargetReference.node, node.arguments, node);

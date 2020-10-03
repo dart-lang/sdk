@@ -574,45 +574,6 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   }
 
   @override
-  visitDirectPropertyGet(DirectPropertyGet node) {
-    visitChildren(node);
-    if (node.target == null) {
-      problem(node, "DirectPropertyGet without target.");
-    }
-    if (!node.target.hasGetter) {
-      problem(node, "DirectPropertyGet of '${node.target}' without getter.");
-    }
-    if (!node.target.isInstanceMember) {
-      problem(
-          node,
-          "DirectPropertyGet of '${node.target}' that isn't an"
-          " instance member.");
-    }
-  }
-
-  @override
-  visitDirectPropertySet(DirectPropertySet node) {
-    visitChildren(node);
-    if (node.target == null) {
-      problem(node, "DirectPropertySet without target.");
-    }
-    if (!node.target.hasSetter) {
-      problem(node, "DirectPropertySet of '${node.target}' without setter.");
-    }
-    if (!node.target.isInstanceMember) {
-      problem(node, "DirectPropertySet of '${node.target}' that is static.");
-    }
-  }
-
-  @override
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
-    checkTargetedInvocation(node.target, node);
-    if (node.receiver == null) {
-      problem(node, "DirectMethodInvocation without receiver.");
-    }
-  }
-
-  @override
   visitConstructorInvocation(ConstructorInvocation node) {
     checkTargetedInvocation(node.target, node);
     if (node.target.enclosingClass.isAbstract) {

@@ -384,32 +384,14 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
   }
 
   @override
-  void visitDirectPropertyGet(DirectPropertyGet node) {
-    _checkTearoff(node.target);
-    super.visitDirectPropertyGet(node);
-  }
-
-  @override
   void visitPropertySet(PropertySet node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitPropertySet(node);
   }
 
   @override
-  void visitDirectPropertySet(DirectPropertySet node) {
-    _checkTarget(node.receiver, node.target);
-    super.visitDirectPropertySet(node);
-  }
-
-  @override
   void visitMethodInvocation(MethodInvocation node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitMethodInvocation(node);
-  }
-
-  @override
-  void visitDirectMethodInvocation(DirectMethodInvocation node) {
-    _checkTarget(node.receiver, node.target);
-    super.visitDirectMethodInvocation(node);
   }
 }

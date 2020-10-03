@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 45;
-static const uint32_t kMaxSupportedKernelFormatVersion = 45;
+static const uint32_t kMinSupportedKernelFormatVersion = 46;
+static const uint32_t kMaxSupportedKernelFormatVersion = 46;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -42,9 +42,6 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 45;
   V(AssertInitializer, 12)                                                     \
   V(CheckLibraryIsLoaded, 13)                                                  \
   V(LoadLibrary, 14)                                                           \
-  V(DirectPropertyGet, 15)                                                     \
-  V(DirectPropertySet, 16)                                                     \
-  V(DirectMethodInvocation, 17)                                                \
   V(ConstStaticInvocation, 18)                                                 \
   V(InvalidExpression, 19)                                                     \
   V(VariableGet, 20)                                                           \

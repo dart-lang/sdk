@@ -174,9 +174,6 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the inferred receiver type of the dynamic [read].
   AbstractValue receiverTypeOfGet(ir.PropertyGet read);
 
-  /// Returns the inferred receiver type of the direct [read].
-  AbstractValue receiverTypeOfDirectGet(ir.DirectPropertyGet read);
-
   /// Returns the inferred receiver type of the dynamic [write].
   AbstractValue receiverTypeOfSet(
       ir.PropertySet write, AbstractValueDomain abstractValueDomain);

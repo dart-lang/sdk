@@ -456,27 +456,6 @@ class TypeCheckingVisitor
   }
 
   @override
-  DartType visitDirectMethodInvocation(DirectMethodInvocation node) {
-    return handleCall(node.arguments, node.target.getterType,
-        receiver: getReceiverType(node, node.receiver, node.target));
-  }
-
-  @override
-  DartType visitDirectPropertyGet(DirectPropertyGet node) {
-    var receiver = getReceiverType(node, node.receiver, node.target);
-    return receiver.substituteType(node.target.getterType);
-  }
-
-  @override
-  DartType visitDirectPropertySet(DirectPropertySet node) {
-    var receiver = getReceiverType(node, node.receiver, node.target);
-    var value = visitExpression(node.value);
-    checkAssignable(node, value,
-        receiver.substituteType(node.target.setterType, contravariant: true));
-    return value;
-  }
-
-  @override
   DartType visitDoubleLiteral(DoubleLiteral node) {
     return environment.coreTypes.doubleLegacyRawType;
   }

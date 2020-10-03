@@ -295,12 +295,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                              Fragment build_rest_of_actuals);
   Fragment BuildSuperPropertyGet(TokenPosition* position);
   Fragment BuildSuperPropertySet(TokenPosition* position);
-  Fragment BuildDirectPropertyGet(TokenPosition* position);
-  Fragment BuildDirectPropertySet(TokenPosition* position);
   Fragment BuildStaticGet(TokenPosition* position);
   Fragment BuildStaticSet(TokenPosition* position);
   Fragment BuildMethodInvocation(TokenPosition* position);
-  Fragment BuildDirectMethodInvocation(TokenPosition* position);
   Fragment BuildSuperMethodInvocation(TokenPosition* position);
   Fragment BuildStaticInvocation(TokenPosition* position);
   Fragment BuildConstructorInvocation(TokenPosition* position);

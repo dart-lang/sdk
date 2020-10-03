@@ -1053,19 +1053,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    node.receiver = _handleExpression(node.receiver);
-    return const EvaluationComplexity.lazy();
-  }
-
-  @override
-  EvaluationComplexity visitDirectPropertySet(ir.DirectPropertySet node) {
-    node.receiver = _handleExpression(node.receiver);
-    node.value = _handleExpression(node.value);
-    return const EvaluationComplexity.lazy();
-  }
-
-  @override
   EvaluationComplexity visitNot(ir.Not node) {
     node.operand = _handleExpression(node.operand);
     EvaluationComplexity complexity = _lastExpressionComplexity;

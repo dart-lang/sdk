@@ -3460,33 +3460,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   }
 
   @override
-  void visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    node.receiver.accept(this);
-    HInstruction receiver = pop();
-
-    // Fake direct call with a dynamic call.
-    // TODO(sra): Implement direct invocations properly.
-    _pushDynamicInvocation(
-        node,
-        _getStaticType(node.receiver),
-        _typeInferenceMap.receiverTypeOfDirectGet(node),
-        new Selector.getter(_elementMap.getMember(node.target).memberName),
-        <HInstruction>[receiver],
-        const <DartType>[],
-        _sourceInformationBuilder.buildGet(node));
-  }
-
-  @override
-  void visitDirectPropertySet(ir.DirectPropertySet node) {
-    throw new UnimplementedError('ir.DirectPropertySet');
-  }
-
-  @override
-  void visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    throw new UnimplementedError('ir.DirectMethodInvocation');
-  }
-
-  @override
   void visitSuperPropertySet(ir.SuperPropertySet node) {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildAssignment(node);
@@ -7073,28 +7046,11 @@ class InlineWeeder extends ir.Visitor {
   }
 
   @override
-  visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    registerCall();
-    registerRegularNode();
-    registerReductiveNode();
-    visit(node.receiver);
-  }
-
-  @override
   visitPropertySet(ir.PropertySet node) {
     registerCall();
     registerRegularNode();
     registerReductiveNode();
     skipReductiveNodes(() => visit(node.name));
-    visit(node.receiver);
-    visit(node.value);
-  }
-
-  @override
-  visitDirectPropertySet(ir.DirectPropertySet node) {
-    registerCall();
-    registerRegularNode();
-    registerReductiveNode();
     visit(node.receiver);
     visit(node.value);
   }

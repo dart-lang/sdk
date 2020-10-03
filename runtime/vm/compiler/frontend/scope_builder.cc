@@ -755,17 +755,6 @@ void ScopeBuilder::VisitExpression() {
       // read interface_target_reference.
       helper_.SkipInterfaceMemberNameReference();
       return;
-    case kDirectPropertyGet:
-      helper_.ReadPosition();                // read position.
-      VisitExpression();                     // read receiver.
-      helper_.SkipInterfaceMemberNameReference();  // read target_reference.
-      return;
-    case kDirectPropertySet:
-      helper_.ReadPosition();                // read position.
-      VisitExpression();                     // read receiver.
-      helper_.SkipInterfaceMemberNameReference();  // read target_reference.
-      VisitExpression();                     // read value·
-      return;
     case kSuperPropertyGet:
       HandleLoadReceiver();
       helper_.ReadPosition();                // read position.
@@ -795,12 +784,6 @@ void ScopeBuilder::VisitExpression() {
       VisitArguments();        // read arguments.
       // read interface_target_reference.
       helper_.SkipInterfaceMemberNameReference();
-      return;
-    case kDirectMethodInvocation:
-      helper_.ReadPosition();                // read position.
-      VisitExpression();                     // read receiver.
-      helper_.SkipInterfaceMemberNameReference();  // read target_reference.
-      VisitArguments();                      // read arguments.
       return;
     case kSuperMethodInvocation:
       HandleLoadReceiver();

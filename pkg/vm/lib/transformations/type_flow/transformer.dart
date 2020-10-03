@@ -438,24 +438,6 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   }
 
   @override
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
-    _annotateCallSite(node, node.target);
-    super.visitDirectMethodInvocation(node);
-  }
-
-  @override
-  visitDirectPropertyGet(DirectPropertyGet node) {
-    _annotateCallSite(node, node.target);
-    super.visitDirectPropertyGet(node);
-  }
-
-  @override
-  visitDirectPropertySet(DirectPropertySet node) {
-    _annotateCallSite(node, node.target);
-    super.visitDirectPropertySet(node);
-  }
-
-  @override
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     _annotateCallSite(node, node.interfaceTarget);
     super.visitSuperMethodInvocation(node);
@@ -1223,48 +1205,6 @@ class _TreeShakerPass1 extends Transformer {
       if (target is Field && !shaker.retainField(target)) {
         return node.value;
       }
-      return node;
-    }
-  }
-
-  @override
-  TreeNode visitDirectMethodInvocation(DirectMethodInvocation node) {
-    node.transformChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall(
-          _flattenArguments(node.arguments, receiver: node.receiver));
-    } else {
-      assert(shaker.isMemberBodyReachable(node.target),
-          "Target should be reachable: $node");
-      return node;
-    }
-  }
-
-  @override
-  TreeNode visitDirectPropertyGet(DirectPropertyGet node) {
-    node.transformChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall([node.receiver]);
-    } else {
-      final target = node.target;
-      assert(shaker.isMemberBodyReachable(target),
-          "Target should be reachable: $node");
-      assert(target is! Field || shaker.isFieldGetterReachable(target),
-          "Unexpected target in DirectProperyGet: $node");
-      return node;
-    }
-  }
-
-  @override
-  TreeNode visitDirectPropertySet(DirectPropertySet node) {
-    node.transformChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall([node.receiver, node.value]);
-    } else {
-      assert(shaker.isMemberBodyReachable(node.target),
-          "Target should be reachable: $node");
-      node.target =
-          fieldMorpher.adjustInstanceCallTarget(node.target, isSetter: true);
       return node;
     }
   }
