@@ -328,7 +328,6 @@ class PropertyElementResolver {
     }
 
     var targetType = target.staticType;
-    targetType = _resolveTypeParameter(targetType);
 
     if (targetType.isVoid) {
       _errorReporter.reportErrorForNode(

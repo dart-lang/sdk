@@ -2554,6 +2554,24 @@ main(A? a) {
     );
   }
 
+  test_hasReceiver_typeParameter_promotedToNonNullable() async {
+    await assertNoErrorsInCode('''
+void f<T>(T? t) {
+  if (t is int) {
+    t.abs();
+  }
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('t.abs()'),
+      element: intElement.getMethod('abs'),
+      typeArgumentTypes: [],
+      invokeType: 'int Function()',
+      type: 'int',
+    );
+  }
+
   test_nullShorting_cascade_firstMethodInvocation() async {
     await assertNoErrorsInCode(r'''
 class A {

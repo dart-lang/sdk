@@ -6,15 +6,20 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
+import '../resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsTest);
+    defineReflectiveTests(ExtensionMethodsWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ExtensionMethodsTest extends PubPackageResolutionTest {
+class ExtensionMethodsTest extends PubPackageResolutionTest
+    with ExtensionMethodsTestCases {}
+
+mixin ExtensionMethodsTestCases on ResolutionTest {
   test_implicit_getter() async {
     await assertNoErrorsInCode('''
 class A<T> {}
@@ -148,6 +153,118 @@ void f(A<int> a) {
       findElement.setter('foo', of: 'E'),
       {'T': 'int'},
     );
+  }
+
+  test_implicit_targetTypeParameter_hasBound_methodInvocation() async {
+    await assertNoErrorsInCode('''
+extension Test<T> on T {
+  T Function(T) test() => throw 0;
+}
+
+void f<S extends num>(S x) {
+  x.test();
+}
+''');
+
+    if (result.libraryElement.isNonNullableByDefault) {
+      assertMethodInvocation2(
+        findNode.methodInvocation('test();'),
+        element: elementMatcher(
+          findElement.method('test'),
+          substitution: {'T': 'S'},
+        ),
+        typeArgumentTypes: [],
+        invokeType: 'S Function(S) Function()',
+        type: 'S Function(S)',
+      );
+    } else {
+      assertMethodInvocation2(
+        findNode.methodInvocation('test();'),
+        element: elementMatcher(
+          findElement.method('test'),
+          substitution: {'T': 'num'},
+        ),
+        typeArgumentTypes: [],
+        invokeType: 'num Function(num) Function()',
+        type: 'num Function(num)',
+      );
+    }
+  }
+
+  test_implicit_targetTypeParameter_hasBound_propertyAccess_getter() async {
+    await assertNoErrorsInCode('''
+extension Test<T> on T {
+  T Function(T) get test => throw 0;
+}
+
+void f<S extends num>(S x) {
+  (x).test;
+}
+''');
+
+    if (result.libraryElement.isNonNullableByDefault) {
+      assertPropertyAccess2(
+        findNode.propertyAccess('.test'),
+        element: elementMatcher(
+          findElement.getter('test'),
+          substitution: {'T': 'S'},
+        ),
+        type: 'S Function(S)',
+      );
+    } else {
+      assertPropertyAccess2(
+        findNode.propertyAccess('.test'),
+        element: elementMatcher(
+          findElement.getter('test'),
+          substitution: {'T': 'num'},
+        ),
+        type: 'num Function(num)',
+      );
+    }
+  }
+
+  test_implicit_targetTypeParameter_hasBound_propertyAccess_setter() async {
+    await assertNoErrorsInCode('''
+extension Test<T> on T {
+  void set test(T _) {}
+}
+
+T g<T>() => throw 0;
+
+void f<S extends num>(S x) {
+  (x).test = g();
+}
+''');
+
+    if (result.libraryElement.isNonNullableByDefault) {
+      assertPropertyAccess2(
+        findNode.propertyAccess('.test'),
+        element: elementMatcher(
+          findElement.setter('test'),
+          substitution: {'T': 'S'},
+        ),
+        type: 'S',
+      );
+
+      assertTypeArgumentTypes(
+        findNode.methodInvocation('g()'),
+        ['S'],
+      );
+    } else {
+      assertPropertyAccess2(
+        findNode.propertyAccess('.test'),
+        element: elementMatcher(
+          findElement.setter('test'),
+          substitution: {'T': 'num'},
+        ),
+        type: 'num',
+      );
+
+      assertTypeArgumentTypes(
+        findNode.methodInvocation('g()'),
+        ['num'],
+      );
+    }
   }
 
   test_override_downward_hasTypeArguments() async {
@@ -425,3 +542,7 @@ void f(A<int> a) {
     );
   }
 }
+
+@reflectiveTest
+class ExtensionMethodsWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, ExtensionMethodsTestCases {}

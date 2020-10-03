@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
@@ -71,9 +70,9 @@ class TypePropertyResolver {
     _nameErrorEntity = nameErrorEntity;
     _resetResult();
 
-    receiverType = _resolveTypeParameter(receiverType);
+    receiverType = _resolveTypeParameter(receiverType, ifLegacy: true);
 
-    if (receiverType is DynamicTypeImpl) {
+    if (_typeSystem.isDynamicBounded(receiverType)) {
       _lookupInterfaceType(_typeProvider.objectType);
       _needsGetterError = false;
       _needsSetterError = false;
@@ -100,29 +99,33 @@ class TypePropertyResolver {
       _reportedSetterError = true;
 
       // Recovery, get some resolution.
+      receiverType = _resolveTypeParameter(receiverType, ifNullSafe: true);
       if (receiverType is InterfaceType) {
         _lookupInterfaceType(receiverType);
       }
 
       return _toResult();
     } else {
-      if (receiverType is InterfaceType) {
-        _lookupInterfaceType(receiverType);
+      var receiverTypeResolved =
+          _resolveTypeParameter(receiverType, ifNullSafe: true);
+
+      if (receiverTypeResolved is InterfaceType) {
+        _lookupInterfaceType(receiverTypeResolved);
         if (_hasGetterOrSetter) {
           return _toResult();
         }
-        if (receiverType.isDartCoreFunction && _name == 'call') {
+        if (receiverTypeResolved.isDartCoreFunction && _name == 'call') {
           _needsGetterError = false;
           _needsSetterError = false;
           return _toResult();
         }
       }
 
-      if (receiverType is FunctionType && _name == 'call') {
+      if (receiverTypeResolved is FunctionType && _name == 'call') {
         return _toResult();
       }
 
-      if (receiverType is NeverType) {
+      if (receiverTypeResolved is NeverType) {
         _lookupInterfaceType(_typeProvider.objectType);
         _needsGetterError = false;
         _needsSetterError = false;
@@ -200,8 +203,22 @@ class TypePropertyResolver {
 
   /// If the given [type] is a type parameter, replace it with its bound.
   /// Otherwise, return the original type.
-  DartType _resolveTypeParameter(DartType type) {
-    return type?.resolveToBound(_typeProvider.objectType);
+  ///
+  /// See https://github.com/dart-lang/language/issues/1182
+  /// There was a bug in the analyzer (and CFE) - we were always resolving
+  /// types to bounds before searching for a property.  But  extensions should
+  /// be applied to original types.  Fixing this would be a breaking change,
+  /// so we fix it together with null safety.
+  DartType _resolveTypeParameter(
+    DartType type, {
+    bool ifLegacy = false,
+    bool ifNullSafe = false,
+  }) {
+    if (_typeSystem.isNonNullableByDefault ? ifNullSafe : ifLegacy) {
+      return type?.resolveToBound(_typeProvider.objectType);
+    } else {
+      return type;
+    }
   }
 
   ResolutionResult _toResult() {
