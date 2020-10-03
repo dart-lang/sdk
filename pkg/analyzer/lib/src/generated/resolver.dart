@@ -630,11 +630,21 @@ class ResolverVisitor extends ScopedVisitor {
       );
     } else if (node is SimpleIdentifier) {
       var resolver = PropertyElementResolver(this);
-      return resolver.resolveSimpleIdentifier(
+      var result = resolver.resolveSimpleIdentifier(
         node: node,
         hasRead: hasRead,
         hasWrite: true,
       );
+
+      if (hasRead && result.readElementRequested == null) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+          node,
+          [node.name],
+        );
+      }
+
+      return result;
     } else {
       node.accept(this);
       return PropertyElementResolverResult();

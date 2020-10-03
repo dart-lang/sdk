@@ -28,6 +28,28 @@ class A {
     ]);
   }
 
+  test_compoundAssignment_noGetter_hasSetter() async {
+    await assertErrorsInCode('''
+set foo(int _) {}
+
+void f() {
+  foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 32, 3),
+    ]);
+  }
+
+  test_compoundAssignment_noGetter_noSetter() async {
+    await assertErrorsInCode('''
+void f() {
+  foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 3),
+    ]);
+  }
+
   test_for() async {
     await assertErrorsInCode('''
 f(var l) {
@@ -123,6 +145,30 @@ var a = b;
 f() { C.m(); }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 6, 1),
+    ]);
+  }
+
+  test_postfixExpression_increment_noGetter_hasSetter() async {
+    await assertErrorsInCode('''
+set foo(int _) {}
+
+void f() {
+  foo++;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 32, 3),
+    ]);
+  }
+
+  test_prefixExpression_increment_noGetter_hasSetter() async {
+    await assertErrorsInCode('''
+set foo(int _) {}
+
+void f() {
+  ++foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 34, 3),
     ]);
   }
 
