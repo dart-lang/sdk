@@ -19,20 +19,14 @@ void transformLibraries(
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     List<Library> libraries,
-    ReferenceFromIndex referenceFromIndex,
-    {bool doSuperResolution: true}) {
-  new MixinFullResolution(targetInfo, coreTypes, hierarchy,
-          doSuperResolution: doSuperResolution)
+    ReferenceFromIndex referenceFromIndex) {
+  new MixinFullResolution(targetInfo, coreTypes, hierarchy)
       .transform(libraries, referenceFromIndex);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
 /// and procedures from the mixed-in class, cloning all constructors from the
 /// base class.
-///
-/// When [doSuperResolution] constructor parameter is [true], super calls
-/// (as well as super initializer invocations) are also resolved to their
-/// targets in this pass.
 class MixinFullResolution {
   final Target targetInfo;
   final CoreTypes coreTypes;
@@ -44,13 +38,7 @@ class MixinFullResolution {
   /// valid anymore.
   ClassHierarchy hierarchy;
 
-  // This enables `super` resolution transformation, which is not compatible
-  // with Dart VM's requirements around incremental compilation and has been
-  // moved to Dart VM itself.
-  final bool doSuperResolution;
-
-  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy,
-      {this.doSuperResolution: true});
+  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy);
 
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
@@ -73,22 +61,6 @@ class MixinFullResolution {
     // We might need to update the class hierarchy.
     hierarchy =
         hierarchy.applyMemberChanges(transformedClasses, findDescendants: true);
-
-    if (!doSuperResolution) {
-      return;
-    }
-    // Resolve all super call expressions and super initializers.
-    for (var library in libraries) {
-      for (var class_ in library.classes) {
-        for (var procedure in class_.procedures) {
-          if (procedure.containsSuperCalls) {
-            new SuperCallResolutionTransformer(
-                    hierarchy, coreTypes, class_.superclass, targetInfo)
-                .visit(procedure);
-          }
-        }
-      }
-    }
   }
 
   transformClass(
@@ -250,164 +222,5 @@ class MixinFullResolution {
 
     // Leave breadcrumbs for backends (e.g. for dart:mirrors implementation).
     class_.isEliminatedMixin = true;
-  }
-}
-
-class SuperCallResolutionTransformer extends Transformer {
-  final ClassHierarchy hierarchy;
-  final CoreTypes coreTypes;
-  final Class lookupClass;
-  final Target targetInfo;
-
-  SuperCallResolutionTransformer(
-      this.hierarchy, this.coreTypes, this.lookupClass, this.targetInfo);
-
-  TreeNode visit(TreeNode node) => node.accept(this);
-
-  visitSuperPropertyGet(SuperPropertyGet node) {
-    Member target = hierarchy.getDispatchTarget(lookupClass, node.name);
-    if (target != null) {
-      return new DirectPropertyGet(new ThisExpression(), target)
-        ..fileOffset = node.fileOffset;
-    } else {
-      return _callNoSuchMethod(node.name.text, new Arguments.empty(), node,
-          isGetter: true, isSuper: true);
-    }
-  }
-
-  visitSuperPropertySet(SuperPropertySet node) {
-    Member target =
-        hierarchy.getDispatchTarget(lookupClass, node.name, setter: true);
-    if (target != null) {
-      return new DirectPropertySet(
-          new ThisExpression(), target, visit(node.value))
-        ..fileOffset = node.fileOffset;
-    } else {
-      // Call has to return right-hand-side.
-      VariableDeclaration rightHandSide =
-          new VariableDeclaration.forValue(visit(node.value));
-      Expression result = _callNoSuchMethod(
-          node.name.text, new Arguments([new VariableGet(rightHandSide)]), node,
-          isSetter: true, isSuper: true);
-      VariableDeclaration call = new VariableDeclaration.forValue(result);
-      return new Let(
-          rightHandSide, new Let(call, new VariableGet(rightHandSide)));
-    }
-  }
-
-  visitSuperMethodInvocation(SuperMethodInvocation node) {
-    Member target = hierarchy.getDispatchTarget(lookupClass, node.name);
-    Arguments visitedArguments = visit(node.arguments);
-    if (target is Procedure &&
-        !target.isAccessor &&
-        _callIsLegal(target.function, visitedArguments)) {
-      return new DirectMethodInvocation(
-          new ThisExpression(), target, visitedArguments)
-        ..fileOffset = node.fileOffset;
-    } else if (target == null || (target is Procedure && !target.isAccessor)) {
-      // Target not found at all, or call was illegal.
-      return _callNoSuchMethod(node.name.text, visitedArguments, node,
-          isSuper: true);
-    } else {
-      return new MethodInvocation(
-          new DirectPropertyGet(new ThisExpression(), target),
-          new Name('call'),
-          visitedArguments)
-        ..fileOffset = node.fileOffset;
-    }
-  }
-
-  /// Create a call to no such method.
-  Expression _callNoSuchMethod(
-      String methodName, Arguments methodArguments, TreeNode node,
-      {isSuper: false, isGetter: false, isSetter: false}) {
-    Member noSuchMethod =
-        hierarchy.getDispatchTarget(lookupClass, new Name("noSuchMethod"));
-    String methodNameUsed = (isGetter)
-        ? "get:$methodName"
-        : (isSetter)
-            ? "set:$methodName="
-            : methodName;
-    if (noSuchMethod != null &&
-        noSuchMethod.function.positionalParameters.length == 1 &&
-        noSuchMethod.function.namedParameters.isEmpty) {
-      // We have a correct noSuchMethod method.
-      ConstructorInvocation invocation = _createInvocation(
-          methodNameUsed, methodArguments, isSuper, new ThisExpression());
-      return new DirectMethodInvocation(
-          new ThisExpression(), noSuchMethod, new Arguments([invocation]))
-        ..fileOffset = node.fileOffset;
-    } else {
-      // Incorrect noSuchMethod method: Call noSuchMethod on Object
-      // with Invocation of noSuchMethod as the method that did not exist.
-      noSuchMethod = hierarchy.getDispatchTarget(
-          coreTypes.objectClass, new Name("noSuchMethod"));
-      ConstructorInvocation invocation = _createInvocation(
-          methodNameUsed, methodArguments, isSuper, new ThisExpression());
-      ConstructorInvocation invocationPrime = _createInvocation("noSuchMethod",
-          new Arguments([invocation]), false, new ThisExpression());
-      return new DirectMethodInvocation(
-          new ThisExpression(), noSuchMethod, new Arguments([invocationPrime]))
-        ..fileOffset = node.fileOffset;
-    }
-  }
-
-  /// Creates an "new _InvocationMirror(...)" invocation.
-  ConstructorInvocation _createInvocation(String methodName,
-      Arguments callArguments, bool isSuperInvocation, Expression receiver) {
-    return targetInfo.instantiateInvocation(
-        coreTypes, receiver, methodName, callArguments, -1, isSuperInvocation);
-  }
-
-  /// Check that a call to the targetFunction is legal given the arguments.
-  ///
-  /// I.e. check that the number of positional parameters and the names of the
-  /// given named parameters represents a valid call to the function.
-  bool _callIsLegal(FunctionNode targetFunction, Arguments arguments) {
-    if ((targetFunction.requiredParameterCount > arguments.positional.length) ||
-        (targetFunction.positionalParameters.length <
-            arguments.positional.length)) {
-      // Given too few or too many positional arguments
-      return false;
-    }
-
-    // Do we give named that we don't take?
-    Set<String> givenNamed = arguments.named.map((v) => v.name).toSet();
-    Set<String> takenNamed =
-        targetFunction.namedParameters.map((v) => v.name).toSet();
-    givenNamed.removeAll(takenNamed);
-    return givenNamed.isEmpty;
-  }
-}
-
-class SuperInitializerResolutionTransformer extends InitializerVisitor {
-  final Class lookupClass;
-
-  SuperInitializerResolutionTransformer(this.lookupClass);
-
-  transformInitializers(List<Initializer> initializers) {
-    for (var initializer in initializers) {
-      initializer.accept(this);
-    }
-  }
-
-  visitSuperInitializer(SuperInitializer node) {
-    Constructor constructor = node.target;
-    if (constructor.enclosingClass != lookupClass) {
-      // If [node] refers to a constructor target which is not directly the
-      // superclass but some indirect base class then this is because classes in
-      // the middle are mixin applications.  These mixin applications will have
-      // received a forwarding constructor which we are required to use instead.
-      for (var replacement in lookupClass.constructors) {
-        if (constructor.name == replacement.name) {
-          node.target = replacement;
-          return null;
-        }
-      }
-
-      throw new Exception(
-          'Could not find a generative constructor named "${constructor.name}" '
-          'in lookup class "${lookupClass.name}"!');
-    }
   }
 }
