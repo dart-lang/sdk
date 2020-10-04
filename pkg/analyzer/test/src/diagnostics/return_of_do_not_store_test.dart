@@ -63,6 +63,44 @@ String get v3 => _v;
     ]);
   }
 
+  test_returnFromGetter_binaryExpression() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String _v = '';
+
+@doNotStore
+String _v2 = '';
+
+var b = true;
+
+String get v => _v ?? _v2;
+''', [
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 124, 2, messageContains: '_v'),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 130, 3, messageContains: '_v2'),
+    ]);
+  }
+
+  test_returnFromGetter_ternary() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+String _v = '';
+
+@doNotStore
+String _v2 = '';
+
+var b = true;
+
+String get v => b ? _v : _v2;
+''', [
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 128, 2),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 133, 3),
+    ]);
+  }
+
   test_returnFromMethod() async {
     await assertErrorsInCode('''
 import 'package:meta/meta.dart';

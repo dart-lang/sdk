@@ -34,7 +34,8 @@ class B {
   String f = A().v;
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 5),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 5,
+          messageContains: "'v'"),
     ]);
   }
 
@@ -174,6 +175,61 @@ class A {
 }
 ''', [
       error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 83, 1),
+    ]);
+  }
+
+  test_topLevelVariable_binaryExpression() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+final v = '';
+
+class A {
+  final f = v ?? v;
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 83, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 88, 1),
+    ]);
+  }
+
+  test_topLevelVariable_libraryAnnotation() async {
+    testFilePath;
+    newFile('$testPackageLibPath/library.dart', content: '''
+@doNotStore
+library lib;
+
+import 'package:meta/meta.dart';
+
+final v = '';
+''');
+
+    await assertErrorsInCode('''
+import 'library.dart';
+
+class A {
+  final f = v;
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 46, 1),
+    ]);
+  }
+
+  test_topLevelVariable_ternary() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+@doNotStore
+final v = '';
+
+class A {
+  static bool c;
+  final f = c ? v : v;
+}
+''', [
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 104, 1),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 108, 1),
     ]);
   }
 }
