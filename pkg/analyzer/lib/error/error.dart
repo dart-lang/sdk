@@ -260,6 +260,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
   CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
   CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+  CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION,
   CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
   CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
   CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,

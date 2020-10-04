@@ -5460,6 +5460,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The element type '{0}' can't be assigned to the list type '{1}'.",
           hasPublishedDocs: true);
 
+  static const CompileTimeErrorCode MAIN_IS_NOT_FUNCTION = CompileTimeErrorCode(
+    'MAIN_IS_NOT_FUNCTION',
+    "The declaration named 'main' must be a function.",
+    correction: "Try using a different name for this declaration.",
+  );
+
   /**
    * No parameters.
    */
