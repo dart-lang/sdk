@@ -213,6 +213,7 @@ class ExpressionCompilerWorker {
     await for (var request in requestStream) {
       try {
         var command = request['command'] as String;
+        if (command == 'Shutdown') break;
         switch (command) {
           case 'UpdateDeps':
             sendResponse(
@@ -234,6 +235,7 @@ class ExpressionCompilerWorker {
         });
       }
     }
+    _processedOptions.ticker.logMs('Stopped expression compiler worker.');
   }
 
   /// Handles a `CompileExpression` request.
