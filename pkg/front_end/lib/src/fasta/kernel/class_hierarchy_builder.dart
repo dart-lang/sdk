@@ -240,6 +240,9 @@ abstract class ClassMember {
 
   void inferType(ClassHierarchyBuilder hierarchy);
   void registerOverrideDependency(ClassMember overriddenMember);
+
+  /// Returns `true` if this has the same underlying declaration as [other].
+  bool isSameDeclaration(ClassMember other);
 }
 
 bool hasSameSignature(FunctionNode a, FunctionNode b) {
@@ -326,9 +329,9 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
   final List<DelayedTypeComputation> _delayedTypeComputations =
       <DelayedTypeComputation>[];
 
-  final List<DelayedOverrideCheck> _overrideChecks = <DelayedOverrideCheck>[];
+  final List<DelayedCheck> _delayedChecks = <DelayedCheck>[];
 
-  final List<ClassMember> _delayedMemberChecks = <ClassMember>[];
+  final List<ClassMember> _delayedMemberComputations = <ClassMember>[];
 
   final CoreTypes coreTypes;
 
@@ -345,9 +348,9 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
   void clear() {
     nodes.clear();
     substitutions.clear();
-    _overrideChecks.clear();
+    _delayedChecks.clear();
     _delayedTypeComputations.clear();
-    _delayedMemberChecks.clear();
+    _delayedMemberComputations.clear();
   }
 
   void registerDelayedTypeComputation(DelayedTypeComputation computation) {
@@ -356,11 +359,17 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
   void registerOverrideCheck(
       SourceClassBuilder classBuilder, ClassMember a, ClassMember b) {
-    _overrideChecks.add(new DelayedOverrideCheck(classBuilder, a, b));
+    _delayedChecks.add(new DelayedOverrideCheck(classBuilder, a, b));
   }
 
-  void registerMemberCheck(ClassMember member) {
-    _delayedMemberChecks.add(member);
+  void registerGetterSetterCheck(
+      SourceClassBuilder classBuilder, ClassMember getter, ClassMember setter) {
+    _delayedChecks
+        .add(new DelayedGetterSetterCheck(classBuilder, getter, setter));
+  }
+
+  void registerMemberComputation(ClassMember member) {
+    _delayedMemberComputations.add(member);
   }
 
   List<DelayedTypeComputation> takeDelayedTypeComputations() {
@@ -369,15 +378,15 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     return list;
   }
 
-  List<DelayedOverrideCheck> takeDelayedOverrideChecks() {
-    List<DelayedOverrideCheck> list = _overrideChecks.toList();
-    _overrideChecks.clear();
+  List<DelayedCheck> takeDelayedChecks() {
+    List<DelayedCheck> list = _delayedChecks.toList();
+    _delayedChecks.clear();
     return list;
   }
 
-  List<ClassMember> takeDelayedMemberChecks() {
-    List<ClassMember> list = _delayedMemberChecks.toList();
-    _delayedMemberChecks.clear();
+  List<ClassMember> takeDelayedMemberComputations() {
+    List<ClassMember> list = _delayedMemberComputations.toList();
+    _delayedMemberComputations.clear();
     return list;
   }
 
@@ -1781,7 +1790,7 @@ class ClassHierarchyNodeBuilder {
                     shouldModifyKernel,
                     concrete.isAbstract,
                     concrete.name);
-                hierarchy.registerMemberCheck(result);
+                hierarchy.registerMemberComputation(result);
               }
             } else if (classBuilder.isMixinApplication &&
                 declaredMember.classBuilder != classBuilder) {
@@ -1793,7 +1802,7 @@ class ClassHierarchyNodeBuilder {
                   shouldModifyKernel,
                   isInheritableConflict: false);
               if (result.needsComputation) {
-                hierarchy.registerMemberCheck(result);
+                hierarchy.registerMemberComputation(result);
               }
             }
 
@@ -1820,7 +1829,7 @@ class ClassHierarchyNodeBuilder {
           }
           if (extendedMember.isInheritableConflict) {
             extendedMember = extendedMember.withParent(classBuilder);
-            hierarchy.registerMemberCheck(extendedMember);
+            hierarchy.registerMemberComputation(extendedMember);
           }
           if (extendedMember.classBuilder.library.isNonNullableByDefault &&
               !classBuilder.library.isNonNullableByDefault) {
@@ -1834,7 +1843,7 @@ class ClassHierarchyNodeBuilder {
                   extendedMember.isAbstract,
                   extendedMember.name,
                   isImplicitlyAbstract: extendedMember.isAbstract);
-              hierarchy.registerMemberCheck(extendedMember);
+              hierarchy.registerMemberComputation(extendedMember);
             }
           }
           return extendedMember;
@@ -1923,7 +1932,7 @@ class ClassHierarchyNodeBuilder {
                       shouldModifyKernel);
                 }
                 if (result.needsComputation) {
-                  hierarchy.registerMemberCheck(result);
+                  hierarchy.registerMemberComputation(result);
                 }
               }
 
@@ -1936,7 +1945,7 @@ class ClassHierarchyNodeBuilder {
               }
               if (interfaceMember.isInheritableConflict) {
                 interfaceMember = interfaceMember.withParent(classBuilder);
-                hierarchy.registerMemberCheck(interfaceMember);
+                hierarchy.registerMemberComputation(interfaceMember);
               }
               if (interfaceMember.classBuilder.library.isNonNullableByDefault &&
                   !classBuilder.library.isNonNullableByDefault) {
@@ -1950,7 +1959,7 @@ class ClassHierarchyNodeBuilder {
                       interfaceMember.isAbstract,
                       interfaceMember.name,
                       isImplicitlyAbstract: interfaceMember.isAbstract);
-                  hierarchy.registerMemberCheck(interfaceMember);
+                  hierarchy.registerMemberComputation(interfaceMember);
                 }
               }
               return interfaceMember;
@@ -2039,6 +2048,18 @@ class ClassHierarchyNodeBuilder {
           //  member computation for the [classMember] that we're replacing
           //  and therefore create two stubs for this member.
           classSetter = interfaceSetter;
+        }
+      }
+      if (classBuilder is SourceClassBuilder) {
+        ClassMember member = interfaceMember ?? classMember;
+        ClassMember setter = interfaceSetter ?? classSetter;
+        if (member != null &&
+            setter != null &&
+            member.isProperty &&
+            setter.isProperty &&
+            member.isStatic == setter.isStatic &&
+            !member.isSameDeclaration(setter)) {
+          hierarchy.registerGetterSetterCheck(classBuilder, member, setter);
         }
       }
       if (classMember != null) {
@@ -2576,7 +2597,11 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 }
 
-class DelayedOverrideCheck {
+abstract class DelayedCheck {
+  void check(ClassHierarchyBuilder hierarchy);
+}
+
+class DelayedOverrideCheck implements DelayedCheck {
   final SourceClassBuilder classBuilder;
   final ClassMember declaredMember;
   final ClassMember overriddenMember;
@@ -2596,6 +2621,20 @@ class DelayedOverrideCheck {
         "${overriddenMember.fullName} wrt. ${classBuilder.fullNameForErrors}");
     callback(declaredMember.getMember(hierarchy),
         overriddenMember.getMember(hierarchy), declaredMember.isSetter);
+  }
+}
+
+class DelayedGetterSetterCheck implements DelayedCheck {
+  final SourceClassBuilder classBuilder;
+  final ClassMember getter;
+  final ClassMember setter;
+
+  const DelayedGetterSetterCheck(this.classBuilder, this.getter, this.setter);
+
+  void check(ClassHierarchyBuilder hierarchy) {
+    classBuilder.checkGetterSetter(hierarchy.types, getter.getMember(hierarchy),
+        setter.getMember(hierarchy),
+        isInterfaceCheck: !classBuilder.isMixinApplication);
   }
 }
 
@@ -2828,6 +2867,12 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
         ? this
         : new InheritedImplementationInterfaceConflict(parent, concreteMember,
             [this], isProperty, isSetter, modifyKernel, isAbstract, name);
+  }
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    // This could be more precise but it currently has no benefit.
+    return identical(this, other);
   }
 
   static ClassMember combined(
@@ -3114,6 +3159,12 @@ class InterfaceConflict extends DelayedMember {
             isImplicitlyAbstract: isImplicitlyAbstract);
   }
 
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    // This could be more precise but it currently has no benefit.
+    return identical(this, other);
+  }
+
   static ClassMember combined(ClassBuilder parent, ClassMember a, ClassMember b,
       bool isSetter, bool createForwarders) {
     assert(a.isProperty == b.isProperty,
@@ -3236,6 +3287,15 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
 
   @override
   ClassMember get concrete => concreteImplementation;
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    if (identical(this, other)) return false;
+    return other is AbstractMemberOverridingImplementation &&
+        classBuilder == other.classBuilder &&
+        abstract.isSameDeclaration(other.abstract) &&
+        concrete.isSameDeclaration(other.concrete);
+  }
 }
 
 void addDeclarationIfDifferent(

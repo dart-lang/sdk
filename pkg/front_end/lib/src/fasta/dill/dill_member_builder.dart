@@ -191,6 +191,11 @@ class DillClassMember extends BuilderClassMember {
     // Do nothing; this is only for source members.
   }
 
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    return other is DillClassMember && memberBuilder == other.memberBuilder;
+  }
+
   String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';
 }
 

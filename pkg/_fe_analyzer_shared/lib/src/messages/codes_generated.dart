@@ -5338,6 +5338,78 @@ Message _withArgumentsInvalidContinueTarget(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInvalidGetterSetterTypeFieldContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""This is the declaration of the field '#name'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeFieldContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInvalidGetterSetterTypeFieldContext =
+    const Code<Message Function(String name)>(
+        "InvalidGetterSetterTypeFieldContext",
+        templateInvalidGetterSetterTypeFieldContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeFieldContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidGetterSetterTypeFieldContext,
+      message: """This is the declaration of the field '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInvalidGetterSetterTypeGetterContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""This is the declaration of the getter '#name'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeGetterContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInvalidGetterSetterTypeGetterContext =
+    const Code<Message Function(String name)>(
+        "InvalidGetterSetterTypeGetterContext",
+        templateInvalidGetterSetterTypeGetterContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeGetterContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidGetterSetterTypeGetterContext,
+      message: """This is the declaration of the getter '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInvalidGetterSetterTypeSetterContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""This is the declaration of the setter '#name'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeSetterContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInvalidGetterSetterTypeSetterContext =
+    const Code<Message Function(String name)>(
+        "InvalidGetterSetterTypeSetterContext",
+        templateInvalidGetterSetterTypeSetterContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeSetterContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidGetterSetterTypeSetterContext,
+      message: """This is the declaration of the setter '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidHexEscape = messageInvalidHexEscape;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

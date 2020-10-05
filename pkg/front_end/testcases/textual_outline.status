@@ -132,6 +132,7 @@ general_nnbd_opt_out/var_as_type_name: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: FormatterCrash
 late_lowering/covariant_late_field: FormatterCrash
+late_lowering/getter_vs_setter_type: FormatterCrash
 late_lowering/infer_late_field_type: FormatterCrash
 late_lowering/initializer_rewrite: FormatterCrash
 late_lowering/initializer_rewrite_from_opt_out: FormatterCrash
@@ -170,6 +171,7 @@ nnbd/extension_never: FormatterCrash
 nnbd/external_field_errors: FormatterCrash
 nnbd/external_fields: FormatterCrash
 nnbd/forbidden_supers: FormatterCrash
+nnbd/getter_vs_setter_type_late: FormatterCrash
 nnbd/infer_if_null: FormatterCrash
 nnbd/inheritance_from_opt_in: FormatterCrash
 nnbd/issue40805: FormatterCrash

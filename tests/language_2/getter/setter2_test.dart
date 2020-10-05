@@ -38,6 +38,7 @@ class T2 {
   A get field {
   //    ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
+  // [cfe] The type 'A' of the getter 'T2.field' is not assignable to the type 'C' of the setter 'T2.field'.
     return getterField;
   }
 

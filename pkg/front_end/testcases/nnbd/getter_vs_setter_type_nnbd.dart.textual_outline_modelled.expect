@@ -1,0 +1,68 @@
+abstract class A {
+  A(this.property4, this.property5, this.property6);
+  covariant int property6;
+  int? get property3;
+  int? property5;
+  int get property1;
+  int get property2;
+  int property4;
+  void set property1(int i);
+  void set property2(int? i);
+  void set property3(int i);
+}
+
+abstract class B1 {
+  B1(this.property4, this.property5, this.property6);
+  final int? property6;
+  final int property4;
+  final int property5;
+  int? get property3;
+  int get property1;
+  int get property2;
+}
+
+abstract class B2 implements B1 {
+  void set property1(int i);
+  void set property2(int? i);
+  void set property3(int i);
+  void set property4(int i);
+  void set property5(int? i);
+  void set property6(int i);
+}
+
+abstract class C1 {
+  C1(this.property4, this.property5, this.property6);
+  int? property5;
+  int property4;
+  int property6;
+  void set property1(int i);
+  void set property2(int? i);
+  void set property3(int i);
+}
+
+abstract class C2 implements C1 {
+  int? get property3;
+  int? get property6;
+  int get property1;
+  int get property2;
+  int get property4;
+  int get property5;
+}
+
+abstract class D1 {
+  int? get property3;
+  int get property1;
+  int get property2;
+}
+
+abstract class D2 {
+  void set property1(int i);
+  void set property2(int? i);
+  void set property3(int i);
+}
+
+abstract class D3 implements D1, D2 {}
+
+abstract class D4 implements D3 {}
+
+main() {}

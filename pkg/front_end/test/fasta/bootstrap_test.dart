@@ -59,7 +59,7 @@ Future runCompiler(Uri compiler, Uri input, Uri output) async {
       ],
       suppressOutput: false);
   if (result.exitCode != 0) {
-    throw "Compilation failed.";
+    throw "Compilation failed:\n${result.output}";
   }
 }
 
