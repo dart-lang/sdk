@@ -1415,6 +1415,8 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
     BackgroundCompiler::Stop(isolate);
     isolate->heap()->WaitForMarkerTasks(thread);
     isolate->heap()->WaitForSweeperTasks(thread);
+    SafepointOperationScope safepoint_operation(thread);
+    isolate->group()->ReleaseStoreBuffers();
     RELEASE_ASSERT(isolate->heap()->old_space()->tasks() == 0);
   }
 

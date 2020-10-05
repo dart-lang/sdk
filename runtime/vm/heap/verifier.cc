@@ -53,8 +53,8 @@ void VerifyPointersVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
             allocated_set_->Contains(OldPage::ToWritable(raw_obj))) {
           continue;
         }
-        uword raw_addr = ObjectLayout::ToAddr(raw_obj);
-        FATAL1("Invalid object pointer encountered %#" Px "\n", raw_addr);
+        FATAL2("Invalid object pointer encountered %#" Px ": %#" Px "\n",
+               reinterpret_cast<uword>(current), static_cast<uword>(raw_obj));
       }
     }
   }
