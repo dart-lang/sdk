@@ -252,17 +252,6 @@
       "exclude": []
     },
     {
-      "name": "old_dill",
-      "kind": "Chain",
-      "source": "test/old_dill_suite.dart",
-      "path": "testcases/old_dills/dills/",
-      "status": "testcases/old_dills/old_dills.status",
-      "pattern": [
-        ".*\\.dill$"
-      ],
-      "exclude": []
-    },
-    {
       "name": "parser",
       "kind": "Chain",
       "source": "test/parser_suite.dart",
