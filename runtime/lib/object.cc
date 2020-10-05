@@ -497,9 +497,14 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
   InvocationMirror::Kind kind;
   InvocationMirror::DecodeType(invocation_type.Value(), &level, &kind);
 
-  Function& function = Function::Handle();
+  Function& function = Function::Handle(zone);
   if (receiver.IsType()) {
-    Class& cls = Class::Handle(Type::Cast(receiver).type_class());
+    const auto& cls = Class::Handle(zone, Type::Cast(receiver).type_class());
+    const auto& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+      UNREACHABLE();
+    }
     if (level == InvocationMirror::kConstructor) {
       function = cls.LookupConstructor(method_name);
       if (function.IsNull()) {
@@ -511,7 +516,7 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
   } else if (receiver.IsClosure()) {
     function = Closure::Cast(receiver).function();
   } else {
-    Class& cls = Class::Handle(receiver.clazz());
+    auto& cls = Class::Handle(zone, receiver.clazz());
     if (level == InvocationMirror::kSuper) {
       cls = cls.SuperClass();
     }
