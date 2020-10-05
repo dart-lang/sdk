@@ -1,5 +1,44 @@
+library;
 //
-// Problems in component:
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+// const List<String> barWithIntSpread = [...foo, ...fortyTwo];
+//                                                   ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:25:51: Error: Unexpected type 'Map<String, String>' of a spread.  Expected 'dynamic' or an Iterable.
+//  - 'Map' is from 'dart:core'.
+// const List<String> barWithMapSpread = [...foo, ...quux];
+//                                                   ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+// const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
+//                                                  ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Expected ',' before this.
+// const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
+//                                                  ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:42:38: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// const Set<String> quxWithMapSpread = {...baz, ...quux};
+//                                      ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
+//  - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
+// const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
+//                                                           ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:58:60: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
+// const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
+//                                                            ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:59:47: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
+//                                               ^
+//
+// pkg/front_end/testcases/general/constants/const_collections.dart:60:46: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// const Map<String, String> mapWithSetSpread = {...baz};
+//                                              ^
 //
 // pkg/front_end/testcases/general/constants/const_collections.dart:22:40: Error: Constant evaluation error:
 // const List<String> barWithNullSpread = [...foo, ...nullList];
@@ -173,48 +212,6 @@
 // pkg/front_end/testcases/general/constants/const_collections.dart:68:21: Context: While analyzing:
 // const Map<int, int> mapWithDuplicates = {42: 42, 42: 42};
 //                     ^
-//
-library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
-// const List<String> barWithIntSpread = [...foo, ...fortyTwo];
-//                                                   ^
-//
-// pkg/front_end/testcases/general/constants/const_collections.dart:25:51: Error: Unexpected type 'Map<String, String>' of a spread.  Expected 'dynamic' or an Iterable.
-//  - 'Map' is from 'dart:core'.
-// const List<String> barWithMapSpread = [...foo, ...quux];
-//                                                   ^
-//
-// pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
-// const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
-//                                                  ^
-//
-// pkg/front_end/testcases/general/constants/const_collections.dart:41:50: Error: Expected ',' before this.
-// const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
-//                                                  ^
-//
-// pkg/front_end/testcases/general/constants/const_collections.dart:42:38: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
-// const Set<String> quxWithMapSpread = {...baz, ...quux};
-//                                      ^
-//
-// pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
-//  - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
-// const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
-//                                                           ^
-//
-// pkg/front_end/testcases/general/constants/const_collections.dart:58:60: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
-// const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
-//                                                            ^
-//
-// pkg/front_end/testcases/general/constants/const_collections.dart:59:47: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
-// const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
-//                                               ^
-//
-// pkg/front_end/testcases/general/constants/const_collections.dart:60:46: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
-// const Map<String, String> mapWithSetSpread = {...baz};
-//                                              ^
 //
 import self as self;
 import "dart:collection" as col;

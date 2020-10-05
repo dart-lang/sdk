@@ -1,5 +1,10 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:16:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+//   const Foo.withInvalidCondition(this.x) : assert(x);
+//                                                   ^
 //
 // pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:26:24: Error: Constant evaluation error:
 // const Foo foo2 = const Foo(0);
@@ -60,14 +65,6 @@
 // pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:33:11: Context: While analyzing:
 // const Bar bar4 = const Bar.withoutMessage(0);
 //           ^
-//
-library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:16:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
-//   const Foo.withInvalidCondition(this.x) : assert(x);
-//                                                   ^
 //
 import self as self;
 import "dart:core" as core;

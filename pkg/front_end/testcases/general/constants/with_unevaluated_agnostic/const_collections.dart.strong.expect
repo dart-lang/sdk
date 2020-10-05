@@ -1,5 +1,10 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:27:7: Error: Expected 2 type arguments.
+// const Map<bool> MapWithUnevaluated = {
+//       ^
 //
 // pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:25:26: Error: Constant evaluation error:
 // const setNotAgnosticOK = {a, b};
@@ -19,14 +24,6 @@
 //                                 ^
 // pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:31:7: Context: While analyzing:
 // const mapNotAgnosticOK = {a: 0, b: 1};
-//       ^
-//
-library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:27:7: Error: Expected 2 type arguments.
-// const Map<bool> MapWithUnevaluated = {
 //       ^
 //
 import self as self;

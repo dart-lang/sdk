@@ -1,5 +1,6 @@
+library;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/general/constants/no_experiments/various.dart:5:40: Error: Constant evaluation error:
 // const Symbol tripleShiftSymbol = const Symbol(">>>");
@@ -11,7 +12,6 @@
 // const Symbol tripleShiftSymbol = const Symbol(">>>");
 //              ^
 //
-library;
 import self as self;
 import "dart:core" as core;
 

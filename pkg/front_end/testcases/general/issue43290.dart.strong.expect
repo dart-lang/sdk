@@ -1,5 +1,14 @@
+library;
 //
-// Problems in component:
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue43290.dart:11:25: Error: Not a constant expression.
+//     const Class(length: length);
+//                         ^^^^^^
+//
+// pkg/front_end/testcases/general/issue43290.dart:19:15: Error: Not a constant expression.
+//     const a = length;
+//               ^^^^^^
 //
 // pkg/front_end/testcases/general/issue43290.dart:7:11: Error: Constant evaluation error:
 //     const Class(length: this.length);
@@ -34,18 +43,6 @@
 // pkg/front_end/testcases/general/issue43290.dart:19:11: Context: While analyzing:
 //     const a = length;
 //           ^
-//
-library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/issue43290.dart:11:25: Error: Not a constant expression.
-//     const Class(length: length);
-//                         ^^^^^^
-//
-// pkg/front_end/testcases/general/issue43290.dart:19:15: Error: Not a constant expression.
-//     const a = length;
-//               ^^^^^^
 //
 import self as self;
 import "dart:core" as core;

@@ -1,28 +1,3 @@
-//
-// Problems in component:
-//
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:29: Error: Constant evaluation error:
-// const fromDeferredLib = lib.x;
-//                             ^
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:29: Context: 'lib' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
-// Try moving the constant from the deferred library, or removing 'deferred' from the import.
-//
-// const fromDeferredLib = lib.x;
-//                             ^
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:7: Context: While analyzing:
-// const fromDeferredLib = lib.x;
-//       ^
-//
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:77:44: Error: Constant evaluation error:
-// const Symbol symbolWithInvalidName = const Symbol("42");
-//                                            ^
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:77:51: Context: The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '"42"'.
-// const Symbol symbolWithInvalidName = const Symbol("42");
-//                                                   ^
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:77:14: Context: While analyzing:
-// const Symbol symbolWithInvalidName = const Symbol("42");
-//              ^
-//
 library /*isNonNullableByDefault*/;
 //
 // Problems in library:
@@ -56,6 +31,28 @@ library /*isNonNullableByDefault*/;
 //         ^
 // pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:27:14: Context: Field isn't final, but constructor is 'const'.
 //   const bool initialized =
+//              ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:29: Error: Constant evaluation error:
+// const fromDeferredLib = lib.x;
+//                             ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:29: Context: 'lib' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
+// Try moving the constant from the deferred library, or removing 'deferred' from the import.
+//
+// const fromDeferredLib = lib.x;
+//                             ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:7: Context: While analyzing:
+// const fromDeferredLib = lib.x;
+//       ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:77:44: Error: Constant evaluation error:
+// const Symbol symbolWithInvalidName = const Symbol("42");
+//                                            ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:77:51: Context: The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '"42"'.
+// const Symbol symbolWithInvalidName = const Symbol("42");
+//                                                   ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:77:14: Context: While analyzing:
+// const Symbol symbolWithInvalidName = const Symbol("42");
 //              ^
 //
 import self as self;
