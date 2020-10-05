@@ -1043,7 +1043,23 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         }
       }
     } else {
+      bool sentinelInserted = false;
+      if (nodeCache.containsKey(node)) {
+        if (nodeCache[node] == null) {
+          // recursive call
+          return createErrorConstant(node, messageConstEvalCircularity);
+        }
+        // else we've seen the node before and come to a result -> we won't
+        // go into an infinite loop here either.
+      } else {
+        // We haven't seen this node before. Risk of loop.
+        nodeCache[node] = null;
+        sentinelInserted = true;
+      }
       result = node.accept(this);
+      if (sentinelInserted) {
+        nodeCache.remove(node);
+      }
       if (result is AbortConstant) {
         return result;
       }

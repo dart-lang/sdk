@@ -1,0 +1,6 @@
+class Foo {
+  const Foo({bool x: true});
+  const x = Foo();
+}
+
+main() {}
