@@ -54,22 +54,28 @@ class LoadingUnitSerializationData : public ZoneAllocated {
  public:
   LoadingUnitSerializationData(intptr_t id,
                                LoadingUnitSerializationData* parent)
-      : id_(id), parent_(parent), deferred_objects_(), num_objects_(0) {}
+      : id_(id), parent_(parent), deferred_objects_(), objects_(nullptr) {}
 
   intptr_t id() const { return id_; }
   LoadingUnitSerializationData* parent() const { return parent_; }
-  intptr_t num_objects() const { return num_objects_; }
-  void set_num_objects(intptr_t value) { num_objects_ = value; }
   void AddDeferredObject(CodePtr obj) {
     deferred_objects_.Add(&Code::ZoneHandle(obj));
   }
   GrowableArray<Code*>* deferred_objects() { return &deferred_objects_; }
+  ZoneGrowableArray<Object*>* objects() {
+    ASSERT(objects_ != nullptr);
+    return objects_;
+  }
+  void set_objects(ZoneGrowableArray<Object*>* objects) {
+    ASSERT(objects_ == nullptr);
+    objects_ = objects;
+  }
 
  private:
   intptr_t id_;
   LoadingUnitSerializationData* parent_;
   GrowableArray<Code*> deferred_objects_;
-  intptr_t num_objects_;
+  ZoneGrowableArray<Object*>* objects_;
 };
 
 class SerializationCluster : public ZoneAllocated {
@@ -202,59 +208,9 @@ class Serializer : public ThreadStackResource {
 
   void AddBaseObject(ObjectPtr base_object,
                      const char* type = nullptr,
-                     const char* name = nullptr) {
-    intptr_t ref = AssignRef(base_object);
-    num_base_objects_++;
-
-    if (profile_writer_ != nullptr) {
-      if (type == nullptr) {
-        type = "Unknown";
-      }
-      if (name == nullptr) {
-        name = "<base object>";
-      }
-      profile_writer_->SetObjectTypeAndName(
-          {V8SnapshotProfileWriter::kSnapshot, ref}, type, name);
-      profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, ref});
-    }
-  }
-  void CarryOverBaseObjects(intptr_t num_base_objects) {
-    num_base_objects_ = num_base_objects;
-    next_ref_index_ = num_base_objects + 1;
-  }
-
-  intptr_t AssignRef(ObjectPtr object) {
-    ASSERT(IsAllocatedReference(next_ref_index_));
-    if (object->IsHeapObject()) {
-      // The object id weak table holds image offsets for Instructions instead
-      // of ref indices.
-      ASSERT(!object->IsInstructions());
-      heap_->SetObjectId(object, next_ref_index_);
-      ASSERT(heap_->GetObjectId(object) == next_ref_index_);
-    } else {
-      SmiPtr smi = Smi::RawCast(object);
-      SmiObjectIdPair* existing_pair = smi_ids_.Lookup(smi);
-      if (existing_pair != NULL) {
-        ASSERT(existing_pair->id_ == kUnallocatedReference);
-        existing_pair->id_ = next_ref_index_;
-      } else {
-        SmiObjectIdPair new_pair;
-        new_pair.smi_ = smi;
-        new_pair.id_ = next_ref_index_;
-        smi_ids_.Insert(new_pair);
-      }
-    }
-    return next_ref_index_++;
-  }
-
-  intptr_t AssignArtificialRef(ObjectPtr object) {
-    ASSERT(object.IsHeapObject());
-    const intptr_t ref = -(next_ref_index_++);
-    ASSERT(IsArtificialReference(ref));
-    heap_->SetObjectId(object, ref);
-    ASSERT(heap_->GetObjectId(object) == ref);
-    return ref;
-  }
+                     const char* name = nullptr);
+  intptr_t AssignRef(ObjectPtr object);
+  intptr_t AssignArtificialRef(ObjectPtr object);
 
   void Push(ObjectPtr object);
 
@@ -283,7 +239,7 @@ class Serializer : public ThreadStackResource {
 
   void WriteVersionAndFeatures(bool is_vm_snapshot);
 
-  intptr_t Serialize(SerializationRoots* roots);
+  ZoneGrowableArray<Object*>* Serialize(SerializationRoots* roots);
   void PrintSnapshotSizes();
 
   FieldTable* field_table() { return field_table_; }
@@ -537,6 +493,7 @@ class Serializer : public ThreadStackResource {
 
   intptr_t current_loading_unit_id_ = 0;
   GrowableArray<LoadingUnitSerializationData*>* loading_units_ = nullptr;
+  ZoneGrowableArray<Object*>* objects_ = new ZoneGrowableArray<Object*>();
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
 };
@@ -765,10 +722,10 @@ class FullSnapshotWriter {
 
  private:
   // Writes a snapshot of the VM Isolate.
-  intptr_t WriteVMSnapshot();
+  ZoneGrowableArray<Object*>* WriteVMSnapshot();
 
   // Writes a full snapshot of regular Dart isolate group.
-  void WriteProgramSnapshot(intptr_t num_base_objects,
+  void WriteProgramSnapshot(ZoneGrowableArray<Object*>* objects,
                             GrowableArray<LoadingUnitSerializationData*>* data);
 
   Thread* thread_;

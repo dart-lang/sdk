@@ -5158,9 +5158,9 @@ static const char* kObjectStoreFieldNames[] = {
 
 class ProgramSerializationRoots : public SerializationRoots {
  public:
-  ProgramSerializationRoots(intptr_t num_base_objects,
+  ProgramSerializationRoots(ZoneGrowableArray<Object*>* base_objects,
                             ObjectStore* object_store)
-      : num_base_objects_(num_base_objects),
+      : base_objects_(base_objects),
         object_store_(object_store),
         saved_symbol_table_(Array::Handle()),
         saved_canonical_types_(Array::Handle()),
@@ -5194,7 +5194,7 @@ class ProgramSerializationRoots : public SerializationRoots {
   }
 
   void AddBaseObjects(Serializer* s) {
-    if (num_base_objects_ == 0) {
+    if (base_objects_ == nullptr) {
       // Not writing a new vm isolate: use the one this VM was loaded from.
       const Array& base_objects = Object::vm_isolate_snapshot_object_table();
       for (intptr_t i = kFirstReference; i < base_objects.Length(); i++) {
@@ -5202,7 +5202,9 @@ class ProgramSerializationRoots : public SerializationRoots {
       }
     } else {
       // Base objects carried over from WriteVMSnapshot.
-      s->CarryOverBaseObjects(num_base_objects_);
+      for (intptr_t i = 0; i < base_objects_->length(); i++) {
+        s->AddBaseObject((*base_objects_)[i]->raw());
+      }
     }
   }
 
@@ -5242,7 +5244,7 @@ class ProgramSerializationRoots : public SerializationRoots {
   }
 
  private:
-  intptr_t num_base_objects_;
+  ZoneGrowableArray<Object*>* base_objects_;
   ObjectStore* object_store_;
   Array& saved_symbol_table_;
   Array& saved_canonical_types_;
@@ -5306,9 +5308,10 @@ class UnitSerializationRoots : public SerializationRoots {
       : unit_(unit) {}
 
   void AddBaseObjects(Serializer* s) {
-    intptr_t num_base_objects = unit_->parent()->num_objects();
-    ASSERT(num_base_objects != 0);
-    s->CarryOverBaseObjects(num_base_objects);
+    ZoneGrowableArray<Object*>* objects = unit_->parent()->objects();
+    for (intptr_t i = 0; i < objects->length(); i++) {
+      s->AddBaseObject(objects->At(i)->raw());
+    }
   }
 
   void PushRoots(Serializer* s) {
@@ -5467,6 +5470,58 @@ Serializer::Serializer(Thread* thread,
 Serializer::~Serializer() {
   delete[] canonical_clusters_by_cid_;
   delete[] clusters_by_cid_;
+}
+
+void Serializer::AddBaseObject(ObjectPtr base_object,
+                               const char* type,
+                               const char* name) {
+  intptr_t ref = AssignRef(base_object);
+  num_base_objects_++;
+
+  if ((profile_writer_ != nullptr) && (type != nullptr)) {
+    if (name == nullptr) {
+      name = "<base object>";
+    }
+    profile_writer_->SetObjectTypeAndName(
+        {V8SnapshotProfileWriter::kSnapshot, ref}, type, name);
+    profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, ref});
+  }
+}
+
+intptr_t Serializer::AssignRef(ObjectPtr object) {
+  ASSERT(IsAllocatedReference(next_ref_index_));
+  if (object->IsHeapObject()) {
+    // The object id weak table holds image offsets for Instructions instead
+    // of ref indices.
+    ASSERT(!object->IsInstructions());
+    heap_->SetObjectId(object, next_ref_index_);
+    ASSERT(heap_->GetObjectId(object) == next_ref_index_);
+  } else {
+    SmiPtr smi = Smi::RawCast(object);
+    SmiObjectIdPair* existing_pair = smi_ids_.Lookup(smi);
+    if (existing_pair != NULL) {
+      ASSERT(existing_pair->id_ == kUnallocatedReference);
+      existing_pair->id_ = next_ref_index_;
+    } else {
+      SmiObjectIdPair new_pair;
+      new_pair.smi_ = smi;
+      new_pair.id_ = next_ref_index_;
+      smi_ids_.Insert(new_pair);
+    }
+  }
+
+  objects_->Add(&Object::ZoneHandle(object));
+
+  return next_ref_index_++;
+}
+
+intptr_t Serializer::AssignArtificialRef(ObjectPtr object) {
+  ASSERT(object.IsHeapObject());
+  const intptr_t ref = -(next_ref_index_++);
+  ASSERT(IsArtificialReference(ref));
+  heap_->SetObjectId(object, ref);
+  ASSERT(heap_->GetObjectId(object) == ref);
+  return ref;
 }
 
 void Serializer::FlushBytesWrittenToRoot() {
@@ -5999,7 +6054,7 @@ static int CompareClusters(SerializationCluster* const* a,
   }
 }
 
-intptr_t Serializer::Serialize(SerializationRoots* roots) {
+ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   roots->AddBaseObjects(this);
 
   NoSafepointScope no_safepoint;
@@ -6065,12 +6120,8 @@ intptr_t Serializer::Serialize(SerializationRoots* roots) {
 
   // We should have assigned a ref to every object we pushed.
   ASSERT((next_ref_index_ - 1) == num_objects);
-
-  if (loading_units_ != nullptr) {
-    LoadingUnitSerializationData* unit =
-        (*loading_units_)[current_loading_unit_id_];
-    unit->set_num_objects(num_objects);
-  }
+  // And recorded them all in [objects_].
+  ASSERT(objects_->length() == num_objects);
 
 #if defined(DART_PRECOMPILER)
   // When writing snapshot profile, we want to retain some of the program
@@ -6106,12 +6157,8 @@ intptr_t Serializer::Serialize(SerializationRoots* roots) {
 
   PrintSnapshotSizes();
 
-  // Note we are not clearing the object id table. The full ref table
-  // of the vm isolate snapshot serves as the base objects for the
-  // regular isolate snapshot.
-
-  // Return the number of objects, -1 accounts for unused ref 0.
-  return next_ref_index_ - kFirstReference;
+  heap()->ResetObjectIdTable();
+  return objects_;
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -6914,7 +6961,7 @@ FullSnapshotWriter::FullSnapshotWriter(
 
 FullSnapshotWriter::~FullSnapshotWriter() {}
 
-intptr_t FullSnapshotWriter::WriteVMSnapshot() {
+ZoneGrowableArray<Object*>* FullSnapshotWriter::WriteVMSnapshot() {
   TIMELINE_DURATION(thread(), Isolate, "WriteVMSnapshot");
 
   ASSERT(vm_snapshot_data_ != nullptr);
@@ -6925,7 +6972,7 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   serializer.WriteVersionAndFeatures(true);
   VMSerializationRoots roots(
       Array::Handle(Dart::vm_isolate()->object_store()->symbol_table()));
-  intptr_t num_objects = serializer.Serialize(&roots);
+  ZoneGrowableArray<Object*>* objects = serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
 
@@ -6940,11 +6987,11 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
 
   // The clustered part + the direct mapped data part.
   vm_isolate_snapshot_size_ = serializer.bytes_written();
-  return num_objects;
+  return objects;
 }
 
 void FullSnapshotWriter::WriteProgramSnapshot(
-    intptr_t num_base_objects,
+    ZoneGrowableArray<Object*>* objects,
     GrowableArray<LoadingUnitSerializationData*>* units) {
   TIMELINE_DURATION(thread(), Isolate, "WriteProgramSnapshot");
 
@@ -6965,8 +7012,11 @@ void FullSnapshotWriter::WriteProgramSnapshot(
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(false);
-  ProgramSerializationRoots roots(num_base_objects, object_store);
-  serializer.Serialize(&roots);
+  ProgramSerializationRoots roots(objects, object_store);
+  objects = serializer.Serialize(&roots);
+  if (units != nullptr) {
+    (*units)[LoadingUnit::kRootId]->set_objects(objects);
+  }
   serializer.FillHeader(serializer.kind());
   clustered_isolate_size_ = serializer.bytes_written();
 
@@ -7003,7 +7053,8 @@ void FullSnapshotWriter::WriteUnitSnapshot(
   serializer.Write(program_hash);
 
   UnitSerializationRoots roots(unit);
-  serializer.Serialize(&roots);
+  unit->set_objects(serializer.Serialize(&roots));
+
   serializer.FillHeader(serializer.kind());
   clustered_isolate_size_ = serializer.bytes_written();
 
@@ -7026,16 +7077,15 @@ void FullSnapshotWriter::WriteUnitSnapshot(
 
 void FullSnapshotWriter::WriteFullSnapshot(
     GrowableArray<LoadingUnitSerializationData*>* data) {
-  intptr_t num_base_objects;
+  ZoneGrowableArray<Object*>* objects;
   if (vm_snapshot_data_ != nullptr) {
-    num_base_objects = WriteVMSnapshot();
-    ASSERT(num_base_objects != 0);
+    objects = WriteVMSnapshot();
   } else {
-    num_base_objects = 0;
+    objects = nullptr;
   }
 
   if (isolate_snapshot_data_ != nullptr) {
-    WriteProgramSnapshot(num_base_objects, data);
+    WriteProgramSnapshot(objects, data);
   }
 
   if (FLAG_print_snapshot_sizes) {
