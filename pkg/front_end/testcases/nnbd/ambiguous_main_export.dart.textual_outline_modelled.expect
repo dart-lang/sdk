@@ -1,0 +1,3 @@
+import 'ambiguous_main_export_lib0.dart';
+
+main() {}

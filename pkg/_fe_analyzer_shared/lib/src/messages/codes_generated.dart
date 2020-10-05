@@ -3185,6 +3185,14 @@ const MessageCode messageExportOptOutFromOptIn = const MessageCode(
         r"""Null safe libraries are not allowed to export declarations from of opt-out libraries.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExportedMain = messageExportedMain;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExportedMain = const MessageCode("ExportedMain",
+    severity: Severity.context,
+    message: r"""This is exported 'main' declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpressionNotMetadata = messageExpressionNotMetadata;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5975,6 +5983,63 @@ Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
       message: """Local definition of '${name}' hides import from '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainNotFunctionDeclaration =
+    messageMainNotFunctionDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainNotFunctionDeclaration = const MessageCode(
+    "MainNotFunctionDeclaration",
+    message: r"""The 'main' declaration must be a function declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainNotFunctionDeclarationExported =
+    messageMainNotFunctionDeclarationExported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainNotFunctionDeclarationExported = const MessageCode(
+    "MainNotFunctionDeclarationExported",
+    message:
+        r"""The exported 'main' declaration must be a function declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainRequiredNamedParameters =
+    messageMainRequiredNamedParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainRequiredNamedParameters = const MessageCode(
+    "MainRequiredNamedParameters",
+    message: r"""The 'main' method cannot have required named parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainRequiredNamedParametersExported =
+    messageMainRequiredNamedParametersExported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainRequiredNamedParametersExported = const MessageCode(
+    "MainRequiredNamedParametersExported",
+    message:
+        r"""The exported 'main' method cannot have required named parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainTooManyRequiredParameters =
+    messageMainTooManyRequiredParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainTooManyRequiredParameters = const MessageCode(
+    "MainTooManyRequiredParameters",
+    message: r"""The 'main' method must have at most 2 required parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainTooManyRequiredParametersExported =
+    messageMainTooManyRequiredParametersExported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainTooManyRequiredParametersExported = const MessageCode(
+    "MainTooManyRequiredParametersExported",
+    message:
+        r"""The exported 'main' method must have at most 2 required parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMapLiteralTypeArgumentMismatch =

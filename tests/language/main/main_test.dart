@@ -6,7 +6,7 @@ main(
 
 a //        //# 01: ok
 a, b //     //# 02: ok
-a, b, c //  //# 03: ok
+a, b, c //  //# 03: compile-time error
 a, b, {c}   //# 04: ok
 a, b, [c]   //# 05: ok
 

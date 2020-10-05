@@ -41,6 +41,7 @@ import 'package:kernel/ast.dart'
         Library,
         LibraryDependency,
         Nullability,
+        Procedure,
         ProcedureKind,
         Reference,
         Supertype,
@@ -53,6 +54,8 @@ import 'package:kernel/class_hierarchy.dart'
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+
+import 'package:kernel/type_environment.dart';
 
 import 'package:package_config/package_config.dart';
 
@@ -71,6 +74,7 @@ import '../builder/class_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -81,31 +85,7 @@ import '../builder/type_declaration_builder.dart';
 
 import '../export.dart' show Export;
 
-import '../fasta_codes.dart'
-    show
-        Message,
-        SummaryTemplate,
-        Template,
-        messageObjectExtends,
-        messageObjectImplements,
-        messageObjectMixesIn,
-        messagePartOrphan,
-        messageStrongModeNNBDButOptOut,
-        messageTypedefCause,
-        messageTypedefUnaliasedTypeCause,
-        noLength,
-        templateAmbiguousSupertypes,
-        templateCantReadFile,
-        templateCyclicClassHierarchy,
-        templateExtendingEnum,
-        templateExtendingRestricted,
-        templateIllegalMixin,
-        templateIllegalMixinDueToConstructors,
-        templateIllegalMixinDueToConstructorsCause,
-        templateInternalProblemUriMissingScheme,
-        templateSourceOutlineSummary,
-        templateStrongModeNNBDPackageOptOut,
-        templateUntranslatableUri;
+import '../fasta_codes.dart';
 
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ClassMember, DelayedOverrideCheck;
@@ -154,8 +134,9 @@ class SourceLoader extends Loader {
   ReferenceFromIndex referenceFromIndex;
 
   /// Used when building directly to kernel.
-  ClassHierarchy hierarchy;
+  ClassHierarchy _hierarchy;
   CoreTypes _coreTypes;
+  TypeEnvironment _typeEnvironment;
 
   /// For builders created with a reference, this maps from that reference to
   /// that builder. This is used for looking up source builders when finalizing
@@ -197,6 +178,19 @@ class SourceLoader extends Loader {
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
     return _coreTypes;
+  }
+
+  ClassHierarchy get hierarchy => _hierarchy;
+
+  void set hierarchy(ClassHierarchy value) {
+    if (_hierarchy != value) {
+      _hierarchy = value;
+      _typeEnvironment = null;
+    }
+  }
+
+  TypeEnvironment get typeEnvironment {
+    return _typeEnvironment ??= new TypeEnvironment(coreTypes, hierarchy);
   }
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
@@ -1230,6 +1224,134 @@ class SourceLoader extends Loader {
         isStatic: isStatic,
         isConstructor: isConstructor,
         isTopLevel: isTopLevel);
+  }
+
+  void checkMainMethods() {
+    DartType listOfString;
+
+    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
+      if (libraryBuilder.loader == this &&
+          libraryBuilder.isNonNullableByDefault) {
+        Builder mainBuilder =
+            libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
+        mainBuilder ??=
+            libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
+        if (mainBuilder is MemberBuilder) {
+          if (mainBuilder is InvalidTypeDeclarationBuilder) {
+            // This is an ambiguous export, skip the check.
+            return;
+          }
+          if (mainBuilder.isField ||
+              mainBuilder.isGetter ||
+              mainBuilder.isSetter) {
+            if (mainBuilder.parent != libraryBuilder) {
+              libraryBuilder.addProblem(
+                  messageMainNotFunctionDeclarationExported,
+                  libraryBuilder.charOffset,
+                  noLength,
+                  libraryBuilder.fileUri,
+                  context: [
+                    messageExportedMain.withLocation(mainBuilder.fileUri,
+                        mainBuilder.charOffset, mainBuilder.name.length)
+                  ]);
+            } else {
+              libraryBuilder.addProblem(
+                  messageMainNotFunctionDeclaration,
+                  mainBuilder.charOffset,
+                  mainBuilder.name.length,
+                  mainBuilder.fileUri);
+            }
+          } else {
+            Procedure procedure = mainBuilder.member;
+            if (procedure.function.requiredParameterCount > 2) {
+              if (mainBuilder.parent != libraryBuilder) {
+                libraryBuilder.addProblem(
+                    messageMainTooManyRequiredParametersExported,
+                    libraryBuilder.charOffset,
+                    noLength,
+                    libraryBuilder.fileUri,
+                    context: [
+                      messageExportedMain.withLocation(mainBuilder.fileUri,
+                          mainBuilder.charOffset, mainBuilder.name.length)
+                    ]);
+              } else {
+                libraryBuilder.addProblem(
+                    messageMainTooManyRequiredParameters,
+                    mainBuilder.charOffset,
+                    mainBuilder.name.length,
+                    mainBuilder.fileUri);
+              }
+            } else if (procedure.function.namedParameters
+                .any((parameter) => parameter.isRequired)) {
+              if (mainBuilder.parent != libraryBuilder) {
+                libraryBuilder.addProblem(
+                    messageMainRequiredNamedParametersExported,
+                    libraryBuilder.charOffset,
+                    noLength,
+                    libraryBuilder.fileUri,
+                    context: [
+                      messageExportedMain.withLocation(mainBuilder.fileUri,
+                          mainBuilder.charOffset, mainBuilder.name.length)
+                    ]);
+              } else {
+                libraryBuilder.addProblem(
+                    messageMainRequiredNamedParameters,
+                    mainBuilder.charOffset,
+                    mainBuilder.name.length,
+                    mainBuilder.fileUri);
+              }
+            } else if (procedure.function.positionalParameters.length > 0) {
+              DartType parameterType =
+                  procedure.function.positionalParameters.first.type;
+
+              listOfString ??= new InterfaceType(
+                  coreTypes.listClass,
+                  Nullability.nonNullable,
+                  [coreTypes.stringNonNullableRawType]);
+
+              if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
+                  SubtypeCheckMode.withNullabilities)) {
+                if (mainBuilder.parent != libraryBuilder) {
+                  libraryBuilder.addProblem(
+                      templateMainWrongParameterTypeExported.withArguments(
+                          parameterType,
+                          listOfString,
+                          libraryBuilder.isNonNullableByDefault),
+                      libraryBuilder.charOffset,
+                      noLength,
+                      libraryBuilder.fileUri,
+                      context: [
+                        messageExportedMain.withLocation(mainBuilder.fileUri,
+                            mainBuilder.charOffset, mainBuilder.name.length)
+                      ]);
+                } else {
+                  libraryBuilder.addProblem(
+                      templateMainWrongParameterType.withArguments(
+                          parameterType,
+                          listOfString,
+                          libraryBuilder.isNonNullableByDefault),
+                      mainBuilder.charOffset,
+                      mainBuilder.name.length,
+                      mainBuilder.fileUri);
+                }
+              }
+            }
+          }
+        } else if (mainBuilder != null) {
+          if (mainBuilder.parent != libraryBuilder) {
+            libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+                libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+                context: [
+                  messageExportedMain.withLocation(
+                      mainBuilder.fileUri, mainBuilder.charOffset, noLength)
+                ]);
+          } else {
+            libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
+                mainBuilder.charOffset, noLength, mainBuilder.fileUri);
+          }
+        }
+      }
+    });
   }
 
   void releaseAncillaryResources() {
