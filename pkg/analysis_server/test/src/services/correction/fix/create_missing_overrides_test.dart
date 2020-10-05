@@ -478,6 +478,35 @@ class B extends A {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43667')
+  Future<void> test_method_withTypedef() async {
+    // This fails because the element representing `Base.closure` has a return
+    // type that has forgotten that it was declared using the typedef `Closure`.
+    await resolveTestUnit('''
+typedef Closure = T Function<T>(T input);
+
+abstract class Base {
+  Closure closure();
+}
+
+class Concrete extends Base {}
+''');
+    await assertHasFix('''
+typedef Closure = T Function<T>(T input);
+
+abstract class Base {
+  Closure closure();
+}
+
+class Concrete extends Base {
+  @override
+  Closure closure() {
+    // TODO: implement closure
+  }
+}
+''');
+  }
+
   Future<void> test_methods_reverseOrder() async {
     await resolveTestUnit('''
 abstract class A {
