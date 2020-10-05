@@ -26,15 +26,8 @@ Language/Reference/Operator_Precedence/precedence_t05: Skip # Triple shift is no
 Language/Statements/Expression_Statements/syntax_t06: Skip # Type aliases are not fully implemented
 Language/Types/Type_Aliases/built-in_types_t11: Skip # Triple shift is not implemented yet
 LanguageFeatures/Extension-methods/explicit_extension_member_invocation_A15_t09: Skip # Triple shift is not implemented yet
-LanguageFeatures/Instantiate-to-bound/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/class/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/class/dynamic/*: Skip # Not migrated to NNBD
 LanguageFeatures/Instantiate-to-bound/class/static/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/dynamic/*: Skip # Not migrated to NNBD
 LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/static/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/typedef/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/typedef/dynamic/*: Skip # Not migrated to NNBD
 LanguageFeatures/Instantiate-to-bound/typedef/static/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Type aliases are not fully implemented
 LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Type aliases are not fully implemented
