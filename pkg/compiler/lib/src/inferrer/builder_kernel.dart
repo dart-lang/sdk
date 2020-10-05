@@ -1454,13 +1454,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    TypeInformation receiverType = thisType;
-    return handlePropertyGet(node, node.receiver, receiverType, node.target,
-        isThis: true);
-  }
-
-  @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);

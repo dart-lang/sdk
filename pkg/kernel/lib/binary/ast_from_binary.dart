@@ -1720,16 +1720,6 @@ class BinaryBuilder {
         return new SuperPropertySet.byReference(readName(), readExpression(),
             readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
-      case Tag.DirectPropertyGet:
-        int offset = readOffset();
-        return new DirectPropertyGet.byReference(
-            readExpression(), readInstanceMemberReference())
-          ..fileOffset = offset;
-      case Tag.DirectPropertySet:
-        int offset = readOffset();
-        return new DirectPropertySet.byReference(
-            readExpression(), readInstanceMemberReference(), readExpression())
-          ..fileOffset = offset;
       case Tag.StaticGet:
         int offset = readOffset();
         return new StaticGet.byReference(readMemberReference())
@@ -1749,11 +1739,6 @@ class BinaryBuilder {
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperMethodInvocation.byReference(readName(),
             readArguments(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
-      case Tag.DirectMethodInvocation:
-        int offset = readOffset();
-        return new DirectMethodInvocation.byReference(
-            readExpression(), readInstanceMemberReference(), readArguments())
           ..fileOffset = offset;
       case Tag.StaticInvocation:
         int offset = readOffset();

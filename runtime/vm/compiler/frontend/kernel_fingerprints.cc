@@ -400,17 +400,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();          // read value.
       CalculateSetterNameFingerprint();  // read interface_target_reference.
       return;
-    case kDirectPropertyGet:
-      ReadPosition();                       // read position.
-      CalculateExpressionFingerprint();     // read receiver.
-      CalculateInterfaceMemberNameFingerprint();  // read target_reference.
-      return;
-    case kDirectPropertySet:
-      ReadPosition();                       // read position.
-      CalculateExpressionFingerprint();     // read receiver.
-      CalculateInterfaceMemberNameFingerprint();  // read target_reference.
-      CalculateExpressionFingerprint();     // read value·
-      return;
     case kStaticGet:
       ReadPosition();                       // read position.
       CalculateCanonicalNameFingerprint();  // read target_reference.
@@ -432,12 +421,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       BuildHash(ReadNameAsMethodName().Hash());  // read name.
       CalculateArgumentsFingerprint();           // read arguments.
       CalculateInterfaceMemberNameFingerprint();  // read target_reference.
-      return;
-    case kDirectMethodInvocation:
-      ReadPosition();                       // read position.
-      CalculateExpressionFingerprint();     // read receiver.
-      CalculateInterfaceMemberNameFingerprint();  // read target_reference.
-      CalculateArgumentsFingerprint();      // read arguments.
       return;
     case kStaticInvocation:
       ReadPosition();                       // read position.

@@ -1,5 +1,30 @@
+library;
 //
-// Problems in component:
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:13:23: Error: '+' is not a prefix operator.
+// Try removing '+'.
+// const int unaryPlus = +2;
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:6:30: Error: The operator '>>>' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '>>>' operator.
+// const int shiftNegative2 = 2 >>> -1;
+//                              ^^^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+// const int divZero = 2 / 0;
+//                       ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:27:29: Error: The operator '>>>' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '>>>' operator.
+// const int binaryShift2 = 84 >>> 1;
+//                             ^^^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:28:29: Error: The operator '>>>' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '>>>' operator.
+// const int binaryShift3 = 21 >>> 64;
+//                             ^^^
 //
 // pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:5:30: Error: Constant evaluation error:
 // const int shiftNegative1 = 2 << -1;
@@ -70,34 +95,6 @@
 // pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:41:11: Context: While analyzing:
 // const int doubleTruncateDivNaN = 84.2 ~/ doubleNan;
 //           ^
-//
-library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:13:23: Error: '+' is not a prefix operator.
-// Try removing '+'.
-// const int unaryPlus = +2;
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:6:30: Error: The operator '>>>' isn't defined for the class 'int'.
-// Try correcting the operator to an existing operator, or defining a '>>>' operator.
-// const int shiftNegative2 = 2 >>> -1;
-//                              ^^^
-//
-// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:9:23: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
-// const int divZero = 2 / 0;
-//                       ^
-//
-// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:27:29: Error: The operator '>>>' isn't defined for the class 'int'.
-// Try correcting the operator to an existing operator, or defining a '>>>' operator.
-// const int binaryShift2 = 84 >>> 1;
-//                             ^^^
-//
-// pkg/front_end/testcases/general/constants/js_semantics/number_folds.dart:28:29: Error: The operator '>>>' isn't defined for the class 'int'.
-// Try correcting the operator to an existing operator, or defining a '>>>' operator.
-// const int binaryShift3 = 21 >>> 64;
-//                             ^^^
 //
 import self as self;
 import "dart:core" as core;

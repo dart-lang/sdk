@@ -4216,16 +4216,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         node.receiver, node.interfaceTarget, node.value, node.name.text);
   }
 
-  @override
-  js_ast.Expression visitDirectPropertyGet(DirectPropertyGet node) {
-    return _emitPropertyGet(node.receiver, node.target);
-  }
-
-  @override
-  js_ast.Expression visitDirectPropertySet(DirectPropertySet node) {
-    return _emitPropertySet(node.receiver, node.target, node.value);
-  }
-
   js_ast.Expression _emitPropertyGet(Expression receiver, Member member,
       [String memberName]) {
     memberName ??= member.name.text;
@@ -4358,11 +4348,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return runtimeCall('checkNativeNonNull(#)', [methodCall]);
     }
     return methodCall;
-  }
-
-  @override
-  js_ast.Expression visitDirectMethodInvocation(DirectMethodInvocation node) {
-    return _emitMethodCall(node.receiver, node.target, node.arguments, node);
   }
 
   js_ast.Expression _emitMethodCall(Expression receiver, Member target,
@@ -5284,10 +5269,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (operand is MethodInvocation && operand.name.text == '==') {
       return _emitEqualityOperator(operand.receiver, operand.interfaceTarget,
           operand.arguments.positional[0],
-          negated: true);
-    } else if (operand is DirectMethodInvocation && operand.name.text == '==') {
-      return _emitEqualityOperator(
-          operand.receiver, operand.target, operand.arguments.positional[0],
           negated: true);
     } else if (operand is StaticInvocation &&
         operand.target == _coreTypes.identicalProcedure) {

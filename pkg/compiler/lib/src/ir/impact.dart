@@ -565,21 +565,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
-  void handleDirectMethodInvocation(
-      ir.DirectMethodInvocation node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {
-    registerInstanceInvocation(
-        receiverType,
-        ClassRelation.exact,
-        node.target,
-        node.arguments.positional.length,
-        _getNamedArguments(node.arguments),
-        node.arguments.types);
-  }
-
-  @override
   void handlePropertyGet(
       ir.PropertyGet node, ir.DartType receiverType, ir.DartType resultType) {
     ClassRelation relation = computeClassRelationFromType(receiverType);
@@ -591,12 +576,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   }
 
   @override
-  void handleDirectPropertyGet(ir.DirectPropertyGet node,
-      ir.DartType receiverType, ir.DartType resultType) {
-    registerInstanceGet(receiverType, ClassRelation.exact, node.target);
-  }
-
-  @override
   void handlePropertySet(
       ir.PropertySet node, ir.DartType receiverType, ir.DartType valueType) {
     ClassRelation relation = computeClassRelationFromType(receiverType);
@@ -605,12 +584,6 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     } else {
       registerDynamicSet(receiverType, relation, node.name);
     }
-  }
-
-  @override
-  void handleDirectPropertySet(ir.DirectPropertySet node,
-      ir.DartType receiverType, ir.DartType valueType) {
-    registerInstanceSet(receiverType, ClassRelation.exact, node.target);
   }
 
   @override

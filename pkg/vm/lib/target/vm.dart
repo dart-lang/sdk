@@ -153,8 +153,7 @@ class VmTarget extends Target {
       {void logger(String msg),
       ChangedStructureNotifier changedStructureNotifier}) {
     transformMixins.transformLibraries(
-        this, coreTypes, hierarchy, libraries, referenceFromIndex,
-        doSuperResolution: false /* resolution is done in Dart VM */);
+        this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
 
     transformFfi.ReplacedMembers replacedFields =

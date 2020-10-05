@@ -52,19 +52,11 @@ class CachedStaticType extends StaticTypeBase implements StaticTypeProvider {
   ir.DartType visitPropertyGet(ir.PropertyGet node) => _getStaticType(node);
 
   @override
-  ir.DartType visitDirectPropertyGet(ir.DirectPropertyGet node) =>
-      _getStaticType(node);
-
-  @override
   ir.DartType visitSuperPropertyGet(ir.SuperPropertyGet node) =>
       _getStaticType(node);
 
   @override
   ir.DartType visitMethodInvocation(ir.MethodInvocation node) =>
-      _getStaticType(node);
-
-  @override
-  ir.DartType visitDirectMethodInvocation(ir.DirectMethodInvocation node) =>
       _getStaticType(node);
 
   @override

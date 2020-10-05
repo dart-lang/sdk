@@ -83,14 +83,8 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitVariableSet(VariableSet _) => "set-var";
   String visitStaticGet(StaticGet _) => "get-static";
   String visitStaticSet(StaticSet _) => "set-static";
-  String visitDirectPropertyGet(DirectPropertyGet _) => "get-direct-prop";
-  String visitDirectPropertySet(DirectPropertySet _) => "set-direct-prop";
   String visitStaticInvocation(StaticInvocation expression) {
     return expression.isConst ? "invoke-const-static" : "invoke-static";
-  }
-
-  String visitDirectMethodInvocation(DirectMethodInvocation _) {
-    return "invoke-direct-method";
   }
 
   String visitConstructorInvocation(ConstructorInvocation expression) {
@@ -564,42 +558,6 @@ StaticSet wrapStaticSet(Tuple2<CanonicalName, Expression> tuple) {
   return new StaticSet.byReference(tuple.first.getReference(), tuple.second);
 }
 
-TextSerializer<DirectPropertyGet> directPropertyGetSerializer = new Wrapped(
-    unwrapDirectPropertyGet,
-    wrapDirectPropertyGet,
-    new Tuple2Serializer(
-        expressionSerializer, const CanonicalNameSerializer()));
-
-Tuple2<Expression, CanonicalName> unwrapDirectPropertyGet(
-    DirectPropertyGet expression) {
-  return new Tuple2(
-      expression.receiver, expression.targetReference.canonicalName);
-}
-
-DirectPropertyGet wrapDirectPropertyGet(
-    Tuple2<Expression, CanonicalName> tuple) {
-  return new DirectPropertyGet.byReference(
-      tuple.first, tuple.second.getReference());
-}
-
-TextSerializer<DirectPropertySet> directPropertySetSerializer = new Wrapped(
-    unwrapDirectPropertySet,
-    wrapDirectPropertySet,
-    new Tuple3Serializer(expressionSerializer, const CanonicalNameSerializer(),
-        expressionSerializer));
-
-Tuple3<Expression, CanonicalName, Expression> unwrapDirectPropertySet(
-    DirectPropertySet expression) {
-  return new Tuple3(expression.receiver,
-      expression.targetReference.canonicalName, expression.value);
-}
-
-DirectPropertySet wrapDirectPropertySet(
-    Tuple3<Expression, CanonicalName, Expression> tuple) {
-  return new DirectPropertySet.byReference(
-      tuple.first, tuple.second.getReference(), tuple.third);
-}
-
 TextSerializer<StaticInvocation> staticInvocationSerializer = new Wrapped(
     unwrapStaticInvocation,
     wrapStaticInvocation,
@@ -627,25 +585,6 @@ StaticInvocation wrapConstStaticInvocation(
   return new StaticInvocation.byReference(
       tuple.first.getReference(), tuple.second,
       isConst: true);
-}
-
-TextSerializer<DirectMethodInvocation> directMethodInvocationSerializer =
-    new Wrapped(
-        unwrapDirectMethodInvocation,
-        wrapDirectMethodInvocation,
-        new Tuple3Serializer(expressionSerializer,
-            const CanonicalNameSerializer(), argumentsSerializer));
-
-Tuple3<Expression, CanonicalName, Arguments> unwrapDirectMethodInvocation(
-    DirectMethodInvocation expression) {
-  return new Tuple3(expression.receiver,
-      expression.targetReference.canonicalName, expression.arguments);
-}
-
-DirectMethodInvocation wrapDirectMethodInvocation(
-    Tuple3<Expression, CanonicalName, Arguments> tuple) {
-  return new DirectMethodInvocation.byReference(
-      tuple.first, tuple.second.getReference(), tuple.third);
 }
 
 TextSerializer<ConstructorInvocation> constructorInvocationSerializer =
@@ -2098,11 +2037,8 @@ void initializeSerializers() {
     "set-var": variableSetSerializer,
     "get-static": staticGetSerializer,
     "set-static": staticSetSerializer,
-    "get-direct-prop": directPropertyGetSerializer,
-    "set-direct-prop": directPropertySetSerializer,
     "invoke-static": staticInvocationSerializer,
     "invoke-const-static": constStaticInvocationSerializer,
-    "invoke-direct-method": directMethodInvocationSerializer,
     "invoke-constructor": constructorInvocationSerializer,
     "invoke-const-constructor": constConstructorInvocationSerializer,
     "fun": functionExpressionSerializer,

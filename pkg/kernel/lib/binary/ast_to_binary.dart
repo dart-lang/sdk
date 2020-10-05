@@ -1445,23 +1445,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitDirectPropertyGet(DirectPropertyGet node) {
-    writeByte(Tag.DirectPropertyGet);
-    writeOffset(node.fileOffset);
-    writeNode(node.receiver);
-    writeNonNullInstanceMemberReference(node.targetReference);
-  }
-
-  @override
-  void visitDirectPropertySet(DirectPropertySet node) {
-    writeByte(Tag.DirectPropertySet);
-    writeOffset(node.fileOffset);
-    writeNode(node.receiver);
-    writeNonNullInstanceMemberReference(node.targetReference);
-    writeNode(node.value);
-  }
-
-  @override
   void visitStaticGet(StaticGet node) {
     writeByte(Tag.StaticGet);
     writeOffset(node.fileOffset);
@@ -1493,15 +1476,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeName(node.name);
     writeArgumentsNode(node.arguments);
     writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
-  }
-
-  @override
-  void visitDirectMethodInvocation(DirectMethodInvocation node) {
-    writeByte(Tag.DirectMethodInvocation);
-    writeOffset(node.fileOffset);
-    writeNode(node.receiver);
-    writeNonNullInstanceMemberReference(node.targetReference);
-    writeArgumentsNode(node.arguments);
   }
 
   @override

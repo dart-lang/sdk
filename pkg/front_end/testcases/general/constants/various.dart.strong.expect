@@ -1,5 +1,104 @@
+library;
 //
-// Problems in component:
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/various.dart:162:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const ClassWithNonEmptyConstConstructor() {
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:76:14: Error: Not a constant expression.
+// const x1 = --x;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:77:14: Error: Not a constant expression.
+// const x2 = ++x;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:78:12: Error: Not a constant expression.
+// const x3 = x--;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:79:12: Error: Not a constant expression.
+// const x4 = x++;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
+// const y1 = --y;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
+// const y2 = ++y;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+// const y3 = y--;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+// const y4 = y++;
+//            ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
+// const function_const = () {};
+//                        ^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Can't access 'this' in a field initializer to read 'y'.
+//   final z1 = y;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: The class 'AbstractClass' is abstract and can't be instantiated.
+//   @AbstractClass()
+//    ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   @AbstractClass()
+//    ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
+//   @AbstractClassWithConstructor()
+//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   @AbstractClassWithConstructor()
+//    ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+// const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
+//                                       ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+//   const ExtendsFoo2();
+//         ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Not a constant expression.
+//   final z1 = y;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:181:14: Error: Not a constant expression.
+//   final z2 = x;
+//              ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:96:11: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
+//     const AbstractClassWithConstructor();
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:96:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//     const AbstractClassWithConstructor();
+//           ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:168:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//     const ClassWithNonEmptyConstConstructor();
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/constants/various.dart:114:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+// class ExtendsFoo1 extends Foo {
+//       ^
 //
 // pkg/front_end/testcases/general/constants/various.dart:10:34: Error: Constant evaluation error:
 // const bool notBarFromEnvOrNull = !barFromEnvOrNull;
@@ -205,108 +304,6 @@
 // pkg/front_end/testcases/general/constants/various.dart:181:14: Context: The invocation of 'x' is not allowed in a constant expression.
 //   final z2 = x;
 //              ^
-//
-library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/constants/various.dart:162:3: Error: A const constructor can't have a body.
-// Try removing either the 'const' keyword or the body.
-//   const ClassWithNonEmptyConstConstructor() {
-//   ^^^^^
-//
-// pkg/front_end/testcases/general/constants/various.dart:76:14: Error: Not a constant expression.
-// const x1 = --x;
-//              ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:77:14: Error: Not a constant expression.
-// const x2 = ++x;
-//              ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:78:12: Error: Not a constant expression.
-// const x3 = x--;
-//            ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:79:12: Error: Not a constant expression.
-// const x4 = x++;
-//            ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:82:14: Error: Setter not found: 'y'.
-// const y1 = --y;
-//              ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
-// const y2 = ++y;
-//              ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
-// const y3 = y--;
-//            ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
-// const y4 = y++;
-//            ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:140:24: Error: Not a constant expression.
-// const function_const = () {};
-//                        ^^
-//
-// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Can't access 'this' in a field initializer to read 'y'.
-//   final z1 = y;
-//              ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: The class 'AbstractClass' is abstract and can't be instantiated.
-//   @AbstractClass()
-//    ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   @AbstractClass()
-//    ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
-//   @AbstractClassWithConstructor()
-//    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   @AbstractClassWithConstructor()
-//    ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-// const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
-//                                       ^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/various.dart:121:9: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
-//   const ExtendsFoo2();
-//         ^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/various.dart:180:14: Error: Not a constant expression.
-//   final z1 = y;
-//              ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:181:14: Error: Not a constant expression.
-//   final z2 = x;
-//              ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:96:11: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
-//     const AbstractClassWithConstructor();
-//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/various.dart:96:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//     const AbstractClassWithConstructor();
-//           ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:168:11: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//     const ClassWithNonEmptyConstConstructor();
-//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/various.dart:114:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
-// class ExtendsFoo1 extends Foo {
-//       ^
 //
 import self as self;
 import "dart:core" as core;

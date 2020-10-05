@@ -123,24 +123,6 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void> {
   }
 
   @override
-  void visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    registerNode(node);
-    super.visitDirectPropertyGet(node);
-  }
-
-  @override
-  void visitDirectPropertySet(ir.DirectPropertySet node) {
-    registerNode(node);
-    super.visitDirectPropertySet(node);
-  }
-
-  @override
-  void visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    registerNode(node);
-    super.visitDirectMethodInvocation(node);
-  }
-
-  @override
   void visitStaticInvocation(ir.StaticInvocation node) {
     registerNode(node);
     super.visitStaticInvocation(node);

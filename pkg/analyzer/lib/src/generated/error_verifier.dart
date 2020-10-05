@@ -449,6 +449,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
+      _checkForMainFunction(node.name);
       super.visitClassDeclaration(node);
     } finally {
       _isInNativeClass = false;
@@ -466,6 +467,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _enclosingClass = node.declaredElement;
       _checkClassInheritance(
           node, node.superclass, node.withClause, node.implementsClause);
+      _checkForMainFunction(node.name);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
       _enclosingClass = outerClassElement;
@@ -724,6 +726,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
       _checkForImplicitDynamicReturn(node.name, node.declaredElement);
+      _checkForMainFunction(node.name);
       super.visitFunctionDeclaration(node);
     });
   }
@@ -770,6 +773,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    _checkForMainFunction(node.name);
     _checkForTypeAliasCannotReferenceItself(node, node.declaredElement);
     super.visitFunctionTypeAlias(node);
   }
@@ -805,6 +809,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    _checkForMainFunction(node.name);
     _checkForTypeAliasCannotReferenceItself(node, node.declaredElement);
     super.visitGenericTypeAlias(node);
   }
@@ -970,6 +975,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
       _checkForConflictingClassMembers();
       _checkForFinalNotInitializedInClass(members);
+      _checkForMainFunction(node.name);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
@@ -1193,6 +1199,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _checkForFinalNotInitialized(node.variables);
     _checkForNotInitializedNonNullableVariable(node.variables);
+
+    for (var declaration in node.variables.variables) {
+      _checkForMainFunction(declaration.name);
+    }
+
     super.visitTopLevelVariableDeclaration(node);
   }
 
@@ -3091,6 +3102,31 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     );
     for (CollectionElement element in literal.elements) {
       verifier.verify(element);
+    }
+  }
+
+  void _checkForMainFunction(SimpleIdentifier nameNode) {
+    if (!_currentLibrary.isNonNullableByDefault) {
+      return;
+    }
+
+    var element = nameNode.staticElement;
+
+    // We should only check exported declarations, i.e. top-level.
+    if (element.enclosingElement is! CompilationUnitElement) {
+      return;
+    }
+
+    if (element.displayName != 'main') {
+      return;
+    }
+
+    if (element is! FunctionElement) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION,
+        nameNode,
+      );
+      return;
     }
   }
 

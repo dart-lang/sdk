@@ -2356,21 +2356,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     bool performIs(Constant constant, {bool strongMode}) {
       assert(strongMode != null);
       if (strongMode) {
-        // In strong checking mode: if e evaluates to a value v and v has
-        // runtime type S, an instance check e is T occurring in a legacy
-        // library or an opted-in library is evaluated as follows:
-        //
-        //    If v is null and T is a legacy type,
-        //       return LEGACY_SUBTYPE(T, NULL) || LEGACY_SUBTYPE(Object, T)
-        //    Otherwise return NNBD_SUBTYPE(S, T)
-        if (constant is NullConstant &&
-            type.nullability == Nullability.legacy) {
-          // Unreachable: Mixed strong mode is no longer supported.
-          return typeEnvironment.isSubtypeOf(type, typeEnvironment.nullType,
-                  SubtypeCheckMode.ignoringNullabilities) ||
-              typeEnvironment.isSubtypeOf(typeEnvironment.objectLegacyRawType,
-                  type, SubtypeCheckMode.ignoringNullabilities);
-        }
         return isSubtype(constant, type, SubtypeCheckMode.withNullabilities);
       } else {
         // In weak checking mode: if e evaluates to a value v and v has runtime
@@ -2857,12 +2842,6 @@ class EvaluationEnvironment {
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.add(variable);
     }
-  }
-
-  DartType lookupParameterValue(TypeParameter parameter) {
-    final DartType value = _typeVariables[parameter];
-    assert(value != null);
-    return value;
   }
 
   Constant lookupVariable(VariableDeclaration variable) {

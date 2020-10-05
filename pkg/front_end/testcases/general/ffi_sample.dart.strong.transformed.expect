@@ -44,7 +44,7 @@ class Coordinate extends ffi::Struct {
   get next() → ffi::Pointer<self::Coordinate*>*
     return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::Struct::_addressOf}, (#C12).{core::List::[]}(ffi::_abi())));
   set next(ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C12).{core::List::[]}(ffi::_abi()), #v.{=ffi::Pointer::address});
+    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C12).{core::List::[]}(ffi::_abi()), #v.{ffi::Pointer::address});
 }
 static method main() → dynamic {}
 

@@ -344,6 +344,7 @@ import 'late_final_local_already_assigned_test.dart'
     as late_final_local_already_assigned;
 import 'list_element_type_not_assignable_test.dart'
     as list_element_type_not_assignable;
+import 'main_is_not_function_test.dart' as main_is_not_function;
 import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
 import 'map_key_type_not_assignable_test.dart' as map_key_type_not_assignable;
 import 'map_value_type_not_assignable_test.dart'
@@ -872,6 +873,7 @@ main() {
     late_final_field_with_const_constructor.main();
     late_final_local_already_assigned.main();
     list_element_type_not_assignable.main();
+    main_is_not_function.main();
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
     map_value_type_not_assignable.main();

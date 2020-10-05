@@ -441,8 +441,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     Expression argumentExpression = VariableGet(argument)
       ..fileOffset = fileOffset;
     if (isPointer) {
-      argumentExpression = DirectPropertyGet(argumentExpression, addressGetter)
-        ..fileOffset = fileOffset;
+      argumentExpression =
+          PropertyGet(argumentExpression, addressGetter.name, addressGetter)
+            ..fileOffset = fileOffset;
     }
     return ReturnStatement(StaticInvocation(
         storeMethod,

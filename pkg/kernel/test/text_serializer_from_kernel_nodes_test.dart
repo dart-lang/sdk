@@ -220,11 +220,10 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field};',
-          node: new ExpressionStatement(new DirectPropertyGet.byReference(
-              new VariableGet(x), field.reference)),
+          node: new ExpressionStatement(new PropertyGet.byReference(
+              new VariableGet(x), field.name, field.reference)),
           expectation: ''
-              '(expr (get-direct-prop (get-var "x^0" _)'
-              ' "package:foo/bar.dart::A::@fields::field"))',
+              '(expr (get-prop (get-var "x^0" _) (public "field")))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -249,11 +248,13 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field} = 42;',
-          node: new ExpressionStatement(new DirectPropertySet.byReference(
-              new VariableGet(x), field.reference, new IntLiteral(42))),
+          node: new ExpressionStatement(PropertySet.byReference(
+              new VariableGet(x),
+              field.name,
+              new IntLiteral(42),
+              field.reference)),
           expectation: ''
-              '(expr (set-direct-prop (get-var "x^0" _)'
-              ' "package:foo/bar.dart::A::@fields::field" (int 42)))',
+              '(expr (set-prop (get-var "x^0" _) (public "field") (int 42)))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -280,11 +281,13 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {foo() {...}} A x; */ x.{A::foo}();',
-          node: new ExpressionStatement(new DirectMethodInvocation.byReference(
-              new VariableGet(x), method.reference, new Arguments([]))),
+          node: new ExpressionStatement(new MethodInvocation.byReference(
+              new VariableGet(x),
+              method.name,
+              new Arguments([]),
+              method.reference)),
           expectation: ''
-              '(expr (invoke-direct-method (get-var "x^0" _)'
-              ' "package:foo/bar.dart::A::@methods::foo"'
+              '(expr (invoke-method (get-var "x^0" _) (public "foo")'
               ' () () ()))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
@@ -522,7 +525,8 @@ void test() {
     if (roundTripInput != testCase.expectation) {
       failures.add(''
           "* initial serialization for test '${testCase.name}'"
-          " gave output '${roundTripInput}'");
+          " gave output '${roundTripInput}'"
+          " but expected '${testCase.expectation}'");
     }
 
     TreeNode deserialized =

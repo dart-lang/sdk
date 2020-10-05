@@ -1,5 +1,6 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/nnbd/issue41657.dart:10:41: Error: Constant evaluation error:
 // const assertLegacySubtyping1 = <Null>[] as List<int>;
@@ -23,7 +24,6 @@
 // const assertLegacySubtyping2 = <int?>[] as List<int>;
 //       ^
 //
-library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 

@@ -107,24 +107,6 @@ class InferenceVisitor
   }
 
   @override
-  ExpressionInferenceResult visitDirectMethodInvocation(
-      DirectMethodInvocation node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  ExpressionInferenceResult visitDirectPropertyGet(
-      DirectPropertyGet node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  ExpressionInferenceResult visitDirectPropertySet(
-      DirectPropertySet node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
   ExpressionInferenceResult visitFileUriExpression(
       FileUriExpression node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);

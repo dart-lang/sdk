@@ -189,11 +189,7 @@ List<Class> getImmediateSuperclasses(Class c) {
 }
 
 Expression getInvocationReceiver(InvocationExpression node) =>
-    node is MethodInvocation
-        ? node.receiver
-        : node is DirectMethodInvocation
-            ? node.receiver
-            : null;
+    node is MethodInvocation ? node.receiver : null;
 
 bool isInlineJS(Member e) =>
     e is Procedure &&
