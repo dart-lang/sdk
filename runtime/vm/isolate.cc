@@ -133,6 +133,12 @@ static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
   }
 }
 
+static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
+                                                 Dart_CObject* obj) {
+  ApiMessageWriter writer;
+  return writer.WriteCMessage(obj, dest_port, Message::kNormalPriority);
+}
+
 static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
   if (message == NULL) {
     return Instance::null();
@@ -1447,34 +1453,38 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
 
   NoReloadScope no_reload_scope(T->isolate(), T);
   // Generate the error and stacktrace strings for the error message.
-  String& exc_str = String::Handle(T->zone());
-  String& stacktrace_str = String::Handle(T->zone());
+  const char* exception_cstr = nullptr;
+  const char* stacktrace_cstr = nullptr;
   if (result.IsUnhandledException()) {
     Zone* zone = T->zone();
     const UnhandledException& uhe = UnhandledException::Cast(result);
     const Instance& exception = Instance::Handle(zone, uhe.exception());
-    Object& tmp = Object::Handle(zone);
-    tmp = DartLibraryCalls::ToString(exception);
-    if (!tmp.IsString()) {
-      tmp = String::New(exception.ToCString());
+    if (exception.raw() == I->object_store()->out_of_memory()) {
+      exception_cstr = "Out of Memory";  // Cf. OutOfMemoryError.toString().
+    } else if (exception.raw() == I->object_store()->stack_overflow()) {
+      exception_cstr = "Stack Overflow";  // Cf. StackOverflowError.toString().
+    } else {
+      const Object& exception_str =
+          Object::Handle(zone, DartLibraryCalls::ToString(exception));
+      if (!exception_str.IsString()) {
+        exception_cstr = exception.ToCString();
+      } else {
+        exception_cstr = exception_str.ToCString();
+      }
     }
-    exc_str ^= tmp.raw();
 
     const Instance& stacktrace = Instance::Handle(zone, uhe.stacktrace());
-    tmp = DartLibraryCalls::ToString(stacktrace);
-    if (!tmp.IsString()) {
-      tmp = String::New(stacktrace.ToCString());
-    }
-    stacktrace_str ^= tmp.raw();
+    stacktrace_cstr = stacktrace.ToCString();
   } else {
-    exc_str = String::New(result.ToErrorCString());
+    exception_cstr = result.ToErrorCString();
   }
   if (result.IsUnwindError()) {
     // When unwinding we don't notify error listeners and we ignore
     // whether errors are fatal for the current isolate.
     return StoreError(T, result);
   } else {
-    bool has_listener = I->NotifyErrorListeners(exc_str, stacktrace_str);
+    bool has_listener =
+        I->NotifyErrorListeners(exception_cstr, stacktrace_cstr);
     if (I->ErrorsFatal()) {
       if (has_listener) {
         T->ClearStickyError();
@@ -2276,21 +2286,32 @@ void Isolate::RemoveErrorListener(const SendPort& listener) {
   }
 }
 
-bool Isolate::NotifyErrorListeners(const String& msg,
-                                   const String& stacktrace) {
+bool Isolate::NotifyErrorListeners(const char* message,
+                                   const char* stacktrace) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       current_zone(), isolate_object_store()->error_listeners());
   if (listeners.IsNull()) return false;
 
-  const Array& arr = Array::Handle(current_zone(), Array::New(2));
-  arr.SetAt(0, msg);
-  arr.SetAt(1, stacktrace);
+  Dart_CObject arr;
+  Dart_CObject* arr_values[2];
+  arr.type = Dart_CObject_kArray;
+  arr.value.as_array.length = 2;
+  arr.value.as_array.values = arr_values;
+  Dart_CObject msg;
+  msg.type = Dart_CObject_kString;
+  msg.value.as_string = const_cast<char*>(message);
+  arr_values[0] = &msg;
+  Dart_CObject stack;
+  stack.type = Dart_CObject_kString;
+  stack.value.as_string = const_cast<char*>(stacktrace);
+  arr_values[1] = &stack;
+
   SendPort& listener = SendPort::Handle(current_zone());
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
-      PortMap::PostMessage(SerializeMessage(port_id, arr));
+      PortMap::PostMessage(SerializeMessage(port_id, &arr));
     }
   }
   return listeners.Length() > 0;

@@ -55,17 +55,6 @@ void IsolateObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 }
 #endif  // !PRODUCT
 
-static UnhandledExceptionPtr CreatePreallocatedUnandledException(
-    Zone* zone,
-    const Object& out_of_memory) {
-  // Allocate pre-allocated unhandled exception object initialized with the
-  // pre-allocated OutOfMemoryError.
-  const UnhandledException& unhandled_exception =
-      UnhandledException::Handle(UnhandledException::New(
-          Instance::Cast(out_of_memory), StackTrace::Handle(zone)));
-  return unhandled_exception.raw();
-}
-
 static StackTracePtr CreatePreallocatedStackTrace(Zone* zone) {
   const Array& code_array = Array::Handle(
       zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
@@ -93,10 +82,12 @@ ErrorPtr IsolateObjectStore::PreallocateObjects() {
   // pre-allocated OutOfMemoryError.
   const Object& out_of_memory =
       Object::Handle(zone, object_store_->out_of_memory());
+  const StackTrace& preallocated_stack_trace =
+      StackTrace::Handle(zone, CreatePreallocatedStackTrace(zone));
+  set_preallocated_stack_trace(preallocated_stack_trace);
   set_preallocated_unhandled_exception(UnhandledException::Handle(
-      CreatePreallocatedUnandledException(zone, out_of_memory)));
-  set_preallocated_stack_trace(
-      StackTrace::Handle(CreatePreallocatedStackTrace(zone)));
+      zone, UnhandledException::New(Instance::Cast(out_of_memory),
+                                    preallocated_stack_trace)));
 
   return Error::null();
 }
