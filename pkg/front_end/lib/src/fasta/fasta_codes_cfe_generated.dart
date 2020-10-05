@@ -2120,6 +2120,80 @@ Message _withArgumentsInvalidReturnAsync(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateMainWrongParameterType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'.""",
+        withArguments: _withArgumentsMainWrongParameterType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeMainWrongParameterType = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "MainWrongParameterType",
+  templateMainWrongParameterType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMainWrongParameterType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeMainWrongParameterType,
+      message:
+          """The type '${type}' of the first parameter of the 'main' method is not a supertype of '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateMainWrongParameterTypeExported = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'.""",
+        withArguments: _withArgumentsMainWrongParameterTypeExported);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeMainWrongParameterTypeExported = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "MainWrongParameterTypeExported",
+  templateMainWrongParameterTypeExported,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMainWrongParameterTypeExported(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeMainWrongParameterTypeExported,
+      message:
+          """The type '${type}' of the first parameter of the exported 'main' method is not a supertype of '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(DartType _type, DartType _type2, DartType _type3,
             bool isNonNullableByDefault)>
     templateMixinApplicationIncompatibleSupertype = const Template<

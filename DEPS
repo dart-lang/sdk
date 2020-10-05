@@ -525,16 +525,6 @@ deps = {
     "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/pkg/front_end/testcases/old_dills/dills": {
-    "packages": [
-      {
-        "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:46",
-      }
-    ],
-    "dep_type": "cipd",
-  },
-
   # TODO(37531): Remove these cipd packages and build with sdk instead when
   # benchmark runner gets support for that.
   Var("dart_root") + "/benchmarks/FfiBoringssl/native/out/": {

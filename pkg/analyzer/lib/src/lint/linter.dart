@@ -637,8 +637,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   }
 
   void reportPubLint(PSNode node) {
-    Source source = createSource(node.span.sourceUrl);
-
+    var source = node.source;
     // Cache error and location info for creating AnalysisErrorInfos
     AnalysisError error = AnalysisError(
         source, node.span.start.offset, node.span.length, lintCode);

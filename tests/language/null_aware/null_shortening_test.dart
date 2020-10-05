@@ -159,8 +159,8 @@ main() {
   c1q?.cq!.expectStaticType<Exactly<C1>>();
   (c1q?.cq!).expectStaticType<Exactly<C1?>>();
   (c1q?.cq)!.expectStaticType<Exactly<C1>>();
-  c1q?.cn!.c.expectStaticType<Exactly<C1>>();
-  (c1q?.cn!.c).expectStaticType<Exactly<C1?>>();
+  c1q?.cq!.c.expectStaticType<Exactly<C1>>();
+  (c1q?.cq!.c).expectStaticType<Exactly<C1?>>();
   c1q?[1].expectStaticType<Exactly<C1>>();
   (c1q?[1]).expectStaticType<Exactly<C1?>>();
 

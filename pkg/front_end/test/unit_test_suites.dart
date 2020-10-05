@@ -30,7 +30,6 @@ import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
 import 'incremental_load_from_dill_suite.dart' as incremental_load
     show createContext;
 import 'lint_suite.dart' as lint show createContext;
-import 'old_dill_suite.dart' as old_dill show createContext;
 import 'parser_suite.dart' as parser show createContext;
 import 'parser_all_suite.dart' as parserAll show createContext;
 import 'spelling_test_not_src_suite.dart' as spelling_not_src
@@ -278,7 +277,6 @@ const List<Suite> suites = [
   const Suite("incremental_load_from_dill", incremental_load.createContext,
       "../testing.json"),
   const Suite("lint", lint.createContext, "../testing.json"),
-  const Suite("old_dill", old_dill.createContext, "../testing.json"),
   const Suite("parser", parser.createContext, "../testing.json"),
   const Suite("parser_all", parserAll.createContext, "../testing.json"),
   const Suite("spelling_test_not_src", spelling_not_src.createContext,

@@ -360,6 +360,7 @@ class KernelTarget extends TargetImplementation {
       loader.buildOutlineExpressions(loader.coreTypes);
       loader.checkTypes();
       loader.checkRedirectingFactories(myClasses);
+      loader.checkMainMethods();
       _updateDelayedParameterTypes();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();

@@ -482,6 +482,54 @@ version: 1.3.2
     expect(errors, hasLength(0));
   }
 
+  Future<void> test_pubspecFile_lint() async {
+    var optionsPath = join(projectPath, 'analysis_options.yaml');
+    newFile(optionsPath, content: '''
+linter:
+  rules:
+    - sort_pub_dependencies
+''');
+
+    var filePath = join(projectPath, 'pubspec.yaml');
+    var pubspecFile = newFile(filePath, content: '''
+name: sample
+    
+dependencies:
+  b: any
+  a: any
+''').path;
+
+    var setRootsRequest =
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(setRootsRequest);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    var errors = filesErrors[pubspecFile];
+    expect(errors, hasLength(1));
+    var error = errors[0];
+    expect(error.location.file, filePath);
+    expect(error.severity, AnalysisErrorSeverity.INFO);
+    expect(error.type, AnalysisErrorType.LINT);
+    //
+    // Fix the error and verify the new results.
+    //
+    modifyFile(pubspecFile, '''
+name: sample
+    
+dependencies:
+  a: any
+  b: any
+''');
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    errors = filesErrors[pubspecFile];
+    expect(errors, hasLength(0));
+  }
+
   Future<void> test_StaticWarning() async {
     createProject();
     addTestFile('''

@@ -4348,3 +4348,71 @@ NeverValueError:
 NeverValueWarning:
   template: "The expression can not result in a value with sound null safety because the expression type is `Never`."
   severity: WARNING
+
+MainNotFunctionDeclaration:
+  template: "The 'main' declaration must be a function declaration."
+  configuration: nnbd-strong
+  script:
+    - var main;
+
+MainNotFunctionDeclarationExported:
+  template: "The exported 'main' declaration must be a function declaration."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      var main;
+
+MainTooManyRequiredParameters:
+  template: "The 'main' method must have at most 2 required parameters."
+  configuration: nnbd-strong
+  script:
+    - main(a, b, c) {}
+
+MainTooManyRequiredParametersExported:
+  template: "The exported 'main' method must have at most 2 required parameters."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      main(a, b, c) {}
+
+MainRequiredNamedParameters:
+  template: "The 'main' method cannot have required named parameters."
+  configuration: nnbd-strong
+  script:
+    - main({required a}) {}
+
+MainRequiredNamedParametersExported:
+  template: "The exported 'main' method cannot have required named parameters."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      main({required a}) {}
+
+MainWrongParameterType:
+  template: "The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'."
+  configuration: nnbd-strong
+  script:
+    - main(Set<String> args) {}
+
+MainWrongParameterTypeExported:
+  template: "The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      main(Set<String> args) {}
+
+ExportedMain:
+  template: "This is exported 'main' declaration."
+  severity: CONTEXT
