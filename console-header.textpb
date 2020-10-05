@@ -25,6 +25,11 @@ links: {
         url: "https://dart-ci.firebaseapp.com/"
         alt: "Results Feed"
     }
+    links: {
+        text: "Current Test Results"
+        url: "https://dart-ci.firebaseapp.com/current_results/"
+        alt: "Current Test Results"
+    }
 }
 console_groups: {
     console_ids: "dart/flutter"
