@@ -23,6 +23,17 @@
 #include "vm/token.h"
 #include "vm/token_position.h"
 
+// Currently we have two different axes for offset generation:
+//
+//  * Target architecture
+//  * DART_PRECOMPILED_RUNTIME (i.e, AOT vs. JIT)
+//
+// That is, fields in ObjectLayout and its subclasses should only be included or
+// excluded conditionally based on these factors. Otherwise, the generated
+// offsets can be wrong (which should be caught by offset checking in dart.cc).
+//
+// TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
+
 namespace dart {
 
 // For now there are no compressed pointers.

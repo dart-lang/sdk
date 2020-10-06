@@ -221,104 +221,37 @@ int32_t ImageWriter::GetTextOffsetFor(InstructionsPtr instructions,
   return offset;
 }
 
-static intptr_t InstructionsSizeInSnapshot(InstructionsPtr raw) {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    // Currently, we align bare instruction payloads on 4 byte boundaries.
-    //
-    // If we later decide to align on larger boundaries to put entries at the
-    // start of cache lines, make sure to account for entry points that are
-    // _not_ at the start of the payload.
-    return Utils::RoundUp(Instructions::Size(raw),
-                          ImageWriter::kBareInstructionsAlignment);
-  }
-#if defined(IS_SIMARM_X64)
-  return Utils::RoundUp(
-      compiler::target::Instructions::HeaderSize() + Instructions::Size(raw),
-      compiler::target::ObjectAlignment::kObjectAlignment);
-#else
-  return raw->ptr()->HeapSize();
-#endif
-}
-
-#if defined(IS_SIMARM_X64)
-static intptr_t CompressedStackMapsSizeInSnapshot(intptr_t payload_size) {
-  const intptr_t unrounded_size_in_bytes =
-      compiler::target::CompressedStackMaps::HeaderSize() + payload_size;
-  return Utils::RoundUp(unrounded_size_in_bytes,
-                        compiler::target::ObjectAlignment::kObjectAlignment);
-}
-
-static intptr_t StringPayloadSize(intptr_t len, bool isOneByteString) {
-  return len * (isOneByteString ? OneByteString::kBytesPerElement
-                                : TwoByteString::kBytesPerElement);
-}
-
-static intptr_t StringSizeInSnapshot(intptr_t len, bool isOneByteString) {
-  const intptr_t unrounded_size_in_bytes =
-      (String::kSizeofRawString / 2) + StringPayloadSize(len, isOneByteString);
-  return Utils::RoundUp(unrounded_size_in_bytes,
-                        compiler::target::ObjectAlignment::kObjectAlignment);
-}
-
-static intptr_t CodeSourceMapSizeInSnapshot(intptr_t len) {
-  const intptr_t unrounded_size_in_bytes =
-      2 * compiler::target::kWordSize + len;
-  return Utils::RoundUp(unrounded_size_in_bytes,
-                        compiler::target::ObjectAlignment::kObjectAlignment);
-}
-
-static intptr_t PcDescriptorsSizeInSnapshot(intptr_t len) {
-  const intptr_t unrounded_size_in_bytes =
-      2 * compiler::target::kWordSize + len;
-  return Utils::RoundUp(unrounded_size_in_bytes,
-                        compiler::target::ObjectAlignment::kObjectAlignment);
-}
-
 intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw_object) {
   const classid_t cid = raw_object->GetClassId();
 
   switch (cid) {
     case kCompressedStackMapsCid: {
-      CompressedStackMapsPtr raw_maps =
-          static_cast<CompressedStackMapsPtr>(raw_object);
-      auto const payload_size = CompressedStackMaps::PayloadSizeOf(raw_maps);
-      return CompressedStackMapsSizeInSnapshot(payload_size);
-    }
-    case kOneByteStringCid:
-    case kTwoByteStringCid: {
-      StringPtr raw_str = static_cast<StringPtr>(raw_object);
-      return StringSizeInSnapshot(Smi::Value(raw_str->ptr()->length_),
-                                  cid == kOneByteStringCid);
+      auto raw_maps = CompressedStackMaps::RawCast(raw_object);
+      return compiler::target::CompressedStackMaps::InstanceSize(
+          CompressedStackMaps::PayloadSizeOf(raw_maps));
     }
     case kCodeSourceMapCid: {
-      CodeSourceMapPtr raw_map = static_cast<CodeSourceMapPtr>(raw_object);
-      return CodeSourceMapSizeInSnapshot(raw_map->ptr()->length_);
+      auto raw_map = CodeSourceMap::RawCast(raw_object);
+      return compiler::target::CodeSourceMap::InstanceSize(
+          raw_map->ptr()->length_);
     }
     case kPcDescriptorsCid: {
-      PcDescriptorsPtr raw_desc = static_cast<PcDescriptorsPtr>(raw_object);
-      return PcDescriptorsSizeInSnapshot(raw_desc->ptr()->length_);
+      auto raw_desc = PcDescriptors::RawCast(raw_object);
+      return compiler::target::PcDescriptors::InstanceSize(
+          raw_desc->ptr()->length_);
     }
     case kInstructionsCid: {
-      InstructionsPtr raw_insns = static_cast<InstructionsPtr>(raw_object);
-      return InstructionsSizeInSnapshot(raw_insns);
+      auto raw_insns = Instructions::RawCast(raw_object);
+      return compiler::target::Instructions::InstanceSize(
+          Instructions::Size(raw_insns));
     }
     default: {
       const Class& clazz = Class::Handle(Object::Handle(raw_object).clazz());
-      FATAL1("Unsupported class %s in rodata section.\n", clazz.ToCString());
+      FATAL("Unsupported class %s in rodata section.\n", clazz.ToCString());
       return 0;
     }
   }
 }
-#else   // defined(IS_SIMARM_X64)
-intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw) {
-  switch (raw->GetClassId()) {
-    case kInstructionsCid:
-      return InstructionsSizeInSnapshot(static_cast<InstructionsPtr>(raw));
-    default:
-      return raw->ptr()->HeapSize();
-  }
-}
-#endif  // defined(IS_SIMARM_X64)
 
 uint32_t ImageWriter::GetDataOffsetFor(ObjectPtr raw_object) {
   intptr_t snap_size = SizeInSnapshot(raw_object);
@@ -534,86 +467,74 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
   for (intptr_t i = 0; i < objects_.length(); i++) {
     const Object& obj = *objects_[i].obj_;
     AutoTraceImage(obj, section_start, stream);
+    auto const object_start = stream->Position();
 
     NoSafepointScope no_safepoint;
-    uword start = static_cast<uword>(obj.raw()) - kHeapObjectTag;
 
     // Write object header with the mark and read-only bits set.
-    uword marked_tags = obj.raw()->ptr()->tags_;
-    marked_tags = ObjectLayout::OldBit::update(true, marked_tags);
-    marked_tags = ObjectLayout::OldAndNotMarkedBit::update(false, marked_tags);
-    marked_tags =
-        ObjectLayout::OldAndNotRememberedBit::update(true, marked_tags);
-    marked_tags = ObjectLayout::NewBit::update(false, marked_tags);
-#if defined(HASH_IN_OBJECT_HEADER)
-    marked_tags |= static_cast<uword>(obj.raw()->ptr()->hash_) << 32;
-#endif
-
-#if defined(IS_SIMARM_X64)
+    stream->WriteTargetWord(GetMarkedTags(obj));
     if (obj.IsCompressedStackMaps()) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
-      auto const object_start = stream->Position();
-
       const intptr_t payload_size = map.payload_size();
-      const intptr_t size_in_bytes =
-          CompressedStackMapsSizeInSnapshot(payload_size);
-      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
-
-      stream->WriteTargetWord(marked_tags);
       stream->WriteFixed<uint32_t>(map.raw()->ptr()->flags_and_size_);
       ASSERT_EQUAL(stream->Position() - object_start,
                    compiler::target::CompressedStackMaps::HeaderSize());
       stream->WriteBytes(map.raw()->ptr()->data(), payload_size);
-      stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
-    } else if (obj.IsString()) {
-      const String& str = String::Cast(obj);
-      RELEASE_ASSERT(String::GetCachedHash(str.raw()) != 0);
-      RELEASE_ASSERT(str.IsOneByteString() || str.IsTwoByteString());
-      const intptr_t size_in_bytes =
-          StringSizeInSnapshot(str.Length(), str.IsOneByteString());
-      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
-
-      stream->WriteTargetWord(marked_tags);
-      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->length_));
-      stream->WriteTargetWord(static_cast<uword>(str.raw()->ptr()->hash_));
-      stream->WriteBytes(
-          reinterpret_cast<const void*>(start + String::kSizeofRawString),
-          StringPayloadSize(str.Length(), str.IsOneByteString()));
-      stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
     } else if (obj.IsCodeSourceMap()) {
       const CodeSourceMap& map = CodeSourceMap::Cast(obj);
-      const intptr_t size_in_bytes = CodeSourceMapSizeInSnapshot(map.Length());
-      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
-
-      stream->WriteTargetWord(marked_tags);
       stream->WriteTargetWord(map.Length());
+      ASSERT_EQUAL(stream->Position() - object_start,
+                   compiler::target::CodeSourceMap::HeaderSize());
       stream->WriteBytes(map.Data(), map.Length());
-      stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
     } else if (obj.IsPcDescriptors()) {
       const PcDescriptors& desc = PcDescriptors::Cast(obj);
-
-      const intptr_t size_in_bytes = PcDescriptorsSizeInSnapshot(desc.Length());
-      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
-
-      stream->WriteTargetWord(marked_tags);
       stream->WriteTargetWord(desc.Length());
+      ASSERT_EQUAL(stream->Position() - object_start,
+                   compiler::target::PcDescriptors::HeaderSize());
       stream->WriteBytes(desc.raw()->ptr()->data(), desc.Length());
-      stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
     } else {
       const Class& clazz = Class::Handle(obj.clazz());
-      FATAL1("Unsupported class %s in rodata section.\n", clazz.ToCString());
+      FATAL("Unsupported class %s in rodata section.\n", clazz.ToCString());
     }
-#else   // defined(IS_SIMARM_X64)
-    const uword end = start + obj.raw()->ptr()->HeapSize();
-
-    stream->WriteWord(marked_tags);
-    start += sizeof(uword);
-    for (uword* cursor = reinterpret_cast<uword*>(start);
-         cursor < reinterpret_cast<uword*>(end); cursor++) {
-      stream->WriteWord(*cursor);
-    }
-#endif  // defined(IS_SIMARM_X64)
+    stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
+    ASSERT_EQUAL(stream->Position() - object_start, SizeInSnapshot(obj));
   }
+}
+
+static UNLESS_DEBUG(constexpr) const uword kReadOnlyGCBits =
+    ObjectLayout::OldBit::encode(true) |
+    ObjectLayout::OldAndNotMarkedBit::encode(false) |
+    ObjectLayout::OldAndNotRememberedBit::encode(true) |
+    ObjectLayout::NewBit::encode(false);
+
+uword ImageWriter::GetMarkedTags(classid_t cid, intptr_t size) {
+  // ObjectLayout::SizeTag expects a size divisible by kObjectAlignment and
+  // checks this in debug mode, but the size on the target machine may not be
+  // divisible by the host machine's object alignment if they differ.
+  //
+  // We define [adjusted_size] as [size] * m, where m is the host alignment
+  // divided by the target alignment. This means [adjusted_size] encodes on the
+  // host machine to the same bits that decode to [size] on the target machine.
+  // That is,
+  //    [adjusted_size] / host align ==
+  //    [size] * (host align / target align) / host align ==
+  //    [size] / target align
+  //
+  // Since alignments are always powers of 2, we use shifts and logs.
+  const intptr_t adjusted_size =
+      size << (kObjectAlignmentLog2 -
+               compiler::target::ObjectAlignment::kObjectAlignmentLog2);
+
+  return kReadOnlyGCBits | ObjectLayout::ClassIdTag::encode(cid) |
+         ObjectLayout::SizeTag::encode(adjusted_size);
+}
+
+uword ImageWriter::GetMarkedTags(const Object& obj) {
+  return
+#if defined(HASH_IN_OBJECT_HEADER)
+      static_cast<uword>(obj.raw()->ptr()->hash_) << kBitsPerInt32 |
+#endif
+      GetMarkedTags(obj.raw()->GetClassId(), SizeInSnapshot(obj));
 }
 
 #if defined(DART_PRECOMPILER)
@@ -964,15 +885,8 @@ void AssemblyImageWriter::WriteText(bool vm) {
           parent_id,
           {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
     }
-    const compiler::target::uword marked_tags =
-        ObjectLayout::OldBit::encode(true) |
-        ObjectLayout::OldAndNotMarkedBit::encode(false) |
-        ObjectLayout::OldAndNotRememberedBit::encode(true) |
-        ObjectLayout::NewBit::encode(false) |
-        ObjectLayout::SizeTag::encode(
-            AdjustObjectSizeForTarget(image_header_size)) |
-        ObjectLayout::ClassIdTag::encode(kImageHeaderCid);
-    text_offset += WriteWordLiteralText(marked_tags);
+    text_offset +=
+        WriteWordLiteralText(GetMarkedTags(kImageHeaderCid, image_header_size));
 
     // An ImageHeader has four fields:
     // 1) The BSS offset from this section.
@@ -1015,28 +929,26 @@ void AssemblyImageWriter::WriteText(bool vm) {
         parent_id = id;
       }
       const intptr_t section_size = image_size - text_offset;
-      // Add the RawInstructionsSection header.
-      const compiler::target::uword marked_tags =
-          ObjectLayout::OldBit::encode(true) |
-          ObjectLayout::OldAndNotMarkedBit::encode(false) |
-          ObjectLayout::OldAndNotRememberedBit::encode(true) |
-          ObjectLayout::NewBit::encode(false) |
-          ObjectLayout::SizeTag::encode(
-              AdjustObjectSizeForTarget(section_size)) |
-          ObjectLayout::ClassIdTag::encode(kInstructionsSectionCid);
-      text_offset += WriteWordLiteralText(marked_tags);
       // Calculated using next_text_offset_, which doesn't include post-payload
       // padding to object alignment.
       const intptr_t instructions_length =
-          next_text_offset_ - (text_offset + compiler::target::kWordSize);
+          next_text_offset_ - text_offset -
+          compiler::target::InstructionsSection::HeaderSize();
+      // Add the RawInstructionsSection header.
+      text_offset += WriteWordLiteralText(
+          GetMarkedTags(kInstructionsSectionCid, section_size));
       text_offset += WriteWordLiteralText(instructions_length);
+      text_offset += Align(
+          compiler::target::Instructions::kBarePayloadAlignment, text_offset);
     }
   }
 #endif
 
   FrameUnwindPrologue();
 
+#if defined(DART_PRECOMPILER)
   PcDescriptors& descriptors = PcDescriptors::Handle(zone);
+#endif
   SnapshotTextObjectNamer namer(zone);
 
   ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
@@ -1052,15 +964,14 @@ void AssemblyImageWriter::WriteText(bool vm) {
           assembly_dwarf_->AddCode(*data.code_, SegmentRelativeOffset(vm));
     }
 #endif
-
     const auto object_name = namer.SnapshotNameFor(dwarf_index, data);
 
 #if defined(DART_PRECOMPILER)
     if (profile_writer_ != nullptr) {
       const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
       auto const type = is_trampoline ? trampoline_type_ : instructions_type_;
-      const intptr_t size = is_trampoline ? data.trampoline_length
-                                          : SizeInSnapshot(data.insns_->raw());
+      const intptr_t size =
+          is_trampoline ? data.trampoline_length : SizeInSnapshot(*data.insns_);
       profile_writer_->SetObjectTypeAndName(id, type, object_name);
       profile_writer_->AttributeBytesTo(id, size);
       const intptr_t element_offset = id.second - parent_id.second;
@@ -1080,12 +991,7 @@ void AssemblyImageWriter::WriteText(bool vm) {
     }
 
     const intptr_t instr_start = text_offset;
-
-    const auto& code = *data.code_;
     const auto& insns = *data.insns_;
-    descriptors = code.pc_descriptors();
-
-    const uword payload_start = insns.PayloadStart();
 
     // 1. Write from the object start to the payload start. This includes the
     // object header and the fixed fields.  Not written for AOT snapshots using
@@ -1094,39 +1000,18 @@ void AssemblyImageWriter::WriteText(bool vm) {
       NoSafepointScope no_safepoint;
 
       // Write Instructions with the mark and read-only bits set.
-      uword marked_tags = insns.raw_ptr()->tags_;
-      marked_tags = ObjectLayout::OldBit::update(true, marked_tags);
-      marked_tags =
-          ObjectLayout::OldAndNotMarkedBit::update(false, marked_tags);
-      marked_tags =
-          ObjectLayout::OldAndNotRememberedBit::update(true, marked_tags);
-      marked_tags = ObjectLayout::NewBit::update(false, marked_tags);
-#if defined(HASH_IN_OBJECT_HEADER)
-      // Can't use GetObjectTagsAndHash because the update methods discard the
-      // high bits.
-      marked_tags |= static_cast<uword>(insns.raw_ptr()->hash_) << 32;
-#endif
-
-#if defined(IS_SIMARM_X64)
-      const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.raw());
-      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
-      WriteWordLiteralText(marked_tags);
-      text_offset += sizeof(compiler::target::uword);
-      WriteWordLiteralText(insns.raw_ptr()->size_and_flags_);
-      text_offset += sizeof(compiler::target::uword);
-#else  // defined(IS_SIMARM_X64)
-      uword object_start = reinterpret_cast<uword>(insns.raw_ptr());
-      WriteWordLiteralText(marked_tags);
-      object_start += sizeof(uword);
-      text_offset += sizeof(uword);
-      text_offset += WriteByteSequence(object_start, payload_start);
-#endif  // defined(IS_SIMARM_X64)
-
-      ASSERT((text_offset - instr_start) ==
-             compiler::target::Instructions::HeaderSize());
+      text_offset += WriteWordLiteralText(GetMarkedTags(insns));
+      text_offset += WriteWordLiteralText(insns.raw_ptr()->size_and_flags_);
+      text_offset +=
+          Align(compiler::target::Instructions::kNonBarePayloadAlignment,
+                text_offset);
     }
 
+    ASSERT_EQUAL(text_offset - instr_start,
+                 compiler::target::Instructions::HeaderSize());
+
 #if defined(DART_PRECOMPILER)
+    const auto& code = *data.code_;
     if (debug_elf_ != nullptr) {
       debug_elf_->dwarf()->AddCode(code, {vm, text_offset});
     }
@@ -1137,68 +1022,69 @@ void AssemblyImageWriter::WriteText(bool vm) {
 
     {
       // 3. Write from the payload start to payload end. For AOT snapshots
-      // with bare instructions, this is the only part serialized.
+      // with bare instructions, this is the only non-padding part serialized.
       NoSafepointScope no_safepoint;
-      assert(kBareInstructionsAlignment <=
-             compiler::target::ObjectAlignment::kObjectAlignment);
-      const auto payload_align = bare_instruction_payloads
-                                     ? kBareInstructionsAlignment
-                                     : sizeof(compiler::target::uword);
-      const uword payload_size = Utils::RoundUp(insns.Size(), payload_align);
+      const uword payload_start = insns.PayloadStart();
+      // Double-check the payload alignment, since we will load and write
+      // target-sized words starting from that address.
+      ASSERT(Utils::IsAligned(payload_start, compiler::target::kWordSize));
+      const uword payload_size = insns.Size();
       const uword payload_end = payload_start + payload_size;
 
-      ASSERT(Utils::IsAligned(text_offset, payload_align));
-
 #if defined(DART_PRECOMPILER)
+      descriptors = code.pc_descriptors();
       PcDescriptors::Iterator iterator(descriptors,
                                        PcDescriptorsLayout::kBSSRelocation);
-      uword next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
 
-      // We only generate BSS relocations that are word-sized and at
-      // word-aligned offsets in the payload.
-      auto const possible_relocations_end =
-          Utils::RoundDown(payload_end, sizeof(compiler::target::uword));
-      for (uword cursor = payload_start; cursor < possible_relocations_end;
-           cursor += sizeof(compiler::target::uword)) {
-        uword data = *reinterpret_cast<compiler::target::uword*>(cursor);
-        if ((cursor - payload_start) == next_reloc_offset) {
-          assembly_stream_->Printf("%s %s - (.) + %" Pu "\n", kLiteralPrefix,
-                                   bss_symbol, /*addend=*/data);
-          text_offset += compiler::target::kWordSize;
-          next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
-        } else {
-          text_offset += WriteWordLiteralText(data);
-        }
+      uword cursor = payload_start;
+      while (iterator.MoveNext()) {
+        const uword next_reloc_address = payload_start + iterator.PcOffset();
+        // We only generate BSS relocations that are target word-sized and at
+        // target word-aligned offsets in the payload. Double-check this.
+        ASSERT(
+            Utils::IsAligned(next_reloc_address, compiler::target::kWordSize));
+        text_offset += WriteByteSequence(cursor, next_reloc_address);
+        const word addend =
+            *reinterpret_cast<compiler::target::word*>(next_reloc_address);
+        assembly_stream_->Printf("%s %s - (.) + %" Pd "\n", kLiteralPrefix,
+                                 bss_symbol, addend);
+        text_offset += compiler::target::kWordSize;
+        cursor = next_reloc_address + compiler::target::kWordSize;
       }
-      assert(next_reloc_offset != (possible_relocations_end - payload_start));
-      text_offset += WriteByteSequence(possible_relocations_end, payload_end);
+      text_offset += WriteByteSequence(cursor, payload_end);
 #else
       text_offset += WriteByteSequence(payload_start, payload_end);
 #endif
-
-      // 4. Write from the payload end to object end. Note we can't simply copy
-      // from the object because the host object may have less alignment filler
-      // than the target object in the cross-word case. Not written for AOT
-      // snapshots using bare instructions.
-      if (!bare_instruction_payloads) {
-        uword unaligned_size =
-            compiler::target::Instructions::HeaderSize() + payload_size;
-        uword alignment_size =
-            Utils::RoundUp(
-                unaligned_size,
-                compiler::target::ObjectAlignment::kObjectAlignment) -
-            unaligned_size;
-        while (alignment_size > 0) {
-          text_offset += WriteWordLiteralText(kBreakInstructionFiller);
-          alignment_size -= sizeof(compiler::target::uword);
-        }
-
-        ASSERT(kWordSize != compiler::target::kWordSize ||
-               (text_offset - instr_start) == insns.raw()->ptr()->HeapSize());
-      }
     }
 
-    ASSERT((text_offset - instr_start) == SizeInSnapshot(insns.raw()));
+    // 4. Write from the payload end to object end. Note we can't simply copy
+    // from the object because the host object may have less alignment filler
+    // than the target object in the cross-word case.
+    uword unpadded_end = text_offset - instr_start;
+    uword padding_size = SizeInSnapshot(insns) - unpadded_end;
+    for (; padding_size >= compiler::target::kWordSize;
+         padding_size -= compiler::target::kWordSize) {
+      text_offset += WriteWordLiteralText(kBreakInstructionFiller);
+    }
+#if defined(TARGET_ARCH_ARM)
+    // ARM never needs more padding, as instructions are word sized and all
+    // alignments are multiples of the word size.
+    ASSERT_EQUAL(padding_size, 0);
+#elif defined(TARGET_ARCH_ARM64)
+    // ARM64 may need 4 bytes of padding, but the break instruction filler
+    // is two copies of the 4-byte break instruction, so this works.
+    ASSERT(padding_size == 0 || padding_size == 4);
+#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+    // The break instruction filler is the same single byte instruction filling
+    // a uword, so no checks needed.
+#else
+#error Unexpected target architecture.
+#endif
+    text_offset += WriteByteSequence(
+        reinterpret_cast<uword>(&kBreakInstructionFiller),
+        reinterpret_cast<uword>(&kBreakInstructionFiller) + padding_size);
+
+    ASSERT_EQUAL(text_offset - instr_start, SizeInSnapshot(insns.raw()));
   }
 
   // Should be a no-op unless writing bare instruction payloads, in which case
@@ -1376,7 +1262,7 @@ void BlobImageWriter::WriteBss(bool vm) {
 #if defined(DART_PRECOMPILER)
   // We don't actually write a BSS segment, it's created as part of the
   // Elf constructor, but make sure it has an non-zero start.
-  ASSERT(elf_->BssStart(vm) != 0);
+  ASSERT(elf_ == nullptr || elf_->BssStart(vm) != 0);
 #endif
 }
 
@@ -1475,15 +1361,8 @@ void BlobImageWriter::WriteText(bool vm) {
           parent_id,
           {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
     }
-    const compiler::target::uword marked_tags =
-        ObjectLayout::OldBit::encode(true) |
-        ObjectLayout::OldAndNotMarkedBit::encode(false) |
-        ObjectLayout::OldAndNotRememberedBit::encode(true) |
-        ObjectLayout::NewBit::encode(false) |
-        ObjectLayout::SizeTag::encode(
-            AdjustObjectSizeForTarget(image_header_size)) |
-        ObjectLayout::ClassIdTag::encode(kImageHeaderCid);
-    instructions_blob_stream_->WriteTargetWord(marked_tags);
+    instructions_blob_stream_->WriteTargetWord(
+        GetMarkedTags(kImageHeaderCid, image_header_size));
 
     ASSERT(elf_ != nullptr);
     // An ImageHeader has four fields:
@@ -1529,21 +1408,16 @@ void BlobImageWriter::WriteText(bool vm) {
         parent_id = id;
       }
       const intptr_t section_size = image_size - text_offset;
-      // Add the RawInstructionsSection header.
-      const compiler::target::uword marked_tags =
-          ObjectLayout::OldBit::encode(true) |
-          ObjectLayout::OldAndNotMarkedBit::encode(false) |
-          ObjectLayout::OldAndNotRememberedBit::encode(true) |
-          ObjectLayout::NewBit::encode(false) |
-          ObjectLayout::SizeTag::encode(
-              AdjustObjectSizeForTarget(section_size)) |
-          ObjectLayout::ClassIdTag::encode(kInstructionsSectionCid);
-      instructions_blob_stream_->WriteTargetWord(marked_tags);
       // Uses next_text_offset_ to avoid any post-payload padding.
       const intptr_t instructions_length =
           next_text_offset_ - text_offset -
           compiler::target::InstructionsSection::HeaderSize();
+      // Add the RawInstructionsSection header.
+      instructions_blob_stream_->WriteTargetWord(
+          GetMarkedTags(kInstructionsSectionCid, section_size));
       instructions_blob_stream_->WriteTargetWord(instructions_length);
+      instructions_blob_stream_->Align(
+          compiler::target::Instructions::kBarePayloadAlignment);
       ASSERT_EQUAL(instructions_blob_stream_->Position() - text_offset,
                    compiler::target::InstructionsSection::HeaderSize());
       text_offset += compiler::target::InstructionsSection::HeaderSize();
@@ -1583,130 +1457,116 @@ void BlobImageWriter::WriteText(bool vm) {
 #endif
 
     if (is_trampoline) {
-      const auto start = reinterpret_cast<uword>(data.trampoline_bytes);
-      const auto end = start + data.trampoline_length;
-      text_offset += WriteByteSequence(start, end);
+      instructions_blob_stream_->WriteBytes(
+          reinterpret_cast<const void*>(data.trampoline_bytes),
+          data.trampoline_length);
+      text_offset += data.trampoline_length;
       delete[] data.trampoline_bytes;
       data.trampoline_bytes = nullptr;
       continue;
     }
 
-    const intptr_t instr_start = text_offset;
-
     const auto& insns = *data.insns_;
-    const uword payload_start = insns.PayloadStart();
-
-    ASSERT(Utils::IsAligned(payload_start, sizeof(compiler::target::uword)));
-
-    // Write Instructions with the mark and read-only bits set.
-    uword marked_tags = insns.raw_ptr()->tags_;
-    marked_tags = ObjectLayout::OldBit::update(true, marked_tags);
-    marked_tags = ObjectLayout::OldAndNotMarkedBit::update(false, marked_tags);
-    marked_tags =
-        ObjectLayout::OldAndNotRememberedBit::update(true, marked_tags);
-    marked_tags = ObjectLayout::NewBit::update(false, marked_tags);
-#if defined(HASH_IN_OBJECT_HEADER)
-    // Can't use GetObjectTagsAndHash because the update methods discard the
-    // high bits.
-    marked_tags |= static_cast<uword>(insns.raw_ptr()->hash_) << 32;
-#endif
-
-#if defined(IS_SIMARM_X64)
-    const intptr_t start_offset = instructions_blob_stream_->bytes_written();
+    const intptr_t instr_start = instructions_blob_stream_->Position();
 
     if (!bare_instruction_payloads) {
-      const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.raw());
-      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
-      instructions_blob_stream_->WriteTargetWord(marked_tags);
+      // Write Instructions with the mark and read-only bits set.
+      instructions_blob_stream_->WriteTargetWord(GetMarkedTags(insns));
       instructions_blob_stream_->WriteFixed<uint32_t>(
           insns.raw_ptr()->size_and_flags_);
-    } else {
-      ASSERT(Utils::IsAligned(instructions_blob_stream_->Position(),
-                              kBareInstructionsAlignment));
+      instructions_blob_stream_->Align(
+          compiler::target::Instructions::kNonBarePayloadAlignment);
     }
-    const intptr_t payload_offset = instructions_blob_stream_->Position();
-    instructions_blob_stream_->WriteBytes(
-        reinterpret_cast<const void*>(insns.PayloadStart()), insns.Size());
-    const intptr_t alignment =
-        bare_instruction_payloads
-            ? kBareInstructionsAlignment
-            : compiler::target::ObjectAlignment::kObjectAlignment;
-    instructions_blob_stream_->Align(alignment);
-    const intptr_t end_offset = instructions_blob_stream_->bytes_written();
-    text_offset += (end_offset - start_offset);
-#else  // defined(IS_SIMARM_X64)
-    // Only payload is output in AOT snapshots.
-    const uword header_size =
-        bare_instruction_payloads
-            ? 0
-            : compiler::target::Instructions::HeaderSize();
-    const uword payload_size = SizeInSnapshot(insns.raw()) - header_size;
-    const uword object_end = payload_start + payload_size;
-    if (!bare_instruction_payloads) {
-      uword object_start = reinterpret_cast<uword>(insns.raw_ptr());
-      instructions_blob_stream_->WriteWord(marked_tags);
-      text_offset += sizeof(uword);
-      object_start += sizeof(uword);
-      text_offset += WriteByteSequence(object_start, payload_start);
-    } else {
-      ASSERT(Utils::IsAligned(instructions_blob_stream_->Position(),
-                              kBareInstructionsAlignment));
-    }
-    const intptr_t payload_offset = instructions_blob_stream_->Position();
-    text_offset += WriteByteSequence(payload_start, object_end);
-#endif
+
+    ASSERT_EQUAL(instructions_blob_stream_->Position() - instr_start,
+                 compiler::target::Instructions::HeaderSize());
 
 #if defined(DART_PRECOMPILER)
     const auto& code = *data.code_;
+    auto const payload_offset = instructions_blob_stream_->Position();
     if (elf_ != nullptr && elf_->dwarf() != nullptr) {
       elf_->dwarf()->AddCode(code, {vm, payload_offset});
     }
     if (debug_elf_ != nullptr) {
       debug_elf_->dwarf()->AddCode(code, {vm, payload_offset});
     }
+#endif
 
+    auto const payload_start =
+        reinterpret_cast<const uint8_t*>(insns.PayloadStart());
+    // Double-check the payload alignment, since we will load and write
+    // target-sized words starting from that address.
+    ASSERT(Utils::IsAligned(payload_start, compiler::target::kWordSize));
+    const intptr_t payload_size = insns.Size();
     // Don't patch the relocation if we're not generating ELF. The regular blobs
     // format does not yet support these relocations. Use
     // Code::VerifyBSSRelocations to check whether the relocations are patched
     // or not after loading.
     if (elf_ != nullptr) {
-      const intptr_t current_stream_position =
-          instructions_blob_stream_->Position();
-
+#if defined(DART_PRECOMPILER)
       descriptors = code.pc_descriptors();
-
       PcDescriptors::Iterator iterator(
           descriptors, /*kind_mask=*/PcDescriptorsLayout::kBSSRelocation);
 
+      auto const payload_end = payload_start + payload_size;
       const intptr_t bss_offset = elf_->BssStart(vm) - segment_base;
+      auto cursor = payload_start;
       while (iterator.MoveNext()) {
-        const intptr_t reloc_offset = iterator.PcOffset();
+        auto const next_reloc_offset = iterator.PcOffset();
+        auto const next_reloc_address = payload_start + next_reloc_offset;
+        // We only generate BSS relocations that are target word-sized and at
+        // target word-aligned offsets in the payload. Double-check this..
+        ASSERT(
+            Utils::IsAligned(next_reloc_address, compiler::target::kWordSize));
+        instructions_blob_stream_->WriteBytes(cursor,
+                                              next_reloc_address - cursor);
 
         // The instruction stream at the relocation position holds an offset
         // into BSS corresponding to the symbol being resolved. This addend is
         // factored into the relocation.
-        const auto addend = *reinterpret_cast<compiler::target::word*>(
-            insns.PayloadStart() + reloc_offset);
+        const auto addend = *reinterpret_cast<const compiler::target::word*>(
+            next_reloc_address);
 
-        // Overwrite the relocation position in the instruction stream with the
-        // offset of the BSS segment from the relocation position plus the
-        // addend in the relocation.
-        auto const reloc_pos = payload_offset + reloc_offset;
-        instructions_blob_stream_->SetPosition(reloc_pos);
-
-        const compiler::target::word offset = bss_offset - reloc_pos + addend;
-        instructions_blob_stream_->WriteTargetWord(offset);
+        const word reloc_value =
+            bss_offset + addend - (payload_offset + next_reloc_offset);
+        instructions_blob_stream_->WriteTargetWord(reloc_value);
+        cursor = next_reloc_address + compiler::target::kWordSize;
       }
-
-      // Restore stream position after the relocation was patched.
-      instructions_blob_stream_->SetPosition(current_stream_position);
-    }
-#else
-    USE(payload_offset);
+      instructions_blob_stream_->WriteBytes(cursor, payload_end - cursor);
 #endif
+    } else {
+      instructions_blob_stream_->WriteBytes(payload_start, payload_size);
+    }
 
-    ASSERT((text_offset - instr_start) ==
-           ImageWriter::SizeInSnapshot(insns.raw()));
+    // Create padding containing break instructions. Instead of copying it out
+    // of the object, we recreate it to handle the crossword case where the
+    // amount of padding may differ.
+    uword unpadded_end = instructions_blob_stream_->Position() - instr_start;
+    uword padding_size = SizeInSnapshot(insns) - unpadded_end;
+    for (; padding_size >= compiler::target::kWordSize;
+         padding_size -= compiler::target::kWordSize) {
+      instructions_blob_stream_->WriteTargetWord(kBreakInstructionFiller);
+    }
+#if defined(TARGET_ARCH_ARM)
+    // ARM never needs more padding, as instructions are word sized and all
+    // alignments are multiples of the word size.
+    ASSERT_EQUAL(padding_size, 0);
+#elif defined(TARGET_ARCH_ARM64)
+    // ARM64 may need 4 bytes of padding, but the break instruction filler
+    // is two copies of the 4-byte break instruction, so this works.
+    ASSERT(padding_size == 0 || padding_size == 4);
+#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+    // The break instruction filler is the same single byte instruction filling
+    // a uword, so no checks needed.
+#else
+#error Unexpected target architecture.
+#endif
+    instructions_blob_stream_->WriteBytes(
+        reinterpret_cast<const void*>(&kBreakInstructionFiller), padding_size);
+
+    const intptr_t instr_end = instructions_blob_stream_->Position();
+    ASSERT_EQUAL(instr_end - instr_start, SizeInSnapshot(insns.raw()));
+    text_offset += instr_end - instr_start;
   }
 
   // Should be a no-op unless writing bare instruction payloads, in which case
@@ -1717,7 +1577,7 @@ void BlobImageWriter::WriteText(bool vm) {
   text_offset = Utils::RoundUp(
       text_offset, compiler::target::ObjectAlignment::kObjectAlignment);
 
-  ASSERT_EQUAL(text_offset, instructions_blob_stream_->bytes_written());
+  ASSERT_EQUAL(text_offset, instructions_blob_stream_->Position());
   ASSERT_EQUAL(text_offset, image_size);
 
 #if defined(DART_PRECOMPILER)
@@ -1758,17 +1618,20 @@ ApiErrorPtr ImageReader::VerifyAlignment() const {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 uword ImageReader::GetBareInstructionsAt(uint32_t offset) const {
-  ASSERT(Utils::IsAligned(offset, ImageWriter::kBareInstructionsAlignment));
+  ASSERT(FLAG_use_bare_instructions);
+  ASSERT(Utils::IsAligned(offset, Instructions::kBarePayloadAlignment));
   return reinterpret_cast<uword>(instructions_image_) + offset;
 }
 
 uword ImageReader::GetBareInstructionsEnd() const {
+  ASSERT(FLAG_use_bare_instructions);
   Image image(instructions_image_);
   return reinterpret_cast<uword>(image.object_start()) + image.object_size();
 }
 #endif
 
 InstructionsPtr ImageReader::GetInstructionsAt(uint32_t offset) const {
+  ASSERT(!FLAG_precompiled_mode || !FLAG_use_bare_instructions);
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
   ObjectPtr result = ObjectLayout::FromAddr(

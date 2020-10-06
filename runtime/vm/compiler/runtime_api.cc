@@ -512,7 +512,20 @@ word Context::variable_offset(word n) {
   return TranslateOffsetInWords(dart::Context::variable_offset(n));
 }
 
+// Currently we have two different axes for offset generation:
+//
+//  * Target architecture
+//  * DART_PRECOMPILED_RUNTIME (i.e, AOT vs. JIT)
+//
+// TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
+
 #define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
+
+#define DEFINE_PAYLOAD_SIZEOF(clazz, name, header)                             \
+  word clazz::name() { return 0; }                                             \
+  word clazz::name(word payload_size) {                                        \
+    return RoundedAllocationSize(clazz::header() + payload_size);              \
+  }
 
 #if defined(TARGET_ARCH_IA32)
 
@@ -536,12 +549,14 @@ word Context::variable_offset(word n) {
 JIT_OFFSETS_LIST(DEFINE_FIELD,
                  DEFINE_ARRAY,
                  DEFINE_SIZEOF,
+                 DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_RANGE,
                  DEFINE_CONSTANT)
 
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
 
@@ -586,6 +601,7 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
                  DEFINE_JIT_ARRAY,
                  DEFINE_JIT_SIZEOF,
+                 DEFINE_PAYLOAD_SIZEOF,
                  DEFINE_JIT_RANGE,
                  DEFINE_CONSTANT)
 
@@ -628,6 +644,7 @@ JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
 COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_ARRAY,
                     DEFINE_SIZEOF,
+                    DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
 
@@ -637,19 +654,44 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
 #undef DEFINE_ARRAY
 #undef DEFINE_SIZEOF
 #undef DEFINE_RANGE
+#undef DEFINE_PAYLOAD_SIZEOF
 #undef DEFINE_CONSTANT
 
 const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
 
 const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
 
+// For InstructionsSections and Instructions, we define these by hand, because
+// they depend on flags or #defines.
+
 word InstructionsSection::HeaderSize() {
-  return Utils::RoundUp(InstructionsSection::UnalignedHeaderSize(),
-                        target::kWordSize);
+  // We only create InstructionsSections in precompiled mode.
+  ASSERT(FLAG_precompiled_mode);
+  return Utils::RoundUp(UnalignedHeaderSize(),
+                        Instructions::kBarePayloadAlignment);
+}
+
+// Used for Instructions methods, since we don't serialize Instructions objects
+// in bare instructions mode, just payloads.
+DART_FORCE_INLINE static bool BareInstructionsPayloads() {
+  return FLAG_precompiled_mode && FLAG_use_bare_instructions;
 }
 
 word Instructions::HeaderSize() {
-  return Utils::RoundUp(Instructions::UnalignedHeaderSize(), target::kWordSize);
+  return BareInstructionsPayloads()
+             ? 0
+             : Utils::RoundUp(UnalignedHeaderSize(), kNonBarePayloadAlignment);
+}
+
+word Instructions::InstanceSize() {
+  return 0;
+}
+
+word Instructions::InstanceSize(word payload_size) {
+  const intptr_t alignment = BareInstructionsPayloads()
+                                 ? kBarePayloadAlignment
+                                 : ObjectAlignment::kObjectAlignment;
+  return Utils::RoundUp(Instructions::HeaderSize() + payload_size, alignment);
 }
 
 word Thread::stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {

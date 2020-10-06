@@ -294,35 +294,8 @@ class ImageWriter : public ValueObject {
   void TraceInstructions(const Instructions& instructions);
 
   static intptr_t SizeInSnapshot(ObjectPtr object);
-  static const intptr_t kBareInstructionsAlignment = 4;
-
-  static_assert(
-      (kObjectAlignmentLog2 -
-       compiler::target::ObjectAlignment::kObjectAlignmentLog2) >= 0,
-      "Target object alignment is larger than the host object alignment");
-
-  // Converts the target object size (in bytes) to an appropriate argument for
-  // ObjectLayout::SizeTag methods on the host machine.
-  //
-  // ObjectLayout::SizeTag expects a size divisible by kObjectAlignment and
-  // checks this in debug mode, but the size on the target machine may not be
-  // divisible by the host machine's object alignment if they differ.
-  //
-  // If target_size = n, we convert it to n * m, where m is the host alignment
-  // divided by the target alignment. This means AdjustObjectSizeForTarget(n)
-  // encodes on the host machine to the same bits that decode to n on the target
-  // machine. That is:
-  //    n * (host align / target align) / host align => n / target align
-  static constexpr intptr_t AdjustObjectSizeForTarget(intptr_t target_size) {
-    return target_size
-           << (kObjectAlignmentLog2 -
-               compiler::target::ObjectAlignment::kObjectAlignmentLog2);
-  }
-
-  static UNLESS_DEBUG(constexpr) compiler::target::uword
-      UpdateObjectSizeForTarget(intptr_t size, uword marked_tags) {
-    return ObjectLayout::SizeTag::update(AdjustObjectSizeForTarget(size),
-                                         marked_tags);
+  static intptr_t SizeInSnapshot(const Object& object) {
+    return SizeInSnapshot(object.raw());
   }
 
   // Returns nullptr if there is no profile writer.
@@ -333,6 +306,9 @@ class ImageWriter : public ValueObject {
   virtual void WriteBss(bool vm) = 0;
   virtual void WriteROData(NonStreamingWriteStream* clustered_stream, bool vm);
   virtual void WriteText(bool vm) = 0;
+
+  static uword GetMarkedTags(classid_t cid, intptr_t size);
+  static uword GetMarkedTags(const Object& obj);
 
   void DumpInstructionStats();
   void DumpInstructionsSizes();
@@ -484,16 +460,12 @@ class AssemblyImageWriter : public ImageWriter {
   const char* kLiteralPrefix = ".long";
 #endif
 
-  intptr_t WriteWordLiteralText(uword value) {
-#if defined(IS_SIMARM_X64)
-    ASSERT(value <= kMaxUint32);
-#endif
+  intptr_t WriteWordLiteralText(word value) {
+    ASSERT(compiler::target::kBitsPerWord == kBitsPerWord ||
+           Utils::IsAbsoluteUint(compiler::target::kBitsPerWord, value));
     // Padding is helpful for comparing the .S with --disassemble.
-#if defined(TARGET_ARCH_IS_64_BIT)
-    assembly_stream_->Printf(".quad 0x%0.16" Px "\n", value);
-#else
-    assembly_stream_->Printf(".long 0x%0.8" Px "\n", value);
-#endif
+    assembly_stream_->Printf("%s 0x%0.*" Px "\n", kLiteralPrefix,
+                             2 * compiler::target::kWordSize, value);
     return compiler::target::kWordSize;
   }
 

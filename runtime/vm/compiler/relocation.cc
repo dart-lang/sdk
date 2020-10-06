@@ -22,7 +22,7 @@ DEFINE_FLAG(bool,
 
 const intptr_t kTrampolineSize =
     Utils::RoundUp(PcRelativeTrampolineJumpPattern::kLengthInBytes,
-                   ImageWriter::kBareInstructionsAlignment);
+                   compiler::target::Instructions::kBarePayloadAlignment);
 
 CodeRelocator::CodeRelocator(Thread* thread,
                              GrowableArray<CodePtr>* code_objects,

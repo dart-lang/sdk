@@ -3,9 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/datastream.h"
+
+#include "vm/compiler/runtime_api.h"
 #include "vm/zone.h"
 
 namespace dart {
+
+void BaseWriteStream::WriteTargetWord(word value) {
+  ASSERT(compiler::target::kBitsPerWord == kBitsPerWord ||
+         Utils::IsAbsoluteUint(compiler::target::kBitsPerWord, value));
+  WriteFixed(static_cast<compiler::target::word>(value));
+}
 
 MallocWriteStream::~MallocWriteStream() {
   free(buffer_);

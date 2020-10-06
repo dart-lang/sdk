@@ -805,13 +805,17 @@ class Bytecode : public AllStatic {
 
 class PcDescriptors : public AllStatic {
  public:
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 
 class CodeSourceMap : public AllStatic {
  public:
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 
@@ -819,6 +823,7 @@ class CompressedStackMaps : public AllStatic {
  public:
   static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 
@@ -1150,9 +1155,10 @@ class ClassTable : public AllStatic {
 
 class InstructionsSection : public AllStatic {
  public:
-  static word HeaderSize();
   static word UnalignedHeaderSize();
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 
@@ -1162,9 +1168,12 @@ class Instructions : public AllStatic {
   static const word kPolymorphicEntryOffsetJIT;
   static const word kMonomorphicEntryOffsetAOT;
   static const word kPolymorphicEntryOffsetAOT;
-  static word HeaderSize();
+  static const word kBarePayloadAlignment;
+  static const word kNonBarePayloadAlignment;
   static word UnalignedHeaderSize();
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 

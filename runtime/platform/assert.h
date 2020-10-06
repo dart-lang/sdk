@@ -208,7 +208,15 @@ void Expect::Null(const T p) {
 
 }  // namespace dart
 
-#define FATAL(error) dart::Assert(__FILE__, __LINE__).Fail("%s", error)
+#if defined(_MSC_VER)
+#define FATAL(format, ...)                                                     \
+  dart::Assert(__FILE__, __LINE__).Fail(format, __VA_ARGS__);
+#else
+#define FATAL(format, ...)                                                     \
+  dart::Assert(__FILE__, __LINE__).Fail(format, ##__VA_ARGS__);
+#endif
+
+// Leaving old non-varargs versions to avoid having to rewrite all uses.
 
 #define FATAL1(format, p1) dart::Assert(__FILE__, __LINE__).Fail(format, (p1))
 

@@ -38,6 +38,16 @@ void Assert::Fail(const char* format, ...) {
 class OffsetsExtractor : public AllStatic {
  public:
   static void DumpOffsets() {
+// Currently we have two different axes for offset generation:
+//
+//  * Target architecture
+//  * DART_PRECOMPILED_RUNTIME (i.e, AOT vs. JIT)
+//
+// TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
+
+// This doesn't use any special constants, just method calls, so no output.
+#define PRINT_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
+
 #if defined(DART_PRECOMPILED_RUNTIME)
 
 #define PRINT_FIELD_OFFSET(Class, Name)                                        \
@@ -119,18 +129,19 @@ class OffsetsExtractor : public AllStatic {
             << Class::Name << ";\n";
 
     JIT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
-                     PRINT_RANGE, PRINT_CONSTANT)
+                     PRINT_PAYLOAD_SIZEOF, PRINT_RANGE, PRINT_CONSTANT)
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
     COMMON_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
-                        PRINT_RANGE, PRINT_CONSTANT)
+                        PRINT_PAYLOAD_SIZEOF, PRINT_RANGE, PRINT_CONSTANT)
 
 #undef PRINT_FIELD_OFFSET
 #undef PRINT_ARRAY_LAYOUT
 #undef PRINT_SIZEOF
 #undef PRINT_RANGE
 #undef PRINT_CONSTANT
+#undef PRINT_PAYLOAD_SIZEOF
   }
 };
 
