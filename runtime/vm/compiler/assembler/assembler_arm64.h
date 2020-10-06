@@ -1651,9 +1651,50 @@ class Assembler : public AssemblerBase {
   void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
   void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
-  void EnterCallRuntimeFrame(intptr_t frame_size);
-  void LeaveCallRuntimeFrame();
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+
+  // Helper method for performing runtime calls from callers requiring manual
+  // register preservation is required (e.g. outside IL instructions marked
+  // as calling).
+  class CallRuntimeScope : public ValueObject {
+   public:
+    CallRuntimeScope(Assembler* assembler,
+                     const RuntimeEntry& entry,
+                     intptr_t frame_size,
+                     bool preserve_registers = true)
+        : CallRuntimeScope(assembler,
+                           entry,
+                           frame_size,
+                           preserve_registers,
+                           /*caller=*/nullptr) {}
+
+    CallRuntimeScope(Assembler* assembler,
+                     const RuntimeEntry& entry,
+                     intptr_t frame_size,
+                     Address caller,
+                     bool preserve_registers = true)
+        : CallRuntimeScope(assembler,
+                           entry,
+                           frame_size,
+                           preserve_registers,
+                           &caller) {}
+
+    void Call(intptr_t argument_count);
+
+    ~CallRuntimeScope();
+
+   private:
+    CallRuntimeScope(Assembler* assembler,
+                     const RuntimeEntry& entry,
+                     intptr_t frame_size,
+                     bool preserve_registers,
+                     const Address* caller);
+
+    Assembler* const assembler_;
+    const RuntimeEntry& entry_;
+    const bool preserve_registers_;
+    const bool restore_code_reg_;
+  };
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
@@ -2401,6 +2442,11 @@ class Assembler : public AssemblerBase {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
+
+  // Note: leaf call sequence uses some abi callee save registers as scratch
+  // so they should be manually preserved.
+  void EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf);
+  void LeaveCallRuntimeFrame(bool is_leaf);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;
