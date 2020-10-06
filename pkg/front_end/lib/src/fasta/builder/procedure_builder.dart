@@ -614,6 +614,12 @@ class SourceProcedureMember extends BuilderClassMember {
 
   @override
   bool get isFunction => !isProperty;
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    return other is SourceProcedureMember &&
+        memberBuilder == other.memberBuilder;
+  }
 }
 
 class RedirectingFactoryBuilder extends ProcedureBuilderImpl {

@@ -2,6 +2,14 @@ library test;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:30:14: Error: The type 'C<num>' of the getter 'D.value' is not assignable to the type 'int Function(int)' of the setter 'D.value'.
+//  - 'C' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart'.
+//   C<num> get value => getValue;
+//              ^^^^^
+// pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:32:12: Context: This is the declaration of the setter 'D.value'.
+//   void set value(int Function(int) value) {
+//            ^^^^^
+//
 // pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:46: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
 //   d.value /*@ checkReturn=(num*) ->* num* */ += 1;
 //                                              ^

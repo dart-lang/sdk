@@ -723,6 +723,16 @@ void Heap::MergeFrom(Heap* donor) {
     new_weak_tables_[i]->MergeFrom(donor->new_weak_tables_[i]);
     old_weak_tables_[i]->MergeFrom(donor->old_weak_tables_[i]);
   }
+
+  StoreBufferBlock* block =
+      donor->isolate_group()->store_buffer()->TakeBlocks();
+  while (block != nullptr) {
+    StoreBufferBlock* next = block->next();
+    block->set_next(nullptr);
+    isolate_group()->store_buffer()->PushBlock(block,
+                                               StoreBuffer::kIgnoreThreshold);
+    block = next;
+  }
 }
 
 void Heap::CollectForDebugging() {

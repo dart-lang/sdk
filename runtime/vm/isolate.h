@@ -1004,7 +1004,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void AddErrorListener(const SendPort& listener);
   void RemoveErrorListener(const SendPort& listener);
-  bool NotifyErrorListeners(const String& msg, const String& stacktrace);
+  bool NotifyErrorListeners(const char* msg, const char* stacktrace);
 
   bool ErrorsFatal() const { return ErrorsFatalBit::decode(isolate_flags_); }
   void SetErrorsFatal(bool val) {

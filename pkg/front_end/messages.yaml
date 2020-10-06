@@ -2236,6 +2236,171 @@ OverrideMismatchRequiredNamedParameter:
       method({required int? a});
     }
 
+InvalidGetterSetterType:
+  template: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      num get property;
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeGetterInherited:
+  template: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      num get property;
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeFieldInherited:
+  template: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      final num property;
+      A(this.property);
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeSetterInheritedGetter:
+  template: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      num get property;
+    }
+
+InvalidGetterSetterTypeSetterInheritedField:
+  template: "The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      final num property;
+      B(this.property);
+    }
+
+InvalidGetterSetterTypeBothInheritedField:
+  template: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      final num property;
+      A(this.property);
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeBothInheritedGetter:
+  template: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      num get property;
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeLegacy:
+  template: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
+  script: |
+    abstract class A {
+      String get property;
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeGetterInheritedLegacy:
+  template: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
+  script: |
+    abstract class A {
+      String get property;
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeFieldInheritedLegacy:
+  template: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'."
+  script: |
+    abstract class A {
+      final String property;
+      A(this.property);
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeSetterInheritedGetterLegacy:
+  template: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      String get property;
+    }
+
+InvalidGetterSetterTypeSetterInheritedFieldLegacy:
+  template: "The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      final String property;
+      B(this.property);
+    }
+
+InvalidGetterSetterTypeBothInheritedFieldLegacy:
+  template: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      final String property;
+      A(this.property);
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeBothInheritedGetterLegacy:
+  template: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      String get property;
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeFieldContext:
+  template: "This is the declaration of the field '#name'."
+  severity: CONTEXT
+
+InvalidGetterSetterTypeGetterContext:
+  template: "This is the declaration of the getter '#name'."
+  severity: CONTEXT
+
+InvalidGetterSetterTypeSetterContext:
+  template: "This is the declaration of the setter '#name'."
+  severity: CONTEXT
+
 PartOfSelf:
   template: "A file can't be a part of itself."
   analyzerCode: PART_OF_NON_PART

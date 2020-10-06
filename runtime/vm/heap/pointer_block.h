@@ -28,6 +28,7 @@ class PointerBlock {
   }
 
   PointerBlock<Size>* next() const { return next_; }
+  void set_next(PointerBlock<Size>* next) { next_ = next; }
 
   intptr_t Count() const { return top_; }
   bool IsFull() const { return Count() == kSize; }

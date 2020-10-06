@@ -1204,6 +1204,155 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(ahe): Handle other cases: accessors, operators, and fields.
   }
 
+  void checkGetterSetter(Types types, Member getter, Member setter,
+      {bool isInterfaceCheck = false}) {
+    if (getter == setter) {
+      return;
+    }
+    if (cls != getter.enclosingClass &&
+        getter.enclosingClass == setter.enclosingClass) {
+      return;
+    }
+
+    DartType getterType = getter.getterType;
+    if (getter.enclosingClass.typeParameters.isNotEmpty) {
+      getterType = Substitution.fromPairs(
+              getter.enclosingClass.typeParameters,
+              types.hierarchy.getTypeArgumentsAsInstanceOf(
+                  thisType, getter.enclosingClass))
+          .substituteType(getterType);
+    }
+
+    DartType setterType = setter.setterType;
+    if (setter.enclosingClass.typeParameters.isNotEmpty) {
+      setterType = Substitution.fromPairs(
+              setter.enclosingClass.typeParameters,
+              types.hierarchy.getTypeArgumentsAsInstanceOf(
+                  thisType, setter.enclosingClass))
+          .substituteType(setterType);
+    }
+
+    if (getterType is InvalidType || setterType is InvalidType) {
+      // Don't report a problem as something else is wrong that has already
+      // been reported.
+    } else {
+      bool isValid = types.isSubtypeOf(
+          getterType,
+          setterType,
+          library.isNonNullableByDefault
+              ? SubtypeCheckMode.withNullabilities
+              : SubtypeCheckMode.ignoringNullabilities);
+      if (!isValid && !library.isNonNullableByDefault) {
+        // Allow assignability in legacy libraries.
+        isValid = types.isSubtypeOf(
+            setterType, getterType, SubtypeCheckMode.ignoringNullabilities);
+      }
+      if (!isValid) {
+        Member getterOrigin = getter.memberSignatureOrigin ?? getter;
+        Member setterOrigin = setter.memberSignatureOrigin ?? setter;
+        String getterMemberName = '${getterOrigin.enclosingClass.name}'
+            '.${getterOrigin.name.text}';
+        String setterMemberName = '${setterOrigin.enclosingClass.name}'
+            '.${setterOrigin.name.text}';
+        if (getterOrigin.enclosingClass == cls &&
+            setterOrigin.enclosingClass == cls) {
+          Template<Message Function(DartType, String, DartType, String, bool)>
+              template = library.isNonNullableByDefault
+                  ? templateInvalidGetterSetterType
+                  : templateInvalidGetterSetterTypeLegacy;
+          library.addProblem(
+              template.withArguments(getterType, getterMemberName, setterType,
+                  setterMemberName, library.isNonNullableByDefault),
+              getterOrigin.fileOffset,
+              getterOrigin.name.text.length,
+              getterOrigin.fileUri,
+              context: [
+                templateInvalidGetterSetterTypeSetterContext
+                    .withArguments(setterMemberName)
+                    .withLocation(setterOrigin.fileUri, setterOrigin.fileOffset,
+                        setterOrigin.name.text.length)
+              ]);
+        } else if (getterOrigin.enclosingClass == cls) {
+          Template<Message Function(DartType, String, DartType, String, bool)>
+              template = library.isNonNullableByDefault
+                  ? templateInvalidGetterSetterTypeSetterInheritedGetter
+                  : templateInvalidGetterSetterTypeSetterInheritedGetterLegacy;
+          if (getterOrigin is Field) {
+            template = library.isNonNullableByDefault
+                ? templateInvalidGetterSetterTypeSetterInheritedField
+                : templateInvalidGetterSetterTypeSetterInheritedFieldLegacy;
+          }
+          library.addProblem(
+              template.withArguments(getterType, getterMemberName, setterType,
+                  setterMemberName, library.isNonNullableByDefault),
+              getterOrigin.fileOffset,
+              getterOrigin.name.text.length,
+              getterOrigin.fileUri,
+              context: [
+                templateInvalidGetterSetterTypeSetterContext
+                    .withArguments(setterMemberName)
+                    .withLocation(setterOrigin.fileUri, setterOrigin.fileOffset,
+                        setterOrigin.name.text.length)
+              ]);
+        } else if (setterOrigin.enclosingClass == cls) {
+          Template<Message Function(DartType, String, DartType, String, bool)>
+              template = library.isNonNullableByDefault
+                  ? templateInvalidGetterSetterTypeGetterInherited
+                  : templateInvalidGetterSetterTypeGetterInheritedLegacy;
+          Template<Message Function(String)> context =
+              templateInvalidGetterSetterTypeGetterContext;
+          if (getterOrigin is Field) {
+            template = library.isNonNullableByDefault
+                ? templateInvalidGetterSetterTypeFieldInherited
+                : templateInvalidGetterSetterTypeFieldInheritedLegacy;
+            context = templateInvalidGetterSetterTypeFieldContext;
+          }
+          library.addProblem(
+              template.withArguments(getterType, getterMemberName, setterType,
+                  setterMemberName, library.isNonNullableByDefault),
+              setterOrigin.fileOffset,
+              setterOrigin.name.text.length,
+              setterOrigin.fileUri,
+              context: [
+                context.withArguments(getterMemberName).withLocation(
+                    getterOrigin.fileUri,
+                    getterOrigin.fileOffset,
+                    getterOrigin.name.text.length)
+              ]);
+        } else {
+          Template<Message Function(DartType, String, DartType, String, bool)>
+              template = library.isNonNullableByDefault
+                  ? templateInvalidGetterSetterTypeBothInheritedGetter
+                  : templateInvalidGetterSetterTypeBothInheritedGetterLegacy;
+          Template<Message Function(String)> context =
+              templateInvalidGetterSetterTypeGetterContext;
+          if (getterOrigin is Field) {
+            template = library.isNonNullableByDefault
+                ? templateInvalidGetterSetterTypeBothInheritedField
+                : templateInvalidGetterSetterTypeBothInheritedFieldLegacy;
+            context = templateInvalidGetterSetterTypeFieldContext;
+          }
+          library.addProblem(
+              template.withArguments(getterType, getterMemberName, setterType,
+                  setterMemberName, library.isNonNullableByDefault),
+              charOffset,
+              noLength,
+              fileUri,
+              context: [
+                context.withArguments(getterMemberName).withLocation(
+                    getterOrigin.fileUri,
+                    getterOrigin.fileOffset,
+                    getterOrigin.name.text.length),
+                templateInvalidGetterSetterTypeSetterContext
+                    .withArguments(setterMemberName)
+                    .withLocation(setterOrigin.fileUri, setterOrigin.fileOffset,
+                        setterOrigin.name.text.length)
+              ]);
+        }
+      }
+    }
+  }
+
   Uri _getMemberUri(Member member) {
     if (member is Field) return member.fileUri;
     if (member is Procedure) return member.fileUri;

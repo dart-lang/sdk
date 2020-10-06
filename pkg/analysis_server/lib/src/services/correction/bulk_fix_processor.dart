@@ -63,6 +63,7 @@ import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -356,6 +357,7 @@ class BulkFixProcessor {
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
+    var analysisOptions = result.session.analysisContext.analysisOptions;
     for (var unitResult in result.units) {
       final fixContext = DartFixContextImpl(
         workspace,
@@ -364,7 +366,11 @@ class BulkFixProcessor {
         (name) => [],
       );
       for (var error in unitResult.errors) {
-        await _fixSingleError(fixContext, unitResult, error);
+        var processor = ErrorProcessor.getProcessor(analysisOptions, error);
+        // Only fix errors not filtered out in analysis options.
+        if (processor == null || processor.severity != null) {
+          await _fixSingleError(fixContext, unitResult, error);
+        }
       }
     }
   }

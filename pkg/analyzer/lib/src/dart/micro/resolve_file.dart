@@ -462,10 +462,17 @@ class FileResolver {
   }) {
     YamlMap optionMap;
 
-    var optionsFile = performance.run('findOptionsFile', (_) {
-      var folder = resourceProvider.getFile(path).parent;
-      return _findOptionsFile(folder);
-    });
+    var separator = resourceProvider.pathContext.separator;
+    var isThirdParty =
+        path.contains('${separator}third_party${separator}dart$separator');
+
+    File optionsFile;
+    if (!isThirdParty) {
+      optionsFile = performance.run('findOptionsFile', (_) {
+        var folder = resourceProvider.getFile(path).parent;
+        return _findOptionsFile(folder);
+      });
+    }
 
     if (optionsFile != null) {
       performance.run('getOptionsFromFile', (_) {
@@ -479,9 +486,7 @@ class FileResolver {
     } else {
       var source = performance.run('defaultOptions', (_) {
         if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-          var separator = resourceProvider.pathContext.separator;
-          if (path
-              .contains('${separator}third_party${separator}dart$separator')) {
+          if (isThirdParty) {
             return sourceFactory.forUri(
               WorkspaceWithDefaultAnalysisOptions.thirdPartyUri,
             );

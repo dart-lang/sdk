@@ -88,7 +88,7 @@ import '../export.dart' show Export;
 import '../fasta_codes.dart';
 
 import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, ClassMember, DelayedOverrideCheck;
+    show ClassHierarchyBuilder, ClassMember, DelayedCheck;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -1026,8 +1026,7 @@ class SourceLoader extends Loader {
   }
 
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
-    List<DelayedOverrideCheck> overrideChecks =
-        builderHierarchy.takeDelayedOverrideChecks();
+    List<DelayedCheck> overrideChecks = builderHierarchy.takeDelayedChecks();
     for (int i = 0; i < overrideChecks.length; i++) {
       overrideChecks[i].check(builderHierarchy);
     }
@@ -1039,7 +1038,7 @@ class SourceLoader extends Loader {
 
   void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
     List<ClassMember> delayedMemberChecks =
-        builderHierarchy.takeDelayedMemberChecks();
+        builderHierarchy.takeDelayedMemberComputations();
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
       delayedMemberChecks[i].getMember(builderHierarchy);

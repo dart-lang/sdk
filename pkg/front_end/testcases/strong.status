@@ -62,6 +62,7 @@ general/error_recovery/issue_39958_04: RuntimeError
 general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
 general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
+general/getter_vs_setter_type: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
@@ -174,6 +175,7 @@ late_lowering/covariant_late_field: TypeCheckError
 late_lowering/initializer_rewrite_from_opt_out: RuntimeError # Test is inherently mixed mode
 late_lowering/non_nullable_from_opt_out: RuntimeError # Test is inherently mixed mode
 nnbd/covariant_late_field: TypeCheckError
+nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue41180: RuntimeError # Strong mode runtime checking fails due to mixed strong mode.
 nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError

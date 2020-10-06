@@ -312,6 +312,13 @@ analyzer:
     implicit-casts: false
 ''');
 
+    newFile('/workspace/thid_party/dart/aaa/analysis_options.yaml',
+        content: r'''
+analyzer:
+  strong-mode:
+    implicit-casts: true
+''');
+
     var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
     await assertErrorsInFile(aPath, r'''
 num a = 0;

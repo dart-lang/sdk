@@ -27,6 +27,12 @@ class BulkFixesTest extends AbstractAnalysisTest {
     expect(editedSource, expectedSource);
   }
 
+  Future<void> assertNoEdits() async {
+    await waitForTasksFinished();
+    var edits = await _getBulkEdits();
+    expect(edits, isEmpty);
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -50,6 +56,38 @@ A f() => new A();
 class A {}
 A f() => A();
 ''');
+  }
+
+  Future<void> test_unnecessaryNew_ignoredInOptions() async {
+    createProject();
+    addAnalysisOptionsFile('''
+analyzer:
+  errors:
+    unnecessary_new: ignore
+linter:
+  rules:
+    - unnecessary_new
+''');
+    addTestFile('''
+class A {}
+A f() => new A();
+''');
+    await assertNoEdits();
+  }
+
+  Future<void> test_unnecessaryNew_ignoredInSource() async {
+    createProject();
+    addAnalysisOptionsFile('''
+linter:
+  rules:
+    - unnecessary_new
+''');
+    addTestFile('''
+class A {}
+//ignore: unnecessary_new
+A f() => new A();
+''');
+    await assertNoEdits();
   }
 
   Future<List<SourceFileEdit>> _getBulkEdits() async {

@@ -882,21 +882,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var savedTopLevelClass = _classEmittingExtends;
     _classEmittingExtends = c;
 
-    // Refers to 'S' in `class C extends S`. Set this to null to avoid
-    // referencing deferred supertypes in _emitClassConstructor's JS output.
-    js_ast.Expression baseClass;
-
+    // Unroll mixins.
     if (shouldDefer(supertype)) {
       deferredSupertypes.add(runtimeStatement('setBaseClass(#, #)', [
         getBaseClass(isMixinAliasClass(c) ? 0 : mixinApplications.length),
         emitDeferredType(supertype),
       ]));
-      // Refers to 'supertype' without any type arguments.
       supertype =
           _coreTypes.rawType(supertype.classNode, _currentLibrary.nonNullable);
-    } else {
-      baseClass = emitClassRef(supertype);
     }
+    var baseClass = emitClassRef(supertype);
 
     if (isMixinAliasClass(c)) {
       // Given `class C = Object with M [implements I1, I2 ...];`

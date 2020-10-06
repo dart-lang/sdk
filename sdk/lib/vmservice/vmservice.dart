@@ -239,6 +239,12 @@ class VMService extends MessageRouter {
           details:
               'Embedder does not support yielding to a VM service intermediary.');
     }
+
+    if (_ddsUri != null) {
+      return encodeRpcError(message, kFeatureDisabled,
+          details: 'A DDS instance is already connected at ${_ddsUri!}.');
+    }
+
     final uri = message.params['uri'];
     if (uri == null) {
       return encodeMissingParamError(message, 'uri');
