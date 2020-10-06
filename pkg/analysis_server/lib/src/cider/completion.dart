@@ -107,7 +107,7 @@ class CiderCompletionComputer {
           });
 
           performance.getDataInt('count').add(result.length);
-          return result;
+          return result.toList();
         },
       );
 
