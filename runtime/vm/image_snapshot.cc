@@ -98,9 +98,15 @@ const uint8_t* Image::build_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(extra_info_ != nullptr);
   if (extra_info_->build_id_offset_ != kNoBuildId) {
-    auto const note = reinterpret_cast<const elf::Note*>(
+    auto const note = reinterpret_cast<elf::Note*>(
         raw_memory_ + extra_info_->build_id_offset_);
-    return note->data + note->name_size;
+    // Check that we have a final build ID. A non-final build ID will either
+    // have a description length of 0 or an initial byte of 0.
+    auto const description = note->data + note->name_size;
+    auto const length = note->description_size;
+    if (length != 0 && description[0] != 0) {
+      return description;
+    }
   }
 #endif
   return nullptr;
@@ -110,9 +116,15 @@ intptr_t Image::build_id_length() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(extra_info_ != nullptr);
   if (extra_info_->build_id_offset_ != kNoBuildId) {
-    auto const note = reinterpret_cast<const elf::Note*>(
+    auto const note = reinterpret_cast<elf::Note*>(
         raw_memory_ + extra_info_->build_id_offset_);
-    return note->description_size;
+    // Check that we have a final build ID. A non-final build ID will either
+    // have a description length of 0 or an initial byte of 0.
+    auto const description = note->data + note->name_size;
+    auto const length = note->description_size;
+    if (length != 0 && description[0] != 0) {
+      return length;
+    }
   }
 #endif
   return 0;
@@ -771,10 +783,6 @@ const char* SnapshotTextObjectNamer::SnapshotNameFor(
   return SnapshotNameFor(index, *data.code_);
 }
 
-static const char* const kVmSnapshotBssAsmSymbol = "_kDartVmSnapshotBss";
-static const char* const kIsolateSnapshotBssAsmSymbol =
-    "_kDartIsolateSnapshotBss";
-
 void AssemblyImageWriter::WriteBss(bool vm) {
   auto const bss_symbol =
       vm ? kVmSnapshotBssAsmSymbol : kIsolateSnapshotBssAsmSymbol;
@@ -933,12 +941,10 @@ void AssemblyImageWriter::WriteText(bool vm) {
     const bool is_trampoline = data.trampoline_bytes != nullptr;
     ASSERT_EQUAL(data.text_offset_, text_offset);
 
-    intptr_t dwarf_index = i;
-    if (!is_trampoline && assembly_dwarf_ != nullptr) {
-      dwarf_index =
-          assembly_dwarf_->AddCode(*data.code_, SegmentRelativeOffset(vm));
-    }
-    const auto object_name = namer.SnapshotNameFor(dwarf_index, data);
+    // Only code objects need unique names as we don't output symbols in the
+    // assembly for trampolines, so we can just use the index for the latter.
+    const auto object_name = namer.SnapshotNameFor(
+        is_trampoline ? i : unique_symbol_counter_++, data);
 
     if (profile_writer_ != nullptr) {
       const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
@@ -984,7 +990,9 @@ void AssemblyImageWriter::WriteText(bool vm) {
 
     const auto& code = *data.code_;
     if (debug_elf_ != nullptr) {
-      debug_elf_->dwarf()->AddCode(code, {vm, text_offset});
+      debug_elf_->AddLocalSymbol(object_name, elf::STT_FUNC, text_offset,
+                                 insns.Size());
+      debug_elf_->dwarf()->AddCode(code, object_name);
     }
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
@@ -1214,11 +1222,13 @@ intptr_t AssemblyImageWriter::WriteWordLiteralText(word value) {
 #endif  // defined(DART_PRECOMPILER)
 
 BlobImageWriter::BlobImageWriter(Thread* thread,
-                                 NonStreamingWriteStream* stream,
+                                 NonStreamingWriteStream* vm_instructions,
+                                 NonStreamingWriteStream* isolate_instructions,
                                  Elf* debug_elf,
                                  Elf* elf)
     : ImageWriter(thread),
-      instructions_blob_stream_(ASSERT_NOTNULL(stream)),
+      vm_instructions_(vm_instructions),
+      isolate_instructions_(isolate_instructions),
       elf_(elf),
       debug_elf_(debug_elf) {
 #if defined(DART_PRECOMPILER)
@@ -1239,7 +1249,9 @@ void BlobImageWriter::WriteBss(bool vm) {
 #if defined(DART_PRECOMPILER)
   // We don't actually write a BSS segment, it's created as part of the
   // Elf constructor, but make sure it has an non-zero start.
-  ASSERT(elf_ == nullptr || elf_->BssStart(vm) != 0);
+  ASSERT(elf_ == nullptr ||
+         elf_->SymbolAddress(vm ? kVmSnapshotBssAsmSymbol
+                                : kIsolateSnapshotBssAsmSymbol) != 0);
 #endif
 }
 
@@ -1268,6 +1280,9 @@ void BlobImageWriter::WriteText(bool vm) {
   const bool bare_instruction_payloads =
       FLAG_precompiled_mode && FLAG_use_bare_instructions;
   auto const zone = Thread::Current()->zone();
+  ASSERT(instructions_blob_stream_ == nullptr);
+  instructions_blob_stream_ =
+      ASSERT_NOTNULL(vm ? vm_instructions_ : isolate_instructions_);
 
 #if defined(DART_PRECOMPILER)
   auto const instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
@@ -1284,6 +1299,15 @@ void BlobImageWriter::WriteText(bool vm) {
     // in it and the separately saved DWARF information to match.
     ASSERT(elf_ == nullptr || segment_base == debug_segment_base);
   }
+  word bss_offset = Image::kNoBssSection;
+  if (elf_ != nullptr) {
+    auto const bss_symbol =
+        vm ? kVmSnapshotBssAsmSymbol : kIsolateSnapshotBssAsmSymbol;
+    const uword bss_start = elf_->SymbolAddress(bss_symbol);
+    ASSERT(bss_start != Elf::kNoSectionStart);
+    bss_offset = bss_start - segment_base;
+  }
+  ASSERT_EQUAL(FLAG_precompiled_mode, bss_offset != Image::kNoBssSection);
 #endif
 
   intptr_t text_offset = 0;
@@ -1355,7 +1379,6 @@ void BlobImageWriter::WriteText(bool vm) {
     // 1) The size of the payload.
     instructions_blob_stream_->WriteTargetWord(section_payload_length);
     // 2) The BSS offset from this section.
-    const word bss_offset = elf_->BssStart(vm) - segment_base;
     ASSERT(bss_offset != Image::kNoBssSection);
     instructions_blob_stream_->WriteTargetWord(bss_offset);
     // 3) The relocated address of the instructions.
@@ -1365,8 +1388,9 @@ void BlobImageWriter::WriteText(bool vm) {
     ASSERT(segment_base != Image::kNoRelocatedAddress);
     instructions_blob_stream_->WriteTargetWord(segment_base);
     // 4) The GNU build ID note offset from this section.
-    const word build_id_offset = elf_->BuildIdStart() - segment_base;
-    ASSERT(build_id_offset != Image::kNoBuildId);
+    const uword build_id_start = elf_->SymbolAddress(kSnapshotBuildIdAsmSymbol);
+    ASSERT(build_id_start != Image::kNoBuildId);
+    const word build_id_offset = build_id_start - segment_base;
     instructions_blob_stream_->WriteTargetWord(build_id_offset);
 
     const intptr_t section_contents_alignment =
@@ -1398,7 +1422,10 @@ void BlobImageWriter::WriteText(bool vm) {
     ASSERT(data.text_offset_ == text_offset);
 
 #if defined(DART_PRECOMPILER)
-    const auto object_name = namer.SnapshotNameFor(i, data);
+    // Only code objects need unique names as we don't add local symbols for
+    // trampolines, so we can just use the index for the latter.
+    const auto object_name = namer.SnapshotNameFor(
+        is_trampoline ? i : unique_symbol_counter_++, data);
     if (profile_writer_ != nullptr) {
       const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
       auto const type = is_trampoline ? trampoline_type_ : instructions_type_;
@@ -1444,10 +1471,14 @@ void BlobImageWriter::WriteText(bool vm) {
     const auto& code = *data.code_;
     auto const payload_offset = instructions_blob_stream_->Position();
     if (elf_ != nullptr && elf_->dwarf() != nullptr) {
-      elf_->dwarf()->AddCode(code, {vm, payload_offset});
+      elf_->AddLocalSymbol(object_name, elf::STT_FUNC, payload_offset,
+                           insns.Size());
+      elf_->dwarf()->AddCode(code, object_name);
     }
     if (debug_elf_ != nullptr) {
-      debug_elf_->dwarf()->AddCode(code, {vm, payload_offset});
+      debug_elf_->AddLocalSymbol(object_name, elf::STT_FUNC, payload_offset,
+                                 insns.Size());
+      debug_elf_->dwarf()->AddCode(code, object_name);
     }
 #endif
 
@@ -1468,7 +1499,6 @@ void BlobImageWriter::WriteText(bool vm) {
           descriptors, /*kind_mask=*/PcDescriptorsLayout::kBSSRelocation);
 
       auto const payload_end = payload_start + payload_size;
-      const intptr_t bss_offset = elf_->BssStart(vm) - segment_base;
       auto cursor = payload_start;
       while (iterator.MoveNext()) {
         auto const next_reloc_offset = iterator.PcOffset();
@@ -1560,6 +1590,7 @@ void BlobImageWriter::WriteText(bool vm) {
     ASSERT_EQUAL(debug_segment_base2, debug_segment_base);
   }
 #endif
+  instructions_blob_stream_ = nullptr;
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

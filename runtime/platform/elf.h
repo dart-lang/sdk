@@ -189,11 +189,29 @@ static const intptr_t STN_UNDEF = 0;
 static const intptr_t STB_LOCAL = 0;
 static const intptr_t STB_GLOBAL = 1;
 
+static const intptr_t STT_NOTYPE = 0;
 static const intptr_t STT_OBJECT = 1;  // I.e., data.
 static const intptr_t STT_FUNC = 2;
 static const intptr_t STT_SECTION = 3;
 
-static constexpr const char* ELF_NOTE_GNU = "GNU";
+static constexpr const char ELF_NOTE_GNU[] = "GNU";
+
+// Creates symbol info from the given STB and STT values.
+constexpr decltype(Symbol::info) SymbolInfo(intptr_t binding, intptr_t type) {
+  // Take the low nibble of each value in case, though the upper bits should
+  // all be zero as long as STB/STT constants are used.
+  return (binding & 0xf) << 4 | (type & 0xf);
+}
+
+// Retrieves the STB binding value for the given symbol info.
+constexpr intptr_t SymbolBinding(const decltype(Symbol::info) info) {
+  return (info >> 4) & 0xf;
+}
+
+// Retrieves the STT type value for the given symbol info.
+constexpr intptr_t SymbolType(const decltype(Symbol::info) info) {
+  return info & 0xf;
+}
 
 }  // namespace elf
 }  // namespace dart

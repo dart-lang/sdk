@@ -458,19 +458,19 @@ class AssemblyImageWriter : public ImageWriter {
   Dwarf* const assembly_dwarf_;
   Elf* const debug_elf_;
 
+  // Used to ensure unique names for Code symbols across text sections.
+  intptr_t unique_symbol_counter_ = 0;
+
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
 
 class BlobImageWriter : public ImageWriter {
  public:
   BlobImageWriter(Thread* thread,
-                  NonStreamingWriteStream* stream,
+                  NonStreamingWriteStream* vm_instructions,
+                  NonStreamingWriteStream* isolate_instructions,
                   Elf* debug_elf = nullptr,
                   Elf* elf = nullptr);
-
-  intptr_t InstructionsBlobSize() const {
-    return instructions_blob_stream_->bytes_written();
-  }
 
  private:
   virtual void WriteBss(bool vm);
@@ -479,9 +479,14 @@ class BlobImageWriter : public ImageWriter {
 
   intptr_t WriteByteSequence(uword start, uword end);
 
-  NonStreamingWriteStream* instructions_blob_stream_;
+  NonStreamingWriteStream* const vm_instructions_;
+  NonStreamingWriteStream* const isolate_instructions_;
   Elf* const elf_;
   Elf* const debug_elf_;
+
+  NonStreamingWriteStream* instructions_blob_stream_ = nullptr;
+  // Used to ensure unique names for Code symbols across text sections.
+  intptr_t unique_symbol_counter_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };

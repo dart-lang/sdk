@@ -33,6 +33,7 @@ class Elf : public ZoneAllocated {
   Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf = nullptr);
 
   static constexpr intptr_t kPageSize = 4096;
+  static constexpr uword kNoSectionStart = 0;
 
   bool IsStripped() const { return dwarf_ == nullptr; }
 
@@ -40,17 +41,24 @@ class Elf : public ZoneAllocated {
   const Dwarf* dwarf() const { return dwarf_; }
   Dwarf* dwarf() { return dwarf_; }
 
-  uword BssStart(bool vm) const;
-  uword BuildIdStart() const;
+  // Returns the relocated address for the symbol with the given name or
+  // kNoSectionStart if the symbol was not found.
+  uword SymbolAddress(const char* name) const;
 
   // What the next memory offset for an appropriately aligned section would be.
   //
-  // Only used by BlobImageWriter::WriteText() to determine the memory offset
-  // for the text section before it is added.
+  // Only used by AssemblyImageWriter and BlobImageWriter methods.
   intptr_t NextMemoryOffset(intptr_t alignment) const;
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
+
+  // Adds a local symbol for the given offset and size in the "current" section,
+  // that is, the section index for the symbol is for the next added section.
+  void AddLocalSymbol(const char* name,
+                      intptr_t type,
+                      intptr_t offset,
+                      intptr_t size);
 
   void Finalize();
 
@@ -76,19 +84,23 @@ class Elf : public ZoneAllocated {
   void ReplaceSection(Section* old_section, Section* new_section);
 
   void AddStaticSymbol(const char* name,
-                       intptr_t info,
+                       intptr_t binding,
+                       intptr_t type,
                        intptr_t section_index,
                        intptr_t address,
                        intptr_t size);
   void AddDynamicSymbol(const char* name,
-                        intptr_t info,
+                        intptr_t binding,
+                        intptr_t type,
                         intptr_t section_index,
                         intptr_t address,
                         intptr_t size);
 
   Segment* LastLoadSegment() const;
   const Section* FindSectionForAddress(intptr_t address) const;
-  Section* GenerateBuildId();
+  Section* CreateBuildIdNote(const void* description_bytes,
+                             intptr_t description_length);
+  Section* GenerateFinalBuildId();
 
   void AddSectionSymbols();
   void FinalizeDwarfSections();
