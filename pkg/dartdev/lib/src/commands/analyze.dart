@@ -82,6 +82,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
     });
 
     await analysisCompleter.future;
+    // todo (pq): consider server.shutdown() for cleaner dispose.
     await server.dispose();
     progress.finish(showTiming: true);
 

@@ -48,6 +48,21 @@ class Class3 extends core::Object /*hasConstConstructor*/  {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
+class Class4 extends core::Object /*hasConstConstructor*/  {
+  const constructor •({self::Class4* c = const self::Class4::•()}) → self::Class4*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
 static const field core::int* a = self::b;
 static const field core::int* b = self::a;
 static const field core::int* c = self::d;
@@ -62,19 +77,22 @@ static const field self::Class2* c2_2 = const self::Class2::•(1);
 static const field self::Class3* c3_0 = const self::Class3::•();
 static const field self::Class3* c3_1 = const self::Class3::•(self::c3_2);
 static const field self::Class3* c3_2 = const self::Class3::•(null);
+static const field self::Class4* c4_0 = const self::Class4::•();
+static const field self::Class4* c4_1 = const self::Class4::•(c: null);
 static method main() → dynamic
   ;
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity_test.dart:12:34 -> InstanceConstant(const Class1{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity_test.dart:20:63 -> InstanceConstant(const Class2{Class2.field: null})
-Evaluated: StaticGet @ org-dartlang-testcase:///circularity_test.dart:27:28 -> InstanceConstant(const Class3{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity_test.dart:14:27 -> InstanceConstant(const Class1{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity_test.dart:15:27 -> InstanceConstant(const Class1{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity_test.dart:16:27 -> InstanceConstant(const Class1{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity_test.dart:23:27 -> InstanceConstant(const Class2{Class2.field: null})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity_test.dart:29:27 -> InstanceConstant(const Class3{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity_test.dart:30:27 -> InstanceConstant(const Class3{})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity_test.dart:31:27 -> InstanceConstant(const Class3{})
-Extra constant evaluation: evaluated: 22, effectively constant: 10
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:12:34 -> InstanceConstant(const Class1{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:21:63 -> InstanceConstant(const Class2{Class2.field: null})
+Evaluated: StaticGet @ org-dartlang-testcase:///circularity.dart:29:28 -> InstanceConstant(const Class3{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:15:27 -> InstanceConstant(const Class1{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:16:27 -> InstanceConstant(const Class1{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:17:27 -> InstanceConstant(const Class1{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:25:27 -> InstanceConstant(const Class2{Class2.field: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:32:27 -> InstanceConstant(const Class3{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:33:27 -> InstanceConstant(const Class3{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:34:27 -> InstanceConstant(const Class3{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///circularity.dart:41:27 -> InstanceConstant(const Class4{})
+Extra constant evaluation: evaluated: 25, effectively constant: 11

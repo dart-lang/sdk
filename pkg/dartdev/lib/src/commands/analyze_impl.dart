@@ -30,9 +30,12 @@ class AnalysisServer {
       StreamController<FileAnalysisErrors>.broadcast();
   bool _didServerErrorOccur = false;
 
+  final _shutdownRequestCompleter = Completer<void>();
+
   int _id = 0;
 
   String _fixRequestId;
+  String _shutdownRequestId;
 
   bool get didServerErrorOccur => _didServerErrorOccur;
 
@@ -96,6 +99,19 @@ class AnalysisServer {
     _fixRequestId = _id.toString();
   }
 
+  Future<void> shutdown({Duration timeLimit}) async {
+    timeLimit ??= const Duration(seconds: 5);
+    // Cleanup streams.
+    await _closeStreamControllers();
+
+    // Request shutdown.
+    _sendCommand('server.shutdown', null);
+    _shutdownRequestId = _id.toString();
+    await _shutdownRequestCompleter.future.timeout(timeLimit, onTimeout: () {
+      _process?.kill();
+    });
+  }
+
   void _sendCommand(String method, Map<String, dynamic> params) {
     final String message = json.encode(<String, dynamic>{
       'id': (++_id).toString(),
@@ -143,6 +159,8 @@ class AnalysisServer {
         var result =
             EditBulkFixesResult.fromJson(decoder, 'result', response['result']);
         _bulkFixesController.add(result);
+      } else if (response['id'] == _shutdownRequestId) {
+        _shutdownRequestCompleter.complete();
       }
     }
   }
@@ -177,9 +195,14 @@ class AnalysisServer {
     }
   }
 
-  Future<bool> dispose() async {
+  void _closeStreamControllers() async {
     await _analyzingController.close();
     await _errorsController.close();
+    await _bulkFixesController.close();
+  }
+
+  Future<bool> dispose() async {
+    await _closeStreamControllers();
     return _process?.kill();
   }
 }
