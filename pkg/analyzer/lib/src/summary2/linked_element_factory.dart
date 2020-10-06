@@ -333,8 +333,14 @@ class _ElementRequest {
       _indexUnitElementDeclarations(unit);
       assert(reference.node != null, '$reference');
     }
-    ClassElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
+
+    var elementBuilder = unit.linkedContext.elementBuilder;
+    var node = reference.node;
+    if (node is ClassDeclaration) {
+      return elementBuilder.classDeclaration(node);
+    } else {
+      return elementBuilder.classTypeAlias(node);
+    }
   }
 
   ConstructorElementImpl _constructor(
@@ -410,8 +416,8 @@ class _ElementRequest {
       _indexUnitElementDeclarations(unit);
       assert(reference.node != null, '$reference');
     }
-    EnumElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
+    var elementBuilder = unit.linkedContext.elementBuilder;
+    return elementBuilder.enumDeclaration(reference.node);
   }
 
   ExtensionElementImpl _extension(
@@ -420,8 +426,8 @@ class _ElementRequest {
       _indexUnitElementDeclarations(unit);
       assert(reference.node != null, '$reference');
     }
-    ExtensionElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
+    var elementBuilder = unit.linkedContext.elementBuilder;
+    return elementBuilder.extensionDeclaration(reference.node);
   }
 
   FieldElementImpl _field(ClassElementImpl enclosing, Reference reference) {
@@ -463,8 +469,8 @@ class _ElementRequest {
       _indexUnitElementDeclarations(unit);
       assert(reference.node != null, '$reference');
     }
-    MixinElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
+    var elementBuilder = unit.linkedContext.elementBuilder;
+    return elementBuilder.mixinDeclaration(reference.node);
   }
 
   Element _parameter(ExecutableElementImpl enclosing, Reference reference) {
@@ -487,8 +493,14 @@ class _ElementRequest {
       _indexUnitElementDeclarations(unit);
       assert(reference.node != null, '$reference');
     }
-    GenericTypeAliasElementImpl.forLinkedNode(unit, reference, reference.node);
-    return reference.element;
+
+    var elementBuilder = unit.linkedContext.elementBuilder;
+    var node = reference.node;
+    if (node is FunctionTypeAlias) {
+      return elementBuilder.functionTypeAlias(node);
+    } else {
+      return elementBuilder.genericTypeAlias(node);
+    }
   }
 
   /// Index nodes for which we choose to create elements individually,
