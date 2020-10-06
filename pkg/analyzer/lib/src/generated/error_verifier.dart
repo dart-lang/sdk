@@ -928,7 +928,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
       _checkForImplicitDynamicReturn(node, node.declaredElement);
-      _checkForMustCallSuper(node);
       _checkForWrongTypeParameterVarianceInMethod(node);
       super.visitMethodDeclaration(node);
     });
@@ -3451,21 +3450,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForMustCallSuper(MethodDeclaration node) {
-    if (node.isStatic || node.isAbstract) {
-      return;
-    }
-    MethodElement element = _findOverriddenMemberThatMustCallSuper(node);
-    if (element != null && _hasConcreteSuperMethod(node)) {
-      _InvocationCollector collector = _InvocationCollector();
-      node.accept(collector);
-      if (!collector.superCalls.contains(element.name)) {
-        _errorReporter.reportErrorForNode(HintCode.MUST_CALL_SUPER, node.name,
-            [element.enclosingElement.name]);
-      }
-    }
-  }
-
   /// Checks to ensure that the given native function [body] is in SDK code.
   ///
   /// See [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE].
@@ -5117,47 +5101,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return result;
   }
 
-  /// Find a method which is overridden by [node] and which is annotated with
-  /// `@mustCallSuper`.
-  ///
-  /// As per the definition of `mustCallSuper` [1], every method which overrides
-  /// a method annotated with `@mustCallSuper` is implicitly annotated with
-  /// `@mustCallSuper`.
-  ///
-  /// [1] https://pub.dev/documentation/meta/latest/meta/mustCallSuper-constant.html
-  MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
-    Element member = node.declaredElement;
-    if (member.enclosingElement is! ClassElement) {
-      return null;
-    }
-    ClassElement classElement = member.enclosingElement;
-    String name = member.name;
-
-    // Walk up the type hierarchy from [classElement], ignoring direct interfaces.
-    Queue<ClassElement> superclasses =
-        Queue.of(classElement.mixins.map((i) => i.element))
-          ..addAll(classElement.superclassConstraints.map((i) => i.element))
-          ..add(classElement.supertype?.element);
-    Set<ClassElement> visitedClasses = <ClassElement>{};
-    while (superclasses.isNotEmpty) {
-      ClassElement ancestor = superclasses.removeFirst();
-      if (ancestor == null || !visitedClasses.add(ancestor)) {
-        continue;
-      }
-      ExecutableElement member = ancestor.getMethod(name) ??
-          ancestor.getGetter(name) ??
-          ancestor.getSetter(name);
-      if (member is MethodElement && member.hasMustCallSuper) {
-        return member;
-      }
-      superclasses
-        ..addAll(ancestor.mixins.map((i) => i.element))
-        ..addAll(ancestor.superclassConstraints.map((i) => i.element))
-        ..add(ancestor.supertype?.element);
-    }
-    return null;
-  }
-
   /// Given an [expression] in a switch case whose value is expected to be an
   /// enum constant, return the name of the constant.
   String _getConstantName(Expression expression) {
@@ -5240,21 +5183,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       buffer.write(")");
     }
     return buffer.toString();
-  }
-
-  /// Returns whether [node] overrides a concrete method.
-  bool _hasConcreteSuperMethod(MethodDeclaration node) {
-    ClassElement classElement = node.declaredElement.enclosingElement;
-    String name = node.declaredElement.name;
-
-    Queue<ClassElement> superclasses =
-        Queue.of(classElement.mixins.map((i) => i.element))
-          ..addAll(classElement.superclassConstraints.map((i) => i.element));
-    if (classElement.supertype != null) {
-      superclasses.add(classElement.supertype.element);
-    }
-    return superclasses.any(
-        (parent) => parent.lookUpConcreteMethod(name, parent.library) != null);
   }
 
   /// Return `true` if the given [constructor] redirects to itself, directly or
@@ -5440,27 +5368,6 @@ class HiddenElements {
   /// elements declared somewhere in the given [statements].
   void _initializeElements(List<Statement> statements) {
     _elements.addAll(BlockScope.elementsInStatements(statements));
-  }
-}
-
-/// Recursively visits an AST, looking for method invocations.
-class _InvocationCollector extends RecursiveAstVisitor<void> {
-  final List<String> superCalls = <String>[];
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
-    if (node.leftOperand is SuperExpression) {
-      superCalls.add(node.operator.lexeme);
-    }
-    super.visitBinaryExpression(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.target is SuperExpression) {
-      superCalls.add(node.methodName.name);
-    }
-    super.visitMethodInvocation(node);
   }
 }
 
