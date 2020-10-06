@@ -1833,12 +1833,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     if (v == null) {
       throw 'Unable to find variable ${node.variable} at ${node.location}';
     }
-
-    if ((node.promotedType != null) &&
-        (node.promotedType != const DynamicType())) {
-      return _makeNarrowAfterSuccessfulIsCheck(v, node.promotedType);
-    }
-
     return v;
   }
 
