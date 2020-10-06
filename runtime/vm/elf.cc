@@ -852,7 +852,7 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
       new (zone_) ProgramTableLoadSegment(zone_, kProgramTableSegmentSize);
   segments_.Add(start_segment);
   // We allocate an initial build ID of all zeroes, since we need the build ID
-  // memory offset during ImageHeader creation (see BlobImageWriter::WriteText).
+  // memory offset for the InstructionsSection (see BlobImageWriter::WriteText).
   // We replace it with the real build ID during finalization. (We add this
   // prior to BSS because we make the BuildID section writable also, so they are
   // placed in the same segment before any non-writable ones, and if we add it
@@ -1338,11 +1338,9 @@ static uint32_t HashBitsContainer(const BitsContainer* bits) {
   return FinalizeHash(hash, 32);
 }
 
-uword Elf::BuildIdStart(intptr_t* size) {
-  ASSERT(size != nullptr);
+uword Elf::BuildIdStart() const {
   ASSERT(build_id_ != nullptr);
-  *size = kBuildIdDescriptionLength;
-  return build_id_->memory_offset() + kBuildIdDescriptionOffset;
+  return build_id_->memory_offset();
 }
 
 Section* Elf::GenerateBuildId() {

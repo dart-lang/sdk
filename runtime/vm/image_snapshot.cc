@@ -6,6 +6,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/elf.h"
 #include "vm/bss_relocs.h"
 #include "vm/class_id.h"
 #include "vm/compiler/runtime_api.h"
@@ -41,14 +42,24 @@ DEFINE_FLAG(charp,
             "Print sizes of all instruction objects to the given file");
 #endif
 
-const ImageHeaderLayout* Image::ExtraInfo(const uword raw_memory,
-                                          const uword size) {
+const InstructionsSectionLayout* Image::ExtraInfo(const uword raw_memory,
+                                                  const uword size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  auto const raw_value = FieldValue(raw_memory, HeaderField::ImageHeaderOffset);
-  if (raw_value != kNoImageHeader) {
+  auto const raw_value =
+      FieldValue(raw_memory, HeaderField::InstructionsSectionOffset);
+  if (raw_value != kNoInstructionsSection) {
     ASSERT(raw_value >= kHeaderSize);
-    ASSERT(raw_value <= size - ImageHeader::InstanceSize());
-    return reinterpret_cast<const ImageHeaderLayout*>(raw_memory + raw_value);
+    ASSERT(raw_value <= size - InstructionsSection::HeaderSize());
+    auto const layout = reinterpret_cast<const InstructionsSectionLayout*>(
+        raw_memory + raw_value);
+    // The instructions section is likely non-empty in bare instructions mode
+    // (unless splitting into multiple outputs and there are no Code objects
+    // in this particular output), but is guaranteed empty otherwise (the
+    // instructions follow the InstructionsSection object instead).
+    ASSERT(FLAG_use_bare_instructions || layout->payload_length_ == 0);
+    ASSERT(raw_value <=
+           size - InstructionsSection::InstanceSize(layout->payload_length_));
+    return layout;
   }
 #endif
   return nullptr;
@@ -87,8 +98,9 @@ const uint8_t* Image::build_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(extra_info_ != nullptr);
   if (extra_info_->build_id_offset_ != kNoBuildId) {
-    return reinterpret_cast<const uint8_t*>(raw_memory_ +
-                                            extra_info_->build_id_offset_);
+    auto const note = reinterpret_cast<const elf::Note*>(
+        raw_memory_ + extra_info_->build_id_offset_);
+    return note->data + note->name_size;
   }
 #endif
   return nullptr;
@@ -97,10 +109,13 @@ const uint8_t* Image::build_id() const {
 intptr_t Image::build_id_length() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(extra_info_ != nullptr);
-  return extra_info_->build_id_length_;
-#else
-  return 0;
+  if (extra_info_->build_id_offset_ != kNoBuildId) {
+    auto const note = reinterpret_cast<const elf::Note*>(
+        raw_memory_ + extra_info_->build_id_offset_);
+    return note->description_size;
+  }
 #endif
+  return 0;
 }
 
 bool Image::compiled_to_elf() const {
@@ -164,7 +179,6 @@ ImageWriter::ImageWriter(Thread* t)
       objects_(),
       instructions_(),
       image_type_(TagObjectTypeAsReadOnly(t->zone(), "Image")),
-      image_header_type_(TagObjectTypeAsReadOnly(t->zone(), "ImageHeader")),
       instructions_section_type_(
           TagObjectTypeAsReadOnly(t->zone(), "InstructionsSection")),
       instructions_type_(TagObjectTypeAsReadOnly(t->zone(), "Instructions")),
@@ -423,7 +437,7 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
   }
 
   // Needs to happen before WriteText, as we add information about the
-  // BSSsection in the text section as an initial ImageHeader object.
+  // BSSsection in the text section as an initial InstructionsSection object.
   WriteBss(vm);
 
   offset_space_ = vm ? V8SnapshotProfileWriter::kVmText
@@ -449,7 +463,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
   intptr_t section_start = stream->Position();
 
   stream->WriteWord(next_data_offset_);  // Data length.
-  stream->WriteWord(0);  // No ImageHeader object in data sections.
+  stream->WriteWord(Image::kNoInstructionsSection);
   // Zero values for the rest of the Image object header bytes.
   stream->Align(Image::kHeaderSize);
   ASSERT(stream->Position() - section_start == Image::kHeaderSize);
@@ -538,6 +552,14 @@ uword ImageWriter::GetMarkedTags(const Object& obj) {
 }
 
 #if defined(DART_PRECOMPILER)
+
+// Indices are log2(size in bytes).
+static constexpr const char* kSizeDirectives[] = {".byte", ".2byte", ".long",
+                                                  ".quad"};
+
+static constexpr const char* kWordDirective =
+    kSizeDirectives[compiler::target::kWordSizeLog2];
+
 class DwarfAssemblyStream : public DwarfWriteStream {
  public:
   explicit DwarfAssemblyStream(BaseWriteStream* stream)
@@ -547,11 +569,19 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   void uleb128(uintptr_t value) {
     stream_->Printf(".uleb128 %" Pd "\n", value);
   }
-  void u1(uint8_t value) { stream_->Printf(".byte %u\n", value); }
-  void u2(uint16_t value) { stream_->Printf(".2byte %u\n", value); }
-  void u4(uint32_t value) { stream_->Printf(".4byte %" Pu32 "\n", value); }
-  void u8(uint64_t value) { stream_->Printf(".8byte %" Pu64 "\n", value); }
-  void string(const char* cstr) {     // NOLINT
+  void u1(uint8_t value) {
+    stream_->Printf("%s %u\n", kSizeDirectives[kInt8SizeLog2], value);
+  }
+  void u2(uint16_t value) {
+    stream_->Printf("%s %u\n", kSizeDirectives[kInt16SizeLog2], value);
+  }
+  void u4(uint32_t value) {
+    stream_->Printf("%s %" Pu32 "\n", kSizeDirectives[kInt32SizeLog2], value);
+  }
+  void u8(uint64_t value) {
+    stream_->Printf("%s %" Pu64 "\n", kSizeDirectives[kInt64SizeLog2], value);
+  }
+  void string(const char* cstr) {               // NOLINT
     stream_->Printf(".string \"%s\"\n", cstr);  // NOLINT
   }
   // Uses labels, so doesn't output to start or return a useful fixup position.
@@ -559,7 +589,7 @@ class DwarfAssemblyStream : public DwarfWriteStream {
     // Assignment to temp works around buggy Mac assembler.
     stream_->Printf("L%s_size = .L%s_end - .L%s_start\n", prefix, prefix,
                     prefix);
-    stream_->Printf(".4byte L%s_size\n", prefix);
+    stream_->Printf("%s L%s_size\n", kSizeDirectives[kInt32SizeLog2], prefix);
     stream_->Printf(".L%s_start:\n", prefix);
     return -1;
   }
@@ -593,7 +623,8 @@ class DwarfAssemblyStream : public DwarfWriteStream {
     // Assignment to temp works around buggy Mac assembler.
     stream_->Printf("Ltemp%" Pd " = .Lfunc%" Pd " - %s\n", temp_, index,
                     kDebugInfoLabel);
-    stream_->Printf(".4byte Ltemp%" Pd "\n", temp_);
+    stream_->Printf("%s Ltemp%" Pd "\n", kSizeDirectives[kInt32SizeLog2],
+                    temp_);
     temp_++;
   }
 
@@ -634,17 +665,11 @@ class DwarfAssemblyStream : public DwarfWriteStream {
  private:
   static constexpr const char* kDebugInfoLabel = ".Ldebug_info";
 
-#if defined(TARGET_ARCH_IS_32_BIT)
-#define FORM_ADDR ".4byte"
-#elif defined(TARGET_ARCH_IS_64_BIT)
-#define FORM_ADDR ".8byte"
-#endif
-
   void PrintNamedAddress(const char* name) {
-    stream_->Printf(FORM_ADDR " %s\n", name);
+    stream_->Printf("%s %s\n", kWordDirective, name);
   }
   void PrintNamedAddressWithOffset(const char* name, intptr_t offset) {
-    stream_->Printf(FORM_ADDR " %s + %" Pd "\n", name, offset);
+    stream_->Printf("%s %s + %" Pd "\n", kWordDirective, name, offset);
   }
 
 #undef FORM_ADDR
@@ -654,10 +679,8 @@ class DwarfAssemblyStream : public DwarfWriteStream {
 
   DISALLOW_COPY_AND_ASSIGN(DwarfAssemblyStream);
 };
-#endif
 
 static inline Dwarf* AddDwarfIfUnstripped(Zone* zone, bool strip, Elf* elf) {
-#if defined(DART_PRECOMPILER)
   if (!strip) {
     if (elf != nullptr) {
       // Reuse the existing DWARF object.
@@ -666,7 +689,6 @@ static inline Dwarf* AddDwarfIfUnstripped(Zone* zone, bool strip, Elf* elf) {
     }
     return new (zone) Dwarf(zone);
   }
-#endif
   return nullptr;
 }
 
@@ -680,7 +702,6 @@ AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
       debug_elf_(debug_elf) {}
 
 void AssemblyImageWriter::Finalize() {
-#if defined(DART_PRECOMPILER)
   if (assembly_dwarf_ != nullptr) {
     DwarfAssemblyStream dwarf_stream(assembly_stream_);
     dwarf_stream.AbbreviationsPrologue();
@@ -693,7 +714,6 @@ void AssemblyImageWriter::Finalize() {
   if (debug_elf_ != nullptr) {
     debug_elf_->Finalize();
   }
-#endif
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -751,14 +771,11 @@ const char* SnapshotTextObjectNamer::SnapshotNameFor(
   return SnapshotNameFor(index, *data.code_);
 }
 
-#if defined(DART_PRECOMPILER)
 static const char* const kVmSnapshotBssAsmSymbol = "_kDartVmSnapshotBss";
 static const char* const kIsolateSnapshotBssAsmSymbol =
     "_kDartIsolateSnapshotBss";
-#endif
 
 void AssemblyImageWriter::WriteBss(bool vm) {
-#if defined(DART_PRECOMPILER)
   auto const bss_symbol =
       vm ? kVmSnapshotBssAsmSymbol : kIsolateSnapshotBssAsmSymbol;
   assembly_stream_->WriteString(".bss\n");
@@ -770,15 +787,11 @@ void AssemblyImageWriter::WriteBss(bool vm) {
   for (intptr_t i = 0; i < entry_count; i++) {
     WriteWordLiteralText(0);
   }
-#endif
 }
 
 void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
                                       bool vm) {
   ImageWriter::WriteROData(clustered_stream, vm);
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                  \
     defined(TARGET_OS_FUCHSIA)
   assembly_stream_->WriteString(".section .rodata\n");
@@ -796,23 +809,15 @@ void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
   const uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
   const intptr_t length = clustered_stream->bytes_written();
   WriteByteSequence(buffer, buffer + length);
-#if defined(DART_PRECOMPILER)
   if (debug_elf_ != nullptr) {
     // Add a NoBits section for the ROData as well.
     debug_elf_->AddROData(data_symbol, clustered_stream->buffer(), length);
   }
-#endif  // defined(DART_PRECOMPILER)
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void AssemblyImageWriter::WriteText(bool vm) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
+  ASSERT(FLAG_precompiled_mode);
   Zone* zone = Thread::Current()->zone();
-
-  const bool bare_instruction_payloads =
-      FLAG_precompiled_mode && FLAG_use_bare_instructions;
 
   const char* instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
                                        : kIsolateSnapshotInstructionsAsmSymbol;
@@ -824,7 +829,6 @@ void AssemblyImageWriter::WriteText(bool vm) {
   Align(ImageWriter::kTextAlignment);
   assembly_stream_->Printf("%s:\n", instructions_symbol);
 
-#if defined(DART_PRECOMPILER)
   auto const bss_symbol =
       vm ? kVmSnapshotBssAsmSymbol : kIsolateSnapshotBssAsmSymbol;
   intptr_t debug_segment_base = 0;
@@ -832,123 +836,95 @@ void AssemblyImageWriter::WriteText(bool vm) {
     debug_segment_base =
         debug_elf_->NextMemoryOffset(ImageWriter::kTextAlignment);
   }
-#endif
 
   intptr_t text_offset = 0;
-#if defined(DART_PRECOMPILER)
   // Parent used for later profile objects. Starts off as the Image. When
   // writing bare instructions payloads, this is later updated with the
   // InstructionsSection object which contains all the bare payloads.
   V8SnapshotProfileWriter::ObjectId parent_id(offset_space_, text_offset);
-#endif
 
   // This head also provides the gap to make the instructions snapshot
   // look like a OldPage.
   const intptr_t image_size = Utils::RoundUp(
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
   text_offset += WriteWordLiteralText(image_size);
-  if (FLAG_precompiled_mode) {
-    // Output the offset to the ImageHeader object from the start of the image.
-    text_offset += WriteWordLiteralText(Image::kHeaderSize);
-  } else {
-    text_offset += WriteWordLiteralText(Image::kNoImageHeader);
-  }
+  // Output the offset to the InstructionsSection object from the Image start.
+  text_offset += WriteWordLiteralText(Image::kHeaderSize);
   // Zero values for the rest of the Image object header bytes.
   text_offset += Align(Image::kHeaderSize, text_offset);
   ASSERT_EQUAL(text_offset, Image::kHeaderSize);
 
-#if defined(DART_PRECOMPILER)
-  if (FLAG_precompiled_mode) {
-    if (profile_writer_ != nullptr) {
-      profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
-                                            instructions_symbol);
-      // Assign post-instruction padding to the Image, unless we're writing bare
-      // instruction payloads, in which case we'll assign it to the
-      // InstructionsSection object.
-      const intptr_t padding =
-          bare_instruction_payloads ? 0 : image_size - next_text_offset_;
-      profile_writer_->AttributeBytesTo(parent_id,
-                                        Image::kHeaderSize + padding);
-      profile_writer_->AddRoot(parent_id);
-    }
+  if (profile_writer_ != nullptr) {
+    profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
+                                          instructions_symbol);
+    profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
+    profile_writer_->AddRoot(parent_id);
+  }
 
-    // Write the ImageHeader object, starting with the header.
-    const intptr_t image_header_size =
-        compiler::target::ImageHeader::InstanceSize();
-    if (profile_writer_ != nullptr) {
-      const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
-      profile_writer_->SetObjectTypeAndName(id, image_header_type_,
-                                            instructions_symbol);
-      profile_writer_->AttributeBytesTo(id, image_header_size);
-      const intptr_t element_offset = id.second - parent_id.second;
-      profile_writer_->AttributeReferenceTo(
-          parent_id,
-          {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
-    }
-    text_offset +=
-        WriteWordLiteralText(GetMarkedTags(kImageHeaderCid, image_header_size));
+  const intptr_t section_header_length =
+      compiler::target::InstructionsSection::HeaderSize();
+  // Calculated using next_text_offset_, which doesn't include post-payload
+  // padding to object alignment. Note that if not in bare instructions mode,
+  // the section has no contents, instead the instructions objects follow it.
+  const intptr_t section_payload_length =
+      FLAG_use_bare_instructions
+          ? next_text_offset_ - text_offset - section_header_length
+          : 0;
+  const intptr_t section_size =
+      compiler::target::InstructionsSection::InstanceSize(
+          section_payload_length);
 
-    // An ImageHeader has four fields:
-    // 1) The BSS offset from this section.
-    assembly_stream_->Printf("%s %s - %s\n", kLiteralPrefix, bss_symbol,
-                             instructions_symbol);
-    text_offset += compiler::target::kWordSize;
-    // 2) The relocated address of the instructions.
-    //
-    // For assembly snapshots, we can't generate assembly to get the absolute
-    // address of the text section, as using the section symbol gives us a
-    // relative offset from the section start, which is 0. Instead, depend on
-    // the BSS initialization to retrieve this for us at runtime. As a side
-    // effect, this field also doubles as a way to detect whether we compiled to
-    // assembly or directly to ELF.
-    text_offset += WriteWordLiteralText(Image::kNoRelocatedAddress);
-    // TODO(dartbug.com/43274): Change once we generate consistent build IDs
-    // between assembly snapshots and their debugging information.
-    // 3) The GNU build ID offset from this section.
-    text_offset += WriteWordLiteralText(Image::kNoBuildId);
-    // 4) The GNU build ID length.
-    text_offset += WriteWordLiteralText(0);
-    text_offset +=
-        Align(compiler::target::ObjectAlignment::kObjectAlignment, text_offset);
-
-    ASSERT_EQUAL(text_offset, Image::kHeaderSize + image_header_size);
-
-    if (bare_instruction_payloads) {
-      if (profile_writer_ != nullptr) {
-        const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
-        profile_writer_->SetObjectTypeAndName(id, instructions_section_type_,
-                                              instructions_symbol);
-        const intptr_t padding = image_size - next_text_offset_;
-        profile_writer_->AttributeBytesTo(
-            id, compiler::target::InstructionsSection::HeaderSize() + padding);
-        const intptr_t element_offset = id.second - parent_id.second;
-        profile_writer_->AttributeReferenceTo(
-            parent_id,
-            {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
-        // Later objects will have the InstructionsSection as a parent.
-        parent_id = id;
-      }
-      const intptr_t section_size = image_size - text_offset;
-      // Calculated using next_text_offset_, which doesn't include post-payload
-      // padding to object alignment.
-      const intptr_t instructions_length =
-          next_text_offset_ - text_offset -
-          compiler::target::InstructionsSection::HeaderSize();
-      // Add the RawInstructionsSection header.
-      text_offset += WriteWordLiteralText(
-          GetMarkedTags(kInstructionsSectionCid, section_size));
-      text_offset += WriteWordLiteralText(instructions_length);
-      text_offset += Align(
-          compiler::target::Instructions::kBarePayloadAlignment, text_offset);
+  if (profile_writer_ != nullptr) {
+    const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
+    profile_writer_->SetObjectTypeAndName(id, instructions_section_type_,
+                                          instructions_symbol);
+    profile_writer_->AttributeBytesTo(id,
+                                      section_size - section_payload_length);
+    const intptr_t element_offset = id.second - parent_id.second;
+    profile_writer_->AttributeReferenceTo(
+        parent_id,
+        {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+    // Later objects will have the InstructionsSection as a parent if in
+    // bare instructions mode, otherwise the image.
+    if (FLAG_use_bare_instructions) {
+      parent_id = id;
     }
   }
-#endif
+
+  // Add the RawInstructionsSection header.
+  text_offset += WriteWordLiteralText(
+      GetMarkedTags(kInstructionsSectionCid, section_size));
+  // An InstructionsSection has five fields:
+  // 1) The length of the payload.
+  text_offset += WriteWordLiteralText(section_payload_length);
+  // 2) The BSS offset from this section.
+  assembly_stream_->Printf("%s %s - %s\n", kWordDirective, bss_symbol,
+                           instructions_symbol);
+  text_offset += compiler::target::kWordSize;
+  // 3) The relocated address of the instructions.
+  //
+  // For assembly snapshots, we can't generate assembly to get the absolute
+  // address of the text section, as using the section symbol gives us a
+  // relative offset from the section start, which is 0. Instead, depend on
+  // the BSS initialization to retrieve this for us at runtime. As a side
+  // effect, this field also doubles as a way to detect whether we compiled to
+  // assembly or directly to ELF.
+  text_offset += WriteWordLiteralText(Image::kNoRelocatedAddress);
+  // 4) The GNU build ID note offset from this section.
+  //
+  // TODO(dartbug.com/43274): Change once we generate consistent build IDs
+  // between assembly snapshots and their debugging information.
+  text_offset += WriteWordLiteralText(Image::kNoBuildId);
+
+  const intptr_t section_contents_alignment =
+      FLAG_use_bare_instructions
+          ? compiler::target::Instructions::kBarePayloadAlignment
+          : compiler::target::ObjectAlignment::kObjectAlignment;
+  text_offset += Align(section_contents_alignment, text_offset);
 
   FrameUnwindPrologue();
 
-#if defined(DART_PRECOMPILER)
   PcDescriptors& descriptors = PcDescriptors::Handle(zone);
-#endif
   SnapshotTextObjectNamer namer(zone);
 
   ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
@@ -958,15 +934,12 @@ void AssemblyImageWriter::WriteText(bool vm) {
     ASSERT_EQUAL(data.text_offset_, text_offset);
 
     intptr_t dwarf_index = i;
-#if defined(DART_PRECOMPILER)
     if (!is_trampoline && assembly_dwarf_ != nullptr) {
       dwarf_index =
           assembly_dwarf_->AddCode(*data.code_, SegmentRelativeOffset(vm));
     }
-#endif
     const auto object_name = namer.SnapshotNameFor(dwarf_index, data);
 
-#if defined(DART_PRECOMPILER)
     if (profile_writer_ != nullptr) {
       const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
       auto const type = is_trampoline ? trampoline_type_ : instructions_type_;
@@ -979,7 +952,6 @@ void AssemblyImageWriter::WriteText(bool vm) {
           parent_id,
           {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
     }
-#endif
 
     if (is_trampoline) {
       const auto start = reinterpret_cast<uword>(data.trampoline_bytes);
@@ -996,7 +968,7 @@ void AssemblyImageWriter::WriteText(bool vm) {
     // 1. Write from the object start to the payload start. This includes the
     // object header and the fixed fields.  Not written for AOT snapshots using
     // bare instructions.
-    if (!bare_instruction_payloads) {
+    if (!FLAG_use_bare_instructions) {
       NoSafepointScope no_safepoint;
 
       // Write Instructions with the mark and read-only bits set.
@@ -1010,20 +982,19 @@ void AssemblyImageWriter::WriteText(bool vm) {
     ASSERT_EQUAL(text_offset - instr_start,
                  compiler::target::Instructions::HeaderSize());
 
-#if defined(DART_PRECOMPILER)
     const auto& code = *data.code_;
     if (debug_elf_ != nullptr) {
       debug_elf_->dwarf()->AddCode(code, {vm, text_offset});
     }
-#endif
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
     assembly_stream_->Printf("%s:\n", object_name);
 
     {
+      NoSafepointScope no_safepoint;
+
       // 3. Write from the payload start to payload end. For AOT snapshots
       // with bare instructions, this is the only non-padding part serialized.
-      NoSafepointScope no_safepoint;
       const uword payload_start = insns.PayloadStart();
       // Double-check the payload alignment, since we will load and write
       // target-sized words starting from that address.
@@ -1031,7 +1002,6 @@ void AssemblyImageWriter::WriteText(bool vm) {
       const uword payload_size = insns.Size();
       const uword payload_end = payload_start + payload_size;
 
-#if defined(DART_PRECOMPILER)
       descriptors = code.pc_descriptors();
       PcDescriptors::Iterator iterator(descriptors,
                                        PcDescriptorsLayout::kBSSRelocation);
@@ -1046,15 +1016,12 @@ void AssemblyImageWriter::WriteText(bool vm) {
         text_offset += WriteByteSequence(cursor, next_reloc_address);
         const word addend =
             *reinterpret_cast<compiler::target::word*>(next_reloc_address);
-        assembly_stream_->Printf("%s %s - (.) + %" Pd "\n", kLiteralPrefix,
+        assembly_stream_->Printf("%s %s - (.) + %" Pd "\n", kWordDirective,
                                  bss_symbol, addend);
         text_offset += compiler::target::kWordSize;
         cursor = next_reloc_address + compiler::target::kWordSize;
       }
       text_offset += WriteByteSequence(cursor, payload_end);
-#else
-      text_offset += WriteByteSequence(payload_start, payload_end);
-#endif
     }
 
     // 4. Write from the payload end to object end. Note we can't simply copy
@@ -1090,6 +1057,9 @@ void AssemblyImageWriter::WriteText(bool vm) {
   // Should be a no-op unless writing bare instruction payloads, in which case
   // we need to add post-payload padding to the object alignment. The alignment
   // needs to match the one we used for image_size above.
+  ASSERT(FLAG_use_bare_instructions ||
+         Utils::IsAligned(text_offset,
+                          compiler::target::ObjectAlignment::kObjectAlignment));
   text_offset +=
       Align(compiler::target::ObjectAlignment::kObjectAlignment, text_offset);
 
@@ -1097,7 +1067,6 @@ void AssemblyImageWriter::WriteText(bool vm) {
 
   FrameUnwindEpilogue();
 
-#if defined(DART_PRECOMPILER)
   if (debug_elf_ != nullptr) {
     // We need to generate a text segment of the appropriate size in the ELF
     // for two reasons:
@@ -1120,8 +1089,6 @@ void AssemblyImageWriter::WriteText(bool vm) {
     // writing the text section.
     ASSERT(debug_segment_base2 == debug_segment_base);
   }
-#endif
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void AssemblyImageWriter::FrameUnwindPrologue() {
@@ -1236,6 +1203,16 @@ intptr_t AssemblyImageWriter::Align(intptr_t alignment, uword position) {
   return next_position - position;
 }
 
+intptr_t AssemblyImageWriter::WriteWordLiteralText(word value) {
+  ASSERT(compiler::target::kBitsPerWord == kBitsPerWord ||
+         Utils::IsAbsoluteUint(compiler::target::kBitsPerWord, value));
+  // Padding is helpful for comparing the .S with --disassemble.
+  assembly_stream_->Printf("%s 0x%0.*" Px "\n", kWordDirective,
+                           2 * compiler::target::kWordSize, value);
+  return compiler::target::kWordSize;
+}
+#endif  // defined(DART_PRECOMPILER)
+
 BlobImageWriter::BlobImageWriter(Thread* thread,
                                  NonStreamingWriteStream* stream,
                                  Elf* debug_elf,
@@ -1322,12 +1299,11 @@ void BlobImageWriter::WriteText(bool vm) {
   const intptr_t image_size = Utils::RoundUp(
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
   instructions_blob_stream_->WriteTargetWord(image_size);
-  if (FLAG_precompiled_mode) {
-    // Output the offset to the ImageHeader object from the start of the image.
-    instructions_blob_stream_->WriteTargetWord(Image::kHeaderSize);
-  } else {
-    instructions_blob_stream_->WriteTargetWord(0);  // No ImageHeader object.
-  }
+  // Output the offset to the InstructionsSection object from the start of the
+  // image, if there is one.
+  instructions_blob_stream_->WriteTargetWord(
+      FLAG_precompiled_mode ? Image::kHeaderSize
+                            : Image::kNoInstructionsSection);
   // Zero values for the rest of the Image object header bytes.
   instructions_blob_stream_->Align(Image::kHeaderSize);
   ASSERT_EQUAL(instructions_blob_stream_->Position(), Image::kHeaderSize);
@@ -1338,90 +1314,73 @@ void BlobImageWriter::WriteText(bool vm) {
     if (profile_writer_ != nullptr) {
       profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
                                             instructions_symbol);
-      // Assign post-instruction padding to the Image, unless we're writing bare
-      // instruction payloads, in which case we'll assign it to the
-      // InstructionsSection object.
-      const intptr_t padding =
-          bare_instruction_payloads ? 0 : image_size - next_text_offset_;
-      profile_writer_->AttributeBytesTo(parent_id,
-                                        Image::kHeaderSize + padding);
+      profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
       profile_writer_->AddRoot(parent_id);
     }
 
-    // Write the ImageHeader object, starting with the header.
-    const intptr_t image_header_size =
-        compiler::target::ImageHeader::InstanceSize();
+    // Calculated using next_text_offset_, which doesn't include post-payload
+    // padding to object alignment. Note that if not in bare instructions mode,
+    // the section has no contents, instead the instructions objects follow it.
+    const intptr_t section_payload_length =
+        bare_instruction_payloads
+            ? next_text_offset_ - text_offset -
+                  compiler::target::InstructionsSection::HeaderSize()
+            : 0;
+    const intptr_t section_size =
+        compiler::target::InstructionsSection::InstanceSize(
+            section_payload_length);
+
     if (profile_writer_ != nullptr) {
       const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
-      profile_writer_->SetObjectTypeAndName(id, image_header_type_,
+      profile_writer_->SetObjectTypeAndName(id, instructions_section_type_,
                                             instructions_symbol);
-      profile_writer_->AttributeBytesTo(id, image_header_size);
+      profile_writer_->AttributeBytesTo(id,
+                                        section_size - section_payload_length);
       const intptr_t element_offset = id.second - parent_id.second;
       profile_writer_->AttributeReferenceTo(
           parent_id,
           {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
+      // If in bare instructions mode, later objects will have the
+      // InstructionsSection as a parent.
+      if (bare_instruction_payloads) {
+        parent_id = id;
+      }
     }
-    instructions_blob_stream_->WriteTargetWord(
-        GetMarkedTags(kImageHeaderCid, image_header_size));
 
+    // Add the RawInstructionsSection header.
+    instructions_blob_stream_->WriteTargetWord(
+        GetMarkedTags(kInstructionsSectionCid, section_size));
     ASSERT(elf_ != nullptr);
-    // An ImageHeader has four fields:
-    // 1) The BSS offset from this section.
+    // An InstructionsSection has five fields:
+    // 1) The size of the payload.
+    instructions_blob_stream_->WriteTargetWord(section_payload_length);
+    // 2) The BSS offset from this section.
     const word bss_offset = elf_->BssStart(vm) - segment_base;
     ASSERT(bss_offset != Image::kNoBssSection);
     instructions_blob_stream_->WriteTargetWord(bss_offset);
-    // 2) The relocated address of the instructions.
+    // 3) The relocated address of the instructions.
     //
     // Since we set this to a non-zero value for ELF snapshots, we also use this
     // to detect compiled-to-ELF snapshots.
     ASSERT(segment_base != Image::kNoRelocatedAddress);
     instructions_blob_stream_->WriteTargetWord(segment_base);
-    // 3) The GNU build ID offset from this section.
-    intptr_t build_id_length = 0;
-    const word build_id_offset =
-        elf_->BuildIdStart(&build_id_length) - segment_base;
+    // 4) The GNU build ID note offset from this section.
+    const word build_id_offset = elf_->BuildIdStart() - segment_base;
     ASSERT(build_id_offset != Image::kNoBuildId);
     instructions_blob_stream_->WriteTargetWord(build_id_offset);
-    // 4) The GNU build ID length.
-    ASSERT(build_id_length != 0);
-    instructions_blob_stream_->WriteTargetWord(build_id_length);
-    instructions_blob_stream_->Align(
-        compiler::target::ObjectAlignment::kObjectAlignment);
 
+    const intptr_t section_contents_alignment =
+        bare_instruction_payloads
+            ? compiler::target::Instructions::kBarePayloadAlignment
+            : compiler::target::ObjectAlignment::kObjectAlignment;
+    const intptr_t expected_size =
+        bare_instruction_payloads
+            ? compiler::target::InstructionsSection::HeaderSize()
+            : compiler::target::InstructionsSection::InstanceSize(0);
+    instructions_blob_stream_->Align(section_contents_alignment);
     ASSERT_EQUAL(instructions_blob_stream_->Position() - text_offset,
-                 image_header_size);
-    text_offset += image_header_size;
-
-    if (bare_instruction_payloads) {
-      if (profile_writer_ != nullptr) {
-        const V8SnapshotProfileWriter::ObjectId id(offset_space_, text_offset);
-        profile_writer_->SetObjectTypeAndName(id, instructions_section_type_,
-                                              instructions_symbol);
-        const intptr_t padding = image_size - next_text_offset_;
-        profile_writer_->AttributeBytesTo(
-            id, compiler::target::InstructionsSection::HeaderSize() + padding);
-        const intptr_t element_offset = id.second - parent_id.second;
-        profile_writer_->AttributeReferenceTo(
-            parent_id,
-            {id, V8SnapshotProfileWriter::Reference::kElement, element_offset});
-        // Later objects will have the InstructionsSection as a parent.
-        parent_id = id;
-      }
-      const intptr_t section_size = image_size - text_offset;
-      // Uses next_text_offset_ to avoid any post-payload padding.
-      const intptr_t instructions_length =
-          next_text_offset_ - text_offset -
-          compiler::target::InstructionsSection::HeaderSize();
-      // Add the RawInstructionsSection header.
-      instructions_blob_stream_->WriteTargetWord(
-          GetMarkedTags(kInstructionsSectionCid, section_size));
-      instructions_blob_stream_->WriteTargetWord(instructions_length);
-      instructions_blob_stream_->Align(
-          compiler::target::Instructions::kBarePayloadAlignment);
-      ASSERT_EQUAL(instructions_blob_stream_->Position() - text_offset,
-                   compiler::target::InstructionsSection::HeaderSize());
-      text_offset += compiler::target::InstructionsSection::HeaderSize();
-    }
+                 expected_size);
+    text_offset += expected_size;
   }
 #endif
 
@@ -1572,6 +1531,9 @@ void BlobImageWriter::WriteText(bool vm) {
   // Should be a no-op unless writing bare instruction payloads, in which case
   // we need to add post-payload padding to the object alignment. The alignment
   // should match the alignment used in image_size above.
+  ASSERT(bare_instruction_payloads ||
+         Utils::IsAligned(text_offset,
+                          compiler::target::ObjectAlignment::kObjectAlignment));
   instructions_blob_stream_->Align(
       compiler::target::ObjectAlignment::kObjectAlignment);
   text_offset = Utils::RoundUp(

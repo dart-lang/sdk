@@ -82,10 +82,10 @@ class Image : ValueObject {
   enum class HeaderField : intptr_t {
     // The size of the image (total of header and payload).
     ImageSize,
-    // The offset of the ImageHeader object in the image. Note this offset
-    // is from the start of the _image_, _not_ from its payload start, so we
-    // can detect images without ImageHeaders by a 0 value here.
-    ImageHeaderOffset,
+    // The offset of the InstructionsSection object in the image. Note this
+    // offset is from the start of the _image_, _not_ from its payload start,
+    // so we can detect images without an InstructionsSection by a 0 value here.
+    InstructionsSectionOffset,
     // If adding more fields, updating kHeaderFields below. (However, more
     // fields _can't_ be added on 64-bit architectures, see the restrictions
     // on kHeaderSize below.)
@@ -93,7 +93,7 @@ class Image : ValueObject {
 
   // Number of fields described by the HeaderField enum.
   static constexpr intptr_t kHeaderFields =
-      static_cast<intptr_t>(HeaderField::ImageHeaderOffset) + 1;
+      static_cast<intptr_t>(HeaderField::InstructionsSectionOffset) + 1;
 
   static uword FieldValue(uword raw_memory, HeaderField field) {
     return reinterpret_cast<const uword*>(
@@ -101,8 +101,8 @@ class Image : ValueObject {
   }
 
   // Constants used to denote special values for the offsets in the Image
-  // object header and the fields of the ImageHeader object.
-  static constexpr intptr_t kNoImageHeader = 0;
+  // object header and the fields of the InstructionsSection object.
+  static constexpr intptr_t kNoInstructionsSection = 0;
   static constexpr intptr_t kNoBssSection = 0;
   static constexpr intptr_t kNoRelocatedAddress = 0;
   static constexpr intptr_t kNoBuildId = 0;
@@ -126,13 +126,13 @@ class Image : ValueObject {
 
   // We don't use a handle or the tagged pointer because this object cannot be
   // moved in memory by the GC.
-  static const ImageHeaderLayout* ExtraInfo(const uword raw_memory,
-                                            const uword size);
+  static const InstructionsSectionLayout* ExtraInfo(const uword raw_memory,
+                                                    const uword size);
 
   // Most internal uses would cast this to uword, so just store it as such.
   const uword raw_memory_;
   const intptr_t snapshot_size_;
-  const ImageHeaderLayout* const extra_info_;
+  const InstructionsSectionLayout* const extra_info_;
 
   // For access to private constants.
   friend class AssemblyImageWriter;
@@ -249,15 +249,15 @@ class ImageWriter : public ValueObject {
     next_text_offset_ = Image::kHeaderSize;
 #if defined(DART_PRECOMPILER)
     if (FLAG_precompiled_mode) {
-      // We reserve space for the initial ImageHeader object. It is manually
-      // serialized since it involves offsets to other parts of the snapshot.
-      next_text_offset_ += compiler::target::ImageHeader::InstanceSize();
-      if (FLAG_use_bare_instructions) {
-        // For bare instructions mode, we wrap all the instruction payloads
-        // in a single InstructionsSection object.
-        next_text_offset_ +=
-            compiler::target::InstructionsSection::HeaderSize();
-      }
+      // We reserve space for the initial InstructionsSection object. It is
+      // manually serialized since it includes offsets to other snapshot parts.
+      // In bare instructions mode, it contains all the payloads and so we
+      // start after the header, whereas in non-bare mode, it contains no
+      // payload and Instructions start after it.
+      next_text_offset_ +=
+          FLAG_use_bare_instructions
+              ? compiler::target::InstructionsSection::HeaderSize()
+              : compiler::target::InstructionsSection::InstanceSize(0);
     }
 #endif
     objects_.Clear();
@@ -363,7 +363,6 @@ class ImageWriter : public ValueObject {
       V8SnapshotProfileWriter::kSnapshot;
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
   const char* const image_type_;
-  const char* const image_header_type_;
   const char* const instructions_section_type_;
   const char* const instructions_type_;
   const char* const trampoline_type_;
@@ -453,21 +452,7 @@ class AssemblyImageWriter : public ImageWriter {
   void FrameUnwindEpilogue();
   intptr_t WriteByteSequence(uword start, uword end);
   intptr_t Align(intptr_t alignment, uword position = 0);
-
-#if defined(TARGET_ARCH_IS_64_BIT)
-  const char* kLiteralPrefix = ".quad";
-#else
-  const char* kLiteralPrefix = ".long";
-#endif
-
-  intptr_t WriteWordLiteralText(word value) {
-    ASSERT(compiler::target::kBitsPerWord == kBitsPerWord ||
-           Utils::IsAbsoluteUint(compiler::target::kBitsPerWord, value));
-    // Padding is helpful for comparing the .S with --disassemble.
-    assembly_stream_->Printf("%s 0x%0.*" Px "\n", kLiteralPrefix,
-                             2 * compiler::target::kWordSize, value);
-    return compiler::target::kWordSize;
-  }
+  intptr_t WriteWordLiteralText(word value);
 
   BaseWriteStream* const assembly_stream_;
   Dwarf* const assembly_dwarf_;

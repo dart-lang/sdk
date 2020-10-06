@@ -16051,10 +16051,6 @@ ICDataPtr ICData::Clone(const ICData& from) {
 }
 #endif
 
-const char* ImageHeader::ToCString() const {
-  return "ImageHeader";
-}
-
 const char* WeakSerializationReference::ToCString() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Symbols::OptimizedOut().ToCString();

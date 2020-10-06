@@ -223,10 +223,6 @@ intptr_t ObjectLayout::HeapSizeFromClass(uint32_t tags) const {
       instance_size = element->HeapSize();
       break;
     }
-    case kImageHeaderCid: {
-      instance_size = ImageHeader::InstanceSize();
-      break;
-    }
     case kWeakSerializationReferenceCid: {
       instance_size = WeakSerializationReference::InstanceSize();
       break;
@@ -568,7 +564,6 @@ NULL_VISITOR(Bool)
 NULL_VISITOR(Capability)
 NULL_VISITOR(SendPort)
 NULL_VISITOR(TransferableTypedData)
-NULL_VISITOR(ImageHeader)
 REGULAR_VISITOR(Pointer)
 NULL_VISITOR(DynamicLibrary)
 VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))

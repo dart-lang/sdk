@@ -41,7 +41,7 @@ class Elf : public ZoneAllocated {
   Dwarf* dwarf() { return dwarf_; }
 
   uword BssStart(bool vm) const;
-  uword BuildIdStart(intptr_t* size);
+  uword BuildIdStart() const;
 
   // What the next memory offset for an appropriately aligned section would be.
   //
@@ -123,7 +123,7 @@ class Elf : public ZoneAllocated {
   SymbolTable* symtab_ = nullptr;
 
   // We always create a GNU build ID for all Elf files. In order to create
-  // the appropriate offset to it in an ImageHeader object, we create an
+  // the appropriate offset to it in an InstructionsSection object, we create an
   // initial build ID section as a placeholder and then replace that section
   // during finalization once we have the information to calculate the real one.
   Section* build_id_;

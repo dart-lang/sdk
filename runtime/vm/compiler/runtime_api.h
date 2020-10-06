@@ -68,9 +68,16 @@ class InvalidClass {};
 extern InvalidClass kWordSize;
 extern InvalidClass kWordSizeLog2;
 extern InvalidClass kBitsPerWord;
+extern InvalidClass kBitsPerWordLog2;
+extern InvalidClass kWordMin;
+extern InvalidClass kWordMax;
+extern InvalidClass kUWordMax;
 extern InvalidClass kNewObjectAlignmentOffset;
 extern InvalidClass kOldObjectAlignmentOffset;
 extern InvalidClass kNewObjectBitPosition;
+extern InvalidClass kOldPageSize;
+extern InvalidClass kOldPageSizeInWords;
+extern InvalidClass kOldPageMask;
 extern InvalidClass kObjectAlignment;
 extern InvalidClass kObjectAlignmentLog2;
 extern InvalidClass kObjectAlignmentMask;
@@ -1187,13 +1194,6 @@ class Code : public AllStatic {
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
   static word saved_instructions_offset();
   static word owner_offset();
-  static word InstanceSize();
-  static word NextFieldOffset();
-};
-
-class ImageHeader : public AllStatic {
- public:
-  static word UnroundedSize();
   static word InstanceSize();
   static word NextFieldOffset();
 };

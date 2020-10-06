@@ -664,17 +664,17 @@ const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
 // For InstructionsSections and Instructions, we define these by hand, because
 // they depend on flags or #defines.
 
+// Used for InstructionsSection and Instructions methods, since we don't
+// serialize Instructions objects in bare instructions mode, just payloads.
+DART_FORCE_INLINE static bool BareInstructionsPayloads() {
+  return FLAG_precompiled_mode && FLAG_use_bare_instructions;
+}
+
 word InstructionsSection::HeaderSize() {
   // We only create InstructionsSections in precompiled mode.
   ASSERT(FLAG_precompiled_mode);
-  return Utils::RoundUp(UnalignedHeaderSize(),
+  return Utils::RoundUp(InstructionsSection::UnalignedHeaderSize(),
                         Instructions::kBarePayloadAlignment);
-}
-
-// Used for Instructions methods, since we don't serialize Instructions objects
-// in bare instructions mode, just payloads.
-DART_FORCE_INLINE static bool BareInstructionsPayloads() {
-  return FLAG_precompiled_mode && FLAG_use_bare_instructions;
 }
 
 word Instructions::HeaderSize() {
@@ -842,20 +842,12 @@ word ForwardingCorpse::FakeInstance::InstanceSize() {
   return 0;
 }
 
-word ImageHeader::InstanceSize() {
-  return RoundedAllocationSize(UnroundedSize());
-}
-
 word Instance::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Instance::NextFieldOffset());
 }
 
 word Pointer::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Pointer::NextFieldOffset());
-}
-
-word ImageHeader::NextFieldOffset() {
-  return -kWordSize;
 }
 
 word WeakSerializationReference::NextFieldOffset() {
