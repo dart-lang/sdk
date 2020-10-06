@@ -5079,7 +5079,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     assert(result is js_ast.Expression ||
         result is js_ast.Statement && node.parent is ExpressionStatement);
-    return result;
+    return result.withSourceInformation(_nodeStart(node));
   }
 
   bool _isWebLibrary(Uri importUri) =>
