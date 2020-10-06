@@ -590,6 +590,19 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try using a hide clause to hide '{0}'.");
 
   /**
+   * This hint is generated anywhere where an element annotated with `@internal`
+   * is exported indirectly as a part of a package's public API.
+   *
+   * Parameters:
+   * 0: the name of the element
+   */
+  static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY = HintCode(
+      'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
+      "The member '{0}' can't be exported as a part of a package's public "
+          "API, but is indirectly exported as part of the signature of '{1}'.",
+      correction: "Try using a hide clause to hide '{0}'.");
+
+  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */

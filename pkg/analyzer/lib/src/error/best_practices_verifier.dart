@@ -1072,6 +1072,22 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
             node,
             [element.displayName]);
+      } else if (element is FunctionElement) {
+        var signatureTypes = [
+          ...element.parameters.map((p) => p.type),
+          element.returnType,
+          ...element.typeParameters.map((tp) => tp.bound),
+        ];
+        for (var type in signatureTypes) {
+          var typeElement = type?.element?.enclosingElement;
+          if (typeElement is GenericTypeAliasElement &&
+              typeElement.hasInternal) {
+            _errorReporter.reportErrorForNode(
+                HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,
+                node,
+                [typeElement.name, element.displayName]);
+          }
+        }
       }
     });
   }
