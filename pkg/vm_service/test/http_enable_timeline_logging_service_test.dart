@@ -4,9 +4,10 @@
 
 import 'dart:async';
 
-import 'package:vm_service/vm_service.dart';
-import 'package:vm_service/src/dart_io_extensions.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/src/dart_io_extensions.dart';
+import 'package:vm_service/vm_service.dart';
+
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
@@ -16,6 +17,7 @@ const String kGetHttpEnableTimelineLogging =
     'ext.dart.io.getHttpEnableTimelineLogging';
 const String kHttpEnableTimelineLogging =
     'ext.dart.io.httpEnableTimelineLogging';
+
 Future<void> setup() async {}
 
 Future<void> waitForStreamEvent(
@@ -34,6 +36,7 @@ Future<void> waitForStreamEvent(
   await service.streamListen(EventStreams.kExtension);
 
   if (useSetter) {
+    // ignore: deprecated_member_use_from_same_package
     await service.setHttpEnableTimelineLogging(isolateId, state);
   } else {
     await service.httpEnableTimelineLogging(isolateId, state);
@@ -55,14 +58,17 @@ var tests = <IsolateTest>[
   },
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id;
+    // ignore: deprecated_member_use_from_same_package
     dynamic response = await service.getHttpEnableTimelineLogging(isolateId);
     expect(response.enabled, false);
 
     await waitForStreamEvent(service, isolateRef, true);
+    // ignore: deprecated_member_use_from_same_package
     response = await service.getHttpEnableTimelineLogging(isolateId);
     expect(response.enabled, true);
 
     await waitForStreamEvent(service, isolateRef, false);
+    // ignore: deprecated_member_use_from_same_package
     response = await service.getHttpEnableTimelineLogging(isolateId);
     expect(response.enabled, false);
   },
