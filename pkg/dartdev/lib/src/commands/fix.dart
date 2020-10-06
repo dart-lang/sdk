@@ -62,7 +62,8 @@ class FixCommand extends DartdevCommand<int> {
     server.requestBulkFixes(dir.absolute.path);
 
     await bulkFixCompleter.future;
-    await server.dispose();
+    await server.shutdown();
+
     progress.finish(showTiming: true);
 
     if (edits.isEmpty) {
