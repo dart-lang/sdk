@@ -1354,18 +1354,6 @@ class ShadowTypePromoter extends TypePromoterImpl {
   }
 
   @override
-  void setVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is VariableDeclarationImpl) {
-      variable.mutatedAnywhere = true;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-    }
-  }
-
-  @override
   void setVariableMutatedInClosure(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {
       variable.mutatedInClosure = true;
@@ -1374,19 +1362,6 @@ class ShadowTypePromoter extends TypePromoterImpl {
       // VariableDeclaration objects sometimes.
       // TODO(paulberry): get rid of this once the type parameter is
       // KernelVariableDeclaration.
-    }
-  }
-
-  @override
-  bool wasVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is VariableDeclarationImpl) {
-      return variable.mutatedAnywhere;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-      return true;
     }
   }
 }
@@ -1414,9 +1389,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // information in a [List] is probably even faster as the average size will
   // be close to zero).
   bool mutatedInClosure = false;
-
-  // TODO(ahe): Investigate if this can be removed.
-  bool mutatedAnywhere = false;
 
   /// Determines whether the given [VariableDeclarationImpl] represents a
   /// local function.
