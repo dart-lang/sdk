@@ -5601,12 +5601,19 @@ class Instructions : public Object {
   friend class ImageWriter;
 };
 
-// Used only to provide memory accounting for the bare instruction payloads
-// we serialize, since they are no longer part of RawInstructions objects.
+// An InstructionsSection contains extra information about serialized AOT
+// snapshots.
+//
+// To avoid changing the embedder to return more information about an AOT
+// snapshot and possibly disturbing existing clients of that interface, we
+// serialize a single InstructionsSection object at the start of any text
+// segments. In bare instructions mode, it also has the benefit of providing
+// memory accounting for the instructions payloads and avoiding special casing
+// Images with bare instructions payloads in the GC. Otherwise, it is empty
+// and the Instructions objects come after it in the Image.
 class InstructionsSection : public Object {
  public:
   // Excludes HeaderSize().
-  intptr_t Size() const { return raw_ptr()->payload_length_; }
   static intptr_t Size(const InstructionsSectionPtr instr) {
     return instr->ptr()->payload_length_;
   }
@@ -5625,7 +5632,14 @@ class InstructionsSection : public Object {
                           Instructions::kBarePayloadAlignment);
   }
 
+  // There are no public instance methods for the InstructionsSection class, as
+  // all access to the contents is handled by methods on the Image class.
+
  private:
+  // Note there are no New() methods for InstructionsSection. Instead, the
+  // serializer writes the InstructionsSectionLayout object manually at the
+  // start of instructions Images in precompiled snapshots.
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(InstructionsSection, Object);
   friend class Class;
 };
@@ -5986,26 +6000,6 @@ class ExceptionHandlers : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers, Object);
   friend class Class;
   friend class Object;
-};
-
-// An ImageHeader contains extra information about serialized AOT snapshots.
-//
-// To avoid changing the embedder to return more information about an AOT
-// snapshot and possibly disturbing existing clients of that interface, we
-// serialize a single ImageHeader object at the start of any text segments.
-class ImageHeader : public Object {
- public:
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(ImageHeaderLayout));
-  }
-  // There are no public methods for the ImageHeader contents, because
-  // all access to the contents is handled by methods on the Image class.
-
- private:
-  // Note there are no New() methods for ImageHeaders. Unstead, the serializer
-  // writes the ImageHeaderLayout object manually at the start of the text
-  // segment in precompiled snapshots.
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(ImageHeader, Object);
 };
 
 // A WeakSerializationReference (WSR) denotes a type of weak reference to a

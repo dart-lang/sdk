@@ -3695,22 +3695,28 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
 #define kSnapshotBuildIdCSymbol "kDartSnapshotBuildId"
 #define kVmSnapshotDataCSymbol "kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "kDartVmSnapshotInstructions"
+#define kVmSnapshotBssCSymbol "kDartVmSnapshotBss"
 #define kIsolateSnapshotDataCSymbol "kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsCSymbol "kDartIsolateSnapshotInstructions"
+#define kIsolateSnapshotBssCSymbol "kDartIsolateSnapshotBss"
 #else
 #define kSnapshotBuildIdCSymbol "_kDartSnapshotBuildId"
 #define kVmSnapshotDataCSymbol "_kDartVmSnapshotData"
 #define kVmSnapshotInstructionsCSymbol "_kDartVmSnapshotInstructions"
+#define kVmSnapshotBssCSymbol "_kDartVmSnapshotBss"
 #define kIsolateSnapshotDataCSymbol "_kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsCSymbol "_kDartIsolateSnapshotInstructions"
+#define kIsolateSnapshotBssCSymbol "_kDartIsolateSnapshotBss"
 #endif
 
 #define kSnapshotBuildIdAsmSymbol "_kDartSnapshotBuildId"
 #define kVmSnapshotDataAsmSymbol "_kDartVmSnapshotData"
 #define kVmSnapshotInstructionsAsmSymbol "_kDartVmSnapshotInstructions"
+#define kVmSnapshotBssAsmSymbol "_kDartVmSnapshotBss"
 #define kIsolateSnapshotDataAsmSymbol "_kDartIsolateSnapshotData"
 #define kIsolateSnapshotInstructionsAsmSymbol                                  \
   "_kDartIsolateSnapshotInstructions"
+#define kIsolateSnapshotBssAsmSymbol "_kDartIsolateSnapshotBss"
 
 /**
  *  Creates a precompiled snapshot.

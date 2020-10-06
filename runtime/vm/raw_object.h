@@ -1415,25 +1415,6 @@ class KernelProgramInfoLayout : public ObjectLayout {
   }
 };
 
-class ImageHeaderLayout : public ObjectLayout {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ImageHeader);
-
-  VISIT_NOTHING();
-  // The offset of the corresponding BSS section from this text section.
-  uword bss_offset_;
-  // The relocated address of this text section in the shared object. Properly
-  // filled for ELF snapshots, always 0 in assembly snapshots. (For the latter,
-  // we instead get the value during BSS initialization and store it there.)
-  uword instructions_relocated_address_;
-  // The offset of the GNU build ID section description field from this text
-  // section.
-  uword build_id_offset_;
-  // The length of the GNU build ID section description field.
-  uword build_id_length_;
-
-  friend class Image;
-};
-
 class WeakSerializationReferenceLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference);
 
@@ -1649,17 +1630,29 @@ class InstructionsLayout : public ObjectLayout {
   friend class BlobImageWriter;
 };
 
-// Used only to provide memory accounting for the bare instruction payloads
-// we serialize, since they are no longer part of RawInstructions objects.
+// Used to carry extra information to the VM without changing the embedder
+// interface, to provide memory accounting for the bare instruction payloads
+// we serialize, since they are no longer part of RawInstructions objects,
+// and to avoid special casing bare instructions payload Images in the GC.
 class InstructionsSectionLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(InstructionsSection);
   VISIT_NOTHING();
 
   // Instructions section payload length in bytes.
   uword payload_length_;
+  // The offset of the corresponding BSS section from this text section.
+  word bss_offset_;
+  // The relocated address of this text section in the shared object. Properly
+  // filled for ELF snapshots, always 0 in assembly snapshots. (For the latter,
+  // we instead get the value during BSS initialization and store it there.)
+  uword instructions_relocated_address_;
+  // The offset of the GNU build ID note section from this text section.
+  word build_id_offset_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  friend class Image;
 };
 
 class PcDescriptorsLayout : public ObjectLayout {

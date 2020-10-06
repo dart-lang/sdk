@@ -96,10 +96,6 @@ class Section : public ZoneAllocated {
   intptr_t info = 0;
   intptr_t entry_size = 0;
 
-  // Stores the name for the symbol that should be created in the dynamic (and
-  // static, if unstripped) tables for this section.
-  const char* symbol_name = nullptr;
-
 #define FOR_EACH_SECTION_LINEAR_FIELD(M)                                       \
   M(name)                                                                      \
   M(index)                                                                     \
@@ -493,17 +489,17 @@ class BitsContainer : public Section {
                       alignment) {}
 
   // For BitsContainers used as segments whose type differ on the type of the
-  // ELF file. Creates an elf::SHT_NOBITS section if type is DebugInfo,
-  // otherwise creates an elf::SHT_PROGBITS section.
+  // ELF file. Creates an elf::SHT_PROGBITS section if type is Snapshot,
+  // otherwise creates an elf::SHT_NOBITS section.
   BitsContainer(Elf::Type t,
                 bool executable,
                 bool writable,
                 intptr_t size,
                 const uint8_t* bytes,
                 intptr_t alignment = kDefaultAlignment)
-      : BitsContainer(t == Elf::Type::DebugInfo
-                          ? elf::SectionHeaderType::SHT_NOBITS
-                          : elf::SectionHeaderType::SHT_PROGBITS,
+      : BitsContainer(t == Elf::Type::Snapshot
+                          ? elf::SectionHeaderType::SHT_PROGBITS
+                          : elf::SectionHeaderType::SHT_NOBITS,
                       /*allocate=*/true,
                       executable,
                       writable,
@@ -552,6 +548,7 @@ class StringTable : public Section {
   }
 
   intptr_t AddString(const char* str) {
+    ASSERT(str != nullptr);
     if (auto const kv = text_indices_.Lookup(str)) return kv->value - 1;
     intptr_t offset = text_.length();
     text_.AddString(str);
@@ -578,12 +575,14 @@ class Symbol : public ZoneAllocated {
  public:
   Symbol(const char* cstr,
          intptr_t name,
-         intptr_t info,
+         intptr_t binding,
+         intptr_t type,
          intptr_t section,
          intptr_t offset,
          intptr_t size)
       : name_index(name),
-        info(info),
+        binding(binding),
+        type(type),
         section_index(section),
         offset(offset),
         size(size),
@@ -595,11 +594,11 @@ class Symbol : public ZoneAllocated {
 #if defined(TARGET_ARCH_IS_32_BIT)
     stream->WriteAddr(offset);
     stream->WriteWord(size);
-    stream->WriteByte(info);
+    stream->WriteByte(elf::SymbolInfo(binding, type));
     stream->WriteByte(0);
     stream->WriteHalf(section_index);
 #else
-    stream->WriteByte(info);
+    stream->WriteByte(elf::SymbolInfo(binding, type));
     stream->WriteByte(0);
     stream->WriteHalf(section_index);
     stream->WriteAddr(offset);
@@ -609,7 +608,8 @@ class Symbol : public ZoneAllocated {
   }
 
   const intptr_t name_index;
-  const intptr_t info;
+  const intptr_t binding;
+  const intptr_t type;
   const intptr_t section_index;
   const intptr_t offset;
   const intptr_t size;
@@ -622,19 +622,22 @@ class Symbol : public ZoneAllocated {
 
 class SymbolTable : public Section {
  public:
-  SymbolTable(Zone* zone, bool dynamic)
+  SymbolTable(Zone* zone, StringTable* table, bool dynamic)
       : Section(dynamic ? elf::SectionHeaderType::SHT_DYNSYM
                         : elf::SectionHeaderType::SHT_SYMTAB,
                 dynamic,
                 /*executable=*/false,
                 /*writable=*/false),
+        zone_(zone),
+        table_(table),
         dynamic_(dynamic),
-        reserved_("", 0, 0, 0, 0, 0),
-        symbols_(zone, 1) {
+        symbols_(zone, 1),
+        by_name_index_(zone) {
     entry_size = sizeof(elf::Symbol);
     // The first symbol table entry is reserved and must be all zeros.
-    symbols_.Add(&reserved_);
-    info = 1;  // One "local" symbol, the reserved first entry.
+    // (String tables always have the empty string at the 0th index.)
+    AddSymbol("", elf::STB_LOCAL, elf::STT_NOTYPE, elf::SHN_UNDEF, /*offset=*/0,
+              /*size=*/0);
   }
 
   intptr_t FileSize() const { return Length() * entry_size; }
@@ -649,22 +652,49 @@ class SymbolTable : public Section {
     }
   }
 
-  void AddSymbol(const Symbol* symbol) { symbols_.Add(symbol); }
+  void AddSymbol(const char* name,
+                 intptr_t binding,
+                 intptr_t type,
+                 intptr_t section_index,
+                 intptr_t offset,
+                 intptr_t size) {
+    ASSERT(!table_->HasBeenFinalized());
+    auto const name_index = table_->AddString(name);
+    ASSERT(by_name_index_.Lookup(name_index) == nullptr);
+    auto const symbol = new (zone_)
+        Symbol(name, name_index, binding, type, section_index, offset, size);
+    symbols_.Add(symbol);
+    by_name_index_.Insert(name_index, symbol);
+    // The info field on a symbol table section holds the index of the first
+    // non-local symbol, so they can be skipped if desired. Thus, we need to
+    // make sure local symbols are before any non-local ones.
+    if (binding == elf::STB_LOCAL) {
+      if (info != symbols_.length() - 1) {
+        // There are non-local symbols, as otherwise [info] would be the
+        // index of the new symbol. Since the order doesn't otherwise matter,
+        // swap the new local symbol with the value at index [info], so when
+        // [info] is incremented it will point just past the new local symbol.
+        ASSERT(symbols_[info]->binding != elf::STB_LOCAL);
+        symbols_.Swap(info, symbols_.length() - 1);
+      }
+      info += 1;
+    }
+  }
   intptr_t Length() const { return symbols_.length(); }
   const Symbol* At(intptr_t i) const { return symbols_[i]; }
 
-  const Symbol* FindSymbolWithNameIndex(intptr_t name_index) const {
-    for (intptr_t i = 0; i < Length(); i++) {
-      auto const symbol = At(i);
-      if (symbol->name_index == name_index) return symbol;
-    }
-    return nullptr;
+  const Symbol* Find(const char* name) const {
+    ASSERT(name != nullptr);
+    auto const name_index = table_->Lookup(name);
+    return by_name_index_.Lookup(name_index);
   }
 
  private:
+  Zone* const zone_;
+  StringTable* const table_;
   const bool dynamic_;
-  const Symbol reserved_;
   GrowableArray<const Symbol*> symbols_;
+  mutable IntMap<const Symbol*> by_name_index_;
 };
 
 static uint32_t ElfHash(const unsigned char* name) {
@@ -809,7 +839,7 @@ class NoteSegment : public Segment {
 };
 
 // We assume that the final program table fits in a single page of memory.
-static const intptr_t kProgramTableSegmentSize = Elf::kPageSize;
+static constexpr intptr_t kProgramTableSegmentSize = Elf::kPageSize;
 
 // Here, both VM and isolate will be compiled into a single snapshot.
 // In assembly generation, each serialized text section gets a separate
@@ -817,11 +847,27 @@ static const intptr_t kProgramTableSegmentSize = Elf::kPageSize;
 // we may not serialize both VM and isolate. Here, we always serialize both,
 // so make a BSS segment large enough for both, with the VM entries coming
 // first.
-static constexpr const char* kSnapshotBssAsmSymbol = "_kDartBSSData";
-static const intptr_t kBssIsolateOffset =
+static constexpr intptr_t kBssVmSize =
     BSS::kVmEntryCount * compiler::target::kWordSize;
-static const intptr_t kBssSize =
-    kBssIsolateOffset + BSS::kIsolateEntryCount * compiler::target::kWordSize;
+static constexpr intptr_t kBssIsolateSize =
+    BSS::kIsolateEntryCount * compiler::target::kWordSize;
+static constexpr intptr_t kBssSize = kBssVmSize + kBssIsolateSize;
+
+// For the build ID, we generate a 128-bit hash, where each 32 bits is a hash of
+// the contents of the following segments in order:
+//
+// .text(VM) | .text(Isolate) | .rodata(VM) | .rodata(Isolate)
+static constexpr const char* kBuildIdSegmentNames[]{
+    kVmSnapshotInstructionsAsmSymbol,
+    kIsolateSnapshotInstructionsAsmSymbol,
+    kVmSnapshotDataAsmSymbol,
+    kIsolateSnapshotDataAsmSymbol,
+};
+static constexpr intptr_t kBuildIdSegmentNamesLength =
+    ARRAY_SIZE(kBuildIdSegmentNames);
+// Includes the note name, but not the description.
+static constexpr intptr_t kBuildIdHeaderSize =
+    sizeof(elf::Note) + sizeof(elf::ELF_NOTE_GNU);
 
 Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
     : zone_(zone),
@@ -831,7 +877,7 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
       bss_(CreateBSS(zone, type, kBssSize)),
       shstrtab_(new (zone) StringTable(zone, /*allocate=*/false)),
       dynstrtab_(new (zone) StringTable(zone, /*allocate=*/true)),
-      dynsym_(new (zone) SymbolTable(zone, /*dynamic=*/true)) {
+      dynsym_(new (zone) SymbolTable(zone, dynstrtab_, /*dynamic=*/true)) {
   // Separate debugging information should always have a Dwarf object.
   ASSERT(type_ == Type::Snapshot || dwarf_ != nullptr);
   // Assumed by various offset logic in this file.
@@ -842,7 +888,7 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
   if (!IsStripped()) {
     // Not a stripped ELF file, so allocate static string and symbol tables.
     strtab_ = new (zone_) StringTable(zone_, /* allocate= */ false);
-    symtab_ = new (zone_) SymbolTable(zone, /*dynamic=*/false);
+    symtab_ = new (zone_) SymbolTable(zone, strtab_, /*dynamic=*/false);
   }
   // We add an initial segment to represent reserved space for the program
   // header, and so we can always assume there's at least one segment in the
@@ -852,14 +898,17 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
       new (zone_) ProgramTableLoadSegment(zone_, kProgramTableSegmentSize);
   segments_.Add(start_segment);
   // We allocate an initial build ID of all zeroes, since we need the build ID
-  // memory offset during ImageHeader creation (see BlobImageWriter::WriteText).
+  // memory offset for the InstructionsSection (see BlobImageWriter::WriteText).
   // We replace it with the real build ID during finalization. (We add this
   // prior to BSS because we make the BuildID section writable also, so they are
   // placed in the same segment before any non-writable ones, and if we add it
   // after, then in separate debugging information, it'll go into a separate
   // segment because the BSS section for debugging info is NOBITS.)
-  build_id_ = GenerateBuildId();
-  AddSection(build_id_, kBuildIdNoteName, kSnapshotBuildIdAsmSymbol);
+  {
+    uint32_t zeroes[kBuildIdSegmentNamesLength] = {0};
+    build_id_ = CreateBuildIdNote(&zeroes, sizeof(zeroes));
+    AddSection(build_id_, kBuildIdNoteName, kSnapshotBuildIdAsmSymbol);
+  }
   // Note that the BSS segment must be in the first user-defined segment because
   // it cannot be placed in between any two non-writable segments, due to a bug
   // in Jelly Bean's ELF loader. (For this reason, the program table segments
@@ -869,7 +918,16 @@ Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
   // We add it in all cases, even to the separate debugging information ELF,
   // to ensure that relocated addresses are consistent between ELF snapshots
   // and ELF separate debugging information.
-  AddSection(bss_, ".bss", kSnapshotBssAsmSymbol);
+  auto const bss_start = AddSection(bss_, ".bss");
+  // For the BSS section, we add two local symbols to the static symbol table,
+  // one for each isolate. We use local symbols because these addresses are only
+  // used for relocation. (This matches the behavior in the assembly output,
+  // where these symbols are also local.)
+  AddStaticSymbol(kVmSnapshotBssAsmSymbol, elf::STB_LOCAL, elf::STT_SECTION,
+                  bss_->index(), bss_start, kBssVmSize);
+  AddStaticSymbol(kIsolateSnapshotBssAsmSymbol, elf::STB_LOCAL,
+                  elf::STT_SECTION, bss_->index(), bss_start + kBssVmSize,
+                  kBssIsolateSize);
 }
 
 intptr_t Elf::NextMemoryOffset(intptr_t alignment) const {
@@ -882,8 +940,30 @@ intptr_t Elf::NextMemoryOffset(intptr_t alignment) const {
   return Utils::RoundUp(LastLoadSegment()->MemoryEnd(), alignment);
 }
 
-uword Elf::BssStart(bool vm) const {
-  return bss_->memory_offset() + (vm ? 0 : kBssIsolateOffset);
+uword Elf::SymbolAddress(const char* name) const {
+  ASSERT(name != nullptr);
+  // Check the static symbol table first if it exists, since the dynamic
+  // table is a subset of it. Fall back on the dynamic otherwise.
+  if (symtab_ != nullptr) {
+    if (auto const symbol = symtab_->Find(name)) {
+      return symbol->offset;
+    }
+  } else if (auto const symbol = dynsym_->Find(name)) {
+    return symbol->offset;
+  }
+  // If stripping, then we won't have symbols for the BSS sections because
+  // they're only added to the static symbol table. Check for these special
+  // cases before returning kNoSectionStart.
+  if (strcmp(name, kVmSnapshotBssAsmSymbol) == 0) {
+    ASSERT(bss_ != nullptr);
+    ASSERT(bss_->memory_offset_is_set());
+    return bss_->memory_offset();
+  } else if (strcmp(name, kIsolateSnapshotBssAsmSymbol) == 0) {
+    ASSERT(bss_ != nullptr);
+    ASSERT(bss_->memory_offset_is_set());
+    return bss_->memory_offset() + kBssVmSize;
+  }
+  return kNoSectionStart;
 }
 
 intptr_t Elf::AddSection(Section* section,
@@ -913,7 +993,11 @@ intptr_t Elf::AddSection(Section* section,
     segments_.Add(segment);
   }
   if (symbol_name != nullptr) {
-    section->symbol_name = symbol_name;
+    // While elf::STT_SECTION might seem more appropriate, section symbols are
+    // usually local and dlsym won't return them.
+    AddDynamicSymbol(symbol_name, elf::STB_GLOBAL, elf::STT_FUNC,
+                     section->index(), section->memory_offset(),
+                     section->MemorySize());
   }
   return section->memory_offset();
 }
@@ -937,9 +1021,6 @@ void Elf::ReplaceSection(Section* old_section, Section* new_section) {
 }
 
 intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
-  // When making a separate debugging info file for assembly, we don't have
-  // the binary text segment contents.
-  ASSERT(type_ == Type::DebugInfo || bytes != nullptr);
   auto const image = new (zone_) BitsContainer(type_, /*executable=*/true,
                                                /*writable=*/false, size, bytes,
                                                ImageWriter::kTextAlignment);
@@ -948,7 +1029,7 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
 
 Section* Elf::CreateBSS(Zone* zone, Type type, intptr_t size) {
   uint8_t* bytes = nullptr;
-  if (type != Type::DebugInfo) {
+  if (type == Type::Snapshot) {
     // Ideally the BSS segment would take no space in the object, but Android's
     // "strip" utility truncates the memory-size of our segments to their
     // file-size.
@@ -962,7 +1043,6 @@ Section* Elf::CreateBSS(Zone* zone, Type type, intptr_t size) {
 }
 
 intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
-  ASSERT(bytes != nullptr);
   auto const image = new (zone_) BitsContainer(type_, /*executable=*/false,
                                                /*writable=*/false, size, bytes,
                                                ImageWriter::kRODataAlignment);
@@ -977,33 +1057,43 @@ void Elf::AddDebug(const char* name, const uint8_t* bytes, intptr_t size) {
   AddSection(image, name);
 }
 
+void Elf::AddLocalSymbol(const char* name,
+                         intptr_t type,
+                         intptr_t offset,
+                         intptr_t size) {
+  const intptr_t section_index = sections_.length();
+  // Assume the next section will go into its own segment (currently true
+  // because we write writable sections, data vm (non-writable, non-executable),
+  // text vm (executable), data isolate (non-executable), text isolate
+  // (executable), and we only call this for data and text sections).
+  const intptr_t address =
+      NextMemoryOffset(ImageWriter::kTextAlignment) + offset;
+  AddStaticSymbol(name, elf::STB_LOCAL, type, section_index, address, size);
+}
+
 void Elf::AddDynamicSymbol(const char* name,
-                           intptr_t info,
+                           intptr_t binding,
+                           intptr_t type,
                            intptr_t section_index,
                            intptr_t address,
                            intptr_t size) {
-  ASSERT(!dynstrtab_->HasBeenFinalized() && !dynsym_->HasBeenFinalized());
-  auto const name_index = dynstrtab_->AddString(name);
-  auto const symbol =
-      new (zone_) Symbol(name, name_index, info, section_index, address, size);
-  dynsym_->AddSymbol(symbol);
+  ASSERT(!dynsym_->HasBeenFinalized());
+  dynsym_->AddSymbol(name, binding, type, section_index, address, size);
 
   // Some tools assume the static symbol table is a superset of the dynamic
   // symbol table when it exists (see dartbug.com/41783).
-  AddStaticSymbol(name, info, section_index, address, size);
+  AddStaticSymbol(name, binding, type, section_index, address, size);
 }
 
 void Elf::AddStaticSymbol(const char* name,
-                          intptr_t info,
+                          intptr_t binding,
+                          intptr_t type,
                           intptr_t section_index,
                           intptr_t address,
                           intptr_t size) {
   if (IsStripped()) return;  // No static info kept in stripped ELF files.
-  ASSERT(!symtab_->HasBeenFinalized() && !strtab_->HasBeenFinalized());
-  auto const name_index = strtab_->AddString(name);
-  auto const symbol =
-      new (zone_) Symbol(name, name_index, info, section_index, address, size);
-  symtab_->AddSymbol(symbol);
+  ASSERT(!symtab_->HasBeenFinalized());
+  symtab_->AddSymbol(name, binding, type, section_index, address, size);
 }
 
 #if defined(DART_PRECOMPILER)
@@ -1011,10 +1101,10 @@ class DwarfElfStream : public DwarfWriteStream {
  public:
   explicit DwarfElfStream(Zone* zone,
                           NonStreamingWriteStream* stream,
-                          const CStringMap<intptr_t>& address_map)
+                          const SymbolTable* table)
       : zone_(ASSERT_NOTNULL(zone)),
         stream_(ASSERT_NOTNULL(stream)),
-        address_map_(address_map) {}
+        table_(table) {}
 
   void sleb128(intptr_t value) {
     bool is_last_part = false;
@@ -1070,19 +1160,15 @@ class DwarfElfStream : public DwarfWriteStream {
     stream_->SetPosition(old_position);
   }
   void OffsetFromSymbol(const char* symbol, intptr_t offset) {
-    auto const address = address_map_.LookupValue(symbol);
-    ASSERT(address != 0);
-    addr(address + offset);
+    addr(RelocatedAddress(symbol, offset));
   }
   void DistanceBetweenSymbolOffsets(const char* symbol1,
                                     intptr_t offset1,
                                     const char* symbol2,
                                     intptr_t offset2) {
-    auto const address1 = address_map_.LookupValue(symbol1);
-    ASSERT(address1 != 0);
-    auto const address2 = address_map_.LookupValue(symbol2);
-    ASSERT(address2 != 0);
-    auto const delta = (address1 + offset1) - (address2 + offset2);
+    auto const address1 = RelocatedAddress(symbol1, offset1);
+    auto const address2 = RelocatedAddress(symbol2, offset2);
+    auto const delta = address1 - address2;
     RELEASE_ASSERT(delta >= 0);
     uleb128(delta);
   }
@@ -1098,6 +1184,12 @@ class DwarfElfStream : public DwarfWriteStream {
   void AbstractOrigin(intptr_t index) { u4(abstract_origins_[index]); }
 
  private:
+  uword RelocatedAddress(const char* name, intptr_t offset) {
+    auto const symbol = table_->Find(name);
+    ASSERT(symbol != nullptr);
+    return symbol->offset + offset;
+  }
+
   void addr(uword value) {
 #if defined(TARGET_ARCH_IS_32_BIT)
     u4(value);
@@ -1108,7 +1200,7 @@ class DwarfElfStream : public DwarfWriteStream {
 
   Zone* const zone_;
   NonStreamingWriteStream* const stream_;
-  const CStringMap<intptr_t>& address_map_;
+  const SymbolTable* table_;
   uint32_t* abstract_origins_ = nullptr;
   intptr_t abstract_origins_size_ = -1;
 
@@ -1141,86 +1233,29 @@ const Section* Elf::FindSectionForAddress(intptr_t address) const {
   return nullptr;
 }
 
-void Elf::AddSectionSymbols() {
-  for (auto const section : sections_) {
-    if (section->symbol_name == nullptr) continue;
-    ASSERT(section->memory_offset_is_set());
-    // While elf::STT_SECTION might seem more appropriate, those symbols are
-    // usually local and dlsym won't return them.
-    auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
-    AddDynamicSymbol(section->symbol_name, info, section->index(),
-                     section->memory_offset(), section->MemorySize());
-  }
-}
-
 void Elf::FinalizeDwarfSections() {
   if (dwarf_ == nullptr) return;
 #if defined(DART_PRECOMPILER)
-  // Add all the static symbols for Code objects. We'll keep a table of
-  // symbol names to relocated addresses for use in the DwarfElfStream.
-  // The default kNoValue of 0 is okay here, as no symbols are defined for
-  // relocated address 0.
-  CStringMap<intptr_t> symbol_to_address_map;
-  // Prime the map with any existing static symbols.
-  if (symtab_ != nullptr) {
-    ASSERT(strtab_ != nullptr);
-    // Skip the initial reserved entry in the symbol table.
-    for (intptr_t i = 1; i < symtab_->Length(); i++) {
-      auto const symbol = symtab_->At(i);
-      auto const name = strtab_->At(symbol->name_index);
-      symbol_to_address_map.Insert({name, symbol->offset});
-    }
-  }
-
-  // Need these to turn offsets into relocated addresses.
-  auto const vm_start =
-      symbol_to_address_map.LookupValue(kVmSnapshotInstructionsAsmSymbol);
-  // vm_start is absent in deferred loading peices.
-  auto const isolate_start =
-      symbol_to_address_map.LookupValue(kIsolateSnapshotInstructionsAsmSymbol);
-  ASSERT(isolate_start > 0);
-  auto const vm_text = FindSectionForAddress(vm_start);
-  // vm_text is absent in deferred loading peices.
-  auto const isolate_text = FindSectionForAddress(isolate_start);
-  ASSERT(isolate_text != nullptr);
-
-  SnapshotTextObjectNamer namer(zone_);
-  const auto& codes = dwarf_->codes();
-  if (codes.length() == 0) {
-    return;
-  }
-  for (intptr_t i = 0; i < codes.length(); i++) {
-    const auto& code = *codes[i];
-    auto const name = namer.SnapshotNameFor(i, code);
-    const auto& pair = dwarf_->CodeAddress(code);
-    ASSERT(pair.offset > 0);
-    auto const section = pair.vm ? vm_text : isolate_text;
-    const intptr_t address = section->memory_offset() + pair.offset;
-    auto const info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
-    AddStaticSymbol(name, info, section->index(), address, code.Size());
-    symbol_to_address_map.Insert({name, address});
-  }
-
-  // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
-  // provide unwinding information.
-
   {
     ZoneWriteStream stream(zone(), kInitialDwarfBufferSize);
-    DwarfElfStream dwarf_stream(zone_, &stream, symbol_to_address_map);
+    // We can use symtab_ without checking because this is an unstripped
+    // snapshot or separate debugging information, both of which have static
+    // symbol tables, and the static symbol table is a superset of the dynamic.
+    DwarfElfStream dwarf_stream(zone_, &stream, symtab_);
     dwarf_->WriteAbbreviations(&dwarf_stream);
     AddDebug(".debug_abbrev", stream.buffer(), stream.bytes_written());
   }
 
   {
     ZoneWriteStream stream(zone(), kInitialDwarfBufferSize);
-    DwarfElfStream dwarf_stream(zone_, &stream, symbol_to_address_map);
+    DwarfElfStream dwarf_stream(zone_, &stream, symtab_);
     dwarf_->WriteDebugInfo(&dwarf_stream);
     AddDebug(".debug_info", stream.buffer(), stream.bytes_written());
   }
 
   {
     ZoneWriteStream stream(zone(), kInitialDwarfBufferSize);
-    DwarfElfStream dwarf_stream(zone_, &stream, symbol_to_address_map);
+    DwarfElfStream dwarf_stream(zone_, &stream, symtab_);
     dwarf_->WriteLineNumberProgram(&dwarf_stream);
     AddDebug(".debug_line", stream.buffer(), stream.bytes_written());
   }
@@ -1228,15 +1263,7 @@ void Elf::FinalizeDwarfSections() {
 }
 
 void Elf::Finalize() {
-  AddSectionSymbols();
-
-  // The Build ID depends on the symbols being in place, so must be run after
-  // AddSectionSymbols(). Unfortunately, it currently depends on the contents
-  // of the .text and .rodata sections, so it can't come earlier in the file
-  // without changing how we add the .text and .rodata sections (since we
-  // determine memory offsets for those sections when we add them, and the
-  // text sections must have the memory offsets to do BSS relocations).
-  if (auto const new_build_id = GenerateBuildId()) {
+  if (auto const new_build_id = GenerateFinalBuildId()) {
     ReplaceSection(build_id_, new_build_id);
 
     // Add a PT_NOTE segment for the build ID.
@@ -1268,13 +1295,13 @@ void Elf::Finalize() {
   // extra padding _or_ determine file offsets before memory offsets. The
   // latter would require us to handle BSS relocations during ELF finalization,
   // instead of while writing the .text section content.
-  FinalizeDwarfSections();
   if (!IsStripped()) {
     AddSection(strtab_, ".strtab");
     AddSection(symtab_, ".symtab");
     symtab_->link = strtab_->index();
   }
   AddSection(shstrtab_, ".shstrtab");
+  FinalizeDwarfSections();
 
   // At this point, all non-programmatically calculated sections and segments
   // have been added. Add any programatically calculated sections and segments
@@ -1290,39 +1317,13 @@ void Elf::Finalize() {
   WriteSectionTable(&wrapped);
 }
 
-// Need to include the final \0 terminator in both byte count and byte output.
-static const uint32_t kBuildIdNameLength = strlen(elf::ELF_NOTE_GNU) + 1;
-// We generate a 128-bit hash, where each 32 bits is a hash of the contents of
-// the following segments in order:
-//
-// .text(VM) | .text(Isolate) | .rodata(VM) | .rodata(Isolate)
-static constexpr intptr_t kBuildIdSegmentNamesLength = 4;
-static constexpr const char* kBuildIdSegmentNames[kBuildIdSegmentNamesLength]{
-    kVmSnapshotInstructionsAsmSymbol,
-    kIsolateSnapshotInstructionsAsmSymbol,
-    kVmSnapshotDataAsmSymbol,
-    kIsolateSnapshotDataAsmSymbol,
-};
-static constexpr uint32_t kBuildIdDescriptionLength =
-    kBuildIdSegmentNamesLength * sizeof(uint32_t);
-static const intptr_t kBuildIdDescriptionOffset =
-    sizeof(elf::Note) + kBuildIdNameLength;
-static const intptr_t kBuildIdSize =
-    kBuildIdDescriptionOffset + kBuildIdDescriptionLength;
-
-static const Symbol* LookupSymbol(StringTable* strings,
-                                  SymbolTable* symbols,
-                                  const char* name) {
-  ASSERT(strings != nullptr);
-  ASSERT(symbols != nullptr);
-  auto const name_index = strings->Lookup(name);
-  if (name_index < 0) return nullptr;
-  return symbols->FindSymbolWithNameIndex(name_index);
-}
-
 static uint32_t HashBitsContainer(const BitsContainer* bits) {
   uint32_t hash = 0;
   auto const size = bits->MemorySize();
+  if (bits->bytes() == nullptr) {
+    // Just hash the size as a fallback if this section has no contents.
+    return FinalizeHash(size, 32);
+  }
   auto const end = bits->bytes() + size;
   auto const non_word_size = size % kWordSize;
   auto const end_of_words =
@@ -1338,41 +1339,51 @@ static uint32_t HashBitsContainer(const BitsContainer* bits) {
   return FinalizeHash(hash, 32);
 }
 
-uword Elf::BuildIdStart(intptr_t* size) {
-  ASSERT(size != nullptr);
-  ASSERT(build_id_ != nullptr);
-  *size = kBuildIdDescriptionLength;
-  return build_id_->memory_offset() + kBuildIdDescriptionOffset;
-}
-
-Section* Elf::GenerateBuildId() {
-  ZoneWriteStream stream(zone(), kBuildIdSize);
-  stream.WriteFixed(kBuildIdNameLength);
-  stream.WriteFixed(kBuildIdDescriptionLength);
-  stream.WriteFixed(static_cast<uint32_t>(elf::NoteType::NT_GNU_BUILD_ID));
-  stream.WriteBytes(elf::ELF_NOTE_GNU, kBuildIdNameLength);
-  const intptr_t description_start = stream.bytes_written();
+Section* Elf::GenerateFinalBuildId() {
+  uint32_t hashes[kBuildIdSegmentNamesLength];
   for (intptr_t i = 0; i < kBuildIdSegmentNamesLength; i++) {
     auto const name = kBuildIdSegmentNames[i];
-    auto const symbol = LookupSymbol(dynstrtab_, dynsym_, name);
+    auto const symbol = dynsym_->Find(name);
     if (symbol == nullptr) {
-      stream.WriteFixed(static_cast<uint32_t>(0));
-      continue;
+      // If we're missing a section, then we don't generate a final build ID.
+      return nullptr;
     }
     auto const bits = sections_[symbol->section_index]->AsBitsContainer();
     if (bits == nullptr) {
       FATAL1("Section for symbol %s is not a BitsContainer", name);
     }
+    if (bits->bytes() == nullptr) {
+      // For now, if we don't have section contents (because we're generating
+      // assembly), don't generate a final build ID, as we'll have different
+      // build IDs in the snapshot and the separate debugging information.
+      //
+      // TODO(dartbug.com/43274): Change once we generate consistent build IDs
+      // between assembly snapshots and their debugging information.
+      return nullptr;
+    }
     ASSERT_EQUAL(bits->MemorySize(), symbol->size);
-    // We don't actually have the bytes (i.e., this is a separate debugging
-    // info file for an assembly snapshot), so we can't calculate the build ID.
-    if (bits->bytes() == nullptr) return nullptr;
-
-    stream.WriteFixed(HashBitsContainer(bits));
+    hashes[i] = HashBitsContainer(bits);
   }
-  ASSERT_EQUAL(stream.bytes_written() - description_start,
-               kBuildIdDescriptionLength);
-  ASSERT_EQUAL(stream.bytes_written(), kBuildIdSize);
+  // To ensure we can quickly check for a final build ID, we ensure the first
+  // byte contains a non-zero value.
+  auto const bytes = reinterpret_cast<uint8_t*>(hashes);
+  if (bytes[0] == 0) {
+    bytes[0] = 1;
+  }
+  return CreateBuildIdNote(&hashes, sizeof(hashes));
+}
+
+Section* Elf::CreateBuildIdNote(const void* description_bytes,
+                                intptr_t description_length) {
+  ASSERT(description_length == 0 || description_bytes != nullptr);
+  ZoneWriteStream stream(zone(), kBuildIdHeaderSize + description_length);
+  stream.WriteFixed<decltype(elf::Note::name_size)>(sizeof(elf::ELF_NOTE_GNU));
+  stream.WriteFixed<decltype(elf::Note::description_size)>(description_length);
+  stream.WriteFixed<decltype(elf::Note::type)>(elf::NoteType::NT_GNU_BUILD_ID);
+  ASSERT_EQUAL(stream.Position(), sizeof(elf::Note));
+  stream.WriteBytes(elf::ELF_NOTE_GNU, sizeof(elf::ELF_NOTE_GNU));
+  ASSERT_EQUAL(stream.bytes_written(), kBuildIdHeaderSize);
+  stream.WriteBytes(description_bytes, description_length);
   // While the build ID section does not need to be writable, it and the
   // BSS section are allocated segments at the same time. Having the same flags
   // ensures they will be combined in the same segment and not unnecessarily

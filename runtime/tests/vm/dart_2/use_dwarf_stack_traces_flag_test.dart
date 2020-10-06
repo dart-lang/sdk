@@ -117,11 +117,14 @@ main(List<String> args) async {
 
     // Check that build IDs match for traces.
     Expect.isNotNull(dwarf.buildId);
+    print('Dwarf build ID: "${dwarf.buildId}"');
     final buildId1 = buildId(dwarfTrace1);
     Expect.isFalse(buildId1.isEmpty);
+    print('Trace 1 build ID: "${buildId1}"');
     Expect.equals(dwarf.buildId, buildId1);
     final buildId2 = buildId(dwarfTrace2);
     Expect.isFalse(buildId2.isEmpty);
+    print('Trace 2 build ID: "${buildId2}"');
     Expect.equals(dwarf.buildId, buildId2);
 
     final translatedDwarfTrace1 = await Stream.fromIterable(dwarfTrace1)

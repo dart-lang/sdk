@@ -6683,13 +6683,12 @@ static void CreateAppAOTSnapshot(
                                      strip ? new (Z) Dwarf(Z) : dwarf)
                        : nullptr;
 
-    BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions, debug_elf,
-                                    elf);
-    BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions,
-                                         debug_elf, elf);
+    BlobImageWriter image_writer(T, &vm_snapshot_instructions,
+                                 &isolate_snapshot_instructions, debug_elf,
+                                 elf);
     FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data,
-                              &isolate_snapshot_data, &vm_image_writer,
-                              &isolate_image_writer);
+                              &isolate_snapshot_data, &image_writer,
+                              &image_writer);
 
     if (unit == nullptr || unit->id() == LoadingUnit::kRootId) {
       writer.WriteFullSnapshot(units);
@@ -7030,11 +7029,11 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   ZoneWriteStream isolate_snapshot_instructions(
       Api::TopScope(T)->zone(), FullSnapshotWriter::kInitialSize);
 
-  BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions);
-  BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions);
+  BlobImageWriter image_writer(T, &vm_snapshot_instructions,
+                               &isolate_snapshot_instructions);
   FullSnapshotWriter writer(Snapshot::kFullJIT, &vm_snapshot_data,
-                            &isolate_snapshot_data, &vm_image_writer,
-                            &isolate_image_writer);
+                            &isolate_snapshot_data, &image_writer,
+                            &image_writer);
   writer.WriteFullSnapshot();
 
   *vm_snapshot_data_buffer = vm_snapshot_data.buffer();
@@ -7118,9 +7117,10 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                         FullSnapshotWriter::kInitialSize);
   ZoneWriteStream isolate_snapshot_instructions(
       Api::TopScope(T)->zone(), FullSnapshotWriter::kInitialSize);
-  BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions);
+  BlobImageWriter image_writer(T, /*vm_instructions=*/nullptr,
+                               &isolate_snapshot_instructions);
   FullSnapshotWriter writer(Snapshot::kFullJIT, nullptr, &isolate_snapshot_data,
-                            nullptr, &isolate_image_writer);
+                            nullptr, &image_writer);
   writer.WriteFullSnapshot();
 
   *isolate_snapshot_data_buffer = isolate_snapshot_data.buffer();

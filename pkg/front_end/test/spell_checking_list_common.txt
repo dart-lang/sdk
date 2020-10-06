@@ -300,6 +300,7 @@ bits
 bitwise
 black
 block
+blocked
 blocks
 blogs
 blue
@@ -797,6 +798,7 @@ dereferenced
 derivation
 derive
 derived
+descendant
 descendants
 describe
 described

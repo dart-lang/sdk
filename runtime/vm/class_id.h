@@ -91,8 +91,7 @@ typedef uint16_t ClassIdTagType;
   V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
   V(TransferableTypedData)                                                     \
-  V(WeakSerializationReference)                                                \
-  V(ImageHeader)
+  V(WeakSerializationReference)
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \

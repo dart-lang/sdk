@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -69,6 +70,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   final _InvalidAccessVerifier _invalidAccessVerifier;
 
+  final MustCallSuperVerifier _mustCallSuperVerifier;
+
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage _workspacePackage;
 
@@ -103,6 +106,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier = _InvalidAccessVerifier(
             _errorReporter, _currentLibrary, workspacePackage),
+        _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
         _workspacePackage = workspacePackage {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
     _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
@@ -589,6 +593,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // This was determined to not be a good hint, see: dartbug.com/16029
       //checkForOverridingPrivateMember(node);
       _checkForMissingReturn(node.returnType, node.body, element, node);
+      _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
 
       if (!node.isSetter && !elementIsOverride()) {

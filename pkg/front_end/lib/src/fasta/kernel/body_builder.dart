@@ -4590,6 +4590,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleElseControlFlow(Token elseToken) {
+    // Resolve the top of the stack so that if it's a delayed assignment it
+    // happens before we go into the else block.
+    Object node = pop();
+    if (node is! MapEntry) node = toValue(node);
+    push(node);
     typePromoter?.enterElse();
   }
 
@@ -4599,8 +4604,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Object entry = pop();
     Object condition = pop(); // parenthesized expression
     Token ifToken = pop();
-    typePromoter?.enterElse();
-    typePromoter?.exitConditional();
 
     transformCollections = true;
     if (entry is MapEntry) {
@@ -4610,6 +4613,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(forest.createIfElement(
           offsetForToken(ifToken), toValue(condition), toValue(entry)));
     }
+    typePromoter?.enterElse();
+    typePromoter?.exitConditional();
   }
 
   @override
