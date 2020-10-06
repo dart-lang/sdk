@@ -31,9 +31,7 @@ class LinkedElementFactory {
   ) {
     ArgumentError.checkNotNull(analysisContext, 'analysisContext');
     ArgumentError.checkNotNull(analysisSession, 'analysisSession');
-    var dartCoreRef = rootReference.getChild('dart:core');
-    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
-    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
+    declareDartCoreDynamicNever();
   }
 
   CoreTypes get coreTypes {
@@ -102,6 +100,12 @@ class LinkedElementFactory {
         _setLibraryTypeSystem(libraryElement);
       }
     }
+  }
+
+  void declareDartCoreDynamicNever() {
+    var dartCoreRef = rootReference.getChild('dart:core');
+    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
+    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
   }
 
   Element elementOfReference(Reference reference) {
