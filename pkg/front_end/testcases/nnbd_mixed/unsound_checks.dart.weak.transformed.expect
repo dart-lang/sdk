@@ -256,7 +256,7 @@ static method main() → dynamic {
   uns::unnecessaryNullAwareAccess(() → core::Null? => null);
   self::throws(() → dynamic => uns::callReturningNever(() → <BottomType>=> throw "foo"), (core::Object* e) → core::bool* => e.{core::Object::==}("foo"));
   () →* core::Null? f = () → core::Null? => null;
-  self::throws(() → dynamic => uns::callReturningNever(f as{TypeError} () → Never));
+  self::throws(() → dynamic => uns::callReturningNever(f));
   uns::switchOnEnum(#C3);
   uns::switchOnEnum(#C6);
   self::throws(() → dynamic => uns::switchOnEnum(null));
@@ -639,4 +639,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 -> IntConstant(42)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
-Extra constant evaluation: evaluated: 720, effectively constant: 18
+Extra constant evaluation: evaluated: 719, effectively constant: 18

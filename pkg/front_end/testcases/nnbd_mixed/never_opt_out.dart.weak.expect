@@ -73,19 +73,19 @@ static method main() → dynamic {
   inferredLocalNever = localNever;
   localNever = self::optOutNever;
   self::optOutNever = self::optOutNever;
-  nev::optInNever = self::optOutNever as{TypeError} Never;
+  nev::optInNever = self::optOutNever;
   localNull = self::optOutNever;
   self::inferredOptOutNever = self::optOutNever;
   inferredLocalNever = self::optOutNever;
   localNever = nev::optInNever;
   self::optOutNever = nev::optInNever;
-  nev::optInNever = nev::optInNever as{TypeError} Never;
+  nev::optInNever = nev::optInNever;
   localNull = nev::optInNever;
   self::inferredOptOutNever = nev::optInNever;
   inferredLocalNever = nev::optInNever;
   localNever = localNull;
   self::optOutNever = localNull;
-  nev::optInNever = localNull as{TypeError} Never;
+  nev::optInNever = localNull;
   localNull = localNull;
   self::inferredOptOutNever = localNull;
   inferredLocalNever = localNull;
@@ -104,7 +104,7 @@ static method main() → dynamic {
   self::throws(() → core::Null? => self::optOutNever = nev::throwing());
   self::throws(() → core::Null? => localNever = nev::throwing());
   self::throws(() → core::Null? => self::optOutNever = nev::throwing());
-  self::throws(() → core::Null? => nev::optInNever = nev::throwing() as{TypeError} Never);
+  self::throws(() → core::Null? => nev::optInNever = nev::throwing());
   self::throws(() → core::Null? => self::inferredOptOutNever = nev::throwing());
   self::throws(() → core::Null? => inferredLocalNever = nev::throwing());
 }
@@ -119,14 +119,6 @@ static method throws(() →* void f) → dynamic {
 }
 
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be returned from a function with return type 'Null'.
-//  - 'Type' is from 'dart:core'.
-//   Null get nullProperty => Null;
-//                            ^
-//
 import self as nev;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -148,10 +140,7 @@ class A extends core::Object {
   method nullMethod(core::Null? value) → core::Null?
     return value;
   get nullProperty() → core::Null?
-    return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be returned from a function with return type 'Null'.
- - 'Type' is from 'dart:core'.
-  Null get nullProperty => Null;
-                           ^" in core::Null? as{TypeError,ForNonNullableByDefault} core::Null?;
+    return null;
   set nullProperty(core::Null? value) → void {}
 }
 static field Never optInNever = self::optOutNever;

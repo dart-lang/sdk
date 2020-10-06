@@ -178,10 +178,19 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "flutter_goldens_client": {
     ExperimentalFlag.nonNullable,
   },
+  "http": {
+    ExperimentalFlag.nonNullable,
+  },
+  "http_parser": {
+    ExperimentalFlag.nonNullable,
+  },
   "intl": {
     ExperimentalFlag.nonNullable,
   },
   "js": {
+    ExperimentalFlag.nonNullable,
+  },
+  "logging": {
     ExperimentalFlag.nonNullable,
   },
   "matcher": {

@@ -392,14 +392,7 @@ class BaseWriteStream : public ValueObject {
 
   void WriteWord(uword value) { WriteFixed(value); }
 
-  void WriteTargetWord(uword value) {
-#if defined(IS_SIMARM_X64)
-    RELEASE_ASSERT(Utils::IsInt(32, static_cast<word>(value)));
-    WriteFixed(static_cast<uint32_t>(value));
-#else
-    WriteFixed(value);
-#endif
-  }
+  void WriteTargetWord(word value);
 
   void Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
     va_list args;

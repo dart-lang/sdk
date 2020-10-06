@@ -23,7 +23,7 @@ DEFINE_NATIVE_ENTRY(DartAsync_fatal, 0, 1) {
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const char* msg = instance.ToCString();
   OS::PrintErr("Fatal error in dart:async: %s\n", msg);
-  FATAL(msg);
+  FATAL("%s", msg);
   return Object::null();
 }
 

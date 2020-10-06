@@ -75,10 +75,8 @@ class Class2a extends opt::LegacyClass implements self::Interface {
   abstract member-signature method method4c([core::int? a = #C1, core::int? b = #C1]) → core::int?; -> opt::LegacyClass::method4c
   abstract member-signature method method5a(core::int a, {core::int b = #C1}) → core::int; -> opt::LegacyClass::method5a
   abstract member-signature method method5b({core::int a = #C1, core::int b = #C1}) → core::int; -> opt::LegacyClass::method5b
-  abstract member-signature method method5c({core::int a = #C1, core::int b = #C1}) → core::int; -> opt::LegacyClass::method5c
   abstract member-signature method method6a(core::int? a, {core::int? b = #C1}) → core::int?; -> opt::LegacyClass::method6a
   abstract member-signature method method6b({core::int? a = #C1, core::int? b = #C1}) → core::int?; -> opt::LegacyClass::method6b
-  abstract member-signature method method6c({core::int? a = #C1, core::int? b = #C1}) → core::int?; -> opt::LegacyClass::method6c
   abstract member-signature get getter1() → core::int; -> opt::LegacyClass::getter1
   abstract member-signature get getter2() → core::int?; -> opt::LegacyClass::getter2
   abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode

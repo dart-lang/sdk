@@ -107,6 +107,9 @@ static void CheckOffsets() {
     ok = false;                                                                \
   }
 
+// No consistency checks needed for this construct.
+#define CHECK_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
+
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define CHECK_FIELD(Class, Name)                                               \
   CHECK_OFFSET(Class::Name(), AOT_##Class##_##Name);
@@ -144,11 +147,12 @@ static void CheckOffsets() {
 #define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-  COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE,
-                      CHECK_CONSTANT)
+  COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
+                      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT)
 
-  NOT_IN_PRECOMPILED_RUNTIME(JIT_OFFSETS_LIST(
-      CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
+  NOT_IN_PRECOMPILED_RUNTIME(
+      JIT_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
+                       CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
 
   if (!ok) {
     FATAL(
@@ -162,6 +166,7 @@ static void CheckOffsets() {
 #undef CHECK_RANGE
 #undef CHECK_CONSTANT
 #undef CHECK_OFFSET
+#undef CHECK_PAYLOAD_SIZEOF
 #endif  // !defined(IS_SIMARM_X64)
 }
 

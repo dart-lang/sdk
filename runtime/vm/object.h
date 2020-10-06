@@ -5510,21 +5510,50 @@ class Instructions : public Object {
       (kMaxInt32 - (sizeof(InstructionsLayout) + sizeof(ObjectLayout) +
                     (2 * kMaxObjectAlignment)));
 
+  // Currently, we align bare instruction payloads on 4 byte boundaries.
+  //
+  // If we later decide to align on larger boundaries to put entries at the
+  // start of cache lines, make sure to account for entry points that are
+  // _not_ at the start of the payload.
+  static const intptr_t kBarePayloadAlignment = 4;
+
+  // In non-bare mode, we align the payloads on word boundaries.
+  static const intptr_t kNonBarePayloadAlignment = kWordSize;
+
+  // In the precompiled runtime when running in bare instructions mode,
+  // Instructions objects don't exist, just their bare payloads, so we
+  // mark them as unreachable in that case.
+
+  static intptr_t HeaderSize() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_use_bare_instructions) {
+      UNREACHABLE();
+    }
+#endif
+    return Utils::RoundUp(sizeof(InstructionsLayout), kNonBarePayloadAlignment);
+  }
+
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(InstructionsLayout) ==
-           OFFSET_OF_RETURNED_VALUE(InstructionsLayout, data));
+    ASSERT_EQUAL(sizeof(InstructionsLayout),
+                 OFFSET_OF_RETURNED_VALUE(InstructionsLayout, data));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t size) {
-    return Utils::RoundUp(HeaderSize() + size, kObjectAlignment);
-  }
-
-  static intptr_t HeaderSize() {
-    return Utils::RoundUp(sizeof(InstructionsLayout), kWordSize);
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_use_bare_instructions) {
+      UNREACHABLE();
+    }
+#endif
+    return RoundedAllocationSize(HeaderSize() + size);
   }
 
   static InstructionsPtr FromPayloadStart(uword payload_start) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_use_bare_instructions) {
+      UNREACHABLE();
+    }
+#endif
     return static_cast<InstructionsPtr>(payload_start - HeaderSize() +
                                         kHeapObjectTag);
   }
@@ -5592,7 +5621,8 @@ class InstructionsSection : public Object {
   }
 
   static intptr_t HeaderSize() {
-    return Utils::RoundUp(sizeof(InstructionsSectionLayout), kWordSize);
+    return Utils::RoundUp(sizeof(InstructionsSectionLayout),
+                          Instructions::kBarePayloadAlignment);
   }
 
  private:
@@ -5645,15 +5675,14 @@ class PcDescriptors : public Object {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t HeaderSize() { return sizeof(PcDescriptorsLayout); }
   static intptr_t UnroundedSize(PcDescriptorsPtr desc) {
     return UnroundedSize(desc->ptr()->length_);
   }
-  static intptr_t UnroundedSize(intptr_t len) {
-    return sizeof(PcDescriptorsLayout) + len;
-  }
+  static intptr_t UnroundedSize(intptr_t len) { return HeaderSize() + len; }
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(PcDescriptorsLayout) ==
-           OFFSET_OF_RETURNED_VALUE(PcDescriptorsLayout, data));
+    ASSERT_EQUAL(sizeof(PcDescriptorsLayout),
+                 OFFSET_OF_RETURNED_VALUE(PcDescriptorsLayout, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -5784,15 +5813,14 @@ class CodeSourceMap : public Object {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t HeaderSize() { return sizeof(CodeSourceMapLayout); }
   static intptr_t UnroundedSize(CodeSourceMapPtr map) {
     return UnroundedSize(map->ptr()->length_);
   }
-  static intptr_t UnroundedSize(intptr_t len) {
-    return sizeof(CodeSourceMapLayout) + len;
-  }
+  static intptr_t UnroundedSize(intptr_t len) { return HeaderSize() + len; }
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(CodeSourceMapLayout) ==
-           OFFSET_OF_RETURNED_VALUE(CodeSourceMapLayout, data));
+    ASSERT_EQUAL(sizeof(CodeSourceMapLayout),
+                 OFFSET_OF_RETURNED_VALUE(CodeSourceMapLayout, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -5849,15 +5877,16 @@ class CompressedStackMaps : public Object {
   bool Equals(const CompressedStackMaps* other) const { return Equals(*other); }
   intptr_t Hashcode() const;
 
+  static intptr_t HeaderSize() { return sizeof(CompressedStackMapsLayout); }
   static intptr_t UnroundedSize(CompressedStackMapsPtr maps) {
     return UnroundedSize(CompressedStackMaps::PayloadSizeOf(maps));
   }
   static intptr_t UnroundedSize(intptr_t length) {
-    return sizeof(CompressedStackMapsLayout) + length;
+    return HeaderSize() + length;
   }
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(CompressedStackMapsLayout) ==
-           OFFSET_OF_RETURNED_VALUE(CompressedStackMapsLayout, data));
+    ASSERT_EQUAL(sizeof(CompressedStackMapsLayout),
+                 OFFSET_OF_RETURNED_VALUE(CompressedStackMapsLayout, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
