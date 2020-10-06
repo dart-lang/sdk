@@ -891,8 +891,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/front_end/test/unit_test_suites.dart",
-            "-ncfe-unittest-asserts-${mode}-${system}",
-            "--verbose"
+            "-ncfe-unittest-asserts-${mode}-${system}"
           ]
         }
       ]
