@@ -16,6 +16,6 @@ class A {
 
   Null nullField = null;
   Null nullMethod(Null value) => value;
-  Null get nullProperty => Null;
+  Null get nullProperty => null;
   void set nullProperty(Null value) {}
 }

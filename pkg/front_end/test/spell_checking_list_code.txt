@@ -851,6 +851,7 @@ r'\t
 r'\u
 r'\v
 r0i
+r0j
 r1i
 r2i
 ra
@@ -1309,6 +1310,7 @@ xdc
 xdfff
 xef
 xi
+xj
 xk
 xm
 xn
@@ -1328,6 +1330,7 @@ y`s
 yaml
 yb
 yet
+yi
 yielding
 yields
 yn

@@ -216,6 +216,7 @@ entrypoints
 eoo
 epoch
 erase
+erased
 err
 esc
 everytime
@@ -440,9 +441,12 @@ nondefault
 nonexisting
 noo
 numerator
+ob
+obool
 observable
 oh
 okay
+ol
 onull
 ooo
 operate
@@ -453,6 +457,7 @@ out1
 out2
 outbound
 overlay
+ox
 pack
 paging
 paint
@@ -679,3 +684,4 @@ xxxxxxxxxxxx
 y's
 year
 yxxx
+yy

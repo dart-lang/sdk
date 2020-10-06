@@ -1,0 +1,76 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef fType = ({required i: core::int}) → core::int;
+typedef gType = ({i: core::int}) → core::int;
+typedef bigType = ({required i1: core::int, required i10: core::int, required i11: core::int, required i12: core::int, required i13: core::int, required i14: core::int, required i15: core::int, required i16: core::int, required i17: core::int, required i18: core::int, required i19: core::int, required i2: core::int, required i20: core::int, required i21: core::int, required i22: core::int, required i23: core::int, required i24: core::int, required i25: core::int, required i26: core::int, required i27: core::int, required i28: core::int, required i29: core::int, required i3: core::int, required i30: core::int, required i31: core::int, required i32: core::int, required i33: core::int, required i34: core::int, required i35: core::int, required i36: core::int, required i37: core::int, required i38: core::int, required i39: core::int, required i4: core::int, required i40: core::int, required i41: core::int, required i42: core::int, required i43: core::int, required i44: core::int, required i45: core::int, required i46: core::int, required i47: core::int, required i48: core::int, required i49: core::int, required i5: core::int, required i50: core::int, required i51: core::int, required i52: core::int, required i53: core::int, required i54: core::int, required i55: core::int, required i56: core::int, required i57: core::int, required i58: core::int, required i59: core::int, required i6: core::int, required i60: core::int, required i61: core::int, required i62: core::int, required i63: core::int, required i64: core::int, required i65: core::int, required i66: core::int, required i67: core::int, required i68: core::int, required i69: core::int, required i7: core::int, required i70: core::int, required i8: core::int, required i9: core::int}) → core::int;
+typedef func = (core::Object) → self::B;
+typedef t1 = (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class A1 extends core::Object {
+  synthetic constructor •() → self::A1
+    ;
+}
+class A2 extends core::Object {
+  synthetic constructor •() → self::A2
+    ;
+}
+class B extends core::Object implements self::A, self::A1, self::A2 {
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends core::Object implements self::B {
+  synthetic constructor •() → self::C
+    ;
+}
+class D extends core::Object implements self::C {
+  synthetic constructor •() → self::D
+    ;
+}
+static field core::bool inStrongMode;
+static const field core::bool f_is_fType = self::f is{ForNonNullableByDefault} ({required i: core::int}) → core::int;
+static const field core::bool f_is_gType = self::f is{ForNonNullableByDefault} ({i: core::int}) → core::int;
+static const field core::bool g_is_fType = self::g is{ForNonNullableByDefault} ({required i: core::int}) → core::int;
+static const field core::bool g_is_gType = self::g is{ForNonNullableByDefault} ({i: core::int}) → core::int;
+static const field core::bool f_is_bigType = self::f is{ForNonNullableByDefault} ({required i1: core::int, required i10: core::int, required i11: core::int, required i12: core::int, required i13: core::int, required i14: core::int, required i15: core::int, required i16: core::int, required i17: core::int, required i18: core::int, required i19: core::int, required i2: core::int, required i20: core::int, required i21: core::int, required i22: core::int, required i23: core::int, required i24: core::int, required i25: core::int, required i26: core::int, required i27: core::int, required i28: core::int, required i29: core::int, required i3: core::int, required i30: core::int, required i31: core::int, required i32: core::int, required i33: core::int, required i34: core::int, required i35: core::int, required i36: core::int, required i37: core::int, required i38: core::int, required i39: core::int, required i4: core::int, required i40: core::int, required i41: core::int, required i42: core::int, required i43: core::int, required i44: core::int, required i45: core::int, required i46: core::int, required i47: core::int, required i48: core::int, required i49: core::int, required i5: core::int, required i50: core::int, required i51: core::int, required i52: core::int, required i53: core::int, required i54: core::int, required i55: core::int, required i56: core::int, required i57: core::int, required i58: core::int, required i59: core::int, required i6: core::int, required i60: core::int, required i61: core::int, required i62: core::int, required i63: core::int, required i64: core::int, required i65: core::int, required i66: core::int, required i67: core::int, required i68: core::int, required i69: core::int, required i7: core::int, required i70: core::int, required i8: core::int, required i9: core::int}) → core::int;
+static const field core::bool f1_is_t1 = self::f1 is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B;
+static const field core::bool f2_is_t1 = self::f2 is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B;
+static const field core::bool f3_is_t1 = self::f3 is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B;
+static const field core::bool f4_is_t1 = self::f4 is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B;
+static const field core::bool f5_is_t1 = self::f5 is{ForNonNullableByDefault} (core::int, self::B, core::Map<core::int, core::num>, dynamic, {required ob: self::B, required obool: core::bool, required ol: core::List<core::num>, required ox: dynamic}) → self::B;
+static method f({required core::int i}) → core::int
+  ;
+static method g({core::int i}) → core::int
+  ;
+static method f1(core::int i, self::B b, core::Map<core::int, core::num> m, dynamic x, {required dynamic extraParam, required core::bool obool, required dynamic ox, required self::D ob, required core::List<core::num>? ol}) → self::B
+  ;
+static method f2(core::int i, self::D b, core::Map<core::int, core::int> m, (core::Object) → self::B x, {required (core::Object) → self::B ox, required self::D ob, required core::List<core::int> ol, required core::bool obool}) → self::D
+  ;
+static method f3(core::num i, self::A b, core::Map<core::Object, core::Object> m, dynamic x, {required dynamic ox, required dynamic extraParam, required self::A2 ob, required core::List<dynamic> ol, required core::Object obool}) → self::C
+  ;
+static method f4(core::num i, self::A b, core::Map<core::Object, core::Object> m, dynamic x, {required dynamic ox, required self::A2 ob, required core::List<dynamic> ol, required core::bool obool, required self::A xx, required self::B yy}) → self::C
+  ;
+static method f5(core::int i, self::A b, core::Map<core::Object, core::Object> m, dynamic x, {required dynamic ox, required self::B ob, required core::List<dynamic> ol, required dynamic obool}) → self::C
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:143:22 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:144:22 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:145:22 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:146:22 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:147:24 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:149:21 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:150:21 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:151:21 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:152:21 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///const_is.dart:153:21 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 10, effectively constant: 10

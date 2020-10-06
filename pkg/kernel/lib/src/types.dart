@@ -482,9 +482,9 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         return const IsSubtypeOf.never();
       }
     }
-    List<NamedType> sNamed = s.namedParameters;
-    List<NamedType> tNamed = t.namedParameters;
-    if (sNamed.isNotEmpty || tNamed.isNotEmpty) {
+    List<NamedType> sNamedParameters = s.namedParameters;
+    List<NamedType> tNamedParameters = t.namedParameters;
+    if (sNamedParameters.isNotEmpty || tNamedParameters.isNotEmpty) {
       // Rule 16, the number of positional parameters must be the same.
       if (sPositional.length != tPositional.length) {
         return const IsSubtypeOf.never();
@@ -497,16 +497,45 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
       // [s]. Also, for the intersection, the type of the parameter of [t] must
       // be a subtype of the type of the parameter of [s].
       int sCount = 0;
-      for (int tCount = 0; tCount < tNamed.length; tCount++) {
-        String name = tNamed[tCount].name;
-        for (; sCount < sNamed.length; sCount++) {
-          if (sNamed[sCount].name == name) break;
+      for (int tCount = 0; tCount < tNamedParameters.length; tCount++) {
+        NamedType tNamedParameter = tNamedParameters[tCount];
+        String name = tNamedParameter.name;
+        NamedType sNamedParameter;
+        for (; sCount < sNamedParameters.length; sCount++) {
+          sNamedParameter = sNamedParameters[sCount];
+          if (sNamedParameter.name == name) {
+            break;
+          } else if (sNamedParameter.isRequired) {
+            /// From the NNBD spec: For each j such that r0j is required, then
+            /// there exists an i in n+1...q such that xj = yi, and r1i is
+            /// required
+            result =
+                result.and(const IsSubtypeOf.onlyIfIgnoringNullabilities());
+          }
         }
-        if (sCount == sNamed.length) return const IsSubtypeOf.never();
+        if (sCount == sNamedParameters.length) return const IsSubtypeOf.never();
+        // Increment [sCount] so we don't check [sNamedParameter] again in the
+        // loop above or below and assume it is an extra (unmatched) parameter.
+        sCount++;
         result = result.and(types.performNullabilityAwareSubtypeCheck(
-            tNamed[tCount].type, sNamed[sCount].type));
+            tNamedParameter.type, sNamedParameter.type));
         if (!result.isSubtypeWhenIgnoringNullabilities()) {
           return const IsSubtypeOf.never();
+        }
+
+        /// From the NNBD spec: For each j such that r0j is required, then there
+        /// exists an i in n+1...q such that xj = yi, and r1i is required
+        if (sNamedParameter.isRequired && !tNamedParameter.isRequired) {
+          result = result.and(const IsSubtypeOf.onlyIfIgnoringNullabilities());
+        }
+      }
+      for (; sCount < sNamedParameters.length; sCount++) {
+        NamedType sNamedParameter = sNamedParameters[sCount];
+        if (sNamedParameter.isRequired) {
+          /// From the NNBD spec: For each j such that r0j is required, then
+          /// there exists an i in n+1...q such that xj = yi, and r1i is
+          /// required
+          result = result.and(const IsSubtypeOf.onlyIfIgnoringNullabilities());
         }
       }
     }
@@ -899,7 +928,7 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
         return const IsSubtypeOf.always();
       }
       if (t.nullability == Nullability.nonNullable) {
-        return const IsSubtypeOf.never();
+        return const IsSubtypeOf.onlyIfIgnoringNullabilities();
       }
       throw new StateError(
           "Unexpected nullability '$t.nullability' of type Never");

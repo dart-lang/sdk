@@ -2549,6 +2549,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   bool isSubtype(Constant constant, DartType type, SubtypeCheckMode mode) {
     DartType constantType = constant.getType(_staticTypeContext);
+    if (mode == SubtypeCheckMode.ignoringNullabilities) {
+      constantType = rawLegacyErasure(coreTypes, constantType) ?? constantType;
+    }
     bool result = typeEnvironment.isSubtypeOf(constantType, type, mode);
     if (targetingJavaScript && !result) {
       if (constantType is InterfaceType &&

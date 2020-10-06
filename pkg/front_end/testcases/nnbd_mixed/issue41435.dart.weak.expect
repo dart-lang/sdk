@@ -7,10 +7,10 @@ import "org-dartlang-testcase:///issue41435_lib.dart";
 
 static method main() → void {
   core::Null? nil;
-  iss::x = null as{TypeError} Never;
-  iss::x = nil as{TypeError} Never;
-  iss::takesNever(null as{TypeError} Never);
-  iss::takesNever(nil as{TypeError} Never);
+  iss::x = null;
+  iss::x = nil;
+  iss::takesNever(null);
+  iss::takesNever(nil);
   iss::takesTakesNull(#C1);
   iss::f = (Never* x) → core::Null? {};
 }
