@@ -302,10 +302,22 @@ class ImageWriter : public ValueObject {
   const char* ObjectTypeForProfile(const Object& object) const;
   static const char* TagObjectTypeAsReadOnly(Zone* zone, const char* type);
 
+  enum class ProgramSection {
+    Text,     // Instructions.
+    Data,     // Read-only data.
+    Bss,      // Statically allocated variables initialized at load.
+    BuildId,  // GNU build ID (when applicable)
+  };
+
  protected:
   virtual void WriteBss(bool vm) = 0;
   virtual void WriteROData(NonStreamingWriteStream* clustered_stream, bool vm);
-  virtual void WriteText(bool vm) = 0;
+  void WriteText(bool vm);
+
+  // Returns the standard Dart dynamic symbol name for the given VM isolate (if
+  // vm is true) or application isolate (otherwise) section. Some sections are
+  // shared by both.
+  const char* SectionSymbol(ProgramSection section, bool vm) const;
 
   static uword GetMarkedTags(classid_t cid, intptr_t size);
   static uword GetMarkedTags(const Object& obj);
@@ -353,6 +365,69 @@ class ImageWriter : public ValueObject {
     };
   };
 
+  // Methods abstracting out the particulars of the underlying concrete writer.
+
+  // Marks the entrance into a particular ProgramSection for either the VM
+  // isolate (if vm is true) or application isolate (if not). Returns false if
+  // this section should not be written.
+  virtual bool EnterSection(ProgramSection name,
+                            bool vm,
+                            intptr_t alignment) = 0;
+  // Marks the exit from a particular ProgramSection, allowing subclasses to
+  // do any post-writing work.
+  virtual void ExitSection(ProgramSection name, bool vm, intptr_t size) = 0;
+  // Writes a prologue to the text section that describes how to interpret
+  // Dart stack frames using DWARF's Call Frame Information (CFI).
+  virtual void FrameUnwindPrologue() = 0;
+  // Writes an epilogue to the text section that marks the end of instructions
+  // covered by the CFI information in the prologue.
+  virtual void FrameUnwindEpilogue() = 0;
+  // Writes a target uword-sized value to the section contents.
+  virtual intptr_t WriteTargetWord(word value) = 0;
+  // Writes a sequence of bytes of length [size] from address [bytes] to the
+  // section contents.
+  virtual intptr_t WriteBytes(const void* bytes, intptr_t size) = 0;
+  // Pads the section contents to a given alignment with zeroes.
+  virtual intptr_t Align(intptr_t alignment, intptr_t offset) = 0;
+#if defined(DART_PRECOMPILER)
+  // Writes a target word-sized value that depends on the final relocated
+  // addresses of the sections named by the two symbols. If T is the final
+  // relocated address of the target section and S is the final relocated
+  // address of the source, the final value is:
+  //   (T + target_offset + target_addend) - (S + source_offset)
+  virtual intptr_t Relocation(intptr_t section_offset,
+                              const char* source_symbol,
+                              intptr_t source_offset,
+                              const char* target_symbol,
+                              intptr_t target_offset,
+                              intptr_t target_addend) = 0;
+  // Returns the final relocated address for the section represented by the
+  // symbol. May not be supported by some writers.
+  virtual uword RelocatedAddress(const char* symbol) = 0;
+  // Creates a static symbol for the given Code object when appropriate.
+  virtual void AddCodeSymbol(const Code& code,
+                             const char* symbol,
+                             intptr_t section_offset) = 0;
+
+  // Overloaded convenience versions of the above virtual methods.
+
+  // An overload of Relocation where the target and source offsets and
+  // target addend are 0.
+  intptr_t Relocation(intptr_t section_offset,
+                      const char* source_symbol,
+                      const char* target_symbol) {
+    return Relocation(section_offset, source_symbol, 0, target_symbol, 0, 0);
+  }
+#endif
+  // Writes a fixed-sized value of type T to the section contents.
+  template <typename T>
+  intptr_t WriteFixed(T value) {
+    return WriteBytes(&value, sizeof(value));
+  }
+  // Like Align, but instead of padding with zeroes, the appropriate break
+  // instruction for the target architecture is used.
+  intptr_t AlignWithBreakInstructions(intptr_t alignment, intptr_t offset);
+
   Heap* heap_;  // Used for mapping RawInstructiosn to object ids.
   intptr_t next_data_offset_;
   intptr_t next_text_offset_;
@@ -367,6 +442,9 @@ class ImageWriter : public ValueObject {
   const char* const instructions_type_;
   const char* const trampoline_type_;
 
+  // Used to make sure Code symbols are unique across text sections.
+  intptr_t unique_symbol_counter_ = 0;
+
   template <class T>
   friend class TraceImageObjectScope;
   friend class SnapshotTextObjectNamer;  // For InstructionsData.
@@ -375,13 +453,14 @@ class ImageWriter : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(ImageWriter);
 };
 
+#if defined(DART_PRECOMPILER)
 #define AutoTraceImage(object, section_offset, stream)                         \
-  auto AutoTraceImagObjectScopeVar##__COUNTER__ =                              \
-      TraceImageObjectScope<std::remove_pointer<decltype(stream)>::type>(      \
-          this, section_offset, stream, object);
+  TraceImageObjectScope<std::remove_pointer<decltype(stream)>::type>           \
+      AutoTraceImageObjectScopeVar##__COUNTER__(this, section_offset, stream,  \
+                                                object);
 
 template <typename T>
-class TraceImageObjectScope {
+class TraceImageObjectScope : ValueObject {
  public:
   TraceImageObjectScope(ImageWriter* writer,
                         intptr_t section_offset,
@@ -409,12 +488,14 @@ class TraceImageObjectScope {
   const intptr_t section_offset_;
   const intptr_t start_offset_;
   const char* const object_type_;
+
+  DISALLOW_COPY_AND_ASSIGN(TraceImageObjectScope);
 };
 
-class SnapshotTextObjectNamer {
+class SnapshotTextObjectNamer : ValueObject {
  public:
   explicit SnapshotTextObjectNamer(Zone* zone)
-      : zone_(zone),
+      : zone_(ASSERT_NOTNULL(zone)),
         owner_(Object::Handle(zone)),
         string_(String::Handle(zone)),
         insns_(Instructions::Handle(zone)),
@@ -433,6 +514,8 @@ class SnapshotTextObjectNamer {
   Instructions& insns_;
   ObjectStore* const store_;
   TypeTestingStubNamer namer_;
+
+  DISALLOW_COPY_AND_ASSIGN(SnapshotTextObjectNamer);
 };
 
 class AssemblyImageWriter : public ImageWriter {
@@ -446,23 +529,42 @@ class AssemblyImageWriter : public ImageWriter {
  private:
   virtual void WriteBss(bool vm);
   virtual void WriteROData(NonStreamingWriteStream* clustered_stream, bool vm);
-  virtual void WriteText(bool vm);
 
-  void FrameUnwindPrologue();
-  void FrameUnwindEpilogue();
-  intptr_t WriteByteSequence(uword start, uword end);
-  intptr_t Align(intptr_t alignment, uword position = 0);
-  intptr_t WriteWordLiteralText(word value);
+  virtual bool EnterSection(ProgramSection section,
+                            bool vm,
+                            intptr_t alignment);
+  virtual void ExitSection(ProgramSection name, bool vm, intptr_t size);
+  virtual intptr_t WriteTargetWord(word value);
+  virtual intptr_t WriteBytes(const void* bytes, intptr_t size);
+  virtual intptr_t Align(intptr_t alignment, intptr_t offset = 0);
+  virtual intptr_t Relocation(intptr_t section_offset,
+                              const char* source_symbol,
+                              intptr_t source_offset,
+                              const char* target_symbol,
+                              intptr_t target_offset,
+                              intptr_t target_addend);
+  // We can't generate the relocated address in assembly, so it'll be
+  // retrieved and stored in the BSS during BSS initialization instead.
+  virtual uword RelocatedAddress(const char* symbol) {
+    return Image::kNoRelocatedAddress;
+  }
+  virtual void FrameUnwindPrologue();
+  virtual void FrameUnwindEpilogue();
+  virtual void AddCodeSymbol(const Code& code,
+                             const char* symbol,
+                             intptr_t offset);
 
   BaseWriteStream* const assembly_stream_;
   Dwarf* const assembly_dwarf_;
   Elf* const debug_elf_;
 
-  // Used to ensure unique names for Code symbols across text sections.
-  intptr_t unique_symbol_counter_ = 0;
+  // Used in Relocation to output "(.)" for relocations involving the current
+  // section position and creating local symbols in AddCodeSymbol.
+  const char* current_section_symbol_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
+#endif
 
 class BlobImageWriter : public ImageWriter {
  public:
@@ -475,18 +577,42 @@ class BlobImageWriter : public ImageWriter {
  private:
   virtual void WriteBss(bool vm);
   virtual void WriteROData(NonStreamingWriteStream* clustered_stream, bool vm);
-  virtual void WriteText(bool vm);
 
-  intptr_t WriteByteSequence(uword start, uword end);
+  virtual bool EnterSection(ProgramSection section,
+                            bool vm,
+                            intptr_t alignment);
+  virtual void ExitSection(ProgramSection name, bool vm, intptr_t size);
+  virtual intptr_t WriteTargetWord(word value);
+  virtual intptr_t WriteBytes(const void* bytes, intptr_t size);
+  virtual intptr_t Align(intptr_t alignment, intptr_t offset);
+  // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
+  // provide unwinding information.
+  virtual void FrameUnwindPrologue() {}
+  virtual void FrameUnwindEpilogue() {}
+#if defined(DART_PRECOMPILER)
+  virtual intptr_t Relocation(intptr_t section_offset,
+                              const char* source_symbol,
+                              intptr_t source_offset,
+                              const char* target_symbol,
+                              intptr_t target_offset,
+                              intptr_t target_addend);
+  virtual uword RelocatedAddress(const char* symbol);
+  virtual void AddCodeSymbol(const Code& code,
+                             const char* symbol,
+                             intptr_t offset);
+#endif
 
   NonStreamingWriteStream* const vm_instructions_;
   NonStreamingWriteStream* const isolate_instructions_;
   Elf* const elf_;
   Elf* const debug_elf_;
 
-  NonStreamingWriteStream* instructions_blob_stream_ = nullptr;
-  // Used to ensure unique names for Code symbols across text sections.
-  intptr_t unique_symbol_counter_ = 0;
+  // Used to detect relocations or relocated address requests involving the
+  // current section and creating local symbols in AddCodeSymbol.
+  const char* current_section_symbol_ = nullptr;
+  // Set on section entrance to the stream that should be used by the writing
+  // methods.
+  NonStreamingWriteStream* current_section_stream_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };

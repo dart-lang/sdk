@@ -121,13 +121,13 @@ main(List<String> args) async {
         .transform(DwarfStackTraceDecoder(debugDwarf))
         .toList();
     print("\nStack trace converted using separate debugging info:");
-    print(fromDebug.join());
+    print(fromDebug.join('\n'));
 
     final fromWhole = await Stream.fromIterable(strippedTrace)
         .transform(DwarfStackTraceDecoder(wholeDwarf))
         .toList();
     print("\nStack trace converted using unstripped ELF file:");
-    print(fromWhole.join());
+    print(fromWhole.join('\n'));
 
     Expect.deepEquals(fromDebug, fromWhole);
   });

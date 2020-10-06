@@ -316,13 +316,14 @@ class BaseWriteStream : public ValueObject {
   DART_FORCE_INLINE intptr_t bytes_written() const { return Position(); }
   virtual intptr_t Position() const { return current_ - buffer_; }
 
-  void Align(intptr_t alignment) {
+  intptr_t Align(intptr_t alignment) {
     const intptr_t position_before = Position();
     const intptr_t position_after = Utils::RoundUp(position_before, alignment);
     const intptr_t length = position_after - position_before;
     EnsureSpace(length);
     memset(current_, 0, length);
     SetPosition(position_after);
+    return length;
   }
 
   template <int N, typename T>
