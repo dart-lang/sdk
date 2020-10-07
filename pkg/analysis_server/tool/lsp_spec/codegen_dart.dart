@@ -365,7 +365,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
       ..writeIndentedln('switch (obj) {')
       ..indent();
     consts.forEach((cons) {
-      buffer..writeIndentedln('case ${cons.valueAsLiteral}:');
+      buffer.writeIndentedln('case ${cons.valueAsLiteral}:');
     });
     buffer
       ..indent()
@@ -380,9 +380,8 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..writeIndentedln('}');
   namespace.members.whereType<Const>().forEach((cons) {
     _writeDocCommentsAndAnnotations(buffer, cons);
-    buffer
-      ..writeIndentedln(
-          'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
+    buffer.writeIndentedln(
+        'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
   });
   buffer
     ..writeln()
@@ -662,7 +661,7 @@ void _writeJsonMapAssignment(
   final nullOp = shouldBeOmittedIfNoValue ? '' : '?';
   final valueCode =
       _isSpecType(field.type) ? '${field.name}$nullOp.toJson()' : field.name;
-  buffer..writeIndented('''$mapName['${field.name}'] = $valueCode''');
+  buffer.writeIndented('''$mapName['${field.name}'] = $valueCode''');
   if (!field.allowsUndefined && !field.allowsNull) {
     buffer.write(''' ?? (throw '${field.name} is required but was not set')''');
   }
@@ -792,7 +791,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
       buffer..write(' && (')..write('$valueCode.keys.every((item) => ');
       _writeTypeCheckCondition(
           buffer, interface, 'item', type.indexType, reporter);
-      buffer..write('&& $valueCode.values.every((item) => ');
+      buffer.write('&& $valueCode.values.every((item) => ');
       _writeTypeCheckCondition(
           buffer, interface, 'item', type.valueType, reporter);
       buffer.write(')))');

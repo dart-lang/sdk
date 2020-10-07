@@ -253,7 +253,7 @@ class DartFixContributor implements FixContributor {
         List.from(fixList[0].change.linkedEditGroups);
     for (var i = 1; i < fixList.length; i++) {
       edits.addAll(fixList[i].change.edits[0].edits);
-      sourceChange.linkedEditGroups..addAll(fixList[i].change.linkedEditGroups);
+      sourceChange.linkedEditGroups.addAll(fixList[i].change.linkedEditGroups);
     }
     // Sort the list of SourceEdits so that when the edits are applied, they
     // are applied from the end of the file to the top of the file.

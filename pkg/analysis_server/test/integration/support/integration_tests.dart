@@ -690,9 +690,7 @@ class _ListOf extends Matcher {
   /// Iterable matcher which we use to test the contents of the list.
   final Matcher iterableMatcher;
 
-  _ListOf(elementMatcher)
-      : elementMatcher = elementMatcher,
-        iterableMatcher = everyElement(elementMatcher);
+  _ListOf(this.elementMatcher) : iterableMatcher = everyElement(elementMatcher);
 
   @override
   Description describe(Description description) =>

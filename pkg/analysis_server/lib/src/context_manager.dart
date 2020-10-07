@@ -108,10 +108,9 @@ class ContextInfo {
   /// added to the context.
   Map<String, Source> sources = HashMap<String, Source>();
 
-  ContextInfo(ContextManagerImpl contextManager, this.parent, Folder folder,
+  ContextInfo(ContextManagerImpl contextManager, this.parent, this.folder,
       File packagespecFile, this.disposition)
-      : folder = folder,
-        pathFilter = PathFilter(
+      : pathFilter = PathFilter(
             folder.path, null, contextManager.resourceProvider.pathContext) {
     packageDescriptionPath = packagespecFile.path;
     parent.children.add(this);

@@ -35,5 +35,5 @@ dev_dependencies:
   logging: any
   matcher: any
   mockito: any
-  pedantic: ^1.8.0
+  pedantic: ^1.9.0
   test_reflective_loader: any
