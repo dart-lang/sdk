@@ -2908,7 +2908,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void forEach_bodyBegin(Node node, Variable loopVariable, Type writtenType) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    _current = _current.conservativeJoin(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured).split();
     _SimpleStatementContext<Variable, Type> context =
         new _SimpleStatementContext<Variable, Type>(
             _current.reachable.parent, _current);
@@ -2922,7 +2922,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void forEach_end() {
     _SimpleStatementContext<Variable, Type> context =
         _stack.removeLast() as _SimpleStatementContext<Variable, Type>;
-    _current = _join(_current, context._previous);
+    _current = _merge(_current, context._previous);
   }
 
   @override
