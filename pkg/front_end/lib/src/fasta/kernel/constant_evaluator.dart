@@ -1019,6 +1019,19 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// As such the return value should be checked (e.g. `is AbortConstant`)
   /// before further use.
   Constant _evaluateSubexpression(Expression node) {
+    if (node is ConstantExpression) {
+      if (node.constant is! UnevaluatedConstant) {
+        // ConstantExpressions just pointing to an actual constant can be
+        // short-circuited. Note that it's accepted instead of just returned to
+        // get canonicalization.
+        return node.accept(this);
+      }
+    } else if (node is BasicLiteral) {
+      // Basic literals (string literals, int literals, double literals,
+      // bool literals and null literals) can be short-circuited too.
+      return node.accept(this);
+    }
+
     bool wasUnevaluated = seenUnevaluatedChild;
     seenUnevaluatedChild = false;
     Constant result;
