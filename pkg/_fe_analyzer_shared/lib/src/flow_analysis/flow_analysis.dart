@@ -2785,9 +2785,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(doStatement);
     _BranchTargetContext<Variable, Type> context =
-        new _BranchTargetContext<Variable, Type>(_current.reachable.parent);
+        new _BranchTargetContext<Variable, Type>(_current.reachable);
     _stack.add(context);
-    _current = _current.conservativeJoin(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured).split();
     _statementToContext[doStatement] = context;
   }
 
@@ -2802,7 +2802,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void doStatement_end(Expression condition) {
     _BranchTargetContext<Variable, Type> context =
         _stack.removeLast() as _BranchTargetContext<Variable, Type>;
-    _current = _join(_expressionEnd(condition).ifFalse, context._breakModel);
+    _current = _merge(_expressionEnd(condition).ifFalse, context._breakModel);
   }
 
   @override

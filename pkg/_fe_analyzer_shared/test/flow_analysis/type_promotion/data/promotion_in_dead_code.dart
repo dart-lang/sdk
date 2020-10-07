@@ -30,6 +30,29 @@ conditionalJoinTrue(Object o, bool b) {
   /*int*/ o;
 }
 
+doBreak(Object o) {
+  return;
+  do {
+    if (o is int) break;
+  } while (true);
+  /*int*/ o;
+}
+
+doContinue(Object o) {
+  return;
+  do {
+    if (o is int) continue;
+    return;
+  } while (false);
+  /*int*/ o;
+}
+
+doCondition(Object o) {
+  return;
+  do {} while (o is! int);
+  /*int*/ o;
+}
+
 ifIsNot(Object o) {
   return;
   if (o is! int) return;
