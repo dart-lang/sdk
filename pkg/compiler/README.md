@@ -327,36 +327,14 @@ functionality is publicly exposed.
   AI: consider deleting this file.
 
 
-* Constants: the compiler has a constant system that delays evaluation of
-  constants and provides different semantics depending on the embedder, this
-  abstraction was especially necessary when dart2js was used as a front-end for
-  non-JS systems like dart2dart and dartino.
+* Constants: the compiler has a constant system that evaluates constant
+  expressions based on JS semantics.
 
   * `lib/src/constants/value.dart`: this is the represented value of a constant
-    after it has been evaluated. The resulting value is specific to the target
-    of the compiler and will no longer have environment placeholders. For
-    example, when the target is Dart (dart2dart) `1 == 1.0` is evaluated to
-    `false`, and when the target is JavaScript it is evaluated to `true`. This
-    specific example is a result of the way dart2js compiles numbers as
-    JavaScript Numbers.
+    after it has been evaluated.
 
-  * `lib/src/constants/constant_system.dart`: an abstraction that defines how
-    expressions may be folded. Different implementations of the constant system
-    are used to target Dart or JavaScript.
-
-  * `lib/src/compile_time_constants.dart`: defines how constant expressions are
-    created from a parsed AST.
-
-  * `lib/src/constant_system_dart.dart`: defines an implementation of a constant
-    system with the Dart semantics (where `1 == 1.0` is true).
-
-  * `lib/src/js_backend/constant_system_javascript.dart`: defines an
-    implementation of a constant system with the JavaScript semantics (where
-    `1 == 1.0` is false).
-
-  AI: consider deleting `constant_system_dart.dart` now that it is no longer
-  used, or move under testing, if it might be used for unittests of the constant
-  expressions.
+  * `lib/src/constants/constant_system.dart`: implements evaluating constant
+    Dart expressions and produces values.
 
 * Common elements: the compiler often refers to certain elements during
   compilation either because they are first-class in the language or because
