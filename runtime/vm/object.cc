@@ -9361,6 +9361,13 @@ StringPtr Function::QualifiedUserVisibleName() const {
   return Symbols::New(thread, printer.buffer());
 }
 
+const char* Function::QualifiedUserVisibleNameCString() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintName(NameFormattingParams(kUserVisibleName), &printer);
+  return printer.buffer();
+}
+
 void Function::PrintName(const NameFormattingParams& params,
                          BaseTextBuffer* printer) const {
   // If |this| is the generated asynchronous body closure, use the
@@ -24410,10 +24417,10 @@ static void PrintSymbolicStackFrame(Zone* zone,
                                     intptr_t frame_index) {
   ASSERT(!function.IsNull());
   const auto& script = Script::Handle(zone, function.script());
-  auto& handle = String::Handle(zone, function.QualifiedUserVisibleName());
-  auto const function_name = handle.ToCString();
-  handle = script.IsNull() ? String::New("Kernel") : script.url();
-  auto url = handle.ToCString();
+  const char* function_name = function.QualifiedUserVisibleNameCString();
+  const char* url = script.IsNull()
+                        ? "Kernel"
+                        : String::Handle(zone, script.url()).ToCString();
 
   // If the URI starts with "data:application/dart;" this is a URI encoded
   // script so we shouldn't print the entire URI because it could be very long.
@@ -24443,6 +24450,7 @@ const char* StackTrace::ToCString() const {
   auto& code = Code::Handle(zone);
   auto& bytecode = Bytecode::Handle(zone);
 
+  NoSafepointScope no_allocation;
   GrowableArray<const Function*> inlined_functions;
   GrowableArray<TokenPosition> inlined_token_positions;
   ZoneTextBuffer buffer(zone, 1024);
