@@ -536,6 +536,25 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   bool ifNullExpression_rightBegin(
       Expression leftHandSide, Type leftHandSideType);
 
+  /// Call this method before visiting the condition part of an if statement.
+  ///
+  /// The order of visiting an if statement with no "else" part should be:
+  /// - Call [ifStatement_conditionBegin]
+  /// - Visit the condition
+  /// - Call [ifStatement_thenBegin]
+  /// - Visit the "then" statement
+  /// - Call [ifStatement_end], passing `false` for `hasElse`.
+  ///
+  /// The order of visiting an if statement with an "else" part should be:
+  /// - Call [ifStatement_conditionBegin]
+  /// - Visit the condition
+  /// - Call [ifStatement_thenBegin]
+  /// - Visit the "then" statement
+  /// - Call [ifStatement_elseBegin]
+  /// - Visit the "else" statement
+  /// - Call [ifStatement_end], passing `true` for `hasElse`.
+  void ifStatement_conditionBegin();
+
   /// Call this method after visiting the "then" part of an if statement, and
   /// before visiting the "else" part.
   void ifStatement_elseBegin();
@@ -545,20 +564,6 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
 
   /// Call this method after visiting the condition part of an if statement.
   /// [condition] should be the if statement's condition.
-  ///
-  /// The order of visiting an if statement with no "else" part should be:
-  /// - Visit the condition
-  /// - Call [ifStatement_thenBegin]
-  /// - Visit the "then" statement
-  /// - Call [ifStatement_end], passing `false` for `hasElse`.
-  ///
-  /// The order of visiting an if statement with an "else" part should be:
-  /// - Visit the condition
-  /// - Call [ifStatement_thenBegin]
-  /// - Visit the "then" statement
-  /// - Call [ifStatement_elseBegin]
-  /// - Visit the "else" statement
-  /// - Call [ifStatement_end], passing `true` for `hasElse`.
   void ifStatement_thenBegin(Expression condition);
 
   /// Return whether the [variable] is definitely assigned in the current state.
@@ -1012,6 +1017,12 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
             leftHandSide, leftHandSideType),
         isQuery: true,
         isPure: false);
+  }
+
+  @override
+  void ifStatement_conditionBegin() {
+    return _wrap('ifStatement_conditionBegin()',
+        () => _wrapped.ifStatement_conditionBegin());
   }
 
   @override
@@ -1658,6 +1669,17 @@ class FlowModel<Variable, Type> {
   FlowModel<Variable, Type> unsplit() =>
       new FlowModel<Variable, Type>.withInfo(reachable.unsplit(), variableInfo);
 
+  /// Removes control flow splits until a [FlowModel] is obtained whose
+  /// reachability has the given [parent].
+  FlowModel<Variable, Type> unsplitTo(Reachability parent) {
+    if (identical(this.reachable.parent, parent)) return this;
+    Reachability reachable = this.reachable.unsplit();
+    while (!identical(reachable.parent, parent)) {
+      reachable = reachable.unsplit();
+    }
+    return new FlowModel<Variable, Type>.withInfo(reachable, variableInfo);
+  }
+
   /// Updates the state to indicate that an assignment was made to the given
   /// [variable].  The variable is marked as definitely assigned, and any
   /// previous type promotion is removed.
@@ -1806,6 +1828,37 @@ class FlowModel<Variable, Type> {
     if (alwaysSecond && result.length == second.length) return second;
     if (result.isEmpty) return emptyMap;
     return result;
+  }
+
+  /// Models the result of joining the flow models [first] and [second] at the
+  /// merge of two control flow paths.
+  static FlowModel<Variable, Type> merge<Variable, Type>(
+    TypeOperations<Variable, Type> typeOperations,
+    FlowModel<Variable, Type> first,
+    FlowModel<Variable, Type> second,
+    Map<Variable, VariableModel<Variable, Type>> emptyVariableMap,
+  ) {
+    if (first == null) return second.unsplit();
+    if (second == null) return first.unsplit();
+
+    assert(identical(first.reachable.parent, second.reachable.parent));
+    if (first.reachable.locallyReachable &&
+        !second.reachable.locallyReachable) {
+      return first.unsplit();
+    }
+    if (!first.reachable.locallyReachable &&
+        second.reachable.locallyReachable) {
+      return second.unsplit();
+    }
+
+    Reachability newReachable =
+        Reachability.join(first.reachable, second.reachable).unsplit();
+    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
+        FlowModel.joinVariableInfo(typeOperations, first.variableInfo,
+            second.variableInfo, emptyVariableMap);
+
+    return FlowModel._identicalOrNew(
+        first, second, newReachable, newVariableInfo);
   }
 
   /// Creates a new [FlowModel] object, unless it is equivalent to either
@@ -2554,9 +2607,17 @@ class _BranchTargetContext<Variable, Type> extends _FlowContext {
   /// `null` if no `continue` statements have been seen yet.
   FlowModel<Variable, Type> _continueModel;
 
+  /// The reachability checkpoint associated with this loop or switch statement.
+  /// When analyzing deeply nested `break` and `continue` statements, their flow
+  /// models need to be unsplit to this point before joining them to the control
+  /// flow paths for the loop or switch.
+  final Reachability _checkpoint;
+
+  _BranchTargetContext(this._checkpoint);
+
   @override
   String toString() => '_BranchTargetContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel)';
+      'continueModel: $_continueModel, checkpoint: $_checkpoint)';
 }
 
 /// [_FlowContext] representing a conditional expression.
@@ -2710,7 +2771,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(doStatement);
     _BranchTargetContext<Variable, Type> context =
-        new _BranchTargetContext<Variable, Type>();
+        new _BranchTargetContext<Variable, Type>(_current.reachable.parent);
     _stack.add(context);
     _current = _current.conservativeJoin(info._written, info._captured);
     _statementToContext[doStatement] = context;
@@ -2794,8 +2855,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     ExpressionInfo<Variable, Type> conditionInfo = condition == null
         ? new ExpressionInfo(_current, _current, _current.setUnreachable())
         : _expressionEnd(condition);
-    _WhileContext<Variable, Type> context =
-        new _WhileContext<Variable, Type>(conditionInfo);
+    _WhileContext<Variable, Type> context = new _WhileContext<Variable, Type>(
+        _current.reachable.parent, conditionInfo);
     _stack.add(context);
     if (node != null) {
       _statementToContext[node] = context;
@@ -2835,7 +2896,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _assignedVariables._getInfoForNode(node);
     _current = _current.conservativeJoin(info._written, info._captured);
     _SimpleStatementContext<Variable, Type> context =
-        new _SimpleStatementContext<Variable, Type>(_current);
+        new _SimpleStatementContext<Variable, Type>(
+            _current.reachable.parent, _current);
     _stack.add(context);
     if (loopVariable != null) {
       _current = _current.write(loopVariable, writtenType, typeOperations);
@@ -2880,7 +2942,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void handleBreak(Statement target) {
     _BranchTargetContext<Variable, Type> context = _statementToContext[target];
     if (context != null) {
-      context._breakModel = _join(context._breakModel, _current);
+      context._breakModel =
+          _join(context._breakModel, _current.unsplitTo(context._checkpoint));
     }
     _current = _current.setUnreachable();
   }
@@ -2889,7 +2952,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void handleContinue(Statement target) {
     _BranchTargetContext<Variable, Type> context = _statementToContext[target];
     if (context != null) {
-      context._continueModel = _join(context._continueModel, _current);
+      context._continueModel = _join(
+          context._continueModel, _current.unsplitTo(context._checkpoint));
     }
     _current = _current.setUnreachable();
   }
@@ -2924,6 +2988,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void ifStatement_conditionBegin() {
+    _current = _current.split();
+  }
+
+  @override
   void ifStatement_elseBegin() {
     _IfContext<Variable, Type> context =
         _stack.last as _IfContext<Variable, Type>;
@@ -2944,7 +3013,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
       afterThen = _current; // no `else`, so `then` is still current
       afterElse = context._conditionInfo.ifFalse;
     }
-    _current = _join(afterThen, afterElse);
+    _current = _merge(afterThen, afterElse);
   }
 
   @override
@@ -2985,7 +3054,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   void labeledStatement_begin(Node node) {
     _BranchTargetContext<Variable, Type> context =
-        new _BranchTargetContext<Variable, Type>();
+        new _BranchTargetContext<Variable, Type>(_current.reachable.parent);
     _stack.add(context);
     _statementToContext[node] = context;
   }
@@ -3140,7 +3209,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   void switchStatement_expressionEnd(Statement switchStatement) {
     _SimpleStatementContext<Variable, Type> context =
-        new _SimpleStatementContext<Variable, Type>(_current);
+        new _SimpleStatementContext<Variable, Type>(
+            _current.reachable.parent, _current);
     _stack.add(context);
     _statementToContext[switchStatement] = context;
   }
@@ -3232,8 +3302,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void whileStatement_bodyBegin(
       Statement whileStatement, Expression condition) {
     ExpressionInfo<Variable, Type> conditionInfo = _expressionEnd(condition);
-    _WhileContext<Variable, Type> context =
-        new _WhileContext<Variable, Type>(conditionInfo);
+    _WhileContext<Variable, Type> context = new _WhileContext<Variable, Type>(
+        _current.reachable.parent, conditionInfo);
     _stack.add(context);
     _statementToContext[whileStatement] = context;
     _current = conditionInfo.ifTrue;
@@ -3301,6 +3371,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   FlowModel<Variable, Type> _join(
           FlowModel<Variable, Type> first, FlowModel<Variable, Type> second) =>
       FlowModel.join(typeOperations, first, second, _current._emptyVariableMap);
+
+  FlowModel<Variable, Type> _merge(
+          FlowModel<Variable, Type> first, FlowModel<Variable, Type> second) =>
+      FlowModel.merge(
+          typeOperations, first, second, _current._emptyVariableMap);
 
   /// Associates [expression], which should be the most recently visited
   /// expression, with the given [expressionInfo] object, and updates the
@@ -3373,11 +3448,13 @@ class _SimpleStatementContext<Variable, Type>
   /// after evaluation of the switch expression.
   final FlowModel<Variable, Type> _previous;
 
-  _SimpleStatementContext(this._previous);
+  _SimpleStatementContext(Reachability checkpoint, this._previous)
+      : super(checkpoint);
 
   @override
   String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, previous: $_previous)';
+      'continueModel: $_continueModel, previous: $_previous, '
+      'checkpoint: $_checkpoint)';
 }
 
 /// [_FlowContext] representing a try statement.
@@ -3430,9 +3507,11 @@ class _WhileContext<Variable, Type>
   /// Flow models associated with the loop condition.
   final ExpressionInfo<Variable, Type> _conditionInfo;
 
-  _WhileContext(this._conditionInfo);
+  _WhileContext(Reachability checkpoint, this._conditionInfo)
+      : super(checkpoint);
 
   @override
   String toString() => '_WhileContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, conditionInfo: $_conditionInfo)';
+      'continueModel: $_continueModel, conditionInfo: $_conditionInfo, '
+      'checkpoint: $_checkpoint)';
 }

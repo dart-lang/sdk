@@ -1083,7 +1083,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
         _enclosingVName =
             _vNameFromElement(_enclosingElement, schema.FUNCTION_KIND);
       }
-      return f();
+      f();
     } finally {
       _enclosingElement = outerEnclosingElement;
       _enclosingClassElement = outerEnclosingClassElement;

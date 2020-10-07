@@ -95,11 +95,13 @@ class Flag {
   Flag(const char* name, const char* comment, FlagHandler handler)
       : name_(name),
         comment_(comment),
+        string_value_("false"),
         flag_handler_(handler),
         type_(kFlagHandler) {}
   Flag(const char* name, const char* comment, OptionHandler handler)
       : name_(name),
         comment_(comment),
+        string_value_(nullptr),
         option_handler_(handler),
         type_(kOptionHandler) {}
 
@@ -148,6 +150,7 @@ class Flag {
 
   const char* name_;
   const char* comment_;
+  const char* string_value_;
   union {
     void* addr_;
     bool* bool_ptr_;
@@ -332,9 +335,11 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       } else {
         return false;
       }
+      flag->string_value_ = argument;
       break;
     }
     case Flag::kOptionHandler: {
+      flag->string_value_ = argument;
       (flag->option_handler_)(argument);
       break;
     }
@@ -487,8 +492,7 @@ void Flags::PrintFlags() {
 
 #ifndef PRODUCT
 void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
-  if (flag->IsUnrecognized() || flag->type_ == Flag::kFlagHandler ||
-      flag->type_ == Flag::kOptionHandler) {
+  if (flag->IsUnrecognized()) {
     return;
   }
   JSONObject jsflag(jsarr);
@@ -516,6 +520,20 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
       jsflag.AddProperty("_flagType", "String");
       if (flag->charp_ptr_ != NULL) {
         jsflag.AddPropertyF("valueAsString", "%s", *flag->charp_ptr_);
+      } else {
+        // valueAsString missing means NULL.
+      }
+      break;
+    }
+    case Flag::kFlagHandler: {
+      jsflag.AddProperty("_flagType", "Bool");
+      jsflag.AddProperty("valueAsString", flag->string_value_);
+      break;
+    }
+    case Flag::kOptionHandler: {
+      jsflag.AddProperty("_flagType", "String");
+      if (flag->string_value_ != nullptr) {
+        jsflag.AddProperty("valueAsString", flag->string_value_);
       } else {
         // valueAsString missing means NULL.
       }

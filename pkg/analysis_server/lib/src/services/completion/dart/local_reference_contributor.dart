@@ -451,7 +451,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void visitExtendsClause(ExtendsClause node) {
     inExtendsClause = true;
-    return super.visitExtendsClause(node);
+    super.visitExtendsClause(node);
   }
 
   /// Return `true` if the [identifier] is composed of one or more underscore

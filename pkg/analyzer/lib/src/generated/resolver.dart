@@ -1498,6 +1498,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitIfElement(IfElement node) {
+    _flowAnalysis?.flow?.ifStatement_conditionBegin();
     Expression condition = node.condition;
     InferenceContext.setType(condition, typeProvider.boolType);
     // TODO(scheglov) Do we need these checks for null?
@@ -1535,6 +1536,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitIfStatement(IfStatement node) {
     checkUnreachableNode(node);
+    _flowAnalysis?.flow?.ifStatement_conditionBegin();
 
     Expression condition = node.condition;
 

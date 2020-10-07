@@ -947,6 +947,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitIfStatement(IfStatement node) {
+    _flowAnalysis.ifStatement_conditionBegin();
     _checkExpressionNotNull(node.condition);
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;

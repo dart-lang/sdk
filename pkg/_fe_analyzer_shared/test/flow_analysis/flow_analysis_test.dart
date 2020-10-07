@@ -179,6 +179,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         var varExpr = _Expression();
         flow.variableRead(varExpr, x);
         flow.equalityOp_rightBegin(varExpr, _Type('int?'));
@@ -203,6 +204,7 @@ main() {
       var x = h.addVar('x', 'int');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         var varExpr = _Expression();
         flow.variableRead(varExpr, x);
         flow.equalityOp_rightBegin(varExpr, _Type('int'));
@@ -227,6 +229,7 @@ main() {
     test('equalityOp(<expr> == <expr>) has no special effect', () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         flow.equalityOp_rightBegin(_Expression(), _Type('int?'));
         var expr = _Expression();
         var successIsReachable = flow.equalityOp_end(
@@ -244,6 +247,7 @@ main() {
     test('equalityOp(<expr> != <expr>) has no special effect', () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         flow.equalityOp_rightBegin(_Expression(), _Type('int?'));
         var expr = _Expression();
         var successIsReachable = flow
@@ -262,6 +266,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         var varExpr = _Expression();
         flow.variableRead(varExpr, x);
         flow.equalityOp_rightBegin(varExpr, _Type('int?'));
@@ -281,6 +286,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         var varExpr = _Expression();
         flow.variableRead(varExpr, x);
         flow.equalityOp_rightBegin(varExpr, _Type('int?'));
@@ -305,6 +311,7 @@ main() {
       var x = h.addVar('x', 'int');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         var varExpr = _Expression();
         flow.variableRead(varExpr, x);
         flow.equalityOp_rightBegin(varExpr, _Type('int'));
@@ -331,6 +338,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         var nullExpr = _Expression();
         flow.nullLiteral(nullExpr);
         flow.equalityOp_rightBegin(nullExpr, _Type('Null'));
@@ -351,6 +359,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         var nullExpr = _Expression();
         flow.equalityOp_rightBegin(nullExpr, _Type('Null'));
         var varExpr = _Expression();
@@ -370,6 +379,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         var nullExpr = _Expression();
         flow.nullLiteral(nullExpr);
         flow.equalityOp_rightBegin(nullExpr, _Type('Null'));
@@ -388,6 +398,7 @@ main() {
     test('equalityOp(null == null) equivalent to true', () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         var null1 = _Expression();
         flow.equalityOp_rightBegin(null1, _Type('Null'));
         var null2 = _Expression();
@@ -406,6 +417,7 @@ main() {
     test('equalityOp(null != null) equivalent to false', () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         var null1 = _Expression();
         flow.equalityOp_rightBegin(null1, _Type('Null'));
         var null2 = _Expression();
@@ -424,6 +436,7 @@ main() {
     test('equalityOp(null == non-null) is not equivalent to false', () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         var null1 = _Expression();
         flow.equalityOp_rightBegin(null1, _Type('Null'));
         var null2 = _Expression();
@@ -443,6 +456,7 @@ main() {
     test('equalityOp(null != non-null) is not equivalent to true', () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         var null1 = _Expression();
         flow.equalityOp_rightBegin(null1, _Type('Null'));
         var null2 = _Expression();
@@ -463,6 +477,7 @@ main() {
     test('equalityOp(non-null == null) is not equivalent to false', () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         var null1 = _Expression();
         flow.equalityOp_rightBegin(null1, _Type('int'));
         var null2 = _Expression();
@@ -483,6 +498,7 @@ main() {
     test('equalityOp(non-null != null) is not equivalent to true', () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         var null1 = _Expression();
         flow.equalityOp_rightBegin(null1, _Type('int'));
         var null2 = _Expression();
@@ -599,6 +615,7 @@ main() {
       var h = _Harness();
       var expr = _Expression();
       var flow = h.createFlow();
+      flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(expr);
       expect(() => flow.finish(), _asserts);
     });
@@ -1040,6 +1057,94 @@ main() {
       });
     });
 
+    test('handleBreak handles deep nesting', () {
+      var h = _Harness();
+      var whileStatement = _Statement();
+      h.assignedVariables((vars) {
+        vars.nest(whileStatement, () {});
+      });
+      h.run((flow) {
+        flow.whileStatement_conditionBegin(whileStatement);
+        flow.whileStatement_bodyBegin(whileStatement, h.booleanLiteral(true)());
+        h.if_(h.expr, () {
+          h.if_(h.expr, () {
+            flow.handleBreak(whileStatement);
+          });
+        });
+        flow.handleExit();
+        expect(flow.isReachable, false);
+        flow.whileStatement_end();
+        expect(flow.isReachable, true);
+      });
+    });
+
+    test('handleBreak handles mixed nesting', () {
+      var h = _Harness();
+      var whileStatement = _Statement();
+      h.assignedVariables((vars) {
+        vars.nest(whileStatement, () {});
+      });
+      h.run((flow) {
+        flow.whileStatement_conditionBegin(whileStatement);
+        flow.whileStatement_bodyBegin(whileStatement, h.booleanLiteral(true)());
+        h.if_(h.expr, () {
+          h.if_(h.expr, () {
+            flow.handleBreak(whileStatement);
+          });
+          flow.handleBreak(whileStatement);
+        });
+        flow.handleBreak(whileStatement);
+        expect(flow.isReachable, false);
+        flow.whileStatement_end();
+        expect(flow.isReachable, true);
+      });
+    });
+
+    test('handleContinue handles deep nesting', () {
+      var h = _Harness();
+      var doStatement = _Statement();
+      h.assignedVariables((vars) {
+        vars.nest(doStatement, () {});
+      });
+      h.run((flow) {
+        flow.doStatement_bodyBegin(doStatement);
+        h.if_(h.expr, () {
+          h.if_(h.expr, () {
+            flow.handleContinue(doStatement);
+          });
+        });
+        flow.handleExit();
+        expect(flow.isReachable, false);
+        flow.doStatement_conditionBegin();
+        expect(flow.isReachable, true);
+        flow.doStatement_end(h.booleanLiteral(true)());
+        expect(flow.isReachable, false);
+      });
+    });
+
+    test('handleContinue handles mixed nesting', () {
+      var h = _Harness();
+      var doStatement = _Statement();
+      h.assignedVariables((vars) {
+        vars.nest(doStatement, () {});
+      });
+      h.run((flow) {
+        flow.doStatement_bodyBegin(doStatement);
+        h.if_(h.expr, () {
+          h.if_(h.expr, () {
+            flow.handleContinue(doStatement);
+          });
+          flow.handleContinue(doStatement);
+        });
+        flow.handleContinue(doStatement);
+        expect(flow.isReachable, false);
+        flow.doStatement_conditionBegin();
+        expect(flow.isReachable, true);
+        flow.doStatement_end(h.booleanLiteral(true)());
+        expect(flow.isReachable, false);
+      });
+    });
+
     test('ifNullExpression allows ensure guarding', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
@@ -1119,11 +1224,28 @@ main() {
       });
     });
 
+    test('ifStatement with early exit promotes in unreachable code', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        flow.handleExit();
+        expect(flow.isReachable, false);
+        flow.ifStatement_conditionBegin();
+        flow.ifStatement_thenBegin(h.eqNull(x, _Type('int?'))());
+        flow.handleExit();
+        flow.ifStatement_end(false);
+        expect(flow.isReachable, false);
+        expect(flow.promotedType(x).type, 'int');
+      });
+    });
+
     test('ifStatement_end(false) keeps else branch if then branch exits', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         flow.ifStatement_thenBegin(h.eqNull(x, _Type('int?'))());
         flow.handleExit();
         flow.ifStatement_end(false);
@@ -1138,6 +1260,7 @@ main() {
       var x = h.addVar('x', declaredType);
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         var read = _Expression();
         flow.variableRead(read, x);
         var expr = _Expression();
@@ -1190,6 +1313,7 @@ main() {
     test('isExpression_end does nothing if applied to a non-variable', () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         var subExpr = _Expression();
         var expr = _Expression();
         var failureReachable =
@@ -1207,6 +1331,7 @@ main() {
         () {
       var h = _Harness();
       h.run((flow) {
+        flow.ifStatement_conditionBegin();
         var subExpr = _Expression();
         var expr = _Expression();
         var failureReachable =
@@ -1305,6 +1430,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         flow.logicalBinaryOp_rightBegin(_Expression(), isAnd: true);
         var wholeExpr = _Expression();
         flow.logicalBinaryOp_end(wholeExpr, h.notNull(x, _Type('int?'))(),
@@ -1321,6 +1447,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.ifStatement_conditionBegin();
         flow.logicalBinaryOp_rightBegin(_Expression(), isAnd: false);
         var wholeExpr = _Expression();
         flow.logicalBinaryOp_end(wholeExpr, h.eqNull(x, _Type('int?'))(),
@@ -2163,6 +2290,7 @@ main() {
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
         // if (false) {
+        flow.ifStatement_conditionBegin();
         var falseExpression = _Expression();
         flow.booleanLiteral(falseExpression, false);
         flow.ifStatement_thenBegin(falseExpression);
@@ -2326,6 +2454,55 @@ main() {
       var s1 = FlowModel<_Var, _Type>(Reachability.initial.split());
       var s2 = s1.unsplit();
       expect(s2.reachable, same(Reachability.initial));
+    });
+
+    group('unsplitTo', () {
+      test('no change', () {
+        var s1 = FlowModel<_Var, _Type>(Reachability.initial.split());
+        var result = s1.unsplitTo(s1.reachable.parent);
+        expect(result, same(s1));
+      });
+
+      test('unsplit once, reachable', () {
+        var s1 = FlowModel<_Var, _Type>(Reachability.initial.split());
+        var s2 = s1.split();
+        var result = s2.unsplitTo(s1.reachable.parent);
+        expect(result.reachable, same(s1.reachable));
+      });
+
+      test('unsplit once, unreachable', () {
+        var s1 = FlowModel<_Var, _Type>(Reachability.initial.split());
+        var s2 = s1.split().setUnreachable();
+        var result = s2.unsplitTo(s1.reachable.parent);
+        expect(result.reachable.locallyReachable, false);
+        expect(result.reachable.parent, same(s1.reachable.parent));
+      });
+
+      test('unsplit twice, reachable', () {
+        var s1 = FlowModel<_Var, _Type>(Reachability.initial.split());
+        var s2 = s1.split();
+        var s3 = s2.split();
+        var result = s3.unsplitTo(s1.reachable.parent);
+        expect(result.reachable, same(s1.reachable));
+      });
+
+      test('unsplit twice, top unreachable', () {
+        var s1 = FlowModel<_Var, _Type>(Reachability.initial.split());
+        var s2 = s1.split();
+        var s3 = s2.split().setUnreachable();
+        var result = s3.unsplitTo(s1.reachable.parent);
+        expect(result.reachable.locallyReachable, false);
+        expect(result.reachable.parent, same(s1.reachable.parent));
+      });
+
+      test('unsplit twice, previous unreachable', () {
+        var s1 = FlowModel<_Var, _Type>(Reachability.initial.split());
+        var s2 = s1.split().setUnreachable();
+        var s3 = s2.split();
+        var result = s3.unsplitTo(s1.reachable.parent);
+        expect(result.reachable.locallyReachable, false);
+        expect(result.reachable.parent, same(s1.reachable.parent));
+      });
     });
 
     group('tryPromoteForTypeCheck', () {
@@ -3581,6 +3758,101 @@ main() {
       });
     });
   });
+
+  group('merge', () {
+    var x = _Var('x', _Type('Object?'));
+    var intType = _Type('int');
+    var stringType = _Type('String');
+    const emptyMap = const <_Var, VariableModel<_Var, _Type>>{};
+
+    VariableModel<_Var, _Type> varModel(List<_Type> promotionChain,
+            {bool assigned = false}) =>
+        VariableModel<_Var, _Type>(
+          promotionChain,
+          promotionChain ?? [],
+          assigned,
+          !assigned,
+          false,
+        );
+
+    test('first is null', () {
+      var h = _Harness();
+      var s1 = FlowModel.withInfo(Reachability.initial.split(), {});
+      var result = FlowModel.merge(h, null, s1, emptyMap);
+      expect(result.reachable, same(Reachability.initial));
+    });
+
+    test('second is null', () {
+      var h = _Harness();
+      var splitPoint = Reachability.initial.split();
+      var afterSplit = splitPoint.split();
+      var s1 = FlowModel.withInfo(afterSplit, {});
+      var result = FlowModel.merge(h, s1, null, emptyMap);
+      expect(result.reachable, same(splitPoint));
+    });
+
+    test('both are reachable', () {
+      var h = _Harness();
+      var splitPoint = Reachability.initial.split();
+      var afterSplit = splitPoint.split();
+      var s1 = FlowModel.withInfo(afterSplit, {
+        x: varModel([intType])
+      });
+      var s2 = FlowModel.withInfo(afterSplit, {
+        x: varModel([stringType])
+      });
+      var result = FlowModel.merge(h, s1, s2, emptyMap);
+      expect(result.reachable, same(splitPoint));
+      expect(result.variableInfo[x].promotedTypes, isNull);
+    });
+
+    test('first is unreachable', () {
+      var h = _Harness();
+      var splitPoint = Reachability.initial.split();
+      var afterSplit = splitPoint.split();
+      var s1 = FlowModel.withInfo(afterSplit.setUnreachable(), {
+        x: varModel([intType])
+      });
+      var s2 = FlowModel.withInfo(afterSplit, {
+        x: varModel([stringType])
+      });
+      var result = FlowModel.merge(h, s1, s2, emptyMap);
+      expect(result.reachable, same(splitPoint));
+      expect(result.variableInfo, same(s2.variableInfo));
+    });
+
+    test('second is unreachable', () {
+      var h = _Harness();
+      var splitPoint = Reachability.initial.split();
+      var afterSplit = splitPoint.split();
+      var s1 = FlowModel.withInfo(afterSplit, {
+        x: varModel([intType])
+      });
+      var s2 = FlowModel.withInfo(afterSplit.setUnreachable(), {
+        x: varModel([stringType])
+      });
+      var result = FlowModel.merge(h, s1, s2, emptyMap);
+      expect(result.reachable, same(splitPoint));
+      expect(result.variableInfo, same(s1.variableInfo));
+    });
+
+    test('both are unreachable', () {
+      var h = _Harness();
+      var splitPoint = Reachability.initial.split();
+      var afterSplit = splitPoint.split();
+      var s1 = FlowModel.withInfo(afterSplit.setUnreachable(), {
+        x: varModel([intType])
+      });
+      var s2 = FlowModel.withInfo(afterSplit.setUnreachable(), {
+        x: varModel([stringType])
+      });
+      var result = FlowModel.merge(h, s1, s2, emptyMap);
+      expect(result.reachable.locallyReachable, false);
+      expect(result.reachable.parent, same(splitPoint.parent));
+      expect(result.variableInfo[x].promotedTypes, isNull);
+    });
+  });
+
   group('inheritTested', () {
     var x = _Var('x', _Type('Object?'));
     var intType = _Type('int');
@@ -3881,6 +4153,12 @@ class _Harness extends TypeOperations<_Var, _Type> {
     callback(_AssignedVariablesHarness(_assignedVariables));
   }
 
+  LazyExpression booleanLiteral(bool value) => () {
+        var expr = _Expression();
+        _flow.booleanLiteral(expr, value);
+        return expr;
+      };
+
   @override
   TypeClassification classifyType(_Type type) {
     if (isSubtypeOf(type, _Type('Object'))) {
@@ -3943,6 +4221,7 @@ class _Harness extends TypeOperations<_Var, _Type> {
 
   /// Invokes flow analysis of an `if` statement with no `else` part.
   void if_(LazyExpression cond, void ifTrue()) {
+    _flow.ifStatement_conditionBegin();
     _flow.ifStatement_thenBegin(cond());
     ifTrue();
     _flow.ifStatement_end(false);
@@ -3950,6 +4229,7 @@ class _Harness extends TypeOperations<_Var, _Type> {
 
   /// Invokes flow analysis of an `if` statement with an `else` part.
   void ifElse(LazyExpression cond, void ifTrue(), void ifFalse()) {
+    _flow.ifStatement_conditionBegin();
     _flow.ifStatement_thenBegin(cond());
     ifTrue();
     _flow.ifStatement_elseBegin();

@@ -483,11 +483,13 @@ abstract class Stream<T> {
    * On errors from this stream, the [onError] handler is called with the
    * error object and possibly a stack trace.
    *
-   * The [onError] callback must be of type `void onError(Object error)` or
-   * `void onError(Object error, StackTrace stackTrace)`. If [onError] accepts
-   * two arguments it is called with the error object and the stack trace
-   * (which could be `null` if this stream itself received an error without
-   * stack trace).
+   * The [onError] callback must be of type `void Function(Object error)` or
+   * `void Function(Object error, StackTrace)`.
+   * The function type determines whether [onError] is invoked with a stack
+   * trace argument.
+   * The stack trace argument may be [StackTrace.empty] if this stream received
+   * an error without a stack trace.
+   *
    * Otherwise it is called with just the error object.
    * If [onError] is omitted, any errors on this stream are considered unhandled,
    * and will be passed to the current [Zone]'s error handler.

@@ -377,9 +377,7 @@ abstract class TypePromoterImpl extends TypePromoter {
           factMap[variable],
           isCheck.functionNestingLevel,
           isCheck.checkedType,
-          []
-            ..addAll(isCheck._blockingScopes)
-            ..add(_currentScope));
+          [...isCheck._blockingScopes, _currentScope]);
       factMap[variable] = facts;
       _factCacheState = facts;
     }
