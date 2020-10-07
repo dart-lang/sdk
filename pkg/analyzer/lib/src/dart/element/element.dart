@@ -486,7 +486,13 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   ClassElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
       Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+      : super.forLinkedNode(enclosing, reference, linkedNode) {
+    if (linkedNode is ClassDeclaration) {
+      linkedNode.name.staticElement = this;
+    } else if (linkedNode is ClassTypeAlias) {
+      linkedNode.name.staticElement = this;
+    }
+  }
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -543,10 +549,9 @@ class ClassElementImpl extends AbstractClassElementImpl
       _constructors = context.getConstructors(linkedNode).map((node) {
         var name = node.name?.name ?? '';
         var reference = containerRef.getChild(name);
-        if (reference.hasElementFor(node)) {
-          return reference.element as ConstructorElement;
-        }
-        return ConstructorElementImpl.forLinkedNode(this, reference, node);
+        var element = node.declaredElement;
+        element ??= ConstructorElementImpl.forLinkedNode(this, reference, node);
+        return element;
       }).toList();
 
       if (_constructors.isEmpty) {
@@ -783,10 +788,9 @@ class ClassElementImpl extends AbstractClassElementImpl
           .map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
-        if (reference.hasElementFor(node)) {
-          return reference.element as MethodElement;
-        }
-        return MethodElementImpl.forLinkedNode(this, reference, node);
+        var element = node.declaredElement as MethodElement;
+        element ??= MethodElementImpl.forLinkedNode(this, reference, node);
+        return element;
       }).toList();
     }
 
@@ -1240,9 +1244,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         super(null, -1);
 
   CompilationUnitElementImpl.forLinkedNode(LibraryElementImpl enclosingLibrary,
-      this.linkedContext, Reference reference, CompilationUnit linkedNode)
+      this.linkedContext, Reference reference, CompilationUnitImpl linkedNode)
       : super.forLinkedNode(enclosingLibrary, reference, linkedNode) {
     _nameOffset = -1;
+    linkedNode.declaredElement = this;
   }
 
   @override
@@ -1302,10 +1307,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       _enums = linkedNode.declarations.whereType<EnumDeclaration>().map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
-        if (reference.hasElementFor(node)) {
-          return reference.element as EnumElementImpl;
-        }
-        return EnumElementImpl.forLinkedNode(this, reference, node);
+        var element = node.declaredElement;
+        element ??= EnumElementImpl.forLinkedNode(this, reference, node);
+        return element;
       }).toList();
     }
 
@@ -1334,13 +1338,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         if (node is ExtensionDeclaration) {
           var refName = linkedContext.getExtensionRefName(node);
           var reference = containerRef.getChild(refName);
-          if (reference.hasElementFor(node)) {
-            _extensions.add(reference.element);
-          } else {
-            _extensions.add(
-              ExtensionElementImpl.forLinkedNode(this, reference, node),
-            );
-          }
+          var element = node.declaredElement;
+          element ??= ExtensionElementImpl.forLinkedNode(this, reference, node);
+          _extensions.add(element);
         }
       }
       return _extensions;
@@ -1370,10 +1370,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
           .map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
-        if (reference.hasElementFor(node)) {
-          return reference.element as FunctionElementImpl;
-        }
-        return FunctionElementImpl.forLinkedNode(this, reference, node);
+        var element = node.declaredElement as FunctionElement;
+        element ??= FunctionElementImpl.forLinkedNode(this, reference, node);
+        return element;
       }).toList();
     }
     return _functions ?? const <FunctionElement>[];
@@ -1395,22 +1394,23 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     if (linkedNode != null) {
       CompilationUnit linkedNode = this.linkedNode;
       var containerRef = reference.getChild('@typeAlias');
-      return _typeAliases = linkedNode.declarations.where((node) {
-        return node is FunctionTypeAlias || node is GenericTypeAlias;
-      }).map((node) {
+      _typeAliases = <FunctionTypeAliasElement>[];
+      for (var node in linkedNode.declarations) {
         String name;
         if (node is FunctionTypeAlias) {
           name = node.name.name;
+        } else if (node is GenericTypeAlias) {
+          name = node.name.name;
         } else {
-          name = (node as GenericTypeAlias).name.name;
+          continue;
         }
 
         var reference = containerRef.getChild(name);
-        if (reference.hasElementFor(node)) {
-          return reference.element as GenericTypeAliasElementImpl;
-        }
-        return GenericTypeAliasElementImpl.forLinkedNode(this, reference, node);
-      }).toList();
+        var element = node.declaredElement as GenericTypeAliasElement;
+        element ??=
+            GenericTypeAliasElementImpl.forLinkedNode(this, reference, node);
+        _typeAliases.add(element);
+      }
     }
 
     return _typeAliases ?? const <FunctionTypeAliasElement>[];
@@ -1447,10 +1447,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       return _mixins = declarations.whereType<MixinDeclaration>().map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
-        if (reference.hasElementFor(node)) {
-          return reference.element as MixinElementImpl;
-        }
-        return MixinElementImpl.forLinkedNode(this, reference, node);
+        var element = node.declaredElement as MixinElementImpl;
+        element ??= MixinElementImpl.forLinkedNode(this, reference, node);
+        return element;
       }).toList();
     }
 
@@ -1506,21 +1505,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       var containerRef = reference.getChild('@class');
       _types = <ClassElement>[];
       for (var node in linkedNode.declarations) {
-        String name;
         if (node is ClassDeclaration) {
-          name = node.name.name;
+          var name = node.name.name;
+          var reference = containerRef.getChild(name);
+          var element = node.declaredElement;
+          element ??= ClassElementImpl.forLinkedNode(this, reference, node);
+          _types.add(element);
         } else if (node is ClassTypeAlias) {
-          name = node.name.name;
-        } else {
-          continue;
-        }
-        var reference = containerRef.getChild(name);
-        if (reference.hasElementFor(node)) {
-          _types.add(reference.element);
-        } else {
-          _types.add(
-            ClassElementImpl.forLinkedNode(this, reference, node),
-          );
+          var name = node.name.name;
+          var reference = containerRef.getChild(name);
+          var element = node.declaredElement;
+          element ??= ClassElementImpl.forLinkedNode(this, reference, node);
+          _types.add(element);
         }
       }
       return _types;
@@ -1948,8 +1944,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ConstructorElementImpl(String name, int offset) : super(name, offset);
 
   ConstructorElementImpl.forLinkedNode(ClassElementImpl enclosingClass,
-      Reference reference, ConstructorDeclaration linkedNode)
-      : super.forLinkedNode(enclosingClass, reference, linkedNode);
+      Reference reference, ConstructorDeclarationImpl linkedNode)
+      : super.forLinkedNode(enclosingClass, reference, linkedNode) {
+    linkedNode?.declaredElement = this;
+  }
 
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
@@ -3330,7 +3328,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   EnumElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
       Reference reference, EnumDeclaration linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+      : super.forLinkedNode(enclosing, reference, linkedNode) {
+    linkedNode.name.staticElement = this;
+  }
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -3548,7 +3548,13 @@ abstract class ExecutableElementImpl extends ElementImpl
   /// Initialize using the given linked node.
   ExecutableElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+      : super.forLinkedNode(enclosing, reference, linkedNode) {
+    if (linkedNode is MethodDeclaration) {
+      linkedNode.name.staticElement = this;
+    } else if (linkedNode is FunctionDeclaration) {
+      linkedNode.name.staticElement = this;
+    }
+  }
 
   @override
   int get codeLength {
@@ -3901,8 +3907,10 @@ class ExtensionElementImpl extends ElementImpl
 
   /// Initialize using the given linked information.
   ExtensionElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
-      Reference reference, AstNode linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+      Reference reference, ExtensionDeclarationImpl linkedNode)
+      : super.forLinkedNode(enclosing, reference, linkedNode) {
+    linkedNode.declaredElement = this;
+  }
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -4032,10 +4040,9 @@ class ExtensionElementImpl extends ElementImpl
           .map((node) {
         var name = node.name.name;
         var reference = containerRef.getChild(name);
-        if (reference.hasElementFor(node)) {
-          return reference.element as MethodElement;
-        }
-        return MethodElementImpl.forLinkedNode(this, reference, node);
+        var element = node.declaredElement as MethodElement;
+        element ??= MethodElementImpl.forLinkedNode(this, reference, node);
+        return element;
       }).toList();
     }
     return _methods = const <MethodElement>[];
@@ -4360,7 +4367,9 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   FunctionElementImpl.forLinkedNode(ElementImpl enclosing, Reference reference,
       FunctionDeclaration linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+      : super.forLinkedNode(enclosing, reference, linkedNode) {
+    linkedNode.name.staticElement = this;
+  }
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
@@ -4605,7 +4614,13 @@ class GenericTypeAliasElementImpl extends ElementImpl
       CompilationUnitElementImpl enclosingUnit,
       Reference reference,
       AstNode linkedNode)
-      : super.forLinkedNode(enclosingUnit, reference, linkedNode);
+      : super.forLinkedNode(enclosingUnit, reference, linkedNode) {
+    if (linkedNode is FunctionTypeAlias) {
+      linkedNode.name.staticElement = this;
+    } else {
+      (linkedNode as GenericTypeAlias).name.staticElement = this;
+    }
+  }
 
   @override
   int get codeLength {
@@ -5682,7 +5697,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   MethodElementImpl.forLinkedNode(TypeParameterizedElementMixin enclosingClass,
       Reference reference, MethodDeclaration linkedNode)
-      : super.forLinkedNode(enclosingClass, reference, linkedNode);
+      : super.forLinkedNode(enclosingClass, reference, linkedNode) {
+    linkedNode.name.staticElement = this;
+  }
 
   @override
   MethodElement get declaration => this;
@@ -5793,7 +5810,9 @@ class MixinElementImpl extends ClassElementImpl {
 
   MixinElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
       Reference reference, MixinDeclaration linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+      : super.forLinkedNode(enclosing, reference, linkedNode) {
+    linkedNode.name.staticElement = this;
+  }
 
   @override
   bool get isAbstract => true;
@@ -6327,7 +6346,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   ParameterElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, FormalParameter linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+      : super.forLinkedNode(enclosing, reference, linkedNode) {
+    FormalParameterImpl.setDeclaredElement(linkedNode, this);
+  }
 
   factory ParameterElementImpl.forLinkedNodeFactory(
       ElementImpl enclosing, Reference reference, FormalParameter node) {
@@ -6550,10 +6571,10 @@ class ParameterElementImpl extends VariableElementImpl
       return _typeParameters =
           typeParameters.typeParameters.map<TypeParameterElement>((node) {
         var reference = containerRef.getChild(node.name.name);
-        if (reference.hasElementFor(node)) {
-          return reference.element as TypeParameterElement;
-        }
-        return TypeParameterElementImpl.forLinkedNode(this, reference, node);
+        var element = node.declaredElement;
+        element ??=
+            TypeParameterElementImpl.forLinkedNode(this, reference, node);
+        return element;
       }).toList();
     }
 
@@ -6593,6 +6614,11 @@ class ParameterElementImpl extends VariableElementImpl
     }
 
     return formalParameters.map((node) {
+      var element = node.declaredElement;
+      if (element != null) {
+        return element;
+      }
+
       if (node is DefaultFormalParameter) {
         NormalFormalParameter parameterNode = node.parameter;
         var name = parameterNode.identifier?.name ?? '';
@@ -7330,7 +7356,9 @@ class TypeParameterElementImpl extends ElementImpl
 
   TypeParameterElementImpl.forLinkedNode(
       ElementImpl enclosing, Reference reference, TypeParameter linkedNode)
-      : super.forLinkedNode(enclosing, reference, linkedNode);
+      : super.forLinkedNode(enclosing, reference, linkedNode) {
+    linkedNode.name.staticElement = this;
+  }
 
   /// Initialize a newly created synthetic type parameter element to have the
   /// given [name], and with [synthetic] set to true.
