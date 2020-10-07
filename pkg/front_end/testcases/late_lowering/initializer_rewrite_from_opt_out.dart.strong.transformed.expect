@@ -21,7 +21,7 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   static get nonNullableStaticField() → core::int
-    return let final core::int? #t1 = self::Class::_#nonNullableStaticField in #t1.==(null) ?{core::int} let final core::int #t2 = (let final core::int #t3 = self::Class::nonNullableStaticFieldReads in let final core::int #t4 = self::Class::nonNullableStaticFieldReads = #t3.{core::num::+}(1) in #t3).{core::num::==}(0) ?{core::int} self::Class::nonNullableStaticField : ini::computeInitialValue() in self::Class::_#nonNullableStaticField.==(null) ?{core::int} self::Class::_#nonNullableStaticField = #t2 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableStaticField' has been assigned during initialization.") : #t1{core::int};
+    return let final core::int? #t1 = self::Class::_#nonNullableStaticField in #t1.==(null) ?{core::int} let final core::int #t2 = (let final core::int #t3 = self::Class::nonNullableStaticFieldReads in let final core::int #t4 = self::Class::nonNullableStaticFieldReads = #t3.{core::num::+}(1) in #t3).{core::num::==}(0) ?{core::int*} self::Class::nonNullableStaticField : ini::computeInitialValue() in self::Class::_#nonNullableStaticField.==(null) ?{core::int} self::Class::_#nonNullableStaticField = #t2 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableStaticField' has been assigned during initialization.") : #t1{core::int};
   static get nullableStaticField() → core::int? {
     if(!self::Class::_#nullableStaticField#isSet) {
       final core::int? #t5 = (let final core::int #t6 = self::Class::nullableStaticFieldReads in let final core::int #t7 = self::Class::nullableStaticFieldReads = #t6.{core::num::+}(1) in #t6).{core::num::==}(0) ?{core::int?} self::Class::nullableStaticField : ini::computeInitialValue();
@@ -33,7 +33,7 @@ class Class extends core::Object {
     return self::Class::_#nullableStaticField;
   }
   get nonNullableInstanceField() → core::int
-    return let final core::int? #t8 = this.{self::Class::_#Class#nonNullableInstanceField} in #t8.==(null) ?{core::int} let final core::int #t9 = (let final core::int #t10 = this.{self::Class::nonNullableInstanceFieldReads} in let final core::int #t11 = this.{self::Class::nonNullableInstanceFieldReads} = #t10.{core::num::+}(1) in #t10).{core::num::==}(0) ?{core::int} this.{self::Class::nonNullableInstanceField} : ini::computeInitialValue() in this.{self::Class::_#Class#nonNullableInstanceField}.==(null) ?{core::int} this.{self::Class::_#Class#nonNullableInstanceField} = #t9 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableInstanceField' has been assigned during initialization.") : #t8{core::int};
+    return let final core::int? #t8 = this.{self::Class::_#Class#nonNullableInstanceField} in #t8.==(null) ?{core::int} let final core::int #t9 = (let final core::int #t10 = this.{self::Class::nonNullableInstanceFieldReads} in let final core::int #t11 = this.{self::Class::nonNullableInstanceFieldReads} = #t10.{core::num::+}(1) in #t10).{core::num::==}(0) ?{core::int*} this.{self::Class::nonNullableInstanceField} : ini::computeInitialValue() in this.{self::Class::_#Class#nonNullableInstanceField}.==(null) ?{core::int} this.{self::Class::_#Class#nonNullableInstanceField} = #t9 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableInstanceField' has been assigned during initialization.") : #t8{core::int};
   get nullableInstanceField() → core::int? {
     if(!this.{self::Class::_#Class#nullableInstanceField#isSet}) {
       final core::int? #t12 = (let final core::int #t13 = this.{self::Class::nullableInstanceFieldReads} in let final core::int #t14 = this.{self::Class::nullableInstanceFieldReads} = #t13.{core::num::+}(1) in #t13).{core::num::==}(0) ?{core::int?} this.{self::Class::nullableInstanceField} : ini::computeInitialValue();
@@ -51,7 +51,7 @@ static field core::int nullableTopLevelFieldReads = 0;
 static field core::int? _#nullableTopLevelField = null;
 static field core::bool _#nullableTopLevelField#isSet = false;
 static get nonNullableTopLevelField() → core::int
-  return let final core::int? #t15 = self::_#nonNullableTopLevelField in #t15.==(null) ?{core::int} let final core::int #t16 = (let final core::int #t17 = self::nonNullableTopLevelFieldReads in let final core::int #t18 = self::nonNullableTopLevelFieldReads = #t17.{core::num::+}(1) in #t17).{core::num::==}(0) ?{core::int} self::nonNullableTopLevelField : ini::computeInitialValue() in self::_#nonNullableTopLevelField.==(null) ?{core::int} self::_#nonNullableTopLevelField = #t16 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableTopLevelField' has been assigned during initialization.") : #t15{core::int};
+  return let final core::int? #t15 = self::_#nonNullableTopLevelField in #t15.==(null) ?{core::int} let final core::int #t16 = (let final core::int #t17 = self::nonNullableTopLevelFieldReads in let final core::int #t18 = self::nonNullableTopLevelFieldReads = #t17.{core::num::+}(1) in #t17).{core::num::==}(0) ?{core::int*} self::nonNullableTopLevelField : ini::computeInitialValue() in self::_#nonNullableTopLevelField.==(null) ?{core::int} self::_#nonNullableTopLevelField = #t16 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableTopLevelField' has been assigned during initialization.") : #t15{core::int};
 static get nullableTopLevelField() → core::int? {
   if(!self::_#nullableTopLevelField#isSet) {
     final core::int? #t19 = (let final core::int #t20 = self::nullableTopLevelFieldReads in let final core::int #t21 = self::nullableTopLevelFieldReads = #t20.{core::num::+}(1) in #t20).{core::num::==}(0) ?{core::int?} self::nullableTopLevelField : ini::computeInitialValue();
@@ -82,7 +82,7 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   throw "${message}: ${value}";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -90,21 +90,8 @@ library /*isNonNullableByDefault*/;
 // // @dart=2.8
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/initializer_rewrite_from_opt_out_lib.dart:7:30: Error: A value of type 'Null' can't be returned from a function with return type 'int'.
-// int computeInitialValue() => null;
-//                              ^
-//
 import self as ini;
 import "dart:core" as core;
 
-static method computeInitialValue() → core::int
-  return let final<BottomType> #t22 = invalid-expression "pkg/front_end/testcases/late_lowering/initializer_rewrite_from_opt_out_lib.dart:7:30: Error: A value of type 'Null' can't be returned from a function with return type 'int'.
-int computeInitialValue() => null;
-                             ^" in let core::Null? #t23 = null in #t23.==(null) ?{core::int} #t23 as{TypeError,ForNonNullableByDefault} core::int : #t23{core::int};
-
-
-Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///initializer_rewrite_from_opt_out_lib.dart:7:30 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///initializer_rewrite_from_opt_out_lib.dart:7:30 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///initializer_rewrite_from_opt_out_lib.dart:7:30 -> NullConstant(null)
-Extra constant evaluation: evaluated: 185, effectively constant: 3
+static method computeInitialValue() → core::int*
+  return null;

@@ -1,0 +1,3 @@
+import 'main_declaration_lib.dart';
+
+main() {}

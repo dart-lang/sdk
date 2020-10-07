@@ -19,7 +19,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
-import 'package:analyzer/src/summary2/linked_element_builder.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
@@ -38,8 +37,6 @@ class LinkedUnitContext {
   List<UnlinkedInformativeData> informativeData;
 
   AstBinaryReader _astReader;
-
-  LinkedElementBuilder _elementBuilder;
 
   CompilationUnit _unit;
   bool _hasDirectivesRead = false;
@@ -67,10 +64,6 @@ class LinkedUnitContext {
 
     _unit = unit;
     _hasDirectivesRead = _unit != null;
-  }
-
-  LinkedElementBuilder get elementBuilder {
-    return _elementBuilder ??= LinkedElementBuilder(this);
   }
 
   bool get hasPartOfDirective {

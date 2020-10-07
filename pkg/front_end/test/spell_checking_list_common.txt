@@ -1069,6 +1069,7 @@ executed
 executes
 executing
 execution
+exempt
 exercise
 exhaustive
 exist
@@ -2130,6 +2131,7 @@ peek
 peel
 peeled
 peeling
+peels
 pending
 percent
 percolate

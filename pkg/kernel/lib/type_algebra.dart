@@ -1035,16 +1035,18 @@ DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
 
 /// Implementation of [unwrapNullabilityConstructor] as a visitor.
 ///
-/// Implementing the function as a visitor makes the necessity of supporting a new implementation of [DartType] visible at compile time.
-// TODO(dmitryas): Remove CoreTypes as the second argument when NullType is landed.
+/// Implementing the function as a visitor makes the necessity of supporting a
+/// new implementation of [DartType] visible at compile time.
+// TODO(dmitryas): Remove CoreTypes as the second argument when NullType is
+// landed.
 class _NullabilityConstructorUnwrapper
     implements DartTypeVisitor1<DartType, CoreTypes> {
   const _NullabilityConstructorUnwrapper();
 
   @override
   DartType defaultDartType(DartType node, CoreTypes coreTypes) {
-    throw new UnsupportedError(
-        "Unsupported operation: _NullabilityConstructorUnwrapper(${node.runtimeType})");
+    throw new UnsupportedError("Unsupported operation: "
+        "_NullabilityConstructorUnwrapper(${node.runtimeType})");
   }
 
   @override
@@ -1183,5 +1185,95 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
               typeParameterReplacement.nullability, node.nullability));
     }
     return super.visitTypeParameterType(node);
+  }
+}
+
+/// Computes [type] as if declared without nullability markers.
+///
+/// For example, int? and int* are considered applications of the nullable and
+/// the legacy type constructors to type int correspondingly.
+/// [computeTypeWithoutNullabilityMarker] peels off these type constructors,
+/// returning the non-nullable version of type int.  In case of
+/// [TypeParameterType]s, the result may be either [Nullability.nonNullable] or
+/// [Nullability.undetermined], depending on the bound.
+DartType computeTypeWithoutNullabilityMarker(
+    DartType type, Library clientLibrary,
+    {DartType nullType}) {
+  assert(nullType != null);
+  if (type is TypeParameterType) {
+    if (type.promotedBound == null) {
+      // The default nullability for library is used when there are no
+      // nullability markers on the type.
+      return new TypeParameterType.withDefaultNullabilityForLibrary(
+          type.parameter, clientLibrary);
+    } else {
+      // Intersection types can't be arguments to the nullable and the legacy
+      // type constructors, so nothing can be peeled off.
+      return type;
+    }
+  } else if (type == nullType) {
+    return type;
+  } else {
+    // For most types, peeling off the nullability constructors means that
+    // they become non-nullable.
+    return type.withDeclaredNullability(Nullability.nonNullable);
+  }
+}
+
+/// Returns true if [type] is declared without nullability markers.
+///
+/// An example of the nullable type constructor application is T? where T is a
+/// type parameter.  Some examples of types declared without nullability markers
+/// are T% and S, where T and S are type parameters such that T extends Object?
+/// and S extends Object.
+bool isTypeParameterTypeWithoutNullabilityMarker(
+    TypeParameterType type, Library clientLibrary) {
+  // The default nullability for library is used when there are no nullability
+  // markers on the type.
+  return type.promotedBound == null &&
+      type.declaredNullability ==
+          new TypeParameterType.withDefaultNullabilityForLibrary(
+                  type.parameter, clientLibrary)
+              .declaredNullability;
+}
+
+/// Returns true if [type] is an application of the nullable type constructor.
+///
+/// A type is considered an application of the nullable type constructor if it
+/// was declared with the ? marker.  Some examples of such types are int?,
+/// String?, Object?, and T? where T is a type parameter.  Types dynamic, void,
+/// and Null are nullable, but aren't considered applications of the nullable
+/// type constructor.
+bool isNullableTypeConstructorApplication(DartType type, {DartType nullType}) {
+  assert(nullType != null);
+  return type.declaredNullability == Nullability.nullable &&
+      type is! DynamicType &&
+      type is! VoidType &&
+      type != nullType;
+}
+
+/// Returns true if [type] is an application of the legacy type constructor.
+///
+/// A type is considered an application of the legacy type constructor if it was
+/// declared within a legacy library and is not one of exempt types, such as
+/// dynamic or void.
+bool isLegacyTypeConstructorApplication(DartType type, Library clientLibrary) {
+  if (type is TypeParameterType) {
+    if (type.promotedBound == null) {
+      // The legacy nullability is considered an application of the legacy
+      // nullability constructor if it doesn't match the default nullability
+      // of the type-parameter type for the library.
+      return type.declaredNullability == Nullability.legacy &&
+          type.declaredNullability !=
+              new TypeParameterType.withDefaultNullabilityForLibrary(
+                      type.parameter, clientLibrary)
+                  .declaredNullability;
+    } else {
+      return false;
+    }
+  } else if (type is InvalidType) {
+    return false;
+  } else {
+    return type.declaredNullability == Nullability.legacy;
   }
 }

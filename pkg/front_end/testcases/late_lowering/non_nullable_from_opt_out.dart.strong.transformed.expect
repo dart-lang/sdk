@@ -1,47 +1,10 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
 // pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
 // // @dart=2.8
 // ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:10:19: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-//   topLevelField = null;
-//                   ^
-//
-// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:14:21: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-//   c.instanceField = null;
-//                     ^
-//
-// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:16:28: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-//   c.instanceTypeVariable = null;
-//                            ^
-//
-// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:17:33: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-//   c.finalInstanceTypeVariable = null;
-//                                 ^
-//
-// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:19:23: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-//   Class.staticField = null;
-//                       ^
-//
-// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:33:46: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-//   throws(() => c.finalInstanceTypeVariable = null);
-//                                              ^
-//
-// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:36:16: Error: The argument type 'Null' can't be assigned to the parameter type 'int'.
-//   method(true, null, null);
-//                ^
-//
-// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:36:3: Error: Inferred type argument 'Null' doesn't conform to the bound 'Object' of the type variable 'T' on 'method'.
-//  - 'Object' is from 'dart:core'.
-// Try specifying type arguments explicitly so that they conform to the bounds.
-//   method(true, null, null);
-//   ^
-// pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out_lib.dart:18:8: Context: This is the type variable whose bound isn't conformed to.
-// method<T extends Object>(bool b, int i, T t) {
-//        ^
 //
 import self as self;
 import "non_nullable_from_opt_out_lib.dart" as non;
@@ -50,24 +13,14 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///non_nullable_from_opt_out_lib.dart";
 
 static method main() → dynamic {
-  non::topLevelField = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:10:19: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-  topLevelField = null;
-                  ^" in let core::Null? #t2 = null in #t2.==(null) ?{core::int} #t2 as{TypeError,ForNonNullableByDefault} core::int : #t2{core::int};
+  non::topLevelField = null;
   non::finalTopLevelField = null;
-  non::Class<core::int> c = new non::Class::•<core::int>();
-  c.{non::Class::instanceField} = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:14:21: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-  c.instanceField = null;
-                    ^" in let core::Null? #t4 = null in #t4.==(null) ?{core::int} #t4 as{TypeError,ForNonNullableByDefault} core::int : #t4{core::int};
+  non::Class<core::int*>* c = new non::Class::•<core::int*>();
+  c.{non::Class::instanceField} = null;
   c.{non::Class::finalInstanceField} = null;
-  c.{non::Class::instanceTypeVariable} = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:16:28: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-  c.instanceTypeVariable = null;
-                           ^" in let core::Null? #t6 = null in #t6.==(null) ?{core::int} #t6 as{TypeError,ForNonNullableByDefault} core::int : #t6{core::int};
-  c.{non::Class::finalInstanceTypeVariable} = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:17:33: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-  c.finalInstanceTypeVariable = null;
-                                ^" in let core::Null? #t8 = null in #t8.==(null) ?{core::int} #t8 as{TypeError,ForNonNullableByDefault} core::int : #t8{core::int};
-  non::Class::staticField = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:19:23: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-  Class.staticField = null;
-                      ^" in let core::Null? #t10 = null in #t10.==(null) ?{core::int} #t10 as{TypeError,ForNonNullableByDefault} core::int : #t10{core::int};
+  c.{non::Class::instanceTypeVariable} = null;
+  c.{non::Class::finalInstanceTypeVariable} = null;
+  non::Class::staticField = null;
   non::Class::staticFinalField = null;
   non::expect(null, non::topLevelField);
   non::expect(null, non::finalTopLevelField);
@@ -79,13 +32,9 @@ static method main() → dynamic {
   non::expect(null, non::Class::staticFinalField);
   non::throws(() → core::Null? => non::finalTopLevelField = null);
   non::throws(() → core::Null? => c.{non::Class::finalInstanceField} = null);
-  non::throws(() → core::Null? => c.{non::Class::finalInstanceTypeVariable} = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:33:46: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
-  throws(() => c.finalInstanceTypeVariable = null);
-                                             ^" in let core::Null? #t12 = null in #t12.==(null) ?{core::int} #t12 as{TypeError,ForNonNullableByDefault} core::int : #t12{core::int});
+  non::throws(() → core::Null? => c.{non::Class::finalInstanceTypeVariable} = null);
   non::throws(() → core::Null? => non::Class::staticFinalField = null);
-  non::method<core::Null?>(true, let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/late_lowering/non_nullable_from_opt_out.dart:36:16: Error: The argument type 'Null' can't be assigned to the parameter type 'int'.
-  method(true, null, null);
-               ^" in let core::Null? #t14 = null in #t14.==(null) ?{core::int} #t14 as{TypeError,ForNonNullableByDefault} core::int : #t14{core::int}, null);
+  non::method<core::Null?>(true, null, null);
 }
 
 library /*isNonNullableByDefault*/;
@@ -106,87 +55,87 @@ class Class<T extends core::Object = core::Object> extends core::Object {
     : super core::Object::•()
     ;
   get instanceField() → core::int
-    return let final core::int? #t15 = this.{non::Class::_#Class#instanceField} in #t15.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'instanceField' has not been initialized.") : #t15{core::int};
-  set instanceField(core::int #t16) → void
-    this.{non::Class::_#Class#instanceField} = #t16;
+    return let final core::int? #t1 = this.{non::Class::_#Class#instanceField} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'instanceField' has not been initialized.") : #t1{core::int};
+  set instanceField(core::int #t2) → void
+    this.{non::Class::_#Class#instanceField} = #t2;
   get finalInstanceField() → dynamic
     return this.{non::Class::_#Class#finalInstanceField#isSet} ?{dynamic} this.{non::Class::_#Class#finalInstanceField} : throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceField' has not been initialized.");
-  set finalInstanceField(dynamic #t17) → void
+  set finalInstanceField(dynamic #t3) → void
     if(this.{non::Class::_#Class#finalInstanceField#isSet})
       throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceField' has already been initialized.");
     else {
       this.{non::Class::_#Class#finalInstanceField#isSet} = true;
-      this.{non::Class::_#Class#finalInstanceField} = #t17;
+      this.{non::Class::_#Class#finalInstanceField} = #t3;
     }
   get instanceTypeVariable() → non::Class::T
-    return let final non::Class::T? #t18 = this.{non::Class::_#Class#instanceTypeVariable} in #t18.==(null) ?{non::Class::T} throw new _in::LateInitializationErrorImpl::•("Field 'instanceTypeVariable' has not been initialized.") : #t18{non::Class::T};
-  set instanceTypeVariable(generic-covariant-impl non::Class::T #t19) → void
-    this.{non::Class::_#Class#instanceTypeVariable} = #t19;
+    return let final non::Class::T? #t4 = this.{non::Class::_#Class#instanceTypeVariable} in #t4.==(null) ?{non::Class::T} throw new _in::LateInitializationErrorImpl::•("Field 'instanceTypeVariable' has not been initialized.") : #t4{non::Class::T};
+  set instanceTypeVariable(generic-covariant-impl non::Class::T #t5) → void
+    this.{non::Class::_#Class#instanceTypeVariable} = #t5;
   get finalInstanceTypeVariable() → non::Class::T
-    return let final non::Class::T? #t20 = this.{non::Class::_#Class#finalInstanceTypeVariable} in #t20.==(null) ?{non::Class::T} throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceTypeVariable' has not been initialized.") : #t20{non::Class::T};
-  set finalInstanceTypeVariable(non::Class::T #t21) → void
+    return let final non::Class::T? #t6 = this.{non::Class::_#Class#finalInstanceTypeVariable} in #t6.==(null) ?{non::Class::T} throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceTypeVariable' has not been initialized.") : #t6{non::Class::T};
+  set finalInstanceTypeVariable(non::Class::T #t7) → void
     if(this.{non::Class::_#Class#finalInstanceTypeVariable}.==(null))
-      this.{non::Class::_#Class#finalInstanceTypeVariable} = #t21;
+      this.{non::Class::_#Class#finalInstanceTypeVariable} = #t7;
     else
       throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceTypeVariable' has already been initialized.");
   static get staticField() → core::int
-    return let final core::int? #t22 = non::Class::_#staticField in #t22.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'staticField' has not been initialized.") : #t22{core::int};
-  static set staticField(core::int #t23) → void
-    non::Class::_#staticField = #t23;
+    return let final core::int? #t8 = non::Class::_#staticField in #t8.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'staticField' has not been initialized.") : #t8{core::int};
+  static set staticField(core::int #t9) → void
+    non::Class::_#staticField = #t9;
   static get staticFinalField() → dynamic
     return non::Class::_#staticFinalField#isSet ?{dynamic} non::Class::_#staticFinalField : throw new _in::LateInitializationErrorImpl::•("Field 'staticFinalField' has not been initialized.");
-  static set staticFinalField(dynamic #t24) → void
+  static set staticFinalField(dynamic #t10) → void
     if(non::Class::_#staticFinalField#isSet)
       throw new _in::LateInitializationErrorImpl::•("Field 'staticFinalField' has already been initialized.");
     else {
       non::Class::_#staticFinalField#isSet = true;
-      non::Class::_#staticFinalField = #t24;
+      non::Class::_#staticFinalField = #t10;
     }
 }
 static field core::int? _#topLevelField = null;
 static field dynamic _#finalTopLevelField = null;
 static field core::bool _#finalTopLevelField#isSet = false;
 static get topLevelField() → core::int
-  return let final core::int? #t25 = non::_#topLevelField in #t25.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'topLevelField' has not been initialized.") : #t25{core::int};
-static set topLevelField(core::int #t26) → void
-  non::_#topLevelField = #t26;
+  return let final core::int? #t11 = non::_#topLevelField in #t11.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'topLevelField' has not been initialized.") : #t11{core::int};
+static set topLevelField(core::int #t12) → void
+  non::_#topLevelField = #t12;
 static get finalTopLevelField() → dynamic
   return non::_#finalTopLevelField#isSet ?{dynamic} non::_#finalTopLevelField : throw new _in::LateInitializationErrorImpl::•("Field 'finalTopLevelField' has not been initialized.");
-static set finalTopLevelField(dynamic #t27) → void
+static set finalTopLevelField(dynamic #t13) → void
   if(non::_#finalTopLevelField#isSet)
     throw new _in::LateInitializationErrorImpl::•("Field 'finalTopLevelField' has already been initialized.");
   else {
     non::_#finalTopLevelField#isSet = true;
-    non::_#finalTopLevelField = #t27;
+    non::_#finalTopLevelField = #t13;
   }
 static method method<T extends core::Object = core::Object>(core::bool b, core::int i, non::method::T t) → dynamic {
   core::int? local;
   function #local#get() → core::int
-    return let final core::int? #t28 = local in #t28.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'local' has not been initialized.") : #t28{core::int};
-  function #local#set(core::int #t29) → dynamic
-    return local = #t29;
+    return let final core::int? #t14 = local in #t14.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'local' has not been initialized.") : #t14{core::int};
+  function #local#set(core::int #t15) → dynamic
+    return local = #t15;
   final dynamic finalLocal;
   core::bool #finalLocal#isSet = false;
   function #finalLocal#get() → dynamic
     return #finalLocal#isSet ?{dynamic} finalLocal : throw new _in::LateInitializationErrorImpl::•("Local 'finalLocal' has not been initialized.");
-  function #finalLocal#set(dynamic #t30) → dynamic
+  function #finalLocal#set(dynamic #t16) → dynamic
     if(#finalLocal#isSet)
       throw new _in::LateInitializationErrorImpl::•("Local 'finalLocal' has already been initialized.");
     else {
       #finalLocal#isSet = true;
-      return finalLocal = #t30;
+      return finalLocal = #t16;
     }
   non::method::T? localTypeVariable;
   function #localTypeVariable#get() → non::method::T
-    return let final non::method::T? #t31 = localTypeVariable in #t31.==(null) ?{non::method::T} throw new _in::LateInitializationErrorImpl::•("Local 'localTypeVariable' has not been initialized.") : #t31{non::method::T};
-  function #localTypeVariable#set(non::method::T #t32) → dynamic
-    return localTypeVariable = #t32;
+    return let final non::method::T? #t17 = localTypeVariable in #t17.==(null) ?{non::method::T} throw new _in::LateInitializationErrorImpl::•("Local 'localTypeVariable' has not been initialized.") : #t17{non::method::T};
+  function #localTypeVariable#set(non::method::T #t18) → dynamic
+    return localTypeVariable = #t18;
   final non::method::T? finalLocalTypeVariable;
   function #finalLocalTypeVariable#get() → non::method::T
-    return let final non::method::T? #t33 = finalLocalTypeVariable in #t33.==(null) ?{non::method::T} throw new _in::LateInitializationErrorImpl::•("Local 'finalLocalTypeVariable' has not been initialized.") : #t33{non::method::T};
-  function #finalLocalTypeVariable#set(non::method::T #t34) → dynamic
+    return let final non::method::T? #t19 = finalLocalTypeVariable in #t19.==(null) ?{non::method::T} throw new _in::LateInitializationErrorImpl::•("Local 'finalLocalTypeVariable' has not been initialized.") : #t19{non::method::T};
+  function #finalLocalTypeVariable#set(non::method::T #t20) → dynamic
     if(finalLocalTypeVariable.==(null))
-      return finalLocalTypeVariable = #t34;
+      return finalLocalTypeVariable = #t20;
     else
       throw new _in::LateInitializationErrorImpl::•("Local 'finalLocalTypeVariable' has already been initialized.");
   if(b) {
@@ -215,28 +164,3 @@ static method throws(() → void f) → dynamic {
   }
   throw "Missing exception";
 }
-
-
-Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:10:19 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:10:19 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:10:19 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:14:21 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:14:21 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:14:21 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:16:28 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:16:28 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:16:28 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:17:33 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:17:33 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:17:33 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:19:23 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:19:23 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:19:23 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:33:46 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:33:46 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:33:46 -> NullConstant(null)
-Evaluated: MethodInvocation @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:36:16 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:36:16 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///non_nullable_from_opt_out.dart:36:16 -> NullConstant(null)
-Extra constant evaluation: evaluated: 291, effectively constant: 21

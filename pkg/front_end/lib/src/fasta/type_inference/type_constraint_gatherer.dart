@@ -296,105 +296,6 @@ abstract class TypeConstraintGatherer {
     return type == coreTypes.nullType;
   }
 
-  /// Computes [type] as if declared without nullability markers.
-  ///
-  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
-  /// notion of the nullable and the legacy type constructors, that is, int? and
-  /// int* are applications of the nullable and the legacy type constructors to
-  /// type int correspondingly.  The algorithm requires the ability to peel off
-  /// the two type constructors from the underlying types, which is done by
-  /// [_computeRawType].
-  DartType _computeRawType(DartType type) {
-    if (type is TypeParameterType) {
-      if (type.promotedBound == null) {
-        // The default nullability for library is used when there are no
-        // nullability markers on the type.
-        return new TypeParameterType.withDefaultNullabilityForLibrary(
-            type.parameter, _currentLibrary);
-      } else {
-        // Intersection types can't be arguments to the nullable and the legacy
-        // type constructors, so nothing can be peeled off.
-        return type;
-      }
-    } else if (type == coreTypes.nullType) {
-      return type;
-    } else {
-      // For most types, peeling off the nullability constructors means that
-      // they become non-nullable.
-      return type.withDeclaredNullability(Nullability.nonNullable);
-    }
-  }
-
-  /// Returns true if [type] is declared without nullability markers.
-  ///
-  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
-  /// notion of the nullable and the legacy type constructors, that is, int? and
-  /// int* are applications of the nullable and the legacy type constructors to
-  /// type int correspondingly.  The algorithm requires the ability to detect if
-  /// a type is raw, that is, if it is declared without any of the two
-  /// constructors.  Method [_isRawTypeParameterType] implements that check for
-  /// [TypeParameterType]s.  For most types, comparing their
-  /// [DartType.declaredNullability] is enough, but the case of
-  /// [TypeParameterType]s is more complex for two reasons: (1) intersection
-  /// types are encoded as [TypeParameterType]s, and they can't be arguments of
-  /// the nullability constructors, and (2) if a [TypeParameterType] is declared
-  /// raw, its semantic nullability can be anything from
-  /// [Nullability.nonNullable], [Nullability.undetermined], and
-  /// [Nullability.legacy], depending on the bound.  [_isRawTypeParameterType]
-  /// checks if [type] has the same nullability as if it was declared without
-  /// any nullability markers by the programmer.
-  bool _isRawTypeParameterType(TypeParameterType type) {
-    // The default nullability for library is used when there are no nullability
-    // markers on the type.
-    return type.promotedBound == null &&
-        type.declaredNullability ==
-            new TypeParameterType.withDefaultNullabilityForLibrary(
-                    type.parameter, _currentLibrary)
-                .declaredNullability;
-  }
-
-  /// Returns true if [type] is an application of the nullable type constructor.
-  ///
-  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
-  /// notion of the nullable type constructor, that is, int? is an application
-  /// of the nullable type constructor to type int.  The algorithm requires the
-  /// ability to detect if a type is an application of the nullable constructor
-  /// to another type, which is done by [_isNullableTypeConstructorApplication].
-  bool _isNullableTypeConstructorApplication(DartType type) {
-    return type.declaredNullability == Nullability.nullable &&
-        type is! DynamicType &&
-        type is! VoidType &&
-        type != coreTypes.nullType;
-  }
-
-  /// Returns true if [type] is an application of the legacy type constructor.
-  ///
-  /// The algorithm implemented by [_isNullabilityAwareSubtypeMatch] uses the
-  /// notion of the legacy type constructor, that is, int* is an application of
-  /// the legacy type constructor to type int.  The algorithm requires the
-  /// ability to detect if a type is an application of the nullable constructor
-  /// to another type, which is done by [_isNullableTypeConstructorApplication].
-  bool _isLegacyTypeConstructorApplication(DartType type) {
-    if (type is TypeParameterType) {
-      if (type.promotedBound == null) {
-        // The legacy nullability is considered an application of the legacy
-        // nullability constructor if it doesn't match the default nullability
-        // of the type-parameter type for the library.
-        return type.declaredNullability == Nullability.legacy &&
-            type.declaredNullability !=
-                new TypeParameterType.withDefaultNullabilityForLibrary(
-                        type.parameter, _currentLibrary)
-                    .declaredNullability;
-      } else {
-        return false;
-      }
-    } else if (type is InvalidType) {
-      return false;
-    } else {
-      return type.declaredNullability == Nullability.legacy;
-    }
-  }
-
   /// Matches [p] against [q] as a subtype against supertype.
   ///
   /// Returns true if [p] is a subtype of [q] under some constraints, and false
@@ -473,7 +374,7 @@ abstract class TypeConstraintGatherer {
     //
     // Under constraint _ <: X <: Q.
     if (p is TypeParameterType &&
-        _isRawTypeParameterType(p) &&
+        isTypeParameterTypeWithoutNullabilityMarker(p, _currentLibrary) &&
         _parametersToConstrain.contains(p.parameter)) {
       _constrainParameterUpper(p.parameter, q);
       return true;
@@ -483,7 +384,7 @@ abstract class TypeConstraintGatherer {
     //
     // Under constraint P <: X <: _.
     if (q is TypeParameterType &&
-        _isRawTypeParameterType(q) &&
+        isTypeParameterTypeWithoutNullabilityMarker(q, _currentLibrary) &&
         _parametersToConstrain.contains(q.parameter)) {
       _constrainParameterLower(q.parameter, p);
       return true;
@@ -502,8 +403,11 @@ abstract class TypeConstraintGatherer {
     // If P is a legacy type P0* then the match holds under constraint set C:
     //
     // Only if P0 is a subtype match for Q under constraint set C.
-    if (_isLegacyTypeConstructorApplication(p)) {
-      return _isNullabilityAwareSubtypeMatch(_computeRawType(p), q,
+    if (isLegacyTypeConstructorApplication(p, _currentLibrary)) {
+      return _isNullabilityAwareSubtypeMatch(
+          computeTypeWithoutNullabilityMarker(p, _currentLibrary,
+              nullType: coreTypes.nullType),
+          q,
           constrainSupertype: constrainSupertype);
     }
 
@@ -513,11 +417,14 @@ abstract class TypeConstraintGatherer {
     // set C.
     // Or if P is not dynamic or void and P is a subtype match for Q0? under
     // constraint set C.
-    if (_isLegacyTypeConstructorApplication(q)) {
+    if (isLegacyTypeConstructorApplication(q, _currentLibrary)) {
       final int baseConstraintCount = _protoConstraints.length;
 
       if ((p is DynamicType || p is VoidType) &&
-          _isNullabilityAwareSubtypeMatch(p, _computeRawType(q),
+          _isNullabilityAwareSubtypeMatch(
+              p,
+              computeTypeWithoutNullabilityMarker(q, _currentLibrary,
+                  nullType: coreTypes.nullType),
               constrainSupertype: constrainSupertype)) {
         return true;
       }
@@ -580,12 +487,17 @@ abstract class TypeConstraintGatherer {
     // Or if P is a subtype match for Q0 under non-empty constraint set C.
     // Or if P is a subtype match for Null under constraint set C.
     // Or if P is a subtype match for Q0 under empty constraint set C.
-    if (_isNullableTypeConstructorApplication(q)) {
+    if (isNullableTypeConstructorApplication(q, nullType: coreTypes.nullType)) {
       final int baseConstraintCount = _protoConstraints.length;
-      final DartType rawP = _computeRawType(p);
-      final DartType rawQ = _computeRawType(q);
+      final DartType rawP = computeTypeWithoutNullabilityMarker(
+          p, _currentLibrary,
+          nullType: coreTypes.nullType);
+      final DartType rawQ = computeTypeWithoutNullabilityMarker(
+          q, _currentLibrary,
+          nullType: coreTypes.nullType);
 
-      if (_isNullableTypeConstructorApplication(p) &&
+      if (isNullableTypeConstructorApplication(p,
+              nullType: coreTypes.nullType) &&
           _isNullabilityAwareSubtypeMatch(rawP, rawQ,
               constrainSupertype: constrainSupertype)) {
         return true;
@@ -641,9 +553,12 @@ abstract class TypeConstraintGatherer {
     //
     // If P0 is a subtype match for Q under constraint set C1.
     // And if Null is a subtype match for Q under constraint set C2.
-    if (_isNullableTypeConstructorApplication(p)) {
+    if (isNullableTypeConstructorApplication(p, nullType: coreTypes.nullType)) {
       final int baseConstraintCount = _protoConstraints.length;
-      if (_isNullabilityAwareSubtypeMatch(_computeRawType(p), q,
+      if (_isNullabilityAwareSubtypeMatch(
+              computeTypeWithoutNullabilityMarker(p, _currentLibrary,
+                  nullType: coreTypes.nullType),
+              q,
               constrainSupertype: constrainSupertype) &&
           _isNullabilityAwareSubtypeMatch(coreTypes.nullType, q,
               constrainSupertype: constrainSupertype)) {

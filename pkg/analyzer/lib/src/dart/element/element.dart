@@ -42,7 +42,6 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/linked_element_builder.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
@@ -1298,15 +1297,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     if (_enums != null) return _enums;
 
     if (linkedNode != null) {
+      var containerRef = reference.getChild('@enum');
       CompilationUnit linkedNode = this.linkedNode;
-      _enums = <ClassElement>[];
-      for (var node in linkedNode.declarations) {
-        if (node is EnumDeclaration) {
-          var element = _elementBuilder.enumDeclaration(node);
-          _enums.add(element);
+      _enums = linkedNode.declarations.whereType<EnumDeclaration>().map((node) {
+        var name = node.name.name;
+        var reference = containerRef.getChild(name);
+        if (reference.hasElementFor(node)) {
+          return reference.element as EnumElementImpl;
         }
-      }
-      return _enums;
+        return EnumElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
     }
 
     return _enums ??= const <ClassElement>[];
@@ -1328,11 +1328,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       CompilationUnit linkedNode = this.linkedNode;
+      var containerRef = reference.getChild('@extension');
       _extensions = <ExtensionElement>[];
       for (var node in linkedNode.declarations) {
         if (node is ExtensionDeclaration) {
-          var element = _elementBuilder.extensionDeclaration(node);
-          _extensions.add(element);
+          var refName = linkedContext.getExtensionRefName(node);
+          var reference = containerRef.getChild(refName);
+          if (reference.hasElementFor(node)) {
+            _extensions.add(reference.element);
+          } else {
+            _extensions.add(
+              ExtensionElementImpl.forLinkedNode(this, reference, node),
+            );
+          }
         }
       }
       return _extensions;
@@ -1355,14 +1363,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       CompilationUnit linkedNode = this.linkedNode;
-      _functions = <FunctionElement>[];
-      for (var node in linkedNode.declarations) {
-        if (node is FunctionDeclaration && node.propertyKeyword == null) {
-          var element = _elementBuilder.functionDeclaration(node);
-          _functions.add(element as FunctionElement);
+      var containerRef = reference.getChild('@function');
+      return _functions = linkedNode.declarations
+          .whereType<FunctionDeclaration>()
+          .where((node) => !node.isGetter && !node.isSetter)
+          .map((node) {
+        var name = node.name.name;
+        var reference = containerRef.getChild(name);
+        if (reference.hasElementFor(node)) {
+          return reference.element as FunctionElementImpl;
         }
-      }
-      return _functions;
+        return FunctionElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
     }
     return _functions ?? const <FunctionElement>[];
   }
@@ -1382,17 +1394,23 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       CompilationUnit linkedNode = this.linkedNode;
-      _typeAliases = <FunctionTypeAliasElement>[];
-      for (var node in linkedNode.declarations) {
+      var containerRef = reference.getChild('@typeAlias');
+      return _typeAliases = linkedNode.declarations.where((node) {
+        return node is FunctionTypeAlias || node is GenericTypeAlias;
+      }).map((node) {
+        String name;
         if (node is FunctionTypeAlias) {
-          var element = _elementBuilder.functionTypeAlias(node);
-          _typeAliases.add(element);
-        } else if (node is GenericTypeAlias) {
-          var element = _elementBuilder.genericTypeAlias(node);
-          _typeAliases.add(element);
+          name = node.name.name;
+        } else {
+          name = (node as GenericTypeAlias).name.name;
         }
-      }
-      return _typeAliases;
+
+        var reference = containerRef.getChild(name);
+        if (reference.hasElementFor(node)) {
+          return reference.element as GenericTypeAliasElementImpl;
+        }
+        return GenericTypeAliasElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
     }
 
     return _typeAliases ?? const <FunctionTypeAliasElement>[];
@@ -1424,14 +1442,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       CompilationUnit linkedNode = this.linkedNode;
-      _mixins = <ClassElement>[];
-      for (var node in linkedNode.declarations) {
-        if (node is MixinDeclaration) {
-          var element = _elementBuilder.mixinDeclaration(node);
-          _mixins.add(element);
+      var containerRef = reference.getChild('@mixin');
+      var declarations = linkedNode.declarations;
+      return _mixins = declarations.whereType<MixinDeclaration>().map((node) {
+        var name = node.name.name;
+        var reference = containerRef.getChild(name);
+        if (reference.hasElementFor(node)) {
+          return reference.element as MixinElementImpl;
         }
-      }
-      return _mixins;
+        return MixinElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
     }
 
     return _mixins ?? const <ClassElement>[];
@@ -1483,14 +1503,24 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
     if (linkedNode != null) {
       CompilationUnit linkedNode = this.linkedNode;
+      var containerRef = reference.getChild('@class');
       _types = <ClassElement>[];
       for (var node in linkedNode.declarations) {
+        String name;
         if (node is ClassDeclaration) {
-          var element = _elementBuilder.classDeclaration(node);
-          _types.add(element);
+          name = node.name.name;
         } else if (node is ClassTypeAlias) {
-          var element = _elementBuilder.classTypeAlias(node);
-          _types.add(element);
+          name = node.name.name;
+        } else {
+          continue;
+        }
+        var reference = containerRef.getChild(name);
+        if (reference.hasElementFor(node)) {
+          _types.add(reference.element);
+        } else {
+          _types.add(
+            ClassElementImpl.forLinkedNode(this, reference, node),
+          );
         }
       }
       return _types;
@@ -1623,13 +1653,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       var variableList = <TopLevelVariableElement>[];
       variableMap[unit] = variableList;
 
-      var elementBuilder = unit._elementBuilder;
       var unitNode = unit.linkedContext.unit_withDeclarations;
       var unitDeclarations = unitNode.declarations;
 
       var variables = context.topLevelVariables(unitNode);
       for (var variable in variables) {
-        var variableElement = elementBuilder.topLevelVariable(variable);
+        var name = variable.name.name;
+        var reference = unit.reference.getChild('@variable').getChild(name);
+        var variableElement = TopLevelVariableElementImpl.forLinkedNodeFactory(
+          unit,
+          reference,
+          variable,
+        );
         variableList.add(variableElement);
 
         accessorList.add(variableElement.getter);
@@ -1645,9 +1680,15 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
           if (!isGetter && !isSetter) continue;
 
           var name = node.name.name;
+          var containerRef = isGetter
+              ? unit.reference.getChild('@getter')
+              : unit.reference.getChild('@setter');
 
-          var accessorElement = elementBuilder.functionDeclaration(node)
-              as PropertyAccessorElementImpl;
+          var accessorElement = PropertyAccessorElementImpl.forLinkedNode(
+            unit,
+            containerRef.getChild(name),
+            node,
+          );
           accessorList.add(accessorElement);
 
           var fieldRef = unit.reference.getChild('@field').getChild(name);
@@ -2986,10 +3027,6 @@ abstract class ElementImpl implements Element {
   /// parameters.
   TypeParameterizedElementMixin get typeParameterContext {
     return _enclosingElement?.typeParameterContext;
-  }
-
-  LinkedElementBuilder get _elementBuilder {
-    return linkedContext.elementBuilder;
   }
 
   NullabilitySuffix get _noneOrStarSuffix {
