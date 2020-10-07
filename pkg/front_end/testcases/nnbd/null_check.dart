@@ -9,7 +9,7 @@ class Class {
 }
 
 main() {
-  Class? c = new Class();
+  Class? c = new Class() as Class?;
   c!;
   c!.field;
   c!.field = 42;
@@ -22,7 +22,7 @@ main() {
   c + c!;
   (c + c)!;
 
-  bool? o = true;
+  bool? o = true as bool?;
   !o! ? !o! : !!o!!;
   !(o!) ? (!o)! : (!(!o)!)!;
 }

@@ -32,7 +32,7 @@ main() {
 
   // o?.m(...) is equivalent to ((x) => x == null ? null : x.m(...))(o).
 
-  C? c = C();
+  var c = C() as C?;
   Expect.equals(1, c?.f(() => 1));
 
   // C?.m(...) is equivalent to C.m(...).

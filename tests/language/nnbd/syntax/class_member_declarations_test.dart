@@ -46,7 +46,7 @@ abstract class B {
 
 main() {
   A? a;
-  String? s = '';
+  var s = '' as String?;
   a
     ?..foo().length
     ..x27 = s!.toString().length;

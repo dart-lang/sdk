@@ -50,11 +50,11 @@ class C2 {
 
 main() {
   C1 c1 = C1();
-  C1? c1q = c1;
+  var c1q = c1 as C1?;
   C1? c1n = null;
 
   C2 c2 = C2();
-  C2? c2q = c2;
+  var c2q = c2 as C2?;
 
   // All selector operations short on null.
   // .foo
