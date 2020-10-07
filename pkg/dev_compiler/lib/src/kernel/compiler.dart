@@ -560,7 +560,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var body = <js_ast.Statement>[];
     _emitSuperHelperSymbols(body);
-    var deferredSupertypes = <js_ast.Statement>[];
+    // Deferred supertypes must be evaluated lazily while emitting classes to
+    // prevent evaluating a JS expression for a deferred type from influencing
+    // class declaration order (such as when calling 'emitDeferredType').
+    var deferredSupertypes = <js_ast.Statement Function()>[];
 
     // Emit the class, e.g. `core.Object = class Object { ... }`
     _defineClass(c, className, jsMethods, body, deferredSupertypes);
@@ -591,11 +594,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var classDef = js_ast.Statement.from(body);
     var typeFormals = c.typeParameters;
+    var evaluatedDeferredSupertypes =
+        deferredSupertypes.map<js_ast.Statement>((f) => f()).toList();
     if (typeFormals.isNotEmpty) {
       classDef = _defineClassTypeArguments(
-          c, typeFormals, classDef, className, deferredSupertypes);
+          c, typeFormals, classDef, className, evaluatedDeferredSupertypes);
     } else {
-      afterClassDefItems.addAll(deferredSupertypes);
+      afterClassDefItems.addAll(evaluatedDeferredSupertypes);
     }
 
     body = [classDef];
@@ -745,7 +750,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       js_ast.Expression className,
       List<js_ast.Method> methods,
       List<js_ast.Statement> body,
-      List<js_ast.Statement> deferredSupertypes) {
+      List<js_ast.Statement Function()> deferredSupertypes) {
     if (c == _coreTypes.objectClass) {
       body.add(_emitClassStatement(c, className, null, methods));
       return;
@@ -884,10 +889,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Unroll mixins.
     if (shouldDefer(supertype)) {
-      deferredSupertypes.add(runtimeStatement('setBaseClass(#, #)', [
-        getBaseClass(isMixinAliasClass(c) ? 0 : mixinApplications.length),
-        emitDeferredType(supertype),
-      ]));
+      var originalSupertype = supertype;
+      deferredSupertypes.add(() => runtimeStatement('setBaseClass(#, #)', [
+            getBaseClass(isMixinAliasClass(c) ? 0 : mixinApplications.length),
+            emitDeferredType(originalSupertype),
+          ]));
+      // Refers to 'supertype' without type parameters. We remove these from
+      // the 'extends' clause for generics for cyclic dependencies and append
+      // them later with 'setBaseClass'.
       supertype =
           _coreTypes.rawType(supertype.classNode, _currentLibrary.nonNullable);
     }
@@ -903,12 +912,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       var m = c.mixedInType.asInterfaceType;
       var deferMixin = shouldDefer(m);
-      var mixinBody = deferMixin ? deferredSupertypes : body;
       var mixinClass = deferMixin ? emitDeferredType(m) : emitClassRef(m);
       var classExpr = deferMixin ? getBaseClass(0) : className;
 
-      mixinBody
-          .add(runtimeStatement('applyMixin(#, #)', [classExpr, mixinClass]));
+      var mixinApplication =
+          runtimeStatement('applyMixin(#, #)', [classExpr, mixinClass]);
+      if (deferMixin) {
+        deferredSupertypes.add(() => mixinApplication);
+      } else {
+        body.add(mixinApplication);
+      }
 
       if (methods.isNotEmpty) {
         // However we may need to add some methods to this class that call
@@ -917,11 +930,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // We do this with the following pattern:
         //
         //     applyMixin(C, class C$ extends M { <methods>  });
-        mixinBody.add(runtimeStatement('applyMixin(#, #)', [
+        var mixinApplicationWithMethods = runtimeStatement('applyMixin(#, #)', [
           classExpr,
           js_ast.ClassExpression(
               _emitTemporaryId(getLocalClassName(c)), mixinClass, methods)
-        ]));
+        ]);
+        if (deferMixin) {
+          deferredSupertypes.add(() => mixinApplicationWithMethods);
+        } else {
+          body.add(mixinApplicationWithMethods);
+        }
       }
 
       emitMixinConstructors(className, m);
@@ -964,10 +982,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(mixinClass);
 
       if (shouldDefer(mixinType)) {
-        deferredSupertypes.add(runtimeStatement('applyMixin(#, #)', [
-          getBaseClass(mixinApplications.length - i),
-          emitDeferredType(mixinType)
-        ]));
+        deferredSupertypes.add(() => runtimeStatement('applyMixin(#, #)', [
+              getBaseClass(mixinApplications.length - i),
+              emitDeferredType(mixinType)
+            ]));
       } else {
         body.add(runtimeStatement(
             'applyMixin(#, #)', [mixinId, emitClassRef(mixinType)]));

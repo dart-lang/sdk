@@ -375,6 +375,88 @@ export 'src/foo.dart' hide Two;
     ]);
   }
 
+  void test_indirectlyViaFunction_parameter() async {
+    newFile(testPackageImplementationFilePath, content: r'''
+import 'package:meta/meta.dart';
+@internal typedef int IntFunc(int x);
+int func(IntFunc f, int x) => f(x);
+''');
+
+    await assertErrorsInCode(r'''
+export 'src/foo.dart' show func;
+''', [
+      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+    ]);
+  }
+
+  void test_indirectlyViaFunction_parameter_generic() async {
+    newFile(testPackageImplementationFilePath, content: r'''
+import 'package:meta/meta.dart';
+@internal typedef IntFunc = int Function(int);
+int func(IntFunc f, int x) => f(x);
+''');
+
+    await assertErrorsInCode(r'''
+export 'src/foo.dart' show func;
+''', [
+      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+    ]);
+  }
+
+  void test_indirectlyViaFunction_parameter_generic_typeArg() async {
+    newFile(testPackageImplementationFilePath, content: r'''
+import 'package:meta/meta.dart';
+@internal typedef IntFunc<T> = int Function(T);
+int func(IntFunc<num> f, int x) => f(x);
+''');
+
+    await assertErrorsInCode(r'''
+export 'src/foo.dart' show func;
+''', [
+      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+    ]);
+  }
+
+  void test_indirectlyViaFunction_returnType() async {
+    newFile(testPackageImplementationFilePath, content: r'''
+import 'package:meta/meta.dart';
+@internal typedef int IntFunc(int x);
+IntFunc func() => (int x) => x;
+''');
+
+    await assertErrorsInCode(r'''
+export 'src/foo.dart' show func;
+''', [
+      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+    ]);
+  }
+
+  void test_indirectlyViaFunction_typeArgument_bounded() async {
+    newFile(testPackageImplementationFilePath, content: r'''
+import 'package:meta/meta.dart';
+@internal typedef int IntFunc(int x);
+void func<T extends IntFunc>() {}
+''');
+
+    await assertErrorsInCode(r'''
+export 'src/foo.dart' show func;
+''', [
+      error(HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY, 0, 32),
+    ]);
+  }
+
+  void test_indirectlyViaFunction_typeArgument_unbounded() async {
+    newFile(testPackageImplementationFilePath, content: r'''
+import 'package:meta/meta.dart';
+@internal typedef int IntFunc(int x);
+void func<T>() {}
+''');
+
+    await assertNoErrorsInCode(r'''
+export 'src/foo.dart' show func;
+''');
+  }
+
   void test_noCombinators() async {
     newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';

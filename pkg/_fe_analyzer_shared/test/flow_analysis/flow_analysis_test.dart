@@ -2954,7 +2954,7 @@ main() {
         var unreachable = reachable.setUnreachable();
         expect(reachable.restrict(h, reachable, Set()), same(reachable));
         expect(reachable.restrict(h, unreachable, Set()), same(unreachable));
-        expect(unreachable.restrict(h, unreachable, Set()), same(unreachable));
+        expect(unreachable.restrict(h, reachable, Set()), same(unreachable));
         expect(unreachable.restrict(h, unreachable, Set()), same(unreachable));
       });
 
