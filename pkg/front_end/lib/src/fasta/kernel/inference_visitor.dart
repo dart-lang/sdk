@@ -1184,6 +1184,7 @@ class InferenceVisitor
 
   @override
   StatementInferenceResult visitIfStatement(IfStatement node) {
+    inferrer.flowAnalysis.ifStatement_conditionBegin();
     InterfaceType expectedType =
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
     ExpressionInferenceResult conditionResult = inferrer.inferExpression(
@@ -1411,6 +1412,7 @@ class InferenceVisitor
       element.elementType = spreadElementType ?? const DynamicType();
       return new ExpressionInferenceResult(element.elementType, replacement);
     } else if (element is IfElement) {
+      inferrer.flowAnalysis.ifStatement_conditionBegin();
       DartType boolType =
           inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
       ExpressionInferenceResult conditionResult = inferrer.inferExpression(
@@ -1914,6 +1916,7 @@ class InferenceVisitor
 
       return replacement;
     } else if (entry is IfMapEntry) {
+      inferrer.flowAnalysis.ifStatement_conditionBegin();
       DartType boolType =
           inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
       ExpressionInferenceResult conditionResult = inferrer.inferExpression(

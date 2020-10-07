@@ -2783,6 +2783,7 @@ specifying
 speed
 speedup
 split
+splits
 splitter
 spread
 spreadable
