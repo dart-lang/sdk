@@ -34,7 +34,7 @@ static method main() → void
 static method throws(() → dynamic f, core::String message) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -45,5 +45,5 @@ library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
-static method computeInitialValue() → core::int
+static method computeInitialValue() → core::int*
   ;

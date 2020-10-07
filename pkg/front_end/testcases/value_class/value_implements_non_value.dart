@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../nnbd_mixed/nnbd_opt_out_language_version.dart';
 import 'value_class_support_lib.dart';
 
 class Animal {

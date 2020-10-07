@@ -477,12 +477,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         } else {
           loader.registerStrongOptOutLibrary(this);
         }
-        _languageVersion = new InvalidLanguageVersion(
-            fileUri,
-            _languageVersion.charOffset,
-            _languageVersion.charCount,
-            _languageVersion.isExplicit,
-            loader.target.currentSdkVersion);
       }
     }
     _languageVersion.isFinal = true;
