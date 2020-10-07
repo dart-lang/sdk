@@ -31,7 +31,7 @@ main(args) async {
     Library lib = binary.libraries[i];
     if (lib.name?.startsWith("dart.") == true ||
         lib.name == "builtin" ||
-        lib.name == "nativewrappers") continue;
+        lib.name == "native_wrappers") continue;
     String path = args[0] + ".part${part++}.dill";
     await writeComponentToFile(binary, path, lib);
     print("Wrote $path");

@@ -113,7 +113,7 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "Client,Server",
       maturity: Maturity.UNSTABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/mirrors_patch_cfe.dart"),
-  "nativewrappers": const LibraryInfo("html/dartium/nativewrappers.dart",
+  "native_wrappers": const LibraryInfo("html/dartium/native_wrappers.dart",
       categories: "Client",
       implementation: true,
       documented: false,

@@ -4038,7 +4038,7 @@ void FUNCTION_NAME(ExampleResource_Dispose)(Dart_NativeArguments native_args) {
 
 TEST_CASE(DartAPI_WeakPersistentHandleUpdateSize) {
   const char* kScriptChars = R"(
-    import "dart:nativewrappers";
+    import "dart:native_wrappers";
     class ExampleResource extends NativeFieldWrapperClass1 {
       ExampleResource() { _allocate(); }
       void _allocate() native "ExampleResource_Allocate";
@@ -5030,7 +5030,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
-                  "import 'dart:nativewrappers';"
+                  "import 'dart:native_wrappers';"
                   "class NativeFields extends NativeFieldWrapperClass2 {\n"
                   "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
                   "  int fld1;\n"
@@ -5174,7 +5174,7 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(
           nullptr,
-          "import 'dart:nativewrappers';"
+          "import 'dart:native_wrappers';"
           "class NativeFields extends NativeFieldWrapperClass2 {\n"
           "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
           "  int fld1;\n"
@@ -5211,7 +5211,7 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
 
 TEST_CASE(DartAPI_InjectNativeFieldsSuperClass) {
   const char* kScriptChars =
-      "import 'dart:nativewrappers';"
+      "import 'dart:native_wrappers';"
       "class NativeFieldsSuper extends NativeFieldWrapperClass1 {\n"
       "  NativeFieldsSuper() : fld1 = 42 {}\n"
       "  int fld1;\n"
@@ -5318,7 +5318,7 @@ TEST_CASE(DartAPI_ImplicitNativeFieldAccess) {
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
-                  "import 'dart:nativewrappers';"
+                  "import 'dart:native_wrappers';"
                   "class NativeFields extends NativeFieldWrapperClass4 {\n"
                   "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
                   "  int%s fld0;\n"
@@ -5350,7 +5350,7 @@ TEST_CASE(DartAPI_NegativeNativeFieldAccess) {
   // clang-format off
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
-                  "import 'dart:nativewrappers';\n"
+                  "import 'dart:native_wrappers';\n"
                   "class NativeFields {\n"
                   "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
                   "  int fld1;\n"
@@ -6596,7 +6596,7 @@ static Dart_NativeFunction native_args_lookup(Dart_Handle name,
 
 TEST_CASE(DartAPI_GetNativeArguments) {
   const char* kScriptChars =
-      "import 'dart:nativewrappers';"
+      "import 'dart:native_wrappers';"
       "class MyObject extends NativeFieldWrapperClass2 {"
       "  static MyObject createObject() native 'NativeArgument_Create';"
       "  int accessFields(int arg1,"

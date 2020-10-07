@@ -9,7 +9,7 @@
 import 'dart:_internal' show sendAndExit;
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:nativewrappers';
+import 'dart:native_wrappers';
 
 import "package:expect/expect.dart";
 

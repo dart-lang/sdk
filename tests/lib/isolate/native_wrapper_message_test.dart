@@ -6,7 +6,7 @@
 // VMOptions=--no-enable-isolate-groups
 
 import 'dart:isolate';
-import 'dart:nativewrappers';
+import 'dart:native_wrappers';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 

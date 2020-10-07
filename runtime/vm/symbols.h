@@ -88,8 +88,8 @@ class ObjectPointerVisitor;
   V(DartLibraryFfi, "dart.library.ffi")                                        \
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
   V(DartMirrors, "dart:mirrors")                                               \
-  V(DartNativeWrappers, "dart:nativewrappers")                                 \
-  V(DartNativeWrappersLibName, "nativewrappers")                               \
+  V(DartNativeWrappers, "dart:native_wrappers")                                 \
+  V(DartNativeWrappersLibName, "native_wrappers")                               \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartTypedData, "dart:typed_data")                                          \

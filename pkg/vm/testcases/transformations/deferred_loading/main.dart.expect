@@ -7,7 +7,7 @@ LoadingUnit(id=1, parent=0,
   dart:wasm
   dart:cli
   dart:io
-  dart:nativewrappers
+  dart:native_wrappers
   dart:_builtin
   dart:_vmservice
   dart:vmservice_io

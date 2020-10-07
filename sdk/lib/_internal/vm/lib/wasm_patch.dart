@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_internal' show patch;
-import "dart:nativewrappers" show NativeFieldWrapperClass1;
+import "dart:native_wrappers" show NativeFieldWrapperClass1;
 import 'dart:typed_data';
 
 @patch

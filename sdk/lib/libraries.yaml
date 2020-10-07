@@ -138,8 +138,8 @@ vm:
         - "_internal/vm/lib/mirrors_impl.dart"
         - "_internal/vm/lib/mirror_reference.dart"
 
-    nativewrappers:
-      uri: "html/dartium/nativewrappers.dart"
+    native_wrappers:
+      uri: "html/dartium/native_wrappers.dart"
 
     cli:
       uri: "cli/cli.dart"

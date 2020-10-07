@@ -35,7 +35,7 @@ And 18 platform libraries:
  - dart:isolate
  - dart:math
  - dart:mirrors
- - dart:nativewrappers
+ - dart:native_wrappers
  - dart:typed_data
  - dart:vmservice_io
  - dart:wasm

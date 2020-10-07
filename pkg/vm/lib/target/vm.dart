@@ -88,7 +88,7 @@ class VmTarget extends Target {
         'dart:vmservice_io',
         'dart:_vmservice',
         'dart:_builtin',
-        'dart:nativewrappers',
+        'dart:native_wrappers',
         'dart:io',
         'dart:cli',
         'dart:wasm',

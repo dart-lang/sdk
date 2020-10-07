@@ -33,7 +33,7 @@ class DartRunnerTarget extends VmTarget {
         'dart:mirrors',
 
         'dart:typed_data',
-        'dart:nativewrappers',
+        'dart:native_wrappers',
         'dart:io',
         'dart:wasm',
 

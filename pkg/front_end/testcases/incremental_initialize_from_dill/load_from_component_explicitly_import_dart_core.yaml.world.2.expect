@@ -27,7 +27,7 @@ And 19 platform libraries:
  - dart:core
  - dart:developer
  - dart:ffi
- - dart:nativewrappers
+ - dart:native_wrappers
  - dart:_internal
  - dart:io
  - dart:isolate
