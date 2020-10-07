@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  method foo<generic-covariant-impl E extends self::C::T% = self::C::T%>(core::List<self::C::foo::E%> list) → dynamic {
+    core::List<self::C::foo::E%> variable = this.{self::C::method}<self::C::foo::E%>(list);
+  }
+  method method<generic-covariant-impl F extends self::C::T% = self::C::T%>(core::List<self::C::method::F%> list) → core::List<self::C::method::F%>
+    return list;
+}
+static method main() → dynamic {}

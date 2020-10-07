@@ -396,17 +396,19 @@ mixin StandardBounds {
     // without using the nullability of the outermost type. The result uses
     // [intersectNullabilities] to compute the resulting type if the subtype
     // relation is established.
-    DartType nonNullableType1 =
-        type1.withDeclaredNullability(Nullability.nonNullable);
-    DartType nonNullableType2 =
-        type2.withDeclaredNullability(Nullability.nonNullable);
-    if (isSubtypeOf(nonNullableType1, nonNullableType2,
-        SubtypeCheckMode.withNullabilities)) {
+    DartType typeWithoutNullabilityMarker1 =
+        computeTypeWithoutNullabilityMarker(type1, clientLibrary,
+            nullType: coreTypes.nullType);
+    DartType typeWithoutNullabilityMarker2 =
+        computeTypeWithoutNullabilityMarker(type2, clientLibrary,
+            nullType: coreTypes.nullType);
+    if (isSubtypeOf(typeWithoutNullabilityMarker1,
+        typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(intersectNullabilities(
           type1.declaredNullability, type2.declaredNullability));
     }
-    if (isSubtypeOf(nonNullableType2, nonNullableType1,
-        SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(typeWithoutNullabilityMarker2,
+        typeWithoutNullabilityMarker1, SubtypeCheckMode.withNullabilities)) {
       return type2.withDeclaredNullability(intersectNullabilities(
           type1.declaredNullability, type2.declaredNullability));
     }
@@ -753,21 +755,23 @@ mixin StandardBounds {
     // T1 <: T2 without using the nullability of the outermost type. The result
     // uses [uniteNullabilities] to compute the resulting type if the subtype
     // relation is established.
-    InterfaceType nonNonNullableType1 =
-        type1.withDeclaredNullability(Nullability.nonNullable);
-    InterfaceType nonNonNullableType2 =
-        type2.withDeclaredNullability(Nullability.nonNullable);
+    InterfaceType typeWithoutNullabilityMarker1 =
+        computeTypeWithoutNullabilityMarker(type1, clientLibrary,
+            nullType: coreTypes.nullType);
+    InterfaceType typeWithoutNullabilityMarker2 =
+        computeTypeWithoutNullabilityMarker(type2, clientLibrary,
+            nullType: coreTypes.nullType);
 
-    if (isSubtypeOf(nonNonNullableType1, nonNonNullableType2,
-        SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(typeWithoutNullabilityMarker1,
+        typeWithoutNullabilityMarker2, SubtypeCheckMode.withNullabilities)) {
       return type2.withDeclaredNullability(
           uniteNullabilities(type1.nullability, type2.nullability));
     }
 
     // UP(T1, T2) = T1 if T2 <: T1
     //   Note that both types must be class types at this point.
-    if (isSubtypeOf(nonNonNullableType2, nonNonNullableType1,
-        SubtypeCheckMode.withNullabilities)) {
+    if (isSubtypeOf(typeWithoutNullabilityMarker2,
+        typeWithoutNullabilityMarker1, SubtypeCheckMode.withNullabilities)) {
       return type1.withDeclaredNullability(uniteNullabilities(
           type1.declaredNullability, type2.declaredNullability));
     }
