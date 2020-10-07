@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -43,29 +43,21 @@ class AnalyzeCommand extends DartdevCommand<int> {
 
     // find directory from argResults.rest
     var dir = argResults.rest.isEmpty
-        ? Directory.current
-        : Directory(argResults.rest.single);
+        ? io.Directory.current
+        : io.Directory(argResults.rest.single);
     if (!dir.existsSync()) {
       usageException("Directory doesn't exist: ${dir.path}");
     }
 
-    final Completer<void> analysisCompleter = Completer<void>();
     final List<AnalysisError> errors = <AnalysisError>[];
 
     var progress = log.progress('Analyzing ${path.basename(dir.path)}');
 
     final AnalysisServer server = AnalysisServer(
-      Directory(sdk.sdkPath),
+      io.Directory(sdk.sdkPath),
       [dir],
     );
 
-    StreamSubscription<bool> subscription;
-    subscription = server.onAnalyzing.listen((bool isAnalyzing) {
-      if (!isAnalyzing) {
-        analysisCompleter.complete();
-        subscription.cancel();
-      }
-    });
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
       // Record the issues found (but filter out to do comments).
       errors.addAll(fileErrors.errors
@@ -73,15 +65,19 @@ class AnalyzeCommand extends DartdevCommand<int> {
     });
 
     await server.start();
-    // Completing the future in the callback can't fail.
-    //ignore: unawaited_futures
+
+    bool analysisFinished = false;
+
+    // ignore: unawaited_futures
     server.onExit.then((int exitCode) {
-      if (!analysisCompleter.isCompleted) {
-        analysisCompleter.completeError('analysis server exited: $exitCode');
+      if (!analysisFinished) {
+        io.exitCode = exitCode;
       }
     });
 
-    await analysisCompleter.future;
+    await server.analysisFinished;
+    analysisFinished = true;
+
     // todo (pq): consider server.shutdown() for cleaner dispose.
     await server.dispose();
     progress.finish(showTiming: true);
