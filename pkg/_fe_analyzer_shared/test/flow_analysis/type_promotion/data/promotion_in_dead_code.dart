@@ -6,6 +6,69 @@
 // promotion continue to function properly even when used inside unreachable
 // code.
 
+conditionalIs(Object o) {
+  return;
+  o is int ? null : throw 'bad';
+  /*int*/ o;
+}
+
+conditionalIsNot(Object o) {
+  return;
+  o is! int ? throw 'bad' : null;
+  /*int*/ o;
+}
+
+conditionalJoinFalse(Object o, bool b) {
+  return;
+  if (b ? o is! int : o is! int) return;
+  /*int*/ o;
+}
+
+conditionalJoinTrue(Object o, bool b) {
+  return;
+  if (!(b ? o is int : o is int)) return;
+  /*int*/ o;
+}
+
+doBreak(Object o) {
+  return;
+  do {
+    if (o is int) break;
+  } while (true);
+  /*int*/ o;
+}
+
+doContinue(Object o) {
+  return;
+  do {
+    if (o is int) continue;
+    return;
+  } while (false);
+  /*int*/ o;
+}
+
+doCondition(Object o) {
+  return;
+  do {} while (o is! int);
+  /*int*/ o;
+}
+
+forBreak(Object o) {
+  return;
+  for (;;) {
+    if (o is int) break;
+  }
+  /*int*/ o;
+}
+
+forContinue(Object o) {
+  return;
+  for (;; /*int*/ o) {
+    if (o is int) continue;
+    return;
+  }
+}
+
 ifIsNot(Object o) {
   return;
   if (o is! int) return;

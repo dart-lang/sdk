@@ -351,6 +351,9 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// Call this method when visiting a boolean literal expression.
   void booleanLiteral(Expression expression, bool value);
 
+  /// Call this method just before visiting a conditional expression ("?:").
+  void conditional_conditionBegin();
+
   /// Call this method upon reaching the ":" part of a conditional expression
   /// ("?:").  [thenExpression] should be the expression preceding the ":".
   void conditional_elseBegin(Expression thenExpression);
@@ -864,6 +867,12 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   void booleanLiteral(Expression expression, bool value) {
     _wrap('booleanLiteral($expression, $value)',
         () => _wrapped.booleanLiteral(expression, value));
+  }
+
+  @override
+  void conditional_conditionBegin() {
+    _wrap('conditional_conditionBegin()',
+        () => _wrapped.conditional_conditionBegin());
   }
 
   @override
@@ -2732,6 +2741,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void conditional_conditionBegin() {
+    _current = _current.split();
+  }
+
+  @override
   void conditional_elseBegin(Expression thenExpression) {
     _ConditionalContext<Variable, Type> context =
         _stack.last as _ConditionalContext<Variable, Type>;
@@ -2749,9 +2763,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _storeExpressionInfo(
         conditionalExpression,
         new ExpressionInfo(
-            _join(thenInfo.after, elseInfo.after),
-            _join(thenInfo.ifTrue, elseInfo.ifTrue),
-            _join(thenInfo.ifFalse, elseInfo.ifFalse)));
+            _merge(thenInfo.after, elseInfo.after),
+            _merge(thenInfo.ifTrue, elseInfo.ifTrue),
+            _merge(thenInfo.ifFalse, elseInfo.ifFalse)));
   }
 
   @override
@@ -2771,9 +2785,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(doStatement);
     _BranchTargetContext<Variable, Type> context =
-        new _BranchTargetContext<Variable, Type>(_current.reachable.parent);
+        new _BranchTargetContext<Variable, Type>(_current.reachable);
     _stack.add(context);
-    _current = _current.conservativeJoin(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured).split();
     _statementToContext[doStatement] = context;
   }
 
@@ -2788,7 +2802,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void doStatement_end(Expression condition) {
     _BranchTargetContext<Variable, Type> context =
         _stack.removeLast() as _BranchTargetContext<Variable, Type>;
-    _current = _join(_expressionEnd(condition).ifFalse, context._breakModel);
+    _current = _merge(_expressionEnd(condition).ifFalse, context._breakModel);
   }
 
   @override
@@ -2868,7 +2882,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void for_conditionBegin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    _current = _current.conservativeJoin(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured).split();
   }
 
   @override
@@ -2879,7 +2893,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     FlowModel<Variable, Type> breakState = context._breakModel;
     FlowModel<Variable, Type> falseCondition = context._conditionInfo.ifFalse;
 
-    _current = _join(falseCondition, breakState)
+    _current = _merge(falseCondition, breakState)
         .inheritTested(typeOperations, _current);
   }
 
@@ -2894,7 +2908,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void forEach_bodyBegin(Node node, Variable loopVariable, Type writtenType) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    _current = _current.conservativeJoin(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured).split();
     _SimpleStatementContext<Variable, Type> context =
         new _SimpleStatementContext<Variable, Type>(
             _current.reachable.parent, _current);
@@ -2908,7 +2922,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void forEach_end() {
     _SimpleStatementContext<Variable, Type> context =
         _stack.removeLast() as _SimpleStatementContext<Variable, Type>;
-    _current = _join(_current, context._previous);
+    _current = _merge(_current, context._previous);
   }
 
   @override

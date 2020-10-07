@@ -2482,6 +2482,7 @@ class Function : public Object {
                  BaseTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
+  const char* QualifiedUserVisibleNameCString() const;
 
   virtual StringPtr DictionaryName() const { return name(); }
 

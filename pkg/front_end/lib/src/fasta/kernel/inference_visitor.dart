@@ -378,6 +378,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitConditionalExpression(
       ConditionalExpression node, DartType typeContext) {
+    inferrer.flowAnalysis.conditional_conditionBegin();
     InterfaceType expectedType =
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
     ExpressionInferenceResult conditionResult = inferrer.inferExpression(
@@ -401,7 +402,7 @@ class InferenceVisitor
     node.otherwise = otherwiseResult.expression..parent = node;
     inferrer.registerIfUnreachableForTesting(node.otherwise,
         isReachable: isOtherwiseReachable);
-    inferrer.flowAnalysis.conditional_end(node.condition, node.otherwise);
+    inferrer.flowAnalysis.conditional_end(node, node.otherwise);
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(thenResult.inferredType,
             otherwiseResult.inferredType, inferrer.library.library);
