@@ -55,6 +55,18 @@ localVariable_ifElse_sameTypes(bool a) {
   x;
 }
 
+localVariable_initialized_nonNull() {
+  num? x = 0;
+  /*num*/ x;
+  x = null;
+  x;
+}
+
+localVariable_initialized_nonNull_final() {
+  final num? x = 0;
+  x;
+}
+
 localVariable_initialized_promoted_type_var<T>(T t) {
   if (t is num) {
     var x = /*T & num*/ t;
@@ -94,13 +106,13 @@ localVariable_initialized_unpromoted_type_var_with_bound<T extends num?>(T t) {
 
 localVariable_initialized_promoted_type_var_typed<T>(T t) {
   if (t is num) {
-    // TODO(paulberry): This should promote to `T & Object`, because that's the
-    // non-nullable version of T, but it shouldn't promote to `T & num`.
+    // This should promote to `T & Object`, because that's the non-nullable
+    // version of T, but it shouldn't promote to `T & num`.
     T x = /*T & num*/ t;
-    x;
+    /*T & Object*/ x;
     // Check that `T & Object` is a type of interest by promoting and then
     // writing to it
-    if (x is int) {
+    if (/*T & Object*/ x is int) {
       /*T & int*/ x;
       x = /*T & num*/ t;
       /*T & Object*/ x;

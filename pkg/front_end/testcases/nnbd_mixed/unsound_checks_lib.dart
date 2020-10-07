@@ -85,12 +85,12 @@ class OptInClass5 {
 }
 
 nullAwareIfNullSetOptIn(int i) {
-  OptInClass5? o = new OptInClass5(i);
+  OptInClass5? o = new OptInClass5(i) as OptInClass5?;
   return o?.field ??= 42;
 }
 
 nullAwareIfNullSetOptInForEffect(int i) {
-  OptInClass5? o = new OptInClass5(i);
+  OptInClass5? o = new OptInClass5(i) as OptInClass5?;
   o?.field ??= 42;
 }
 
