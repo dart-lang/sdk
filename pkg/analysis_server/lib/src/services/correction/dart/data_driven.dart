@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
@@ -33,8 +34,9 @@ class DataDriven extends MultiCorrectionProducer {
         importedUris.add(Uri.parse(uri));
       }
     }
+    var matcher = ElementMatcher(importedUris: importedUris, name: name);
     for (var set in _availableTransformSetsForLibrary(library)) {
-      for (var transform in set.transformsFor(name, importedUris)) {
+      for (var transform in set.transformsFor(matcher)) {
         yield DataDrivenFix(transform);
       }
     }
@@ -42,27 +44,40 @@ class DataDriven extends MultiCorrectionProducer {
 
   /// Return the name of the element that was changed.
   String get _name {
+    String nameFromParent(AstNode node) {
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        return parent.methodName.name;
+      } else if (parent is InstanceCreationExpression) {
+        var constructorName = parent.constructorName;
+        if (constructorName.name != null) {
+          return constructorName.name.name;
+        }
+        return constructorName.type.name.name;
+      } else if (parent is ExtensionOverride) {
+        return parent.extensionName.name;
+      }
+      return null;
+    }
+
     var node = this.node;
     if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is Label && parent.parent is NamedExpression) {
+        // The parent of the named expression is an argument list. Because we
+        // don't represent parameters as elements, the element we need to match
+        // against is the invocation containing those arguments.
+        return nameFromParent(parent.parent.parent);
+      }
       return node.name;
     } else if (node is ConstructorName) {
       return node.name.name;
     } else if (node is NamedType) {
       return node.name.name;
     } else if (node is TypeArgumentList) {
-      var parent = node.parent;
-      if (parent is MethodInvocation) {
-        return parent.methodName.name;
-      } else if (parent is ExtensionOverride) {
-        return parent.extensionName.name;
-      }
+      return nameFromParent(node);
     } else if (node is ArgumentList) {
-      var parent = node.parent;
-      if (parent is MethodInvocation) {
-        return parent.methodName.name;
-      } else if (parent is ExtensionOverride) {
-        return parent.extensionName.name;
-      }
+      return nameFromParent(node);
     }
     return null;
   }

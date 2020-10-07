@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:meta/meta.dart';
 
 /// A description of a set of changes to a single element of the API.
@@ -29,9 +30,8 @@ class Transform {
       @required this.changes});
 
   /// Return `true` if this transform can be applied to fix an issue related to
-  /// an element with the given [name] in a library that imports the
-  /// [importedUris].
-  bool appliesTo(String name, List<Uri> importedUris) {
-    return element.matches(name, importedUris);
+  /// an element that matches the given [matcher].
+  bool appliesTo(ElementMatcher matcher) {
+    return matcher.matches(element);
   }
 }

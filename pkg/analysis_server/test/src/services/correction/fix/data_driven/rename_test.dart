@@ -15,6 +15,7 @@ void main() {
     defineReflectiveTests(RenameConstructorTest);
     defineReflectiveTests(RenameExtensionTest);
     defineReflectiveTests(RenameFieldTest);
+    defineReflectiveTests(RenameGetterTest);
     defineReflectiveTests(RenameMethodTest);
     defineReflectiveTests(RenameMixinTest);
     defineReflectiveTests(RenameTopLevelFunctionTest);
@@ -737,6 +738,124 @@ void f() {
   C.new;
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class RenameGetterTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'getter';
+
+  Future<void> test_instance_nonReference_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get a => 0;
+  int get b => 1;
+}
+class D {
+  D({@deprecated int a; int c});
+}
+''');
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestUnit('''
+import '$importUri';
+
+D d = D(a: 2);
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_instance_reference_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get old => 0;
+  int get new => 1;
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.new;
+}
+''');
+  }
+
+  Future<void> test_instance_reference_removed() async {
+    setPackageContent('''
+class C {
+  int get new => 1;
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.new;
+}
+''');
+  }
+
+  Future<void> test_topLevel_reference_deprecated() async {
+    setPackageContent('''
+@deprecated
+int get old => 0;
+int get new => 1;
+''');
+    setPackageData(_rename(['old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  new;
+}
+''');
+  }
+
+  Future<void> test_topLevel_reference_removed() async {
+    setPackageContent('''
+int get new => 1;
+''');
+    setPackageData(_rename(['old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  new;
+}
+''', errorFilter: ignoreUnusedImport);
   }
 }
 
