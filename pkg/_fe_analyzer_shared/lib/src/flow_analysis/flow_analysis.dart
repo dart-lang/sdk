@@ -351,6 +351,9 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// Call this method when visiting a boolean literal expression.
   void booleanLiteral(Expression expression, bool value);
 
+  /// Call this method just before visiting a conditional expression ("?:").
+  void conditional_conditionBegin();
+
   /// Call this method upon reaching the ":" part of a conditional expression
   /// ("?:").  [thenExpression] should be the expression preceding the ":".
   void conditional_elseBegin(Expression thenExpression);
@@ -864,6 +867,12 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   void booleanLiteral(Expression expression, bool value) {
     _wrap('booleanLiteral($expression, $value)',
         () => _wrapped.booleanLiteral(expression, value));
+  }
+
+  @override
+  void conditional_conditionBegin() {
+    _wrap('conditional_conditionBegin()',
+        () => _wrapped.conditional_conditionBegin());
   }
 
   @override
@@ -2732,6 +2741,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void conditional_conditionBegin() {
+    _current = _current.split();
+  }
+
+  @override
   void conditional_elseBegin(Expression thenExpression) {
     _ConditionalContext<Variable, Type> context =
         _stack.last as _ConditionalContext<Variable, Type>;
@@ -2749,9 +2763,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     _storeExpressionInfo(
         conditionalExpression,
         new ExpressionInfo(
-            _join(thenInfo.after, elseInfo.after),
-            _join(thenInfo.ifTrue, elseInfo.ifTrue),
-            _join(thenInfo.ifFalse, elseInfo.ifFalse)));
+            _merge(thenInfo.after, elseInfo.after),
+            _merge(thenInfo.ifTrue, elseInfo.ifTrue),
+            _merge(thenInfo.ifFalse, elseInfo.ifFalse)));
   }
 
   @override

@@ -76,6 +76,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.conditional_conditionBegin();
         flow.conditional_thenBegin(h.notNull(x, _Type('int?'))());
         expect(flow.promotedType(x).type, 'int');
         flow.conditional_elseBegin(_Expression());
@@ -90,6 +91,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.conditional_conditionBegin();
         flow.conditional_thenBegin(h.eqNull(x, _Type('int?'))());
         expect(flow.promotedType(x), isNull);
         flow.conditional_elseBegin(_Expression());
@@ -109,6 +111,7 @@ main() {
         h.declare(x, initialized: true);
         h.declare(y, initialized: true);
         h.declare(z, initialized: true);
+        flow.conditional_conditionBegin();
         flow.conditional_thenBegin(_Expression());
         h.promote(x, 'int');
         h.promote(y, 'int');
@@ -4176,6 +4179,7 @@ class _Harness extends TypeOperations<_Var, _Type> {
       LazyExpression cond, LazyExpression ifTrue, LazyExpression ifFalse) {
     return () {
       var expr = _Expression();
+      _flow.conditional_conditionBegin();
       _flow.conditional_thenBegin(cond());
       _flow.conditional_elseBegin(ifTrue());
       _flow.conditional_end(expr, ifFalse());

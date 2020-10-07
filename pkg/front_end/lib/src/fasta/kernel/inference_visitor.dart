@@ -378,6 +378,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitConditionalExpression(
       ConditionalExpression node, DartType typeContext) {
+    inferrer.flowAnalysis.conditional_conditionBegin();
     InterfaceType expectedType =
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
     ExpressionInferenceResult conditionResult = inferrer.inferExpression(

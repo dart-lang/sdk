@@ -1093,6 +1093,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
     var flow = _flowAnalysis?.flow;
+    flow?.conditional_conditionBegin();
 
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);

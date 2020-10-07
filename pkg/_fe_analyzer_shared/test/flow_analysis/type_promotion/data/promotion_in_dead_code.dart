@@ -6,6 +6,30 @@
 // promotion continue to function properly even when used inside unreachable
 // code.
 
+conditionalIs(Object o) {
+  return;
+  o is int ? null : throw 'bad';
+  /*int*/ o;
+}
+
+conditionalIsNot(Object o) {
+  return;
+  o is! int ? throw 'bad' : null;
+  /*int*/ o;
+}
+
+conditionalJoinFalse(Object o, bool b) {
+  return;
+  if (b ? o is! int : o is! int) return;
+  /*int*/ o;
+}
+
+conditionalJoinTrue(Object o, bool b) {
+  return;
+  if (!(b ? o is int : o is int)) return;
+  /*int*/ o;
+}
+
 ifIsNot(Object o) {
   return;
   if (o is! int) return;
