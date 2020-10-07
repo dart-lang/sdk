@@ -12,7 +12,6 @@ import 'package:path/path.dart' as path;
 import '../core.dart';
 import '../events.dart';
 import '../sdk.dart';
-import '../utils.dart';
 import 'analyze_impl.dart';
 
 class FixCommand extends DartdevCommand<int> {
@@ -20,6 +19,13 @@ class FixCommand extends DartdevCommand<int> {
 
   // This command is hidden as its currently experimental.
   FixCommand() : super(cmdName, 'Fix Dart source code.', hidden: true);
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => FixUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        args: argResults.arguments,
+      );
 
   @override
   FutureOr<int> runImpl() async {
@@ -69,27 +75,28 @@ class FixCommand extends DartdevCommand<int> {
     if (edits.isEmpty) {
       log.stdout('Nothing to fix!');
     } else {
-      // todo (pq): consider a summary if more than `n` fixes are applied
-      //  (look at `dartfmt`)
-      log.stdout('Applying fixes to:');
-      for (var edit in edits) {
-        var file = File(edit.file);
-        log.stdout('  ${relativePath(file.path, dir)}');
-        var code = file.existsSync() ? file.readAsStringSync() : '';
-        code = SourceEdit.applySequence(code, edit.edits);
-        file.writeAsStringSync(code);
+      progress = log.progress('Applying fixes');
+      var fileCount = await _applyFixes(edits);
+      progress.finish(showTiming: true);
+      if (fileCount > 0) {
+        log.stdout('Fixed $fileCount files.');
       }
-      log.stdout('Done.');
     }
     return 0;
   }
 
-  @override
-  UsageEvent createUsageEvent(int exitCode) => FixUsageEvent(
-        usagePath,
-        exitCode: exitCode,
-        args: argResults.arguments,
-      );
+  Future<int> _applyFixes(List<SourceFileEdit> edits) async {
+    var files = <String>{};
+    for (var edit in edits) {
+      var fileName = edit.file;
+      files.add(fileName);
+      var file = File(fileName);
+      var code = await file.exists() ? await file.readAsString() : '';
+      code = SourceEdit.applySequence(code, edit.edits);
+      await file.writeAsString(code);
+    }
+    return files.length;
+  }
 }
 
 /// The [UsageEvent] for the fix command.
