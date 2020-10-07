@@ -1,0 +1,4 @@
+name: observatory_test_package
+publish_to: none
+environment:
+  sdk: '^2.7.0'

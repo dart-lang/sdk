@@ -992,7 +992,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       "ffi_2",
       "language_2",
       "lib_2",
-      "service",
+      "service_2",
       "standalone_2"
     };
 

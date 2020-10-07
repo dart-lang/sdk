@@ -1,0 +1,6 @@
+0. Run dart --observe log.dart
+1. Visit main isolate's logging page.
+2. You should see 'INFO MESSAGE' and 'FINE MESSAGE'.
+3. Adjust the level to be 'INFO' and see that 'FINE' messages are hidden.
+4. Adjust the level to be 'FINE' and see that all messages are displayed.
+5. Adjust the level to be 'SHOUT' and see that no messages are displayed.

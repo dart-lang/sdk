@@ -1,0 +1,98 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:html';
+import 'package:observatory_2/models.dart' as M;
+import 'package:observatory_2/src/elements/class_ref.dart';
+import 'package:observatory_2/src/elements/code_ref.dart';
+import 'package:observatory_2/src/elements/context_ref.dart';
+import 'package:observatory_2/src/elements/error_ref.dart';
+import 'package:observatory_2/src/elements/field_ref.dart';
+import 'package:observatory_2/src/elements/function_ref.dart';
+import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory_2/src/elements/helpers/uris.dart';
+import 'package:observatory_2/src/elements/icdata_ref.dart';
+import 'package:observatory_2/src/elements/instance_ref.dart';
+import 'package:observatory_2/src/elements/library_ref.dart';
+import 'package:observatory_2/src/elements/local_var_descriptors_ref.dart';
+import 'package:observatory_2/src/elements/megamorphiccache_ref.dart';
+import 'package:observatory_2/src/elements/objectpool_ref.dart';
+import 'package:observatory_2/src/elements/pc_descriptors_ref.dart';
+import 'package:observatory_2/src/elements/script_ref.dart';
+import 'package:observatory_2/src/elements/sentinel_value.dart';
+import 'package:observatory_2/src/elements/singletargetcache_ref.dart';
+import 'package:observatory_2/src/elements/subtypetestcache_ref.dart';
+import 'package:observatory_2/src/elements/type_arguments_ref.dart';
+import 'package:observatory_2/src/elements/unknown_ref.dart';
+import 'package:observatory_2/src/elements/unlinkedcall_ref.dart';
+
+Element anyRef(M.IsolateRef isolate, ref, M.ObjectRepository objects,
+    {RenderingQueue queue, bool expandable: true}) {
+  if (ref == null) {
+    return new SpanElement()..text = "???";
+  }
+  if (ref is M.Guarded) {
+    if (ref.isSentinel) {
+      return anyRef(isolate, ref.asSentinel, objects,
+          queue: queue, expandable: expandable);
+    } else {
+      return anyRef(isolate, ref.asValue, objects,
+          queue: queue, expandable: expandable);
+    }
+  } else if (ref is M.ObjectRef) {
+    if (ref is M.ClassRef) {
+      return new ClassRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.CodeRef) {
+      return new CodeRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.ContextRef) {
+      return new ContextRefElement(isolate, ref, objects,
+              queue: queue, expandable: expandable)
+          .element;
+    } else if (ref is M.Error) {
+      return new ErrorRefElement(ref, queue: queue).element;
+    } else if (ref is M.FieldRef) {
+      return new FieldRefElement(isolate, ref, objects,
+              queue: queue, expandable: expandable)
+          .element;
+    } else if (ref is M.FunctionRef) {
+      return new FunctionRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.ICDataRef) {
+      return new ICDataRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.InstanceRef) {
+      return new InstanceRefElement(isolate, ref, objects,
+              queue: queue, expandable: expandable)
+          .element;
+    } else if (ref is M.LibraryRef) {
+      return new LibraryRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.LocalVarDescriptorsRef) {
+      return new LocalVarDescriptorsRefElement(isolate, ref, queue: queue)
+          .element;
+    } else if (ref is M.MegamorphicCacheRef) {
+      return new MegamorphicCacheRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.ObjectPoolRef) {
+      return new ObjectPoolRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.PcDescriptorsRef) {
+      return new PcDescriptorsRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.ScriptRef) {
+      return new ScriptRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.SingleTargetCacheRef) {
+      return new SingleTargetCacheRefElement(isolate, ref, queue: queue)
+          .element;
+    } else if (ref is M.SubtypeTestCacheRef) {
+      return new SubtypeTestCacheRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.TypeArgumentsRef) {
+      return new TypeArgumentsRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.UnknownObjectRef) {
+      return new UnknownObjectRefElement(isolate, ref, queue: queue).element;
+    } else if (ref is M.UnlinkedCallRef) {
+      return new UnlinkedCallRefElement(isolate, ref, queue: queue).element;
+    } else {
+      return new AnchorElement(href: Uris.inspect(isolate, object: ref))
+        ..text = 'object';
+    }
+  } else if (ref is M.Sentinel) {
+    return new SentinelValueElement(ref, queue: queue).element;
+  }
+  throw new Exception('Unknown ref type (${ref.runtimeType})');
+}
