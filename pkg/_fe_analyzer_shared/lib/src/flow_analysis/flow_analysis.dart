@@ -1278,8 +1278,7 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
 /// the state actually leave `this` unchanged and return a new state object.
 @visibleForTesting
 class FlowModel<Variable, Type> {
-  /// Indicates whether this point in the control flow is reachable.
-  final bool reachable;
+  final Reachability reachable;
 
   /// For each variable being tracked by flow analysis, the variable's model.
   ///
@@ -1303,7 +1302,7 @@ class FlowModel<Variable, Type> {
   /// Creates a state object with the given [reachable] status.  All variables
   /// are assumed to be unpromoted and already assigned, so joining another
   /// state with this one will have no effect on it.
-  FlowModel(bool reachable)
+  FlowModel(Reachability reachable)
       : this.withInfo(
           reachable,
           const {},
@@ -1312,6 +1311,7 @@ class FlowModel<Variable, Type> {
   @visibleForTesting
   FlowModel.withInfo(this.reachable, this.variableInfo)
       : _freshVariableInfo = new VariableModel.fresh() {
+    assert(reachable != null);
     assert(() {
       for (VariableModel<Variable, Type> value in variableInfo.values) {
         assert(value != null);
@@ -1484,7 +1484,8 @@ class FlowModel<Variable, Type> {
       TypeOperations<Variable, Type> typeOperations,
       FlowModel<Variable, Type> other,
       Set<Variable> unsafe) {
-    bool newReachable = reachable && other.reachable;
+    Reachability newReachable =
+        Reachability.restrict(reachable, other.reachable);
 
     Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
         <Variable, VariableModel<Variable, Type>>{};
@@ -1528,10 +1529,16 @@ class FlowModel<Variable, Type> {
 
   /// Updates the state to indicate that the control flow path is unreachable.
   FlowModel<Variable, Type> setUnreachable() {
-    if (!reachable) return this;
+    if (!reachable.locallyReachable) return this;
 
-    return new FlowModel<Variable, Type>.withInfo(false, variableInfo);
+    return new FlowModel<Variable, Type>.withInfo(
+        reachable.setUnreachable(), variableInfo);
   }
+
+  /// Returns a [FlowModel] indicating the result of creating a control flow
+  /// split.  See [Reachability.split] for more information.
+  FlowModel<Variable, Type> split() =>
+      new FlowModel<Variable, Type>.withInfo(reachable.split(), variableInfo);
 
   @override
   String toString() => '($reachable, $variableInfo)';
@@ -1646,6 +1653,11 @@ class FlowModel<Variable, Type> {
         this, modelIfSuccessful, modelIfFailed);
   }
 
+  /// Returns a [FlowModel] indicating the result of removing a control flow
+  /// split.  See [Reachability.unsplit] for more information.
+  FlowModel<Variable, Type> unsplit() =>
+      new FlowModel<Variable, Type>.withInfo(reachable.unsplit(), variableInfo);
+
   /// Updates the state to indicate that an assignment was made to the given
   /// [variable].  The variable is marked as definitely assigned, and any
   /// previous type promotion is removed.
@@ -1686,12 +1698,12 @@ class FlowModel<Variable, Type> {
     }
 
     List<Type> newPromotedTypes = info.promotedTypes;
-    bool newReachable = reachable;
+    Reachability newReachable = reachable;
     if (promotedType != null) {
       newPromotedTypes =
           VariableModel._addToPromotedTypes(info.promotedTypes, promotedType);
       if (typeOperations.isNever(promotedType)) {
-        newReachable = false;
+        newReachable = reachable.setUnreachable();
       }
     }
 
@@ -1710,7 +1722,7 @@ class FlowModel<Variable, Type> {
   /// with [model].
   FlowModel<Variable, Type> _updateVariableInfo(
       Variable variable, VariableModel<Variable, Type> model,
-      {bool reachable}) {
+      {Reachability reachable}) {
     reachable ??= this.reachable;
     Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
         new Map<Variable, VariableModel<Variable, Type>>.from(variableInfo);
@@ -1736,10 +1748,18 @@ class FlowModel<Variable, Type> {
     if (first == null) return second;
     if (second == null) return first;
 
-    if (first.reachable && !second.reachable) return first;
-    if (!first.reachable && second.reachable) return second;
+    assert(identical(first.reachable.parent, second.reachable.parent));
+    if (first.reachable.locallyReachable &&
+        !second.reachable.locallyReachable) {
+      return first;
+    }
+    if (!first.reachable.locallyReachable &&
+        second.reachable.locallyReachable) {
+      return second;
+    }
 
-    bool newReachable = first.reachable || second.reachable;
+    Reachability newReachable =
+        Reachability.join(first.reachable, second.reachable);
     Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
         FlowModel.joinVariableInfo(typeOperations, first.variableInfo,
             second.variableInfo, emptyVariableMap);
@@ -1793,7 +1813,7 @@ class FlowModel<Variable, Type> {
   static FlowModel<Variable, Type> _identicalOrNew<Variable, Type>(
       FlowModel<Variable, Type> first,
       FlowModel<Variable, Type> second,
-      bool newReachable,
+      Reachability newReachable,
       Map<Variable, VariableModel<Variable, Type>> newVariableInfo) {
     if (first.reachable == newReachable &&
         identical(first.variableInfo, newVariableInfo)) {
@@ -1826,6 +1846,101 @@ class FlowModel<Variable, Type> {
       }
     }
     return true;
+  }
+}
+
+/// Immutable data structure modeling the reachability of the given point in the
+/// source code.  Reachability is tracked relative to checkpoints occurring
+/// previously along the control flow path leading up to the current point in
+/// the program.  A given point is said to be "locally reachable" if it is
+/// reachable from the most recent checkpoint, and "overall reachable" if it is
+/// reachable from the top of the function.
+@visibleForTesting
+class Reachability {
+  /// Model of the initial reachability state of the function being analyzed.
+  static const Reachability initial = const Reachability._initial();
+
+  /// Reachability of the checkpoint this reachability is relative to, or `null`
+  /// if there is no checkpoint.  Reachabilities form a tree structure that
+  /// mimics the control flow of the code being analyzed, so this is called the
+  /// "parent".
+  final Reachability parent;
+
+  /// Whether this point in the source code is considered reachable from the
+  /// most recent checkpoint.
+  final bool locallyReachable;
+
+  /// Whether this point in the source code is considered reachable from the
+  /// beginning of the function being analyzed.
+  final bool overallReachable;
+
+  Reachability._(this.parent, this.locallyReachable, this.overallReachable) {
+    assert(overallReachable ==
+        (locallyReachable && (parent?.overallReachable ?? true)));
+  }
+
+  const Reachability._initial()
+      : parent = null,
+        locallyReachable = true,
+        overallReachable = true;
+
+  /// Returns a reachability with the same checkpoint as `this`, but where the
+  /// current point in the program is considered locally unreachable.
+  Reachability setUnreachable() {
+    if (!locallyReachable) return this;
+    return new Reachability._(parent, false, false);
+  }
+
+  /// Returns a new reachability whose checkpoint is the current point of
+  /// execution.  This models flow control within a control flow split, e.g.
+  /// inside an `if` statement.
+  Reachability split() => new Reachability._(this, true, overallReachable);
+
+  @override
+  String toString() {
+    List<bool> values = [];
+    for (Reachability node = this; node != null; node = node.parent) {
+      values.add(node.locallyReachable);
+    }
+    return '[${values.join(', ')}]';
+  }
+
+  /// Returns a reachability that drops the most recent checkpoint but maintains
+  /// the same notion of reachability relative to the previous two checkpoints.
+  Reachability unsplit() {
+    if (locallyReachable) {
+      return parent;
+    } else {
+      return parent.setUnreachable();
+    }
+  }
+
+  /// Combines two reachabilities (both of which must be based on the same
+  /// checkpoint), where the code is considered reachable from the checkpoint
+  /// iff either argument is reachable from the checkpoint.
+  ///
+  /// This is used as part of the "join" operation.
+  static Reachability join(Reachability r1, Reachability r2) {
+    assert(identical(r1.parent, r2.parent));
+    if (r2.locallyReachable) {
+      return r2;
+    } else {
+      return r1;
+    }
+  }
+
+  /// Combines two reachabilities (both of which must be based on the same
+  /// checkpoint), where the code is considered reachable from the checkpoint
+  /// iff both arguments are reachable from the checkpoint.
+  ///
+  /// This is used as part of the "restrict" operation.
+  static Reachability restrict(Reachability r1, Reachability r2) {
+    assert(identical(r1.parent, r2.parent));
+    if (r2.locallyReachable) {
+      return r1;
+    } else {
+      return r2;
+    }
   }
 }
 
@@ -2505,11 +2620,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   final AssignedVariables<Node, Variable> _assignedVariables;
 
   _FlowAnalysisImpl(this.typeOperations, this._assignedVariables) {
-    _current = new FlowModel<Variable, Type>(true);
+    _current = new FlowModel<Variable, Type>(Reachability.initial);
   }
 
   @override
-  bool get isReachable => _current.reachable;
+  bool get isReachable => _current.reachable.overallReachable;
 
   @override
   void asExpression_end(Expression subExpression, Type type) {
@@ -2671,6 +2786,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   void finish() {
     assert(_stack.isEmpty);
+    assert(_current.reachable.parent == null);
   }
 
   @override

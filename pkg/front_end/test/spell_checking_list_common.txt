@@ -431,6 +431,7 @@ check
 checked
 checker
 checking
+checkpoints
 checks
 child
 children
@@ -579,6 +580,7 @@ conform
 conformed
 confuse
 confused
+conjunction
 connect
 connected
 connection
@@ -912,6 +914,7 @@ driver
 drop
 dropped
 dropping
+drops
 due
 dump
 dumped
@@ -1773,6 +1776,7 @@ magic
 main
 mainly
 maintain
+maintains
 major
 make
 makes
@@ -1844,6 +1848,7 @@ middle
 might
 millisecond
 milliseconds
+mimics
 minimal
 minimum
 minor
@@ -1865,6 +1870,7 @@ mixins
 mock
 mode
 model
+modeling
 models
 modes
 modifiable
