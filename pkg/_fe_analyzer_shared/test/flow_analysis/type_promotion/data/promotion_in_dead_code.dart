@@ -53,6 +53,22 @@ doCondition(Object o) {
   /*int*/ o;
 }
 
+forBreak(Object o) {
+  return;
+  for (;;) {
+    if (o is int) break;
+  }
+  /*int*/ o;
+}
+
+forContinue(Object o) {
+  return;
+  for (;; /*int*/ o) {
+    if (o is int) continue;
+    return;
+  }
+}
+
 ifIsNot(Object o) {
   return;
   if (o is! int) return;

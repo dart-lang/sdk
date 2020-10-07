@@ -2882,7 +2882,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void for_conditionBegin(Node node) {
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
-    _current = _current.conservativeJoin(info._written, info._captured);
+    _current = _current.conservativeJoin(info._written, info._captured).split();
   }
 
   @override
@@ -2893,7 +2893,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     FlowModel<Variable, Type> breakState = context._breakModel;
     FlowModel<Variable, Type> falseCondition = context._conditionInfo.ifFalse;
 
-    _current = _join(falseCondition, breakState)
+    _current = _merge(falseCondition, breakState)
         .inheritTested(typeOperations, _current);
   }
 
