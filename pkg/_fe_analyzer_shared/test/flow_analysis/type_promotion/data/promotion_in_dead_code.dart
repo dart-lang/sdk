@@ -103,6 +103,16 @@ ifNull(Object o, Object? p, Object q, void Function(Object, Object) f) {
   /*int*/ o;
 }
 
+labeledStatement(Object o) {
+  return;
+  label:
+  {
+    if (o is int) break label;
+    return;
+  }
+  /*int*/ o;
+}
+
 nullAwareAccess(Object o, C? p, Object q) {
   return;
   (o is int ? p : throw 'x')?.f(o = q, throw 'x');

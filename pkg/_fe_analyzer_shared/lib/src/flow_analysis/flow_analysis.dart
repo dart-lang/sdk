@@ -3071,6 +3071,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void labeledStatement_begin(Node node) {
+    _current = _current.split();
     _BranchTargetContext<Variable, Type> context =
         new _BranchTargetContext<Variable, Type>(_current.reachable.parent);
     _stack.add(context);
@@ -3081,7 +3082,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void labeledStatement_end() {
     _BranchTargetContext<Variable, Type> context =
         _stack.removeLast() as _BranchTargetContext<Variable, Type>;
-    _current = _join(_current, context._breakModel);
+    _current = _merge(_current, context._breakModel);
   }
 
   @override
