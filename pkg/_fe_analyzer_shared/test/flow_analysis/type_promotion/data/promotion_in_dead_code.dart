@@ -6,6 +6,10 @@
 // promotion continue to function properly even when used inside unreachable
 // code.
 
+abstract class C {
+  void f(Object x, Object y);
+}
+
 conditionalIs(Object o) {
   return;
   o is int ? null : throw 'bad';
@@ -90,5 +94,17 @@ ifIsNot_setElement(Object o) {
 ifIsNot_mapElement(Object o) {
   return;
   ({if (o is! int) 0: throw 'x'});
+  /*int*/ o;
+}
+
+ifNull(Object o, Object? p, Object q, void Function(Object, Object) f) {
+  return;
+  (o is int ? p : throw 'x') ?? f(o = q, throw 'x');
+  /*int*/ o;
+}
+
+nullAwareAccess(Object o, C? p, Object q) {
+  return;
+  (o is int ? p : throw 'x')?.f(o = q, throw 'x');
   /*int*/ o;
 }

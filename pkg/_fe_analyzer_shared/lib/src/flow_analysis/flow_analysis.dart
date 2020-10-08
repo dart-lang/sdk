@@ -2984,7 +2984,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     // common base class.  See https://github.com/dart-lang/sdk/issues/43725.
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
-    _current = _join(_current, context._previous);
+    _current = _merge(_current, context._previous);
   }
 
   @override
@@ -2992,6 +2992,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
       Expression leftHandSide, Type leftHandSideType) {
     ExpressionInfo<Variable, Type> lhsInfo = _getExpressionInfo(leftHandSide);
     FlowModel<Variable, Type> promoted;
+    _current = _current.split();
     if (lhsInfo is _VariableReadInfo<Variable, Type>) {
       ExpressionInfo<Variable, Type> promotionInfo =
           _current.tryMarkNonNullable(typeOperations, lhsInfo._variable);
@@ -3156,12 +3157,13 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     // common base class.  See https://github.com/dart-lang/sdk/issues/43725.
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
-    _current = _join(_current, context._previous);
+    _current = _merge(_current, context._previous);
   }
 
   @override
   bool nullAwareAccess_rightBegin(Expression target, Type targetType) {
     assert(targetType != null);
+    _current = _current.split();
     _stack.add(new _NullAwareAccessContext<Variable, Type>(_current));
     if (target != null) {
       ExpressionInfo<Variable, Type> targetInfo = _getExpressionInfo(target);
