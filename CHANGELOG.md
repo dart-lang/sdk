@@ -1,3 +1,8 @@
+# 0.1.121
+
+* performance improvements to `always_use_package_imports`, `avoid_renaming_method_parameters`, `prefer_relative_imports` and `public_member_api_docs`
+* (internal): update to analyzer `0.40.4` APIs
+
 # 0.1.120
 
 * new lint: `cast_nullable_to_non_nullable`
