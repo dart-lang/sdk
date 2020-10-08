@@ -2698,10 +2698,12 @@
     },
     {
       "builders": [
-        "analyzer-nnbd-linux-release"
+        "analyzer-nnbd-linux-release",
+        "analyzer-nnbd-mac-release",
+        "analyzer-nnbd-win-release"
       ],
       "meta": {
-        "description": "This configuration is used by the nnbd analyzer builder."
+        "description": "This configuration is used by the nnbd analyzer builders."
       },
       "steps": [
         {
