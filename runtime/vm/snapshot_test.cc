@@ -2073,7 +2073,8 @@ VM_UNIT_TEST_CASE(LegacyErasureDetectionInFullSnapshot) {
       // Write snapshot with object content.
       MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
       FullSnapshotWriter writer(
-          Snapshot::kFull, /*vm_snapshot_data=*/nullptr, &isolate_snapshot_data,
+          Snapshot::kFullCore, /*vm_snapshot_data=*/nullptr,
+          &isolate_snapshot_data,
           /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
       writer.WriteFullSnapshot();
     }

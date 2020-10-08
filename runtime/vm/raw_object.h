@@ -762,6 +762,7 @@ class ClassLayout : public ObjectLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&allocation_stub_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
         return reinterpret_cast<ObjectPtr*>(&direct_subclasses_);
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&dependent_code_);
@@ -836,6 +837,7 @@ class PatchClassLayout : public ObjectLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&script_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&library_kernel_data_);
       case Snapshot::kMessage:
@@ -1026,6 +1028,7 @@ class FunctionLayout : public ObjectLayout {
     switch (kind) {
       case Snapshot::kFullAOT:
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&data_);
       case Snapshot::kMessage:
@@ -1194,6 +1197,7 @@ class FieldLayout : public ObjectLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&initializer_function_);
@@ -1270,6 +1274,7 @@ class ScriptLayout : public ObjectLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&url_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&kernel_program_info_);
       case Snapshot::kMessage:
@@ -1343,6 +1348,7 @@ class LibraryLayout : public ObjectLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&exports_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&kernel_data_);
       case Snapshot::kMessage:
@@ -2067,6 +2073,7 @@ class ICDataLayout : public CallSiteDataLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&entries_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return to();
       case Snapshot::kMessage:
@@ -2174,6 +2181,7 @@ class LibraryPrefixLayout : public InstanceLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&imports_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&importer_);
       case Snapshot::kMessage:

@@ -528,12 +528,12 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   MallocWriteStream vm_snapshot_data(FullSnapshotWriter::kInitialSize);
   MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
   FullSnapshotWriter writer(
-      Snapshot::kFull, &vm_snapshot_data, &isolate_snapshot_data,
+      Snapshot::kFullCore, &vm_snapshot_data, &isolate_snapshot_data,
       /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot =
       Snapshot::SetupFromBuffer(isolate_snapshot_data.buffer());
-  ASSERT(snapshot->kind() == Snapshot::kFull);
+  ASSERT(snapshot->kind() == Snapshot::kFullCore);
   benchmark->set_score(snapshot->length());
 }
 
@@ -566,12 +566,12 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   MallocWriteStream vm_snapshot_data(FullSnapshotWriter::kInitialSize);
   MallocWriteStream isolate_snapshot_data(FullSnapshotWriter::kInitialSize);
   FullSnapshotWriter writer(
-      Snapshot::kFull, &vm_snapshot_data, &isolate_snapshot_data,
+      Snapshot::kFullCore, &vm_snapshot_data, &isolate_snapshot_data,
       /*vm_image_writer=*/nullptr, /*iso_image_writer=*/nullptr);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot =
       Snapshot::SetupFromBuffer(isolate_snapshot_data.buffer());
-  ASSERT(snapshot->kind() == Snapshot::kFull);
+  ASSERT(snapshot->kind() == Snapshot::kFullCore);
   benchmark->set_score(snapshot->length());
 }
 
