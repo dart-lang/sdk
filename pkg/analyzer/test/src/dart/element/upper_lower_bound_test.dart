@@ -2000,6 +2000,20 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       );
     }
   }
+
+  test_unrelated() {
+    var T1 = functionTypeNone(returnType: intNone);
+
+    _checkLeastUpperBound(T1, intNone, objectNone);
+    _checkLeastUpperBound(T1, intQuestion, objectQuestion);
+    _checkLeastUpperBound(T1, intStar, objectStar);
+
+    _checkLeastUpperBound(
+      T1,
+      futureOrNone(functionQuestion),
+      objectQuestion,
+    );
+  }
 }
 
 @reflectiveTest

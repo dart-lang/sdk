@@ -667,10 +667,14 @@ class LeastUpperBoundHelper {
       return _functionType(T1, T2);
     }
 
-    // UP(T Function<...>(...), T2) = Object
-    // UP(T1, T Function<...>(...)) = Object
-    if (T1 is FunctionType || T2 is FunctionType) {
-      return _typeSystem.objectNone;
+    // UP(T Function<...>(...), T2) = UP(Object, T2)
+    if (T1 is FunctionType) {
+      return getLeastUpperBound(_typeSystem.objectNone, T2);
+    }
+
+    // UP(T1, T Function<...>(...)) = UP(T1, Object)
+    if (T2 is FunctionType) {
+      return getLeastUpperBound(T1, _typeSystem.objectNone);
     }
 
     // UP(T1, T2) = T2 if T1 <: T2
