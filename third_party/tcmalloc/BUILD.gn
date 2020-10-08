@@ -119,22 +119,20 @@ source_set("tcmalloc") {
     cflags += [ "-Wno-format" ]
   }
 
-  set_sources_assignment_filter([
-                                  # No debug allocator.
-                                  "gperftools/src/debugallocation.cc",
+  sources = tcmalloc_sources - [
+              # No debug allocator.
+              "gperftools/src/debugallocation.cc",
 
-                                  # Not needed when using emergency malloc.
-                                  "gperftools/src/fake_stacktrace_scope.cc",
+              # Not needed when using emergency malloc.
+              "gperftools/src/fake_stacktrace_scope.cc",
 
-                                  # Not using the cpuprofiler
-                                  "gperftools/src/base/thread_lister.c",
-                                  "gperftools/src/base/thread_lister.h",
-                                  "gperftools/src/profile-handler.cc",
-                                  "gperftools/src/profile-handler.h",
-                                  "gperftools/src/profiledata.cc",
-                                  "gperftools/src/profiledata.h",
-                                  "gperftools/src/profiler.cc",
-                                ])
-
-  sources = tcmalloc_sources
+              # Not using the cpuprofiler
+              "gperftools/src/base/thread_lister.c",
+              "gperftools/src/base/thread_lister.h",
+              "gperftools/src/profile-handler.cc",
+              "gperftools/src/profile-handler.h",
+              "gperftools/src/profiledata.cc",
+              "gperftools/src/profiledata.h",
+              "gperftools/src/profiler.cc",
+            ]
 }

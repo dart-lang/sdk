@@ -51,10 +51,6 @@ template("build_libdart_builtin") {
       }
     }
     include_dirs = [ ".." ]
-    set_sources_assignment_filter([
-                                    "*_test.cc",
-                                    "*_test.h",
-                                  ])
     sources = builtin_impl_sources
   }
 }
@@ -325,19 +321,6 @@ template("build_gen_snapshot_dart_io") {
 
     deps = [ "//third_party/zlib" ]
 
-    custom_sources_filter = [
-      "*_test.cc",
-      "*_test.h",
-    ]
-    if (!is_mac && !is_ios) {
-      # Dart tree uses *_macos.* instead of *_mac.*
-      custom_sources_filter += [
-        "*_macos.h",
-        "*_macos.cc",
-      ]
-    }
-    set_sources_assignment_filter(custom_sources_filter)
-
     defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
 
     sources = io_impl_sources + cli_impl_sources
@@ -414,19 +397,6 @@ template("dart_io") {
                  "..:dart_os_config",
                ] + extra_configs
     public_configs = [ "..:dart_public_config" ]
-    custom_sources_filter = [
-      "*_test.cc",
-      "*_test.h",
-      "builtin_gen_snapshot.cc",
-    ]
-    if (!is_mac && !is_ios) {
-      # Dart tree uses *_macos.* instead of *_mac.*
-      custom_sources_filter += [
-        "*_macos.h",
-        "*_macos.cc",
-      ]
-    }
-    set_sources_assignment_filter(custom_sources_filter)
 
     defines = []
     deps = [ "//third_party/zlib" ] + extra_deps
@@ -1033,10 +1003,7 @@ executable("run_vm_tests") {
 
 shared_library("test_extension") {
   deps = [ ":dart" ]
-  sources = [
-    "test_extension.c",
-    "test_extension_dllmain_win.cc",
-  ]
+  sources = [ "test_extension.c" ]
   include_dirs = [ ".." ]
   defines = [
     # The only effect of DART_SHARED_LIB is to export the Dart API.
@@ -1046,6 +1013,7 @@ shared_library("test_extension") {
     cflags = [ "-fPIC" ]
   }
   if (is_win) {
+    sources += [ "test_extension_dllmain_win.cc" ]
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
@@ -1054,10 +1022,7 @@ shared_library("test_extension") {
 
 shared_library("entrypoints_verification_test_extension") {
   deps = [ ":dart" ]
-  sources = [
-    "entrypoints_verification_test_extension.cc",
-    "entrypoints_verification_test_extension_dllmain_win.cc",
-  ]
+  sources = [ "entrypoints_verification_test_extension.cc" ]
   include_dirs = [ ".." ]
   defines = [
     # The only effect of DART_SHARED_LIB is to export the Dart API.
@@ -1067,6 +1032,7 @@ shared_library("entrypoints_verification_test_extension") {
     cflags = [ "-fPIC" ]
   }
   if (is_win) {
+    sources += [ "entrypoints_verification_test_extension_dllmain_win.cc" ]
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
@@ -1129,10 +1095,7 @@ shared_library("ffi_test_functions") {
 
 shared_library("sample_extension") {
   deps = [ ":dart" ]
-  sources = [
-    "../../samples/sample_extension/sample_extension.cc",
-    "../../samples/sample_extension/sample_extension_dllmain_win.cc",
-  ]
+  sources = [ "../../samples/sample_extension/sample_extension.cc" ]
   include_dirs = [ ".." ]
   defines = [
     # The only effect of DART_SHARED_LIB is to export the Dart API.
@@ -1142,6 +1105,8 @@ shared_library("sample_extension") {
     cflags = [ "-fPIC" ]
   }
   if (is_win) {
+    sources +=
+        [ "../../samples/sample_extension/sample_extension_dllmain_win.cc" ]
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
