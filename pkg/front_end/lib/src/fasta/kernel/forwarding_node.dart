@@ -50,33 +50,31 @@ import "../type_inference/type_inferrer.dart" show getNamedFormal;
 import 'class_hierarchy_builder.dart';
 
 class ForwardingNode {
-  final ClassHierarchyBuilder hierarchy;
+  ClassHierarchyBuilder get hierarchy => _combinedMemberSignature.hierarchy;
 
-  final SourceClassBuilder classBuilder;
+  SourceClassBuilder get classBuilder => _combinedMemberSignature.classBuilder;
 
-  final ClassMember combinedMemberSignatureResult;
+  // TODO(johnniwinther): Use [_combinedMemberSignature] more directly in
+  // the forwarding node computation.
+  final CombinedMemberSignature _combinedMemberSignature;
+
+  ClassMember get combinedMemberSignatureResult =>
+      _combinedMemberSignature.canonicalClassMember;
 
   /// The index of [combinedMemberSignatureResult] in [_candidates].
-  final int _combinedMemberIndex;
+  int get _combinedMemberIndex => _combinedMemberSignature.classMemberIndex;
 
   final ProcedureKind kind;
 
   /// A list containing the directly implemented and directly inherited
   /// procedures of the class in question.
-  final List<ClassMember> _candidates;
+  List<ClassMember> get _candidates => _combinedMemberSignature.members;
 
   /// The indices of the [_candidates] whose types need to be merged to compute
   /// the resulting member type.
-  final Set<int> _mergeIndices;
+  Set<int> get _mergeIndices => _combinedMemberSignature.mutualSubtypeIndices;
 
-  ForwardingNode(
-      this.hierarchy,
-      this.classBuilder,
-      this.combinedMemberSignatureResult,
-      this._combinedMemberIndex,
-      this._candidates,
-      this.kind,
-      this._mergeIndices);
+  ForwardingNode(this._combinedMemberSignature, this.kind);
 
   Name get name => combinedMemberSignatureResult.name;
 
