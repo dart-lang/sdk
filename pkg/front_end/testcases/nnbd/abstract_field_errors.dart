@@ -23,17 +23,17 @@ abstract class A {
 
   abstract late int lateInstanceField;
 
-  external abstract int externalInstanceField;
+  external abstract int externalInstanceField1;
 
-  external abstract final int externalFinalInstanceField;
+  external abstract final int externalFinalInstanceField1;
 
-  external abstract covariant num externalCovariantInstanceField;
+  external abstract covariant num externalCovariantInstanceField1;
 
-  abstract external int externalInstanceField;
+  abstract external int externalInstanceField2;
 
-  abstract external final int externalFinalInstanceField;
+  abstract external final int externalFinalInstanceField2;
 
-  abstract external covariant num externalCovariantInstanceField;
+  abstract external covariant num externalCovariantInstanceField2;
 
   external abstract late int externalLateInstanceField;
 }
@@ -54,8 +54,8 @@ mixin B {
 extension Extension on A {
   abstract int extensionInstanceField;
   abstract final int finalExtensionInstanceField;
-  abstract static int extensionStaticField;
-  abstract static final int finalExtensionStaticField;
+  abstract static int extensionStaticField = 0;
+  abstract static final int finalExtensionStaticField = 0;
 }
 
 main() {}

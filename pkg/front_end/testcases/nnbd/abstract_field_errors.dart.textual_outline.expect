@@ -10,12 +10,12 @@ abstract class A {
   abstract static final int finalStaticField;
   abstract late int ;
   lateInstanceField;
-  external abstract int externalInstanceField;
-  external abstract final int externalFinalInstanceField;
-  external abstract covariant num externalCovariantInstanceField;
-  abstract external int externalInstanceField;
-  abstract external final int externalFinalInstanceField;
-  abstract external covariant num externalCovariantInstanceField;
+  external abstract int externalInstanceField1;
+  external abstract final int externalFinalInstanceField1;
+  external abstract covariant num externalCovariantInstanceField1;
+  abstract external int externalInstanceField2;
+  abstract external final int externalFinalInstanceField2;
+  abstract external covariant num externalCovariantInstanceField2;
   external abstract late int ;
   externalLateInstanceField;
 }

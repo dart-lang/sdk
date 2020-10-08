@@ -5,15 +5,18 @@
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/field_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 
@@ -59,6 +62,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
           ..fileOffset = nameOffset,
         super(metadata, modifiers, name, parent, nameOffset, scope,
             typeParameters, onType);
+
+  @override
+  SourceLibraryBuilder get library => super.library;
 
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
@@ -230,5 +236,28 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       count += declaration.finishPatch();
     });
     return count;
+  }
+
+  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
+    library.checkBoundsInTypeParameters(
+        typeEnvironment, extension.typeParameters, fileUri);
+
+    // Check on clause.
+    if (_extension.onType != null) {
+      library.checkBoundsInType(_extension.onType, typeEnvironment,
+          onType.fileUri, onType.charOffset);
+    }
+
+    forEach((String name, Builder builder) {
+      if (builder is SourceFieldBuilder) {
+        // Check fields.
+        library.checkTypesInField(builder, typeEnvironment);
+      } else if (builder is ProcedureBuilder) {
+        // Check procedures
+        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+      } else {
+        assert(false, "Unexpected member: $builder.");
+      }
+    });
   }
 }

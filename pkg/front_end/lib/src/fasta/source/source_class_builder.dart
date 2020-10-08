@@ -492,61 +492,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    SourceLibraryBuilder libraryBuilder = this.library;
-    Library library = libraryBuilder.library;
-    final DartType bottomType = library.isNonNullableByDefault
-        ? const NeverType(Nullability.nonNullable)
-        : typeEnvironment.nullType;
-
-    // Check in bounds of own type variables.
-    for (TypeParameter parameter in cls.typeParameters) {
-      Set<TypeArgumentIssue> issues = {};
-      issues.addAll(findTypeArgumentIssues(
-              library,
-              parameter.bound,
-              typeEnvironment,
-              SubtypeCheckMode.ignoringNullabilities,
-              bottomType,
-              allowSuperBounded: true) ??
-          const []);
-      if (library.isNonNullableByDefault) {
-        issues.addAll(findTypeArgumentIssues(library, parameter.bound,
-                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
-                allowSuperBounded: true) ??
-            const []);
-      }
-      for (TypeArgumentIssue issue in issues) {
-        DartType argument = issue.argument;
-        TypeParameter typeParameter = issue.typeParameter;
-        if (libraryBuilder.inferredTypes.contains(argument)) {
-          // Inference in type expressions in the supertypes boils down to
-          // instantiate-to-bound which shouldn't produce anything that breaks
-          // the bounds after the non-simplicity checks are done.  So, any
-          // violation here is the result of non-simple bounds, and the error
-          // is reported elsewhere.
-          continue;
-        }
-
-        if (argument is FunctionType && argument.typeParameters.length > 0) {
-          libraryBuilder.reportTypeArgumentIssue(
-              messageGenericFunctionTypeUsedAsActualTypeArgument,
-              fileUri,
-              parameter.fileOffset,
-              null);
-        } else {
-          libraryBuilder.reportTypeArgumentIssue(
-              templateIncorrectTypeArgument.withArguments(
-                  argument,
-                  typeParameter.bound,
-                  typeParameter.name,
-                  getGenericTypeName(issue.enclosingType),
-                  library.isNonNullableByDefault),
-              fileUri,
-              parameter.fileOffset,
-              typeParameter);
-        }
-      }
-    }
+    library.checkBoundsInTypeParameters(
+        typeEnvironment, cls.typeParameters, fileUri);
 
     // Check in supers.
     if (cls.supertype != null) {
@@ -561,62 +508,37 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    // Check in members.
-    for (Procedure procedure in cls.procedures) {
-      checkVarianceInFunction(procedure, typeEnvironment, cls.typeParameters);
-      libraryBuilder.checkBoundsInFunctionNode(
-          procedure.function, typeEnvironment, fileUri);
-    }
-    for (Constructor constructor in cls.constructors) {
-      libraryBuilder.checkBoundsInFunctionNode(
-          constructor.function, typeEnvironment, fileUri);
-    }
-    for (RedirectingFactoryConstructor redirecting
-        in cls.redirectingFactoryConstructors) {
-      libraryBuilder.checkBoundsInFunctionNodeParts(
-          typeEnvironment, fileUri, redirecting.fileOffset,
-          typeParameters: redirecting.typeParameters,
-          positionalParameters: redirecting.positionalParameters,
-          namedParameters: redirecting.namedParameters);
-    }
-
     forEach((String name, Builder builder) {
-      // Check fields.
       if (builder is SourceFieldBuilder) {
+        // Check fields.
         checkVarianceInField(builder, typeEnvironment, cls.typeParameters);
-        libraryBuilder.checkTypesInField(builder, typeEnvironment);
-      }
-
-      // Check initializers.
-      if (builder is FunctionBuilder &&
-          !(builder.isAbstract || builder.isExternal) &&
-          builder.formals != null) {
-        libraryBuilder.checkInitializersInFormals(
-            builder.formals, typeEnvironment);
+        library.checkTypesInField(builder, typeEnvironment);
+      } else if (builder is ProcedureBuilder) {
+        // Check procedures
+        checkVarianceInFunction(
+            builder.procedure, typeEnvironment, cls.typeParameters);
+        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+      } else {
+        assert(builder is DillMemberBuilder && builder.name == redirectingName,
+            "Unexpected member: $builder.");
       }
     });
 
-    constructors.local.forEach((String name, MemberBuilder builder) {
+    forEachConstructor((String name, MemberBuilder builder) {
       if (builder is ConstructorBuilder) {
-        if (!builder.isExternal && builder.formals != null) {
-          libraryBuilder.checkInitializersInFormals(
-              builder.formals, typeEnvironment);
-        }
+        library.checkTypesInConstructorBuilder(builder, typeEnvironment);
       } else if (builder is RedirectingFactoryBuilder) {
-        // Default values are not required on redirecting factory constructors.
+        library.checkTypesInRedirectingFactoryBuilder(builder, typeEnvironment);
       } else if (builder is ProcedureBuilder) {
         assert(builder.isFactory, "Unexpected constructor $builder.");
-        if (!builder.isExternal && builder.formals != null) {
-          libraryBuilder.checkInitializersInFormals(
-              builder.formals, typeEnvironment);
-        }
+        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
       } else {
         assert(
             // This is a synthesized constructor.
             builder is DillMemberBuilder && builder.member is Constructor,
-            "Unexpected constructor $builder.");
+            "Unexpected constructor: $builder.");
       }
-    });
+    }, includeInjectedConstructors: true);
   }
 
   void addSyntheticConstructor(SyntheticConstructorBuilder constructorBuilder) {
