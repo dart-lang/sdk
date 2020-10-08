@@ -46,9 +46,11 @@ STANDARD_PATHS = [
     "tests/.+",
 ]
 
-CFE_PATHS = STANDARD_PATHS + [
+CFE_PATHS_ONLY = [
     "pkg/(front_end|kernel|testing|_fe_analyzer_shared)/.+",
 ]
+
+CFE_PATHS = STANDARD_PATHS + CFE_PATHS_ONLY
 
 VM_PATHS = CFE_PATHS + [
     # VM sources
@@ -773,6 +775,7 @@ dart_ci_sandbox_builder(
     category = "cfe|fl",
     channels = ["try"],
     notifies = "frontend-team",
+    location_regexp = to_location_regexp(CFE_PATHS_ONLY),
 )
 weekly_ci_sandbox_builder(
     "frontend-weekly",
