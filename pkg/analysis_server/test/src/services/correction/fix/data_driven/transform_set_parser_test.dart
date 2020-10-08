@@ -4,9 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:matcher/matcher.dart';
@@ -46,7 +48,7 @@ transforms:
             kind: 'argument'
             index: 1
 ''');
-    var transforms = result.transformsFor('f', uris);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -82,7 +84,7 @@ transforms:
       name: 'p'
       style: optional_positional
 ''');
-    var transforms = result.transformsFor('f', uris);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -118,7 +120,7 @@ transforms:
             kind: 'argument'
             index: 1
 ''');
-    var transforms = result.transformsFor('f', uris);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -160,7 +162,7 @@ transforms:
             kind: 'argument'
             index: 1
 ''');
-    var transforms = result.transformsFor('f', uris);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -205,7 +207,7 @@ transforms:
             kind: 'argument'
             index: 2
 ''');
-    var transforms = result.transformsFor('f', uris);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -254,7 +256,7 @@ transforms:
             uris: ['dart:core']
             name: 'String'
 ''');
-    var transforms = result.transformsFor('A', uris);
+    var transforms = _transforms('A');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -290,7 +292,7 @@ transforms:
             kind: 'argument'
             name: 'p'
 ''');
-    var transforms = result.transformsFor('A', uris);
+    var transforms = _transforms('A');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -331,7 +333,7 @@ transforms:
             kind: 'argument'
             index: 2
 ''');
-    var transforms = result.transformsFor('A', uris);
+    var transforms = _transforms('A');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -363,7 +365,7 @@ transforms:
     getter: 'g'
   changes: []
 ''');
-    var transforms = result.transformsFor('g', uris);
+    var transforms = _transforms('g');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
@@ -382,7 +384,7 @@ transforms:
     inMixin: 'A'
   changes: []
 ''');
-    var transforms = result.transformsFor('g', uris);
+    var transforms = _transforms('g');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
@@ -400,7 +402,7 @@ transforms:
     getter: 'g'
   changes: []
 ''');
-    var transforms = result.transformsFor('g', uris);
+    var transforms = _transforms('g');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
@@ -419,7 +421,7 @@ transforms:
     inClass: 'A'
   changes: []
 ''');
-    var transforms = result.transformsFor('m', uris);
+    var transforms = _transforms('m');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename m');
@@ -437,7 +439,7 @@ transforms:
     variable: 'v'
   changes: []
 ''');
-    var transforms = result.transformsFor('v', uris);
+    var transforms = _transforms('v');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename v');
@@ -478,7 +480,7 @@ transforms:
     - kind: 'removeParameter'
       name: 'p'
 ''');
-    var transforms = result.transformsFor('f', uris);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
@@ -504,7 +506,7 @@ transforms:
     - kind: 'removeParameter'
       index: 0
 ''');
-    var transforms = result.transformsFor('f', uris);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
@@ -531,7 +533,7 @@ transforms:
     - kind: 'rename'
       newName: 'B'
 ''');
-    var transforms = result.transformsFor('A', uris);
+    var transforms = _transforms('A');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename A');
@@ -539,4 +541,10 @@ transforms:
     var rename = transform.changes[0] as Rename;
     expect(rename.newName, 'B');
   }
+
+  ElementMatcher _matcher(String name) =>
+      ElementMatcher(importedUris: uris, name: name);
+
+  List<Transform> _transforms(String name) =>
+      result.transformsFor(_matcher(name));
 }

@@ -3127,6 +3127,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       );
       return;
     }
+
+    var parameters = (element as FunctionElement).parameters;
+    var requiredPositional =
+        parameters.where((e) => e.isRequiredPositional).toList();
+
+    if (requiredPositional.length > 2) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+        nameNode,
+      );
+    }
+
+    if (parameters.any((e) => e.isRequiredNamed)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS,
+        nameNode,
+      );
+    }
   }
 
   void _checkForMapTypeNotAssignable(SetOrMapLiteral literal) {

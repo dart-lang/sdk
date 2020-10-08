@@ -58,7 +58,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     tracker.addContext(driver.analysisContext);
     var changeBuilder =
-        await BulkFixProcessor(workspace).fixErrorsInLibraries([testFile]);
+        await BulkFixProcessor(workspace).fixErrors([driver.analysisContext]);
     return changeBuilder.sourceChange;
   }
 

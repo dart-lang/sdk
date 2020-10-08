@@ -61,10 +61,12 @@ import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
@@ -341,16 +343,22 @@ class BulkFixProcessor {
   }
 
   /// Return a change builder that has been used to create fixes for the
-  /// diagnostics in the libraries at the given [libraryPaths].
-  Future<ChangeBuilder> fixErrorsInLibraries(List<String> libraryPaths) async {
-    for (var path in libraryPaths) {
-      var session = workspace.getSession(path);
-      var kind = await session.getSourceKind(path);
-      if (kind == SourceKind.LIBRARY) {
-        var libraryResult = await session.getResolvedLibrary(path);
-        await _fixErrorsInLibrary(libraryResult);
+  /// diagnostics in the libraries in the given [contexts].
+  Future<ChangeBuilder> fixErrors(List<AnalysisContext> contexts) async {
+    for (var context in contexts) {
+      for (var path in context.contextRoot.analyzedFiles()) {
+        if (!AnalysisEngine.isDartFileName(path)) {
+          continue;
+        }
+        var kind = await context.currentSession.getSourceKind(path);
+        if (kind != SourceKind.LIBRARY) {
+          continue;
+        }
+        var library = await context.currentSession.getResolvedLibrary(path);
+        await _fixErrorsInLibrary(library);
       }
     }
+
     return builder;
   }
 

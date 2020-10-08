@@ -24,6 +24,7 @@ class AnalysisServer {
   Process _process;
   final StreamController<bool> _analyzingController =
       StreamController<bool>.broadcast();
+  Completer<bool> _analysisFinished = Completer();
   final StreamController<EditBulkFixesResult> _bulkFixesController =
       StreamController<EditBulkFixesResult>.broadcast();
   final StreamController<FileAnalysisErrors> _errorsController =
@@ -40,6 +41,11 @@ class AnalysisServer {
   bool get didServerErrorOccur => _didServerErrorOccur;
 
   Stream<bool> get onAnalyzing => _analyzingController.stream;
+
+  /// This future completes when we next receive an analysis finished event
+  /// (unless there's not current analysis and we've already received a complete
+  /// event, in which case this future immediately completes).
+  Future<bool> get analysisFinished => _analysisFinished.future;
 
   Stream<FileAnalysisErrors> get onErrors => _errorsController.stream;
 
@@ -58,7 +64,7 @@ class AnalysisServer {
 
     _process = await startDartProcess(sdk, command);
     // This callback hookup can't throw.
-    //ignore: unawaited_futures
+    // ignore: unawaited_futures
     _process.exitCode.whenComplete(() => _process = null);
 
     final Stream<String> errorStream = _process.stderr
@@ -85,6 +91,16 @@ class AnalysisServer {
       directories.single.absolute.resolveSymbolicLinksSync(),
       path.context.separator,
     );
+
+    onAnalyzing.listen((bool isAnalyzing) {
+      if (isAnalyzing && _analysisFinished.isCompleted) {
+        // Start a new completer, to be completed when we receive the
+        // corresponding analysis complete event.
+        _analysisFinished = Completer();
+      } else if (!isAnalyzing && !_analysisFinished.isCompleted) {
+        _analysisFinished.complete(true);
+      }
+    });
 
     _sendCommand('analysis.setAnalysisRoots', <String, dynamic>{
       'included': [dirPath],

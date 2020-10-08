@@ -4346,6 +4346,19 @@ abstract class FormalParameterImpl extends AstNodeImpl
 
   /// Return the kind of this parameter.
   ParameterKind get kind;
+
+  static void setDeclaredElement(
+    FormalParameter node,
+    ParameterElement element,
+  ) {
+    if (node is DefaultFormalParameter) {
+      setDeclaredElement(node.parameter, element);
+    } else if (node is SimpleFormalParameterImpl) {
+      node.declaredElement = element;
+    } else {
+      node.identifier.staticElement = element;
+    }
+  }
 }
 
 /// The formal parameter list of a method declaration, function declaration, or

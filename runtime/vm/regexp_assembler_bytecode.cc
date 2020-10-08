@@ -452,6 +452,9 @@ static intptr_t Prepare(const RegExp& regexp,
 
     RegExpEngine::CompilationResult result = RegExpEngine::CompileBytecode(
         compile_data, regexp, is_one_byte, sticky, zone);
+    if (result.error_message != nullptr) {
+      Exceptions::ThrowUnsupportedError(result.error_message);
+    }
     ASSERT(result.bytecode != NULL);
     ASSERT(regexp.num_registers(is_one_byte) == -1 ||
            regexp.num_registers(is_one_byte) == result.num_registers);

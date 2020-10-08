@@ -27,23 +27,4 @@ class ElementDescriptor {
 
   /// Return `true` if the described element is a constructor.
   bool get isConstructor => _kind == 'constructor';
-
-  /// Return `true` if this descriptor matches an element with the given [name]
-  /// in a library that imports the [importedUris].
-  bool matches(String name, List<Uri> importedUris) {
-    var lastComponent = components.last;
-    if (lastComponent.isEmpty) {
-      if (components[components.length - 2] != name) {
-        return false;
-      }
-    } else if (lastComponent != name) {
-      return false;
-    }
-    for (var importedUri in importedUris) {
-      if (libraryUris.contains(importedUri)) {
-        return true;
-      }
-    }
-    return false;
-  }
 }
