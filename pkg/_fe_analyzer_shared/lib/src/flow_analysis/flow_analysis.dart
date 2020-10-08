@@ -2938,7 +2938,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _assignedVariables._getInfoForNode(node);
     ++_functionNestingLevel;
     _current = _current.conservativeJoin(const [], info._written);
-    _stack.add(new _SimpleContext(_current));
+    _stack.add(new _FunctionExpressionContext(_current));
     _current = _current.conservativeJoin(_assignedVariables._anywhere._written,
         _assignedVariables._anywhere._captured);
   }
@@ -2948,7 +2948,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     --_functionNestingLevel;
     assert(_functionNestingLevel >= 0);
     _SimpleContext<Variable, Type> context =
-        _stack.removeLast() as _SimpleContext<Variable, Type>;
+        _stack.removeLast() as _FunctionExpressionContext<Variable, Type>;
     _current = context._previous;
   }
 
@@ -2979,6 +2979,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void ifNullExpression_end() {
+    // TODO(paulberry): CFE sometimes calls ifNullExpression_end and
+    // nullAwareAccess_end out of order, so as a workaround we cast to the
+    // common base class.  See https://github.com/dart-lang/sdk/issues/43725.
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
     _current = _join(_current, context._previous);
@@ -2997,7 +3000,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     } else {
       promoted = _current;
     }
-    _stack.add(new _SimpleContext<Variable, Type>(promoted));
+    _stack.add(new _IfNullExpressionContext<Variable, Type>(promoted));
     return true;
   }
 
@@ -3148,6 +3151,9 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void nullAwareAccess_end() {
+    // TODO(paulberry): CFE sometimes calls ifNullExpression_end and
+    // nullAwareAccess_end out of order, so as a workaround we cast to the
+    // common base class.  See https://github.com/dart-lang/sdk/issues/43725.
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
     _current = _join(_current, context._previous);
@@ -3156,7 +3162,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   bool nullAwareAccess_rightBegin(Expression target, Type targetType) {
     assert(targetType != null);
-    _stack.add(new _SimpleContext<Variable, Type>(_current));
+    _stack.add(new _NullAwareAccessContext<Variable, Type>(_current));
     if (target != null) {
       ExpressionInfo<Variable, Type> targetInfo = _getExpressionInfo(target);
       if (targetInfo is _VariableReadInfo<Variable, Type>) {
@@ -3406,6 +3412,16 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 /// language for which flow analysis information needs to be tracked.
 abstract class _FlowContext {}
 
+/// [_FlowContext] representing a function expression.
+class _FunctionExpressionContext<Variable, Type>
+    extends _SimpleContext<Variable, Type> {
+  _FunctionExpressionContext(FlowModel<Variable, Type> previous)
+      : super(previous);
+
+  @override
+  String toString() => '_FunctionExpressionContext(previous: $_previous)';
+}
+
 /// [_FlowContext] representing an `if` statement.
 class _IfContext<Variable, Type> extends _BranchContext<Variable, Type> {
   /// Flow model associated with the state of program execution after the `if`
@@ -3418,6 +3434,25 @@ class _IfContext<Variable, Type> extends _BranchContext<Variable, Type> {
   @override
   String toString() =>
       '_IfContext(conditionInfo: $_conditionInfo, afterThen: $_afterThen)';
+}
+
+/// [_FlowContext] representing an "if-null" (`??`) expression.
+class _IfNullExpressionContext<Variable, Type>
+    extends _SimpleContext<Variable, Type> {
+  _IfNullExpressionContext(FlowModel<Variable, Type> previous)
+      : super(previous);
+
+  @override
+  String toString() => '_IfNullExpressionContext(previous: $_previous)';
+}
+
+/// [_FlowContext] representing a null aware access (`?.`).
+class _NullAwareAccessContext<Variable, Type>
+    extends _SimpleContext<Variable, Type> {
+  _NullAwareAccessContext(FlowModel<Variable, Type> previous) : super(previous);
+
+  @override
+  String toString() => '_NullAwareAccessContext(previous: $_previous)';
 }
 
 /// [ExpressionInfo] representing a `null` literal.
@@ -3437,7 +3472,7 @@ class _NullInfo<Variable, Type> implements ExpressionInfo<Variable, Type> {
 /// [_FlowContext] representing a language construct for which flow analysis
 /// must store a flow model state to be retrieved later, such as a `try`
 /// statement, function expression, or "if-null" (`??`) expression.
-class _SimpleContext<Variable, Type> extends _FlowContext {
+abstract class _SimpleContext<Variable, Type> extends _FlowContext {
   /// The stored state.  For a `try` statement, this is the state from the
   /// beginning of the `try` block.  For a function expression, this is the
   /// state at the point the function expression was created.  For an "if-null"
@@ -3446,9 +3481,6 @@ class _SimpleContext<Variable, Type> extends _FlowContext {
   final FlowModel<Variable, Type> _previous;
 
   _SimpleContext(this._previous);
-
-  @override
-  String toString() => '_SimpleContext(previous: $_previous)';
 }
 
 /// [_FlowContext] representing a language construct that can be targeted by
