@@ -178,3 +178,26 @@ orExpression_rhsAlwaysFalse(Object o) {
     o;
   }
 }
+
+switchPromoteInCase(Object o, int i) {
+  return;
+  switch (i) {
+    case 0:
+      if (o is! int) return;
+      break;
+    default:
+      return;
+  }
+  /*int*/ o;
+}
+
+switchPromoteInImplicitDefault(Object o, int i, Object p) {
+  return;
+  if (o is! int) return;
+  switch (i) {
+    case 0:
+      o = p;
+      return;
+  }
+  /*int*/ o;
+}

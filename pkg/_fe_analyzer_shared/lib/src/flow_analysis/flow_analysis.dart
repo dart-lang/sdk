@@ -3240,11 +3240,12 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     // And, if there is an implicit fall-through default, join it to any breaks.
     if (!isExhaustive) breakState = _join(breakState, context._previous);
 
-    _current = breakState;
+    _current = breakState.unsplit();
   }
 
   @override
   void switchStatement_expressionEnd(Statement switchStatement) {
+    _current = _current.split();
     _SimpleStatementContext<Variable, Type> context =
         new _SimpleStatementContext<Variable, Type>(
             _current.reachable.parent, _current);
