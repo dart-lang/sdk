@@ -28,7 +28,7 @@ class C {
 
   static late String error;
 
-  get throwingGetter => throw error;
+  get throwingGetter => throw 'Null access';
 
   C(this.instanceField);
 }
@@ -36,20 +36,17 @@ class C {
 class D extends C {
   D(int field) : super(field);
 
-  void ifNullAssignSuper(int f()) {
-    super.instanceField ??= f(); // ignore: dead_null_aware_expression
-    // Should throw if `instanceField` returns null (rather than calling `f`).
+  int ifNullAssignSuper(int f()) {
+    return super.instanceField ??= f(); // ignore: dead_null_aware_expression
   }
 
-  void ifNullAssignSuper_nullableSetter(int f()) {
-    super.instanceGetterSetter ??= f(); // ignore: dead_null_aware_expression
-    // Should throw if `instanceGetterSetter` returns null (rather than calling
-    // `f`).
+  int ifNullAssignSuper_nullableSetter(int f()) {
+    return super.instanceGetterSetter ??=
+        f(); // ignore: dead_null_aware_expression
   }
 
-  void ifNullAssignSuperIndex(int f()) {
-    super[0] ??= f(); // ignore: dead_null_aware_expression
-    // Should throw if `super[0]` returns null (rather than calling `f`).
+  int ifNullAssignSuperIndex(int f()) {
+    return super[0] ??= f(); // ignore: dead_null_aware_expression
   }
 }
 
@@ -86,241 +83,217 @@ enum Hand { left, right }
 
 late Never topLevelNever;
 
-void neverParameter(Never n) {
-  // Should throw before getting here.
+int neverParameter(Never n) {
+  return 42;
 }
 
-void neverInitializingFormal(Never n) {
-  // Should throw before getting here.
+int neverInitializingFormal(Never n) {
+  return 42;
 }
 
-void isPromoteToNever(int i) {
-  if (i is int) return;
-  // Should throw if `i` is null.
+bool isPromoteToNever(int i) {
+  if (i is int) return true;
+  return false;
 }
 
-void isPromoteToNever_noIf(int i) {
-  i is int;
-  // Should throw if `i` is null.
+bool isPromoteToNever_noIf(int i) {
+  return i is int;
 }
 
-void isNotPromoteToNever(int i) {
+bool isNotPromoteToNever(int i) {
   if (i is! int) {
-    // Should throw if `i` is null.
+    return true;
   }
+  return false;
 }
 
-void isNotPromoteToNever_noIf(int i) {
-  i is! int;
+bool isNotPromoteToNever_noIf(int i) {
+  return i is! int;
 }
 
-void equalNullPromoteToNever(int f()) {
-  if (f() == null) { // ignore: unnecessary_null_comparison
-    // Should throw if `f` returns null.
+int equalNullPromoteToNever(int f()) {
+  if (f() == null) {
+    // ignore: unnecessary_null_comparison
+    return 42;
   }
+  return 0;
 }
 
-void equalNullPromoteToNever_noIf(int f()) {
+int equalNullPromoteToNever_noIf(int f()) {
   f() == null; // ignore: unnecessary_null_comparison
-  // Should throw if `f` returns null.
+  return 42;
 }
 
-void notEqualNullPromoteToNever(int f()) {
-  if (f() != null) return; // ignore: unnecessary_null_comparison
-  // Should throw if `f` returns null.
+int notEqualNullPromoteToNever(int f()) {
+  if (f() != null) return 0; // ignore: unnecessary_null_comparison
+  return 42;
 }
 
-void notEqualNullPromoteToNever_noIf(int f()) {
+int notEqualNullPromoteToNever_noIf(int f()) {
   f() != null; // ignore: unnecessary_null_comparison
-  // Should throw if `f` returns null.
+  return 42;
 }
 
-void nullEqualPromoteToNever(int f()) {
-  if (null == f()) { // ignore: unnecessary_null_comparison
-    // Should throw if `f` returns null.
+int nullEqualPromoteToNever(int f()) {
+  if (null == f()) {
+    // ignore: unnecessary_null_comparison
+    return 42;
   }
+  return 0;
 }
 
-void nullEqualPromoteToNever_noIf(int f()) {
+int nullEqualPromoteToNever_noIf(int f()) {
   null == f(); // ignore: unnecessary_null_comparison
-  // Should throw if `f` returns null.
+  return 42;
 }
 
-void nullNotEqualPromoteToNever(int f()) {
-  if (null != f()) return; // ignore: unnecessary_null_comparison
-  // Should throw if `f` returns null.
+int nullNotEqualPromoteToNever(int f()) {
+  if (null != f()) return 0; // ignore: unnecessary_null_comparison
+  return 42;
 }
 
-void nullNotEqualPromoteToNever_noIf(int f()) {
+int nullNotEqualPromoteToNever_noIf(int f()) {
   null != f(); // ignore: unnecessary_null_comparison
-  // Should throw if `f` returns null.
+  return 42;
 }
 
 int unnecessaryIfNull(int f(), int g()) {
   return f() ?? g(); // ignore: dead_null_aware_expression
-  // Should throw if `f` returns null (rather than calling `g`).
 }
 
-void ifNullAssignLocal(int local, int f()) {
-  local ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `local` returns null (rather than calling `f`).
+int ifNullAssignLocal(int local, int f()) {
+  return local ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignStatic(int f()) {
-  C.staticField ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `staticField` returns null (rather than calling `f`).
+int ifNullAssignStatic(int f()) {
+  return C.staticField ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignStaticGetter_nullableSetter(int f()) {
-  C.staticGetterSetter ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `staticGetterSetter` returns null (rather than calling
-  // `f`).
+int ifNullAssignStaticGetter_nullableSetter(int f()) {
+  return C.staticGetterSetter ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignField(C c, int f()) {
-  c.instanceField ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `instanceField` returns null (rather than calling `f`).
+int ifNullAssignField(C c, int f()) {
+  return c.instanceField ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignGetter_nullableSetter(C c, int f()) {
-  c.instanceGetterSetter ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `instanceGetterSetter` returns null (rather than calling
-  // `f`).
+int ifNullAssignGetter_nullableSetter(C c, int f()) {
+  return c.instanceGetterSetter ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignGetter_implicitExtension(E e, int f()) {
-  e.instanceGetterSetter ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `instanceGetterSetter` returns null (rather than calling
-  // `f`).
+int ifNullAssignGetter_implicitExtension(E e, int f()) {
+  return e.instanceGetterSetter ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignGetter_explicitExtension(E e, int f()) {
-  EExt(e).instanceGetterSetter ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `instanceGetterSetter` returns null (rather than calling
-  // `f`).
+int ifNullAssignGetter_explicitExtension(E e, int f()) {
+  return EExt(e).instanceGetterSetter ??=
+      f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignIndex(List<int> x, int f()) {
-  x[0] ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `x[0]` returns null (rather than calling `f`).
+int ifNullAssignIndex(List<int> x, int f()) {
+  return x[0] ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignIndex_nullAware(List<int>? x, int f()) {
-  x?[0] ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `x[0]` returns null (rather than calling `f`).
+int? ifNullAssignIndex_nullAware(List<int>? x, int f()) {
+  return x?[0] ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignIndex_nullableSetter(C x, int f()) {
-  x[0] ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `x[0]` returns null (rather than calling `f`).
+int ifNullAssignIndex_nullableSetter(C x, int f()) {
+  return x[0] ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignIndex_implicitExtension(E x, int f()) {
-  x[0] ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `x[0]` returns null (rather than calling `f`).
+int ifNullAssignIndex_implicitExtension(E x, int f()) {
+  return x[0] ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignIndex_explicitExtension(E x, int f()) {
-  EExt(x)[0] ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `x[0]` returns null (rather than calling `f`).
+int ifNullAssignIndex_explicitExtension(E x, int f()) {
+  return EExt(x)[0] ??= f(); // ignore: dead_null_aware_expression
 }
 
-void ifNullAssignSuper(D d, int f()) {
-  d.ifNullAssignSuper(f);
+int ifNullAssignSuper(D d, int f()) {
+  return d.ifNullAssignSuper(f);
 }
 
-void ifNullAssignSuper_nullableSetter(D d, int f()) {
-  d.ifNullAssignSuper_nullableSetter(f);
+int ifNullAssignSuper_nullableSetter(D d, int f()) {
+  return d.ifNullAssignSuper_nullableSetter(f);
 }
 
-void ifNullAssignSuperIndex(D d, int f()) {
-  d.ifNullAssignSuperIndex(f);
+int ifNullAssignSuperIndex(D d, int f()) {
+  return d.ifNullAssignSuperIndex(f);
 }
 
 int? ifNullAssignNullAwareField(C? c, int f()) {
   return c?.instanceField ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `instanceField` returns null (rather than calling `f`).
 }
 
-void ifNullAssignNullAwareStatic(int f()) {
-  C?.staticField ??= f(); // ignore: dead_null_aware_expression
-  // Should throw if `staticField` returns null (rather than calling `f`).
+int ifNullAssignNullAwareStatic(int f()) {
+  return C?.staticField ??= f(); // ignore: dead_null_aware_expression
 }
 
-void unnecessaryNullAwareAccess(int f(), String error) {
-  f()?.gcd(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess(int f()) {
+  f()?.gcd(throw 'Null access'); // ignore: invalid_null_aware_operator
 }
 
-void unnecessaryNullAwareAccess_cascaded(int f(), String error) {
-  f()?..gcd(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_cascaded(int f()) {
+  f()?..gcd(throw 'Null access'); // ignore: invalid_null_aware_operator
 }
 
-void unnecessaryNullAwareAccess_methodOnObject(int f(), String error) {
-  f()?.toString().compareTo(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_methodOnObject(int f()) {
+  // ignore: invalid_null_aware_operator
+  f()?.toString().compareTo(throw 'Null access');
 }
 
-void unnecessaryNullAwareAccess_cascaded_methodOnObject(int f(), String error) {
-  f()?..toString().compareTo(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_cascaded_methodOnObject(int f()) {
+  // ignore: invalid_null_aware_operator
+  f()?..toString().compareTo(throw 'Null access');
 }
 
-void unnecessaryNullAwareAccess_methodOnExtension(int f(), String error) {
-  f()?.extendedMethod(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_methodOnExtension(int f()) {
+  // ignore: invalid_null_aware_operator
+  f()?.extendedMethod(throw 'Null access');
 }
 
-void unnecessaryNullAwareAccess_cascaded_methodOnExtension(
-    int f(), String error) {
-  f()?..extendedMethod(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_cascaded_methodOnExtension(int f()) {
+  // ignore: invalid_null_aware_operator
+  f()?..extendedMethod(throw 'Null access');
 }
 
-void unnecessaryNullAwareAccess_methodOnExtension_explicit(
-    int f(), String error) {
-  IntQExt(f())?.extendedMethod(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_methodOnExtension_explicit(int f()) {
+  // ignore: invalid_null_aware_operator
+  IntQExt(f())?.extendedMethod(throw 'Null access');
 }
 
-void unnecessaryNullAwareAccess_getter(C f(), String error) {
-  C.error = error;
+void unnecessaryNullAwareAccess_getter(C f()) {
   f()?.throwingGetter; // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
 }
 
-void unnecessaryNullAwareAccess_cascaded_getter(C f(), String error) {
-  C.error = error;
+void unnecessaryNullAwareAccess_cascaded_getter(C f()) {
   f()?..throwingGetter; // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
 }
 
-void unnecessaryNullAwareAccess_getterOnObject(int f(), String error) {
-  f()?.hashCode.remainder(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_getterOnObject(int f()) {
+  // ignore: invalid_null_aware_operator
+  f()?.hashCode.remainder(throw 'Null access');
 }
 
-void unnecessaryNullAwareAccess_cascaded_getterOnObject(int f(), String error) {
-  f()?..hashCode.remainder(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_cascaded_getterOnObject(int f()) {
+// ignore: invalid_null_aware_operator
+  f()?..hashCode.remainder(throw 'Null access');
 }
 
-void unnecessaryNullAwareAccess_getterOnExtension(int f(), String error) {
-  f()?.extendedGetter.remainder(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_getterOnExtension(int f()) {
+  // ignore: invalid_null_aware_operator
+  f()?.extendedGetter.remainder(throw 'Null access');
 }
 
-void unnecessaryNullAwareAccess_cascaded_getterOnExtension(
-    int f(), String error) {
-  f()?..extendedGetter.remainder(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_cascaded_getterOnExtension(int f()) {
+  // ignore: invalid_null_aware_operator
+  f()?..extendedGetter.remainder(throw 'Null access');
 }
 
-void unnecessaryNullAwareAccess_getterOnExtension_explicit(
-    int f(), String error) {
-  IntQExt(f())?.extendedGetter.remainder(throw error); // ignore: invalid_null_aware_operator
-  // Should throw if `f` returns null.
+void unnecessaryNullAwareAccess_getterOnExtension_explicit(int f()) {
+  // ignore: invalid_null_aware_operator
+  IntQExt(f())?.extendedGetter.remainder(throw 'Null access');
 }
 
 void getterReturnsNever(A a) {
@@ -353,14 +326,14 @@ void returnsNeverInVariable(A a) {
   // Should throw if `method` completes normally.
 }
 
-void switchOnBool(bool b) {
+int switchOnBool(bool b) {
   switch (b) {
     case true:
-      return;
+      return 0;
     case false:
-      return;
+      return 1;
   }
-  // Should throw if the implicit `default` branch is taken.
+  return 42;
 }
 
 void switchOnEnum(Hand hand) {
