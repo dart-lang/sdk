@@ -1264,7 +1264,6 @@ dart_ci_sandbox_builder(
     "flutter-analyze",
     category = "analyzer|fa",
     channels = ["try"],
-    notifies = None,
     location_regexp = [
         ".+/[+]/DEPS",
         ".+/[+]/pkg/analysis_server/.+",
@@ -1276,36 +1275,51 @@ dart_ci_sandbox_builder(
         ".+/[+]/pkg/meta/.+",
         ".+/[+]/pkg/telemetry/.+",
     ],
+    notifies = None,
 )
 dart_ci_sandbox_builder(
     "analyzer-analysis-server-linux",
     category = "analyzer|as",
-    location_regexp = to_location_regexp(ANALYZER_PATHS),
     channels = CHANNELS,
+    location_regexp = to_location_regexp(ANALYZER_PATHS),
 )
 dart_ci_sandbox_builder(
     "analyzer-linux-release",
     category = "analyzer|l",
+    channels = CHANNELS,
     location_regexp = to_location_regexp(ANALYZER_PATHS),
-    channels = CHANNELS,
-)
-dart_ci_sandbox_builder(
-    "analyzer-nnbd-linux-release",
-    category = "analyzer|nn",
-    location_regexp = to_location_regexp(ANALYZER_NNBD_PATHS),
-    channels = CHANNELS,
 )
 dart_ci_sandbox_builder(
     "analyzer-mac-release",
     category = "analyzer|m",
-    dimensions = mac(),
     channels = CHANNELS,
+    dimensions = mac(),
 )
 dart_ci_sandbox_builder(
     "analyzer-win-release",
     category = "analyzer|w",
-    dimensions = windows(),
     channels = CHANNELS,
+    dimensions = windows(),
+)
+
+# analyzer|nnbd
+dart_ci_sandbox_builder(
+    "analyzer-nnbd-linux-release",
+    category = "analyzer|nnbd|l",
+    location_regexp = to_location_regexp(ANALYZER_NNBD_PATHS),
+    channels = CHANNELS,
+)
+nightly_builder(
+    "analyzer-nnbd-mac-release",
+    category = "analyzer|nnbd|m",
+    channels = ["try"],
+    dimensions = mac(),
+)
+nightly_builder(
+    "analyzer-nnbd-win-release",
+    category = "analyzer|nnbd|w",
+    channels = ["try"],
+    dimensions = windows(),
 )
 
 # sdk
