@@ -3255,6 +3255,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void tryCatchStatement_bodyBegin() {
+    _current = _current.split();
     _stack.add(new _TryContext<Variable, Type>(_current));
   }
 
@@ -3301,7 +3302,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void tryCatchStatement_end() {
     _TryContext<Variable, Type> context =
         _stack.removeLast() as _TryContext<Variable, Type>;
-    _current = context._afterBodyAndCatches;
+    _current = context._afterBodyAndCatches.unsplit();
   }
 
   @override

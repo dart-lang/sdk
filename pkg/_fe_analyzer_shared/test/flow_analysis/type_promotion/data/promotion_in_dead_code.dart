@@ -201,3 +201,23 @@ switchPromoteInImplicitDefault(Object o, int i, Object p) {
   }
   /*int*/ o;
 }
+
+tryCatchPromoteInTry(Object o) {
+  return;
+  try {
+    if (o is! int) return;
+  } catch (_) {
+    return;
+  }
+  /*int*/ o;
+}
+
+tryCatchPromoteInCatch(Object o) {
+  return;
+  try {
+    return;
+  } catch (_) {
+    if (o is! int) return;
+  }
+  /*int*/ o;
+}
