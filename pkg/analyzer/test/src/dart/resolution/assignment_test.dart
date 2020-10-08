@@ -1812,7 +1812,7 @@ void f(int x) {
 
   test_simpleIdentifier_parameter_compound_refineType_int_int() async {
     await assertNoErrorsInCode(r'''
-main(int x) {
+void f(int x) {
   x += 1;
   x -= 1;
   x *= 1;

@@ -545,7 +545,7 @@ class A {
   int get bar => 0;
 }
 
-main(A? a) {
+void f(A? a) {
   a?..foo..bar;
 }
 ''');

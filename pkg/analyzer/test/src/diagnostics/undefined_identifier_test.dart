@@ -221,13 +221,13 @@ main() {
   test_synthetic_whenMethodName_defined() async {
     await assertErrorsInCode(r'''
 print(x) {}
-main(int p) {
+void f(int p) {
   p.();
 }
 ''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 30, 1),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 31, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 33, 1),
     ]);
   }
 }

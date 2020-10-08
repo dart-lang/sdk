@@ -465,11 +465,11 @@ class A {
   static void foo(int _) {}
 }
 
-main(A a) {
+void f(A a) {
   a.foo(0);
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 57, 3),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 59, 3),
     ]);
     assertMethodInvocation2(
       findNode.methodInvocation('a.foo(0)'),
@@ -486,11 +486,11 @@ class C {
   void Function() call = throw Error();
 }
 
-main(C c) {
+void f(C c) {
   c();
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 67, 1),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 69, 1),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('c();');
@@ -509,7 +509,7 @@ class C {
   var foo;
 }
 
-main(C c) {
+void f(C c) {
   c.foo();
 }
 ''');
@@ -1090,13 +1090,13 @@ class C<T>{
   C(this.foo);
 }
 
-main(C<void> c) {
+void f(C<void> c) {
   c.foo();
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 59, 5),
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 59, 5),
+        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 61, 5),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 61, 5),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -1448,7 +1448,7 @@ main() {
 
   test_hasReceiver_instance_Function_call_localVariable() async {
     await assertNoErrorsInCode(r'''
-void main(Function getFunction()) {
+void f(Function getFunction()) {
   Function foo = getFunction();
 
   foo.call(0);
@@ -1474,7 +1474,7 @@ class C {
   double Function(int) get foo => throw Error();
 }
 
-main(C c) {
+void f(C c) {
   c.foo(0);
 }
 ''');
@@ -1496,7 +1496,7 @@ class C {
   void foo(int _) {}
 }
 
-main(C c) {
+void f(C c) {
   c.foo(0);
 }
 ''');
@@ -1519,7 +1519,7 @@ class C {
   }
 }
 
-main(C c) {
+void f(C c) {
   c.foo(0);
 }
 ''');
@@ -1551,7 +1551,7 @@ class D extends C {
   void foo(Object o) {}
 }
 
-void main(C c) {
+void f(C c) {
   c.foo('hi');
 }
 ''');
@@ -1797,7 +1797,7 @@ class C {
   void call(int _) {}
 }
 
-main(C c) {
+void f(C c) {
   c(0);
 }
 ''');
@@ -1874,7 +1874,7 @@ class C {
 
   test_noReceiver_parameter() async {
     await assertNoErrorsInCode(r'''
-main(void Function(int) foo) {
+void f(void Function(int) foo) {
   foo(0);
 }
 ''');
@@ -2332,7 +2332,7 @@ main() {
 
   test_hasReceiver_interfaceQ_Function_call_checked() async {
     await assertNoErrorsInCode(r'''
-void main(Function? foo) {
+void f(Function? foo) {
   foo?.call();
 }
 ''');
@@ -2348,11 +2348,11 @@ void main(Function? foo) {
 
   test_hasReceiver_interfaceQ_Function_call_unchecked() async {
     await assertErrorsInCode(r'''
-void main(Function? foo) {
+void f(Function? foo) {
   foo.call();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 29, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2399,11 +2399,11 @@ class A {
   void foo() {}
 }
 
-main(A? a) {
+void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 44, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 46, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2425,11 +2425,11 @@ extension E on A {
   void foo() {}
 }
 
-main(A? a) {
+void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 82, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 84, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2451,7 +2451,7 @@ extension E on A? {
   void foo() {}
 }
 
-main(A? a) {
+void f(A? a) {
   a.foo();
 }
 ''');
@@ -2471,7 +2471,7 @@ extension E<T> on T? {
   T foo() => throw 0;
 }
 
-main(int? a) {
+void f(int? a) {
   a.foo();
 }
 ''');
@@ -2492,11 +2492,11 @@ main(int? a) {
     await assertErrorsInCode(r'''
 class A {}
 
-main(A? a) {
+void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 29, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2516,11 +2516,11 @@ extension E on A {
   void foo() {}
 }
 
-main(A? a) {
+void f(A? a) {
   a.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 65, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 67, 1),
     ]);
 
     assertMethodInvocation2(
@@ -2540,7 +2540,7 @@ extension E on A? {
   void foo() {}
 }
 
-main(A? a) {
+void f(A? a) {
   a.foo();
 }
 ''');
@@ -2579,7 +2579,7 @@ class A {
   int bar() => 0;
 }
 
-main(A? a) {
+void f(A? a) {
   a?..foo()..bar();
 }
 ''');
@@ -2610,7 +2610,7 @@ class A {
   int bar() => 0;
 }
 
-main(A? a) {
+void f(A? a) {
   a?..foo..bar();
 }
 ''');

@@ -17,6 +17,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -3128,7 +3129,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var parameters = (element as FunctionElement).parameters;
+    var functionDeclaration = nameNode.parent as FunctionDeclaration;
+    var functionExpression = functionDeclaration.functionExpression;
+    var parameters = functionExpression.parameters.parameters;
+    var positional = parameters.where((e) => e.isPositional).toList();
     var requiredPositional =
         parameters.where((e) => e.isRequiredPositional).toList();
 
@@ -3144,6 +3148,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS,
         nameNode,
       );
+    }
+
+    if (positional.isNotEmpty) {
+      var first = positional.first;
+      var type = first.declaredElement.type;
+      var listOfString = _typeProvider.listType2(_typeProvider.stringType);
+      if (!_typeSystem.isSubtypeOf2(listOfString, type)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE,
+          first.notDefault.typeOrSelf,
+        );
+      }
     }
   }
 
