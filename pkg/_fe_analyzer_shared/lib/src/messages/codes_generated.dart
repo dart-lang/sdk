@@ -687,7 +687,7 @@ const Template<Message Function(String name)>
     templateCantInferReturnTypeDueToInconsistentOverrides =
     const Template<Message Function(String name)>(
         messageTemplate:
-            r"""Can't infer a return type for '#name' as some of the inherited members have different types.""",
+            r"""Can't infer a return type for '#name' as some of the overridden members have different types.""",
         tipTemplate: r"""Try adding an explicit type.""",
         withArguments:
             _withArgumentsCantInferReturnTypeDueToInconsistentOverrides);
@@ -707,7 +707,38 @@ Message _withArgumentsCantInferReturnTypeDueToInconsistentOverrides(
   name = demangleMixinApplicationName(name);
   return new Message(codeCantInferReturnTypeDueToInconsistentOverrides,
       message:
-          """Can't infer a return type for '${name}' as some of the inherited members have different types.""",
+          """Can't infer a return type for '${name}' as some of the overridden members have different types.""",
+      tip: """Try adding an explicit type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCantInferReturnTypeDueToNoCombinedSignature =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't infer a return type for '#name' as the overridden members don't have a combined signature.""",
+        tipTemplate: r"""Try adding an explicit type.""",
+        withArguments:
+            _withArgumentsCantInferReturnTypeDueToNoCombinedSignature);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeCantInferReturnTypeDueToNoCombinedSignature =
+    const Code<Message Function(String name)>(
+        "CantInferReturnTypeDueToNoCombinedSignature",
+        templateCantInferReturnTypeDueToNoCombinedSignature,
+        analyzerCodes: <String>[
+      "COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferReturnTypeDueToNoCombinedSignature(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantInferReturnTypeDueToNoCombinedSignature,
+      message:
+          """Can't infer a return type for '${name}' as the overridden members don't have a combined signature.""",
       tip: """Try adding an explicit type.""",
       arguments: {'name': name});
 }
@@ -744,7 +775,7 @@ const Template<Message Function(String name)>
     templateCantInferTypeDueToInconsistentOverrides =
     const Template<Message Function(String name)>(
         messageTemplate:
-            r"""Can't infer a type for '#name' as some of the inherited members have different types.""",
+            r"""Can't infer a type for '#name' as some of the overridden members have different types.""",
         tipTemplate: r"""Try adding an explicit type.""",
         withArguments: _withArgumentsCantInferTypeDueToInconsistentOverrides);
 
@@ -762,7 +793,39 @@ Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeCantInferTypeDueToInconsistentOverrides,
       message:
-          """Can't infer a type for '${name}' as some of the inherited members have different types.""",
+          """Can't infer a type for '${name}' as some of the overridden members have different types.""",
+      tip: """Try adding an explicit type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateCantInferTypeDueToNoCombinedSignature = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Can't infer a type for '#name' as the overridden members don't have a combined signature.""",
+    tipTemplate: r"""Try adding an explicit type.""",
+    withArguments: _withArgumentsCantInferTypeDueToNoCombinedSignature);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeCantInferTypeDueToNoCombinedSignature =
+    const Code<Message Function(String name)>(
+        "CantInferTypeDueToNoCombinedSignature",
+        templateCantInferTypeDueToNoCombinedSignature,
+        analyzerCodes: <String>[
+      "COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferTypeDueToNoCombinedSignature(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantInferTypeDueToNoCombinedSignature,
+      message:
+          """Can't infer a type for '${name}' as the overridden members don't have a combined signature.""",
       tip: """Try adding an explicit type.""",
       arguments: {'name': name});
 }
@@ -1909,14 +1972,14 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
         message: r"""This is the inherited member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeDeclaredMemberConflictsWithInheritedMembersCause =
-    messageDeclaredMemberConflictsWithInheritedMembersCause;
+const Code<Null> codeDeclaredMemberConflictsWithOverriddenMembersCause =
+    messageDeclaredMemberConflictsWithOverriddenMembersCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDeclaredMemberConflictsWithInheritedMembersCause =
-    const MessageCode("DeclaredMemberConflictsWithInheritedMembersCause",
+const MessageCode messageDeclaredMemberConflictsWithOverriddenMembersCause =
+    const MessageCode("DeclaredMemberConflictsWithOverriddenMembersCause",
         severity: Severity.context,
-        message: r"""This is one of the inherited members.""");
+        message: r"""This is one of the overridden members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDefaultListConstructorError =

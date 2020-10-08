@@ -529,6 +529,7 @@ initializations
 initializer's
 insertion
 inspect
+inspecting
 inspection
 inspector
 inspired

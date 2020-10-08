@@ -250,6 +250,8 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   Set<ClassMember> _overrideDependencies;
 
   void registerOverrideDependency(ClassMember overriddenMember) {
+    assert(overriddenMember.classBuilder != classBuilder,
+        "Unexpected override dependency for $this: $overriddenMember");
     _overrideDependencies ??= {};
     _overrideDependencies.add(overriddenMember);
   }

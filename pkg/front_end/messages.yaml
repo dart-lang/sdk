@@ -2139,8 +2139,8 @@ DeclaredMemberConflictsWithInheritedMemberCause:
   template: "This is the inherited member."
   severity: CONTEXT
 
-DeclaredMemberConflictsWithInheritedMembersCause:
-  template: "This is one of the inherited members."
+DeclaredMemberConflictsWithOverriddenMembersCause:
+  template: "This is one of the overridden members."
   severity: CONTEXT
 
 InheritedMembersConflict:
@@ -3446,14 +3446,46 @@ DillOutlineSummary:
     #num2%12.3 bytes/ms, and
     #num3%12.3 ms/libraries.
 
+CantInferTypeDueToNoCombinedSignature:
+  template: "Can't infer a type for '#name' as the overridden members don't have a combined signature."
+  tip: "Try adding an explicit type."
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  configuration: nnbd-strong
+  script: |
+    class A {
+      void method(int a) {}
+    }
+    class B {
+      void method(String a) {}
+    }
+    class C implements A, B {
+      void method(a) {}
+    }
+
+CantInferReturnTypeDueToNoCombinedSignature:
+  template: "Can't infer a return type for '#name' as the overridden members don't have a combined signature."
+  tip: "Try adding an explicit type."
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      int get getter;
+    }
+    abstract class B {
+      String get getter;
+    }
+    abstract class C implements A, B {
+      get getter;
+    }
+
 CantInferTypeDueToInconsistentOverrides:
-  template: "Can't infer a type for '#name' as some of the inherited members have different types."
+  template: "Can't infer a type for '#name' as some of the overridden members have different types."
   tip: "Try adding an explicit type."
   analyzerCode: INVALID_METHOD_OVERRIDE
   external: testcases/inference/inconsistent_overrides.dart
 
 CantInferReturnTypeDueToInconsistentOverrides:
-  template: "Can't infer a return type for '#name' as some of the inherited members have different types."
+  template: "Can't infer a return type for '#name' as some of the overridden members have different types."
   tip: "Try adding an explicit type."
   analyzerCode: INVALID_METHOD_OVERRIDE
   external: testcases/inference/inconsistent_overrides.dart

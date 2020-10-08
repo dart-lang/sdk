@@ -326,6 +326,17 @@ class C {
 ''');
   }
 
+  test_localFunction_defaultFieldFormalParameter_metadata() async {
+    await _assertCanBeAnalyzed(r'''
+const my = 0;
+
+void foo() {
+  // ignore:unused_element
+  void bar({@my this.x}) {}
+}
+''');
+  }
+
   test_typeBeforeAnnotation() async {
     await _assertCanBeAnalyzed('''
 class A {

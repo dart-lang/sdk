@@ -3191,6 +3191,63 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
+  void checkBoundsInTypeParameters(TypeEnvironment typeEnvironment,
+      List<TypeParameter> typeParameters, Uri fileUri) {
+    final DartType bottomType = library.isNonNullableByDefault
+        ? const NeverType(Nullability.nonNullable)
+        : typeEnvironment.nullType;
+
+    // Check in bounds of own type variables.
+    for (TypeParameter parameter in typeParameters) {
+      Set<TypeArgumentIssue> issues = {};
+      issues.addAll(findTypeArgumentIssues(
+              library,
+              parameter.bound,
+              typeEnvironment,
+              SubtypeCheckMode.ignoringNullabilities,
+              bottomType,
+              allowSuperBounded: true) ??
+          const []);
+      if (library.isNonNullableByDefault) {
+        issues.addAll(findTypeArgumentIssues(library, parameter.bound,
+                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
+                allowSuperBounded: true) ??
+            const []);
+      }
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
+        if (inferredTypes.contains(argument)) {
+          // Inference in type expressions in the supertypes boils down to
+          // instantiate-to-bound which shouldn't produce anything that breaks
+          // the bounds after the non-simplicity checks are done.  So, any
+          // violation here is the result of non-simple bounds, and the error
+          // is reported elsewhere.
+          continue;
+        }
+
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          reportTypeArgumentIssue(
+              messageGenericFunctionTypeUsedAsActualTypeArgument,
+              fileUri,
+              parameter.fileOffset,
+              null);
+        } else {
+          reportTypeArgumentIssue(
+              templateIncorrectTypeArgument.withArguments(
+                  argument,
+                  typeParameter.bound,
+                  typeParameter.name,
+                  getGenericTypeName(issue.enclosingType),
+                  library.isNonNullableByDefault),
+              fileUri,
+              parameter.fileOffset,
+              typeParameter);
+        }
+      }
+    }
+  }
+
   void checkBoundsInFunctionNodeParts(
       TypeEnvironment typeEnvironment, Uri fileUri, int fileOffset,
       {List<TypeParameter> typeParameters,
@@ -3263,6 +3320,34 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
+  }
+
+  void checkTypesInProcedureBuilder(
+      ProcedureBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(procedureBuilder.procedure.function,
+        typeEnvironment, procedureBuilder.fileUri);
+    if (procedureBuilder.formals != null &&
+        !(procedureBuilder.isAbstract || procedureBuilder.isExternal)) {
+      checkInitializersInFormals(procedureBuilder.formals, typeEnvironment);
+    }
+  }
+
+  void checkTypesInConstructorBuilder(
+      ConstructorBuilder constructorBuilder, TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(
+        constructorBuilder.constructor.function, typeEnvironment, fileUri);
+    if (!constructorBuilder.isExternal && constructorBuilder.formals != null) {
+      checkInitializersInFormals(constructorBuilder.formals, typeEnvironment);
+    }
+  }
+
+  void checkTypesInRedirectingFactoryBuilder(
+      RedirectingFactoryBuilder redirectingFactoryBuilder,
+      TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(redirectingFactoryBuilder.procedure.function,
+        typeEnvironment, redirectingFactoryBuilder.fileUri);
+    // Default values are not required on redirecting factory constructors so
+    // we don't call [checkInitializersInFormals].
   }
 
   void checkBoundsInFunctionNode(
@@ -3493,13 +3578,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is FieldBuilder) {
         checkTypesInField(declaration, typeEnvironment);
       } else if (declaration is ProcedureBuilder) {
-        checkBoundsInFunctionNode(declaration.procedure.function,
-            typeEnvironment, declaration.fileUri);
-        if (declaration.formals != null) {
-          checkInitializersInFormals(declaration.formals, typeEnvironment);
-        }
+        checkTypesInProcedureBuilder(declaration, typeEnvironment);
       } else if (declaration is SourceClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
+      } else if (declaration is SourceExtensionBuilder) {
+        declaration.checkTypesInOutline(typeEnvironment);
+      } else {
+        //assert(false, "Unexpected declaration ${declaration.runtimeType}");
       }
     }
     inferredTypes.clear();

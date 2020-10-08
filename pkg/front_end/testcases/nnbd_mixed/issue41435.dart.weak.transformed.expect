@@ -12,7 +12,7 @@ static method main() → void {
   iss::takesNever(null);
   iss::takesNever(nil);
   iss::takesTakesNull(#C1);
-  iss::f = (Never* x) → core::Null? {};
+  iss::f = (core::Null? x) → core::Null? {};
 }
 
 library /*isNonNullableByDefault*/;
