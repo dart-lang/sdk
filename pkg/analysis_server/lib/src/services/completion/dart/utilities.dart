@@ -56,7 +56,7 @@ void addDefaultArgDetails(
       FunctionType type = param.type;
 
       var rangeStart = offset;
-      var rangeLength;
+      int rangeLength;
 
       // todo (pq): consider adding ranges for params
       // pending: https://github.com/dart-lang/sdk/issues/40207

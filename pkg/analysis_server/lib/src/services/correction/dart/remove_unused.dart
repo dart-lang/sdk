@@ -33,7 +33,7 @@ class RemoveUnusedElement extends _RemoveUnused {
       final references = _findAllReferences(unit, element);
       // todo (pq): consider filtering for references that are limited to within the class.
       if (references.length == 1) {
-        var sourceRange;
+        SourceRange sourceRange;
         if (referencedNode is VariableDeclaration) {
           VariableDeclarationList parent = referencedNode.parent;
           if (parent.variables.length == 1) {
