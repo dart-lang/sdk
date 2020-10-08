@@ -322,7 +322,7 @@ main(int? a, int b) {
 
   test_parameter_interfaceType_generic() async {
     await assertNoErrorsInCode('''
-main(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
+void f(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
 }
 ''');
 
