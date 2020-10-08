@@ -221,3 +221,11 @@ tryCatchPromoteInCatch(Object o) {
   }
   /*int*/ o;
 }
+
+whileBreak(Object o) {
+  return;
+  while (true) {
+    if (o is int) break;
+  }
+  /*int*/ o;
+}

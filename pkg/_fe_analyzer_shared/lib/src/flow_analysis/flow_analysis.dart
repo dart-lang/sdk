@@ -3350,6 +3350,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void whileStatement_conditionBegin(Node node) {
+    _current = _current.split();
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
     _current = _current.conservativeJoin(info._written, info._captured);
@@ -3359,7 +3360,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void whileStatement_end() {
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
-    _current = _join(context._conditionInfo.ifFalse, context._breakModel)
+    _current = _merge(context._conditionInfo.ifFalse, context._breakModel)
         .inheritTested(typeOperations, _current);
   }
 
