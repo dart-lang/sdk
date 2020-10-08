@@ -40,6 +40,64 @@ andExpression_rhsAlwaysTrue(Object o) {
   }
 }
 
+assertAlwaysThrows(Object o, Object p, bool Function(Object, Object) f) {
+  if (o is! int) return;
+  return;
+  assert(f(o = p, throw 'x'));
+  /*int*/ o;
+}
+
+class AssertAlwaysThrows_Constructor {
+  Object a;
+  Object b;
+
+  AssertAlwaysThrows_Constructor(
+      Object o, Object p, bool Function(Object, Object) f)
+      : a = o is int ? true : throw 'x',
+        b = throw 'x',
+        assert(f(o = p, throw 'x')) {
+    /*int*/ o;
+  }
+}
+
+assertFailsButMessageRepromotes(Object? o) {
+  if (o is! int) return;
+  return;
+  assert((o = null) != null, o is int ? 'ok' : throw 'x');
+  /*int*/ o;
+}
+
+class AssertFailsButMessageRepromotes_Constructor {
+  Object a;
+  Object b;
+
+  AssertFailsButMessageRepromotes_Constructor(Object? o)
+      : a = o is int ? true : throw 'x',
+        b = throw 'x',
+        assert((o = null) != null, o is int ? 'ok' : throw 'x') {
+    /*int*/ o;
+  }
+}
+
+assertMessageDepromotesButAlwaysThrows(Object o, Object p, bool b) {
+  if (o is! int) return;
+  return;
+  assert(b, throw (o = p));
+  /*int*/ o;
+}
+
+class AssertMessageDepromotesButAlwaysThrows {
+  Object a;
+  Object b;
+
+  AssertMessageDepromotesButAlwaysThrows(Object o, Object p, bool b)
+      : a = o is int ? true : throw 'x',
+        b = throw 'x',
+        assert(b, throw (o = p)) {
+    /*int*/ o;
+  }
+}
+
 conditionalIs(Object o) {
   return;
   o is int ? null : throw 'bad';

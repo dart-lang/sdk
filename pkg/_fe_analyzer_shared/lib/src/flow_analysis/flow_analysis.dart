@@ -2729,6 +2729,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void assert_begin() {
+    _current = _current.split();
     _stack.add(new _AssertContext<Variable, Type>(_current));
   }
 
@@ -2736,7 +2737,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void assert_end() {
     _AssertContext<Variable, Type> context =
         _stack.removeLast() as _AssertContext<Variable, Type>;
-    _current = _join(context._previous, context._conditionInfo.ifTrue);
+    _current = _merge(context._previous, context._conditionInfo.ifTrue);
   }
 
   @override
