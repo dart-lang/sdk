@@ -2361,9 +2361,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   @override
   Constant visitIsExpression(IsExpression node) {
-    // TODO(jensj): Why does this call .accept directly?
-    // (@askesc says it's probably an oversight)
-    final Constant constant = node.operand.accept(this);
+    final Constant constant = _evaluateSubexpression(node.operand);
     if (constant is AbortConstant) return constant;
     if (shouldBeUnevaluated) {
       return unevaluated(
