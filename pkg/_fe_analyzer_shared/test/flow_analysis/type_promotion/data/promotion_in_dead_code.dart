@@ -10,6 +10,36 @@ abstract class C {
   void f(Object x, Object y);
 }
 
+andExpression_alwaysFalse(Object o) {
+  return;
+  o is! int && (throw 'x');
+  /*int*/ o;
+}
+
+andExpression_alwaysTrue(Object o) {
+  return;
+  true && (o is int || (throw 'x'));
+  /*int*/ o;
+}
+
+andExpression_lhsAlwaysTrue(Object o) {
+  return;
+  if (true && o is! int) {
+    o;
+  } else {
+    /*int*/ o;
+  }
+}
+
+andExpression_rhsAlwaysTrue(Object o) {
+  return;
+  if (o is! int && true) {
+    o;
+  } else {
+    /*int*/ o;
+  }
+}
+
 conditionalIs(Object o) {
   return;
   o is int ? null : throw 'bad';
@@ -117,4 +147,34 @@ nullAwareAccess(Object o, C? p, Object q) {
   return;
   (o is int ? p : throw 'x')?.f(o = q, throw 'x');
   /*int*/ o;
+}
+
+orExpression_alwaysFalse(Object o) {
+  return;
+  false || (o is! int && (throw 'x'));
+  /*int*/ o;
+}
+
+orExpression_alwaysTrue(Object o) {
+  return;
+  o is int || (throw 'x');
+  /*int*/ o;
+}
+
+orExpression_lhsAlwaysFalse(Object o) {
+  return;
+  if (false || o is int) {
+    /*int*/ o;
+  } else {
+    o;
+  }
+}
+
+orExpression_rhsAlwaysFalse(Object o) {
+  return;
+  if (o is int || false) {
+    /*int*/ o;
+  } else {
+    o;
+  }
 }

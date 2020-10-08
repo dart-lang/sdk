@@ -607,6 +607,10 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// Call this method just after visiting the initializer of a late variable.
   void lateInitializer_end();
 
+  /// Call this method before visiting the LHS of a logical binary operation
+  /// ("||" or "&&").
+  void logicalBinaryOp_begin();
+
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
   /// [wholeExpression] should be the whole logical binary expression.
@@ -1096,6 +1100,11 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   @override
   void lateInitializer_end() {
     _wrap('lateInitializer_end()', () => _wrapped.lateInitializer_end());
+  }
+
+  @override
+  void logicalBinaryOp_begin() {
+    _wrap('logicalBinaryOp_begin()', () => _wrapped.logicalBinaryOp_begin());
   }
 
   @override
@@ -3106,6 +3115,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void logicalBinaryOp_begin() {
+    _current = _current.split();
+  }
+
+  @override
   void logicalBinaryOp_end(Expression wholeExpression, Expression rightOperand,
       {@required bool isAnd}) {
     _BranchContext<Variable, Type> context =
@@ -3123,8 +3137,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     }
     _storeExpressionInfo(
         wholeExpression,
-        new ExpressionInfo(
-            _join(trueResult, falseResult), trueResult, falseResult));
+        new ExpressionInfo(_merge(trueResult, falseResult),
+            trueResult.unsplit(), falseResult.unsplit()));
   }
 
   @override

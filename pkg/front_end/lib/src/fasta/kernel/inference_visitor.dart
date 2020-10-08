@@ -1719,6 +1719,7 @@ class InferenceVisitor
       LogicalExpression node, DartType typeContext) {
     InterfaceType boolType =
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable);
+    inferrer.flowAnalysis.logicalBinaryOp_begin();
     ExpressionInferenceResult leftResult = inferrer.inferExpression(
         node.left, boolType, !inferrer.isTopLevel,
         isVoidAllowed: false);
