@@ -46,7 +46,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       bool isPotential = false,
       int selectionOffset,
       ElementKind elementKind}) {
-    var cs;
+    CompletionSuggestion cs;
     suggestions.forEach((s) {
       if (elementKind != null && s.element?.kind != elementKind) {
         return;

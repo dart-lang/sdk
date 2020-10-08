@@ -94,7 +94,7 @@ extension E<T> on T {
   Map<T, U> foo<U>(U value) => <T, U>{};
 }
 
-main(String a) {
+void f(String a) {
   a.foo(0);
 }
 ''');

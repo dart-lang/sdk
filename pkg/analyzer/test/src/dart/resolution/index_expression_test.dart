@@ -22,7 +22,7 @@ class A {
   bool operator[](int index) => false;
 }
 
-main(A a) {
+void f(A a) {
   a[0];
 }
 ''');
@@ -48,7 +48,7 @@ class A<T> {
   T operator[](int index) => throw 42;
 }
 
-main(A<double> a) {
+void f(A<double> a) {
   a[0];
 }
 ''');
@@ -78,7 +78,7 @@ class A {
   void operator[]=(int index, num value) {}
 }
 
-main(A a) {
+void f(A a) {
   a[0] += 1.2;
 }
 ''');
@@ -125,7 +125,7 @@ class A<T> {
   void operator[]=(int index, T value) {}
 }
 
-main(A<double> a) {
+void f(A<double> a) {
   a[0] += 1.2;
 }
 ''');
@@ -183,7 +183,7 @@ class A {
   void operator[]=(int index, num value) {}
 }
 
-main(A a) {
+void f(A a) {
   a[0] = 1.2;
 }
 ''');
@@ -221,7 +221,7 @@ class A<T> {
   void operator[]=(int index, T value) {}
 }
 
-main(A<double> a) {
+void f(A<double> a) {
   a[0] = 1.2;
 }
 ''');
@@ -269,7 +269,7 @@ class A {
   bool operator[](int index) => false;
 }
 
-main(A? a) {
+void f(A? a) {
   a?..[0]..[1];
 }
 ''');
@@ -299,7 +299,7 @@ class A {
   bool operator[](int index) => false;
 }
 
-main(A? a) {
+void f(A? a) {
   a?[0];
 }
 ''');
@@ -322,7 +322,7 @@ class A {
   void operator[]=(int index, num value) {}
 }
 
-main(A? a) {
+void f(A? a) {
   a?[0] += 1.2;
 }
 ''');
@@ -365,7 +365,7 @@ class A {
   void operator[]=(int index, A a) {}
 }
 
-main(A? a) {
+void f(A? a) {
   a?..[0] = a..[1] = a;
 }
 ''');
@@ -395,7 +395,7 @@ class A {
   void operator[]=(int index, num value) {}
 }
 
-main(A? a) {
+void f(A? a) {
   a?[0] = 1.2;
 }
 ''');

@@ -5460,12 +5460,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The element type '{0}' can't be assigned to the list type '{1}'.",
           hasPublishedDocs: true);
 
-  static const CompileTimeErrorCode
-      MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS = CompileTimeErrorCode(
-    'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
-    "The function 'main' can't have more than two required positional parameters.",
-    correction: "Try using a different name for the function, "
-        "or removing extra parameters.",
+  static const CompileTimeErrorCode MAIN_FIRST_POSITIONAL_PARAMETER_TYPE =
+      CompileTimeErrorCode(
+    'MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
+    "The type of the first positional parameter of the 'main' function "
+        "must be a supertype of List<String>.",
+    correction: "Try changing the type of the parameter.",
   );
 
   static const CompileTimeErrorCode MAIN_HAS_REQUIRED_NAMED_PARAMETERS =
@@ -5474,6 +5474,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The function 'main' can't have any required named parameters.",
     correction: "Try using a different name for the function, "
         "or removing the 'required' modifier.",
+  );
+
+  static const CompileTimeErrorCode
+      MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS = CompileTimeErrorCode(
+    'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
+    "The function 'main' can't have more than two required positional parameters.",
+    correction: "Try using a different name for the function, "
+        "or removing extra parameters.",
   );
 
   static const CompileTimeErrorCode MAIN_IS_NOT_FUNCTION = CompileTimeErrorCode(

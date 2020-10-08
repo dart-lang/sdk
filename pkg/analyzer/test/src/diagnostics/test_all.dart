@@ -344,6 +344,8 @@ import 'late_final_local_already_assigned_test.dart'
     as late_final_local_already_assigned;
 import 'list_element_type_not_assignable_test.dart'
     as list_element_type_not_assignable;
+import 'main_first_positional_parameter_type_test.dart'
+    as main_first_positional_parameter_type;
 import 'main_has_required_named_parameters_test.dart'
     as main_has_required_named_parameters;
 import 'main_has_too_many_required_positional_parameters_test.dart'
@@ -877,6 +879,7 @@ main() {
     late_final_field_with_const_constructor.main();
     late_final_local_already_assigned.main();
     list_element_type_not_assignable.main();
+    main_first_positional_parameter_type.main();
     main_has_required_named_parameters.main();
     main_has_too_many_required_positional_parameters.main();
     main_is_not_function.main();

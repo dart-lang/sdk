@@ -1934,7 +1934,8 @@ DART_EXPORT Dart_Handle
 Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
                     intptr_t* vm_snapshot_data_size,
                     uint8_t** isolate_snapshot_data_buffer,
-                    intptr_t* isolate_snapshot_data_size) {
+                    intptr_t* isolate_snapshot_data_size,
+                    bool is_core) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("Cannot create snapshots on an AOT runtime.");
 #else
@@ -1966,8 +1967,10 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
                                    FullSnapshotWriter::kInitialSize);
   ZoneWriteStream isolate_snapshot_data(Api::TopScope(T)->zone(),
                                         FullSnapshotWriter::kInitialSize);
+  const Snapshot::Kind snapshot_kind =
+      is_core ? Snapshot::kFullCore : Snapshot::kFull;
   FullSnapshotWriter writer(
-      Snapshot::kFull, &vm_snapshot_data, &isolate_snapshot_data,
+      snapshot_kind, &vm_snapshot_data, &isolate_snapshot_data,
       nullptr /* vm_image_writer */, nullptr /* isolate_image_writer */);
   writer.WriteFullSnapshot();
   if (vm_snapshot_data_buffer != nullptr) {

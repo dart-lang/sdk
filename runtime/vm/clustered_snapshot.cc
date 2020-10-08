@@ -245,7 +245,8 @@ class ClassSerializationCluster : public SerializationCluster {
       s->UnexpectedObject(cls, "Class with illegal cid");
     }
     s->WriteCid(class_id);
-    if (s->kind() == Snapshot::kFull && RequireLegacyErasureOfConstants(cls)) {
+    if (s->kind() == Snapshot::kFullCore &&
+        RequireLegacyErasureOfConstants(cls)) {
       s->UnexpectedObject(cls, "Class with non mode agnostic constants");
     }
     if (s->kind() != Snapshot::kFullAOT) {
@@ -596,7 +597,7 @@ class FunctionSerializationCluster : public SerializationCluster {
     objects_.Add(func);
 
     PushFromTo(func);
-    if (kind == Snapshot::kFull) {
+    if ((kind == Snapshot::kFull) || (kind == Snapshot::kFullCore)) {
       NOT_IN_PRECOMPILED(s->Push(func->ptr()->bytecode_));
     } else if (kind == Snapshot::kFullAOT) {
       s->Push(func->ptr()->code_);
@@ -625,7 +626,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       FunctionPtr func = objects_[i];
       AutoTraceObjectName(func, MakeDisambiguatedFunctionName(s, func));
       WriteFromTo(func);
-      if (kind == Snapshot::kFull) {
+      if ((kind == Snapshot::kFull) || (kind == Snapshot::kFullCore)) {
         NOT_IN_PRECOMPILED(WriteField(func, bytecode_));
       } else if (kind == Snapshot::kFullAOT) {
         WriteField(func, code_);
@@ -692,7 +693,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
                                      Function::InstanceSize());
       ReadFromTo(func);
 
-      if (kind == Snapshot::kFull) {
+      if ((kind == Snapshot::kFull) || (kind == Snapshot::kFullCore)) {
         NOT_IN_PRECOMPILED(func->ptr()->bytecode_ =
                                static_cast<BytecodePtr>(d->ReadRef()));
       } else if (kind == Snapshot::kFullAOT) {

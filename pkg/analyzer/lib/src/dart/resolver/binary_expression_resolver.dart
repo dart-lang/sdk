@@ -176,6 +176,7 @@ class BinaryExpressionResolver {
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);
 
+    flow?.logicalBinaryOp_begin();
     left.accept(_resolver);
     left = node.leftOperand;
 
@@ -213,6 +214,7 @@ class BinaryExpressionResolver {
     InferenceContext.setType(left, _typeProvider.boolType);
     InferenceContext.setType(right, _typeProvider.boolType);
 
+    flow?.logicalBinaryOp_begin();
     left.accept(_resolver);
     left = node.leftOperand;
 

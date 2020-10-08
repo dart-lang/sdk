@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -169,7 +170,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var previousMember;
+    SyntacticEntity previousMember;
     for (var member in node.childEntities) {
       if (entity == member) {
         break;

@@ -1242,6 +1242,8 @@ DART_EXPORT void Dart_ExitIsolate();
  *   snapshot. This buffer is scope allocated and is only valid
  *   until the next call to Dart_ExitScope.
  * \param size Returns the size of the buffer.
+ * \param is_core Create a snapshot containing core libraries.
+ *                Such snapshot should be agnostic to null safety mode.
  *
  * \return A valid handle if no error occurs during the operation.
  */
@@ -1249,7 +1251,8 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
                     intptr_t* vm_snapshot_data_size,
                     uint8_t** isolate_snapshot_data_buffer,
-                    intptr_t* isolate_snapshot_data_size);
+                    intptr_t* isolate_snapshot_data_size,
+                    bool is_core);
 
 /**
  * Returns whether the buffer contains a kernel file.

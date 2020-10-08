@@ -446,7 +446,8 @@ static void CreateAndWriteCoreSnapshot() {
   // First create a snapshot.
   result = Dart_CreateSnapshot(&vm_snapshot_data_buffer, &vm_snapshot_data_size,
                                &isolate_snapshot_data_buffer,
-                               &isolate_snapshot_data_size);
+                               &isolate_snapshot_data_size,
+                               /*is_core=*/true);
   CHECK_RESULT(result);
 
   // Now write the vm isolate and isolate snapshots out to the
@@ -539,7 +540,7 @@ static void CreateAndWriteAppSnapshot() {
   intptr_t isolate_snapshot_data_size = 0;
 
   result = Dart_CreateSnapshot(NULL, NULL, &isolate_snapshot_data_buffer,
-                               &isolate_snapshot_data_size);
+                               &isolate_snapshot_data_size, /*is_core=*/false);
   CHECK_RESULT(result);
 
   WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,

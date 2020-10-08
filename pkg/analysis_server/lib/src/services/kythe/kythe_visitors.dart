@@ -1225,7 +1225,7 @@ mixin OutputUtils {
         addNodeAndFacts(schema.TAPP_KIND, element: functionElement);
     addEdge(funcTypeVName, schema.PARAM_EDGE, fnBuiltin, ordinalIntValue: i++);
 
-    var returnTypeVName;
+    KytheVName returnTypeVName;
     if (returnNode is TypeName) {
       // MethodDeclaration and FunctionDeclaration both return a TypeName from
       // returnType

@@ -607,6 +607,10 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// Call this method just after visiting the initializer of a late variable.
   void lateInitializer_end();
 
+  /// Call this method before visiting the LHS of a logical binary operation
+  /// ("||" or "&&").
+  void logicalBinaryOp_begin();
+
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
   /// [wholeExpression] should be the whole logical binary expression.
@@ -1096,6 +1100,11 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   @override
   void lateInitializer_end() {
     _wrap('lateInitializer_end()', () => _wrapped.lateInitializer_end());
+  }
+
+  @override
+  void logicalBinaryOp_begin() {
+    _wrap('logicalBinaryOp_begin()', () => _wrapped.logicalBinaryOp_begin());
   }
 
   @override
@@ -2720,6 +2729,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void assert_begin() {
+    _current = _current.split();
     _stack.add(new _AssertContext<Variable, Type>(_current));
   }
 
@@ -2727,7 +2737,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void assert_end() {
     _AssertContext<Variable, Type> context =
         _stack.removeLast() as _AssertContext<Variable, Type>;
-    _current = _join(context._previous, context._conditionInfo.ifTrue);
+    _current = _merge(context._previous, context._conditionInfo.ifTrue);
   }
 
   @override
@@ -2984,7 +2994,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     // common base class.  See https://github.com/dart-lang/sdk/issues/43725.
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
-    _current = _join(_current, context._previous);
+    _current = _merge(_current, context._previous);
   }
 
   @override
@@ -2992,6 +3002,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
       Expression leftHandSide, Type leftHandSideType) {
     ExpressionInfo<Variable, Type> lhsInfo = _getExpressionInfo(leftHandSide);
     FlowModel<Variable, Type> promoted;
+    _current = _current.split();
     if (lhsInfo is _VariableReadInfo<Variable, Type>) {
       ExpressionInfo<Variable, Type> promotionInfo =
           _current.tryMarkNonNullable(typeOperations, lhsInfo._variable);
@@ -3070,6 +3081,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void labeledStatement_begin(Node node) {
+    _current = _current.split();
     _BranchTargetContext<Variable, Type> context =
         new _BranchTargetContext<Variable, Type>(_current.reachable.parent);
     _stack.add(context);
@@ -3080,7 +3092,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void labeledStatement_end() {
     _BranchTargetContext<Variable, Type> context =
         _stack.removeLast() as _BranchTargetContext<Variable, Type>;
-    _current = _join(_current, context._breakModel);
+    _current = _merge(_current, context._breakModel);
   }
 
   @override
@@ -3104,6 +3116,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void logicalBinaryOp_begin() {
+    _current = _current.split();
+  }
+
+  @override
   void logicalBinaryOp_end(Expression wholeExpression, Expression rightOperand,
       {@required bool isAnd}) {
     _BranchContext<Variable, Type> context =
@@ -3121,8 +3138,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     }
     _storeExpressionInfo(
         wholeExpression,
-        new ExpressionInfo(
-            _join(trueResult, falseResult), trueResult, falseResult));
+        new ExpressionInfo(_merge(trueResult, falseResult),
+            trueResult.unsplit(), falseResult.unsplit()));
   }
 
   @override
@@ -3156,12 +3173,13 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     // common base class.  See https://github.com/dart-lang/sdk/issues/43725.
     _SimpleContext<Variable, Type> context =
         _stack.removeLast() as _SimpleContext<Variable, Type>;
-    _current = _join(_current, context._previous);
+    _current = _merge(_current, context._previous);
   }
 
   @override
   bool nullAwareAccess_rightBegin(Expression target, Type targetType) {
     assert(targetType != null);
+    _current = _current.split();
     _stack.add(new _NullAwareAccessContext<Variable, Type>(_current));
     if (target != null) {
       ExpressionInfo<Variable, Type> targetInfo = _getExpressionInfo(target);
@@ -3223,11 +3241,12 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     // And, if there is an implicit fall-through default, join it to any breaks.
     if (!isExhaustive) breakState = _join(breakState, context._previous);
 
-    _current = breakState;
+    _current = breakState.unsplit();
   }
 
   @override
   void switchStatement_expressionEnd(Statement switchStatement) {
+    _current = _current.split();
     _SimpleStatementContext<Variable, Type> context =
         new _SimpleStatementContext<Variable, Type>(
             _current.reachable.parent, _current);
@@ -3237,6 +3256,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void tryCatchStatement_bodyBegin() {
+    _current = _current.split();
     _stack.add(new _TryContext<Variable, Type>(_current));
   }
 
@@ -3283,7 +3303,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void tryCatchStatement_end() {
     _TryContext<Variable, Type> context =
         _stack.removeLast() as _TryContext<Variable, Type>;
-    _current = context._afterBodyAndCatches;
+    _current = context._afterBodyAndCatches.unsplit();
   }
 
   @override
@@ -3331,6 +3351,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void whileStatement_conditionBegin(Node node) {
+    _current = _current.split();
     AssignedVariablesNodeInfo<Variable> info =
         _assignedVariables._getInfoForNode(node);
     _current = _current.conservativeJoin(info._written, info._captured);
@@ -3340,7 +3361,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void whileStatement_end() {
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
-    _current = _join(context._conditionInfo.ifFalse, context._breakModel)
+    _current = _merge(context._conditionInfo.ifFalse, context._breakModel)
         .inheritTested(typeOperations, _current);
   }
 

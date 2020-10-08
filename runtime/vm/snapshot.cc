@@ -229,6 +229,8 @@ const char* Snapshot::KindToCString(Kind kind) {
   switch (kind) {
     case kFull:
       return "full";
+    case kFullCore:
+      return "full-core";
     case kFullJIT:
       return "full-jit";
     case kFullAOT:

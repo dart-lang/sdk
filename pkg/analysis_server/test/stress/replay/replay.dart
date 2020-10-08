@@ -512,7 +512,7 @@ class FileEdit {
   /// Return a list of operations to be sent to the server.
   List<ServerOperation> getOperations() {
     var operations = <ServerOperation>[];
-    void addUpdateContent(var overlay) {
+    void addUpdateContent(Object overlay) {
       operations.add(Analysis_UpdateContent(filePath, overlay));
     }
 
@@ -522,7 +522,7 @@ class FileEdit {
     addUpdateContent(AddContentOverlay(content));
     for (var editList in editLists.reversed) {
       for (var edit in editList.reversed) {
-        var overlay;
+        Object overlay;
         if (overlayStyle == OverlayStyle.change) {
           overlay = ChangeContentOverlay([edit]);
         } else if (overlayStyle == OverlayStyle.multipleAdd) {

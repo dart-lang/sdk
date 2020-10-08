@@ -19,12 +19,12 @@ class InvalidUseOfNeverTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_binaryExpression_never_eqEq() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x == 1 + 2;
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
-      error(HintCode.DEAD_CODE, 28, 6),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 25, 6),
     ]);
 
     assertBinaryExpression(
@@ -38,12 +38,12 @@ void main(Never x) {
 
   test_binaryExpression_never_plus() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x + (1 + 2);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
-      error(HintCode.DEAD_CODE, 27, 8),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 24, 8),
     ]);
 
     assertBinaryExpression(
@@ -57,7 +57,7 @@ void main(Never x) {
 
   test_binaryExpression_neverQ_eqEq() async {
     await assertNoErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x == 1 + 2;
 }
 ''');
@@ -73,11 +73,11 @@ void main(Never? x) {
 
   test_binaryExpression_neverQ_plus() async {
     await assertErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x + (1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertBinaryExpression(
@@ -91,7 +91,7 @@ void main(Never? x) {
 
   test_conditionalExpression_falseBranch() async {
     await assertNoErrorsInCode(r'''
-void main(bool c, Never x) {
+void f(bool c, Never x) {
   c ? 0 : x;
 }
 ''');
@@ -99,7 +99,7 @@ void main(bool c, Never x) {
 
   test_conditionalExpression_trueBranch() async {
     await assertNoErrorsInCode(r'''
-void main(bool c, Never x) {
+void f(bool c, Never x) {
   c ? x : 0;
 }
 ''');
@@ -107,32 +107,32 @@ void main(bool c, Never x) {
 
   test_functionExpressionInvocation_never() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x();
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
     ]);
   }
 
   test_functionExpressionInvocation_neverQ() async {
     await assertErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x();
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
   }
 
   test_indexExpression_never_read() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x[0];
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
-      error(HintCode.DEAD_CODE, 25, 3),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 22, 3),
     ]);
 
     assertIndexExpression(
@@ -145,12 +145,12 @@ void main(Never x) {
 
   test_indexExpression_never_readWrite() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x[0] += 1 + 2;
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
-      error(HintCode.DEAD_CODE, 25, 12),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 22, 12),
     ]);
 
     assertIndexExpression(
@@ -165,12 +165,12 @@ void main(Never x) {
 
   test_indexExpression_never_write() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x[0] = 1 + 2;
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
-      error(HintCode.DEAD_CODE, 25, 11),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 22, 11),
     ]);
 
     assertIndexExpression(
@@ -185,11 +185,11 @@ void main(Never x) {
 
   test_indexExpression_neverQ_read() async {
     await assertErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x[0];
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertIndexExpression(
@@ -202,11 +202,11 @@ void main(Never? x) {
 
   test_indexExpression_neverQ_readWrite() async {
     await assertErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x[0] += 1 + 2;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertIndexExpression(
@@ -221,11 +221,11 @@ void main(Never? x) {
 
   test_indexExpression_neverQ_write() async {
     await assertErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x[0] = 1 + 2;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertIndexExpression(
@@ -240,20 +240,20 @@ void main(Never? x) {
 
   test_invocationArgument() async {
     await assertNoErrorsInCode(r'''
-void main(f, Never x) {
-  f(x);
+void f(g, Never x) {
+  g(x);
 }
 ''');
   }
 
   test_methodInvocation_never() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x.foo(1 + 2);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
-      error(HintCode.DEAD_CODE, 28, 8),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 25, 8),
     ]);
 
     assertMethodInvocation(
@@ -269,12 +269,12 @@ void main(Never x) {
 
   test_methodInvocation_never_toString() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x.toString(1 + 2);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
-      error(HintCode.DEAD_CODE, 33, 8),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 30, 8),
     ]);
 
     assertMethodInvocation(
@@ -290,11 +290,11 @@ void main(Never x) {
 
   test_methodInvocation_neverQ_toString() async {
     await assertErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x.toString(1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 34, 7),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 31, 7),
     ]);
 
     assertMethodInvocation(
@@ -310,11 +310,11 @@ void main(Never? x) {
 
   test_postfixExpression_never_plusPlus() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x++;
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
     ]);
 
     assertPostfixExpression(
@@ -330,11 +330,11 @@ void main(Never x) {
 
   test_postfixExpression_neverQ_plusPlus() async {
     await assertErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x++;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertPostfixExpression(
@@ -351,11 +351,11 @@ void main(Never? x) {
   test_prefixExpression_never_plusPlus() async {
     // Reports 'undefined operator'
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   ++x;
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 25, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
     ]);
 
     assertPrefixExpression(
@@ -371,11 +371,11 @@ void main(Never x) {
 
   test_prefixExpression_neverQ_plusPlus() async {
     await assertErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   ++x;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
     ]);
 
     assertPrefixExpression(
@@ -391,7 +391,7 @@ void main(Never? x) {
 
   test_propertyAccess_never_read() async {
     await assertNoErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x.foo;
 }
 ''');
@@ -406,7 +406,7 @@ void main(Never x) {
 
   test_propertyAccess_never_read_hashCode() async {
     await assertNoErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x.hashCode;
 }
 ''');
@@ -421,11 +421,11 @@ void main(Never x) {
 
   test_propertyAccess_never_readWrite() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x.foo += 0;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 32, 2),
+      error(HintCode.DEAD_CODE, 29, 2),
     ]);
 
     assertSimpleIdentifier(
@@ -448,7 +448,7 @@ void main(Never x) {
 
   test_propertyAccess_never_tearOff_toString() async {
     await assertNoErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x.toString;
 }
 ''');
@@ -463,11 +463,11 @@ void main(Never x) {
 
   test_propertyAccess_never_write() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void f(Never x) {
   x.foo = 0;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 31, 2),
+      error(HintCode.DEAD_CODE, 28, 2),
     ]);
 
     assertSimpleIdentifier(
@@ -490,11 +490,11 @@ void main(Never x) {
 
   test_propertyAccess_neverQ_read() async {
     await assertErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertSimpleIdentifier(
@@ -507,7 +507,7 @@ void main(Never? x) {
 
   test_propertyAccess_neverQ_read_hashCode() async {
     await assertNoErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x.hashCode;
 }
 ''');
@@ -522,7 +522,7 @@ void main(Never? x) {
 
   test_propertyAccess_neverQ_tearOff_toString() async {
     await assertNoErrorsInCode(r'''
-void main(Never? x) {
+void f(Never? x) {
   x.toString;
 }
 ''');
@@ -540,7 +540,7 @@ void main(Never? x) {
 class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest {
   test_binaryExpression_eqEq() async {
     await assertNoErrorsInCode(r'''
-void main() {
+void f() {
   (throw '') == 1 + 2;
 }
 ''');
@@ -559,7 +559,7 @@ void main() {
 
   test_binaryExpression_plus() async {
     await assertNoErrorsInCode(r'''
-void main() {
+void f() {
   (throw '') + (1 + 2);
 }
 ''');
@@ -575,7 +575,7 @@ void main() {
 
   test_methodInvocation_toString() async {
     await assertNoErrorsInCode(r'''
-void main() {
+void f() {
   (throw '').toString();
 }
 ''');
@@ -590,7 +590,7 @@ void main() {
 
   test_propertyAccess_toString() async {
     await assertNoErrorsInCode(r'''
-void main() {
+void f() {
   (throw '').toString;
 }
 ''');
@@ -608,7 +608,7 @@ void main() {
 
   test_throw_getter_hashCode() async {
     await assertNoErrorsInCode(r'''
-void main() {
+void f() {
   (throw '').hashCode;
 }
 ''');

@@ -937,7 +937,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion for a [prefix] associated with a [library].
   void suggestPrefix(LibraryElement library, String prefix) {
-    var relevance;
+    int relevance;
     if (request.useNewRelevance) {
       var elementKind = _computeElementKind(library);
       // TODO(brianwilkerson) If we are in a constant context it would be nice

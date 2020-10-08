@@ -32,7 +32,7 @@ void main({int a = 0}) {}
 
   test_positionalOptional_1() async {
     await resolveTestCode('''
-void main([int a = 0]) {}
+void f([int a = 0]) {}
 ''');
     assertNoErrorsInResult();
   }

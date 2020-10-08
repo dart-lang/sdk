@@ -292,7 +292,7 @@ var a = {...b, ...c};
     await assertNoErrorsInCode(r'''
 mixin M on Map<String, int> {}
 
-main(M m1) {
+void f(M m1) {
   // ignore:unused_local_variable
   var m2 = {...m1};
 }

@@ -404,7 +404,7 @@ main() {
 
   test_flowEnd_ifStatement() async {
     await assertErrorsInCode(r'''
-main(bool a) {
+void f(bool a) {
   if (a) {
     return;
     1;
@@ -412,7 +412,7 @@ main(bool a) {
   2;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 42, 2),
+      error(HintCode.DEAD_CODE, 44, 2),
     ]);
   }
 

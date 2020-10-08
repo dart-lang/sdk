@@ -1421,6 +1421,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.logicalBinaryOp_begin();
         flow.logicalBinaryOp_rightBegin(h.notNull(x, _Type('int?'))(),
             isAnd: true);
         expect(flow.promotedType(x).type, 'int');
@@ -1434,6 +1435,7 @@ main() {
       h.run((flow) {
         h.declare(x, initialized: true);
         flow.ifStatement_conditionBegin();
+        flow.logicalBinaryOp_begin();
         flow.logicalBinaryOp_rightBegin(_Expression(), isAnd: true);
         var wholeExpr = _Expression();
         flow.logicalBinaryOp_end(wholeExpr, h.notNull(x, _Type('int?'))(),
@@ -1451,6 +1453,7 @@ main() {
       h.run((flow) {
         h.declare(x, initialized: true);
         flow.ifStatement_conditionBegin();
+        flow.logicalBinaryOp_begin();
         flow.logicalBinaryOp_rightBegin(_Expression(), isAnd: false);
         var wholeExpr = _Expression();
         flow.logicalBinaryOp_end(wholeExpr, h.eqNull(x, _Type('int?'))(),
@@ -1467,6 +1470,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        flow.logicalBinaryOp_begin();
         flow.logicalBinaryOp_rightBegin(h.eqNull(x, _Type('int?'))(),
             isAnd: false);
         expect(flow.promotedType(x).type, 'int');
@@ -4146,6 +4150,7 @@ class _Harness extends TypeOperations<_Var, _Type> {
   LazyExpression and(LazyExpression lhs, LazyExpression rhs) {
     return () {
       var expr = _Expression();
+      _flow.logicalBinaryOp_begin();
       _flow.logicalBinaryOp_rightBegin(lhs(), isAnd: true);
       _flow.logicalBinaryOp_end(expr, rhs(), isAnd: true);
       return expr;
@@ -4322,6 +4327,7 @@ class _Harness extends TypeOperations<_Var, _Type> {
   LazyExpression or(LazyExpression lhs, LazyExpression rhs) {
     return () {
       var expr = _Expression();
+      _flow.logicalBinaryOp_begin();
       _flow.logicalBinaryOp_rightBegin(lhs(), isAnd: false);
       _flow.logicalBinaryOp_end(expr, rhs(), isAnd: false);
       return expr;

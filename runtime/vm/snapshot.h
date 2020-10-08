@@ -91,11 +91,12 @@ enum SerializeState {
 class Snapshot {
  public:
   enum Kind {
-    kFull,     // Full snapshot of core libraries or an application.
-    kFullJIT,  // Full + JIT code
-    kFullAOT,  // Full + AOT code
-    kMessage,  // A partial snapshot used only for isolate messaging.
-    kNone,     // gen_snapshot
+    kFull,      // Full snapshot of an application.
+    kFullCore,  // Full snapshot of core libraries. Agnostic to null safety.
+    kFullJIT,   // Full + JIT code
+    kFullAOT,   // Full + AOT code
+    kMessage,   // A partial snapshot used only for isolate messaging.
+    kNone,      // gen_snapshot
     kInvalid
   };
   static const char* KindToCString(Kind kind);
@@ -130,13 +131,15 @@ class Snapshot {
   void set_kind(Kind value) { return Write<int64_t>(kKindOffset, value); }
 
   static bool IsFull(Kind kind) {
-    return (kind == kFull) || (kind == kFullJIT) || (kind == kFullAOT);
+    return (kind == kFull) || (kind == kFullCore) || (kind == kFullJIT) ||
+           (kind == kFullAOT);
   }
+  static bool IsAgnosticToNullSafety(Kind kind) { return (kind == kFullCore); }
   static bool IncludesCode(Kind kind) {
     return (kind == kFullJIT) || (kind == kFullAOT);
   }
   static bool IncludesBytecode(Kind kind) {
-    return (kind == kFull) || (kind == kFullJIT);
+    return (kind == kFull) || (kind == kFullCore) || (kind == kFullJIT);
   }
 
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
@@ -171,7 +174,8 @@ class Snapshot {
 inline static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
                                         Snapshot::Kind isolate_kind) {
   if (vm_kind == isolate_kind) return true;
-  if (vm_kind == Snapshot::kFull && isolate_kind == Snapshot::kFullJIT)
+  if (((vm_kind == Snapshot::kFull) || (vm_kind == Snapshot::kFullCore)) &&
+      isolate_kind == Snapshot::kFullJIT)
     return true;
   return Snapshot::IsFull(isolate_kind);
 }

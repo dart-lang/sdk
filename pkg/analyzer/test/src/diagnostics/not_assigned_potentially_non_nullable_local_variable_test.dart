@@ -138,7 +138,7 @@ void f(int a) {
 
   test_binaryExpression_logicalAnd_left() async {
     await assertNoErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   ((v = 0) >= 0) && c;
   v;
@@ -148,19 +148,19 @@ main(bool c) {
 
   test_binaryExpression_logicalAnd_right() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   c && ((v = 0) >= 0);
   v;
 }
 ''', [
-      _notAssignedError(49, 1),
+      _notAssignedError(51, 1),
     ]);
   }
 
   test_binaryExpression_logicalOr_left() async {
     await assertNoErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   ((v = 0) >= 0) || c;
   v;
@@ -170,13 +170,13 @@ main(bool c) {
 
   test_binaryExpression_logicalOr_right() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   c || ((v = 0) >= 0);
   v;
 }
 ''', [
-      _notAssignedError(49, 1),
+      _notAssignedError(51, 1),
     ]);
   }
 
@@ -834,7 +834,7 @@ void f() {
 
   test_if_then() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   if (c) {
     v = 0;
@@ -842,13 +842,13 @@ main(bool c) {
   v;
 }
 ''', [
-      _notAssignedError(52, 1),
+      _notAssignedError(54, 1),
     ]);
   }
 
   test_if_thenElse_all() async {
     await assertNoErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   if (c) {
     v = 0;
@@ -864,7 +864,7 @@ main(bool c) {
 
   test_if_thenElse_else() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   if (c) {
     // not assigned
@@ -874,13 +874,13 @@ main(bool c) {
   v;
 }
 ''', [
-      _notAssignedError(83, 1),
+      _notAssignedError(85, 1),
     ]);
   }
 
   test_if_thenElse_then() async {
     await assertErrorsInCode(r'''
-main(bool c) {
+void f(bool c) {
   int v;
   if (c) {
     v = 0;
@@ -890,7 +890,7 @@ main(bool c) {
   v;
 }
 ''', [
-      _notAssignedError(83, 1),
+      _notAssignedError(85, 1),
     ]);
   }
 

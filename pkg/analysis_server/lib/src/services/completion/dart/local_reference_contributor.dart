@@ -44,8 +44,6 @@ class LocalReferenceContributor extends DartCompletionContributor {
     var suggestLocalFields = node is ConstructorDeclaration &&
         node.initializers.contains(request.target.entity);
 
-    var localVisitor;
-
     // Collect suggestions from the specific child [AstNode] that contains the
     // completion offset and all of its parents recursively.
     if (!opType.isPrefixed) {
@@ -67,10 +65,10 @@ class LocalReferenceContributor extends DartCompletionContributor {
           node = node.parent.parent;
         }
 
-        localVisitor = _LocalVisitor(request, builder, visibilityTracker,
-            suggestLocalFields: suggestLocalFields);
         try {
           builder.laterReplacesEarlier = false;
+          var localVisitor = _LocalVisitor(request, builder, visibilityTracker,
+              suggestLocalFields: suggestLocalFields);
           localVisitor.visit(node);
         } finally {
           builder.laterReplacesEarlier = true;

@@ -571,7 +571,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (_doIncludeSimpleIdentifier(node)) {
-      var elementKind;
+      protocol.ElementKind elementKind;
       if (node.staticElement?.kind != null) {
         elementKind = protocol.convertElementKind(node.staticElement.kind);
 

@@ -782,12 +782,12 @@ bool Dart::DetectNullSafety(const char* script_uri,
   //   when generating the snapshot.
   ASSERT(FLAG_sound_null_safety == kNullSafetyOptionUnspecified);
 
-  // If snapshot is an appJIT/AOT snapshot we will figure out the mode by
+  // If snapshot is not a core snapshot we will figure out the mode by
   // sniffing the feature string in the snapshot.
   if (snapshot_data != nullptr) {
     // Read the snapshot and check for null safety option.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
-    if (Snapshot::IncludesCode(snapshot->kind())) {
+    if (!Snapshot::IsAgnosticToNullSafety(snapshot->kind())) {
       return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
     }
   }
@@ -1034,7 +1034,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
 #error What architecture?
 #endif
+  }
 
+  if (!Snapshot::IsAgnosticToNullSafety(kind)) {
     if (isolate != NULL) {
       if (isolate->null_safety()) {
         buffer.AddString(" null-safety");

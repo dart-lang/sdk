@@ -482,6 +482,10 @@ version: 1.3.2
     expect(errors, hasLength(0));
   }
 
+  /// Re-enable once `sort_pub_dependencies` is fixed
+  /// See: https://github.com/dart-lang/sdk/issues/43529
+  /// See: https://github.com/dart-lang/linter/issues/2271
+  @failingTest
   Future<void> test_pubspecFile_lint() async {
     var optionsPath = join(projectPath, 'analysis_options.yaml');
     newFile(optionsPath, content: '''
