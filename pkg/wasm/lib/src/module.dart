@@ -11,14 +11,23 @@ import 'package:ffi/ffi.dart';
 
 /// WasmModule is a compiled module that can be instantiated.
 class WasmModule {
-  Pointer<WasmerModule> _module;
+  Pointer<WasmerStore> _store;
+  late Pointer<WasmerModule> _module;
 
   /// Compile a module.
-  WasmModule(Uint8List data) : _module = WasmRuntime().compile(data) {}
+  WasmModule(Uint8List data) : _store = WasmRuntime().newStore() {
+    _module = WasmRuntime().compile(_store, data);
+  }
 
   /// Instantiate the module with the given imports.
   WasmInstance instantiate(WasmImports imports) {
-    return WasmInstance(_module, imports);
+    return WasmInstance(_store, _module, imports);
+  }
+
+  /// Create a new memory with the given number of initial pages, and optional
+  /// maximum number of pages.
+  WasmMemory createMemory(int pages, [int? maxPages]) {
+    return WasmMemory._create(_store, pages, maxPages);
   }
 
   /// Returns a description of all of the module's imports and exports, for
@@ -28,12 +37,12 @@ class WasmModule {
     var runtime = WasmRuntime();
     var imports = runtime.importDescriptors(_module);
     for (var imp in imports) {
-      var kind = wasmerImpExpKindName(imp.kind);
+      var kind = wasmerExternKindName(imp.kind);
       description.write('import $kind: ${imp.moduleName}::${imp.name}\n');
     }
     var exports = runtime.exportDescriptors(_module);
     for (var exp in exports) {
-      var kind = wasmerImpExpKindName(exp.kind);
+      var kind = wasmerExternKindName(exp.kind);
       description.write('export $kind: ${exp.name}\n');
     }
     return description.toString();
@@ -42,13 +51,13 @@ class WasmModule {
 
 /// WasmImports holds all the imports for a WasmInstance.
 class WasmImports {
-  Pointer<WasmerImport> _imports;
+  Pointer<Pointer<WasmerExtern>> _imports;
   int _capacity;
   int _length;
 
   /// Create an imports object.
   WasmImports([this._capacity = 4])
-      : _imports = allocate<WasmerImport>(count: _capacity),
+      : _imports = allocate<Pointer<WasmerExtern>>(count: _capacity),
         _length = 0 {}
 
   /// Returns the number of imports.
@@ -57,26 +66,31 @@ class WasmImports {
 
 /// WasmInstance is an instantiated WasmModule.
 class WasmInstance {
+  Pointer<WasmerStore> _store;
   Pointer<WasmerModule> _module;
   Pointer<WasmerInstance> _instance;
   Pointer<WasmerMemory>? _exportedMemory;
   Map<String, WasmFunction> _functions = {};
 
-  WasmInstance(this._module, WasmImports imports)
+  WasmInstance(this._store, this._module, WasmImports imports)
       : _instance = WasmRuntime()
-            .instantiate(_module, imports._imports, imports.length) {
+            .instantiate(_store, _module, imports._imports, imports.length) {
     var runtime = WasmRuntime();
-    var exps = runtime.exports(_instance);
-    for (var e in exps) {
-      var kind = runtime.exportKind(e);
-      String name = runtime.exportName(e);
-      if (kind == WasmerImpExpKindFunction) {
-        var f = runtime.exportToFunction(e);
+    var exports = runtime.exports(_instance);
+    var exportDescs = runtime.exportDescriptors(_module);
+    assert(exports.ref.length == exportDescs.length);
+    for (var i = 0; i < exports.ref.length; ++i) {
+      var e = exports.ref.data[i];
+      var kind = runtime.externKind(exports.ref.data[i]);
+      String name = exportDescs[i].name;
+      if (kind == WasmerExternKindFunction) {
+        var f = runtime.externToFunction(e);
+        var ft = exportDescs[i].funcType;
         _functions[name] = WasmFunction(
-            name, f, runtime.getArgTypes(f), runtime.getReturnType(f));
-      } else if (kind == WasmerImpExpKindMemory) {
+            name, f, runtime.getArgTypes(ft), runtime.getReturnType(ft));
+      } else if (kind == WasmerExternKindMemory) {
         // WASM currently allows only one memory per module.
-        _exportedMemory = runtime.exportToMemory(e);
+        _exportedMemory = runtime.externToMemory(e);
       }
     }
   }
@@ -107,8 +121,8 @@ class WasmMemory {
 
   /// Create a new memory with the given number of initial pages, and optional
   /// maximum number of pages.
-  WasmMemory(int pages, [int? maxPages])
-      : _mem = WasmRuntime().newMemory(pages, maxPages) {
+  WasmMemory._create(Pointer<WasmerStore> store, int pages, int? maxPages)
+      : _mem = WasmRuntime().newMemory(store, pages, maxPages) {
     _view = WasmRuntime().memoryView(_mem);
   }
 
