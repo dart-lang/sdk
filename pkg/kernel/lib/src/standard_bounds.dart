@@ -728,20 +728,37 @@ mixin StandardBounds {
           type1, coreTypes.objectNonNullableRawType, clientLibrary);
     }
 
-    if (type1 is FutureOrType || type2 is FutureOrType) {
-      if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
-        return type2;
+    // UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    // UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    // UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    // UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    // UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (type1 is FutureOrType) {
+      DartType t1 = type1.typeArgument;
+      DartType t2;
+      if (type2 is InterfaceType && type2.classNode == coreTypes.futureClass) {
+        t2 = type2.typeArguments.single;
+      } else if (type2 is FutureOrType) {
+        t2 = type2.typeArgument;
+      } else {
+        t2 = type2;
       }
-      if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
-        return type1;
+      return new FutureOrType(
+          getStandardUpperBound(t1, t2, clientLibrary),
+          uniteNullabilities(
+              type1.declaredNullability, type2.declaredNullability));
+    } else if (type2 is FutureOrType) {
+      DartType t2 = type2.typeArgument;
+      DartType t1;
+      if (type1 is InterfaceType && type1.classNode == coreTypes.futureClass) {
+        t1 = type1.typeArguments.single;
+      } else {
+        t1 = type1;
       }
-      if (type1 is FutureOrType && type2 is FutureOrType) {
-        return new FutureOrType(
-            getStandardUpperBound(
-                type1.typeArgument, type2.typeArgument, clientLibrary),
-            uniteNullabilities(
-                type1.declaredNullability, type2.declaredNullability));
-      }
+      return new FutureOrType(
+          getStandardUpperBound(t1, t2, clientLibrary),
+          uniteNullabilities(
+              type1.declaredNullability, type2.declaredNullability));
     }
 
     // UP(T1, T2) = T2 if T1 <: T2
@@ -1289,20 +1306,37 @@ mixin StandardBounds {
           type1, type2, clientLibrary);
     }
 
-    if (type1 is FutureOrType || type2 is FutureOrType) {
-      if (isSubtypeOf(type1, type2, SubtypeCheckMode.ignoringNullabilities)) {
-        return type2;
+    // UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    // UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    // UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    // UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    // UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (type1 is FutureOrType) {
+      DartType t1 = type1.typeArgument;
+      DartType t2;
+      if (type2 is InterfaceType && type2.classNode == coreTypes.futureClass) {
+        t2 = type2.typeArguments.single;
+      } else if (type2 is FutureOrType) {
+        t2 = type2.typeArgument;
+      } else {
+        t2 = type2;
       }
-      if (isSubtypeOf(type2, type1, SubtypeCheckMode.ignoringNullabilities)) {
-        return type1;
+      return new FutureOrType(
+          getStandardUpperBound(t1, t2, clientLibrary),
+          uniteNullabilities(
+              type1.declaredNullability, type2.declaredNullability));
+    } else if (type2 is FutureOrType) {
+      DartType t2 = type2.typeArgument;
+      DartType t1;
+      if (type1 is InterfaceType && type1.classNode == coreTypes.futureClass) {
+        t1 = type1.typeArguments.single;
+      } else {
+        t1 = type1;
       }
-      if (type1 is FutureOrType && type2 is FutureOrType) {
-        return new FutureOrType(
-            getStandardUpperBound(
-                type1.typeArgument, type2.typeArgument, clientLibrary),
-            uniteNullabilities(
-                type1.declaredNullability, type2.declaredNullability));
-      }
+      return new FutureOrType(
+          getStandardUpperBound(t1, t2, clientLibrary),
+          uniteNullabilities(
+              type1.declaredNullability, type2.declaredNullability));
     }
 
     if (type1 is InvalidType || type2 is InvalidType) {
