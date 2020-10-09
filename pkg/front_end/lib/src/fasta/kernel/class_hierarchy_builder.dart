@@ -241,7 +241,7 @@ abstract class ClassMember {
   bool operator ==(Object other);
 
   void inferType(ClassHierarchyBuilder hierarchy);
-  void registerOverrideDependency(ClassMember overriddenMember);
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers);
 
   /// Returns `true` if this has the same underlying declaration as [other].
   bool isSameDeclaration(ClassMember other);
@@ -1940,31 +1940,6 @@ class ClassHierarchyNodeBuilder {
     /// [ClassHierarchyNode].
     Map<Name, ClassMember> interfaceSetterMap = {};
 
-    Map<ClassMember, Set<ClassMember>> overrideDependencies = {};
-
-    // TODO(johnniwinther): Make these non-local and ensure that each
-    // underlying declaration has only on delayed type, signature, and
-    // override computation. Currently fields get one as a getter and as a
-    // setter.
-
-    void registerOverrideDependency(
-        ClassMember member, ClassMember overriddenMember) {
-      if (classBuilder == member.classBuilder && member.isSourceDeclaration) {
-        if (overriddenMember.hasDeclarations &&
-            classBuilder == overriddenMember.classBuilder) {
-          for (int i = 0; i < overriddenMember.declarations.length; i++) {
-            registerOverrideDependency(
-                member, overriddenMember.declarations[i]);
-          }
-        } else {
-          Set<ClassMember> dependencies =
-              overrideDependencies[member] ??= <ClassMember>{};
-          dependencies.add(overriddenMember);
-          member.registerOverrideDependency(overriddenMember);
-        }
-      }
-    }
-
     void registerOverrideCheck(
         ClassMember member, ClassMember overriddenMember) {
       if (classBuilder is SourceClassBuilder) {
@@ -1982,6 +1957,23 @@ class ClassHierarchyNodeBuilder {
     }
 
     memberMap.forEach((Name name, Tuple tuple) {
+      Set<ClassMember> overriddenMembers = {};
+
+      void registerOverrideDependency(
+          ClassMember member, ClassMember overriddenMember) {
+        if (classBuilder == member.classBuilder && member.isSourceDeclaration) {
+          if (overriddenMember.hasDeclarations &&
+              classBuilder == overriddenMember.classBuilder) {
+            for (int i = 0; i < overriddenMember.declarations.length; i++) {
+              registerOverrideDependency(
+                  member, overriddenMember.declarations[i]);
+            }
+          } else {
+            overriddenMembers.add(overriddenMember);
+          }
+        }
+      }
+
       ClassMember computeClassMember(ClassMember declaredMember,
           ClassMember extendedMember, bool forSetter) {
         if (declaredMember != null) {
@@ -2233,15 +2225,9 @@ class ClassHierarchyNodeBuilder {
         if (member.classBuilder == classBuilder &&
             overriddenMember.classBuilder != classBuilder) {
           if (member is SourceFieldMember) {
-            if (member.isFinal && overriddenMember.isSetter) {
-              registerOverrideDependency(member, overriddenMember);
-              hierarchy.registerOverrideCheck(
-                  classBuilder, member, overriddenMember);
-            } else {
-              registerOverrideDependency(member, overriddenMember);
-              hierarchy.registerOverrideCheck(
-                  classBuilder, member, overriddenMember);
-            }
+            registerOverrideDependency(member, overriddenMember);
+            hierarchy.registerOverrideCheck(
+                classBuilder, member, overriddenMember);
           } else if (member is SourceProcedureMember) {
             registerOverrideDependency(member, overriddenMember);
             hierarchy.registerOverrideCheck(
@@ -2320,18 +2306,21 @@ class ClassHierarchyNodeBuilder {
       if (interfaceSetter != null) {
         interfaceSetterMap[name] = interfaceSetter;
       }
-    });
+      if (overriddenMembers.isNotEmpty) {
+        void registerOverrideDependencies(ClassMember member) {
+          if (member != null &&
+              member.classBuilder == classBuilder &&
+              member.isSourceDeclaration) {
+            member.registerOverrideDependency(overriddenMembers);
+            DelayedTypeComputation computation =
+                new DelayedTypeComputation(this, member, overriddenMembers);
+            hierarchy.registerDelayedTypeComputation(computation);
+          }
+        }
 
-    overrideDependencies
-        .forEach((ClassMember member, Set<ClassMember> overriddenMembers) {
-      assert(
-          member == memberMap[member.name].declaredMember ||
-              member == memberMap[member.name].declaredSetter,
-          "Unexpected method type inference for ${memberMap[member.name]}: "
-          "${member} -> ${overriddenMembers}");
-      DelayedTypeComputation computation =
-          new DelayedTypeComputation(this, member, overriddenMembers);
-      hierarchy.registerDelayedTypeComputation(computation);
+        registerOverrideDependencies(tuple.declaredMember);
+        registerOverrideDependencies(tuple.declaredSetter);
+      }
     });
 
     if (!hasInterfaces) {
@@ -3003,7 +2992,7 @@ abstract class DelayedMember implements ClassMember {
   }
 
   @override
-  void registerOverrideDependency(ClassMember overriddenMember) {
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
     // Do nothing; this is only for declared members.
   }
 

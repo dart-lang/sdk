@@ -1,0 +1,10 @@
+bool b = true;
+void f(Object o) {}
+
+class C<X extends void Function(X)?> {
+  X x;
+  C(this.x);
+  void m() {}
+}
+
+main() {}

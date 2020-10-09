@@ -860,17 +860,18 @@ class ClassElementImpl extends AbstractClassElementImpl
   InterfaceType get supertype {
     if (_supertype != null) return _supertype;
 
+    if (hasModifier(Modifier.DART_CORE_OBJECT)) {
+      return null;
+    }
+
     if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-
-      var coreTypes = context.bundleContext.elementFactory.coreTypes;
-      if (identical(this, coreTypes.objectClass)) {
-        return null;
-      }
-
-      var type = context.getSuperclass(linkedNode)?.type;
+      var type = linkedContext.getSuperclass(linkedNode)?.type;
       if (_isInterfaceTypeClass(type)) {
         return _supertype = type;
+      }
+      if (library.isDartCore && name == 'Object') {
+        setModifier(Modifier.DART_CORE_OBJECT, true);
+        return null;
       }
       return _supertype = library.typeProvider.objectType;
     }
@@ -5898,61 +5899,65 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that the modifier 'covariant' was applied to the element.
   static const Modifier COVARIANT = Modifier('COVARIANT', 3);
 
+  /// Indicates that the class is `Object` from `dart:core`.
+  static const Modifier DART_CORE_OBJECT = Modifier('DART_CORE_OBJECT', 4);
+
   /// Indicates that the import element represents a deferred library.
-  static const Modifier DEFERRED = Modifier('DEFERRED', 4);
+  static const Modifier DEFERRED = Modifier('DEFERRED', 5);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier ENUM = Modifier('ENUM', 5);
+  static const Modifier ENUM = Modifier('ENUM', 6);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = Modifier('EXTERNAL', 6);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 7);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = Modifier('FACTORY', 7);
+  static const Modifier FACTORY = Modifier('FACTORY', 8);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = Modifier('FINAL', 8);
+  static const Modifier FINAL = Modifier('FINAL', 9);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = Modifier('GENERATOR', 9);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 10);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = Modifier('GETTER', 10);
+  static const Modifier GETTER = Modifier('GETTER', 11);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// contains at least one import directive whose URI uses the "dart-ext"
   /// scheme.
-  static const Modifier HAS_EXT_URI = Modifier('HAS_EXT_URI', 11);
+  static const Modifier HAS_EXT_URI = Modifier('HAS_EXT_URI', 12);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 12);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 13);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 13);
+  static const Modifier LATE = Modifier('LATE', 14);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 14);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 15);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 15);
+  static const Modifier SETTER = Modifier('SETTER', 16);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 16);
+  static const Modifier STATIC = Modifier('STATIC', 17);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 17);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 18);
 
   static const List<Modifier> values = [
     ABSTRACT,
     ASYNCHRONOUS,
     CONST,
     COVARIANT,
+    DART_CORE_OBJECT,
     DEFERRED,
     ENUM,
     EXTERNAL,

@@ -39,7 +39,7 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.10.0-110.3.beta",
+  "sdk_tag": "version:2.11.0-190.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
@@ -97,7 +97,7 @@ vars = {
   "dart_style_tag": "1.3.7",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "v0.35.0",
+  "dartdoc_rev" : "8f5f30e58bbc0f11f104888ee87f11cbd6b82cc7",
   "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
