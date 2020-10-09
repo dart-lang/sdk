@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-09-18T09:56:27.880444",
+  "generated": "2020-10-09T10:15:45.502457",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -136,7 +136,7 @@
       "name": "build_integration",
       "rootUri": "../pkg/build_integration",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.1"
     },
     {
       "name": "charcode",
@@ -178,7 +178,7 @@
       "name": "csslib",
       "rootUri": "../third_party/pkg/csslib",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.11"
     },
     {
       "name": "dart2js_info",
@@ -207,7 +207,8 @@
     {
       "name": "dart_style",
       "rootUri": "../third_party/pkg_tested/dart_style",
-      "packageUri": "lib/"
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
     },
     {
       "name": "dartdev",
@@ -219,7 +220,7 @@
       "name": "dartdoc",
       "rootUri": "../third_party/pkg/dartdoc",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.10"
     },
     {
       "name": "dartfix",
@@ -493,7 +494,8 @@
     {
       "name": "pub",
       "rootUri": "../third_party/pkg/pub",
-      "packageUri": "lib/"
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
     },
     {
       "name": "pub_semver",
