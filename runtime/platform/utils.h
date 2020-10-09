@@ -387,29 +387,6 @@ class Utils {
     return ((mask >> position) & 1) != 0;
   }
 
-  // Decode integer in SLEB128 format from |data| and update |byte_index|.
-  template <typename ValueType>
-  static ValueType DecodeSLEB128(const uint8_t* data,
-                                 const intptr_t data_length,
-                                 intptr_t* byte_index) {
-    using Unsigned = typename std::make_unsigned<ValueType>::type;
-    ASSERT(*byte_index < data_length);
-    uword shift = 0;
-    Unsigned value = 0;
-    uint8_t part = 0;
-    do {
-      part = data[(*byte_index)++];
-      value |= static_cast<Unsigned>(part & 0x7f) << shift;
-      shift += 7;
-    } while ((part & 0x80) != 0);
-
-    if ((shift < (sizeof(ValueType) * CHAR_BIT)) && ((part & 0x40) != 0)) {
-      const Unsigned kMax = std::numeric_limits<Unsigned>::max();
-      value |= static_cast<Unsigned>(kMax << shift);
-    }
-    return static_cast<ValueType>(value);
-  }
-
   static char* StrError(int err, char* buffer, size_t bufsize);
 
   // Not all platforms support strndup.

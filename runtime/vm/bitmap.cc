@@ -77,7 +77,7 @@ void BitmapBuilder::Print() const {
   }
 }
 
-void BitmapBuilder::AppendAsBytesTo(GrowableArray<uint8_t>* bytes) const {
+void BitmapBuilder::AppendAsBytesTo(BaseWriteStream* stream) const {
   // Early return if there are no bits in the payload to copy.
   if (Length() == 0) return;
 
@@ -94,19 +94,20 @@ void BitmapBuilder::AppendAsBytesTo(GrowableArray<uint8_t>* bytes) const {
     payload_size = total_size;
     extra_size = 0;
   }
+#if defined(DEBUG)
+  // Make sure any bits in the payload beyond the bit length if we're not
+  // appending trailing zeroes are cleared to ensure deterministic snapshots.
+  if (extra_size == 0 && Length() % kBitsPerByte != 0) {
+    const int8_t mask = (1 << (Length() % kBitsPerByte)) - 1;
+    ASSERT_EQUAL(data_[payload_size - 1], (data_[payload_size - 1] & mask));
+  }
+#endif
   for (intptr_t i = 0; i < payload_size; i++) {
-    bytes->Add(data_[i]);
+    stream->WriteByte(data_[i]);
   }
   for (intptr_t i = 0; i < extra_size; i++) {
-    bytes->Add(0U);
+    stream->WriteByte(0U);
   }
-  // Make sure any bits in the payload beyond the bit length are cleared to
-  // ensure deterministic snapshots.
-#if defined(DEBUG)
-  if (Length() % kBitsPerByte == 0) return;
-  const int8_t mask = (1 << (Length() % kBitsPerByte)) - 1;
-  ASSERT(bytes->Last() == (bytes->Last() & mask));
-#endif
 }
 
 bool BitmapBuilder::GetBit(intptr_t bit_offset) const {

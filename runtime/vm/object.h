@@ -417,12 +417,13 @@ class Object {
   V(Instance, null_instance)                                                   \
   V(Function, null_function)                                                   \
   V(TypeArguments, null_type_arguments)                                        \
-  V(CompressedStackMaps, null_compressed_stack_maps)                           \
+  V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
   V(Array, zero_array)                                                         \
   V(ContextScope, empty_context_scope)                                         \
   V(ObjectPool, empty_object_pool)                                             \
+  V(CompressedStackMaps, empty_compressed_stackmaps)                           \
   V(PcDescriptors, empty_descriptors)                                          \
   V(LocalVarDescriptors, empty_var_descriptors)                                \
   V(ExceptionHandlers, empty_exception_handlers)                               \
@@ -5705,7 +5706,7 @@ class PcDescriptors : public Object {
     return RoundedAllocationSize(UnroundedSize(len));
   }
 
-  static PcDescriptorsPtr New(GrowableArray<uint8_t>* delta_encoded_data);
+  static PcDescriptorsPtr New(const void* delta_encoded_data, intptr_t size);
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(const Function& function) const;
@@ -5713,12 +5714,6 @@ class PcDescriptors : public Object {
   static void PrintHeaderString();
 
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
-
-  // Encode integer in SLEB128 format.
-  static void EncodeInteger(GrowableArray<uint8_t>* data, intptr_t value);
-
-  // Decode SLEB128 encoded integer. Update byte_index to the next integer.
-  intptr_t DecodeInteger(intptr_t* byte_index) const;
 
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
@@ -5738,10 +5733,12 @@ class PcDescriptors : public Object {
           cur_yield_index_(PcDescriptorsLayout::kInvalidYieldIndex) {}
 
     bool MoveNext() {
+      NoSafepointScope scope;
+      ReadStream stream(descriptors_.raw_ptr()->data(), descriptors_.Length(),
+                        byte_index_);
       // Moves to record that matches kind_mask_.
       while (byte_index_ < descriptors_.Length()) {
-        const int32_t kind_and_metadata =
-            descriptors_.DecodeInteger(&byte_index_);
+        const int32_t kind_and_metadata = stream.ReadSLEB128<int32_t>();
         cur_kind_ =
             PcDescriptorsLayout::KindAndMetadata::DecodeKind(kind_and_metadata);
         cur_try_index_ = PcDescriptorsLayout::KindAndMetadata::DecodeTryIndex(
@@ -5750,12 +5747,13 @@ class PcDescriptors : public Object {
             PcDescriptorsLayout::KindAndMetadata::DecodeYieldIndex(
                 kind_and_metadata);
 
-        cur_pc_offset_ += descriptors_.DecodeInteger(&byte_index_);
+        cur_pc_offset_ += stream.ReadSLEB128();
 
         if (!FLAG_precompiled_mode) {
-          cur_deopt_id_ += descriptors_.DecodeInteger(&byte_index_);
-          cur_token_pos_ += descriptors_.DecodeInteger(&byte_index_);
+          cur_deopt_id_ += stream.ReadSLEB128();
+          cur_token_pos_ += stream.ReadSLEB128();
         }
+        byte_index_ = stream.Position();
 
         if ((cur_kind_ & kind_mask_) != 0) {
           return true;  // Current is valid.
@@ -5816,7 +5814,7 @@ class PcDescriptors : public Object {
   static PcDescriptorsPtr New(intptr_t length);
 
   void SetLength(intptr_t value) const;
-  void CopyData(GrowableArray<uint8_t>* data);
+  void CopyData(const void* bytes, intptr_t size);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;
@@ -5908,46 +5906,117 @@ class CompressedStackMaps : public Object {
     return RoundedAllocationSize(UnroundedSize(length));
   }
 
-  bool UsesGlobalTable() const { return !IsNull() && UsesGlobalTable(raw()); }
+  bool UsesGlobalTable() const { return UsesGlobalTable(raw()); }
   static bool UsesGlobalTable(const CompressedStackMapsPtr raw) {
     return CompressedStackMapsLayout::UsesTableBit::decode(
         raw->ptr()->flags_and_size_);
   }
 
-  bool IsGlobalTable() const { return !IsNull() && IsGlobalTable(raw()); }
+  bool IsGlobalTable() const { return IsGlobalTable(raw()); }
   static bool IsGlobalTable(const CompressedStackMapsPtr raw) {
     return CompressedStackMapsLayout::GlobalTableBit::decode(
         raw->ptr()->flags_and_size_);
   }
 
-  static CompressedStackMapsPtr NewInlined(
-      const GrowableArray<uint8_t>& bytes) {
-    return New(bytes, /*is_global_table=*/false, /*uses_global_table=*/false);
+  static CompressedStackMapsPtr NewInlined(const void* payload, intptr_t size) {
+    return New(payload, size, /*is_global_table=*/false,
+               /*uses_global_table=*/false);
   }
-  static CompressedStackMapsPtr NewUsingTable(
-      const GrowableArray<uint8_t>& bytes) {
-    return New(bytes, /*is_global_table=*/false, /*uses_global_table=*/true);
+  static CompressedStackMapsPtr NewUsingTable(const void* payload,
+                                              intptr_t size) {
+    return New(payload, size, /*is_global_table=*/false,
+               /*uses_global_table=*/true);
   }
 
-  static CompressedStackMapsPtr NewGlobalTable(
-      const GrowableArray<uint8_t>& bytes) {
-    return New(bytes, /*is_global_table=*/true, /*uses_global_table=*/false);
+  static CompressedStackMapsPtr NewGlobalTable(const void* payload,
+                                               intptr_t size) {
+    return New(payload, size, /*is_global_table=*/true,
+               /*uses_global_table=*/false);
   }
+
+  class Iterator : public ValueObject {
+   public:
+    Iterator(const CompressedStackMaps& maps,
+             const CompressedStackMaps& global_table);
+    Iterator(Thread* thread, const CompressedStackMaps& maps);
+
+    explicit Iterator(const CompressedStackMaps::Iterator& it);
+
+    // Loads the next entry from [maps_], if any. If [maps_] is the null value,
+    // this always returns false.
+    bool MoveNext();
+
+    // Finds the entry with the given PC offset starting at the current position
+    // of the iterator. If [maps_] is the null value, this always returns false.
+    bool Find(uint32_t pc_offset) {
+      // We should never have an entry with a PC offset of 0 inside an
+      // non-empty CSM, so fail.
+      if (pc_offset == 0) return false;
+      do {
+        if (current_pc_offset_ >= pc_offset) break;
+      } while (MoveNext());
+      return current_pc_offset_ == pc_offset;
+    }
+
+    // Methods for accessing parts of an entry should not be called until
+    // a successful MoveNext() or Find() call has been made.
+
+    // Returns the PC offset of the loaded entry.
+    uint32_t pc_offset() const {
+      ASSERT(HasLoadedEntry());
+      return current_pc_offset_;
+    }
+
+    // Returns the bit length of the loaded entry.
+    intptr_t Length() const;
+    // Returns the number of spill slot bits of the loaded entry.
+    intptr_t SpillSlotBitCount() const;
+    // Returns whether the stack entry represented by the offset contains
+    // a tagged objecet.
+    bool IsObject(intptr_t bit_offset) const;
+
+    void WriteToBuffer(BaseTextBuffer* buffer, const char* separator) const;
+
+   private:
+    bool HasLoadedEntry() const { return next_offset_ > 0; }
+
+    // Caches the corresponding values from the global table in the mutable
+    // fields. We lazily load these as some clients only need the PC offset.
+    void LazyLoadGlobalTableEntry() const;
+
+    void EnsureFullyLoadedEntry() const {
+      ASSERT(HasLoadedEntry());
+      if (current_spill_slot_bit_count_ < 0) {
+        LazyLoadGlobalTableEntry();
+        ASSERT(current_spill_slot_bit_count_ >= 0);
+      }
+    }
+
+    const CompressedStackMaps& maps_;
+    const CompressedStackMaps& bits_container_;
+
+    uintptr_t next_offset_ = 0;
+    uint32_t current_pc_offset_ = 0;
+    // Only used when looking up non-PC information in the global table.
+    uintptr_t current_global_table_offset_ = 0;
+    // Marked as mutable as these fields may be updated with lazily loaded
+    // values from the global table when their associated accessor is called,
+    // but those values will never change for a given entry once loaded..
+    mutable intptr_t current_spill_slot_bit_count_ = -1;
+    mutable intptr_t current_non_spill_slot_bit_count_ = -1;
+    mutable intptr_t current_bits_offset_ = -1;
+
+    friend class StackMapEntry;
+  };
 
  private:
-  static CompressedStackMapsPtr New(const GrowableArray<uint8_t>& bytes,
+  static CompressedStackMapsPtr New(const void* payload,
+                                    intptr_t size,
                                     bool is_global_table,
                                     bool uses_global_table);
 
-  uint8_t PayloadByte(uintptr_t offset) const {
-    ASSERT(offset < payload_size());
-    return raw_ptr()->data()[offset];
-  }
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps, Object);
   friend class Class;
-  friend class CompressedStackMapsIterator;  // For PayloadByte
-  friend class StackMapEntry;                // For PayloadByte
 };
 
 class ExceptionHandlers : public Object {
@@ -10277,7 +10346,6 @@ class TypedData : public TypedDataBase {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, TypedDataBase);
   friend class Class;
-  friend class CompressedStackMapsIterator;
   friend class ExternalTypedData;
   friend class TypedDataView;
 };

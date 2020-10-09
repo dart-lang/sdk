@@ -2788,7 +2788,7 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
 }
 
 ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
-  DescriptorList* builder = new DescriptorList(0);
+  DescriptorList* builder = new DescriptorList(thread->zone());
 
   // kind, pc_offset, deopt_id, token_pos, try_index, yield_index
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 10, 1, TokenPosition(20),
@@ -2858,7 +2858,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
 }
 
 ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
-  DescriptorList* builder = new DescriptorList(0);
+  DescriptorList* builder = new DescriptorList(thread->zone());
 
   // kind, pc_offset, deopt_id, token_pos, try_index
   builder->AddDescriptor(PcDescriptorsLayout::kOther, 100, 1,

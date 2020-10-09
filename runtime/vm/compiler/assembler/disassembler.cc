@@ -220,7 +220,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
                                          const char* function_info,
                                          const Code& code,
                                          bool optimized) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle(zone);
   if (FLAG_print_variable_descriptors) {
     var_descriptors = code.GetLocalVarDescriptors();
@@ -290,13 +291,16 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  THR_Print("StackMaps for function '%s' {\n", function_fullname);
-  if (code.compressed_stackmaps() != CompressedStackMaps::null()) {
+  {
     const auto& stackmaps =
         CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
-    THR_Print("%s\n", stackmaps.ToCString());
+    CompressedStackMaps::Iterator it(thread, stackmaps);
+    TextBuffer buffer(100);
+    buffer.Printf("StackMaps for function '%s' {\n", function_fullname);
+    it.WriteToBuffer(&buffer, "\n");
+    buffer.AddString("}\n");
+    THR_Print("%s", buffer.buffer());
   }
-  THR_Print("}\n");
 
   if (FLAG_print_variable_descriptors) {
     THR_Print("Variable Descriptors for function '%s' {\n", function_fullname);

@@ -290,13 +290,17 @@ class Reader : public ValueObject {
   }
 
   intptr_t ReadSLEB128() {
-    const uint8_t* buffer = this->buffer();
-    return Utils::DecodeSLEB128<intptr_t>(buffer, size_, &offset_);
+    ReadStream stream(this->buffer(), size_, offset_);
+    const intptr_t result = stream.ReadSLEB128();
+    offset_ = stream.Position();
+    return result;
   }
 
   int64_t ReadSLEB128AsInt64() {
-    const uint8_t* buffer = this->buffer();
-    return Utils::DecodeSLEB128<int64_t>(buffer, size_, &offset_);
+    ReadStream stream(this->buffer(), size_, offset_);
+    const int64_t result = stream.ReadSLEB128<int64_t>();
+    offset_ = stream.Position();
+    return result;
   }
 
   /**
