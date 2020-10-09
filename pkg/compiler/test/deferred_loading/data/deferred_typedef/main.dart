@@ -6,7 +6,12 @@
 
 import 'lib1.dart' deferred as lib1;
 
-/*member: main:OutputUnit(main, {}),constants=[ConstructedConstant(C(a=TypeConstant(void Function()),b=FunctionConstant(topLevelMethod)))=OutputUnit(1, {lib1}),TypeConstant(void Function())=OutputUnit(1, {lib1})]*/
+/*member: main:
+ constants=[
+  ConstructedConstant(C(a=TypeConstant(void Function()),b=FunctionConstant(topLevelMethod)))=1{lib1},
+  TypeConstant(void Function())=1{lib1}],
+ member_unit=main{}
+*/
 main() async {
   await lib1.loadLibrary();
   print(lib1.cA);

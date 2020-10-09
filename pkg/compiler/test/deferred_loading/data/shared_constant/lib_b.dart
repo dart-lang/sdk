@@ -7,8 +7,8 @@
 import 'shared.dart' deferred as s2;
 
 /*member: doB:
- OutputUnit(main, {}),
- constants=[ConstructedConstant(C())=OutputUnit(1, {s1, s2})]
+ constants=[ConstructedConstant(C())=1{s1, s2}],
+ member_unit=main{}
 */
 doB() async {
   await s2.loadLibrary();

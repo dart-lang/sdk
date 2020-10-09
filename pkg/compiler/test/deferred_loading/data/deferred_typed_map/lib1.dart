@@ -4,15 +4,18 @@
 
 // @dart = 2.7
 
-/*class: M:none, type=OutputUnit(1, {lib})*/
+/*class: M:
+ class_unit=none,
+ type_unit=1{lib}
+*/
 class M {}
 
 typedef dynamic FF({M b});
 
 const table = const <int, FF>{1: f1, 2: f2};
 
-/*member: f1:OutputUnit(1, {lib})*/
+/*member: f1:member_unit=1{lib}*/
 dynamic f1({M b}) => null;
 
-/*member: f2:OutputUnit(1, {lib})*/
+/*member: f2:member_unit=1{lib}*/
 dynamic f2({M b}) => null;

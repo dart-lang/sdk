@@ -13,11 +13,11 @@ const c4 = const C(4);
 const c5 = const C(5);
 
 /*member: m2:
- OutputUnit(2, {l2}),
  constants=[
-  ConstructedConstant(C(x=IntConstant(1)))=OutputUnit(main, {}),
-  ConstructedConstant(C(x=IntConstant(4)))=OutputUnit(2, {l2}),
-  ConstructedConstant(C(x=IntConstant(5)))=OutputUnit(2, {l2})]
+  ConstructedConstant(C(x=IntConstant(1)))=main{},
+  ConstructedConstant(C(x=IntConstant(4)))=2{l2},
+  ConstructedConstant(C(x=IntConstant(5)))=2{l2}],
+ member_unit=2{l2}
 */
 m2() async {
   print(c3);

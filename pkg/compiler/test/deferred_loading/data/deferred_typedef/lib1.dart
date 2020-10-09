@@ -6,12 +6,15 @@
 
 library deferred_typedef_lib1;
 
-/*class: C:OutputUnit(1, {lib1}), type=OutputUnit(1, {lib1})*/
+/*class: C:
+ class_unit=1{lib1},
+ type_unit=1{lib1}
+*/
 class C {
-  /*member: C.a:OutputUnit(1, {lib1})*/
+  /*member: C.a:member_unit=1{lib1}*/
   final a;
 
-  /*member: C.b:OutputUnit(1, {lib1})*/
+  /*member: C.b:member_unit=1{lib1}*/
   final b;
 
   const C(this.a, this.b);
@@ -21,7 +24,7 @@ typedef void MyF1();
 
 typedef void MyF2();
 
-/*member: topLevelMethod:OutputUnit(1, {lib1})*/
+/*member: topLevelMethod:member_unit=1{lib1}*/
 topLevelMethod() {}
 
 const cA = const C(MyF1, topLevelMethod);

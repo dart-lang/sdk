@@ -6,9 +6,9 @@
 import 'libb.dart' deferred as libb;
 import 'libc.dart';
 
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 main() async {
-  var f = /*OutputUnit(main, {})*/ () => libb.C1();
+  var f = /*closure_unit=main{}*/ () => libb.C1();
   print(f is C2 Function());
   print(f is C3 Function());
   await libb.loadLibrary();

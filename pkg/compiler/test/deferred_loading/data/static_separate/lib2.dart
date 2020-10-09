@@ -10,10 +10,10 @@ import "package:expect/expect.dart";
 import "lib1.dart";
 
 /*member: foo:
- OutputUnit(3, {lib2}),
  constants=[
-  ListConstant(<Map<int*,int*>*>[MapConstant(<int*, int*>{IntConstant(1): IntConstant(3)})])=OutputUnit(3, {lib2}),
-  MapConstant(<int*, int*>{IntConstant(1): IntConstant(3)})=OutputUnit(3, {lib2})]
+  ListConstant(<Map<int*,int*>*>[MapConstant(<int*, int*>{IntConstant(1): IntConstant(3)})])=3{lib2},
+  MapConstant(<int*, int*>{IntConstant(1): IntConstant(3)})=3{lib2}],
+ member_unit=3{lib2}
 */
 foo() {
   Expect.equals(1, C.foo());
