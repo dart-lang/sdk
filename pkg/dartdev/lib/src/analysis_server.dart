@@ -10,48 +10,56 @@ import 'package:analysis_server_client/protocol.dart'
     show EditBulkFixesResult, ResponseDecoder;
 import 'package:path/path.dart' as path;
 
-import '../core.dart';
-import '../sdk.dart';
-import '../utils.dart';
+import 'core.dart';
+import 'sdk.dart';
+import 'utils.dart';
 
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
-  AnalysisServer(this.sdkPath, this.directories);
+  AnalysisServer(this.sdkPath, this.directory);
 
   final Directory sdkPath;
-  final List<Directory> directories;
+  final Directory directory;
 
   Process _process;
-  final StreamController<bool> _analyzingController =
-      StreamController<bool>.broadcast();
-  Completer<bool> _analysisFinished = Completer();
-  final StreamController<EditBulkFixesResult> _bulkFixesController =
-      StreamController<EditBulkFixesResult>.broadcast();
-  final StreamController<FileAnalysisErrors> _errorsController =
-      StreamController<FileAnalysisErrors>.broadcast();
-  bool _didServerErrorOccur = false;
 
-  final _shutdownRequestCompleter = Completer<void>();
+  Completer<bool> _analysisFinished = Completer();
 
   int _id = 0;
 
-  String _fixRequestId;
-  String _shutdownRequestId;
-
-  bool get didServerErrorOccur => _didServerErrorOccur;
-
-  Stream<bool> get onAnalyzing => _analyzingController.stream;
+  Stream<bool> get onAnalyzing {
+    // {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
+    return _streamController('server.status')
+        .stream
+        .where((event) => event['analysis'] != null)
+        .map((event) => event['analysis']['isAnalyzing'] as bool);
+  }
 
   /// This future completes when we next receive an analysis finished event
-  /// (unless there's not current analysis and we've already received a complete
-  /// event, in which case this future immediately completes).
+  /// (unless there's no current analysis and we've already received a complete
+  /// event, in which case this future completes immediately).
   Future<bool> get analysisFinished => _analysisFinished.future;
 
-  Stream<FileAnalysisErrors> get onErrors => _errorsController.stream;
-
-  Stream<EditBulkFixesResult> get onBulkFixes => _bulkFixesController.stream;
+  Stream<FileAnalysisErrors> get onErrors {
+    // {"event":"analysis.errors","params":{"file":"/Users/.../lib/main.dart","errors":[]}}
+    return _streamController('analysis.errors').stream.map((event) {
+      final file = event['file'] as String;
+      final errorsList = event['errors'] as List<dynamic>;
+      final errors = errorsList
+          .map<Map<String, dynamic>>(castStringKeyedMap)
+          .map<AnalysisError>(
+              (Map<String, dynamic> json) => AnalysisError(json))
+          .toList();
+      return FileAnalysisErrors(file, errors);
+    });
+  }
 
   Future<int> get onExit => _process.exitCode;
+
+  final Map<String, StreamController<Map<String, dynamic>>> _streamControllers =
+      {};
+
+  final Map<String, Completer<Map<String, dynamic>>> _requestCompleters = {};
 
   Future<void> start() async {
     final List<String> command = <String>[
@@ -77,7 +85,10 @@ class AnalysisServer {
         .transform<String>(const LineSplitter());
     inStream.listen(_handleServerResponse);
 
-    _sendCommand('server.setSubscriptions', <String, dynamic>{
+    _streamController('server.error').stream.listen(_handleServerError);
+
+    // ignore: unawaited_futures
+    _sendCommand('server.setSubscriptions', params: <String, dynamic>{
       'subscriptions': <String>['STATUS'],
     });
 
@@ -85,10 +96,10 @@ class AnalysisServer {
     // protocol throws an error (INVALID_FILE_PATH_FORMAT) if there is a
     // trailing slash.
     //
-    // The call to absolute.resolveSymbolicLinksSync() canonicalizes the path
-    // to be passed to the analysis server.
+    // The call to absolute.resolveSymbolicLinksSync() canonicalizes the path to
+    // be passed to the analysis server.
     var dirPath = trimEnd(
-      directories.single.absolute.resolveSymbolicLinksSync(),
+      directory.absolute.resolveSymbolicLinksSync(),
       path.context.separator,
     );
 
@@ -102,40 +113,53 @@ class AnalysisServer {
       }
     });
 
-    _sendCommand('analysis.setAnalysisRoots', <String, dynamic>{
+    // ignore: unawaited_futures
+    _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
       'included': [dirPath],
       'excluded': <String>[]
     });
   }
 
-  void requestBulkFixes(String filePath) {
-    _sendCommand('edit.bulkFixes', <String, dynamic>{
+  Future<String> getVersion() {
+    return _sendCommand('server.getVersion')
+        .then((response) => response['version']);
+  }
+
+  Future<EditBulkFixesResult> requestBulkFixes(String filePath) {
+    return _sendCommand('edit.bulkFixes', params: <String, dynamic>{
       'included': [path.canonicalize(filePath)],
+    }).then((result) {
+      return EditBulkFixesResult.fromJson(
+          ResponseDecoder(null), 'result', result);
     });
-    _fixRequestId = _id.toString();
   }
 
-  Future<void> shutdown({Duration timeLimit}) async {
-    timeLimit ??= const Duration(seconds: 5);
-    // Cleanup streams.
-    await _closeStreamControllers();
-
+  Future<void> shutdown({Duration timeout = const Duration(seconds: 5)}) async {
     // Request shutdown.
-    _sendCommand('server.shutdown', null);
-    _shutdownRequestId = _id.toString();
-    await _shutdownRequestCompleter.future.timeout(timeLimit, onTimeout: () {
-      _process?.kill();
+    await _sendCommand('server.shutdown').then((value) {
+      return null;
+    }).timeout(timeout, onTimeout: () async {
+      await dispose();
+    }).then((value) async {
+      await dispose();
     });
   }
 
-  void _sendCommand(String method, Map<String, dynamic> params) {
+  Future<Map<String, dynamic>> _sendCommand(String method,
+      {Map<String, dynamic> params}) {
+    final String id = (++_id).toString();
     final String message = json.encode(<String, dynamic>{
-      'id': (++_id).toString(),
+      'id': id,
       'method': method,
       'params': params,
     });
+
+    _requestCompleters[id] = Completer();
     _process.stdin.writeln(message);
+
     log.trace('==> $message');
+
+    return _requestCompleters[id].future;
   }
 
   void _handleServerResponse(String line) {
@@ -145,47 +169,24 @@ class AnalysisServer {
 
     if (response is Map<String, dynamic>) {
       if (response['event'] != null) {
-        final String event = response['event'] as String;
+        final event = response['event'] as String;
         final dynamic params = response['params'];
 
         if (params is Map<String, dynamic>) {
-          if (event == 'server.status') {
-            _handleStatus(castStringKeyedMap(response['params']));
-          } else if (event == 'analysis.errors') {
-            _handleAnalysisIssues(castStringKeyedMap(response['params']));
-          } else if (event == 'server.error') {
-            _handleServerError(castStringKeyedMap(response['params']));
-          }
+          _streamController(event).add(castStringKeyedMap(params));
         }
-      } else if (response['error'] != null) {
-        // Fields are 'code', 'message', and 'stackTrace'.
-        final Map<String, dynamic> error =
-            castStringKeyedMap(response['error']);
-        log.stderr(
-          'Error response from the server: '
-          '${error['code']} ${error['message']}',
-        );
-        if (error['stackTrace'] != null) {
-          log.stderr(error['stackTrace'] as String);
-        }
-        // Dispose of the process at this point so the process doesn't hang.
-        dispose();
-      } else if (response['id'] == _fixRequestId) {
-        var decoder = ResponseDecoder(null);
-        var result =
-            EditBulkFixesResult.fromJson(decoder, 'result', response['result']);
-        _bulkFixesController.add(result);
-      } else if (response['id'] == _shutdownRequestId) {
-        _shutdownRequestCompleter.complete();
-      }
-    }
-  }
+      } else if (response['id'] != null) {
+        final id = response['id'];
 
-  void _handleStatus(Map<String, dynamic> statusInfo) {
-    // {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
-    if (statusInfo['analysis'] != null && !_analyzingController.isClosed) {
-      final bool isAnalyzing = statusInfo['analysis']['isAnalyzing'] as bool;
-      _analyzingController.add(isAnalyzing);
+        if (response['error'] != null) {
+          final error = castStringKeyedMap(response['error']);
+          _requestCompleters
+              .remove(id)
+              ?.completeError(RequestError.parse(error));
+        } else {
+          _requestCompleters.remove(id)?.complete(response['result']);
+        }
+      }
     }
   }
 
@@ -195,30 +196,14 @@ class AnalysisServer {
     if (error['stackTrace'] != null) {
       log.stderr(error['stackTrace'] as String);
     }
-    _didServerErrorOccur = true;
   }
 
-  void _handleAnalysisIssues(Map<String, dynamic> issueInfo) {
-    // {"event":"analysis.errors","params":{"file":"/Users/.../lib/main.dart","errors":[]}}
-    final String file = issueInfo['file'] as String;
-    final List<dynamic> errorsList = issueInfo['errors'] as List<dynamic>;
-    final List<AnalysisError> errors = errorsList
-        .map<Map<String, dynamic>>(castStringKeyedMap)
-        .map<AnalysisError>((Map<String, dynamic> json) => AnalysisError(json))
-        .toList();
-    if (!_errorsController.isClosed) {
-      _errorsController.add(FileAnalysisErrors(file, errors));
-    }
-  }
-
-  void _closeStreamControllers() async {
-    await _analyzingController.close();
-    await _errorsController.close();
-    await _bulkFixesController.close();
+  StreamController<Map<String, dynamic>> _streamController(String streamId) {
+    return _streamControllers.putIfAbsent(
+        streamId, () => StreamController<Map<String, dynamic>>.broadcast());
   }
 
   Future<bool> dispose() async {
-    await _closeStreamControllers();
     return _process?.kill();
   }
 }
@@ -286,8 +271,8 @@ class AnalysisError implements Comparable<AnalysisError> {
   }
 
   // TODO(jwren) add some tests to verify that the results are what we are
-  //  expecting, 'other' is not always on the RHS of the subtraction in the
-  //  implementation.
+  // expecting, 'other' is not always on the RHS of the subtraction in the
+  // implementation.
   @override
   int compareTo(AnalysisError other) {
     // Sort in order of file path, error location, severity, and message.
@@ -332,4 +317,23 @@ class FileAnalysisErrors {
   final List<AnalysisError> errors;
 
   FileAnalysisErrors(this.file, this.errors);
+}
+
+class RequestError {
+  static RequestError parse(dynamic error) {
+    return RequestError(
+      error['code'],
+      error['message'],
+      stackTrace: error['stackTrace'],
+    );
+  }
+
+  final String code;
+  final String message;
+  final String stackTrace;
+
+  RequestError(this.code, this.message, {this.stackTrace});
+
+  @override
+  String toString() => '[RequestError code: $code, message: $message]';
 }
