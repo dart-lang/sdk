@@ -2,10 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartkb ]
-LibTest/isolate/Isolate/kill_A01_t01: Skip # Issue 37699
-LibTest/isolate/Isolate/pause_A01_t01: Skip # Issue 37699
-LibTest/isolate/Isolate/pause_A01_t02: Skip # Issue 37699
+[ $compiler == dartk ]
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash
+LibTest/isolate/SendPort/send_A01_t02: Crash
+LibTest/isolate/SendPort/send_A01_t03: Crash
 
 [ $compiler == fasta ]
 Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
@@ -173,10 +173,10 @@ LanguageFeatures/Set-literals/disambiguating_A02_t03: Crash
 LanguageFeatures/regression/34803_t01: Crash
 LanguageFeatures/regression/34803_t02: Crash
 
-[ $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
+[ $compiler == dartk && $runtime == vm && $system == linux ]
 LibTest/isolate/Isolate/spawn_A06_t03: Crash
 
-[ $runtime == vm && $system == macos && ($compiler == dartk || $compiler == dartkb) ]
+[ $compiler == dartk && $runtime == vm && $system == macos ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass
 LibTest/collection/ListBase/ListBase_class_A01_t03: Slow, Pass
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass
@@ -184,18 +184,8 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t03: Slow, Pass
 LibTest/core/List/List_class_A01_t02: Slow, Pass
 LibTest/core/List/List_class_A01_t03: Slow, Pass
 
-[ $runtime != vm && ($compiler == dartk || $compiler == dartkb) ]
+[ $compiler == dartk && $runtime != vm ]
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash
-
-[ $builder_tag == bytecode_interpreter || $builder_tag == bytecode_interpreter_nnbd ]
-LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass
-LibTest/collection/ListBase/ListBase_class_A01_t05: Slow, Pass
-LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
-
-[ $compiler == dartk || $compiler == dartkb ]
-Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash
-LibTest/isolate/SendPort/send_A01_t02: Crash
-LibTest/isolate/SendPort/send_A01_t03: Crash
 
 # It makes no sense to run any test that uses spawnURI under the simulator
 # as that would involve running CFE (the front end) in simulator mode

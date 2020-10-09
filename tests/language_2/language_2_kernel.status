@@ -108,21 +108,21 @@ assert/initializer_const_error2_test/cc11: Crash
 [ $compiler == dartkp && $system == windows ]
 unsorted/disassemble_test: Slow, Pass
 
-[ $mode == debug && $runtime == vm && ($compiler == app_jitk || $compiler == dartk || $compiler == dartkb) ]
+[ $mode == debug && $runtime == vm && ($compiler == app_jitk || $compiler == dartk) ]
 optimize/deopt_inlined_function_lazy_test: Skip
 
-[ $mode == debug && ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
+[ $mode == debug && ($compiler == dartk) && ($hot_reload || $hot_reload_rollback) ]
 enum/duplicate_test/02: Crash # Issue 34606
 enum/duplicate_test/none: Crash # Issue 34606
 enum/private_test/01: Crash # Issue 34606
 enum/test: Crash # Issue 34606
 
-[ $mode == product && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
+[ $mode == product && $runtime == vm && ($compiler == dartk) ]
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/causal_async_exception_stack_test: SkipByDesign
 
 # ===== dartk + vm status lines =====
-[ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
+[ $runtime == vm && ($compiler == dartk) ]
 const/const2_test: Crash # Flaky
 main/no_main_test/01: Skip
 mixin/illegal_super_use_test: Skip # Issues 24478 and 23773
@@ -132,8 +132,8 @@ vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
 vm/regress_29145_test: Skip # Issue 29145
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
-[ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
+[ $hot_reload_rollback && ($compiler == dartk) ]
 symbol/conflict_test: Slow, Pass
 
-[ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
+[ ($compiler == dartk) && ($hot_reload || $hot_reload_rollback) ]
 type_constants_test/none: Skip # Deferred libraries and hot reload.
