@@ -52,7 +52,6 @@ general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError # Is
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
 general_nnbd_opt_out/reject_generic_function_types_in_bounds: RuntimeError # Expected
 general_nnbd_opt_out/spread_collection: RuntimeError
-general_nnbd_opt_out/statements: Crash
 general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError # Expected
 general_nnbd_opt_out/type_variable_as_super: RuntimeError
 general_nnbd_opt_out/type_variable_bound_access: TypeCheckError

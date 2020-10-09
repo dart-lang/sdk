@@ -63,6 +63,8 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   /// a verification error for anything that should have been removed by it.
   final bool afterConst;
 
+  AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
+
   bool inCatchBlock = false;
 
   bool inUnevaluatedConstant = false;
@@ -378,9 +380,12 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   visitFunctionNode(FunctionNode node) {
     declareTypeParameters(node.typeParameters);
     bool savedInCatchBlock = inCatchBlock;
+    AsyncMarker savedAsyncMarker = currentAsyncMarker;
+    currentAsyncMarker = node.asyncMarker;
     inCatchBlock = false;
     visitWithLocalScope(node);
     inCatchBlock = savedInCatchBlock;
+    currentAsyncMarker = savedAsyncMarker;
     undeclareTypeParameters(node.typeParameters);
   }
 
@@ -441,6 +446,40 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     inCatchBlock = true;
     visitWithLocalScope(node);
     inCatchBlock = savedInCatchBlock;
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    switch (currentAsyncMarker) {
+      case AsyncMarker.Sync:
+      case AsyncMarker.Async:
+      case AsyncMarker.SyncYielding:
+        // ok
+        break;
+      case AsyncMarker.SyncStar:
+      case AsyncMarker.AsyncStar:
+        problem(node,
+            "Return statement in function with async marker: $currentAsyncMarker");
+        break;
+    }
+    super.visitReturnStatement(node);
+  }
+
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    switch (currentAsyncMarker) {
+      case AsyncMarker.Sync:
+      case AsyncMarker.Async:
+        problem(node,
+            "Yield statement in function with async marker: $currentAsyncMarker");
+        break;
+      case AsyncMarker.SyncStar:
+      case AsyncMarker.AsyncStar:
+      case AsyncMarker.SyncYielding:
+        // ok
+        break;
+    }
+    super.visitYieldStatement(node);
   }
 
   @override

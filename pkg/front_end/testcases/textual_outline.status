@@ -22,6 +22,7 @@ regress/utf_16_le_content.crash: EmptyOutput
 
 extensions/ambiguous: FormatterCrash
 extensions/annotations: FormatterCrash
+extensions/async_extensions: FormatterCrash
 extensions/bounds: FormatterCrash
 extensions/builtin_identifiers: FormatterCrash
 extensions/call_methods: FormatterCrash
