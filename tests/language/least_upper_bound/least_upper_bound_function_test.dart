@@ -46,6 +46,6 @@ void main() {
 
   void f7(Function(Function) x, Null y) {
     var z = condition ? x : y;
-    z.expectStaticType<Exactly<Object?>>();
+    z.expectStaticType<Exactly<Function(Function)?>>();
   }
 }

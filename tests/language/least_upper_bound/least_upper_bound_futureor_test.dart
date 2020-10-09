@@ -206,20 +206,16 @@ void main() {
 
   void f20(dynamic a, FutureOr<void> b) {
     var x = condition ? a : b;
-    x.expectStaticType<Exactly<FutureOr<void>>>();
-    if (x is Future) throw 0;
-    /**/ x.toString();
-    //   ^
-    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] This expression has type 'void' and can't be used.
+    // Verify that the type of `x` is a top type.
+    x.expectStaticType<Exactly<dynamic>>();
+    // Verify that it is `dynamic`.
+    x.unknownMember();
 
     var y = condition ? b : a;
-    y.expectStaticType<Exactly<FutureOr<void>>>();
-    if (y is Future) throw 0;
-    /**/ y.toString();
-    //   ^
-    // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-    // [cfe] This expression has type 'void' and can't be used.
+    // Verify that the type of `y` is a top type.
+    y.expectStaticType<Exactly<dynamic>>();
+    // Verify that it is `dynamic`.
+    y.unknownMember();
   }
 
   void f21(A a, B b) {
