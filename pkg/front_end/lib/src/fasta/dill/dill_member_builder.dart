@@ -187,7 +187,7 @@ class DillClassMember extends BuilderClassMember {
   }
 
   @override
-  void registerOverrideDependency(ClassMember overriddenMember) {
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
     // Do nothing; this is only for source members.
   }
 

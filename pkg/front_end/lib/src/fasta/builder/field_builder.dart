@@ -231,11 +231,13 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   bool _typeEnsured = false;
   Set<ClassMember> _overrideDependencies;
 
-  void registerOverrideDependency(ClassMember overriddenMember) {
-    assert(overriddenMember.classBuilder != classBuilder,
-        "Unexpected override dependency for $this: $overriddenMember");
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    assert(
+        overriddenMembers.every((overriddenMember) =>
+            overriddenMember.classBuilder != classBuilder),
+        "Unexpected override dependencies for $this: $overriddenMembers");
     _overrideDependencies ??= {};
-    _overrideDependencies.add(overriddenMember);
+    _overrideDependencies.addAll(overriddenMembers);
   }
 
   void _ensureType(ClassHierarchyBuilder hierarchy) {
@@ -697,8 +699,8 @@ class SourceFieldMember extends BuilderClassMember {
   }
 
   @override
-  void registerOverrideDependency(ClassMember overriddenMember) {
-    memberBuilder.registerOverrideDependency(overriddenMember);
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    memberBuilder.registerOverrideDependency(overriddenMembers);
   }
 
   @override
@@ -1315,8 +1317,8 @@ class _SynthesizedFieldClassMember implements ClassMember {
   }
 
   @override
-  void registerOverrideDependency(ClassMember overriddenMember) {
-    fieldBuilder.registerOverrideDependency(overriddenMember);
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    fieldBuilder.registerOverrideDependency(overriddenMembers);
   }
 
   @override

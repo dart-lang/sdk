@@ -249,11 +249,13 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   bool _typeEnsured = false;
   Set<ClassMember> _overrideDependencies;
 
-  void registerOverrideDependency(ClassMember overriddenMember) {
-    assert(overriddenMember.classBuilder != classBuilder,
-        "Unexpected override dependency for $this: $overriddenMember");
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    assert(
+        overriddenMembers.every((overriddenMember) =>
+            overriddenMember.classBuilder != classBuilder),
+        "Unexpected override dependencies for $this: $overriddenMembers");
     _overrideDependencies ??= {};
-    _overrideDependencies.add(overriddenMember);
+    _overrideDependencies.addAll(overriddenMembers);
   }
 
   void _ensureTypes(ClassHierarchyBuilder hierarchy) {
@@ -594,8 +596,8 @@ class SourceProcedureMember extends BuilderClassMember {
   }
 
   @override
-  void registerOverrideDependency(ClassMember overriddenMember) {
-    memberBuilder.registerOverrideDependency(overriddenMember);
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    memberBuilder.registerOverrideDependency(overriddenMembers);
   }
 
   @override
