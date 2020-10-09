@@ -1126,8 +1126,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(ahe): Handle other cases: accessors, operators, and fields.
   }
 
-  void checkGetterSetter(Types types, Member getter, Member setter,
-      {bool isInterfaceCheck = false}) {
+  void checkGetterSetter(Types types, Member getter, Member setter) {
     if (getter == setter) {
       return;
     }

@@ -67,7 +67,7 @@ import 'package:kernel/src/bounds_checks.dart'
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName;
 
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
@@ -1608,6 +1608,100 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     return typeVariablesByName;
+  }
+
+  void checkGetterSetterTypes(ProcedureBuilder getterBuilder,
+      ProcedureBuilder setterBuilder, TypeEnvironment typeEnvironment) {
+    DartType getterType;
+    List<TypeParameter> getterExtensionTypeParameters;
+    if (getterBuilder.isExtensionInstanceMember) {
+      // An extension instance getter
+      //
+      //     extension E<T> on A {
+      //       T get property => ...
+      //     }
+      //
+      // is encoded as a top level method
+      //
+      //   T# E#get#property<T#>(A #this) => ...
+      //
+      Procedure procedure = getterBuilder.procedure;
+      getterType = procedure.function.returnType;
+      getterExtensionTypeParameters = procedure.function.typeParameters;
+    } else {
+      getterType = getterBuilder.procedure.getterType;
+    }
+    DartType setterType;
+    if (setterBuilder.isExtensionInstanceMember) {
+      // An extension instance setter
+      //
+      //     extension E<T> on A {
+      //       void set property(T value) { ... }
+      //     }
+      //
+      // is encoded as a top level method
+      //
+      //   void E#set#property<T#>(A #this, T# value) { ... }
+      //
+      Procedure procedure = setterBuilder.procedure;
+      setterType = procedure.function.positionalParameters[1].type;
+      if (getterExtensionTypeParameters != null &&
+          getterExtensionTypeParameters.isNotEmpty) {
+        // We substitute the setter type parameters for the getter type
+        // parameters to check them below in a shared context.
+        List<TypeParameter> setterExtensionTypeParameters =
+            procedure.function.typeParameters;
+        assert(getterExtensionTypeParameters.length ==
+            setterExtensionTypeParameters.length);
+        setterType = Substitution.fromPairs(
+                setterExtensionTypeParameters,
+                new List<DartType>.generate(
+                    getterExtensionTypeParameters.length,
+                    (int index) => new TypeParameterType.forAlphaRenaming(
+                        setterExtensionTypeParameters[index],
+                        getterExtensionTypeParameters[index])))
+            .substituteType(setterType);
+      }
+    } else {
+      setterType = setterBuilder.procedure.setterType;
+    }
+
+    if (getterType is InvalidType || setterType is InvalidType) {
+      // Don't report a problem as something else is wrong that has already
+      // been reported.
+    } else {
+      bool isValid = typeEnvironment.isSubtypeOf(
+          getterType,
+          setterType,
+          library.isNonNullableByDefault
+              ? SubtypeCheckMode.withNullabilities
+              : SubtypeCheckMode.ignoringNullabilities);
+      if (!isValid && !library.isNonNullableByDefault) {
+        // Allow assignability in legacy libraries.
+        isValid = typeEnvironment.isSubtypeOf(
+            setterType, getterType, SubtypeCheckMode.ignoringNullabilities);
+      }
+      if (!isValid) {
+        String getterMemberName = getterBuilder.fullNameForErrors;
+        String setterMemberName = setterBuilder.fullNameForErrors;
+        Template<Message Function(DartType, String, DartType, String, bool)>
+            template = library.isNonNullableByDefault
+                ? templateInvalidGetterSetterType
+                : templateInvalidGetterSetterTypeLegacy;
+        addProblem(
+            template.withArguments(getterType, getterMemberName, setterType,
+                setterMemberName, library.isNonNullableByDefault),
+            getterBuilder.charOffset,
+            getterBuilder.name.length,
+            getterBuilder.fileUri,
+            context: [
+              templateInvalidGetterSetterTypeSetterContext
+                  .withArguments(setterMemberName)
+                  .withLocation(setterBuilder.fileUri, setterBuilder.charOffset,
+                      setterBuilder.name.length)
+            ]);
+      }
+    }
   }
 
   void addExtensionDeclaration(
@@ -3579,6 +3673,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         checkTypesInField(declaration, typeEnvironment);
       } else if (declaration is ProcedureBuilder) {
         checkTypesInProcedureBuilder(declaration, typeEnvironment);
+        if (declaration.isGetter) {
+          Builder setterDeclaration =
+              scope.lookupLocalMember(declaration.name, setter: true);
+          if (setterDeclaration != null) {
+            checkGetterSetterTypes(
+                declaration, setterDeclaration, typeEnvironment);
+          }
+        }
       } else if (declaration is SourceClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {

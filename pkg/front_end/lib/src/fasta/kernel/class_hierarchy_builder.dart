@@ -2879,8 +2879,7 @@ class DelayedGetterSetterCheck implements DelayedCheck {
 
   void check(ClassHierarchyBuilder hierarchy) {
     classBuilder.checkGetterSetter(hierarchy.types, getter.getMember(hierarchy),
-        setter.getMember(hierarchy),
-        isInterfaceCheck: !classBuilder.isMixinApplication);
+        setter.getMember(hierarchy));
   }
 }
 

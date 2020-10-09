@@ -6,8 +6,11 @@ abstract class A {
   int get property1; // ok
   void set property1(int i);
 
-  int get property2; // ok
-  void set property2(int i);
+  num get property2a; // ok
+  void set property2a(int i);
+
+  int get property2b; // ok
+  void set property2b(num i);
 
   String get property3; // error
   void set property3(int i);
@@ -17,6 +20,18 @@ abstract class A {
   int property5; // ok
 
   covariant String property6; // ok
+
+  static int get property7 => 0; // ok
+  static void set property7(int value) {}
+
+  static int get property8a => 0; // ok
+  static void set property8a(num value) {}
+
+  static num get property8b => 0; // ok
+  static void set property8b(int value) {}
+
+  static num get property9 => 0; // error
+  static void set property9(String value) {}
 }
 
 abstract class B1 {
@@ -101,5 +116,43 @@ abstract class D3 implements D1, D2 /* error on property2 and property3 */ {}
 
 abstract class D4
     implements D3 /* no need for error on property2 and property3 */ {}
+
+extension Extension<T extends num, S extends T> on int {
+  int get property1 => 0; // ok
+  void set property1(int i) {}
+
+  num get property2a => 0; // ok
+  void set property2a(int i) {}
+
+  int get property2b => 0; // ok
+  void set property2b(num i) {}
+
+  String get property3 => ''; // error
+  void set property3(int i) {}
+
+  S get property4 => 0; // ok
+  void set property4(S i) {}
+
+  S get property5a => 0; // ok
+  void set property5a(T i) {}
+
+  T get property5b => 0; // ok
+  void set property5b(S i) {}
+
+  String get property6 => ''; // error
+  void set property6(S i) {}
+
+  static int get property7 => 0; // ok
+  static void set property7(int value) {}
+
+  static int get property8a => 0; // ok
+  static void set property8a(num value) {}
+
+  static num get property8b => 0; // ok
+  static void set property8b(int value) {}
+
+  static num get property9 => 0; // error
+  static void set property9(String value) {}
+}
 
 main() {}
