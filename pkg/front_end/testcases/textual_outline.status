@@ -41,6 +41,7 @@ extensions/explicit_this: FormatterCrash
 extensions/extension_call: FormatterCrash
 extensions/extension_constructor: FormatterCrash
 extensions/extension_field_with_type_parameter_usage: FormatterCrash
+extensions/extension_member_conflict: FormatterCrash
 extensions/extension_methods: FormatterCrash
 extensions/extension_setter: FormatterCrash
 extensions/extension_setter_error: FormatterCrash
@@ -108,6 +109,7 @@ general/error_recovery/issue_39202.crash: FormatterCrash
 general/error_recovery/issue_39230.crash: FormatterCrash
 general/error_recovery/issue_39958_01: FormatterCrash
 general/function_type_default_value: FormatterCrash
+general/getter_vs_setter_type: FormatterCrash
 general/incomplete_field_formal_parameter: FormatterCrash
 general/invalid_operator2: FormatterCrash
 general/invalid_operator: FormatterCrash
@@ -171,7 +173,9 @@ nnbd/extension_never: FormatterCrash
 nnbd/external_field_errors: FormatterCrash
 nnbd/external_fields: FormatterCrash
 nnbd/forbidden_supers: FormatterCrash
+nnbd/getter_vs_setter_type: FormatterCrash
 nnbd/getter_vs_setter_type_late: FormatterCrash
+nnbd/getter_vs_setter_type_nnbd: FormatterCrash
 nnbd/infer_if_null: FormatterCrash
 nnbd/inheritance_from_opt_in: FormatterCrash
 nnbd/issue40805: FormatterCrash

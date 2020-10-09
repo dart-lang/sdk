@@ -6,6 +6,12 @@ abstract class A {
   int get property1;
   int get property2;
   int property4;
+  static int? get property9 => 0;
+  static int get property7 => 0;
+  static int get property8 => 0;
+  static void set property7(int value) {}
+  static void set property8(int? value) {}
+  static void set property9(int value) {}
   void set property1(int i);
   void set property2(int? i);
   void set property3(int i);
@@ -65,4 +71,10 @@ abstract class D3 implements D1, D2 {}
 
 abstract class D4 implements D3 {}
 
+int? get property3 => 0;
+int get property1 => 0;
+int get property2 => 0;
 main() {}
+void set property1(int value) {}
+void set property2(int? value) {}
+void set property3(int value) {}

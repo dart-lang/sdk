@@ -973,7 +973,7 @@ void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
     const ObjectPool& pool = ObjectPool::Handle(Z, bytecode.object_pool());
     AbstractType& handler_type = AbstractType::Handle(Z);
     Array& handler_types = Array::Handle(Z);
-    DescriptorList* pc_descriptors_list = new (Z) DescriptorList(64);
+    DescriptorList* pc_descriptors_list = new (Z) DescriptorList(Z);
     ExceptionHandlerList* exception_handlers_list =
         new (Z) ExceptionHandlerList();
 

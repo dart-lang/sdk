@@ -1106,35 +1106,8 @@ class DwarfElfStream : public DwarfWriteStream {
         stream_(ASSERT_NOTNULL(stream)),
         table_(table) {}
 
-  void sleb128(intptr_t value) {
-    bool is_last_part = false;
-    while (!is_last_part) {
-      uint8_t part = value & 0x7F;
-      value >>= 7;
-      if ((value == 0 && (part & 0x40) == 0) ||
-          (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
-        is_last_part = true;
-      } else {
-        part |= 0x80;
-      }
-      stream_->WriteByte(part);
-    }
-  }
-
-  void uleb128(uintptr_t value) {
-    bool is_last_part = false;
-    while (!is_last_part) {
-      uint8_t part = value & 0x7F;
-      value >>= 7;
-      if (value == 0) {
-        is_last_part = true;
-      } else {
-        part |= 0x80;
-      }
-      stream_->WriteByte(part);
-    }
-  }
-
+  void sleb128(intptr_t value) { stream_->WriteSLEB128(value); }
+  void uleb128(uintptr_t value) { stream_->WriteLEB128(value); }
   void u1(uint8_t value) { stream_->WriteByte(value); }
   void u2(uint16_t value) { stream_->WriteFixed(value); }
   void u4(uint32_t value) { stream_->WriteFixed(value); }

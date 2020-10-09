@@ -21,119 +21,119 @@ set tooMany(var value, var extra) {}
 /*space*/ int? set wrongReturnType1(_) => 1;
 //        ^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-// [cfe] unspecified
+// [cfe] The return type of the setter must be 'void' or absent.
 
 /*space*/ FutureOr<void> set wrongReturnType2(_) {}
 //        ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-// [cfe] unspecified
+// [cfe] The return type of the setter must be 'void' or absent.
 
 /*space*/ Never set wrongReturnType3(_) => throw 1;
 //        ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-// [cfe] unspecified
+// [cfe] The return type of the setter must be 'void' or absent.
 
 int get nonSubtypes1 => 1;
 //      ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-// [cfe] unspecified
+// [cfe] The type 'int' of the getter 'nonSubtypes1' is not a subtype of the type 'String' of the setter 'nonSubtypes1'.
 set nonSubtypes1(String _) {}
 
 int? get nonSubtypes2 => 1;
 //       ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-// [cfe] unspecified
+// [cfe] The type 'int?' of the getter 'nonSubtypes2' is not a subtype of the type 'int' of the setter 'nonSubtypes2'.
 set nonSubtypes2(int _) {}
 
 FutureOr<int> get nonSubtypes3 => 1;
 //                ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-// [cfe] unspecified
+// [cfe] The type 'FutureOr<int>' of the getter 'nonSubtypes3' is not a subtype of the type 'int' of the setter 'nonSubtypes3'.
 set nonSubtypes3(int _) {}
 
 dynamic get nonSubtypes4 => 1;
 //          ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-// [cfe] unspecified
+// [cfe] The type 'dynamic' of the getter 'nonSubtypes4' is not a subtype of the type 'int' of the setter 'nonSubtypes4'.
 set nonSubtypes4(int _) {}
 
 class C {
   static int? set staticWrongReturnType1(_) => 1;
   //     ^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-  // [cfe] unspecified
+  // [cfe] The return type of the setter must be 'void' or absent.
 
   static FutureOr<void> set staticWrongReturnType2(_) {}
   //     ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-  // [cfe] unspecified
+  // [cfe] The return type of the setter must be 'void' or absent.
 
   static Never set staticWrongReturnType3(_) => throw 1;
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-  // [cfe] unspecified
+  // [cfe] The return type of the setter must be 'void' or absent.
 
   /*space*/ int? set wrongReturnType1(_) => 1;
   //        ^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-  // [cfe] unspecified
+  // [cfe] The return type of the setter must be 'void' or absent.
 
   /*space*/ FutureOr<void> set wrongReturnType2(_) {}
   //        ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-  // [cfe] unspecified
+  // [cfe] The return type of the setter must be 'void' or absent.
 
   /*space*/ Never set wrongReturnType3(_) => throw 1;
   //        ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
-  // [cfe] unspecified
+  // [cfe] The return type of the setter must be 'void' or absent.
 
   static int get staticNonSubtypes1 => 1;
   //             ^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+  // [cfe] The type 'int' of the getter 'C.staticNonSubtypes1' is not a subtype of the type 'String' of the setter 'C.staticNonSubtypes1'.
   static set staticNonSubtypes1(String _) {}
 
   static int? get staticNonSubtypes2 => 1;
   //              ^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+  // [cfe] The type 'int?' of the getter 'C.staticNonSubtypes2' is not a subtype of the type 'int' of the setter 'C.staticNonSubtypes2'.
   static set staticNonSubtypes2(int _) {}
 
   static FutureOr<int> get staticNonSubtypes3 => 1;
   //                       ^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+  // [cfe] The type 'FutureOr<int>' of the getter 'C.staticNonSubtypes3' is not a subtype of the type 'int' of the setter 'C.staticNonSubtypes3'.
   static set staticNonSubtypes3(int _) {}
 
   static dynamic get staticNonSubtypes4 => 1;
   //                 ^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+  // [cfe] The type 'dynamic' of the getter 'C.staticNonSubtypes4' is not a subtype of the type 'int' of the setter 'C.staticNonSubtypes4'.
   static set staticNonSubtypes4(int _) {}
 
   int get nonSubtypes1 => 1;
   //      ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+  // [cfe] The type 'int' of the getter 'C.nonSubtypes1' is not a subtype of the type 'String' of the setter 'C.nonSubtypes1'.
   set nonSubtypes1(String _) {}
 
   int? get nonSubtypes2 => 1;
   //       ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+  // [cfe] The type 'int?' of the getter 'C.nonSubtypes2' is not a subtype of the type 'int' of the setter 'C.nonSubtypes2'.
   set nonSubtypes2(int _) {}
 
   FutureOr<int> get nonSubtypes3 => 1;
   //                ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+  // [cfe] The type 'FutureOr<int>' of the getter 'C.nonSubtypes3' is not a subtype of the type 'int' of the setter 'C.nonSubtypes3'.
   set nonSubtypes3(int _) {}
 
   dynamic get nonSubtypes4 => 1;
   //          ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
-  // [cfe] unspecified
+  // [cfe] The type 'dynamic' of the getter 'C.nonSubtypes4' is not a subtype of the type 'int' of the setter 'C.nonSubtypes4'.
   set nonSubtypes4(int _) {}
 }
 

@@ -1,15 +1,24 @@
 abstract class A {
   int get property1;
   void set property1(int i);
-  int get property2;
-  void set property2(int i);
+  num get property2a;
+  void set property2a(int i);
+  int get property2b;
+  void set property2b(num i);
   String get property3;
   void set property3(int i);
   int property4;
   int property5;
   covariant String property6;
+  static int get property7 => 0;
+  static void set property7(int value) {}
+  static int get property8a => 0;
+  static void set property8a(num value) {}
+  static num get property8b => 0;
+  static void set property8b(int value) {}
+  static num get property9 => 0;
+  static void set property9(String value) {}
 }
-
 abstract class B1 {
   int get property1;
   int get property2;
@@ -19,7 +28,6 @@ abstract class B1 {
   final String property6;
   B1(this.property4, this.property5, this.property6);
 }
-
 abstract class B2 implements B1 {
   void set property1(int i);
   void set property2(String i);
@@ -28,7 +36,6 @@ abstract class B2 implements B1 {
   void set property5(String i);
   void set property6(int i);
 }
-
 abstract class C1 {
   void set property1(int i);
   void set property2(String i);
@@ -37,7 +44,6 @@ abstract class C1 {
   String property5;
   int property6;
 }
-
 abstract class C2 implements C1 {
   int get property1;
   int get property2;
@@ -46,21 +52,18 @@ abstract class C2 implements C1 {
   int get property5;
   String get property6;
 }
-
 abstract class D1 {
   int get property1;
   int get property2;
   String get property3;
 }
-
 abstract class D2 {
   void set property1(int i);
   void set property2(String i);
   void set property3(int i);
 }
-
 abstract class D3 implements D1, D2 {}
-
 abstract class D4 implements D3 {}
-
+extension Extension<T extends num, S extends T> (){}
+on int (){}
 main() {}

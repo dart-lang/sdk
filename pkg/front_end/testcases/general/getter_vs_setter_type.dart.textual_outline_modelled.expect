@@ -2,11 +2,21 @@ abstract class A {
   String get property3;
   covariant String property6;
   int get property1;
-  int get property2;
+  int get property2b;
   int property4;
   int property5;
+  num get property2a;
+  static int get property7 => 0;
+  static int get property8a => 0;
+  static num get property8b => 0;
+  static num get property9 => 0;
+  static void set property7(int value) {}
+  static void set property8a(num value) {}
+  static void set property8b(int value) {}
+  static void set property9(String value) {}
   void set property1(int i);
-  void set property2(int i);
+  void set property2a(int i);
+  void set property2b(num i);
   void set property3(int i);
 }
 

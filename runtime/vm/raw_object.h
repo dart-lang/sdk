@@ -1847,7 +1847,9 @@ class CompressedStackMapsLayout : public ObjectLayout {
                                     sizeof(flags_and_size_) * kBitsPerByte -
                                         UsesTableBit::kNextBit> {};
 
+  friend class Object;
   friend class ImageWriter;
+  friend class StackMapEntry;
 };
 
 class LocalVarDescriptorsLayout : public ObjectLayout {

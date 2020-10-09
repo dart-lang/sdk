@@ -195,7 +195,9 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 }
 
 void FlowGraphCompiler::InitCompiler() {
-  pc_descriptors_list_ = new (zone()) DescriptorList(64);
+  compressed_stackmaps_builder_ =
+      new (zone()) CompressedStackMapsBuilder(zone());
+  pc_descriptors_list_ = new (zone()) DescriptorList(zone());
   exception_handlers_list_ = new (zone()) ExceptionHandlerList();
 #if defined(DART_PRECOMPILER)
   catch_entry_moves_maps_builder_ = new (zone()) CatchEntryMovesMapBuilder();
@@ -1001,8 +1003,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       bitmap->Set(bitmap->Length(), true);
     }
 
-    compressed_stackmaps_builder()->AddEntry(assembler()->CodeSize(), bitmap,
-                                             spill_area_size);
+    compressed_stackmaps_builder_->AddEntry(assembler()->CodeSize(), bitmap,
+                                            spill_area_size);
   }
 }
 
@@ -1157,15 +1159,11 @@ ArrayPtr FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
 }
 
 void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
-  if (compressed_stackmaps_builder_ == NULL) {
-    code.set_compressed_stackmaps(
-        CompressedStackMaps::Handle(CompressedStackMaps::null()));
-  } else {
-    // Finalize the compressed stack maps and add it to the code object.
-    const auto& maps =
-        CompressedStackMaps::Handle(compressed_stackmaps_builder_->Finalize());
-    code.set_compressed_stackmaps(maps);
-  }
+  ASSERT(compressed_stackmaps_builder_ != NULL);
+  // Finalize the compressed stack maps and add it to the code object.
+  const auto& maps =
+      CompressedStackMaps::Handle(compressed_stackmaps_builder_->Finalize());
+  code.set_compressed_stackmaps(maps);
 }
 
 void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {

@@ -23,16 +23,38 @@ static const int8_t kMaxDataPerByte = (~kMinDataPerByte & kByteMask);  // NOLINT
 static const uint8_t kEndByteMarker = (255 - kMaxDataPerByte);
 static const uint8_t kEndUnsignedByteMarker = (255 - kMaxUnsignedDataPerByte);
 
+struct LEB128Constants : AllStatic {
+  // Convenience template for ensuring non-signed types trigger SFINAE.
+  template <typename T, typename S>
+  using only_if_signed =
+      typename std::enable_if<std::is_signed<T>::value, S>::type;
+
+  // Convenience template for ensuring signed types trigger SFINAE.
+  template <typename T, typename S>
+  using only_if_unsigned =
+      typename std::enable_if<std::is_unsigned<T>::value, S>::type;
+
+  // (S)LEB128 encodes 7 bits of data per byte (hence 128).
+  static constexpr uint8_t kDataBitsPerByte = 7;
+  static constexpr uint8_t kDataByteMask = (1 << kDataBitsPerByte) - 1;
+  // If more data follows a given data byte, the high bit is set.
+  static constexpr uint8_t kMoreDataMask = (1 << kDataBitsPerByte);
+  // For SLEB128, the high bit in the data of the last byte is the sign bit.
+  static constexpr uint8_t kSignMask = (1 << (kDataBitsPerByte - 1));
+};
+
+class NonStreamingWriteStream;
+
 // Stream for reading various types from a buffer.
 class ReadStream : public ValueObject {
  public:
   ReadStream(const uint8_t* buffer, intptr_t size)
       : buffer_(buffer), current_(buffer), end_(buffer + size) {}
 
-  void SetStream(const uint8_t* buffer, intptr_t size) {
-    buffer_ = buffer;
-    current_ = buffer;
-    end_ = buffer + size;
+  // Creates a ReadStream that starts at a given position in the buffer.
+  ReadStream(const uint8_t* buffer, intptr_t size, intptr_t pos)
+      : ReadStream(buffer, size) {
+    SetPosition(pos);
   }
 
   template <int N, typename T>
@@ -78,7 +100,7 @@ class ReadStream : public ValueObject {
 
   intptr_t Position() const { return current_ - buffer_; }
   void SetPosition(intptr_t value) {
-    ASSERT((end_ - buffer_) > value);
+    ASSERT((end_ - buffer_) >= value);
     current_ = buffer_ + value;
   }
 
@@ -106,16 +128,69 @@ class ReadStream : public ValueObject {
   }
 
   uword ReadWordWith32BitReads() {
-    constexpr intptr_t kNumBytesPerRead32 = sizeof(uint32_t);
-    constexpr intptr_t kNumRead32PerWord = sizeof(uword) / kNumBytesPerRead32;
-    constexpr intptr_t kNumBitsPerRead32 = kNumBytesPerRead32 * kBitsPerByte;
+    constexpr intptr_t kNumRead32PerWord = kBitsPerWord / kBitsPerInt32;
 
     uword value = 0;
     for (intptr_t j = 0; j < kNumRead32PerWord; j++) {
-      const auto partial_value = Raw<kNumBytesPerRead32, uint32_t>::Read(this);
-      value |= (static_cast<uword>(partial_value) << (j * kNumBitsPerRead32));
+      const auto partial_value = Raw<kInt32Size, uint32_t>::Read(this);
+      value |= (static_cast<uword>(partial_value) << (j * kBitsPerInt32));
     }
     return value;
+  }
+
+ private:
+  using C = LEB128Constants;
+
+ public:
+  template <typename T = uintptr_t>
+  C::only_if_unsigned<T, T> ReadLEB128() {
+    constexpr intptr_t kBitsPerT = kBitsPerByte * sizeof(T);
+    T r = 0;
+    uint8_t s = 0;
+    uint8_t b;
+    do {
+      ASSERT(s < kBitsPerT);
+      b = ReadByte();
+      r |= static_cast<T>(b & C::kDataByteMask) << s;
+      s += C::kDataBitsPerByte;
+    } while ((b & C::kMoreDataMask) != 0);
+    ASSERT(s < C::kDataBitsPerByte + kBitsPerT);
+    return r;
+  }
+
+  template <typename T>
+  C::only_if_signed<T, T> ReadLEB128() {
+    return bit_cast<T>(ReadLEB128<typename std::make_unsigned<T>::type>());
+  }
+
+  template <typename T>
+  C::only_if_unsigned<T, T> ReadSLEB128() {
+    constexpr intptr_t kBitsPerT = kBitsPerByte * sizeof(T);
+    T r = 0;
+    uint8_t s = 0;
+    uint8_t b;
+    do {
+      ASSERT(s < kBitsPerT);
+      b = ReadByte();
+      r |= static_cast<T>(b & C::kDataByteMask) << s;
+      s += C::kDataBitsPerByte;
+    } while ((b & C::kMoreDataMask) != 0);
+    ASSERT(s < C::kDataBitsPerByte + kBitsPerT);
+    // At this point, [s] contains how many data bits have made it into the
+    // value. If the value is negative and the count of data bits is less than
+    // the size of the value, then we need to extend the sign by setting the
+    // remaining (unset) most significant bits (MSBs).
+    T sign_bits = 0;
+    if ((b & C::kSignMask) != 0 && s < kBitsPerT) {
+      // Create a bitmask for the current data bits and invert it.
+      sign_bits = ~((static_cast<T>(1) << s) - 1);
+    }
+    return r | sign_bits;
+  }
+
+  template <typename T = intptr_t>
+  C::only_if_signed<T, T> ReadSLEB128() {
+    return bit_cast<T>(ReadSLEB128<typename std::make_unsigned<T>::type>());
   }
 
  private:
@@ -128,11 +203,8 @@ class ReadStream : public ValueObject {
   template <typename T>
   T Read(uint8_t end_byte_marker) {
     using Unsigned = typename std::make_unsigned<T>::type;
-    const uint8_t* c = current_;
-    ASSERT(c < end_);
-    Unsigned b = *c++;
+    Unsigned b = ReadByte();
     if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
       return b - end_byte_marker;
     }
     T r = 0;
@@ -140,159 +212,78 @@ class ReadStream : public ValueObject {
     do {
       r |= static_cast<Unsigned>(b) << s;
       s += kDataBitsPerByte;
-      ASSERT(c < end_);
-      b = *c++;
+      b = ReadByte();
     } while (b <= kMaxUnsignedDataPerByte);
-    current_ = c;
     return r | (static_cast<Unsigned>(b - end_byte_marker) << s);
   }
 
-  uint16_t Read16(uint8_t end_byte_marker) {
-    const uint8_t* c = current_;
-    ASSERT(c < end_);
-    uint16_t b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return b - end_byte_marker;
-    }
-    uint16_t r = b;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint16_t>(b - end_byte_marker) << 7);
-    }
+// Setting up needed variables for the unrolled loop sections below.
+#define UNROLLED_INIT()                                                        \
+  using Unsigned = typename std::make_unsigned<T>::type;                       \
+  Unsigned b = ReadByte();                                                     \
+  if (b > kMaxUnsignedDataPerByte) {                                           \
+    return b - end_byte_marker;                                                \
+  }                                                                            \
+  T r = b;
 
-    r |= b << 7;
-    ASSERT(c < end_);
-    b = *c++;
-    ASSERT(b > kMaxUnsignedDataPerByte);
-    current_ = c;
-    return r | (static_cast<uint16_t>(b - end_byte_marker) << 14);
+// Part of the unrolled loop where the loop may stop, having read the last part,
+// or continue reading.
+#define UNROLLED_BODY(bit_start)                                               \
+  static_assert(bit_start % kDataBitsPerByte == 0,                             \
+                "Bit start must be a multiple of the data bits per byte");     \
+  static_assert(bit_start >= 0 && bit_start < kBitsPerByte * sizeof(T),        \
+                "Starting unrolled body at invalid bit position");             \
+  static_assert(bit_start + kDataBitsPerByte < kBitsPerByte * sizeof(T),       \
+                "Unrolled body should not contain final bits in value");       \
+  b = ReadByte();                                                              \
+  if (b > kMaxUnsignedDataPerByte) {                                           \
+    return r | (static_cast<T>(b - end_byte_marker) << bit_start);             \
+  }                                                                            \
+  r |= b << bit_start;
+
+// The end of the unrolled loop.
+#define UNROLLED_END(bit_start)                                                \
+  static_assert(bit_start % kDataBitsPerByte == 0,                             \
+                "Bit start must be a multiple of the data bits per byte");     \
+  static_assert(bit_start >= 0 && bit_start < kBitsPerByte * sizeof(T),        \
+                "Starting unrolled end at invalid bit position");              \
+  static_assert(bit_start + kDataBitsPerByte >= kBitsPerByte * sizeof(T),      \
+                "Unrolled end does not contain final bits in value");          \
+  b = ReadByte();                                                              \
+  ASSERT(b > kMaxUnsignedDataPerByte);                                         \
+  return r | (static_cast<T>(b - end_byte_marker) << bit_start);
+
+  uint16_t Read16(uint8_t end_byte_marker) {
+    using T = uint16_t;
+    UNROLLED_INIT();
+    UNROLLED_BODY(7);
+    UNROLLED_END(14);
   }
 
   uint32_t Read32(uint8_t end_byte_marker) {
-    const uint8_t* c = current_;
-    ASSERT(c < end_);
-    uint32_t b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return b - end_byte_marker;
-    }
-
-    uint32_t r = b;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint32_t>(b - end_byte_marker) << 7);
-    }
-
-    r |= b << 7;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint32_t>(b - end_byte_marker) << 14);
-    }
-
-    r |= b << 14;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint32_t>(b - end_byte_marker) << 21);
-    }
-
-    r |= b << 21;
-    ASSERT(c < end_);
-    b = *c++;
-    ASSERT(b > kMaxUnsignedDataPerByte);
-    current_ = c;
-    return r | (static_cast<uint32_t>(b - end_byte_marker) << 28);
+    using T = uint32_t;
+    UNROLLED_INIT();
+    UNROLLED_BODY(7);
+    UNROLLED_BODY(14);
+    UNROLLED_BODY(21);
+    UNROLLED_END(28);
   }
 
   uint64_t Read64(uint8_t end_byte_marker) {
-    const uint8_t* c = current_;
-    ASSERT(c < end_);
-    uint64_t b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return b - end_byte_marker;
-    }
-    uint64_t r = b;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint64_t>(b - end_byte_marker) << 7);
-    }
-
-    r |= b << 7;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint64_t>(b - end_byte_marker) << 14);
-    }
-
-    r |= b << 14;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint64_t>(b - end_byte_marker) << 21);
-    }
-
-    r |= b << 21;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint64_t>(b - end_byte_marker) << 28);
-    }
-
-    r |= b << 28;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint64_t>(b - end_byte_marker) << 35);
-    }
-
-    r |= b << 35;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint64_t>(b - end_byte_marker) << 42);
-    }
-
-    r |= b << 42;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint64_t>(b - end_byte_marker) << 49);
-    }
-
-    r |= b << 49;
-    ASSERT(c < end_);
-    b = *c++;
-    if (b > kMaxUnsignedDataPerByte) {
-      current_ = c;
-      return r | (static_cast<uint64_t>(b - end_byte_marker) << 56);
-    }
-
-    r |= b << 56;
-    ASSERT(c < end_);
-    b = *c++;
-    ASSERT(b > kMaxUnsignedDataPerByte);
-    current_ = c;
-    return r | (static_cast<uint64_t>(b - end_byte_marker) << 63);
+    using T = uint64_t;
+    UNROLLED_INIT();
+    UNROLLED_BODY(7);
+    UNROLLED_BODY(14);
+    UNROLLED_BODY(21);
+    UNROLLED_BODY(28);
+    UNROLLED_BODY(35);
+    UNROLLED_BODY(42);
+    UNROLLED_BODY(49);
+    UNROLLED_BODY(56);
+    UNROLLED_END(63);
   }
 
-  uint8_t ReadByte() {
+  DART_FORCE_INLINE uint8_t ReadByte() {
     ASSERT(current_ < end_);
     return *current_++;
   }
@@ -320,9 +311,11 @@ class BaseWriteStream : public ValueObject {
     const intptr_t position_before = Position();
     const intptr_t position_after = Utils::RoundUp(position_before, alignment);
     const intptr_t length = position_after - position_before;
-    EnsureSpace(length);
-    memset(current_, 0, length);
-    SetPosition(position_after);
+    if (length != 0) {
+      EnsureSpace(length);
+      memset(current_, 0, length);
+      SetPosition(position_after);
+    }
     return length;
   }
 
@@ -362,14 +355,12 @@ class BaseWriteStream : public ValueObject {
   };
 
   void WriteWordWith32BitWrites(uword value) {
-    constexpr intptr_t kNumBytesPerWrite32 = sizeof(uint32_t);
-    constexpr intptr_t kNumWrite32PerWord = sizeof(uword) / kNumBytesPerWrite32;
-    constexpr intptr_t kNumBitsPerWrite32 = kNumBytesPerWrite32 * kBitsPerByte;
+    constexpr intptr_t kNumWrite32PerWord = kBitsPerWord / kBitsPerInt32;
 
-    const uint32_t mask = Utils::NBitMask(kNumBitsPerWrite32);
+    const uint32_t mask = Utils::NBitMask(kBitsPerInt32);
     for (intptr_t j = 0; j < kNumWrite32PerWord; j++) {
-      const uint32_t shifted_value = (value >> (j * kNumBitsPerWrite32));
-      Raw<kNumBytesPerWrite32, uint32_t>::Write(this, shifted_value & mask);
+      const uint32_t shifted_value = (value >> (j * kBitsPerInt32));
+      Raw<kInt32Size, uint32_t>::Write(this, shifted_value & mask);
     }
   }
 
@@ -384,11 +375,11 @@ class BaseWriteStream : public ValueObject {
   }
 
   void WriteBytes(const void* addr, intptr_t len) {
-    EnsureSpace(len);
     if (len != 0) {
+      EnsureSpace(len);
       memmove(current_, addr, len);
+      current_ += len;
     }
-    current_ += len;
   }
 
   void WriteWord(uword value) { WriteFixed(value); }
@@ -406,7 +397,7 @@ class BaseWriteStream : public ValueObject {
     // Measure.
     va_list measure_args;
     va_copy(measure_args, args);
-    intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+    intptr_t len = Utils::VSNPrint(nullptr, 0, format, measure_args);
     va_end(measure_args);
 
     // Alloc.
@@ -442,6 +433,85 @@ class BaseWriteStream : public ValueObject {
   }
 
   void WriteString(const char* cstr) { WriteBytes(cstr, strlen(cstr)); }
+
+ private:
+  using C = LEB128Constants;
+
+ public:
+  template <typename T>
+  C::only_if_unsigned<T, void> WriteLEB128(T value) {
+    T remainder = value;
+    bool is_last_part;
+    do {
+      uint8_t part = static_cast<uint8_t>(remainder & C::kDataByteMask);
+      remainder >>= C::kDataBitsPerByte;
+      // For unsigned types, we're done when the remainder has no bits set.
+      is_last_part = remainder == static_cast<T>(0);
+      if (!is_last_part) {
+        // Mark this part as a non-final part for this value.
+        part |= C::kMoreDataMask;
+      }
+      WriteByte(part);
+    } while (!is_last_part);
+  }
+
+  template <typename T>
+  C::only_if_signed<T, void> WriteLEB128(T value) {
+    // If we're trying to LEB128 encode a negative value, chances are we should
+    // be using SLEB128 instead.
+    ASSERT(value >= 0);
+    return WriteLEB128(bit_cast<typename std::make_unsigned<T>::type>(value));
+  }
+
+  template <typename T>
+  C::only_if_signed<T, void> WriteSLEB128(T value) {
+    constexpr intptr_t kBitsPerT = kBitsPerByte * sizeof(T);
+    using Unsigned = typename std::make_unsigned<T>::type;
+    // Record whether the original value was negative.
+    const bool is_negative = value < 0;
+    T remainder = value;
+    bool is_last_part;
+    do {
+      uint8_t part = static_cast<uint8_t>(remainder & C::kDataByteMask);
+      remainder >>= C::kDataBitsPerByte;
+      // For signed types, we're done when either:
+      // - the remainder has all bits set and the part's sign bit is set
+      //   for negative values, or
+      // - the remainder has no bits set and the part's sign bit is unset for
+      //   non-negative values.
+      // If the remainder matches but the sign bit does not, we need one more
+      // part to set the sign bit correctly when decoding.
+      if (is_negative) {
+        // Right shifts of negative values in C are not guaranteed to be
+        // arithmetic. For negative values, set the [kDataBitsPerByte] most
+        // significant bits after shifting to ensure the value stays negative.
+        constexpr intptr_t preserved_bits = kBitsPerT - C::kDataBitsPerByte;
+        // The sign extension mask is the inverse of the preserved bits mask.
+        constexpr T sign_extend =
+            ~static_cast<T>((static_cast<Unsigned>(1) << preserved_bits) - 1);
+        // Sign extend for negative values just in case a non-arithmetic right
+        // shift is used by the compiler.
+        remainder |= sign_extend;
+        ASSERT(remainder < 0);  // Remainder should still be negative.
+        is_last_part =
+            remainder == ~static_cast<T>(0) && (part & C::kSignMask) != 0;
+      } else {
+        ASSERT(remainder >= 0);  // Remainder should still be non-negative.
+        is_last_part =
+            (remainder == static_cast<T>(0) && (part & C::kSignMask) == 0);
+      }
+      if (!is_last_part) {
+        // Mark this part as a non-final part for this value.
+        part |= C::kMoreDataMask;
+      }
+      WriteByte(part);
+    } while (!is_last_part);
+  }
+
+  template <typename T>
+  C::only_if_unsigned<T, void> WriteSLEB128(T value) {
+    return WriteSLEB128(bit_cast<typename std::make_signed<T>::type>(value));
+  }
 
  protected:
   void EnsureSpace(intptr_t size_needed) {
@@ -508,10 +578,7 @@ class NonStreamingWriteStream : public BaseWriteStream {
 class MallocWriteStream : public NonStreamingWriteStream {
  public:
   explicit MallocWriteStream(intptr_t initial_size)
-      : NonStreamingWriteStream(initial_size) {
-    // Go ahead and allocate initial space at construction.
-    EnsureSpace(initial_size_);
-  }
+      : NonStreamingWriteStream(initial_size) {}
   ~MallocWriteStream();
 
   // Resets the stream and returns the original buffer, which is now considered
@@ -537,10 +604,7 @@ class MallocWriteStream : public NonStreamingWriteStream {
 class ZoneWriteStream : public NonStreamingWriteStream {
  public:
   ZoneWriteStream(Zone* zone, intptr_t initial_size)
-      : NonStreamingWriteStream(initial_size), zone_(zone) {
-    // Go ahead and allocate initial space at construction.
-    EnsureSpace(initial_size_);
-  }
+      : NonStreamingWriteStream(initial_size), zone_(zone) {}
 
  private:
   virtual void Realloc(intptr_t new_size);
@@ -562,10 +626,7 @@ class StreamingWriteStream : public BaseWriteStream {
                                 void* callback_data)
       : BaseWriteStream(initial_capacity),
         callback_(callback),
-        callback_data_(callback_data) {
-    // Go ahead and allocate initial space at construction.
-    EnsureSpace(initial_capacity);
-  }
+        callback_data_(callback_data) {}
   ~StreamingWriteStream();
 
  private:

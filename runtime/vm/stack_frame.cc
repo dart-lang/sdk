@@ -284,7 +284,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     auto isolate = isolate_group()->isolates_.First();
 
     global_table = isolate->object_store()->canonicalized_stack_map_entries();
-    CompressedStackMapsIterator it(maps, global_table);
+    CompressedStackMaps::Iterator it(maps, global_table);
     const uword start = code.PayloadStart();
     const uint32_t pc_offset = pc() - start;
     if (it.Find(pc_offset)) {

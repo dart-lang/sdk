@@ -255,6 +255,14 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       } else if (builder is ProcedureBuilder) {
         // Check procedures
         library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+        if (builder.isGetter) {
+          Builder setterDeclaration =
+              scope.lookupLocalMember(builder.name, setter: true);
+          if (setterDeclaration != null) {
+            library.checkGetterSetterTypes(
+                builder, setterDeclaration, typeEnvironment);
+          }
+        }
       } else {
         assert(false, "Unexpected member: $builder.");
       }

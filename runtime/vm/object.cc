@@ -707,7 +707,7 @@ void Object::Init(Isolate* isolate) {
   *null_type_arguments_ = TypeArguments::null();
   *empty_type_arguments_ = TypeArguments::null();
   *null_abstract_type_ = AbstractType::null();
-  *null_compressed_stack_maps_ = CompressedStackMaps::null();
+  *null_compressed_stackmaps_ = CompressedStackMaps::null();
   *bool_true_ = true_;
   *bool_false_ = false_;
 
@@ -999,6 +999,19 @@ void Object::Init(Isolate* isolate) {
     empty_object_pool_->SetCanonical();
   }
 
+  // Allocate and initialize the empty_compressed_stackmaps instance.
+  {
+    const intptr_t instance_size = CompressedStackMaps::InstanceSize(0);
+    uword address = heap->Allocate(instance_size, Heap::kOld);
+    InitializeObject(address, kCompressedStackMapsCid, instance_size);
+    CompressedStackMaps::initializeHandle(
+        empty_compressed_stackmaps_,
+        static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
+    empty_compressed_stackmaps_->StoreNonPointer(
+        &empty_compressed_stackmaps_->raw_ptr()->flags_and_size_, 0);
+    empty_compressed_stackmaps_->SetCanonical();
+  }
+
   // Allocate and initialize the empty_descriptors instance.
   {
     uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
@@ -1184,14 +1197,16 @@ void Object::Init(Isolate* isolate) {
   ASSERT(null_function_->IsFunction());
   ASSERT(!null_type_arguments_->IsSmi());
   ASSERT(null_type_arguments_->IsTypeArguments());
-  ASSERT(!null_compressed_stack_maps_->IsSmi());
-  ASSERT(null_compressed_stack_maps_->IsCompressedStackMaps());
+  ASSERT(!null_compressed_stackmaps_->IsSmi());
+  ASSERT(null_compressed_stackmaps_->IsCompressedStackMaps());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
   ASSERT(zero_array_->IsArray());
   ASSERT(!empty_context_scope_->IsSmi());
   ASSERT(empty_context_scope_->IsContextScope());
+  ASSERT(!empty_compressed_stackmaps_->IsSmi());
+  ASSERT(empty_compressed_stackmaps_->IsCompressedStackMaps());
   ASSERT(!empty_descriptors_->IsSmi());
   ASSERT(empty_descriptors_->IsPcDescriptors());
   ASSERT(!empty_var_descriptors_->IsSmi());
@@ -14159,35 +14174,6 @@ const char* InstructionsSection::ToCString() const {
   return "InstructionsSection";
 }
 
-// Encode integer |value| in SLEB128 format and store into |data|.
-static void EncodeSLEB128(GrowableArray<uint8_t>* data, intptr_t value) {
-  bool is_last_part = false;
-  while (!is_last_part) {
-    uint8_t part = value & 0x7f;
-    value >>= 7;
-    if ((value == 0 && (part & 0x40) == 0) ||
-        (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
-      is_last_part = true;
-    } else {
-      part |= 0x80;
-    }
-    data->Add(part);
-  }
-}
-
-// Encode integer in SLEB128 format.
-void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
-                                  intptr_t value) {
-  return EncodeSLEB128(data, value);
-}
-
-// Decode SLEB128 encoded integer. Update byte_index to the next integer.
-intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
-  NoSafepointScope no_safepoint;
-  const uint8_t* data = raw_ptr()->data();
-  return Utils::DecodeSLEB128<intptr_t>(data, Length(), byte_index);
-}
-
 ObjectPoolPtr ObjectPool::New(intptr_t len) {
   ASSERT(Object::object_pool_class() != Class::null());
   if (len < 0 || len > kMaxElements) {
@@ -14300,25 +14286,25 @@ void PcDescriptors::SetLength(intptr_t value) const {
   StoreNonPointer(&raw_ptr()->length_, value);
 }
 
-void PcDescriptors::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
+void PcDescriptors::CopyData(const void* bytes, intptr_t size) {
   NoSafepointScope no_safepoint;
   uint8_t* data = UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
-  for (intptr_t i = 0; i < delta_encoded_data->length(); ++i) {
-    data[i] = (*delta_encoded_data)[i];
-  }
+  // We're guaranted these memory spaces do not overlap.
+  memcpy(data, bytes, size);  // NOLINT
 }
 
-PcDescriptorsPtr PcDescriptors::New(GrowableArray<uint8_t>* data) {
+PcDescriptorsPtr PcDescriptors::New(const void* delta_encoded_data,
+                                    intptr_t size) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
   Thread* thread = Thread::Current();
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
-    uword size = PcDescriptors::InstanceSize(data->length());
-    ObjectPtr raw = Object::Allocate(PcDescriptors::kClassId, size, Heap::kOld);
+    ObjectPtr raw = Object::Allocate(
+        PcDescriptors::kClassId, PcDescriptors::InstanceSize(size), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.SetLength(data->length());
-    result.CopyData(data);
+    result.SetLength(size);
+    result.CopyData(delta_encoded_data, size);
   }
   return result.raw();
 }
@@ -14474,45 +14460,195 @@ const char* CodeSourceMap::ToCString() const {
 }
 
 intptr_t CompressedStackMaps::Hashcode() const {
+  NoSafepointScope scope;
+  uint8_t* data = UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
+  uint8_t* end = data + payload_size();
   uint32_t hash = payload_size();
-  for (uintptr_t i = 0; i < payload_size(); i++) {
-    uint8_t byte = PayloadByte(i);
-    hash = CombineHashes(hash, byte);
+  for (uint8_t* cursor = data; cursor < end; cursor++) {
+    hash = CombineHashes(hash, *cursor);
   }
   return FinalizeHash(hash, kHashBits);
 }
 
-CompressedStackMapsPtr CompressedStackMaps::New(
-    const GrowableArray<uint8_t>& payload,
-    bool is_global_table,
-    bool uses_global_table) {
+CompressedStackMaps::Iterator::Iterator(const CompressedStackMaps& maps,
+                                        const CompressedStackMaps& global_table)
+    : maps_(maps),
+      bits_container_(maps_.UsesGlobalTable() ? global_table : maps_) {
+  ASSERT(!maps_.IsNull());
+  ASSERT(!bits_container_.IsNull());
+  ASSERT(!maps_.IsGlobalTable());
+  ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
+}
+
+CompressedStackMaps::Iterator::Iterator(Thread* thread,
+                                        const CompressedStackMaps& maps)
+    : CompressedStackMaps::Iterator(
+          maps,
+          // Only look up the global table if the map will end up using it.
+          maps.UsesGlobalTable() ? CompressedStackMaps::Handle(
+                                       thread->zone(),
+                                       thread->isolate()
+                                           ->object_store()
+                                           ->canonicalized_stack_map_entries())
+                                 : Object::null_compressed_stackmaps()) {}
+
+CompressedStackMaps::Iterator::Iterator(const CompressedStackMaps::Iterator& it)
+    : maps_(it.maps_),
+      bits_container_(it.bits_container_),
+      next_offset_(it.next_offset_),
+      current_pc_offset_(it.current_pc_offset_),
+      current_global_table_offset_(it.current_global_table_offset_),
+      current_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+      current_non_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+      current_bits_offset_(it.current_bits_offset_) {}
+
+bool CompressedStackMaps::Iterator::MoveNext() {
+  if (next_offset_ >= maps_.payload_size()) {
+    return false;
+  }
+
+  NoSafepointScope scope;
+  ReadStream stream(maps_.raw_ptr()->data(), maps_.payload_size(),
+                    next_offset_);
+
+  auto const pc_delta = stream.ReadLEB128();
+  ASSERT(pc_delta <= (kMaxUint32 - current_pc_offset_));
+  current_pc_offset_ += pc_delta;
+
+  // Table-using CSMs have a table offset after the PC offset delta, whereas
+  // the post-delta part of inlined entries has the same information as
+  // global table entries.
+  if (maps_.UsesGlobalTable()) {
+    current_global_table_offset_ = stream.ReadLEB128();
+    ASSERT(current_global_table_offset_ < bits_container_.payload_size());
+
+    // Since generally we only use entries in the GC and the GC only needs
+    // the rest of the entry information if the PC offset matches, we lazily
+    // load and cache the information stored in the global object when it is
+    // actually requested.
+    current_spill_slot_bit_count_ = -1;
+    current_non_spill_slot_bit_count_ = -1;
+    current_bits_offset_ = -1;
+
+    next_offset_ = stream.Position();
+  } else {
+    current_spill_slot_bit_count_ = stream.ReadLEB128();
+    ASSERT(current_spill_slot_bit_count_ >= 0);
+
+    current_non_spill_slot_bit_count_ = stream.ReadLEB128();
+    ASSERT(current_non_spill_slot_bit_count_ >= 0);
+
+    const auto stackmap_bits =
+        current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+    const uintptr_t stackmap_size =
+        Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
+    ASSERT(stackmap_size <= (maps_.payload_size() - stream.Position()));
+
+    current_bits_offset_ = stream.Position();
+    next_offset_ = current_bits_offset_ + stackmap_size;
+  }
+
+  return true;
+}
+
+intptr_t CompressedStackMaps::Iterator::Length() const {
+  EnsureFullyLoadedEntry();
+  return current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+}
+intptr_t CompressedStackMaps::Iterator::SpillSlotBitCount() const {
+  EnsureFullyLoadedEntry();
+  return current_spill_slot_bit_count_;
+}
+
+bool CompressedStackMaps::Iterator::IsObject(intptr_t bit_index) const {
+  EnsureFullyLoadedEntry();
+  ASSERT(bit_index >= 0 && bit_index < Length());
+  const intptr_t byte_index = bit_index >> kBitsPerByteLog2;
+  const intptr_t bit_remainder = bit_index & (kBitsPerByte - 1);
+  uint8_t byte_mask = 1U << bit_remainder;
+  const intptr_t byte_offset = current_bits_offset_ + byte_index;
+  NoSafepointScope scope;
+  return (bits_container_.raw_ptr()->data()[byte_offset] & byte_mask) != 0;
+}
+
+void CompressedStackMaps::Iterator::LazyLoadGlobalTableEntry() const {
+  ASSERT(maps_.UsesGlobalTable());
+  ASSERT(HasLoadedEntry());
+  ASSERT(current_global_table_offset_ < bits_container_.payload_size());
+
+  NoSafepointScope scope;
+  ReadStream stream(bits_container_.raw_ptr()->data(),
+                    bits_container_.payload_size(),
+                    current_global_table_offset_);
+
+  current_spill_slot_bit_count_ = stream.ReadLEB128();
+  ASSERT(current_spill_slot_bit_count_ >= 0);
+
+  current_non_spill_slot_bit_count_ = stream.ReadLEB128();
+  ASSERT(current_non_spill_slot_bit_count_ >= 0);
+
+  const auto stackmap_bits = Length();
+  const uintptr_t stackmap_size =
+      Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
+  ASSERT(stackmap_size <= (bits_container_.payload_size() - stream.Position()));
+
+  current_bits_offset_ = stream.Position();
+}
+
+void CompressedStackMaps::Iterator::WriteToBuffer(BaseTextBuffer* buffer,
+                                                  const char* separator) const {
+  CompressedStackMaps::Iterator it(*this);
+  // If we haven't loaded an entry yet, do so (but don't skip the current
+  // one if we have!)
+  if (!it.HasLoadedEntry()) {
+    if (!it.MoveNext()) return;
+  }
+  bool first_entry = true;
+  do {
+    if (!first_entry) {
+      buffer->AddString(separator);
+    }
+    buffer->Printf("0x%0.8" Px32 ": ", it.pc_offset());
+    for (intptr_t i = 0, n = it.Length(); i < n; i++) {
+      buffer->AddString(it.IsObject(i) ? "1" : "0");
+    }
+    first_entry = false;
+  } while (it.MoveNext());
+}
+
+CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
+                                                intptr_t size,
+                                                bool is_global_table,
+                                                bool uses_global_table) {
   ASSERT(Object::compressed_stackmaps_class() != Class::null());
   // We don't currently allow both flags to be true.
   ASSERT(!is_global_table || !uses_global_table);
-  auto& result = CompressedStackMaps::Handle();
+  // The canonical empty instance should be used instead.
+  ASSERT(size != 0);
 
-  const uintptr_t payload_size = payload.length();
-  if (!CompressedStackMapsLayout::SizeField::is_valid(payload_size)) {
+  if (!CompressedStackMapsLayout::SizeField::is_valid(size)) {
     FATAL1(
         "Fatal error in CompressedStackMaps::New: "
         "invalid payload size %" Pu "\n",
-        payload_size);
+        size);
   }
+
+  auto& result = CompressedStackMaps::Handle();
   {
     // CompressedStackMaps data objects are associated with a code object,
     // allocate them in old generation.
-    ObjectPtr raw = Object::Allocate(
-        CompressedStackMaps::kClassId,
-        CompressedStackMaps::InstanceSize(payload_size), Heap::kOld);
+    ObjectPtr raw =
+        Object::Allocate(CompressedStackMaps::kClassId,
+                         CompressedStackMaps::InstanceSize(size), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(
         &result.raw_ptr()->flags_and_size_,
         CompressedStackMapsLayout::GlobalTableBit::encode(is_global_table) |
             CompressedStackMapsLayout::UsesTableBit::encode(uses_global_table) |
-            CompressedStackMapsLayout::SizeField::encode(payload_size));
+            CompressedStackMapsLayout::SizeField::encode(size));
     auto cursor = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
-    memcpy(cursor, payload.data(), payload.length());  // NOLINT
+    memcpy(cursor, payload, size);  // NOLINT
   }
 
   ASSERT(!result.IsGlobalTable() || !result.UsesGlobalTable());
@@ -14522,12 +14658,16 @@ CompressedStackMapsPtr CompressedStackMaps::New(
 
 const char* CompressedStackMaps::ToCString() const {
   ASSERT(!IsGlobalTable());
+  if (payload_size() == 0) {
+    return "CompressedStackMaps()";
+  }
   auto const t = Thread::Current();
-  auto zone = t->zone();
-  const auto& global_table = CompressedStackMaps::Handle(
-      zone, t->isolate()->object_store()->canonicalized_stack_map_entries());
-  CompressedStackMapsIterator it(*this, global_table);
-  return it.ToCString(zone);
+  CompressedStackMaps::Iterator it(t, *this);
+  ZoneTextBuffer buffer(t->zone(), 100);
+  buffer.AddString("CompressedStackMaps(");
+  it.WriteToBuffer(&buffer, ", ");
+  buffer.AddString(")");
+  return buffer.buffer();
 }
 
 StringPtr LocalVarDescriptors::GetName(intptr_t var_index) const {
@@ -16479,6 +16619,7 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
     NOT_IN_PRODUCT(result.set_comments(Comments::New(0)));
     NOT_IN_PRODUCT(result.set_compile_timestamp(0));
     result.set_pc_descriptors(Object::empty_descriptors());
+    result.set_compressed_stackmaps(Object::empty_compressed_stackmaps());
   }
   return result.raw();
 }
