@@ -528,9 +528,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
         positionalParameters: closurePositionalParameters,
         namedParameters: closureNamedParameters,
         requiredParameterCount: _procedure.function.requiredParameterCount - 1,
-        returnType: closureReturnType,
-        asyncMarker: _procedure.function.asyncMarker,
-        dartAsyncMarker: _procedure.function.dartAsyncMarker))
+        returnType: closureReturnType))
       ..fileOffset = fileOffset;
 
     _extensionTearOff
