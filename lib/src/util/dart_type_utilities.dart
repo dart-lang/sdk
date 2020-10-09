@@ -396,26 +396,25 @@ class DartTypeUtilities {
     return nodes;
   }
 
-  /// Return whether [leftType] and [rightType] are _definitely_ unrelated.
+  /// Returns whether [leftType] and [rightType] are _definitely_ unrelated.
   ///
   /// For the purposes of this function, here are some "relation" rules:
   /// * `dynamic` and `Null` are considered related to any other type.
-  /// * Two equal types are considered related, e.g. classes `int` and `int`,
-  ///   classes `List<String>` and `List<String>`,
-  ///   classes `List<T>` and `List<T>`, and type variables `A` and `A`.
-  /// * Two types such that one is a subtype of the other, such as classes
-  ///   `List<dynamic>` and `Iterable<dynamic>`, and type variables `A` and `B`
-  ///   where `A extends B`.
-  /// * Two types, each representing a class:
+  /// * Two types which are equal modulo nullability are considered related,
+  ///   e.g. `int` and `int`, `String` and `String?`, `List<String>` and
+  ///   `List<String>`, `List<T>` and `List<T>`, and type variables `A` and `A`.
+  /// * Two types such that one is a subtype of the other, modulo nullability,
+  ///   such as `List<dynamic>` and `Iterable<dynamic>`, and type variables `A`
+  ///   and `B` where `A extends B`, are considered related.
+  /// * Two interface types:
   ///   * are related if they represent the same class, modulo type arguments,
-  ///     and each of their pair-wise type arguments are related, e.g.
-  ///     `List<dynamic>` and `List<int>`, and `Future<T>` and `Future<S>` where
-  ///     `S extends T`.
+  ///     modulo nullability, and each of their pair-wise type arguments are
+  ///     related, e.g. `List<dynamic>` and `List<int>`, and `Future<T>` and
+  ///     `Future<S>` where `S extends T`.
   ///   * are unrelated if [leftType]'s supertype is [Object].
   ///   * are related if their supertypes are equal, e.g. `List<dynamic>` and
   ///     `Set<dynamic>`.
-  /// * Two types, each representing a type variable, are related if their
-  ///   bounds are related.
+  /// * Two type variables are related if their bounds are related.
   /// * Otherwise, the types are related.
   // TODO(srawlins): typedefs and functions in general.
   static bool unrelatedTypes(
@@ -430,22 +429,25 @@ class DartTypeUtilities {
         rightType.isDynamic) {
       return false;
     }
-    if (leftType == rightType ||
-        typeSystem.isSubtypeOf(leftType, rightType) ||
-        typeSystem.isSubtypeOf(rightType, leftType)) {
+    var promotedLeftType = typeSystem.promoteToNonNull(leftType);
+    var promotedRightType = typeSystem.promoteToNonNull(rightType);
+    if (promotedLeftType == promotedRightType ||
+        typeSystem.isSubtypeOf(promotedLeftType, promotedRightType) ||
+        typeSystem.isSubtypeOf(promotedRightType, promotedLeftType)) {
       return false;
     }
-    if (leftType is InterfaceType && rightType is InterfaceType) {
+    if (promotedLeftType is InterfaceType &&
+        promotedRightType is InterfaceType) {
       // In this case, [leftElement] and [rightElement] each represent
       // the same class, like `int`, or `Iterable<String>`.
-      var leftElement = leftType.element;
-      var rightElement = rightType.element;
+      var leftElement = promotedLeftType.element;
+      var rightElement = promotedRightType.element;
       if (leftElement == rightElement) {
         // In this case, [leftElement] and [rightElement] represent the same
         // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
         // need to check type arguments.
-        var leftTypeArguments = leftType.typeArguments;
-        var rightTypeArguments = rightType.typeArguments;
+        var leftTypeArguments = promotedLeftType.typeArguments;
+        var rightTypeArguments = promotedRightType.typeArguments;
         if (leftTypeArguments.length != rightTypeArguments.length) {
           // I cannot think of how we would enter this block, but it guards
           // against RangeError below.
@@ -465,16 +467,16 @@ class DartTypeUtilities {
         return leftElement.supertype?.isDartCoreObject == true ||
             leftElement.supertype != rightElement.supertype;
       }
-    } else if (leftType is TypeParameterType &&
-        rightType is TypeParameterType) {
-      return unrelatedTypes(
-          typeSystem, leftType.element.bound, rightType.element.bound);
-    } else if (leftType is FunctionType) {
-      if (_isFunctionTypeUnrelatedToType(leftType, rightType)) {
+    } else if (promotedLeftType is TypeParameterType &&
+        promotedRightType is TypeParameterType) {
+      return unrelatedTypes(typeSystem, promotedLeftType.element.bound,
+          promotedRightType.element.bound);
+    } else if (promotedLeftType is FunctionType) {
+      if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
         return true;
       }
-    } else if (rightType is FunctionType) {
-      if (_isFunctionTypeUnrelatedToType(rightType, leftType)) {
+    } else if (promotedRightType is FunctionType) {
+      if (_isFunctionTypeUnrelatedToType(promotedRightType, promotedLeftType)) {
         return true;
       }
     }
