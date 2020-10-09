@@ -2000,6 +2000,20 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       );
     }
   }
+
+  test_unrelated() {
+    var T1 = functionTypeNone(returnType: intNone);
+
+    _checkLeastUpperBound(T1, intNone, objectNone);
+    _checkLeastUpperBound(T1, intQuestion, objectQuestion);
+    _checkLeastUpperBound(T1, intStar, objectStar);
+
+    _checkLeastUpperBound(
+      T1,
+      futureOrNone(functionQuestion),
+      objectQuestion,
+    );
+  }
 }
 
 @reflectiveTest
@@ -2592,6 +2606,50 @@ class UpperBoundTest extends _BoundsTestBase {
       functionNone,
       functionQuestion,
     );
+  }
+
+  /// UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  /// UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  test_futureOr_future() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _checkLeastUpperBound(
+        futureNone(T1),
+        futureOrNone(T2),
+        futureOrNone(expected),
+      );
+    }
+
+    check(intNone, doubleNone, numNone);
+    check(intNone, stringNone, objectNone);
+  }
+
+  /// UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  test_futureOr_futureOr() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _checkLeastUpperBound(
+        futureOrNone(T1),
+        futureOrNone(T2),
+        futureOrNone(expected),
+      );
+    }
+
+    check(intNone, doubleNone, numNone);
+    check(intNone, stringNone, objectNone);
+  }
+
+  /// UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+  /// UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)
+  test_futureOr_other() {
+    void check(DartType T1, DartType T2, DartType expected) {
+      _checkLeastUpperBound(
+        futureOrNone(T1),
+        T2,
+        futureOrNone(expected),
+      );
+    }
+
+    check(intNone, doubleNone, numNone);
+    check(intNone, stringNone, objectNone);
   }
 
   test_identical() {

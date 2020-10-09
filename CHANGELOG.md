@@ -23,8 +23,14 @@
 
 #### Linter
 
-Updated the Linter to `0.1.120`, which includes:
+Updated the Linter to `0.1.121`, which includes:
 
+# 0.1.121
+
+* Performance improvements to `always_use_package_imports`, 
+  `avoid_renaming_method_parameters`, `prefer_relative_imports` and
+  `public_member_api_docs`.
+* (internal): updates to analyzer `0.40.4` APIs
 * New lint: `cast_nullable_to_non_nullable`.
 * New lint: `null_check_on_nullable_type_parameter`.
 * New lint: `tighten_type_of_initializing_formals`.
