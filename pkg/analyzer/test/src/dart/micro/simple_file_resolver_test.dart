@@ -580,6 +580,21 @@ int b = a;
     ]);
   }
 
+  test_switchCase_implementsEquals_enum() async {
+    await assertNoErrorsInCode(r'''
+enum MyEnum {a, b, c}
+
+void f(MyEnum myEnum) {
+  switch (myEnum) {
+    case MyEnum.a:
+      break;
+    default:
+      break;
+  }
+}
+''');
+  }
+
   test_unknown_uri() async {
     await assertErrorsInCode(r'''
 import 'foo:bar';
