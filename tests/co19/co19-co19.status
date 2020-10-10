@@ -26,11 +26,13 @@ Language/Reference/Operator_Precedence/precedence_t05: Skip # Triple shift is no
 Language/Statements/Expression_Statements/syntax_t06: Skip # Type aliases are not fully implemented
 Language/Types/Type_Aliases/built-in_types_t11: Skip # Triple shift is not implemented yet
 LanguageFeatures/Extension-methods/explicit_extension_member_invocation_A15_t09: Skip # Triple shift is not implemented yet
-LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/static/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/typedef/static/*: Skip # Not migrated to NNBD
+LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/static/*: Skip # Type aliases are not fully implemented
 LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Type aliases are not fully implemented
 LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Type aliases are not fully implemented
 LanguageFeatures/Triple-Shift/*: Skip # Triple shift is not implemented yet
+LanguageFeatures/nnbd/local_variable_read_A01_t03: Skip # Triple shift is not implemented yet
+LanguageFeatures/nnbd/local_variable_read_A02_t03: Skip # Triple shift is not implemented yet
+LanguageFeatures/nnbd/local_variable_read_A03_t03: Skip # Triple shift is not implemented yet
 LanguageFeatures/regression/34560_t02/01: Skip # Type aliases are not fully implemented
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
 
