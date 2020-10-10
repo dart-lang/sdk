@@ -1,1 +1,1 @@
-pub extern crate wasmer_c_api;
+pub extern crate wasmer_runtime_c_api;

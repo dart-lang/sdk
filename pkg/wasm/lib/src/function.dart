@@ -10,43 +10,35 @@ import 'package:ffi/ffi.dart';
 /// WasmFunction is a callable function from a WasmInstance.
 class WasmFunction {
   String _name;
-  Pointer<WasmerFunc> _func;
+  Pointer<WasmerExportFunc> _func;
   List<int> _argTypes;
   int _returnType;
-  Pointer<WasmerVal> _args;
-  Pointer<WasmerVal> _results;
+  Pointer<WasmerValue> _args;
+  Pointer<WasmerValue> _result;
 
   WasmFunction(this._name, this._func, this._argTypes, this._returnType)
-      : _args = _argTypes.length == 0
-            ? nullptr
-            : allocate<WasmerVal>(count: _argTypes.length),
-        _results =
-            _returnType == WasmerValKindVoid ? nullptr : allocate<WasmerVal>() {
+      : _args = allocate<WasmerValue>(count: _argTypes.length),
+        _result = allocate<WasmerValue>() {
     for (var i = 0; i < _argTypes.length; ++i) {
-      _args[i].kind = _argTypes[i];
+      _args[i].tag = _argTypes[i];
     }
-  }
-
-  String toString() {
-    return "${wasmerValKindName(_returnType)} $_name" +
-        "(${_argTypes.map(wasmerValKindName).join(", ")})";
   }
 
   bool _fillArg(dynamic arg, int i) {
     switch (_argTypes[i]) {
-      case WasmerValKindI32:
+      case WasmerValueTagI32:
         if (arg is! int) return false;
         _args[i].i32 = arg;
         return true;
-      case WasmerValKindI64:
+      case WasmerValueTagI64:
         if (arg is! int) return false;
         _args[i].i64 = arg;
         return true;
-      case WasmerValKindF32:
+      case WasmerValueTagF32:
         if (arg is! num) return false;
         _args[i].f32 = arg;
         return true;
-      case WasmerValKindF64:
+      case WasmerValueTagF64:
         if (arg is! num) return false;
         _args[i].f64 = arg;
         return true;
@@ -56,29 +48,29 @@ class WasmFunction {
 
   dynamic apply(List<dynamic> args) {
     if (args.length != _argTypes.length) {
-      throw ArgumentError("Wrong number arguments for WASM function: $this");
+      throw ArgumentError("Wrong number arguments for WASM function: $_name");
     }
     for (var i = 0; i < args.length; ++i) {
       if (!_fillArg(args[i], i)) {
-        throw ArgumentError("Bad argument type for WASM function: $this");
+        throw ArgumentError("Bad argument type for WASM function: $_name");
       }
     }
-    WasmRuntime().call(_func, _args, _results);
+    WasmRuntime().call(_func, _args, _argTypes.length, _result,
+        _returnType == WasmerValueTagVoid ? 0 : 1);
 
-    if (_returnType == WasmerValKindVoid) {
+    if (_returnType == WasmerValueTagVoid) {
       return null;
     }
-    var result = _results[0];
-    assert(_returnType == result.kind);
+    assert(_returnType == _result.ref.tag);
     switch (_returnType) {
-      case WasmerValKindI32:
-        return result.i32;
-      case WasmerValKindI64:
-        return result.i64;
-      case WasmerValKindF32:
-        return result.f32;
-      case WasmerValKindF64:
-        return result.f64;
+      case WasmerValueTagI32:
+        return _result.ref.i32;
+      case WasmerValueTagI64:
+        return _result.ref.i64;
+      case WasmerValueTagF32:
+        return _result.ref.f32;
+      case WasmerValueTagF64:
+        return _result.ref.f64;
     }
   }
 

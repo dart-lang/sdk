@@ -1,0 +1,11 @@
+Name: Wasmer Runtime C API
+Short Name: wasmer
+URL: https://github.com/wasmerio/wasmer/tree/master/lib/runtime-c-api
+Version: 0.6.0
+Date: August 16, 2019
+License: MIT
+
+Description:
+This directory contains an unmodified copy of wasmer.hh from the Wasmer Runtime
+C API (and README.md and LICENCE). Other files in this directory are added to
+build the corresponding rust library.

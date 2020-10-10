@@ -2,70 +2,116 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This file has been automatically generated. Please do not edit it manually.
-// To regenerate the file, use the following command
-// "generate_ffi_boilerplate.py".
-
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
-// wasm_valkind_enum
-const int WasmerValKindI32 = 0;
-const int WasmerValKindI64 = 1;
-const int WasmerValKindF32 = 2;
-const int WasmerValKindF64 = 3;
+// wasmer_result_t
+const int WasmerResultOk = 1;
+const int WasmerResultError = 2;
+
+// wasmer_value_tag
+const int WasmerValueTagI32 = 0;
+const int WasmerValueTagI64 = 1;
+const int WasmerValueTagF32 = 2;
+const int WasmerValueTagF64 = 3;
 // The void tag is not part of the C API. It's used to represent the return type
 // of a void function.
-const int WasmerValKindVoid = -1;
+const int WasmerValueTagVoid = -1;
 
-// wasm_externkind_enum
-const int WasmerExternKindFunction = 0;
-const int WasmerExternKindGlobal = 1;
-const int WasmerExternKindTable = 2;
-const int WasmerExternKindMemory = 3;
+// wasmer_import_export_kind
+const int WasmerImpExpKindFunction = 0;
+const int WasmerImpExpKindGlobal = 1;
+const int WasmerImpExpKindMemory = 2;
+const int WasmerImpExpKindTable = 3;
 
-String wasmerExternKindName(int kind) {
+String wasmerImpExpKindName(int kind) {
   switch (kind) {
-    case WasmerExternKindFunction:
+    case WasmerImpExpKindFunction:
       return "function";
-    case WasmerExternKindGlobal:
+    case WasmerImpExpKindGlobal:
       return "global";
-    case WasmerExternKindTable:
-      return "table";
-    case WasmerExternKindMemory:
+    case WasmerImpExpKindMemory:
       return "memory";
+    case WasmerImpExpKindTable:
+      return "table";
     default:
       return "unknown";
   }
 }
 
-String wasmerValKindName(int kind) {
-  switch (kind) {
-    case WasmerValKindI32:
-      return "int32";
-    case WasmerValKindI64:
-      return "int64";
-    case WasmerValKindF32:
-      return "float32";
-    case WasmerValKindF64:
-      return "float64";
-    case WasmerValKindVoid:
-      return "void";
-    default:
-      return "unknown";
-  }
+// wasmer_module_t
+class WasmerModule extends Struct {}
+
+// wasmer_instance_t
+class WasmerInstance extends Struct {}
+
+// wasmer_exports_t
+class WasmerExports extends Struct {}
+
+// wasmer_export_t
+class WasmerExport extends Struct {}
+
+// wasmer_export_descriptors_t
+class WasmerExportDescriptors extends Struct {}
+
+// wasmer_export_descriptor_t
+class WasmerExportDescriptor extends Struct {}
+
+// wasmer_export_func_t
+class WasmerExportFunc extends Struct {}
+
+// wasmer_import_descriptors_t
+class WasmerImportDescriptors extends Struct {}
+
+// wasmer_import_descriptor_t
+class WasmerImportDescriptor extends Struct {}
+
+// wasmer_memory_t
+class WasmerMemory extends Struct {}
+
+// wasmer_import_t
+class WasmerImport extends Struct {
+  external Pointer<Uint8> module_name;
+
+  @Uint32()
+  external int module_name_length;
+
+  external Pointer<Uint8> import_name;
+
+  @Uint32()
+  external int import_name_length;
+
+  // wasmer_import_export_kind
+  @Uint32()
+  external int tag;
+
+  // wasmer_import_export_value, which is a union of wasmer_import_func_t*,
+  // wasmer_table_t*, wasmer_memory_t*, and wasmer_global_t*. The tag determines
+  // which type it is.
+  external Pointer<Void> value;
 }
 
-// wasm_val_t
-class WasmerVal extends Struct {
-  // wasm_valkind_t
-  @Uint8()
-  external int kind;
+// wasmer_byte_array
+class WasmerByteArray extends Struct {
+  external Pointer<Uint8> bytes;
 
-  // This is a union of int32_t, int64_t, float, and double. The kind determines
-  // which type it is. It's declared as an int64_t because that's large enough
-  // to hold all the types. We use ByteData to get the other types.
+  @Uint32()
+  external int length;
+
+  Uint8List get list => bytes.asTypedList(length);
+  String get string => utf8.decode(list);
+}
+
+// wasmer_value_t
+class WasmerValue extends Struct {
+  // wasmer_value_tag
+  @Uint32()
+  external int tag;
+
+  // wasmer_value, which is a union of int32_t, int64_t, float, and double. The
+  // tag determines which type it is. It's declared as an int64_t because that's
+  // large enough to hold all the types. We use ByteData to get the other types.
   @Int64()
   external int value;
 
@@ -84,10 +130,10 @@ class WasmerVal extends Struct {
   set f64(num val) =>
       _val = ByteData(8)..setFloat64(0, val as double, Endian.host);
 
-  bool get isI32 => kind == WasmerValKindI32;
-  bool get isI64 => kind == WasmerValKindI64;
-  bool get isF32 => kind == WasmerValKindF32;
-  bool get isF64 => kind == WasmerValKindF64;
+  bool get isI32 => tag == WasmerValueTagI32;
+  bool get isI64 => tag == WasmerValueTagI64;
+  bool get isF32 => tag == WasmerValueTagF32;
+  bool get isF64 => tag == WasmerValueTagF64;
 }
 
 // wasmer_limits_t
@@ -95,417 +141,196 @@ class WasmerLimits extends Struct {
   @Uint32()
   external int min;
 
+  // bool
+  @Uint8()
+  external int has_max;
+
   @Uint32()
   external int max;
 }
 
-// Default maximum, which indicates no upper limit.
-const int wasm_limits_max_default = 0xffffffff;
-
-// wasm_engine_t
-class WasmerEngine extends Struct {}
-
-// wasm_exporttype_t
-class WasmerExporttype extends Struct {}
-
-// wasm_extern_t
-class WasmerExtern extends Struct {}
-
-// wasm_externtype_t
-class WasmerExterntype extends Struct {}
-
-// wasm_func_t
-class WasmerFunc extends Struct {}
-
-// wasm_functype_t
-class WasmerFunctype extends Struct {}
-
-// wasm_importtype_t
-class WasmerImporttype extends Struct {}
-
-// wasm_instance_t
-class WasmerInstance extends Struct {}
-
-// wasm_memory_t
-class WasmerMemory extends Struct {}
-
-// wasm_memorytype_t
-class WasmerMemorytype extends Struct {}
-
-// wasm_module_t
-class WasmerModule extends Struct {}
-
-// wasm_store_t
-class WasmerStore extends Struct {}
-
-// wasm_trap_t
-class WasmerTrap extends Struct {}
-
-// wasm_valtype_t
-class WasmerValtype extends Struct {}
-
-// wasm_byte_vec_t
-class WasmerByteVec extends Struct {
-  @Uint64()
-  external int length;
-
-  external Pointer<Uint8> data;
-
-  Uint8List get list => data.asTypedList(length);
-  String toString() => utf8.decode(list);
-}
-
-// wasm_exporttype_vec_t
-class WasmerExporttypeVec extends Struct {
-  @Uint64()
-  external int length;
-
-  external Pointer<Pointer<WasmerExporttype>> data;
-}
-
-// wasm_extern_vec_t
-class WasmerExternVec extends Struct {
-  @Uint64()
-  external int length;
-
-  external Pointer<Pointer<WasmerExtern>> data;
-}
-
-// wasm_importtype_vec_t
-class WasmerImporttypeVec extends Struct {
-  @Uint64()
-  external int length;
-
-  external Pointer<Pointer<WasmerImporttype>> data;
-}
-
-// wasm_val_vec_t
-class WasmerValVec extends Struct {
-  @Uint64()
-  external int length;
-
-  external Pointer<WasmerVal> data;
-}
-
-// wasm_valtype_vec_t
-class WasmerValtypeVec extends Struct {
-  @Uint64()
-  external int length;
-
-  external Pointer<Pointer<WasmerValtype>> data;
-}
-
-// wasm_byte_vec_delete
-typedef NativeWasmerByteVecDeleteFn = Void Function(Pointer<WasmerByteVec>);
-typedef WasmerByteVecDeleteFn = void Function(Pointer<WasmerByteVec>);
-
-// wasm_byte_vec_new
-typedef NativeWasmerByteVecNewFn = Void Function(
-    Pointer<WasmerByteVec>, Uint64, Pointer<Uint8>);
-typedef WasmerByteVecNewFn = void Function(
-    Pointer<WasmerByteVec>, int, Pointer<Uint8>);
-
-// wasm_byte_vec_new_empty
-typedef NativeWasmerByteVecNewEmptyFn = Void Function(Pointer<WasmerByteVec>);
-typedef WasmerByteVecNewEmptyFn = void Function(Pointer<WasmerByteVec>);
-
-// wasm_byte_vec_new_uninitialized
-typedef NativeWasmerByteVecNewUninitializedFn = Void Function(
-    Pointer<WasmerByteVec>, Uint64);
-typedef WasmerByteVecNewUninitializedFn = void Function(
-    Pointer<WasmerByteVec>, int);
-
-// wasm_engine_delete
-typedef NativeWasmerEngineDeleteFn = Void Function(Pointer<WasmerEngine>);
-typedef WasmerEngineDeleteFn = void Function(Pointer<WasmerEngine>);
-
-// wasm_engine_new
-typedef NativeWasmerEngineNewFn = Pointer<WasmerEngine> Function();
-typedef WasmerEngineNewFn = Pointer<WasmerEngine> Function();
-
-// wasm_exporttype_name
-typedef NativeWasmerExporttypeNameFn = Pointer<WasmerByteVec> Function(
-    Pointer<WasmerExporttype>);
-typedef WasmerExporttypeNameFn = Pointer<WasmerByteVec> Function(
-    Pointer<WasmerExporttype>);
-
-// wasm_exporttype_type
-typedef NativeWasmerExporttypeTypeFn = Pointer<WasmerExterntype> Function(
-    Pointer<WasmerExporttype>);
-typedef WasmerExporttypeTypeFn = Pointer<WasmerExterntype> Function(
-    Pointer<WasmerExporttype>);
-
-// wasm_exporttype_vec_delete
-typedef NativeWasmerExporttypeVecDeleteFn = Void Function(
-    Pointer<WasmerExporttypeVec>);
-typedef WasmerExporttypeVecDeleteFn = void Function(
-    Pointer<WasmerExporttypeVec>);
-
-// wasm_exporttype_vec_new
-typedef NativeWasmerExporttypeVecNewFn = Void Function(
-    Pointer<WasmerExporttypeVec>, Uint64, Pointer<Pointer<WasmerExporttype>>);
-typedef WasmerExporttypeVecNewFn = void Function(
-    Pointer<WasmerExporttypeVec>, int, Pointer<Pointer<WasmerExporttype>>);
-
-// wasm_exporttype_vec_new_empty
-typedef NativeWasmerExporttypeVecNewEmptyFn = Void Function(
-    Pointer<WasmerExporttypeVec>);
-typedef WasmerExporttypeVecNewEmptyFn = void Function(
-    Pointer<WasmerExporttypeVec>);
-
-// wasm_exporttype_vec_new_uninitialized
-typedef NativeWasmerExporttypeVecNewUninitializedFn = Void Function(
-    Pointer<WasmerExporttypeVec>, Uint64);
-typedef WasmerExporttypeVecNewUninitializedFn = void Function(
-    Pointer<WasmerExporttypeVec>, int);
-
-// wasm_extern_as_func
-typedef NativeWasmerExternAsFuncFn = Pointer<WasmerFunc> Function(
-    Pointer<WasmerExtern>);
-typedef WasmerExternAsFuncFn = Pointer<WasmerFunc> Function(
-    Pointer<WasmerExtern>);
-
-// wasm_extern_as_memory
-typedef NativeWasmerExternAsMemoryFn = Pointer<WasmerMemory> Function(
-    Pointer<WasmerExtern>);
-typedef WasmerExternAsMemoryFn = Pointer<WasmerMemory> Function(
-    Pointer<WasmerExtern>);
-
-// wasm_extern_delete
-typedef NativeWasmerExternDeleteFn = Void Function(Pointer<WasmerExtern>);
-typedef WasmerExternDeleteFn = void Function(Pointer<WasmerExtern>);
-
-// wasm_extern_kind
-typedef NativeWasmerExternKindFn = Uint8 Function(Pointer<WasmerExtern>);
-typedef WasmerExternKindFn = int Function(Pointer<WasmerExtern>);
-
-// wasm_extern_vec_delete
-typedef NativeWasmerExternVecDeleteFn = Void Function(Pointer<WasmerExternVec>);
-typedef WasmerExternVecDeleteFn = void Function(Pointer<WasmerExternVec>);
-
-// wasm_extern_vec_new
-typedef NativeWasmerExternVecNewFn = Void Function(
-    Pointer<WasmerExternVec>, Uint64, Pointer<Pointer<WasmerExtern>>);
-typedef WasmerExternVecNewFn = void Function(
-    Pointer<WasmerExternVec>, int, Pointer<Pointer<WasmerExtern>>);
-
-// wasm_extern_vec_new_empty
-typedef NativeWasmerExternVecNewEmptyFn = Void Function(
-    Pointer<WasmerExternVec>);
-typedef WasmerExternVecNewEmptyFn = void Function(Pointer<WasmerExternVec>);
-
-// wasm_extern_vec_new_uninitialized
-typedef NativeWasmerExternVecNewUninitializedFn = Void Function(
-    Pointer<WasmerExternVec>, Uint64);
-typedef WasmerExternVecNewUninitializedFn = void Function(
-    Pointer<WasmerExternVec>, int);
-
-// wasm_externtype_as_functype
-typedef NativeWasmerExterntypeAsFunctypeFn = Pointer<WasmerFunctype> Function(
-    Pointer<WasmerExterntype>);
-typedef WasmerExterntypeAsFunctypeFn = Pointer<WasmerFunctype> Function(
-    Pointer<WasmerExterntype>);
-
-// wasm_externtype_delete
-typedef NativeWasmerExterntypeDeleteFn = Void Function(
-    Pointer<WasmerExterntype>);
-typedef WasmerExterntypeDeleteFn = void Function(Pointer<WasmerExterntype>);
-
-// wasm_externtype_kind
-typedef NativeWasmerExterntypeKindFn = Uint8 Function(
-    Pointer<WasmerExterntype>);
-typedef WasmerExterntypeKindFn = int Function(Pointer<WasmerExterntype>);
-
-// wasm_func_call
-typedef NativeWasmerFuncCallFn = Pointer<WasmerTrap> Function(
-    Pointer<WasmerFunc>, Pointer<WasmerVal>, Pointer<WasmerVal>);
-typedef WasmerFuncCallFn = Pointer<WasmerTrap> Function(
-    Pointer<WasmerFunc>, Pointer<WasmerVal>, Pointer<WasmerVal>);
-
-// wasm_func_delete
-typedef NativeWasmerFuncDeleteFn = Void Function(Pointer<WasmerFunc>);
-typedef WasmerFuncDeleteFn = void Function(Pointer<WasmerFunc>);
-
-// wasm_functype_delete
-typedef NativeWasmerFunctypeDeleteFn = Void Function(Pointer<WasmerFunctype>);
-typedef WasmerFunctypeDeleteFn = void Function(Pointer<WasmerFunctype>);
-
-// wasm_functype_params
-typedef NativeWasmerFunctypeParamsFn = Pointer<WasmerValtypeVec> Function(
-    Pointer<WasmerFunctype>);
-typedef WasmerFunctypeParamsFn = Pointer<WasmerValtypeVec> Function(
-    Pointer<WasmerFunctype>);
-
-// wasm_functype_results
-typedef NativeWasmerFunctypeResultsFn = Pointer<WasmerValtypeVec> Function(
-    Pointer<WasmerFunctype>);
-typedef WasmerFunctypeResultsFn = Pointer<WasmerValtypeVec> Function(
-    Pointer<WasmerFunctype>);
-
-// wasm_importtype_module
-typedef NativeWasmerImporttypeModuleFn = Pointer<WasmerByteVec> Function(
-    Pointer<WasmerImporttype>);
-typedef WasmerImporttypeModuleFn = Pointer<WasmerByteVec> Function(
-    Pointer<WasmerImporttype>);
-
-// wasm_importtype_name
-typedef NativeWasmerImporttypeNameFn = Pointer<WasmerByteVec> Function(
-    Pointer<WasmerImporttype>);
-typedef WasmerImporttypeNameFn = Pointer<WasmerByteVec> Function(
-    Pointer<WasmerImporttype>);
-
-// wasm_importtype_type
-typedef NativeWasmerImporttypeTypeFn = Pointer<WasmerExterntype> Function(
-    Pointer<WasmerImporttype>);
-typedef WasmerImporttypeTypeFn = Pointer<WasmerExterntype> Function(
-    Pointer<WasmerImporttype>);
-
-// wasm_importtype_vec_delete
-typedef NativeWasmerImporttypeVecDeleteFn = Void Function(
-    Pointer<WasmerImporttypeVec>);
-typedef WasmerImporttypeVecDeleteFn = void Function(
-    Pointer<WasmerImporttypeVec>);
-
-// wasm_importtype_vec_new
-typedef NativeWasmerImporttypeVecNewFn = Void Function(
-    Pointer<WasmerImporttypeVec>, Uint64, Pointer<Pointer<WasmerImporttype>>);
-typedef WasmerImporttypeVecNewFn = void Function(
-    Pointer<WasmerImporttypeVec>, int, Pointer<Pointer<WasmerImporttype>>);
-
-// wasm_importtype_vec_new_empty
-typedef NativeWasmerImporttypeVecNewEmptyFn = Void Function(
-    Pointer<WasmerImporttypeVec>);
-typedef WasmerImporttypeVecNewEmptyFn = void Function(
-    Pointer<WasmerImporttypeVec>);
-
-// wasm_importtype_vec_new_uninitialized
-typedef NativeWasmerImporttypeVecNewUninitializedFn = Void Function(
-    Pointer<WasmerImporttypeVec>, Uint64);
-typedef WasmerImporttypeVecNewUninitializedFn = void Function(
-    Pointer<WasmerImporttypeVec>, int);
-
-// wasm_instance_delete
-typedef NativeWasmerInstanceDeleteFn = Void Function(Pointer<WasmerInstance>);
-typedef WasmerInstanceDeleteFn = void Function(Pointer<WasmerInstance>);
-
-// wasm_instance_exports
+// wasmer_compile
+typedef NativeWasmerCompileFn = Uint32 Function(
+    Pointer<Pointer<WasmerModule>>, Pointer<Uint8>, Uint32);
+typedef WasmerCompileFn = int Function(
+    Pointer<Pointer<WasmerModule>>, Pointer<Uint8>, int);
+
+// wasmer_module_instantiate
+typedef NativeWasmerInstantiateFn = Uint32 Function(Pointer<WasmerModule>,
+    Pointer<Pointer<WasmerInstance>>, Pointer<WasmerImport>, Int32);
+typedef WasmerInstantiateFn = int Function(Pointer<WasmerModule>,
+    Pointer<Pointer<WasmerInstance>>, Pointer<WasmerImport>, int);
+
+// wasmer_instance_exports
 typedef NativeWasmerInstanceExportsFn = Void Function(
-    Pointer<WasmerInstance>, Pointer<WasmerExternVec>);
+    Pointer<WasmerInstance>, Pointer<Pointer<WasmerExports>>);
 typedef WasmerInstanceExportsFn = void Function(
-    Pointer<WasmerInstance>, Pointer<WasmerExternVec>);
+    Pointer<WasmerInstance>, Pointer<Pointer<WasmerExports>>);
 
-// wasm_instance_new
-typedef NativeWasmerInstanceNewFn = Pointer<WasmerInstance> Function(
-    Pointer<WasmerStore>,
-    Pointer<WasmerModule>,
-    Pointer<Pointer<WasmerExtern>>,
-    Pointer<Pointer<WasmerTrap>>);
-typedef WasmerInstanceNewFn = Pointer<WasmerInstance> Function(
-    Pointer<WasmerStore>,
-    Pointer<WasmerModule>,
-    Pointer<Pointer<WasmerExtern>>,
-    Pointer<Pointer<WasmerTrap>>);
+// wasmer_exports_len
+typedef NativeWasmerExportsLenFn = Int32 Function(Pointer<WasmerExports>);
+typedef WasmerExportsLenFn = int Function(Pointer<WasmerExports>);
 
-// wasm_memory_data
+// wasmer_exports_get
+typedef NativeWasmerExportsGetFn = Pointer<WasmerExport> Function(
+    Pointer<WasmerExports>, Int32);
+typedef WasmerExportsGetFn = Pointer<WasmerExport> Function(
+    Pointer<WasmerExports>, int);
+
+// wasmer_export_descriptors
+typedef NativeWasmerExportDescriptorsFn = Void Function(
+    Pointer<WasmerModule>, Pointer<Pointer<WasmerExportDescriptors>>);
+typedef WasmerExportDescriptorsFn = void Function(
+    Pointer<WasmerModule>, Pointer<Pointer<WasmerExportDescriptors>>);
+
+// wasmer_export_descriptors_destroy
+typedef NativeWasmerExportDescriptorsDestroyFn = Void Function(
+    Pointer<WasmerExportDescriptors>);
+typedef WasmerExportDescriptorsDestroyFn = void Function(
+    Pointer<WasmerExportDescriptors>);
+
+// wasmer_export_descriptors_len
+typedef NativeWasmerExportDescriptorsLenFn = Int32 Function(
+    Pointer<WasmerExportDescriptors>);
+typedef WasmerExportDescriptorsLenFn = int Function(
+    Pointer<WasmerExportDescriptors>);
+
+// wasmer_export_descriptors_get
+typedef NativeWasmerExportDescriptorsGetFn = Pointer<WasmerExportDescriptor>
+    Function(Pointer<WasmerExportDescriptors>, Int32);
+typedef WasmerExportDescriptorsGetFn = Pointer<WasmerExportDescriptor> Function(
+    Pointer<WasmerExportDescriptors>, int);
+
+// wasmer_export_descriptor_kind
+typedef NativeWasmerExportDescriptorKindFn = Uint32 Function(
+    Pointer<WasmerExportDescriptor>);
+typedef WasmerExportDescriptorKindFn = int Function(
+    Pointer<WasmerExportDescriptor>);
+
+// wasmer_export_descriptor_name_ptr
+typedef NativeWasmerExportDescriptorNamePtrFn = Void Function(
+    Pointer<WasmerExportDescriptor>, Pointer<WasmerByteArray>);
+typedef WasmerExportDescriptorNamePtrFn = void Function(
+    Pointer<WasmerExportDescriptor>, Pointer<WasmerByteArray>);
+
+// wasmer_import_descriptors
+typedef NativeWasmerImportDescriptorsFn = Void Function(
+    Pointer<WasmerModule>, Pointer<Pointer<WasmerImportDescriptors>>);
+typedef WasmerImportDescriptorsFn = void Function(
+    Pointer<WasmerModule>, Pointer<Pointer<WasmerImportDescriptors>>);
+
+// wasmer_import_descriptors_destroy
+typedef NativeWasmerImportDescriptorsDestroyFn = Void Function(
+    Pointer<WasmerImportDescriptors>);
+typedef WasmerImportDescriptorsDestroyFn = void Function(
+    Pointer<WasmerImportDescriptors>);
+
+// wasmer_import_descriptors_len
+typedef NativeWasmerImportDescriptorsLenFn = Int32 Function(
+    Pointer<WasmerImportDescriptors>);
+typedef WasmerImportDescriptorsLenFn = int Function(
+    Pointer<WasmerImportDescriptors>);
+
+// wasmer_import_descriptors_get
+typedef NativeWasmerImportDescriptorsGetFn = Pointer<WasmerImportDescriptor>
+    Function(Pointer<WasmerImportDescriptors>, Int32);
+typedef WasmerImportDescriptorsGetFn = Pointer<WasmerImportDescriptor> Function(
+    Pointer<WasmerImportDescriptors>, int);
+
+// wasmer_import_descriptor_kind
+typedef NativeWasmerImportDescriptorKindFn = Uint32 Function(
+    Pointer<WasmerImportDescriptor>);
+typedef WasmerImportDescriptorKindFn = int Function(
+    Pointer<WasmerImportDescriptor>);
+
+// wasmer_import_descriptor_module_name_ptr
+typedef NativeWasmerImportDescriptorModuleNamePtrFn = Void Function(
+    Pointer<WasmerImportDescriptor>, Pointer<WasmerByteArray>);
+typedef WasmerImportDescriptorModuleNamePtrFn = void Function(
+    Pointer<WasmerImportDescriptor>, Pointer<WasmerByteArray>);
+
+// wasmer_import_descriptor_name_ptr
+typedef NativeWasmerImportDescriptorNamePtrFn = Void Function(
+    Pointer<WasmerImportDescriptor>, Pointer<WasmerByteArray>);
+typedef WasmerImportDescriptorNamePtrFn = void Function(
+    Pointer<WasmerImportDescriptor>, Pointer<WasmerByteArray>);
+
+// wasmer_export_name_ptr
+typedef NativeWasmerExportNamePtrFn = Void Function(
+    Pointer<WasmerExport>, Pointer<WasmerByteArray>);
+typedef WasmerExportNamePtrFn = void Function(
+    Pointer<WasmerExport>, Pointer<WasmerByteArray>);
+
+// wasmer_export_kind
+typedef NativeWasmerExportKindFn = Uint32 Function(Pointer<WasmerExport>);
+typedef WasmerExportKindFn = int Function(Pointer<WasmerExport>);
+
+// wasmer_export_to_func
+typedef NativeWasmerExportToFuncFn = Pointer<WasmerExportFunc> Function(
+    Pointer<WasmerExport>);
+typedef WasmerExportToFuncFn = Pointer<WasmerExportFunc> Function(
+    Pointer<WasmerExport>);
+
+// wasmer_export_func_returns_arity
+typedef NativeWasmerExportFuncReturnsArityFn = Uint32 Function(
+    Pointer<WasmerExportFunc>, Pointer<Uint32>);
+typedef WasmerExportFuncReturnsArityFn = int Function(
+    Pointer<WasmerExportFunc>, Pointer<Uint32>);
+
+// wasmer_export_func_returns
+typedef NativeWasmerExportFuncReturnsFn = Uint32 Function(
+    Pointer<WasmerExportFunc>, Pointer<Uint32>, Uint32);
+typedef WasmerExportFuncReturnsFn = int Function(
+    Pointer<WasmerExportFunc>, Pointer<Uint32>, int);
+
+// wasmer_export_func_params_arity
+typedef NativeWasmerExportFuncParamsArityFn = Uint32 Function(
+    Pointer<WasmerExportFunc>, Pointer<Uint32>);
+typedef WasmerExportFuncParamsArityFn = int Function(
+    Pointer<WasmerExportFunc>, Pointer<Uint32>);
+
+// wasmer_export_func_params
+typedef NativeWasmerExportFuncParamsFn = Uint32 Function(
+    Pointer<WasmerExportFunc>, Pointer<Uint32>, Uint32);
+typedef WasmerExportFuncParamsFn = int Function(
+    Pointer<WasmerExportFunc>, Pointer<Uint32>, int);
+
+// wasmer_export_func_call
+typedef NativeWasmerExportFuncCallFn = Uint32 Function(
+    Pointer<WasmerExportFunc>,
+    Pointer<WasmerValue>,
+    Uint32,
+    Pointer<WasmerValue>,
+    Uint32);
+typedef WasmerExportFuncCallFn = int Function(Pointer<WasmerExportFunc>,
+    Pointer<WasmerValue>, int, Pointer<WasmerValue>, int);
+
+// wasmer_export_to_memory
+typedef NativeWasmerExportToMemoryFn = Uint32 Function(
+    Pointer<WasmerExport>, Pointer<Pointer<WasmerMemory>>);
+typedef WasmerExportToMemoryFn = int Function(
+    Pointer<WasmerExport>, Pointer<Pointer<WasmerMemory>>);
+
+// wasmer_memory_new_ptr
+typedef NativeWasmerMemoryNewPtrFn = Uint32 Function(
+    Pointer<Pointer<WasmerMemory>>, Pointer<WasmerLimits>);
+typedef WasmerMemoryNewPtrFn = int Function(
+    Pointer<Pointer<WasmerMemory>>, Pointer<WasmerLimits>);
+
+// wasmer_memory_grow
+typedef NativeWasmerMemoryGrowFn = Uint32 Function(
+    Pointer<WasmerMemory>, Uint32);
+typedef WasmerMemoryGrowFn = int Function(Pointer<WasmerMemory>, int);
+
+// wasmer_memory_length
+typedef NativeWasmerMemoryLengthFn = Uint32 Function(Pointer<WasmerMemory>);
+typedef WasmerMemoryLengthFn = int Function(Pointer<WasmerMemory>);
+
+// wasmer_memory_data
 typedef NativeWasmerMemoryDataFn = Pointer<Uint8> Function(
     Pointer<WasmerMemory>);
 typedef WasmerMemoryDataFn = Pointer<Uint8> Function(Pointer<WasmerMemory>);
 
-// wasm_memory_data_size
-typedef NativeWasmerMemoryDataSizeFn = Uint64 Function(Pointer<WasmerMemory>);
-typedef WasmerMemoryDataSizeFn = int Function(Pointer<WasmerMemory>);
-
-// wasm_memory_delete
-typedef NativeWasmerMemoryDeleteFn = Void Function(Pointer<WasmerMemory>);
-typedef WasmerMemoryDeleteFn = void Function(Pointer<WasmerMemory>);
-
-// wasm_memory_grow
-typedef NativeWasmerMemoryGrowFn = Uint8 Function(
-    Pointer<WasmerMemory>, Uint32);
-typedef WasmerMemoryGrowFn = int Function(Pointer<WasmerMemory>, int);
-
-// wasm_memory_new
-typedef NativeWasmerMemoryNewFn = Pointer<WasmerMemory> Function(
-    Pointer<WasmerStore>, Pointer<WasmerMemorytype>);
-typedef WasmerMemoryNewFn = Pointer<WasmerMemory> Function(
-    Pointer<WasmerStore>, Pointer<WasmerMemorytype>);
-
-// wasm_memory_size
-typedef NativeWasmerMemorySizeFn = Uint32 Function(Pointer<WasmerMemory>);
-typedef WasmerMemorySizeFn = int Function(Pointer<WasmerMemory>);
-
-// wasm_memorytype_delete
-typedef NativeWasmerMemorytypeDeleteFn = Void Function(
-    Pointer<WasmerMemorytype>);
-typedef WasmerMemorytypeDeleteFn = void Function(Pointer<WasmerMemorytype>);
-
-// wasm_memorytype_new
-typedef NativeWasmerMemorytypeNewFn = Pointer<WasmerMemorytype> Function(
-    Pointer<WasmerLimits>);
-typedef WasmerMemorytypeNewFn = Pointer<WasmerMemorytype> Function(
-    Pointer<WasmerLimits>);
-
-// wasm_module_delete
-typedef NativeWasmerModuleDeleteFn = Void Function(Pointer<WasmerModule>);
-typedef WasmerModuleDeleteFn = void Function(Pointer<WasmerModule>);
-
-// wasm_module_exports
-typedef NativeWasmerModuleExportsFn = Void Function(
-    Pointer<WasmerModule>, Pointer<WasmerExporttypeVec>);
-typedef WasmerModuleExportsFn = void Function(
-    Pointer<WasmerModule>, Pointer<WasmerExporttypeVec>);
-
-// wasm_module_imports
-typedef NativeWasmerModuleImportsFn = Void Function(
-    Pointer<WasmerModule>, Pointer<WasmerImporttypeVec>);
-typedef WasmerModuleImportsFn = void Function(
-    Pointer<WasmerModule>, Pointer<WasmerImporttypeVec>);
-
-// wasm_module_new
-typedef NativeWasmerModuleNewFn = Pointer<WasmerModule> Function(
-    Pointer<WasmerStore>, Pointer<WasmerByteVec>);
-typedef WasmerModuleNewFn = Pointer<WasmerModule> Function(
-    Pointer<WasmerStore>, Pointer<WasmerByteVec>);
-
-// wasm_store_delete
-typedef NativeWasmerStoreDeleteFn = Void Function(Pointer<WasmerStore>);
-typedef WasmerStoreDeleteFn = void Function(Pointer<WasmerStore>);
-
-// wasm_store_new
-typedef NativeWasmerStoreNewFn = Pointer<WasmerStore> Function(
-    Pointer<WasmerEngine>);
-typedef WasmerStoreNewFn = Pointer<WasmerStore> Function(Pointer<WasmerEngine>);
-
-// wasm_trap_delete
-typedef NativeWasmerTrapDeleteFn = Void Function(Pointer<WasmerTrap>);
-typedef WasmerTrapDeleteFn = void Function(Pointer<WasmerTrap>);
-
-// wasm_valtype_delete
-typedef NativeWasmerValtypeDeleteFn = Void Function(Pointer<WasmerValtype>);
-typedef WasmerValtypeDeleteFn = void Function(Pointer<WasmerValtype>);
-
-// wasm_valtype_kind
-typedef NativeWasmerValtypeKindFn = Uint8 Function(Pointer<WasmerValtype>);
-typedef WasmerValtypeKindFn = int Function(Pointer<WasmerValtype>);
-
-// wasm_valtype_vec_delete
-typedef NativeWasmerValtypeVecDeleteFn = Void Function(
-    Pointer<WasmerValtypeVec>);
-typedef WasmerValtypeVecDeleteFn = void Function(Pointer<WasmerValtypeVec>);
-
-// wasm_valtype_vec_new
-typedef NativeWasmerValtypeVecNewFn = Void Function(
-    Pointer<WasmerValtypeVec>, Uint64, Pointer<Pointer<WasmerValtype>>);
-typedef WasmerValtypeVecNewFn = void Function(
-    Pointer<WasmerValtypeVec>, int, Pointer<Pointer<WasmerValtype>>);
-
-// wasm_valtype_vec_new_empty
-typedef NativeWasmerValtypeVecNewEmptyFn = Void Function(
-    Pointer<WasmerValtypeVec>);
-typedef WasmerValtypeVecNewEmptyFn = void Function(Pointer<WasmerValtypeVec>);
-
-// wasm_valtype_vec_new_uninitialized
-typedef NativeWasmerValtypeVecNewUninitializedFn = Void Function(
-    Pointer<WasmerValtypeVec>, Uint64);
-typedef WasmerValtypeVecNewUninitializedFn = void Function(
-    Pointer<WasmerValtypeVec>, int);
+// wasmer_memory_data_length
+typedef NativeWasmerMemoryDataLengthFn = Uint32 Function(Pointer<WasmerMemory>);
+typedef WasmerMemoryDataLengthFn = int Function(Pointer<WasmerMemory>);
