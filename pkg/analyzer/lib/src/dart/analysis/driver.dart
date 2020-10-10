@@ -1450,6 +1450,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       resourceProvider: _resourceProvider,
       packages: _packages,
       packageDefaultFeatureSet: _analysisOptions.contextFeatures,
+      nonPackageDefaultLanguageVersion:
+          _analysisOptions.nonPackageLanguageVersion,
       nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
     );
 

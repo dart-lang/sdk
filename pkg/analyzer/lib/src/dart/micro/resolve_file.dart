@@ -15,6 +15,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -393,6 +394,7 @@ class FileResolver {
         resourceProvider: resourceProvider,
         packages: Packages.empty,
         packageDefaultFeatureSet: analysisOptions.contextFeatures,
+        nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
         nonPackageDefaultFeatureSet: analysisOptions.nonPackageFeatureSet,
       );
 
