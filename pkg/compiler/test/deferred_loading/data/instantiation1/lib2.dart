@@ -4,15 +4,14 @@
 
 // @dart = 2.7
 
-/*member: getFoo:OutputUnit(3, {c})*/
+/*member: getFoo:member_unit=3{c}*/
 T getFoo<T, S>(T v, S w) => v;
 
 typedef dynamic G<T, S>(T v, S w);
 
 /*member: m:
- OutputUnit(3, {c}),
- constants=[
-  InstantiationConstant([int*, int*],FunctionConstant(getFoo))=OutputUnit(3, {c})]
+ constants=[InstantiationConstant([int*, int*],FunctionConstant(getFoo))=3{c}],
+ member_unit=3{c}
 */
 m(int x, int y, {G<int, int> f: getFoo}) {
   print(f(x, y));

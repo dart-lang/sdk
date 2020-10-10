@@ -6,5 +6,5 @@
 
 import 'lib2.dart';
 
-/*member: doCast:OutputUnit(main, {})*/
-doCast(List<dynamic> l) => l.cast<B>().map(/*OutputUnit(main, {})*/ (x) => 1);
+/*member: doCast:member_unit=main{}*/
+doCast(List<dynamic> l) => l.cast<B>().map(/*closure_unit=main{}*/ (x) => 1);

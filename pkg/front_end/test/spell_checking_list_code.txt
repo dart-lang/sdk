@@ -903,6 +903,7 @@ reflect
 reflective
 reg
 regis
+registering
 rehash
 reindexed
 reissued

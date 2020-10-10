@@ -6,6 +6,9 @@
 
 import 'libc.dart';
 
-/*class: C1:OutputUnit(1, {libb}), type=OutputUnit(main, {})*/
-/*member: C1.:OutputUnit(1, {libb})*/
+/*class: C1:
+ class_unit=1{libb},
+ type_unit=main{}
+*/
+/*member: C1.:member_unit=1{libb}*/
 class C1 extends C2 implements C3 {}

@@ -4,8 +4,8 @@
 
 // @dart = 2.7
 
-/*member: finalVar:OutputUnit(1, {lib})*/
+/*member: finalVar:member_unit=1{lib}*/
 final finalVar = "string1";
 
-/*member: globalVar:OutputUnit(1, {lib})*/
+/*member: globalVar:member_unit=1{lib}*/
 var globalVar = "string2";

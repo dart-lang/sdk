@@ -6,9 +6,9 @@
 
 import 'lib.dart' deferred as lib;
 
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 main() {
-  lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
+  lib.loadLibrary().then(/*closure_unit=main{}*/ (_) {
     return new lib.MyClass().foo(87);
   });
 }

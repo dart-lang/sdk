@@ -13,7 +13,7 @@
 import 'lib_a.dart';
 import 'lib_b.dart';
 
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 main() async {
   (await doA()).method();
   await doB();

@@ -13,7 +13,7 @@ const C5 = const C(1);
 
 const C6 = const C(2);
 
-/*member: foo:OutputUnit(3, {lib2})*/
+/*member: foo:member_unit=3{lib2}*/
 foo() {
   print("lib2");
   main.foo();

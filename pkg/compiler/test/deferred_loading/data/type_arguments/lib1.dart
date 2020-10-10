@@ -6,12 +6,18 @@
 
 import 'lib3.dart';
 
-/*class: A:OutputUnit(1, {lib1}), type=OutputUnit(1, {lib1})*/
+/*class: A:
+ class_unit=1{lib1},
+ type_unit=1{lib1}
+*/
 class A<T> {
   const A();
 }
 
-/*class: B:none, type=OutputUnit(1, {lib1})*/
+/*class: B:
+ class_unit=none,
+ type_unit=1{lib1}
+*/
 class B {}
 
 const dynamic field1 = const A<B>();

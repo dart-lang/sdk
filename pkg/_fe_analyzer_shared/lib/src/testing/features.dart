@@ -9,6 +9,25 @@ class Features {
   Map<String, Object> _features = {};
   Set<String> _unsorted = new Set<String>();
 
+  Features();
+
+  /// Creates a [Features] registering each key in [featuresMap] as a features
+  /// with the corresponding value(s) in the map. Note: values are expected to
+  /// be either a single `String` value or a `List<String>`.
+  factory Features.fromMap(Map<String, dynamic> featuresMap) {
+    Features features = new Features();
+    featuresMap.forEach((key, value) {
+      if (value is List) {
+        for (dynamic v in value) {
+          features.addElement(key, v);
+        }
+      } else {
+        features.add(key, value: value);
+      }
+    });
+    return features;
+  }
+
   /// Mark the feature [key] as existing. If [value] is provided, the feature
   /// [key] is set to have this value.
   void add(String key, {var value: ''}) {

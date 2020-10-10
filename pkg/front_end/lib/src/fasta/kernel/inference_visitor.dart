@@ -5654,6 +5654,10 @@ class InferenceVisitor
           callName,
           new Arguments(<Expression>[rhs])..fileOffset = node.fileOffset)
         ..fileOffset = node.fileOffset;
+      // Future calls to flow analysis will be using `resultExpression` to refer
+      // to the variable set, so instruct flow analysis to forward the
+      // expression information.
+      inferrer.flowAnalysis.forwardExpression(resultExpression, node);
     } else {
       node.value = rhs..parent = node;
       resultExpression = node;
@@ -5927,6 +5931,10 @@ class InferenceVisitor
           callName,
           new Arguments(<Expression>[])..fileOffset = node.fileOffset)
         ..fileOffset = node.fileOffset;
+      // Future calls to flow analysis will be using `resultExpression` to refer
+      // to the variable get, so instruct flow analysis to forward the
+      // expression information.
+      inferrer.flowAnalysis.forwardExpression(resultExpression, node);
     } else {
       resultExpression = node;
     }

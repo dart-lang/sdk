@@ -1,17 +1,6 @@
 import("../../build/rust/rust.gni")
 
-shared_library("wasmer_wrapper") {
-  sources = [
-    "wasmer.hh",
-    "wasmer_wrapper.cc",
-  ]
-  deps = [ ":wasmer_lib" ]
-  if (is_linux) {
-    libs = [ "rt" ]
-  }
-  ldflags = [ "-Wl,--no-as-needed" ]  # Force linking of all wasmer symbols.
-}
-
-rust_library("wasmer_lib") {
+rust_library("wasmer") {
   lib_name = "wasmer"
+  shared = true
 }

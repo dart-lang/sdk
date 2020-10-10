@@ -4,12 +4,18 @@
 
 // @dart = 2.7
 
-/*class: E:OutputUnit(2, {lib3}), type=OutputUnit(2, {lib3})*/
+/*class: E:
+ class_unit=2{lib3},
+ type_unit=2{lib3}
+*/
 class E<T> {
   const E();
 }
 
-/*class: F:none, type=OutputUnit(3, {lib1, lib3})*/
+/*class: F:
+ class_unit=none,
+ type_unit=3{lib1, lib3}
+*/
 class F {}
 
 const dynamic field = const E<F>();
