@@ -162,7 +162,8 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE = ParserErrorCode(
       'DEFAULT_VALUE_IN_FUNCTION_TYPE',
       "Parameters in a function type can't have default values.",
-      correction: "Try removing the default value.");
+      correction: "Try removing the default value.",
+      hasPublishedDocs: true);
 
   static const ParserErrorCode DEFERRED_AFTER_PREFIX = _DEFERRED_AFTER_PREFIX;
 
