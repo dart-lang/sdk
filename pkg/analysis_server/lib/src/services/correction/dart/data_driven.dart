@@ -5,12 +5,13 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -34,12 +35,57 @@ class DataDriven extends MultiCorrectionProducer {
         importedUris.add(Uri.parse(uri));
       }
     }
-    var matcher = ElementMatcher(importedUris: importedUris, name: name);
+    var matcher =
+        ElementMatcher(importedUris: importedUris, name: name, kinds: _kinds);
     for (var set in _availableTransformSetsForLibrary(library)) {
       for (var transform in set.transformsFor(matcher)) {
         yield DataDrivenFix(transform);
       }
     }
+  }
+
+  List<ElementKind> get _kinds {
+    AstNode child;
+    var node = this.node;
+    while (node != null) {
+      if (node is ConstructorName) {
+        return const [ElementKind.constructorKind];
+      } else if (node is ExtensionOverride) {
+        return const [ElementKind.extensionKind];
+      } else if (node is InstanceCreationExpression) {
+        return const [ElementKind.constructorKind];
+      } else if (node is MethodInvocation) {
+        if (node.target == child) {
+          return const [
+            ElementKind.classKind,
+            ElementKind.enumKind,
+            ElementKind.mixinKind
+          ];
+        } else if (node.realTarget != null) {
+          return const [ElementKind.constructorKind, ElementKind.methodKind];
+        }
+        return const [
+          ElementKind.classKind,
+          ElementKind.extensionKind,
+          ElementKind.functionKind,
+          ElementKind.methodKind
+        ];
+      } else if (node is NamedType) {
+        var parent = node.parent;
+        if (parent is ConstructorName && parent.name == null) {
+          return const [ElementKind.classKind, ElementKind.constructorKind];
+        }
+        return const [
+          ElementKind.classKind,
+          ElementKind.enumKind,
+          ElementKind.mixinKind,
+          ElementKind.typedefKind
+        ];
+      }
+      child = node;
+      node = node.parent;
+    }
+    return null;
   }
 
   /// Return the name of the element that was changed.

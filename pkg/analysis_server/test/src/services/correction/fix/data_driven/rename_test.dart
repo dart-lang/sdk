@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -746,7 +747,30 @@ class RenameGetterTest extends _AbstractRenameTest {
   @override
   String get _kind => 'getter';
 
-  Future<void> test_instance_nonReference_deprecated() async {
+  Future<void> test_instance_nonReference_method_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get a => 0;
+  int get b => 1;
+}
+class D {
+  @deprecated
+  void a(int b) {}
+}
+''');
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(D d) {
+  d.a(2);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_instance_nonReference_parameter_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -1156,7 +1180,7 @@ abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
           title: 'title',
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
-              kind: _kind,
+              kind: ElementKindUtilities.fromName(_kind),
               components: components),
           changes: [
             Rename(newName: newName),

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,6 +23,9 @@ void main() {
 
 @reflectiveTest
 class AddTypeParameterToClassTest extends _AddTypeParameterChange {
+  @override
+  String get _kind => 'class';
+
   Future<void> test_constructorInvocation_removed() async {
     setPackageContent('''
 class C<S, T> {
@@ -133,6 +137,9 @@ class B with A<String, int> {}
 
 @reflectiveTest
 class AddTypeParameterToExtensionTest extends _AddTypeParameterChange {
+  @override
+  String get _kind => 'extension';
+
   Future<void> test_override_removed() async {
     setPackageContent('''
 class C {}
@@ -160,6 +167,9 @@ void f(C c) {
 
 @reflectiveTest
 class AddTypeParameterToMethodTest extends _AddTypeParameterChange {
+  @override
+  String get _kind => 'method';
+
   Future<void> test_first_deprecated() async {
     setPackageContent('''
 class C {
@@ -332,6 +342,9 @@ class D extends C {
 
 @reflectiveTest
 class AddTypeParameterToMixinTest extends _AddTypeParameterChange {
+  @override
+  String get _kind => 'mixin';
+
   Future<void> test_inWith_removed() async {
     setPackageContent('''
 mixin M<S, T> {}
@@ -352,6 +365,9 @@ class B with M<String, int> {}
 
 @reflectiveTest
 class AddTypeParameterToTopLevelFunctionTest extends _AddTypeParameterChange {
+  @override
+  String get _kind => 'function';
+
   Future<void> test_only_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -377,6 +393,9 @@ void g() {
 
 @reflectiveTest
 class AddTypeParameterToTypedefTest extends _AddTypeParameterChange {
+  @override
+  String get _kind => 'typedef';
+
   @failingTest
   Future<void> test_functionType_removed() async {
     // The test fails because the change is to the typedef `F`, not to the
@@ -454,13 +473,15 @@ void g(F<String> f) {
 }
 
 abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
+  /// Return the kind of element whose parameters are being modified.
+  String get _kind;
+
   Transform _add(int index, {List<String> components, String extendedType}) =>
       Transform(
           title: 'title',
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
-              // The kind isn't important to these tests.
-              kind: '',
+              kind: ElementKindUtilities.fromName(_kind),
               components: components ?? ['C', 'm']),
           changes: [
             AddTypeParameter(

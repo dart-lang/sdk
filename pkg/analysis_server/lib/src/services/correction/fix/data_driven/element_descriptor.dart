@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:meta/meta.dart';
 
 /// The path to an element.
@@ -10,7 +11,7 @@ class ElementDescriptor {
   final List<Uri> libraryUris;
 
   /// The kind of element that was changed.
-  final String _kind;
+  final ElementKind kind;
 
   /// The components that uniquely identify the element within its library.
   final List<String> components;
@@ -21,10 +22,9 @@ class ElementDescriptor {
   /// element is represented by the key used in the data file.
   ElementDescriptor(
       {@required this.libraryUris,
-      @required String kind,
-      @required this.components})
-      : _kind = kind;
+      @required this.kind,
+      @required this.components});
 
   /// Return `true` if the described element is a constructor.
-  bool get isConstructor => _kind == 'constructor';
+  bool get isConstructor => kind == ElementKind.constructorKind;
 }
