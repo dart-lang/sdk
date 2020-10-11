@@ -538,7 +538,7 @@ class ParserErrorCode extends ErrorCode {
   //
   // #### Common fixes
   //
-  // Remove the 'covariant' keyword:
+  // Remove the `covariant` keyword:
   //
   // ```dart
   // extension E on String {

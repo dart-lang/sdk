@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
@@ -20,6 +21,9 @@ void main() {
 
 @reflectiveTest
 class ModifyParametersOfMethodTest extends _ModifyParameters {
+  @override
+  String get _kind => 'method';
+
   Future<void> test_add_first_optionalNamed_deprecated() async {
     setPackageContent('''
 class C {
@@ -817,6 +821,9 @@ void f(C c) {
 /// applied to top-level functions, but are not intended to be exhaustive.
 @reflectiveTest
 class ModifyParametersOfTopLevelFunctionTest extends _ModifyParameters {
+  @override
+  String get _kind => 'function';
+
   Future<void> test_add_first_requiredNamed_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -871,15 +878,16 @@ void h() {
 }
 
 abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
+  /// Return the kind of element whose parameters are being modified.
+  String get _kind;
+
   Transform _modify(List<String> originalComponents,
-          List<ParameterModification> modifications,
-          {String newName}) =>
+          List<ParameterModification> modifications, {String newName}) =>
       Transform(
           title: 'title',
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
-              // The kind isn't important to these tests.
-              kind: '',
+              kind: ElementKindUtilities.fromName(_kind),
               components: originalComponents),
           changes: [
             ModifyParameters(modifications: modifications),

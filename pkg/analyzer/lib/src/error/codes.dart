@@ -22,16 +22,24 @@ export 'package:analyzer/src/dart/error/todo_codes.dart';
  * when appropriate, how the problem can be corrected.
  */
 class CompileTimeErrorCode extends AnalyzerErrorCode {
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER =
-      CompileTimeErrorCode('ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
-          'Abstract fields cannot have initializers.',
+      CompileTimeErrorCodeWithUniqueName(
+          'ABSTRACT_FIELD_INITIALIZER',
+          'ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
+          "Abstract fields can't have initializers.",
           correction:
               "Try removing the field initializer or the 'abstract' keyword "
               "from the field declaration.");
 
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode ABSTRACT_FIELD_INITIALIZER =
       CompileTimeErrorCode('ABSTRACT_FIELD_INITIALIZER',
-          'Abstract fields cannot have initializers.',
+          "Abstract fields can't have initializers.",
           correction:
               "Try removing the initializer or the 'abstract' keyword.");
 
@@ -702,12 +710,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a local variable that has the
-  // 'late' modifier uses an 'await' expression in the initializer.
+  // `late` modifier uses an `await` expression in the initializer.
   //
   // #### Example
   //
-  // The following code produces this diagnostic because an 'await' expression
-  // is used in the initializer for 'v', a local variable that is marked 'late':
+  // The following code produces this diagnostic because an `await` expression
+  // is used in the initializer for `v`, a local variable that is marked `late`:
   //
   // ```dart
   // %experiments=non-nullable
@@ -719,7 +727,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If the initializer can be rewritten to not use 'await', then rewrite it:
+  // If the initializer can be rewritten to not use `await`, then rewrite it:
   //
   // ```dart
   // %experiments=non-nullable
@@ -729,7 +737,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // If the initializer can't be rewritten, then remove the 'late' modifier:
+  // If the initializer can't be rewritten, then remove the `late` modifier:
   //
   // ```dart
   // %experiments=non-nullable
@@ -1692,7 +1700,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // The analyzer produces this diagnostic when a value that isn't statically
   // known to be a constant is assigned to a variable that's declared to be a
-  // 'const' variable.
+  // `const` variable.
   //
   // #### Examples
   //
@@ -3010,7 +3018,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Use '.' rather than '..':
+  // Use `.` rather than `..`:
   //
   // ```dart
   // extension E on int {

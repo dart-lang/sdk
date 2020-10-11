@@ -735,12 +735,12 @@ _The 'await' expression can't be used in a 'late' local variable's initializer._
 #### Description
 
 The analyzer produces this diagnostic when a local variable that has the
-'late' modifier uses an 'await' expression in the initializer.
+`late` modifier uses an `await` expression in the initializer.
 
 #### Example
 
-The following code produces this diagnostic because an 'await' expression
-is used in the initializer for 'v', a local variable that is marked 'late':
+The following code produces this diagnostic because an `await` expression
+is used in the initializer for `v`, a local variable that is marked `late`:
 
 {% prettify dart tag=pre+code %}
 Future<int> f() async {
@@ -751,7 +751,7 @@ Future<int> f() async {
 
 #### Common fixes
 
-If the initializer can be rewritten to not use 'await', then rewrite it:
+If the initializer can be rewritten to not use `await`, then rewrite it:
 
 {% prettify dart tag=pre+code %}
 Future<int> f() async {
@@ -760,7 +760,7 @@ Future<int> f() async {
 }
 {% endprettify %}
 
-If the initializer can't be rewritten, then remove the 'late' modifier:
+If the initializer can't be rewritten, then remove the `late` modifier:
 
 {% prettify dart tag=pre+code %}
 Future<int> f() async {
@@ -1201,7 +1201,7 @@ _Const variables must be initialized with a constant value._
 
 The analyzer produces this diagnostic when a value that isn't statically
 known to be a constant is assigned to a variable that's declared to be a
-'const' variable.
+`const` variable.
 
 #### Examples
 
@@ -2684,7 +2684,7 @@ f() {
 
 #### Common fixes
 
-Use '.' rather than '..':
+Use `.` rather than `..`:
 
 {% prettify dart tag=pre+code %}
 extension E on int {
@@ -4084,7 +4084,7 @@ extension E on String {
 
 #### Common fixes
 
-Remove the 'covariant' keyword:
+Remove the `covariant` keyword:
 
 {% prettify dart tag=pre+code %}
 extension E on String {
@@ -4791,7 +4791,7 @@ as a superclass constraint.
 
 #### Examples
 
-If the package 'p' defines a sealed class:
+If the package `p` defines a sealed class:
 
 {% prettify dart tag=pre+code %}
 import 'package:meta/meta.dart';
@@ -4800,7 +4800,7 @@ import 'package:meta/meta.dart';
 class C {}
 {% endprettify %}
 
-Then, the following code, when in a package other than 'p', produces this
+Then, the following code, when in a package other than `p`, produces this
 diagnostic:
 
 {% prettify dart tag=pre+code %}

@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/add_type
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
@@ -534,7 +535,9 @@ class TransformSetParser {
         return null;
       }
       return ElementDescriptor(
-          libraryUris: uris, kind: elementKey, components: components);
+          libraryUris: uris,
+          kind: ElementKindUtilities.fromName(elementKey),
+          components: components);
     } else if (node == null) {
       return _reportMissingKey(context);
     } else {

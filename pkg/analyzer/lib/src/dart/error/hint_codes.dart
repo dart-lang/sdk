@@ -1178,7 +1178,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Examples
   //
-  // If the package 'p' defines a sealed class:
+  // If the package `p` defines a sealed class:
   //
   // ```dart
   // %uri="package:p/p.dart"
@@ -1188,7 +1188,7 @@ class HintCode extends AnalyzerErrorCode {
   // class C {}
   // ```
   //
-  // Then, the following code, when in a package other than 'p', produces this
+  // Then, the following code, when in a package other than `p`, produces this
   // diagnostic:
   //
   // ```dart
