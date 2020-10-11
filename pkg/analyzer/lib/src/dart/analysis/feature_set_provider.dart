@@ -23,6 +23,7 @@ class FeatureSetProvider {
   final ResourceProvider _resourceProvider;
   final Packages _packages;
   final FeatureSet _packageDefaultFeatureSet;
+  final Version _nonPackageDefaultLanguageVersion;
   final FeatureSet _nonPackageDefaultFeatureSet;
 
   FeatureSetProvider._({
@@ -31,12 +32,14 @@ class FeatureSetProvider {
     @required ResourceProvider resourceProvider,
     @required Packages packages,
     @required FeatureSet packageDefaultFeatureSet,
+    @required Version nonPackageDefaultLanguageVersion,
     @required FeatureSet nonPackageDefaultFeatureSet,
   })  : _sdkLanguageVersion = sdkLanguageVersion,
         _allowedExperiments = allowedExperiments,
         _resourceProvider = resourceProvider,
         _packages = packages,
         _packageDefaultFeatureSet = packageDefaultFeatureSet,
+        _nonPackageDefaultLanguageVersion = nonPackageDefaultLanguageVersion,
         _nonPackageDefaultFeatureSet = nonPackageDefaultFeatureSet;
 
   FeatureSet featureSetForExperiments(List<String> experiments) {
@@ -90,9 +93,10 @@ class FeatureSetProvider {
       if (languageVersion != null) {
         return languageVersion;
       }
+      return ExperimentStatus.currentVersion;
     }
 
-    return ExperimentStatus.currentVersion;
+    return _nonPackageDefaultLanguageVersion;
   }
 
   /// Return the package corresponding to the [uri] or [path], `null` if none.
@@ -130,6 +134,7 @@ class FeatureSetProvider {
     @required ResourceProvider resourceProvider,
     @required Packages packages,
     @required FeatureSet packageDefaultFeatureSet,
+    @required Version nonPackageDefaultLanguageVersion,
     @required FeatureSet nonPackageDefaultFeatureSet,
   }) {
     var sdk = sourceFactory.dartSdk;
@@ -140,6 +145,7 @@ class FeatureSetProvider {
       resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: packageDefaultFeatureSet,
+      nonPackageDefaultLanguageVersion: nonPackageDefaultLanguageVersion,
       nonPackageDefaultFeatureSet: nonPackageDefaultFeatureSet,
     );
   }

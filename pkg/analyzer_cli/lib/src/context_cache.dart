@@ -86,19 +86,21 @@ class ContextCacheEntry {
   String get analysisRoot => _analysisRoot ??= _getAnalysisRoot();
 
   void _buildContextFeatureSet(AnalysisOptionsImpl analysisOptions) {
-    var sdkLanguageVersion = ExperimentStatus.currentVersion;
-    if (clOptions.defaultLanguageVersion != null) {
-      sdkLanguageVersion = Version.parse(
-        clOptions.defaultLanguageVersion + '.0',
-      );
-    }
-
     var featureSet = FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: sdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: clOptions.enabledExperiments,
     );
 
     analysisOptions.contextFeatures = featureSet;
+
+    if (clOptions.defaultLanguageVersion != null) {
+      var nonPackageLanguageVersion = Version.parse(
+        clOptions.defaultLanguageVersion + '.0',
+      );
+      analysisOptions.nonPackageLanguageVersion = nonPackageLanguageVersion;
+      analysisOptions.nonPackageFeatureSet = FeatureSet.latestLanguageVersion()
+          .restrictToVersion(nonPackageLanguageVersion);
+    }
   }
 
   /// The actual calculation to get the [AnalysisOptionsImpl], with no caching.

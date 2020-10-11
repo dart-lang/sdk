@@ -83,6 +83,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
       nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
@@ -130,6 +131,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
       nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
@@ -177,6 +179,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
       nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
@@ -245,6 +248,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: ExperimentStatus.latestWithNullSafety,
+      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
       nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
@@ -275,6 +279,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
       packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
       nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
@@ -307,6 +312,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
       packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
       nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
@@ -323,6 +329,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
       packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
       nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
