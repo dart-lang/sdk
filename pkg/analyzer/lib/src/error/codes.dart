@@ -22,16 +22,24 @@ export 'package:analyzer/src/dart/error/todo_codes.dart';
  * when appropriate, how the problem can be corrected.
  */
 class CompileTimeErrorCode extends AnalyzerErrorCode {
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER =
-      CompileTimeErrorCode('ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
-          'Abstract fields cannot have initializers.',
+      CompileTimeErrorCodeWithUniqueName(
+          'ABSTRACT_FIELD_INITIALIZER',
+          'ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
+          "Abstract fields can't have initializers.",
           correction:
               "Try removing the field initializer or the 'abstract' keyword "
               "from the field declaration.");
 
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode ABSTRACT_FIELD_INITIALIZER =
       CompileTimeErrorCode('ABSTRACT_FIELD_INITIALIZER',
-          'Abstract fields cannot have initializers.',
+          "Abstract fields can't have initializers.",
           correction:
               "Try removing the initializer or the 'abstract' keyword.");
 
