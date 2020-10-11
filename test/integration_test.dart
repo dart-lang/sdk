@@ -856,9 +856,9 @@ void defineTests() {
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
-              'pubspec.yaml 6:3 [lint] Sort pub dependencies.',
-              'pubspec.yaml 10:3 [lint] Sort pub dependencies.',
-              'pubspec.yaml 15:3 [lint] Sort pub dependencies.',
+              'pubspec.yaml 19:3 [lint] Sort pub dependencies.',
+              'pubspec.yaml 26:3 [lint] Sort pub dependencies.',
+              'pubspec.yaml 33:3 [lint] Sort pub dependencies.',
               '1 file analyzed, 3 issues found',
             ]));
         expect(exitCode, 1);

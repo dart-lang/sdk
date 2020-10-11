@@ -1,16 +1,33 @@
-name: test
+name: fancy
+description: Fancy pre-built things.
+version: 1.1.1
+homepage: https://github.com/dart-lang/linter
+
+environment:
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
-  a: any
-  c: any
-  b: any
+  baz: ^0.1.1
+  flutter:
+    sdk: flutter
+  intl: ^0.15.8
+  transmogrify:
+    hosted:
+      name: transmogrify
+      url: http://some-package-server.com
+    version: ^1.0.0
+  js: ^0.6.0 # lint
+  zap: any
 
 dev_dependencies:
-  e: any
-  d: any
-  f: any
+  flutter_test:
+    sdk: flutter
+  vector_math: ^2.0.8
+  test: '>=0.5.0 <0.12.0' # lint
 
 dependency_overrides:
-  i: any
-  h: any
-  g: any
+  kittens:
+    git: https://github.com/munificent/kittens.git
+  transmogrify:
+    path: ../../../transmogrify_patch/
+  lemur: '1.0.0' # lint
