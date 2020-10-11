@@ -745,7 +745,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "initializer.",
           correction:
               "Try removing the 'late' modifier, or rewriting the initializer "
-              "without using the 'await' expression.");
+              "without using the 'await' expression.",
+          hasPublishedDocs: true);
 
   /**
    * 16.30 Await Expressions: It is a compile-time error if the function
@@ -1458,7 +1459,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Can't define the 'const' constructor because the field '{0}' is "
               "initialized with a non-constant value.",
           correction: "Try initializing the field to a constant value, or "
-              "removing the keyword 'const' from the constructor.");
+              "removing the keyword 'const' from the constructor.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.3 Constant Constructors: The superinitializer that appears, explicitly
@@ -2006,6 +2008,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCodeWithUniqueName('CREATION_WITH_NON_TYPE',
           'CONST_WITH_NON_TYPE', "The name '{0}' isn't a class.",
           correction: "Try correcting the name to match an existing class.",
+          hasPublishedDocs: true,
           isUnresolvedIdentifier: true);
 
   /**
@@ -2710,7 +2713,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCodeWithUniqueName('SUBTYPE_OF_DISALLOWED_TYPE',
           'EXTENDS_DISALLOWED_CLASS', "Classes can't extend '{0}'.",
           correction: "Try specifying a different superclass, or "
-              "removing the extends clause.");
+              "removing the extends clause.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3739,7 +3743,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'GETTER_NOT_SUBTYPE_SETTER_TYPES',
           "The return type of getter '{0}' is '{1}' which isn't a subtype "
               "of the type '{2}' of its setter '{3}'.",
-          correction: "Try changing the types so that they are compatible.");
+          correction: "Try changing the types so that they are compatible.",
+          hasPublishedDocs: true);
 
   static const CompileTimeErrorCode IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY =
       CompileTimeErrorCode(
@@ -3844,7 +3849,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'IMPLEMENTS_DISALLOWED_CLASS',
           "Classes and mixins can't implement '{0}'.",
           correction: "Try specifying a different interface, or "
-              "remove the class from the list.");
+              "remove the class from the list.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4585,7 +4591,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_ANNOTATION = CompileTimeErrorCode(
       'INVALID_ANNOTATION',
       "Annotation must be either a const variable reference or const "
-          "constructor invocation.");
+          "constructor invocation.",
+      hasPublishedDocs: true);
 
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
@@ -4610,7 +4617,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_ANNOTATION_GETTER =
       CompileTimeErrorCodeWithUniqueName('INVALID_ANNOTATION',
           'INVALID_ANNOTATION_GETTER', "Getters can't be used as annotations.",
-          correction: "Try using a top-level variable or a field.");
+          correction: "Try using a top-level variable or a field.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5354,7 +5362,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
           "Can't have a late final field in a class with a const constructor.",
           correction: "Try removing the 'late' modifier, or don't declare "
-              "'const' constructors.");
+              "'const' constructors.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -5413,7 +5422,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
           "The late final local variable is already assigned.",
           correction: "Try removing the 'final' modifier, or don't reassign "
-              "the value.");
+              "the value.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5887,7 +5897,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCodeWithUniqueName('SUBTYPE_OF_DISALLOWED_TYPE',
           'MIXIN_OF_DISALLOWED_CLASS', "Classes can't mixin '{0}'.",
           correction: "Try specifying a different class or mixin, or "
-              "remove the class or mixin from the list.");
+              "remove the class or mixin from the list.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -5942,7 +5953,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
           "''{0}' can't be used as a superclass constraint.",
           correction: "Try specifying a different super-class constraint, or "
-              "remove the 'on' clause.");
+              "remove the 'on' clause.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -6063,6 +6075,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCodeWithUniqueName('CREATION_WITH_NON_TYPE',
           'NEW_WITH_NON_TYPE', "The name '{0}' isn't a class.",
           correction: "Try correcting the name to match an existing class.",
+          hasPublishedDocs: true,
           isUnresolvedIdentifier: true);
 
   /**
@@ -6240,7 +6253,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('NO_COMBINED_SUPER_SIGNATURE',
           "Can't infer missing types in '{0}' from overridden methods: {1}.",
           correction: "Try providing explicit types for this method's "
-              "parameters and return type.");
+              "parameters and return type.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -7931,7 +7945,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The name '{0}' is already used as an import prefix and can't be "
               "used to name a top-level element.",
           correction:
-              "Try renaming either the top-level element or the prefix.");
+              "Try renaming either the top-level element or the prefix.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -10703,7 +10718,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
           "The method '{0}' is declared with {1} type parameters, but {2} type "
               "arguments are given.",
-          correction: "Try adjusting the number of type arguments.");
+          correction: "Try adjusting the number of type arguments.",
+          hasPublishedDocs: true);
 
   /**
    * Let `C` be a generic class that declares a formal type parameter `X`, and
