@@ -88,6 +88,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (variable.initializer == null) {
       return;
     }
+    if (variable.declaredElement.type.isDynamic) {
+      return;
+    }
     if (context.typeSystem.isNullable(variable.declaredElement.type) &&
         context.typeSystem.isNonNullable(variable.initializer.staticType)) {
       rule.reportLint(variable);
