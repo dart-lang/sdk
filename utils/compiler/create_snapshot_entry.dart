@@ -11,8 +11,8 @@ import 'dart:async';
 
 Future<String> getVersion(var rootPath) {
   var printVersionScript = rootPath.resolve("tools/make_version.py");
-  return Process.run(
-          "python", [printVersionScript.toFilePath(), "--quiet"], runInShell:true)
+  return Process.run("python", [printVersionScript.toFilePath(), "--quiet"],
+          runInShell: true)
       .then((result) {
     if (result.exitCode != 0) {
       throw "Could not generate version";
@@ -24,6 +24,7 @@ Future<String> getVersion(var rootPath) {
 Future<String> getDart2jsSnapshotGenerationFile(var rootPath) {
   return getVersion(rootPath).then((version) {
     var snapshotGenerationText = """
+// @dart = 2.9
 import 'package:compiler/src/dart2js.dart' as dart2jsMain;
 
 void main(List<String> arguments) {

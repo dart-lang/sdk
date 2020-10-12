@@ -4,6 +4,8 @@
 //
 // Dart test program for testing native extensions.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';

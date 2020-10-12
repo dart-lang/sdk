@@ -4,6 +4,8 @@
 //
 // Explicit pool used for managing resources.
 
+// @dart = 2.9
+
 import "dart:async";
 import 'dart:convert';
 import 'dart:ffi';

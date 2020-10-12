@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.8
+
 /// A tool that invokes the CFE to compute kernel summary files.
 ///
 /// This script can be used as a command-line command or a persistent server.
