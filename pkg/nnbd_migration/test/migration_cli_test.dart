@@ -562,6 +562,40 @@ int${migrated ? '?' : ''} f() => null;
     expect(assertParseArgsSuccess(['--web-preview']).webPreview, isTrue);
   }
 
+  test_lifecycle_already_migrated_file() async {
+    Map<String, String> createProject({bool migrated = false}) {
+      var projectContents = simpleProject(sourceText: '''
+${migrated ? '' : '// @dart = 2.6'}
+import 'already_migrated.dart';
+int${migrated ? '?' : ''} x = y;
+''', migrated: true);
+      projectContents['lib/already_migrated.dart'] = '''
+int? y = 0;
+''';
+      return projectContents;
+    }
+
+    var projectContents = createProject();
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli(nullSafePackages: ['test'])
+        .decodeCommandLineArgs(
+            _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertNormalExit(cliRunner);
+    // Check that a summary was printed
+    expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
+    // And that it refers to test.dart, but not pubspec.yaml or
+    // already_migrated.dart.
+    expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    expect(logger.stdoutBuffer.toString(), isNot(contains('pubspec.yaml')));
+    expect(logger.stdoutBuffer.toString(),
+        isNot(contains('already_migrated.dart')));
+    // And that it does not tell the user they can rerun with `--apply-changes`
+    expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
+    // Check that the non-migrated library was changed but not the migrated one
+    assertProjectContents(projectDir, createProject(migrated: true));
+  }
+
   test_lifecycle_apply_changes() async {
     var projectContents = simpleProject();
     var projectDir = createProjectDir(projectContents);
@@ -1069,7 +1103,7 @@ void call_g() => g(null);
   }
 
   test_lifecycle_preview_rerun_deleted_file() async {
-    var projectContents = simpleProject();
+    var projectContents = {...simpleProject(), 'lib/other.dart': ''};
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     // Note: we use the summary to verify that the deletion was noticed
@@ -1778,8 +1812,9 @@ name: test
         headers: {'Content-Type': 'application/json; charset=UTF-8'});
   }
 
-  _MigrationCli _createCli() {
-    mock_sdk.MockSdk(resourceProvider: resourceProvider);
+  _MigrationCli _createCli({List<String> nullSafePackages = const []}) {
+    mock_sdk.MockSdk(
+        resourceProvider: resourceProvider, nullSafePackages: nullSafePackages);
     return _MigrationCli(this);
   }
 
