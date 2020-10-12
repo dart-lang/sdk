@@ -1259,7 +1259,8 @@ int f() => null;
 ''' /* stdout */,
         '' /* stderr */);
     var output = await assertRunFailure([projectDir], expectedExitCode: 1);
-    expect(output, contains('Warning: dependencies are outdated.'));
+    expect(output,
+        contains('Warning: not all current dependencies have migrated'));
   }
 
   test_lifecycle_skip_pub_outdated_enable() async {

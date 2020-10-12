@@ -152,19 +152,18 @@ class DependencyChecker {
       // migrate when `pub outdated` is misbehaving, or if there is a bug above.
     }
     if (preNullSafetyPackages.isNotEmpty) {
-      _logger.stderr(
-          'Warning: dependencies are outdated. The version(s) of one or more '
-          'packages currently checked out have not yet migrated to the Null '
-          'Safety feature.');
+      _logger.stderr('Warning: not all current dependencies have migrated to '
+          'null safety:');
       _logger.stderr('');
       for (var package in preNullSafetyPackages.entries) {
         _logger.stderr(
-            '    ${package.key}, currently at version ${package.value}');
+            '  package:${package.key} (currently at version ${package.value})');
       }
       _logger.stderr('');
-      _logger.stderr('It is highly recommended to upgrade all dependencies to '
-          'versions which have migrated. Use `dart pub outdated '
-          '--mode=null-safety` to check the status of dependencies.');
+      _logger.stderr('For the best migration experience, please update to null '
+          'safe versions of these packages before migrating your code. You can '
+          'use \'dart pub outdated --mode=null-safety\' to check the status of '
+          'dependencies.');
       _logger.stderr('');
       _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
           'more information.');
@@ -174,21 +173,31 @@ class DependencyChecker {
   }
 }
 
+// TODO(devoncarew): Refactor so this class extends DartdevCommand.
 class MigrateCommand extends Command<dynamic> {
+  static const String cmdName = 'migrate';
+
+  static const String cmdDescription =
+      'Perform a null safety migration on a project or package.'
+      '\n\nThe migration tool is in preview; see '
+      'https://dart.dev/go/null-safety-migration for a migration guide.';
+
   final bool verbose;
 
   @override
   final bool hidden;
+
+  ArgParser _argParser;
 
   MigrateCommand({this.verbose = false, this.hidden = false}) {
     MigrationCli._defineOptions(argParser, !verbose);
   }
 
   @override
-  String get description =>
-      'Perform a null safety migration on a project or package.'
-      '\n\nThe migration tool is in preview; see '
-      'https://dart.dev/go/null-safety-migration for a migration guide.';
+  String get name => cmdName;
+
+  @override
+  String get description => cmdDescription;
 
   @override
   String get invocation {
@@ -196,7 +205,12 @@ class MigrateCommand extends Command<dynamic> {
   }
 
   @override
-  String get name => 'migrate';
+  ArgParser get argParser {
+    // We override this in order to configure the help text line wrapping.
+    return _argParser ??= ArgParser(
+      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : null,
+    );
+  }
 
   @override
   FutureOr<int> run() async {
@@ -382,27 +396,13 @@ class MigrationCli {
   }
 
   static void _defineOptions(ArgParser parser, bool hide) {
-    addCoreOptions(parser, hide);
     parser.addFlag(
-      CommandLineOptions.skipPubOutdatedFlag,
+      CommandLineOptions.verboseFlag,
+      abbr: 'v',
       defaultsTo: false,
+      help: 'Show additional command output.',
       negatable: false,
-      help: 'Skip the `pub outdated --mode=null-safety` check.',
     );
-    parser.addFlag(CommandLineOptions.webPreviewFlag,
-        defaultsTo: true,
-        negatable: true,
-        help: 'Show an interactive preview of the proposed null safety changes '
-            'in a browser window.\n'
-            '--no-web-preview prints proposed changes to the console.');
-
-    parser.addOption(CommandLineOptions.sdkPathOption,
-        help: 'The path to the Dart SDK.', hide: hide);
-    parser.addOption(CommandLineOptions.summaryOption,
-        help: 'Output a machine-readable summary of migration changes.');
-  }
-
-  static void addCoreOptions(ArgParser parser, bool hide) {
     parser.addFlag(CommandLineOptions.applyChangesFlag,
         defaultsTo: false,
         negatable: false,
@@ -414,25 +414,60 @@ class MigrationCli {
       help: 'Attempt to perform null safety analysis even if the package has '
           'analysis errors.',
     );
-    parser.addFlag(CommandLineOptions.ignoreExceptionsFlag,
-        defaultsTo: false,
-        negatable: false,
-        help:
-            'Attempt to perform null safety analysis even if exceptions occur.',
-        hide: hide);
-    parser.addFlag(CommandLineOptions.verboseFlag,
-        abbr: 'v',
-        defaultsTo: false,
-        help: 'Show additional command output.',
-        negatable: false);
-    parser.addOption(CommandLineOptions.previewHostnameOption,
-        defaultsTo: 'localhost',
-        help: 'Run the preview server on the specified hostname.\nIf not '
-            'specified, "localhost" is used. Use "any" to specify IPv6.any or '
-            'IPv4.any.');
-    parser.addOption(CommandLineOptions.previewPortOption,
-        help: 'Run the preview server on the specified port. If not specified, '
-            'dynamically allocate a port.');
+    parser.addFlag(
+      CommandLineOptions.skipPubOutdatedFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Skip the `pub outdated --mode=null-safety` check. This allows a '
+          'migration to proceed even if some package dependencies have not yet '
+          'been migrated.',
+    );
+
+    parser.addSeparator('Web interface options:');
+    parser.addFlag(
+      CommandLineOptions.webPreviewFlag,
+      defaultsTo: true,
+      negatable: true,
+      help: 'Show an interactive preview of the proposed null safety changes '
+          'in a browser window. Use --no-web-preview to print proposed changes '
+          'to the console.',
+    );
+    parser.addOption(
+      CommandLineOptions.previewHostnameOption,
+      defaultsTo: 'localhost',
+      valueHelp: 'host',
+      help: 'Run the preview server on the specified hostname. If not '
+          'specified, "localhost" is used. Use "any" to specify IPv6.any or '
+          'IPv4.any.',
+    );
+    parser.addOption(
+      CommandLineOptions.previewPortOption,
+      valueHelp: 'port',
+      help: 'Run the preview server on the specified port. If not specified, '
+          'dynamically allocate a port.',
+    );
+
+    parser.addSeparator('Additional options:');
+    parser.addOption(
+      CommandLineOptions.summaryOption,
+      help: 'Output a machine-readable summary of migration changes.',
+      valueHelp: 'path',
+    );
+
+    // hidden options
+    parser.addFlag(
+      CommandLineOptions.ignoreExceptionsFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Attempt to perform null safety analysis even if exceptions occur.',
+      hide: hide,
+    );
+    parser.addOption(
+      CommandLineOptions.sdkPathOption,
+      valueHelp: 'sdk-path',
+      help: 'The path to the Dart SDK.',
+      hide: hide,
+    );
   }
 }
 

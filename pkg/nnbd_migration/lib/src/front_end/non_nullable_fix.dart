@@ -207,7 +207,7 @@ class NonNullableFix {
   }
 
   /// Updates the Package Config file to specify a minimum Dart SDK version
-  /// which enables the Null Safety feature.
+  /// which supports null safety.
   void _processConfigFile(Folder pkgFolder, _Pubspec pubspec) {
     if (!_packageIsNNBD) {
       return;
@@ -291,7 +291,7 @@ class NonNullableFix {
   }
 
   /// Updates the pubspec.yaml file to specify a minimum Dart SDK version which
-  /// enables the Null Safety feature.
+  /// supports null safety.
   bool _processPubspec(_Pubspec pubspec) {
     /// Inserts [content] into [pubspecFile], immediately after [parentSpan].
     void insertAfterParent(SourceSpan parentSpan, String content) {
