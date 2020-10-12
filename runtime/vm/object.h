@@ -1295,7 +1295,6 @@ class Class : public Object {
   ArrayPtr functions() const { return raw_ptr()->functions_; }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
-  void RemoveFunction(const Function& function) const;
   FunctionPtr FunctionFromIndex(intptr_t idx) const;
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;

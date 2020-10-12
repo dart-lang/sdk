@@ -3038,20 +3038,6 @@ void Class::AddFunction(const Function& function) const {
   }
 }
 
-void Class::RemoveFunction(const Function& function) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  const Array& arr = Array::Handle(functions());
-  StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
-  StorePointer(&raw_ptr()->functions_hash_table_, Array::null());
-  Function& entry = Function::Handle();
-  for (intptr_t i = 0; i < arr.Length(); i++) {
-    entry ^= arr.At(i);
-    if (function.raw() != entry.raw()) {
-      AddFunction(entry);
-    }
-  }
-}
-
 FunctionPtr Class::FunctionFromIndex(intptr_t idx) const {
   const Array& funcs = Array::Handle(functions());
   if ((idx < 0) || (idx >= funcs.Length())) {
