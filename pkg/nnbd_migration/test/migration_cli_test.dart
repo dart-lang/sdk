@@ -398,7 +398,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
           '''
 name: test
 environment:
-  sdk: '${migrated ? '>=2.9.0 <2.10.0' : '>=2.6.0 <3.0.0'}'
+  sdk: '${migrated ? '>=2.11.0 <2.12.0' : '>=2.6.0 <3.0.0'}'
 ''',
       '.dart_tool/package_config.json': packageConfigText ??
           '''
@@ -409,7 +409,7 @@ environment:
       "name": "test",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "${migrated ? '2.9' : '2.6'}"
+      "languageVersion": "${migrated ? '2.11' : '2.6'}"
     }
   ]
 }
@@ -1701,7 +1701,7 @@ environment:
 name: test
 environment:
   foo: 1
-  sdk: '>=2.9.0 <2.10.0'
+  sdk: '>=2.11.0 <2.12.0'
 '''));
   }
 
@@ -1752,7 +1752,7 @@ name: test
         // This is strange-looking, but valid.
         '''
 environment:
-  sdk: '>=2.9.0 <2.10.0'
+  sdk: '>=2.11.0 <2.12.0'
 
 name: test
 '''));

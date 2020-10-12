@@ -28,13 +28,13 @@ import 'package:yaml/yaml.dart';
 class NonNullableFix {
   // TODO(srawlins): Refactor to use
   //  `Feature.non_nullable.releaseVersion` when this becomes non-null.
-  static const String _intendedMinimumSdkVersion = '2.9.0';
+  static const String _intendedMinimumSdkVersion = '2.11.0';
 
   // In the package_config.json file, the patch number is omitted.
-  static const String _intendedLanguageVersion = '2.9';
+  static const String _intendedLanguageVersion = '2.11';
 
   static const String _intendedSdkVersionConstraint =
-      '>=$_intendedMinimumSdkVersion <2.10.0';
+      '>=$_intendedMinimumSdkVersion <2.12.0';
 
   static final List<HttpPreviewServer> _allServers = [];
 
