@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // TODO(jmesserly): import from its own package
 import '../js_ast/js_ast.dart';
 import 'js_names.dart' show TemporaryId;
