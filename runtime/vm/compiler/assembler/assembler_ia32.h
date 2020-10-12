@@ -610,6 +610,9 @@ class Assembler : public AssemblerBase {
   }
 
   void AddImmediate(Register reg, const Immediate& imm);
+  void AddImmediate(Register reg, int32_t value) {
+    AddImmediate(reg, Immediate(value));
+  }
   void SubImmediate(Register reg, const Immediate& imm);
 
   void CompareImmediate(Register reg, int32_t immediate) {

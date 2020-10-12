@@ -1910,6 +1910,7 @@ class NativeEntryInstr : public FunctionEntryInstr {
   PRINT_TO_SUPPORT
 
  private:
+  void SaveArguments(FlowGraphCompiler* compiler) const;
   void SaveArgument(FlowGraphCompiler* compiler,
                     const compiler::ffi::NativeLocation& loc) const;
 

@@ -1007,6 +1007,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   EmitParamMoves(compiler);
 
+  if (compiler::Assembler::EmittingComments()) {
+    __ Comment("Call");
+  }
   // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use. Unlike X64, there's no
   // PC-relative 'leaq' available, so we have do a trick with 'call'.
@@ -1051,13 +1054,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Instead of returning to the "fake" return address, we just pop it.
   __ popl(temp);
-}
-
-void NativeEntryInstr::SaveArgument(
-    FlowGraphCompiler* compiler,
-    const compiler::ffi::NativeLocation& nloc) const {
-  // IA32 has no arguments passed in registers.
-  UNREACHABLE();
 }
 
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

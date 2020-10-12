@@ -1130,6 +1130,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   EmitParamMoves(compiler);
 
+  if (compiler::Assembler::EmittingComments()) {
+    __ Comment("Call");
+  }
   // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
   //
@@ -1243,22 +1246,6 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
-void NativeEntryInstr::SaveArgument(
-    FlowGraphCompiler* compiler,
-    const compiler::ffi::NativeLocation& nloc) const {
-  if (nloc.IsStack()) return;
-
-  if (nloc.IsRegisters()) {
-    const auto& regs_loc = nloc.AsRegisters();
-    ASSERT(regs_loc.num_regs() == 1);
-    __ Push(regs_loc.reg_at(0));
-  } else if (nloc.IsFpuRegisters()) {
-    __ PushDouble(nloc.AsFpuRegisters().fpu_reg());
-  } else {
-    UNREACHABLE();
-  }
-}
-
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Constant pool cannot be used until we enter the actual Dart frame.
   __ set_constant_pool_allowed(false);
@@ -1276,9 +1263,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterFrame(0);
 
   // Save the argument registers, in reverse order.
-  for (intptr_t i = marshaller_.num_args(); i-- > 0;) {
-    SaveArgument(compiler, marshaller_.Location(i));
-  }
+  SaveArguments(compiler);
 
   // Enter the entry frame.
   __ EnterFrame(0);

@@ -1118,24 +1118,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popq(TMP);
 }
 
-void NativeEntryInstr::SaveArgument(
-    FlowGraphCompiler* compiler,
-    const compiler::ffi::NativeLocation& nloc) const {
-  if (nloc.IsStack()) return;
-
-  if (nloc.IsRegisters()) {
-    const auto& regs_loc = nloc.AsRegisters();
-    ASSERT(regs_loc.num_regs() == 1);
-    __ pushq(regs_loc.reg_at(0));
-  } else if (nloc.IsFpuRegisters()) {
-    // TODO(dartbug.com/40469): Reduce code size.
-    __ movq(TMP, nloc.AsFpuRegisters().fpu_reg());
-    __ pushq(TMP);
-  } else {
-    UNREACHABLE();
-  }
-}
-
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
 
@@ -1150,9 +1132,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
   // Save the argument registers, in reverse order.
-  for (intptr_t i = marshaller_.num_args(); i-- > 0;) {
-    SaveArgument(compiler, marshaller_.Location(i));
-  }
+  SaveArguments(compiler);
 
   // Enter the entry frame. Push a dummy return address for consistency with
   // EnterFrame on ARM(64).
