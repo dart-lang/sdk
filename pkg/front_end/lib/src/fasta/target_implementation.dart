@@ -61,8 +61,9 @@ abstract class TargetImplementation extends Target {
     return _options.isExperimentEnabledInLibrary(flag, importUri);
   }
 
-  Version getExperimentEnabledVersion(ExperimentalFlag flag) {
-    return _options.getExperimentEnabledVersion(flag);
+  Version getExperimentEnabledVersionInLibrary(
+      ExperimentalFlag flag, Uri importUri) {
+    return _options.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
   bool isExperimentEnabledGlobally(ExperimentalFlag flag) {

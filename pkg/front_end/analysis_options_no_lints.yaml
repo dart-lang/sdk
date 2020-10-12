@@ -4,16 +4,17 @@
 
 analyzer:
   exclude:
-    - test/analyser_ignored/**
-    - test/extensions/data/**
     - parser_testcases/**
-    - testcases/**
+    - test/analyser_ignored/**
+    - test/enable_non_nullable/data/**
+    - test/extensions/data/**
     - test/id_testing/data/**
     - test/language_versioning/data/**
     - test/patching/data/**
     - test/predicates/data/**
     - test/static_types/data/**
     - test/text_representation/data/**
+    - testcases/**
   errors:
     # Allow having TODOs in the code
     todo: ignore

@@ -8,6 +8,7 @@ _fe_analyzer_shared/lib/src/scanner/scanner/Exports: Fail
 _fe_analyzer_shared/lib/src/scanner/string_scanner/ImportsTwice: Fail
 _fe_analyzer_shared/lib/src/scanner/token_impl/ImportsTwice: Fail
 _fe_analyzer_shared/lib/src/scanner/utf8_bytes_scanner/ImportsTwice: Fail
+front_end/lib/src/api_prototype/compiler_options/ImportsTwice: Fail
 front_end/lib/src/api_prototype/compiler_options/Exports: Fail
 front_end/lib/src/api_prototype/constant_evaluator/Exports: Fail
 front_end/lib/src/api_prototype/front_end/Exports: Fail

@@ -327,6 +327,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     _fieldEncoding.registerMembers(library, this, f);
   }
 
+  /// Builds the core AST structures for this field as needed for the outline.
   void build(SourceLibraryBuilder libraryBuilder) {
     if (type != null) {
       // notInstanceContext is set to true for extension fields as they

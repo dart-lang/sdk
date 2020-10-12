@@ -332,13 +332,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         importUri.scheme != 'dart' || _packageUri == null,
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
-    updateLibraryNNBDSettings();
   }
 
   bool _enableVarianceInLibrary;
   bool _enableNonfunctionTypeAliasesInLibrary;
   bool _enableNonNullableInLibrary;
-  Version _enableNonNullableVersionCache;
+  Version _enableNonNullableVersionInLibrary;
   bool _enableTripleShiftInLibrary;
   bool _enableExtensionMethodsInLibrary;
 
@@ -360,8 +359,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       loader.target.isExperimentEnabledInLibrary(
           ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
-  Version get _enableNonNullableVersion => _enableNonNullableVersionCache ??=
-      loader.target.getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
+  Version get enableNonNullableVersionInLibrary =>
+      _enableNonNullableVersionInLibrary ??= loader.target
+          .getExperimentEnabledVersionInLibrary(
+              ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
   bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
@@ -434,10 +435,30 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return type;
   }
 
+  bool _isNonNullableByDefault;
+
   @override
-  bool get isNonNullableByDefault =>
+  bool get isNonNullableByDefault {
+    assert(
+        _isNonNullableByDefault == null ||
+            _isNonNullableByDefault == _computeIsNonNullableByDefault(),
+        "Unstable isNonNullableByDefault property, changed "
+        "from ${_isNonNullableByDefault} to "
+        "${_computeIsNonNullableByDefault()}");
+    return _ensureIsNonNullableByDefault();
+  }
+
+  bool _ensureIsNonNullableByDefault() {
+    if (_isNonNullableByDefault == null) {
+      _isNonNullableByDefault = _computeIsNonNullableByDefault();
+      updateLibraryNNBDSettings();
+    }
+    return _isNonNullableByDefault;
+  }
+
+  bool _computeIsNonNullableByDefault() =>
       enableNonNullableInLibrary &&
-      languageVersion.version >= _enableNonNullableVersion &&
+      languageVersion.version >= enableNonNullableVersionInLibrary &&
       !isOptOutTest(library.importUri);
 
   static bool isOptOutTest(Uri uri) {
@@ -480,6 +501,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     _languageVersion.isFinal = true;
+    _ensureIsNonNullableByDefault();
   }
 
   @override
@@ -904,6 +926,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return true;
   }
 
+  /// Builds the core AST structure of this library as needed for the outline.
   Library build(LibraryBuilder coreLibrary, {bool modifyTarget}) {
     assert(implementationBuilders.isEmpty);
     canAddImplementationBuilders = true;
@@ -955,8 +978,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           reference: referenceFrom?.reference));
     }
 
-    // TODO(CFE Team): Is this really needed in two places?
-    updateLibraryNNBDSettings();
     return library;
   }
 
@@ -2552,6 +2573,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     MetadataBuilder.buildAnnotations(library, metadata, this, null, null);
   }
 
+  /// Builds the core AST structures for [declaration] needed for the outline.
   void buildBuilder(Builder declaration, LibraryBuilder coreLibrary) {
     String findDuplicateSuffix(Builder declaration) {
       if (declaration.next != null) {

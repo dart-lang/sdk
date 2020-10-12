@@ -13,7 +13,7 @@ import "dart:core" as core;
 class DynamicClass<T extends dynamic = dynamic, S extends self::DynamicClass::T* = dynamic> extends core::Object {
   generic-covariant-impl field self::DynamicClass::T* field1;
   generic-covariant-impl field self::DynamicClass::T* field2;
-  constructor •(self::DynamicClass::T* field1, self::DynamicClass::T* field2) → self::DynamicClass<self::DynamicClass::T%, self::DynamicClass::S*>*
+  constructor •(self::DynamicClass::T* field1, self::DynamicClass::T* field2) → self::DynamicClass<self::DynamicClass::T*, self::DynamicClass::S*>*
     : self::DynamicClass::field1 = field1, self::DynamicClass::field2 = field2, super core::Object::•()
     ;
   method method() → dynamic
