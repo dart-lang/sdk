@@ -125,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     node.fields.variables.forEach((VariableDeclaration variable) {
       final field = _getOverriddenMember(variable.declaredElement);
-      if (field != null) {
+      if (field != null && !field.isAbstract) {
         rule.reportLint(variable.name);
       }
     });
