@@ -149,6 +149,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes) {}
 
+  /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f);
 

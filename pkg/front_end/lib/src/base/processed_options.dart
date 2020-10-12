@@ -353,15 +353,12 @@ class ProcessedOptions {
   /// the 'allowed_experiments.json' file for this library.
   bool isExperimentEnabledInLibrary(
       flags.ExperimentalFlag flag, Uri importUri) {
-    return flags.isExperimentEnabledInLibrary(flag, importUri,
-        experimentalFlags: _raw.experimentalFlags,
-        allowedExperimentalFlags: _raw.allowedExperimentalFlagsForTesting);
+    return _raw.isExperimentEnabledInLibrary(flag, importUri);
   }
 
-  Version getExperimentEnabledVersion(flags.ExperimentalFlag flag) {
-    return flags.getExperimentEnabledVersion(flag,
-        experimentReleasedVersionForTesting:
-            _raw.experimentReleasedVersionForTesting);
+  Version getExperimentEnabledVersionInLibrary(
+      flags.ExperimentalFlag flag, Uri importUri) {
+    return _raw.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
   Component _validateNullSafetyMode(Component component) {

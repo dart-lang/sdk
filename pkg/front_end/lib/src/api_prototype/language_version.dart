@@ -23,8 +23,7 @@ import '../fasta/uri_translator.dart' show UriTranslator;
 
 import 'compiler_options.dart' show CompilerOptions;
 
-import 'experimental_flags.dart'
-    show ExperimentalFlag, experimentReleasedVersion;
+import 'experimental_flags.dart' show ExperimentalFlag;
 import 'file_system.dart' show FileSystem, FileSystemException;
 
 /// Gets the language version for a specific URI.
@@ -34,7 +33,8 @@ import 'file_system.dart' show FileSystem, FileSystemException;
 /// specifies a language version that's too high).
 ///
 /// The language version returned is valid though.
-Future<Version> languageVersionForUri(Uri uri, CompilerOptions options) async {
+Future<VersionAndPackageUri> languageVersionForUri(
+    Uri uri, CompilerOptions options) async {
   return await CompilerContext.runWithOptions(
       new ProcessedOptions(options: options, inputs: [uri]), (context) async {
     // Get largest valid version / default version.
@@ -64,6 +64,13 @@ Future<Version> languageVersionForUri(Uri uri, CompilerOptions options) async {
     } else {
       fileUri = uri;
       package = uriTranslator.packages.packageOf(uri);
+    }
+    Uri packageUri = uri;
+    if (packageUri.scheme != 'dart' &&
+        packageUri.scheme != 'package' &&
+        package != null &&
+        package.name != null) {
+      packageUri = new Uri(scheme: 'package', path: package.name);
     }
 
     // Check file content for @dart annotation.
@@ -102,7 +109,7 @@ Future<Version> languageVersionForUri(Uri uri, CompilerOptions options) async {
     }
     if (major != null && minor != null) {
       // The file decided. Return result.
-      return new Version(major, minor);
+      return new VersionAndPackageUri(new Version(major, minor), packageUri);
     }
 
     // Check package.
@@ -119,11 +126,13 @@ Future<Version> languageVersionForUri(Uri uri, CompilerOptions options) async {
     }
     if (major != null && minor != null) {
       // The package decided. Return result.
-      return new Version(major, minor);
+      return new VersionAndPackageUri(new Version(major, minor), packageUri);
     }
 
     // Return default.
-    return new Version(currentSdkVersionMajor, currentSdkVersionMinor);
+    return new VersionAndPackageUri(
+        new Version(currentSdkVersionMajor, currentSdkVersionMinor),
+        packageUri);
   });
 }
 
@@ -134,6 +143,16 @@ Future<bool> uriUsesLegacyLanguageVersion(
   // This method is here in order to use the opt out hack here for test
   // sources.
   if (SourceLibraryBuilder.isOptOutTest(uri)) return true;
-  Version uriVersion = await languageVersionForUri(uri, options);
-  return (uriVersion < experimentReleasedVersion[ExperimentalFlag.nonNullable]);
+  VersionAndPackageUri versionAndLibraryUri =
+      await languageVersionForUri(uri, options);
+  return (versionAndLibraryUri.version <
+      options.getExperimentEnabledVersionInLibrary(
+          ExperimentalFlag.nonNullable, versionAndLibraryUri.packageUri));
+}
+
+class VersionAndPackageUri {
+  final Version version;
+  final Uri packageUri;
+
+  VersionAndPackageUri(this.version, this.packageUri);
 }

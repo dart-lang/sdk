@@ -24,6 +24,9 @@ import 'experimental_flags.dart'
         expiredExperimentalFlags,
         parseExperimentalFlag;
 
+import 'experimental_flags.dart' as flags
+    show getExperimentEnabledVersionInLibrary, isExperimentEnabledInLibrary;
+
 import 'file_system.dart' show FileSystem;
 
 import 'standard_file_system.dart' show StandardFileSystem;
@@ -132,6 +135,7 @@ class CompilerOptions {
   /// Features not mentioned in the map will have their default value.
   Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
+  Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting;
   AllowedExperimentalFlags allowedExperimentalFlagsForTesting;
   Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting;
   Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting;
@@ -247,6 +251,23 @@ class CompilerOptions {
   /// If `true`, a '.d' file with input dependencies is generated when
   /// compiling the platform dill.
   bool emitDeps = true;
+
+  bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
+    return flags.isExperimentEnabledInLibrary(flag, importUri,
+        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+        experimentalFlags: experimentalFlags,
+        allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
+  }
+
+  Version getExperimentEnabledVersionInLibrary(
+      ExperimentalFlag flag, Uri importUri) {
+    return flags.getExperimentEnabledVersionInLibrary(flag, importUri,
+        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
+        allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
+        experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
+        experimentReleasedVersionForTesting:
+            experimentReleasedVersionForTesting);
+  }
 
   bool equivalent(CompilerOptions other,
       {bool ignoreOnDiagnostic: true,

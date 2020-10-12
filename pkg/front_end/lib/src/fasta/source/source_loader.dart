@@ -251,7 +251,7 @@ class SourceLoader extends Loader {
         configuration: new ScannerConfiguration(
             enableTripleShift: library.enableTripleShiftInLibrary,
             enableExtensionMethods: library.enableExtensionMethodsInLibrary,
-            enableNonNullable: library.isNonNullableByDefault),
+            enableNonNullable: library.enableNonNullableInLibrary),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {
@@ -346,8 +346,7 @@ class SourceLoader extends Loader {
       // libraries with no corresponding package config we generate a message
       // per library.
       Map<String, List<LibraryBuilder>> libraryByPackage = {};
-      Version enableNonNullableVersion =
-          target.getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
+      Map<Package, Version> enableNonNullableVersionByPackage = {};
       for (LibraryBuilder libraryBuilder in _strongOptOutLibraries) {
         Package package =
             target.uriTranslator.getPackage(libraryBuilder.importUri);
@@ -355,6 +354,11 @@ class SourceLoader extends Loader {
         if (package != null &&
             package.languageVersion != null &&
             package.languageVersion is! InvalidLanguageVersion) {
+          Version enableNonNullableVersion =
+              enableNonNullableVersionByPackage[package] ??=
+                  target.getExperimentEnabledVersionInLibrary(
+                      ExperimentalFlag.nonNullable,
+                      new Uri(scheme: 'package', path: package.name));
           Version version = new Version(
               package.languageVersion.major, package.languageVersion.minor);
           if (version < enableNonNullableVersion) {
@@ -908,6 +912,7 @@ class SourceLoader extends Loader {
     return handleHierarchyCycles(objectClass);
   }
 
+  /// Builds the core AST structure needed for the outline of the component.
   void buildComponent() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
