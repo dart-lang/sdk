@@ -818,29 +818,27 @@ class ContextManagerImpl implements ContextManager {
               }
             }
           }
-          // todo (pq): re-enable once `sort_pub_dependencies` is fixed
-          // see: https://github.com/dart-lang/linter/issues/2271
-          // see: See: https://github.com/dart-lang/sdk/issues/43529
-          //   if (visitors.isNotEmpty) {
-          //     var sourceUri = resourceProvider.pathContext.toUri(path);
-          //     var pubspecAst = Pubspec.parse(content,
-          //         sourceUrl: sourceUri, resourceProvider: resourceProvider);
-          //     var listener = RecordingErrorListener();
-          //     var reporter = ErrorReporter(listener,
-          //         resourceProvider.getFile(path).createSource(sourceUri),
-          //         isNonNullableByDefault: false);
-          //     for (var entry in visitors.entries) {
-          //       entry.key.reporter = reporter;
-          //       pubspecAst.accept(entry.value);
-          //     }
-          //     if (listener.errors.isNotEmpty) {
-          //       convertedErrors ??= <protocol.AnalysisError>[];
-          //       convertedErrors.addAll(converter.convertAnalysisErrors(
-          //           listener.errors,
-          //           lineInfo: lineInfo,
-          //           options: driver.analysisOptions));
-          //     }
-          //   }
+
+          if (visitors.isNotEmpty) {
+            var sourceUri = resourceProvider.pathContext.toUri(path);
+            var pubspecAst = Pubspec.parse(content,
+                sourceUrl: sourceUri, resourceProvider: resourceProvider);
+            var listener = RecordingErrorListener();
+            var reporter = ErrorReporter(listener,
+                resourceProvider.getFile(path).createSource(sourceUri),
+                isNonNullableByDefault: false);
+            for (var entry in visitors.entries) {
+              entry.key.reporter = reporter;
+              pubspecAst.accept(entry.value);
+            }
+            if (listener.errors.isNotEmpty) {
+              convertedErrors ??= <protocol.AnalysisError>[];
+              convertedErrors.addAll(converter.convertAnalysisErrors(
+                  listener.errors,
+                  lineInfo: lineInfo,
+                  options: driver.analysisOptions));
+            }
+          }
         }
       }
     } catch (exception) {
