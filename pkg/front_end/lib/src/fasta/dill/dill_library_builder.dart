@@ -187,6 +187,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addMember(Member member) {
+    if (member.isExtensionMember) {
+      return null;
+    }
     String name = member.name.text;
     if (name == "_exports#") {
       Field field = member;
@@ -210,6 +213,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   Builder addBuilder(String name, Builder declaration, int charOffset) {
     if (name == null || name.isEmpty) return null;
+
     bool isSetter = declaration.isSetter;
     if (isSetter) {
       scopeBuilder.addSetter(name, declaration);
@@ -219,7 +223,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     if (declaration.isExtension) {
       scopeBuilder.addExtension(declaration);
     }
-    if (!name.startsWith("_")) {
+    if (!name.startsWith("_") && !name.contains('#')) {
       if (isSetter) {
         exportScopeBuilder.addSetter(name, declaration);
       } else {

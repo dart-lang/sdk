@@ -60,6 +60,8 @@ import 'builder/builder.dart' show Builder;
 
 import 'builder/class_builder.dart' show ClassBuilder;
 
+import 'builder/field_builder.dart' show FieldBuilder;
+
 import 'builder/library_builder.dart' show LibraryBuilder;
 
 import 'builder/name_iterator.dart' show NameIterator;
@@ -388,6 +390,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // We suppress finalization errors because they have already been
       // reported.
       await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
+      assert(_checkEquivalentScopes(
+          userCode.loader.builders, dillLoadedData.loader.builders));
 
       if (experimentalInvalidation != null) {
         /// If doing experimental invalidation that means that some of the old
@@ -430,6 +434,80 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     experimentalInvalidation = null;
     if (userBuilders.isEmpty) userBuilders = null;
     return newDillLibraryBuilders;
+  }
+
+  bool _checkEquivalentScopes(Map<Uri, LibraryBuilder> sourceLibraries,
+      Map<Uri, LibraryBuilder> dillLibraries) {
+    sourceLibraries.forEach((Uri uri, LibraryBuilder sourceLibraryBuilder) {
+      if (sourceLibraryBuilder is SourceLibraryBuilder) {
+        DillLibraryBuilder dillLibraryBuilder = dillLibraries[uri];
+        assert(
+            _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder) ==
+                null,
+            _hasEquivalentScopes(sourceLibraryBuilder, dillLibraryBuilder));
+      }
+    });
+    return true;
+  }
+
+  String _hasEquivalentScopes(SourceLibraryBuilder sourceLibraryBuilder,
+      DillLibraryBuilder dillLibraryBuilder) {
+    bool isEquivalent = true;
+    StringBuffer sb = new StringBuffer();
+    sb.writeln('Mismatch on ${sourceLibraryBuilder.importUri}:');
+    sourceLibraryBuilder.exportScope
+        .forEachLocalMember((String name, Builder sourceBuilder) {
+      Builder dillBuilder =
+          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: false);
+      if (dillBuilder == null) {
+        if ((name == 'dynamic' || name == 'Never') &&
+            sourceLibraryBuilder.importUri == Uri.parse('dart:core')) {
+          // The source library builder for dart:core has synthetically
+          // injected builders for `dynamic` and `Never` which do not have
+          // corresponding classes in the AST.
+          return;
+        }
+        sb.writeln('No dill builder for ${name}: $sourceBuilder');
+        isEquivalent = false;
+      }
+    });
+    dillLibraryBuilder.exportScope
+        .forEachLocalMember((String name, Builder dillBuilder) {
+      Builder sourceBuilder = sourceLibraryBuilder.exportScope
+          .lookupLocalMember(name, setter: false);
+      if (sourceBuilder == null) {
+        sb.writeln('No source builder for ${name}: $dillBuilder');
+        isEquivalent = false;
+      }
+    });
+    sourceLibraryBuilder.exportScope
+        .forEachLocalSetter((String name, Builder sourceBuilder) {
+      Builder dillBuilder =
+          dillLibraryBuilder.exportScope.lookupLocalMember(name, setter: true);
+      if (dillBuilder == null) {
+        sb.writeln('No dill builder for ${name}=: $sourceBuilder');
+        isEquivalent = false;
+      }
+    });
+    dillLibraryBuilder.exportScope
+        .forEachLocalSetter((String name, Builder dillBuilder) {
+      Builder sourceBuilder = sourceLibraryBuilder.exportScope
+          .lookupLocalMember(name, setter: true);
+      if (sourceBuilder == null) {
+        sourceBuilder = sourceLibraryBuilder.exportScope
+            .lookupLocalMember(name, setter: false);
+        if (sourceBuilder is FieldBuilder && sourceBuilder.isAssignable) {
+          // Assignable fields can be lowered into a getter and setter.
+          return;
+        }
+        sb.writeln('No source builder for ${name}=: $dillBuilder');
+        isEquivalent = false;
+      }
+    });
+    if (isEquivalent) {
+      return null;
+    }
+    return sb.toString();
   }
 
   /// Compute which libraries to output and which (previous) errors/warnings we

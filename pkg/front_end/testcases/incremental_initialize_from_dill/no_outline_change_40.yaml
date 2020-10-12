@@ -1,0 +1,80 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Mixin something from the same file.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    sources:
+      lib1.dart: |
+        import 'main.dart';
+        extension Extension1 on A {
+          baz() => 42;
+        }
+      lib2.dart: |
+        import 'main.dart';
+        import 'lib1.dart';
+        export 'main.dart';
+        export 'lib1.dart';
+        method(A a) {
+          a.baz();
+          a.boz();
+        }
+      main.dart: |
+        import 'lib1.dart';
+        import 'lib2.dart';
+        class A {
+          foo() {}
+        }
+        main() {
+          method(new A());
+        }
+        extension Extension2 on A {
+          boz() => 87;
+        }
+    expectedLibraryCount: 3
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib2.dart
+    sources:
+      lib2.dart: |
+        import 'main.dart';
+        import 'lib1.dart';
+        export 'main.dart';
+        export 'lib1.dart';
+        method(A a) {
+          a.baz();
+          a.boz();
+          a.baz();
+        }
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib1.dart';
+        import 'lib2.dart';
+        class A {
+          foo() {}
+        }
+        main() {
+          method(new A());
+        }
+        extension Extension2 on A {
+          boz() => 123;
+        }
+    expectedLibraryCount: 3
+    expectsRebuildBodiesOnly: true
+
