@@ -75,7 +75,7 @@ vars = {
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "4a685faba42d86ebd9d661eadd1e79d0a1c34c43",
   "chrome_rev" : "19997",
-  "cli_util_tag" : "0.2.0",
+  "cli_util_rev" : "335ed165887d0ec97c2a09173ebf22dcf56a6c4e",
   "collection_rev": "52e219581f72a3eac013d6f5550c580962677425",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
@@ -312,7 +312,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
-      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_tag"),
+      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
   Var("dart_root") + "/third_party/pkg/collection":
       Var("dart_git") + "collection.git" + "@" + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/convert":
