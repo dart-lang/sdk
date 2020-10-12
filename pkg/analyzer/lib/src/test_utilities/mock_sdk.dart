@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -1086,9 +1088,13 @@ class MockSdk implements DartSdk {
 
   /// Optional [additionalLibraries] should have unique URIs, and paths in
   /// their units are relative (will be put into `sdkRoot/lib`).
+  ///
+  /// [nullSafePackages], if supplied, is a list of packages names that should
+  /// be included in the null safety allow list.
   MockSdk({
     @required this.resourceProvider,
     List<MockSdkLibrary> additionalLibraries = const [],
+    List<String> nullSafePackages = const [],
   }) {
     _versionFile = resourceProvider
         .getFolder(resourceProvider.convertPath(sdkRoot))
@@ -1150,19 +1156,20 @@ class MockSdk implements DartSdk {
       resourceProvider.convertPath(
         '$sdkRoot/lib/_internal/allowed_experiments.json',
       ),
-      r'''
-{
-  "version": 1,
-  "experimentSets": {
-    "nullSafety": ["non-nullable"]
-  },
-  "sdk": {
-    "default": {
-      "experimentSet": "nullSafety"
-    }
-  }
-}
-''',
+      json.encode({
+        'version': 1,
+        'experimentSets': {
+          'nullSafety': ['non-nullable']
+        },
+        'sdk': {
+          'default': {'experimentSet': 'nullSafety'}
+        },
+        if (nullSafePackages.isNotEmpty)
+          'packages': {
+            for (var package in nullSafePackages)
+              package: {'experimentSet': 'nullSafety'}
+          }
+      }),
     );
   }
 
