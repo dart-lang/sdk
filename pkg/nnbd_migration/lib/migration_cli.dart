@@ -1056,7 +1056,7 @@ class _FixCodeProcessor extends Object {
 
   Future<AnalysisResult> runFirstPhase() async {
     // All tasks should be registered; [numPhases] should be finalized.
-    _progressBar = _ProgressBar(pathsToProcess.length);
+    _progressBar = _ProgressBar(_migrationCli.logger, pathsToProcess.length);
 
     // Process package
     _task.processPackage(context.contextRoot.root);
@@ -1083,7 +1083,8 @@ class _FixCodeProcessor extends Object {
   }
 
   Future<MigrationState> runLaterPhases() async {
-    _progressBar = _ProgressBar(pathsToProcess.length * (numPhases - 1));
+    _progressBar = _ProgressBar(
+        _migrationCli.logger, pathsToProcess.length * (numPhases - 1));
 
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
@@ -1152,6 +1153,8 @@ class _ProgressBar {
   /// The width of the terminal, in terms of characters.
   /*late*/ int _width;
 
+  final Logger _logger;
+
   /// The inner width of the terminal, in terms of characters.
   ///
   /// This represents the number of characters available for drawing progress.
@@ -1161,14 +1164,14 @@ class _ProgressBar {
 
   int _tickCount = 0;
 
-  _ProgressBar(this._totalTickCount) {
+  _ProgressBar(this._logger, this._totalTickCount) {
     if (!stdout.hasTerminal) {
       _shouldDrawProgress = false;
     } else {
       _shouldDrawProgress = true;
       _width = stdout.terminalColumns;
       _innerWidth = stdout.terminalColumns - 2;
-      stdout.write('[' + ' ' * _innerWidth + ']');
+      _logger.write('[' + ' ' * _innerWidth + ']');
     }
   }
 
@@ -1178,7 +1181,7 @@ class _ProgressBar {
     if (!_shouldDrawProgress) {
       return;
     }
-    stdout.write('\r' + ' ' * _width + '\r');
+    _logger.write('\r' + ' ' * _width + '\r');
   }
 
   /// Draw the progress bar as complete, and print two newlines.
@@ -1186,7 +1189,7 @@ class _ProgressBar {
     if (!_shouldDrawProgress) {
       return;
     }
-    stdout.write('\r[' + '-' * _innerWidth + ']\n\n');
+    _logger.write('\r[' + '-' * _innerWidth + ']\n\n');
   }
 
   /// Progress the bar by one tick.
@@ -1197,7 +1200,7 @@ class _ProgressBar {
     _tickCount++;
     var fractionComplete = _tickCount * _innerWidth ~/ _totalTickCount - 1;
     var remaining = _innerWidth - fractionComplete - 1;
-    stdout.write('\r[' + // Bring cursor back to the start of the line.
+    _logger.write('\r[' + // Bring cursor back to the start of the line.
         '-' * fractionComplete + // Print complete work.
         AnsiProgress.kAnimationItems[_tickCount % 4] + // Print spinner.
         ' ' * remaining + // Print remaining work.

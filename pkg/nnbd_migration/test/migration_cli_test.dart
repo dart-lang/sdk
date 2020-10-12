@@ -894,7 +894,6 @@ void call_g() => g(null);
       final aLink = RegExp(r'<a href="([^"]+)" class="nav-link">');
       for (final match in aLink.allMatches(navigation)) {
         var href = match.group(1);
-        print(href);
         final contentsResponse = await http.get(
             uri.replace(
                 path: Uri.parse(href).path,
@@ -925,7 +924,6 @@ void call_g() => g(null);
         var navTree = NavigationTreeNode.fromJson(root);
         for (final file in navTree.subtree) {
           if (file.href != null) {
-            print(file.href);
             final contentsResponse = await http.get(
                 uri
                     .resolve(file.href)
