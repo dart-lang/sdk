@@ -1437,8 +1437,6 @@ C f(int i) => C(i);
 
 _The name '{0}' isn't a class._
 
-_The name '{0}' isn't a class._
-
 #### Description
 
 The analyzer produces this diagnostic when an instance creation using
@@ -5505,9 +5503,6 @@ var s = {i};
 _This instance creation must be 'const', because the {0} constructor is marked
 as '@literal'._
 
-_This instance creation must be 'const', because the {0} constructor is marked
-as '@literal'._
-
 #### Description
 
 The analyzer produces this diagnostic when a constructor that has the
@@ -5782,8 +5777,6 @@ void g() {
 {% endprettify %}
 
 ### not_initialized_non_nullable_instance_field
-
-_Non-nullable instance field '{0}' must be initialized._
 
 _Non-nullable instance field '{0}' must be initialized._
 
