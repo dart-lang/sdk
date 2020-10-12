@@ -390,6 +390,7 @@ vm_sources_tests = [
   "cpuinfo_test.cc",
   "custom_isolate_test.cc",
   "dart_api_impl_test.cc",
+  "datastream_test.cc",
   "debugger_api_impl_test.cc",
   "exceptions_test.cc",
   "fixed_cache_test.cc",
