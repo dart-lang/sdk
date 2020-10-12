@@ -350,7 +350,7 @@ static StringRAII ConvertToAbsolutePath(const char* path,
   }
   if (full_path_length < kPathLength) {
     WideToUtf8Scope scope(buffer.buf());
-    return StringRAII(strdup(scope.utf8()));
+    return StringRAII(Utils::StrDup(scope.utf8()));
   }
 
   // Try again with bigger buffer.
@@ -363,7 +363,7 @@ static StringRAII ConvertToAbsolutePath(const char* path,
     return StringRAII(path);
   }
   WideToUtf8Scope scope(bigger_buffer.buf());
-  return StringRAII(strdup(scope.utf8()));
+  return StringRAII(Utils::StrDup(scope.utf8()));
 }
 
 static StringRAII PrefixLongPathIfExceedLimit(
