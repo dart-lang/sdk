@@ -389,6 +389,7 @@ class BulkFixProcessor {
   Future<void> _fixSingleError(DartFixContext fixContext,
       ResolvedUnitResult result, AnalysisError diagnostic) async {
     var context = CorrectionProducerContext(
+      applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
       resolvedResult: result,

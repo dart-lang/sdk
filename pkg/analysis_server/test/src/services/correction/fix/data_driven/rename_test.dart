@@ -1182,6 +1182,7 @@ abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
               libraryUris: [Uri.parse(importUri)],
               kind: ElementKindUtilities.fromName(_kind),
               components: components),
+          bulkApply: false,
           changes: [
             Rename(newName: newName),
           ]);

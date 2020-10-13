@@ -46,6 +46,12 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, expected);
   }
 
+  Future<void> assertNoFix() async {
+    change = await _computeFixes();
+    var fileEdits = change.edits;
+    expect(fileEdits, isEmpty);
+  }
+
   @override
   void setUp() {
     super.setUp();

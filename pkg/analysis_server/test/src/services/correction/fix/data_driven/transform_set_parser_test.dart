@@ -354,6 +354,26 @@ transforms:
     expect(parameter.index, 2);
   }
 
+  void test_bulkApply() {
+    parse('''
+version: 1
+transforms:
+- title: 'Rename g'
+  date: 2020-09-10
+  bulkApply: false
+  element:
+    uris: ['test.dart']
+    getter: 'g'
+  changes: []
+''');
+    var transforms = _transforms('g');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename g');
+    expect(transform.bulkApply, false);
+    expect(transform.changes, isEmpty);
+  }
+
   void test_date() {
     parse('''
 version: 1
@@ -546,5 +566,5 @@ transforms:
       ElementMatcher(importedUris: uris, name: name);
 
   List<Transform> _transforms(String name) =>
-      result.transformsFor(_matcher(name));
+      result.transformsFor(_matcher(name), applyingBulkFixes: false);
 }

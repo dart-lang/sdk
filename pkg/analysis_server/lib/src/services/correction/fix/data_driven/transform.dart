@@ -15,6 +15,10 @@ class Transform {
   /// The date on which the API was changed.
   final DateTime date;
 
+  /// A flag indicating whether this transform can be used when applying bulk
+  /// fixes.
+  final bool bulkApply;
+
   /// The element being transformed.
   final ElementDescriptor element;
 
@@ -26,12 +30,18 @@ class Transform {
   Transform(
       {@required this.title,
       this.date,
+      @required this.bulkApply,
       @required this.element,
       @required this.changes});
 
   /// Return `true` if this transform can be applied to fix an issue related to
-  /// an element that matches the given [matcher].
-  bool appliesTo(ElementMatcher matcher) {
+  /// an element that matches the given [matcher]. The flag [applyingBulkFixes]
+  /// indicates whether the transforms are being applied in the context of a
+  /// bulk fix.
+  bool appliesTo(ElementMatcher matcher, {@required bool applyingBulkFixes}) {
+    if (applyingBulkFixes && !bulkApply) {
+      return false;
+    }
     return matcher.matches(element);
   }
 }

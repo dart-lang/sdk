@@ -889,6 +889,7 @@ abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
               libraryUris: [Uri.parse(importUri)],
               kind: ElementKindUtilities.fromName(_kind),
               components: originalComponents),
+          bulkApply: false,
           changes: [
             ModifyParameters(modifications: modifications),
             if (newName != null) Rename(newName: newName),
