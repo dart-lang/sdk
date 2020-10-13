@@ -435,6 +435,13 @@ void _applyExtension(jsType, dartExtType) {
     return;
   }
 
+  if (JS('!', '# === #.Object', jsType, global_)) {
+    var extName = JS<String>('!', '#.name', dartExtType);
+    _warn(
+        "Attempting to install properties from non-Object type '$extName' onto the native JS Object.");
+    return;
+  }
+
   _installProperties(
       jsProto, dartExtType, JS('', '#[#]', jsProto, _extensionType));
 
