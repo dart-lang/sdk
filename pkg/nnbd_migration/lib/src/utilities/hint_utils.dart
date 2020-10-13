@@ -43,11 +43,11 @@ HintComment getPrefixHint(Token token) {
     var lexeme = commentToken.lexeme;
     if (lexeme.startsWith('/*') &&
         lexeme.endsWith('*/') &&
-        lexeme.length > 'late'.length) {
+        lexeme.length >= '/*late*/'.length) {
       var commentText =
           lexeme.substring('/*'.length, lexeme.length - '*/'.length).trim();
+      var commentOffset = commentToken.offset;
       if (commentText == 'late') {
-        var commentOffset = commentToken.offset;
         var lateOffset = commentOffset + commentToken.lexeme.indexOf('late');
         return HintComment(
             HintCommentKind.late_,
@@ -55,6 +55,16 @@ HintComment getPrefixHint(Token token) {
             commentOffset,
             lateOffset,
             lateOffset + 'late'.length,
+            commentToken.end,
+            token.offset);
+      } else if (commentText == 'late final') {
+        var lateOffset = commentOffset + commentToken.lexeme.indexOf('late');
+        return HintComment(
+            HintCommentKind.lateFinal,
+            commentOffset,
+            commentOffset,
+            lateOffset,
+            lateOffset + 'late final'.length,
             commentToken.end,
             token.offset);
       }
@@ -196,4 +206,8 @@ enum HintCommentKind {
   /// The comment `/*late*/`, which indicates that the variable declaration
   /// should be late.
   late_,
+
+  /// The comment `/*late final*/`, which indicates that the variable
+  /// declaration should be late and final.
+  lateFinal,
 }

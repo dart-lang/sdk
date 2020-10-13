@@ -69,6 +69,9 @@ class MigrationSummary {
       case NullabilityFixKind.addLateDueToTestSetup:
         return 'addLateDueToTestSetup';
         break;
+      case NullabilityFixKind.addLateFinalDueToHint:
+        return 'addLateFinalDueToHint';
+        break;
       case NullabilityFixKind.addRequired:
         return 'addRequired';
         break;

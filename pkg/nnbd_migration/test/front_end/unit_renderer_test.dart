@@ -151,6 +151,16 @@ bool  b = a!.isEven;
         unorderedEquals(['1 late hint converted to late keyword']));
   }
 
+  Future<void> test_editList_countsHintAcceptanceSingly_lateFinal() async {
+    await buildInfoForSingleTestFile('/*late final*/ int x = 0;',
+        migratedContent: '/*late final*/ int  x = 0;');
+    var output = renderUnits()[0];
+    expect(
+        output.edits.keys,
+        unorderedEquals(
+            ['1 late final hint converted to late and final keywords']));
+  }
+
   Future<void> test_editList_pluralHeader() async {
     await buildInfoForSingleTestFile('''
 int a = null;

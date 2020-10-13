@@ -319,6 +319,28 @@ g(String /*!*/ s) {}
             replacement: ''));
   }
 
+  Future<void> test_addLateFinal_dueToHint() async {
+    var content = '/*late final*/ int x = 0;';
+    var migratedContent = '/*late final*/ int  x = 0;';
+    var unit = await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent);
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    var textToRemove = '/*late final*/ ';
+    assertRegionPair(regions, 0,
+        offset1: migratedContent.indexOf('/*'),
+        length1: 2,
+        offset2: migratedContent.indexOf('*/'),
+        length2: 2,
+        explanation: 'Added late and final keywords, due to a hint',
+        kind: NullabilityFixKind.addLateFinalDueToHint,
+        edits: (List<EditDetail> edits) => assertEdit(
+            edit: edits.single,
+            offset: content.indexOf(textToRemove),
+            length: textToRemove.length,
+            replacement: ''));
+  }
+
   Future<void> test_addLate_dueToTestSetup() async {
     addTestCorePackage();
     var content = '''

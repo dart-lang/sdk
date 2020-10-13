@@ -2054,6 +2054,14 @@ typedef F = void Function();
         isNotNull);
   }
 
+  Future<void> test_variableDeclaration_late_final_hint_simple() async {
+    await analyze('/*late final*/ int i;');
+    expect(
+        variables.getLateHint(
+            testSource, findNode.variableDeclarationList('int i')),
+        isNotNull);
+  }
+
   Future<void> test_variableDeclaration_late_hint_with_spaces() async {
     await analyze('/* late */ int i;');
     expect(

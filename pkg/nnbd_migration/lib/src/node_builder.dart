@@ -633,6 +633,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (hint != null && hint.kind == HintCommentKind.late_) {
       _variables.recordLateHint(source, node, hint);
     }
+    if (hint != null && hint.kind == HintCommentKind.lateFinal) {
+      _variables.recordLateHint(source, node, hint);
+    }
     for (var variable in node.variables) {
       variable.metadata.accept(this);
       var declaredElement = variable.declaredElement;
