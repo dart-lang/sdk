@@ -60,8 +60,8 @@ class AvoidTypeToString extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
     assert(context != null);
     final visitor =
         _Visitor(this, context.typeSystem, context.typeProvider.typeType);
