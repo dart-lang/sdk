@@ -5,7 +5,7 @@
 import "dart:io";
 import "package:async_helper/async_minitest.dart";
 
-void testNoPackages(String filePath, String uri, String expected) {
+void testNoPackages(String filePath, Uri uri, String expected) {
   File mainIsolate = new File(filePath);
   mainIsolate.writeAsStringSync('''
     library spawn_tests;
@@ -39,6 +39,8 @@ void testNoPackages(String filePath, String uri, String expected) {
   var args = <String>[];
   args.add(mainIsolate.path);
   var result = Process.runSync(exec, args);
+  print('stdout: ${result.stdout}');
+  print('stderr: ${result.stderr}');
   expect(result.stdout.contains('$expected'), true);
 }
 
@@ -59,8 +61,8 @@ void main() {
 
   try {
     // Isolate Spawning another Isolate without any package specification.
-    testNoPackages("$tmpDirPath/no_package_isolate.dart", noPackageIsolate.path,
-        're: no package');
+    testNoPackages("$tmpDirPath/no_package_isolate.dart",
+        Uri.file(noPackageIsolate.path), 're: no package');
   } finally {
     tmpDir.deleteSync(recursive: true);
   }
