@@ -537,12 +537,12 @@ int${migrated ? '?' : ''} f() => null;
   }
 
   test_flag_skip_pub_outdated_default() {
-    expect(assertParseArgsSuccess([]).skipPubOutdated, isFalse);
+    expect(assertParseArgsSuccess([]).skipPubOutdated, isTrue);
   }
 
-  test_flag_skip_pub_outdated_disable() async {
-    // "--no-skip-pub-outdated" is not an option.
-    await assertParseArgsFailure(['--no-skip-pub-outdated']);
+  test_flag_skip_pub_outdated_negated() async {
+    expect(assertParseArgsSuccess(['--no-skip-pub-outdated']).skipPubOutdated,
+        isFalse);
   }
 
   test_flag_skip_pub_outdated_enable() {
@@ -1290,7 +1290,8 @@ int f() => null;
 }
 ''' /* stdout */,
         '' /* stderr */);
-    var output = await assertRunFailure([projectDir], expectedExitCode: 1);
+    var output = await assertRunFailure([projectDir, '--no-skip-pub-outdated'],
+        expectedExitCode: 1);
     expect(output,
         contains('Warning: not all current dependencies have migrated'));
   }

@@ -416,8 +416,11 @@ class MigrationCli {
     );
     parser.addFlag(
       CommandLineOptions.skipPubOutdatedFlag,
-      defaultsTo: false,
-      negatable: false,
+      // TODO(srawlins): Before "beta," change the default to "false," and
+      // negatable to "false." See
+      // https://github.com/dart-lang/sdk/issues/43774.
+      defaultsTo: true,
+      negatable: true,
       help: 'Skip the `pub outdated --mode=null-safety` check. This allows a '
           'migration to proceed even if some package dependencies have not yet '
           'been migrated.',
