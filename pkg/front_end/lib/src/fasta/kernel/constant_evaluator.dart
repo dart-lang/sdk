@@ -925,8 +925,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (errorOnUnevaluatedConstant) {
         return createErrorConstant(node, messageConstEvalUnevaluated);
       }
-      return new UnevaluatedConstant(
-          removeRedundantFileUriExpressions(result.expression));
+      return canonicalize(new UnevaluatedConstant(
+          removeRedundantFileUriExpressions(result.expression)));
     }
     return result;
   }

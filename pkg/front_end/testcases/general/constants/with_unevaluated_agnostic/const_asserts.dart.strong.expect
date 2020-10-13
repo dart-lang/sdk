@@ -107,7 +107,7 @@ static const field self::Bar bar2 = invalid-expression "This assertion failed wi
 static const field self::Bar bar3 = invalid-expression "This assertion failed.";
 static const field self::Bar bar4 = invalid-expression "This assertion failed.";
 static method main() → dynamic {
-  core::print(#C13);
+  core::print(#C9);
 }
 
 constants  {
@@ -123,5 +123,4 @@ constants  {
   #C10 = 42
   #C11 = "btw foo was "
   #C12 = eval self::Foo{x:#C10, assert(#C7, "${#C11}${const core::bool::fromEnvironment(#C1)}")}
-  #C13 = eval self::Foo{x:#C6, assert(const core::bool::fromEnvironment(#C1).==(#C7), "${#C8}${const core::bool::fromEnvironment(#C1)}"), assert(const core::bool::fromEnvironment(#C1).==(#C7))}
 }

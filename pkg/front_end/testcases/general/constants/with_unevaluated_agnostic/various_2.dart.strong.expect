@@ -50,7 +50,7 @@ static method main() → dynamic {
   self::test(#C13, #C13);
   self::test(#C16, #C16);
   self::test(true, #C19);
-  self::test(true, #C23);
+  self::test(true, #C21);
   self::test(true, #C19);
   self::test(true, #C19);
   self::test(true, #C19);
@@ -81,8 +81,8 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
     ;
 }
 static const field core::Type objectTypeLiteral = #C1;
-static const field (core::Object?, core::Object?) → core::bool c2 = #C24;
-static const field (core::int) → core::int partialInstantiation = #C25;
+static const field (core::Object?, core::Object?) → core::bool c2 = #C23;
+static const field (core::int) → core::int partialInstantiation = #C22;
 static const field var::Class<core::int> instance = #C5;
 static const field var::Class<dynamic> instance2 = #C8;
 static const field core::Type functionTypeLiteral = #C9;
@@ -124,7 +124,5 @@ constants  {
   #C20 = tearoff var::id2
   #C21 = eval const core::identical(#C3, const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>)
   #C22 = eval const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>
-  #C23 = eval const core::identical(#C3, const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>)
-  #C24 = tearoff core::identical
-  #C25 = eval const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>
+  #C23 = tearoff core::identical
 }

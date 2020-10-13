@@ -13,7 +13,7 @@ static method main() → dynamic {
 }
 static method _x() → void {
   core::print(#C1);
-  core::print(#C12);
+  core::print(#C11);
 }
 
 constants  {
@@ -28,7 +28,6 @@ constants  {
   #C9 = "foo"
   #C10 = eval const core::bool::fromEnvironment(#C9)
   #C11 = eval "${#C2}${const core::String::fromEnvironment(#C3, defaultValue: #C4)}${#C5}"
-  #C12 = eval "${#C2}${const core::String::fromEnvironment(#C3, defaultValue: #C4)}${#C5}"
 }
 
 Extra constant evaluation status:

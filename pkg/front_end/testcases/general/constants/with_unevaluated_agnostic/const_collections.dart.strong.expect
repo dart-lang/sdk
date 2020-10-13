@@ -39,12 +39,12 @@ static const field core::Set<core::List<core::int?>> setNotAgnosticOK = invalid-
 static const field invalid-type MapWithUnevaluated = #C18;
 static const field core::Map<core::List<core::int?>, core::int> mapNotAgnosticOK = invalid-expression "Constant value is not strong/weak mode agnostic.";
 static method main() → dynamic {
-  core::print(#C19);
-  core::print(#C20);
-  core::print(#C21);
-  core::print(#C22);
+  core::print(#C5);
+  core::print(#C9);
+  core::print(#C11);
+  core::print(#C14);
   core::print(<core::String>{"hello"});
-  core::print(#C24);
+  core::print(#C20);
 }
 
 constants  {
@@ -66,10 +66,6 @@ constants  {
   #C16 = <core::int?>[]
   #C17 = <core::bool, core::bool>{)
   #C18 = eval #C17 + const <dynamic, dynamic>{const core::bool::fromEnvironment(#C2): const core::bool::fromEnvironment(#C3)}
-  #C19 = eval #C1 + const <dynamic>[const core::bool::fromEnvironment(#C2)] + const <dynamic>[const core::bool::fromEnvironment(#C3)] + const <dynamic>[#C4]
-  #C20 = eval #C6 + #C1 + const <dynamic>[const core::bool::fromEnvironment(#C2)] + const <dynamic>[const core::bool::fromEnvironment(#C3)] + const <dynamic>[#C4] + #C8
-  #C21 = eval #C10 + const <dynamic>{const core::bool::fromEnvironment(#C2)} + const <dynamic>{const core::bool::fromEnvironment(#C3)} + const <dynamic>{#C4}
-  #C22 = eval #C12 + #C10 + const <dynamic>{const core::bool::fromEnvironment(#C2)} + const <dynamic>{const core::bool::fromEnvironment(#C3)} + const <dynamic>{#C4} + #C13
-  #C23 = "hello"
-  #C24 = <core::String>{#C23}
+  #C19 = "hello"
+  #C20 = <core::String>{#C19}
 }

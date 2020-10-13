@@ -9199,6 +9199,14 @@ class UnevaluatedConstant extends Constant {
   String toString() {
     return "UnevaluatedConstant(${toStringInternal()})";
   }
+
+  @override
+  int get hashCode => expression.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is UnevaluatedConstant && other.expression == expression;
+  }
 }
 
 // ------------------------------------------------------------------------
