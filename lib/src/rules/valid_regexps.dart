@@ -19,12 +19,12 @@ at runtime so should be avoided.
 
 **BAD:**
 ```
-print(RegExp('(').hasMatch('foo()'));
+print(RegExp(r'(').hasMatch('foo()'));
 ```
 
 **GOOD:**
 ```
-print(RegExp('[(]').hasMatch('foo()'));
+print(RegExp(r'\(').hasMatch('foo()'));
 ```
 
 ''';
