@@ -946,14 +946,23 @@ class TypeInferrerImpl implements TypeInferrer {
         // error message that the extension member exists but that the access is
         // invalid.
         target = _findExtensionMember(
-            computeNonNullable(receiverBound), classNode, name, fileOffset,
+            isNonNullableByDefault
+                ? computeNonNullable(receiverType)
+                : computeNonNullable(receiverBound),
+            classNode,
+            name,
+            fileOffset,
             setter: setter,
             defaultTarget: target,
             isPotentiallyNullableAccess: true);
       } else {
         target = _findExtensionMember(
-            receiverBound, classNode, name, fileOffset,
-            setter: setter, defaultTarget: target);
+            isNonNullableByDefault ? receiverType : receiverBound,
+            classNode,
+            name,
+            fileOffset,
+            setter: setter,
+            defaultTarget: target);
       }
     }
     return target;
