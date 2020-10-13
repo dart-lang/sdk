@@ -2,9 +2,9 @@ The Dart Dev Compiler (DDC) is a fast, modular compiler that generates modern Ja
 
 # Soundness and Restrictions
 
-DDC is built upon Dart's [sound](https://www.dartlang.org/guides/language/sound-dart) type system.  It only compiles programs that statically type check (i.e., no strong mode errors).  It leverages static type checking to generate simpler, readable, and more idiomatic code with fewer runtime checks.  In general, DDC is able to provide stronger type guarantees - i.e., *soundness* - than traditional Dart checked mode with significantly fewer runtime checks.
+DDC is built upon Dart's [sound](https://dart.dev/guides/language/type-system) type system.  It only compiles programs that statically type check (i.e., no strong mode errors).  It leverages static type checking to generate simpler, readable, and more idiomatic code with fewer runtime checks.  In general, DDC is able to provide stronger type guarantees - i.e., *soundness* - than traditional Dart checked mode with significantly fewer runtime checks.
 
-With strong mode, DDC is stricter than traditional Dart production mode or checked mode.  Running existing Dart code on DDC will generally require fixing both static and runtime type errors.  
+With strong mode, DDC is stricter than traditional Dart production mode or checked mode.  Running existing Dart code on DDC will generally require fixing both static and runtime type errors.
 
 For example, although the following snippet will run in production or checked mode, it will fail to compile with DDC:
 
