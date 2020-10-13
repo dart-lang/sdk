@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/web/edit_details.dart';
 import 'package:nnbd_migration/src/front_end/web/file_details.dart';
 import 'package:nnbd_migration/src/front_end/web/navigation_tree.dart';
@@ -111,6 +112,8 @@ final Element unitName = document.querySelector('#unit-name');
 String get rootPath => querySelector('.root').text.trim();
 
 String get sdkVersion => document.getElementById('sdk-version').text;
+
+int get _currentScrollPosition => document.querySelector('.content').scrollTop;
 
 void addArrowClickHandler(Element arrow) {
   var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
@@ -282,30 +285,15 @@ void handleAddHintLinkClick(MouseEvent event) async {
   event.preventDefault();
 
   try {
-    // Directing the server to produce an edit; request it, then do work with the
-    // response.
+    var previousScrollPosition = _currentScrollPosition;
+    // Directing the server to produce an edit; request it, then do work with
+    // the response.
     await doPost(path);
-    // TODO(mfairhurst): Only refresh the regions/dart code, not the window.
-    (document.window.location as Location).reload();
+    await loadFile(window.location.pathname, null, null, false);
+    _scrollContentTo(previousScrollPosition);
   } catch (e, st) {
     handleError('Could not add/remove hint', e, st);
   }
-}
-
-void handleRerunFailure(List<Object> errors) {
-  final popupPane = document.querySelector('.popup-pane');
-  popupPane.querySelector('h2').innerText = 'Failed to rerun from sources';
-  popupPane.querySelector('p').innerText =
-      'Sources contain static analysis errors:';
-  popupPane.querySelector('pre').innerText = errors.cast<Map>().map((error) {
-    return '${error['severity']} - ${error['message']} '
-        'at ${error['location']} - (${error['code']})';
-  }).join('\n');
-  popupPane.querySelector('a.bottom').style.display = 'none';
-  popupPane.style.display = 'initial';
-
-  // TODO(srawlins): I think we should lock down the entire web UI, except for
-  //  the "Rerun from source" button.
 }
 
 void handleError(String header, Object exception, Object stackTrace) {
@@ -330,9 +318,6 @@ void handleError(String header, Object exception, Object stackTrace) {
   popupPane..style.display = 'initial';
   logError('$header: $exception', stackTrace);
 }
-
-String _stripQuery(String path) =>
-    path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
 
 void handleNavLinkClick(
   MouseEvent event,
@@ -359,6 +344,22 @@ void handleNavLinkClick(
   }
 }
 
+void handleRerunFailure(List<Object> errors) {
+  final popupPane = document.querySelector('.popup-pane');
+  popupPane.querySelector('h2').innerText = 'Failed to rerun from sources';
+  popupPane.querySelector('p').innerText =
+      'Sources contain static analysis errors:';
+  popupPane.querySelector('pre').innerText = errors.cast<Map>().map((error) {
+    return '${error['severity']} - ${error['message']} '
+        'at ${error['location']} - (${error['code']})';
+  }).join('\n');
+  popupPane.querySelector('a.bottom').style.display = 'none';
+  popupPane.style.display = 'initial';
+
+  // TODO(srawlins): I think we should lock down the entire web UI, except for
+  //  the "Rerun from source" button.
+}
+
 void highlightAllCode() {
   document.querySelectorAll('.code').forEach((Element block) {
     hljs.highlightBlock(block);
@@ -379,9 +380,9 @@ void loadAndPopulateEditDetails(String path, int offset, int line) async {
   }
 }
 
-/// Load the file at [path] from the server, optionally scrolling [offset] into
+/// Loads the file at [path] from the server, optionally scrolling [offset] into
 /// view.
-void loadFile(
+Future<void> loadFile(
   String path,
   int offset,
   int line,
@@ -452,13 +453,14 @@ void maybeScrollIntoView(Element element) {
   }
 }
 
-/// Scroll target with id [offset] into view if it is not currently in view.
+/// Scrolls target with id [offset] into view if it is not currently in view.
 ///
-/// If [offset] is null, instead scroll the "unit-name" header, at the top of
-/// the page, into view.
+/// Falls back to [lineNumber] if a target with id "o$offset" does not exist.
 ///
-/// Also add the "target" class, highlighting the target. Also add the
-/// "highlight" class to the entire line on which the target lies.
+/// Also adds the "target" class, highlighting the target, and the "highlight"
+/// class to the entire line on which the target lies.
+///
+/// If [offset] is null, instead scrolls to the top of the file.
 void maybeScrollToAndHighlight(int offset, int lineNumber) {
   Element target;
   Element line;
@@ -732,6 +734,24 @@ void writeNavigationSubtree(
   }
 }
 
+void _addHintAction(HintAction hintAction, Node drawer, TargetLink link) {
+  drawer.append(ButtonElement()
+    ..onClick.listen((event) async {
+      try {
+        var previousScrollPosition = _currentScrollPosition;
+        await doPost(
+            pathWithQueryParameters('/apply-hint', {}), hintAction.toJson());
+        var path = _stripQuery(link.href);
+        await loadFile(path, null, link.line, false);
+        document.body.classes.add('needs-rerun');
+        _scrollContentTo(previousScrollPosition);
+      } catch (e, st) {
+        handleError('Could not apply hint', e, st);
+      }
+    })
+    ..appendText(hintAction.kind.description));
+}
+
 AnchorElement _aElementForLink(TargetLink link) {
   var targetLine = link.line;
   AnchorElement a = AnchorElement();
@@ -793,24 +813,18 @@ void _populateEditTraces(
         var drawer = li.append(
             document.createElement('p')..classes = ['drawer', 'before-apply']);
         for (final hintAction in entry.hintActions) {
-          drawer.append(ButtonElement()
-            ..onClick.listen((event) async {
-              try {
-                await doPost(pathWithQueryParameters('/apply-hint', {}),
-                    hintAction.toJson());
-                var path = _stripQuery(link.href);
-                loadFile(path, null, link.line, false);
-                document.body.classes.add('needs-rerun');
-              } catch (e, st) {
-                handleError('Could not apply hint', e, st);
-              }
-            })
-            ..appendText(hintAction.kind.description));
+          _addHintAction(hintAction, drawer, link);
         }
       }
     }
   }
 }
+
+void _scrollContentTo(int top) =>
+    document.querySelector('.content').scrollTop = top;
+
+String _stripQuery(String path) =>
+    path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
 
 class _PermissiveNodeValidator implements NodeValidator {
   static _PermissiveNodeValidator instance = _PermissiveNodeValidator();
