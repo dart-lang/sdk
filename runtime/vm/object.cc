@@ -2906,7 +2906,7 @@ void Class::set_num_type_arguments(intptr_t value) const {
 }
 
 void Class::set_has_pragma(bool value) const {
-  set_state_bits(HasPragmaBit::update(value, raw_ptr()->state_bits_));
+  set_state_bits(HasPragmaBit::update(value, state_bits()));
 }
 
 // Initialize class fields of type Array with empty array.
@@ -2917,8 +2917,8 @@ void Class::InitEmptyFields() {
   }
   StorePointer(&raw_ptr()->interfaces_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->constants_, Object::null_array().raw());
-  StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
-  StorePointer(&raw_ptr()->fields_, Object::empty_array().raw());
+  set_functions(Object::empty_array());
+  set_fields(Object::empty_array());
   StorePointer(&raw_ptr()->invocation_dispatcher_cache_,
                Object::empty_array().raw());
 }
@@ -3002,7 +3002,7 @@ typedef UnorderedHashSet<ClassFunctionsTraits> ClassFunctionsSet;
 void Class::SetFunctions(const Array& value) const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->functions_, value.raw());
+  set_functions(value);
   const intptr_t len = value.Length();
   if (len >= kFunctionLookupHashTreshold) {
     ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
@@ -3022,15 +3022,15 @@ void Class::SetFunctions(const Array& value) const {
 void Class::AddFunction(const Function& function) const {
   ASSERT(Thread::Current()->IsMutatorThread());
   const Array& arr = Array::Handle(functions());
-  const Array& new_arr =
+  const Array& new_array =
       Array::Handle(Array::Grow(arr, arr.Length() + 1, Heap::kOld));
-  new_arr.SetAt(arr.Length(), function);
-  StorePointer(&raw_ptr()->functions_, new_arr.raw());
+  new_array.SetAt(arr.Length(), function);
+  set_functions(new_array);
   // Add to hash table, if any.
-  const intptr_t new_len = new_arr.Length();
+  const intptr_t new_len = new_array.Length();
   if (new_len == kFunctionLookupHashTreshold) {
     // Transition to using hash table.
-    SetFunctions(new_arr);
+    SetFunctions(new_array);
   } else if (new_len > kFunctionLookupHashTreshold) {
     ClassFunctionsSet set(raw_ptr()->functions_hash_table_);
     set.Insert(function);
@@ -3141,7 +3141,8 @@ void Class::set_signature_function(const Function& value) const {
 }
 
 void Class::set_state_bits(intptr_t bits) const {
-  StoreNonPointer(&raw_ptr()->state_bits_, static_cast<uint32_t>(bits));
+  StoreNonPointer<uint32_t, uint32_t, std::memory_order_release>(
+      &raw_ptr()->state_bits_, static_cast<uint32_t>(bits));
 }
 
 void Class::set_library(const Library& value) const {
@@ -3152,6 +3153,20 @@ void Class::set_type_parameters(const TypeArguments& value) const {
   ASSERT((num_type_arguments() == kUnknownNumTypeArguments) ||
          is_declared_in_bytecode() || is_prefinalized());
   StorePointer(&raw_ptr()->type_parameters_, value.raw());
+}
+
+void Class::set_functions(const Array& value) const {
+  // Ensure all writes to the [Function]s are visible by the time the array
+  // is visible.
+  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->functions_,
+                                                    value.raw());
+}
+
+void Class::set_fields(const Array& value) const {
+  // Ensure all writes to the [Field]s are visible by the time the array
+  // is visible.
+  StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->fields_,
+                                                    value.raw());
 }
 
 intptr_t Class::NumTypeParameters(Thread* thread) const {
@@ -4350,7 +4365,7 @@ void Class::SetFields(const Array& value) const {
   }
 #endif
   // The value of static fields is already initialized to null.
-  StorePointer(&raw_ptr()->fields_, value.raw());
+  set_fields(value);
 }
 
 void Class::AddField(const Field& field) const {
@@ -4864,71 +4879,70 @@ int32_t Class::SourceFingerprint() const {
 }
 
 void Class::set_is_implemented() const {
-  set_state_bits(ImplementedBit::update(true, raw_ptr()->state_bits_));
+  set_state_bits(ImplementedBit::update(true, state_bits()));
 }
 
 void Class::set_is_abstract() const {
-  set_state_bits(AbstractBit::update(true, raw_ptr()->state_bits_));
+  set_state_bits(AbstractBit::update(true, state_bits()));
 }
 
 void Class::set_is_declaration_loaded() const {
   ASSERT(!is_declaration_loaded());
-  set_state_bits(ClassLoadingBits::update(ClassLayout::kDeclarationLoaded,
-                                          raw_ptr()->state_bits_));
+  set_state_bits(
+      ClassLoadingBits::update(ClassLayout::kDeclarationLoaded, state_bits()));
 }
 
 void Class::set_is_type_finalized() const {
   ASSERT(is_declaration_loaded());
   ASSERT(!is_type_finalized());
-  set_state_bits(ClassLoadingBits::update(ClassLayout::kTypeFinalized,
-                                          raw_ptr()->state_bits_));
+  set_state_bits(
+      ClassLoadingBits::update(ClassLayout::kTypeFinalized, state_bits()));
 }
 
 void Class::set_is_synthesized_class() const {
-  set_state_bits(SynthesizedClassBit::update(true, raw_ptr()->state_bits_));
+  set_state_bits(SynthesizedClassBit::update(true, state_bits()));
 }
 
 void Class::set_is_enum_class() const {
-  set_state_bits(EnumBit::update(true, raw_ptr()->state_bits_));
+  set_state_bits(EnumBit::update(true, state_bits()));
 }
 
 void Class::set_is_const() const {
-  set_state_bits(ConstBit::update(true, raw_ptr()->state_bits_));
+  set_state_bits(ConstBit::update(true, state_bits()));
 }
 
 void Class::set_is_transformed_mixin_application() const {
-  set_state_bits(
-      TransformedMixinApplicationBit::update(true, raw_ptr()->state_bits_));
+  set_state_bits(TransformedMixinApplicationBit::update(true, state_bits()));
 }
 
 void Class::set_is_fields_marked_nullable() const {
-  set_state_bits(FieldsMarkedNullableBit::update(true, raw_ptr()->state_bits_));
+  set_state_bits(FieldsMarkedNullableBit::update(true, state_bits()));
 }
 
 void Class::set_is_allocated(bool value) const {
-  set_state_bits(IsAllocatedBit::update(value, raw_ptr()->state_bits_));
+  set_state_bits(IsAllocatedBit::update(value, state_bits()));
 }
 
 void Class::set_is_loaded(bool value) const {
-  set_state_bits(IsLoadedBit::update(value, raw_ptr()->state_bits_));
+  set_state_bits(IsLoadedBit::update(value, state_bits()));
 }
 
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
-  set_state_bits(ClassFinalizedBits::update(ClassLayout::kFinalized,
-                                            raw_ptr()->state_bits_));
+  set_state_bits(
+      ClassFinalizedBits::update(ClassLayout::kFinalized, state_bits()));
 }
 
 void Class::set_is_allocate_finalized() const {
   ASSERT(!is_allocate_finalized());
   set_state_bits(ClassFinalizedBits::update(ClassLayout::kAllocateFinalized,
-                                            raw_ptr()->state_bits_));
+                                            state_bits()));
 }
 
 void Class::set_is_prefinalized() const {
   ASSERT(!is_finalized());
-  set_state_bits(ClassFinalizedBits::update(ClassLayout::kPreFinalized,
-                                            raw_ptr()->state_bits_));
+  set_state_bits(
+      ClassFinalizedBits::update(ClassLayout::kPreFinalized, state_bits()));
 }
 
 void Class::set_interfaces(const Array& value) const {

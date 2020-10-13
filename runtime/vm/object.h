@@ -1271,7 +1271,11 @@ class Class : public Object {
   ErrorPtr VerifyEntryPoint() const;
 
   // Returns an array of instance and static fields defined by this class.
-  ArrayPtr fields() const { return raw_ptr()->fields_; }
+  ArrayPtr fields() const {
+    // We rely on the fact that any loads from the array are dependent loads
+    // and avoid the load-acquire barrier here.
+    return raw_ptr()->fields_;
+  }
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
@@ -1291,8 +1295,11 @@ class Class : public Object {
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
 
-  // TODO(koda): Unite w/ hash table.
-  ArrayPtr functions() const { return raw_ptr()->functions_; }
+  ArrayPtr functions() const {
+    // We rely on the fact that any loads from the array are dependent loads
+    // and avoid the load-acquire barrier here.
+    return raw_ptr()->functions_;
+  }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
   FunctionPtr FunctionFromIndex(intptr_t idx) const;
@@ -1339,18 +1346,14 @@ class Class : public Object {
     return RoundedAllocationSize(sizeof(ClassLayout));
   }
 
-  bool is_implemented() const {
-    return ImplementedBit::decode(raw_ptr()->state_bits_);
-  }
+  bool is_implemented() const { return ImplementedBit::decode(state_bits()); }
   void set_is_implemented() const;
 
-  bool is_abstract() const {
-    return AbstractBit::decode(raw_ptr()->state_bits_);
-  }
+  bool is_abstract() const { return AbstractBit::decode(state_bits()); }
   void set_is_abstract() const;
 
   ClassLayout::ClassLoadingState class_loading_state() const {
-    return ClassLoadingBits::decode(raw_ptr()->state_bits_);
+    return ClassLoadingBits::decode(state_bits());
   }
 
   bool is_declaration_loaded() const {
@@ -1364,35 +1367,35 @@ class Class : public Object {
   void set_is_type_finalized() const;
 
   bool is_synthesized_class() const {
-    return SynthesizedClassBit::decode(raw_ptr()->state_bits_);
+    return SynthesizedClassBit::decode(state_bits());
   }
   void set_is_synthesized_class() const;
 
-  bool is_enum_class() const { return EnumBit::decode(raw_ptr()->state_bits_); }
+  bool is_enum_class() const { return EnumBit::decode(state_bits()); }
   void set_is_enum_class() const;
 
   bool is_finalized() const {
-    return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+    return ClassFinalizedBits::decode(state_bits()) ==
                ClassLayout::kFinalized ||
-           ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+           ClassFinalizedBits::decode(state_bits()) ==
                ClassLayout::kAllocateFinalized;
   }
   void set_is_finalized() const;
 
   bool is_allocate_finalized() const {
-    return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+    return ClassFinalizedBits::decode(state_bits()) ==
            ClassLayout::kAllocateFinalized;
   }
   void set_is_allocate_finalized() const;
 
   bool is_prefinalized() const {
-    return ClassFinalizedBits::decode(raw_ptr()->state_bits_) ==
+    return ClassFinalizedBits::decode(state_bits()) ==
            ClassLayout::kPreFinalized;
   }
 
   void set_is_prefinalized() const;
 
-  bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
+  bool is_const() const { return ConstBit::decode(state_bits()); }
   void set_is_const() const;
 
   // Tests if this is a mixin application class which was desugared
@@ -1402,21 +1405,19 @@ class Class : public Object {
   // In such case, its mixed-in type was pulled into the end of
   // interfaces list.
   bool is_transformed_mixin_application() const {
-    return TransformedMixinApplicationBit::decode(raw_ptr()->state_bits_);
+    return TransformedMixinApplicationBit::decode(state_bits());
   }
   void set_is_transformed_mixin_application() const;
 
   bool is_fields_marked_nullable() const {
-    return FieldsMarkedNullableBit::decode(raw_ptr()->state_bits_);
+    return FieldsMarkedNullableBit::decode(state_bits());
   }
   void set_is_fields_marked_nullable() const;
 
-  bool is_allocated() const {
-    return IsAllocatedBit::decode(raw_ptr()->state_bits_);
-  }
+  bool is_allocated() const { return IsAllocatedBit::decode(state_bits()); }
   void set_is_allocated(bool value) const;
 
-  bool is_loaded() const { return IsLoadedBit::decode(raw_ptr()->state_bits_); }
+  bool is_loaded() const { return IsLoadedBit::decode(state_bits()); }
   void set_is_loaded(bool value) const;
 
   uint16_t num_native_fields() const { return raw_ptr()->num_native_fields_; }
@@ -1730,15 +1731,23 @@ class Class : public Object {
 
   int16_t num_type_arguments() const { return raw_ptr()->num_type_arguments_; }
 
+  uint32_t state_bits() const {
+    // Ensure any following load instructions do not get performed before this
+    // one.
+    return LoadNonPointer<uint32_t, std::memory_order_acquire>(
+        &raw_ptr()->state_bits_);
+  }
+
  public:
   void set_num_type_arguments(intptr_t value) const;
 
-  bool has_pragma() const {
-    return HasPragmaBit::decode(raw_ptr()->state_bits_);
-  }
+  bool has_pragma() const { return HasPragmaBit::decode(state_bits()); }
   void set_has_pragma(bool has_pragma) const;
 
  private:
+  void set_functions(const Array& value) const;
+  void set_fields(const Array& value) const;
+
   // Calculates number of type arguments of this class.
   // This includes type arguments of a superclass and takes overlapping
   // of type arguments into account.
