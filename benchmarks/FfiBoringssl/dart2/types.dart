@@ -4,6 +4,8 @@
 
 // ignore_for_file: camel_case_types
 
+// @dart=2.9
+
 import 'dart:ffi';
 
 /// digest algorithm.

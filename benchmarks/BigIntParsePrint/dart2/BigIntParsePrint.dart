@@ -4,6 +4,8 @@
 
 // ignore_for_file: avoid_function_literals_in_foreach_calls
 
+// @dart=2.9
+
 import 'package:benchmark_harness/benchmark_harness.dart';
 import 'package:fixnum/fixnum.dart';
 

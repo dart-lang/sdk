@@ -1,5 +1,8 @@
 /// Marker interface for [Iterable] subclasses that have an efficient
 /// [length] implementation.
+
+// @dart=2.9
+
 abstract class EfficientLengthIterable<T> extends Iterable<T> {
   const EfficientLengthIterable();
 

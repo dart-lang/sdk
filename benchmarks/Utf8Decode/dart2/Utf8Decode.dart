@@ -4,6 +4,8 @@
 //
 // Benchmark for UTF-8 decoding
 
+// @dart=2.9
+
 import 'dart:convert';
 import 'dart:typed_data';
 
