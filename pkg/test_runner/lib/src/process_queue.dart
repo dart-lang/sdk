@@ -614,6 +614,8 @@ class CommandExecutorImpl implements CommandExecutor {
       return RunningProcess(command, timeout,
               configuration: globalConfiguration)
           .run();
+    } else if (command is RRCommand) {
+      return command.run(timeout);
     } else {
       throw ArgumentError("Unknown command type ${command.runtimeType}.");
     }

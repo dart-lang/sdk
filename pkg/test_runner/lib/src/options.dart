@@ -293,6 +293,8 @@ settings.''',
         '''If we see a crash that we did not expect, copy the core dumps to
 "/tmp".''',
         hide: true),
+    _Option.bool('rr', '''Run VM tests under rr and save traces from crashes''',
+        hide: true),
     _Option(
         'local_ip',
         '''IP address the HTTP servers should listen on. This address is also
@@ -735,6 +737,7 @@ compiler.''',
           batch: !(data["noBatch"] as bool),
           batchDart2JS: data["dart2js_batch"] as bool,
           copyCoreDumps: data["copy_coredumps"] as bool,
+          rr: data["rr"] as bool,
           isVerbose: data["verbose"] as bool,
           listTests: data["list"] as bool,
           listStatusFiles: data["list_status_files"] as bool,
