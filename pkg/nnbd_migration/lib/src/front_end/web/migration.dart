@@ -113,8 +113,6 @@ String get rootPath => querySelector('.root').text.trim();
 
 String get sdkVersion => document.getElementById('sdk-version').text;
 
-int get _currentScrollPosition => document.querySelector('.content').scrollTop;
-
 void addArrowClickHandler(Element arrow) {
   var childList = (arrow.parentNode as Element).querySelector(':scope > ul');
   // Animating height from "auto" to "0" is not supported by CSS [1], so all we
@@ -285,7 +283,7 @@ void handleAddHintLinkClick(MouseEvent event) async {
   event.preventDefault();
 
   try {
-    var previousScrollPosition = _currentScrollPosition;
+    var previousScrollPosition = _getCurrentScrollPosition();
     // Directing the server to produce an edit; request it, then do work with
     // the response.
     await doPost(path);
@@ -738,7 +736,7 @@ void _addHintAction(HintAction hintAction, Node drawer, TargetLink link) {
   drawer.append(ButtonElement()
     ..onClick.listen((event) async {
       try {
-        var previousScrollPosition = _currentScrollPosition;
+        var previousScrollPosition = _getCurrentScrollPosition();
         await doPost(
             pathWithQueryParameters('/apply-hint', {}), hintAction.toJson());
         var path = _stripQuery(link.href);
@@ -760,6 +758,8 @@ AnchorElement _aElementForLink(TargetLink link) {
   a.classes.add('nav-link');
   return a;
 }
+
+int _getCurrentScrollPosition() => document.querySelector('.content').scrollTop;
 
 void _populateEditLinks(EditDetails response, Element editPanel) {
   if (response.edits == null) {
