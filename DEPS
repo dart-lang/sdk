@@ -76,7 +76,7 @@ vars = {
   "charcode_rev": "4a685faba42d86ebd9d661eadd1e79d0a1c34c43",
   "chrome_rev" : "19997",
   "cli_util_rev" : "335ed165887d0ec97c2a09173ebf22dcf56a6c4e",
-  "collection_rev": "52e219581f72a3eac013d6f5550c580962677425",
+  "collection_rev": "7d44763d62f97698b15c08ee360d838dccb63c88",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
   "csslib_rev": "6f77b3dcee957d3e2d5083f666221a220e9ed1f1",
