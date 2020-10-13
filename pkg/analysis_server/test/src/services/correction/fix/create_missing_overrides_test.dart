@@ -592,17 +592,17 @@ abstract class A {
 
 class B extends A {
   @override
-  void set s1(x) {
+  set s1(x) {
     // TODO: implement s1
   }
 
   @override
-  void set s2(int x) {
+  set s2(int x) {
     // TODO: implement s2
   }
 
   @override
-  void set s3(String x) {
+  set s3(String x) {
     // TODO: implement s3
   }
 }
