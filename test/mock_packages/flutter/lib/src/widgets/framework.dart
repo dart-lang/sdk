@@ -13,6 +13,8 @@ abstract class BuildContext {
 abstract class State<T extends StatefulWidget> {
   BuildContext get context => null;
 
+  bool get mounted => false;
+
   T get widget => null;
 
   Widget build(BuildContext context) => null;

@@ -5,3 +5,5 @@
 export 'src/widgets/basic.dart';
 export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
+export 'src/widgets/navigator.dart';
+export 'src/widgets/placeholder.dart';

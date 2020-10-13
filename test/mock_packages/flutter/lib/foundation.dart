@@ -13,3 +13,4 @@
 
 export 'src/foundation/diagnostics.dart';
 export 'src/foundation/key.dart';
+export 'src/foundation/platform.dart';
