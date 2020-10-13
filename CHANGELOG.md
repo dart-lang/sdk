@@ -1,3 +1,9 @@
+## 2.10.2 - 2020-10-13
+
+This is a patch release that fixes a DDC compiler crash (issue [#43589]).
+
+[#43589]: https://github.com/dart-lang/sdk/issues/43589
+
 ## 2.10.1 - 2020-10-06
 
 This is a patch release that fixes the following issues:
