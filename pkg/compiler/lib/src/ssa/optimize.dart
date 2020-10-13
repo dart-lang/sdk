@@ -1875,16 +1875,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (environment is HInstanceEnvironment) {
       HInstruction instance = environment.inputs.single;
       AbstractValue instanceAbstractValue = instance.instructionType;
-      ClassEntity instanceClass =
-          _abstractValueDomain.getExactClass(instanceAbstractValue);
-      if (instanceClass == null) {
-        // All the subclasses of JSArray are JSArray at runtime.
-        ClassEntity jsArrayClass = _closedWorld.commonElements.jsArrayClass;
-        if (_abstractValueDomain
-            .isInstanceOf(instanceAbstractValue, jsArrayClass)
-            .isDefinitelyTrue) {
-          instanceClass = jsArrayClass;
-        }
+      ClassEntity instanceClass;
+
+      // All the subclasses of JSArray are JSArray at runtime.
+      ClassEntity jsArrayClass = _closedWorld.commonElements.jsArrayClass;
+      if (_abstractValueDomain
+          .isInstanceOf(instanceAbstractValue, jsArrayClass)
+          .isDefinitelyTrue) {
+        instanceClass = jsArrayClass;
+      } else {
+        instanceClass =
+            _abstractValueDomain.getExactClass(instanceAbstractValue);
       }
       if (instanceClass != null) {
         if (_typeRecipeDomain.isReconstruction(

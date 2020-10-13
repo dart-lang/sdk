@@ -139,7 +139,8 @@ abstract class GlobalTypeInferenceResults {
   /// check.
   bool isFixedArrayCheckedForGrowable(ir.TreeNode node);
 
-  /// Returns the type of a list new expression [node].
+  /// Returns the type of a list new expression [node].  Returns `null` if
+  /// [node] does not represent the construction of a new list.
   AbstractValue typeOfNewList(ir.TreeNode node);
 
   /// Returns the type of a list literal [node].
