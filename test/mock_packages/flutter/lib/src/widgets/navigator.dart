@@ -11,10 +11,11 @@ class Navigator extends StatefulWidget {
         bool rootNavigator = false,
         bool nullOk = false,
       }) => null;
+}
 
+class NavigatorState extends State<Navigator> {
   @optionalTypeArgs
-  static Future<T> pushNamed<T extends Object?>(
-      BuildContext context,
+  Future<T> pushNamed<T extends Object>(
       String routeName, {
         Object? arguments,
       }) => null;
