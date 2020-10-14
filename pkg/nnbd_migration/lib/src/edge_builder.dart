@@ -368,7 +368,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var sourceIsSetupCall = false;
     if (node.leftHandSide is SimpleIdentifier &&
         _isCurrentFunctionExpressionFoundInTestSetUpCall()) {
-      var assignee = (node.leftHandSide as SimpleIdentifier).staticElement;
+      var assignee =
+          getWriteOrReadElement(node.leftHandSide as SimpleIdentifier);
       var enclosingElementOfCurrentFunction =
           _currentFunctionExpression.declaredElement.enclosingElement;
       if (enclosingElementOfCurrentFunction == assignee.enclosingElement) {
@@ -1001,7 +1002,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (target != null) {
       targetType = _checkExpressionNotNull(target);
     }
-    var callee = node.staticElement;
+    var callee = getWriteOrReadElement(node);
     DecoratedType result;
     if (callee == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
@@ -1306,7 +1307,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         writeType = _fixNumericTypes(calleeType.returnType, node.staticType);
       }
       if (operand is SimpleIdentifier) {
-        var element = operand.staticElement;
+        var element = getWriteOrReadElement(operand);
         if (element is PromotableElement) {
           _flowAnalysis.write(element, writeType);
         }
@@ -1357,7 +1358,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       if (isIncrementOrDecrement) {
         if (operand is SimpleIdentifier) {
-          var element = operand.staticElement;
+          var element = getWriteOrReadElement(operand);
           if (element is PromotableElement) {
             _flowAnalysis.write(element, staticType);
           }
@@ -1499,7 +1500,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitSimpleIdentifier(SimpleIdentifier node) {
     DecoratedType result;
-    var staticElement = node.staticElement;
+    var staticElement = getWriteOrReadElement(node);
     if (staticElement is PromotableElement) {
       if (!node.inDeclarationContext()) {
         var promotedType = _flowAnalysis.variableRead(node, staticElement);
@@ -2198,7 +2199,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     PromotableElement destinationLocalVariable;
     if (destinationType == null) {
       if (destinationExpression is SimpleIdentifier) {
-        var element = destinationExpression.staticElement;
+        var element = getWriteOrReadElement(destinationExpression);
         if (element is PromotableElement) {
           destinationLocalVariable = element;
         }
@@ -2825,7 +2826,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _handlePropertyAccess(Expression node, Expression target,
       SimpleIdentifier propertyName, bool isNullAware, bool isCascaded) {
     DecoratedType targetType;
-    var callee = propertyName.staticElement;
+    var callee = getWriteOrReadElement(propertyName);
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
     if (isCascaded) {
       targetType = _currentCascadeTargetType;
@@ -3140,6 +3141,47 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
 
     return _futureOf(type, node);
+  }
+
+  /// If the [node] is the finishing identifier of an assignment, return its
+  /// "writeElement", otherwise return its "staticElement", which might be
+  /// thought as the "readElement".
+  static Element getWriteOrReadElement(AstNode node) {
+    var writeElement = _getWriteElement(node);
+    if (writeElement != null) {
+      return writeElement;
+    }
+
+    if (node is IndexExpression) {
+      return node.staticElement;
+    } else if (node is SimpleIdentifier) {
+      return node.staticElement;
+    } else {
+      return null;
+    }
+  }
+
+  /// If the [node] is the target of a [CompoundAssignmentExpression],
+  /// return the corresponding "writeElement", which is the local variable,
+  /// the setter referenced with a [SimpleIdentifier] or a [PropertyAccess],
+  /// or the `[]=` operator.
+  static Element _getWriteElement(AstNode node) {
+    var parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return parent.writeElement;
+    } else if (parent is PostfixExpression) {
+      return parent.writeElement;
+    } else if (parent is PrefixExpression) {
+      return parent.writeElement;
+    }
+
+    if (parent is PrefixedIdentifier && parent.identifier == node) {
+      return _getWriteElement(parent);
+    } else if (parent is PropertyAccess && parent.propertyName == node) {
+      return _getWriteElement(parent);
+    } else {
+      return null;
+    }
   }
 }
 

@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -346,7 +347,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is MethodElement) {
       var type = element.type;
       // Analyzer should enforce number of parameter types, but check in

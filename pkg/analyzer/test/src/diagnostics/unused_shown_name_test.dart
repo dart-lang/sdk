@@ -48,6 +48,90 @@ f() {
 ''');
   }
 
+  test_referenced_prefixed_assignmentExpression() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+var a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as p show a;
+
+void f() {
+  p.a = 0;
+}
+''');
+  }
+
+  test_referenced_prefixed_postfixExpression() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+var a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as p show a;
+
+void f() {
+  p.a++;
+}
+''');
+  }
+
+  test_referenced_prefixed_prefixExpression() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+var a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as p show a;
+
+void f() {
+  ++p.a;
+}
+''');
+  }
+
+  test_referenced_unprefixed_assignmentExpression() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+var a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' show a;
+
+void f() {
+  a = 0;
+}
+''');
+  }
+
+  test_referenced_unprefixed_postfixExpression() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+var a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' show a;
+
+void f() {
+  a++;
+}
+''');
+  }
+
+  test_referenced_unprefixed_prefixExpression() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+var a = 0;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' show a;
+
+void f() {
+  ++a;
+}
+''');
+  }
+
   test_unreferenced() async {
     newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}

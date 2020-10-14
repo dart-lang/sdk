@@ -88,12 +88,14 @@ void f(A a) {
     var numPlusElement = numElement.getMethod('+');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: indexEqElement,
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: indexElement,
+        writeElement: indexEqElement,
+        type: 'num',
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -135,18 +137,20 @@ void f(A<double> a) {
     var doublePlusElement = doubleElement.getMethod('+');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: elementMatcher(
-        indexElement,
-        substitution: {'T': 'double'},
-      ),
-      writeElement: elementMatcher(
-        indexEqElement,
-        substitution: {'T': 'double'},
-      ),
-      type: 'double',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: elementMatcher(
+          indexElement,
+          substitution: {'T': 'double'},
+        ),
+        writeElement: elementMatcher(
+          indexEqElement,
+          substitution: {'T': 'double'},
+        ),
+        type: 'double',
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -191,12 +195,14 @@ void f(A a) {
     var indexEqElement = findElement.method('[]=');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: null,
-      writeElement: indexEqElement,
-      type: null,
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: null,
+        writeElement: indexEqElement,
+        type: null,
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -212,7 +218,10 @@ void f(A a) {
       operatorElement: null,
       type: 'double',
     );
-    assertParameterElement(assignment.rightHandSide, null);
+    assertParameterElement(
+      assignment.rightHandSide,
+      indexEqElement.parameters[1],
+    );
   }
 
   test_write_generic() async {
@@ -229,15 +238,17 @@ void f(A<double> a) {
     var indexEqElement = findElement.method('[]=');
 
     var indexExpression = findNode.index('a[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: null,
-      writeElement: elementMatcher(
-        indexEqElement,
-        substitution: {'T': 'double'},
-      ),
-      type: null,
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: null,
+        writeElement: elementMatcher(
+          indexEqElement,
+          substitution: {'T': 'double'},
+        ),
+        type: null,
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -256,7 +267,10 @@ void f(A<double> a) {
       operatorElement: null,
       type: 'double',
     );
-    assertParameterElement(assignment.rightHandSide, null);
+    assertParameterElement(
+      assignment.rightHandSide,
+      indexEqElement.parameters[1],
+    );
   }
 }
 
@@ -332,12 +346,14 @@ void f(A? a) {
     var numPlusElement = numElement.getMethod('+');
 
     var indexExpression = findNode.index('a?[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: indexElement,
-      writeElement: indexEqElement,
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: indexElement,
+        writeElement: indexEqElement,
+        type: 'num',
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -372,19 +388,41 @@ void f(A? a) {
 
     var indexEqElement = findElement.method('[]=');
 
-    assertIndexExpression(
-      findNode.index('..[0]'),
+    assertAssignment(
+      findNode.assignment('[0]'),
       readElement: null,
-      writeElement: indexEqElement,
-      type: null,
+      readType: null,
+      writeElement: findElement.method('[]='),
+      writeType: 'A',
+      operatorElement: null,
+      type: 'A',
     );
 
-    assertIndexExpression(
-      findNode.index('..[1]'),
+    assertAssignment(
+      findNode.assignment('[1]'),
       readElement: null,
-      writeElement: indexEqElement,
-      type: null,
+      readType: null,
+      writeElement: findElement.method('[]='),
+      writeType: 'A',
+      operatorElement: null,
+      type: 'A',
     );
+
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        findNode.index('..[0]'),
+        readElement: null,
+        writeElement: indexEqElement,
+        type: null,
+      );
+
+      assertIndexExpression(
+        findNode.index('..[1]'),
+        readElement: null,
+        writeElement: indexEqElement,
+        type: null,
+      );
+    }
 
     assertType(findNode.cascade('a?'), 'A?');
   }
@@ -403,12 +441,14 @@ void f(A? a) {
     var indexEqElement = findElement.method('[]=');
 
     var indexExpression = findNode.index('a?[0]');
-    assertIndexExpression(
-      indexExpression,
-      readElement: null,
-      writeElement: indexEqElement,
-      type: null,
-    );
+    if (hasAssignmentLeftResolution) {
+      assertIndexExpression(
+        indexExpression,
+        readElement: null,
+        writeElement: indexEqElement,
+        type: null,
+      );
+    }
     assertParameterElement(
       indexExpression.index,
       indexEqElement.parameters[0],
@@ -424,6 +464,9 @@ void f(A? a) {
       operatorElement: null,
       type: 'double?',
     );
-    assertParameterElement(assignment.rightHandSide, null);
+    assertParameterElement(
+      assignment.rightHandSide,
+      indexEqElement.parameters[1],
+    );
   }
 }

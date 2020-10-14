@@ -57,7 +57,7 @@ void f(Never x) {
   x = null;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 24, 5),
+      if (hasAssignmentLeftResolution) error(HintCode.DEAD_CODE, 24, 5),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 24, 4),
     ]);
   }
@@ -70,7 +70,7 @@ void f() {
   x = null;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 37, 5),
+      if (hasAssignmentLeftResolution) error(HintCode.DEAD_CODE, 37, 5),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 37, 4),
     ]);
   }

@@ -129,10 +129,7 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
       if (assignment.rightHandSide == expression) {
         if (assignment.operator.type == TokenType.EQ) {
           // v = myFunction();
-          var lhs = assignment.leftHandSide;
-          if (lhs != null) {
-            return lhs.staticType;
-          }
+          return assignment.writeType;
         } else {
           // v += myFunction();
           var method = assignment.staticElement;

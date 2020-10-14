@@ -7,6 +7,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
@@ -25,7 +26,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element != null) {
       _addOccurrence(element, node.offset);
     }

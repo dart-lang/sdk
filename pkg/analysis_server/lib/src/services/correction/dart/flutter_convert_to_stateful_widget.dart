@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -257,7 +258,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
       }
     }
     if (node.inSetterContext()) {
-      var element = node.staticElement;
+      var element = node.writeOrReadElement;
       if (element is PropertyAccessorElement) {
         var field = element.variable;
         if (field is FieldElement) {

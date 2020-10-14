@@ -383,7 +383,16 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    assertAssignment(
+      findNode.assignment('s ='),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('s', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_setter_noPrefix_typeArguments() async {
@@ -398,7 +407,19 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    assertAssignment(
+      findNode.assignment('s ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        findElement.setter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_setter_prefix_noTypeArguments() async {
@@ -419,7 +440,17 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('s ='),
+      readElement: null,
+      readType: null,
+      writeElement: importFind.setter('s', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_setter_prefix_typeArguments() async {
@@ -440,7 +471,20 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('s ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        importFind.setter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
   }
 
   test_setterAndGetter_noPrefix_noTypeArguments() async {
@@ -456,7 +500,19 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    assertAssignment(
+      findNode.assignment('s +='),
+      readElement: findElement.getter('s', of: 'E'),
+      readType: 'int',
+      writeElement: findElement.setter('s', of: 'E'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
   }
 
   test_setterAndGetter_noPrefix_typeArguments() async {
@@ -472,7 +528,25 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    assertAssignment(
+      findNode.assignment('s +='),
+      readElement: elementMatcher(
+        findElement.getter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      readType: 'int',
+      writeElement: elementMatcher(
+        findElement.setter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
   }
 
   test_setterAndGetter_prefix_noTypeArguments() async {
@@ -494,7 +568,20 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('s +='),
+      readElement: importFind.getter('s', of: 'E'),
+      readType: 'int',
+      writeElement: importFind.setter('s', of: 'E'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
   }
 
   test_setterAndGetter_prefix_typeArguments() async {
@@ -516,7 +603,26 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertAssignment(
+      findNode.assignment('s +='),
+      readElement: elementMatcher(
+        importFind.getter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      readType: 'int',
+      writeElement: elementMatcher(
+        importFind.setter('s', of: 'E'),
+        substitution: {'T': 'int'},
+      ),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
   }
 
   test_tearOff() async {
@@ -637,10 +743,13 @@ void f(int? a) {
 }
 ''');
 
-    assertIndexExpression(
-      findNode.index('[0]'),
+    assertAssignment(
+      findNode.assignment('[0] ='),
       readElement: null,
+      readType: null,
       writeElement: findElement.method('[]=', of: 'E'),
+      writeType: 'int',
+      operatorElement: null,
       type: 'int?',
     );
   }

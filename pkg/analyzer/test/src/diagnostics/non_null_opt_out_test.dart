@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-//import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -40,14 +38,19 @@ main(A a) {
   a[null] = null;
 }
 ''');
-    var assignment = findNode.assignment('= null;');
-    assertType(assignment, 'Null*');
 
-    var indexExpression = assignment.leftHandSide as IndexExpression;
-    assertType(indexExpression, 'int*');
-
-    var element = indexExpression.staticElement;
-    _assertLegacyMember(element, _import_a.method('[]='));
+    assertAssignment(
+      findNode.assignment(' = null;'),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.method('[]='),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'Null*',
+    );
   }
 
   test_assignment_prefixedIdentifier_instanceTarget_class_field() async {
@@ -64,17 +67,18 @@ main(A a) {
   a.foo = 0;
 }
 ''');
-    var assignment = findNode.assignment('foo = 0');
-    assertType(assignment, 'int*');
-
-    PrefixedIdentifier prefixedIdentifier = assignment.leftHandSide;
-    assertType(prefixedIdentifier, 'int*');
-
-    var identifier = prefixedIdentifier.identifier;
-    assertType(identifier, 'int*');
-
-    PropertyAccessorElement setter = identifier.staticElement;
-    _assertLegacyMember(setter, _import_a.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.setter('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'int*',
+    );
   }
 
   test_assignment_prefixedIdentifier_instanceTarget_extension_setter() async {
@@ -92,17 +96,18 @@ main(A a) {
   a.foo = 0;
 }
 ''');
-    var assignment = findNode.assignment('foo = 0');
-    assertType(assignment, 'int*');
-
-    PrefixedIdentifier prefixedIdentifier = assignment.leftHandSide;
-    assertType(prefixedIdentifier, 'int*');
-
-    var identifier = prefixedIdentifier.identifier;
-    assertType(identifier, 'int*');
-
-    PropertyAccessorElement setter = identifier.staticElement;
-    _assertLegacyMember(setter, _import_a.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.setter('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'int*',
+    );
   }
 
   test_assignment_prefixedIdentifier_staticTarget_class_field() async {
@@ -119,17 +124,18 @@ main() {
   A.foo = 0;
 }
 ''');
-    var assignment = findNode.assignment('foo = 0');
-    assertType(assignment, 'int*');
-
-    PrefixedIdentifier prefixedIdentifier = assignment.leftHandSide;
-    assertType(prefixedIdentifier, 'int*');
-
-    var identifier = prefixedIdentifier.identifier;
-    assertType(identifier, 'int*');
-
-    PropertyAccessorElement setter = identifier.staticElement;
-    _assertLegacyMember(setter, _import_a.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.setter('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'int*',
+    );
   }
 
   test_assignment_prefixedIdentifier_staticTarget_extension_field() async {
@@ -146,17 +152,18 @@ main() {
   E.foo = 0;
 }
 ''');
-    var assignment = findNode.assignment('foo = 0');
-    assertType(assignment, 'int*');
-
-    PrefixedIdentifier prefixedIdentifier = assignment.leftHandSide;
-    assertType(prefixedIdentifier, 'int*');
-
-    var identifier = prefixedIdentifier.identifier;
-    assertType(identifier, 'int*');
-
-    PropertyAccessorElement setter = identifier.staticElement;
-    _assertLegacyMember(setter, _import_a.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.setter('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'int*',
+    );
   }
 
   test_assignment_prefixedIdentifier_topLevelVariable() async {
@@ -171,14 +178,18 @@ main() {
   p.foo = 0;
 }
 ''');
-    var assignment = findNode.assignment('foo = 0');
-    assertType(assignment, 'int*');
-
-    PrefixedIdentifier prefixedIdentifier = assignment.leftHandSide;
-    assertType(prefixedIdentifier, 'int*');
-
-    PropertyAccessorElement setter = prefixedIdentifier.staticElement;
-    _assertLegacyMember(setter, _import_a.topSet('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.topSet('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'int*',
+    );
   }
 
   test_assignment_propertyAccess_class_field() async {
@@ -195,14 +206,18 @@ main() {
   A().foo = 0;
 }
 ''');
-    var assignment = findNode.assignment('foo = 0');
-    assertType(assignment, 'int*');
-
-    PropertyAccess propertyAccess = assignment.leftHandSide;
-    assertType(propertyAccess, 'int*');
-
-    PropertyAccessorElement setter = propertyAccess.propertyName.staticElement;
-    _assertLegacyMember(setter, _import_a.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.setter('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'int*',
+    );
   }
 
   test_assignment_propertyAccess_extension_setter() async {
@@ -220,14 +235,18 @@ main() {
   A().foo = 0;
 }
 ''');
-    var assignment = findNode.assignment('foo = 0');
-    assertType(assignment, 'int*');
-
-    PropertyAccess propertyAccess = assignment.leftHandSide;
-    assertType(propertyAccess, 'int*');
-
-    PropertyAccessorElement setter = propertyAccess.propertyName.staticElement;
-    _assertLegacyMember(setter, _import_a.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.setter('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'int*',
+    );
   }
 
   test_assignment_propertyAccess_extensionOverride_setter() async {
@@ -245,14 +264,18 @@ main(A a) {
   E(a).foo = 0;
 }
 ''');
-    var assignment = findNode.assignment('foo = 0');
-    assertType(assignment, 'int*');
-
-    PropertyAccess propertyAccess = assignment.leftHandSide;
-    assertType(propertyAccess, 'int*');
-
-    PropertyAccessorElement setter = propertyAccess.propertyName.staticElement;
-    _assertLegacyMember(setter, _import_a.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.setter('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'int*',
+    );
   }
 
   test_assignment_propertyAccess_superTarget() async {
@@ -271,14 +294,18 @@ class B extends A {
   }
 }
 ''');
-    var assignment = findNode.assignment('foo = 0');
-    assertType(assignment, 'int*');
-
-    PropertyAccess propertyAccess = assignment.leftHandSide;
-    assertType(propertyAccess, 'int*');
-
-    PropertyAccessorElement setter = propertyAccess.propertyName.staticElement;
-    _assertLegacyMember(setter, _import_a.setter('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.setter('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'int*',
+    );
   }
 
   test_assignment_simpleIdentifier_topLevelVariable() async {
@@ -293,14 +320,18 @@ main() {
   foo = null;
 }
 ''');
-    var assignment = findNode.assignment('foo =');
-    assertType(assignment, 'Null*');
-
-    SimpleIdentifier identifier = assignment.leftHandSide;
-    assertType(identifier, 'int*');
-
-    PropertyAccessorElement setter = identifier.staticElement;
-    _assertLegacyMember(setter, _import_a.topSet('foo'));
+    assertAssignment(
+      findNode.assignment('foo ='),
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        _import_a.topSet('foo'),
+        isLegacy: true,
+      ),
+      writeType: 'int*',
+      operatorElement: null,
+      type: 'Null*',
+    );
   }
 
   test_binaryExpression() async {

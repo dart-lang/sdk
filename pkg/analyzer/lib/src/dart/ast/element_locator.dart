@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 
 /// An object used to locate the [Element] associated with a given [AstNode].
 class ElementLocator {
@@ -93,7 +94,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
         return grandParent.element;
       }
     }
-    return node.staticElement;
+    return node.writeOrReadElement;
   }
 
   @override

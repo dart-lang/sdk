@@ -253,6 +253,8 @@ f() {
     ]);
     var access = findNode.propertyAccess('0.a');
     assertElementNull(access);
-    assertTypeDynamic(access);
+    if (hasAssignmentLeftResolution) {
+      assertTypeDynamic(access);
+    }
   }
 }

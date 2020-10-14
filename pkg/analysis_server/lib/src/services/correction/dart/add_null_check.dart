@@ -36,7 +36,7 @@ class AddNullCheck extends CorrectionProducer {
     DartType toType;
     var parent = target.parent;
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
-      toType = parent.leftHandSide.staticType;
+      toType = parent.writeType;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
       toType = parent.declaredElement.type;
     } else if (parent is ArgumentList) {

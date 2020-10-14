@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -621,7 +622,7 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       if (node.staticElement == importElement.prefix) {
         AstNode parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.staticElement?.declaration;
+          var element = parent.writeOrReadElement?.declaration;
           if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.identifier);
           }
@@ -634,7 +635,7 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
         }
       }
     } else {
-      var element = node.staticElement?.declaration;
+      var element = node.writeOrReadElement?.declaration;
       if (importedElements.contains(element)) {
         _addResult(node.offset, 0);
       }

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s in a Dart [CompilationUnit].
@@ -111,7 +112,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_class(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! ClassElement) {
       return false;
     }
@@ -133,7 +134,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_constructor(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! ConstructorElement) {
       return false;
     }
@@ -141,7 +142,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_dynamicType(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is VariableElement) {
       var staticType = element.type;
       if (staticType == null || !staticType.isDynamic) {
@@ -153,7 +154,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }
@@ -182,7 +183,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_function(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! FunctionElement) {
       return false;
     }
@@ -196,7 +197,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_functionTypeAlias(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! FunctionTypeAliasElement) {
       return false;
     }
@@ -210,7 +211,7 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // should be property accessor
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! PropertyAccessorElement) {
       return false;
     }
@@ -224,7 +225,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_importPrefix(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! PrefixElement) {
       return false;
     }
@@ -240,7 +241,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_label(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! LabelElement) {
       return false;
     }
@@ -248,7 +249,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_localVariable(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! LocalVariableElement) {
       return false;
     }
@@ -263,7 +264,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_method(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! MethodElement) {
       return false;
     }
@@ -288,7 +289,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_parameter(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! ParameterElement) {
       return false;
     }
@@ -296,7 +297,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_typeParameter(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.writeOrReadElement;
     if (element is! TypeParameterElement) {
       return false;
     }
