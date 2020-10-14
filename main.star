@@ -924,7 +924,7 @@ dart_vm_extra_builder(
     "app-kernel-linux-debug-x64",
     category = "vm|app-kernel|d64",
 )
-dart_vm_extra_builder(
+nightly_builder(
     "app-kernel-linux-product-x64",
     category = "vm|app-kernel|p64",
 )
@@ -1143,19 +1143,19 @@ dart_vm_sanitizer_builder(
     category = "vm|misc|aot|u",
     goma_rbe = False,
 )  # ubsan is not compatible with our sysroot.
-dart_vm_low_priority_builder(
+nightly_builder(
     "vm-kernel-reload-linux-debug-x64",
     category = "vm|misc|reload|d",
 )
-dart_vm_low_priority_builder(
+nightly_builder(
     "vm-kernel-reload-linux-release-x64",
     category = "vm|misc|reload|r",
 )
-dart_vm_low_priority_builder(
+nightly_builder(
     "vm-kernel-reload-rollback-linux-debug-x64",
     category = "vm|misc|reload|drb",
 )
-dart_vm_low_priority_builder(
+nightly_builder(
     "vm-kernel-reload-rollback-linux-release-x64",
     category = "vm|misc|reload|rrb",
 )
