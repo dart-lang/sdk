@@ -125,7 +125,12 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.g'),
+      element: findElement.getter('g'),
+      type: 'int',
+    );
   }
 
   test_getter_noPrefix_noTypeArguments_functionExpressionInvocation() async {
@@ -165,7 +170,15 @@ void f(A a) {
 ''');
     findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('.g'),
+      element: elementMatcher(
+        findElement.getter('g'),
+        substitution: {'T': 'int'},
+      ),
+      type: 'int',
+    );
   }
 
   test_getter_prefix_noTypeArguments() async {
@@ -186,7 +199,13 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E(a)');
     validateOverride();
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertPropertyAccess2(
+      findNode.propertyAccess('.g'),
+      element: importFind.getter('g'),
+      type: 'int',
+    );
   }
 
   test_getter_prefix_typeArguments() async {
@@ -207,7 +226,16 @@ void f(p.A a) {
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
-    validatePropertyAccess();
+
+    var importFind = findElement.importFind('package:test/lib.dart');
+    assertPropertyAccess2(
+      findNode.propertyAccess('.g'),
+      element: elementMatcher(
+        importFind.getter('g'),
+        substitution: {'T': 'int'},
+      ),
+      type: 'int',
+    );
   }
 
   test_method_noPrefix_noTypeArguments() async {
@@ -688,25 +716,6 @@ f(C c) => E(c).a;
           unorderedEquals(typeArguments));
     }
     expect(extensionOverride.argumentList.arguments, hasLength(1));
-  }
-
-  void validatePropertyAccess() {
-    PropertyAccess access = extensionOverride.parent as PropertyAccess;
-    Element resolvedElement = access.propertyName.staticElement;
-    PropertyAccessorElement expectedElement;
-    if (access.propertyName.inSetterContext()) {
-      expectedElement = extension.getSetter('s');
-      if (access.propertyName.inGetterContext()) {
-        PropertyAccessorElement expectedGetter = extension.getGetter('s');
-        Element actualGetter =
-            // ignore: deprecated_member_use_from_same_package
-            access.propertyName.auxiliaryElements.staticElement;
-        expect(actualGetter, expectedGetter);
-      }
-    } else {
-      expectedElement = extension.getGetter('g');
-    }
-    expect(resolvedElement, expectedElement);
   }
 }
 
