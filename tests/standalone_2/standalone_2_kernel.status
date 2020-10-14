@@ -109,5 +109,5 @@ io/web_socket_test: Skip # Flaky.
 map_insert_remove_oom_test: Skip # Heap limit too low.
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 
-[ $compiler != dartk && $compiler != dartkp || $compiler == dartkp && $system == windows ]
-entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.
+[ $builder_tag == crossword || $compiler != dartk && $compiler != dartkp || $compiler == dartkp && $system == windows ]
+entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe. Cannot run in cross-word environment as native extension is not built.
