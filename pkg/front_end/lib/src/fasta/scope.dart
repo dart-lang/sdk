@@ -152,16 +152,107 @@ class Scope extends MutableScope {
   /// from name to new (replacement) builder.
   void patchUpScope(Map<LibraryBuilder, Map<String, Builder>> replacementMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementMapSetters) {
-    _local.forEach((key, value) {
-      if (replacementMap.containsKey(value.parent)) {
-        _local[key] = replacementMap[value.parent][key];
+    // In the following we refer to non-setters as 'getters' for brevity.
+    //
+    // We have to replace all getters and setters in [_locals] and [_setters]
+    // with the corresponding getters and setters in [replacementMap]
+    // and [replacementMapSetters].
+    //
+    // Since field builders can be replaced by getter and setter builders and
+    // vice versa when going from source to dill builder and back, we might not
+    // have a 1-to-1 relationship between the existing and replacing builders.
+    //
+    // For this reason we start by collecting the names of all getters/setters
+    // that need (some) replacement. Afterwards we go through these names
+    // handling both getters and setters at the same time.
+    Set<String> replacedNames = {};
+    _local.forEach((String name, Builder builder) {
+      if (replacementMap.containsKey(builder.parent)) {
+        replacedNames.add(name);
       }
     });
-    _setters.forEach((key, value) {
-      if (replacementMapSetters.containsKey(value.parent)) {
-        _setters[key] = replacementMapSetters[value.parent][key];
+    _setters.forEach((String name, Builder builder) {
+      if (replacementMapSetters.containsKey(builder.parent)) {
+        replacedNames.add(name);
       }
     });
+    if (replacedNames.isNotEmpty) {
+      for (String name in replacedNames) {
+        // We start be collecting the relation between an existing getter/setter
+        // and the getter/setter that will replace it. This information is used
+        // below to handle all the different cases that can occur.
+        Builder existingGetter = _local[name];
+        LibraryBuilder replacementLibraryBuilderFromGetter;
+        Builder replacementGetterFromGetter;
+        Builder replacementSetterFromGetter;
+        if (existingGetter != null &&
+            replacementMap.containsKey(existingGetter.parent)) {
+          replacementLibraryBuilderFromGetter = existingGetter.parent;
+          replacementGetterFromGetter =
+              replacementMap[replacementLibraryBuilderFromGetter][name];
+          replacementSetterFromGetter =
+              replacementMapSetters[replacementLibraryBuilderFromGetter][name];
+        }
+        Builder existingSetter = _setters[name];
+        LibraryBuilder replacementLibraryBuilderFromSetter;
+        Builder replacementGetterFromSetter;
+        Builder replacementSetterFromSetter;
+        if (existingSetter != null &&
+            replacementMap.containsKey(existingSetter.parent)) {
+          replacementLibraryBuilderFromSetter = existingSetter.parent;
+          replacementGetterFromSetter =
+              replacementMap[replacementLibraryBuilderFromSetter][name];
+          replacementSetterFromSetter =
+              replacementMapSetters[replacementLibraryBuilderFromSetter][name];
+        }
+
+        if (existingGetter == null) {
+          // No existing getter.
+          if (replacementGetterFromSetter != null) {
+            // We might have had one implicitly from the setter. Use it here,
+            // if so. (This is currently not possible, but added to match the
+            // case for setters below.)
+            _local[name] = replacementGetterFromSetter;
+          }
+        } else if (existingGetter.parent ==
+            replacementLibraryBuilderFromGetter) {
+          // The existing getter should be replaced.
+          if (replacementGetterFromGetter != null) {
+            // With a new getter.
+            _local[name] = replacementGetterFromGetter;
+          } else {
+            // With `null`, i.e. removed. This means that the getter is
+            // implicitly available through the setter. (This is currently not
+            // possible, but handled here to match the case for setters below).
+            _local.remove(name);
+          }
+        } else {
+          // Leave the getter in - it wasn't replaced.
+        }
+        if (existingSetter == null) {
+          // No existing setter.
+          if (replacementSetterFromGetter != null) {
+            // We might have had one implicitly from the getter. Use it here,
+            // if so.
+            _setters[name] = replacementSetterFromGetter;
+          }
+        } else if (existingSetter.parent ==
+            replacementLibraryBuilderFromSetter) {
+          // The existing setter should be replaced.
+          if (replacementSetterFromSetter != null) {
+            // With a new setter.
+            _setters[name] = replacementSetterFromSetter;
+          } else {
+            // With `null`, i.e. removed. This means that the setter is
+            // implicitly available through the getter. This happens when the
+            // getter is a field builder for an assignable field.
+            _setters.remove(name);
+          }
+        } else {
+          // Leave the setter in - it wasn't replaced.
+        }
+      }
+    }
     if (_extensions != null) {
       bool needsPatching = false;
       for (ExtensionBuilder extensionBuilder in _extensions) {
@@ -670,6 +761,9 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
 
   @override
   Member get invokeTarget => null;
+
+  @override
+  Iterable<Member> get exportedMembers => const [];
 
   bool get isNative => false;
 

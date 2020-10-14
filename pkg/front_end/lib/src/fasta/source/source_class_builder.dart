@@ -34,7 +34,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+import '../dill/dill_member_builder.dart';
 
 import '../fasta_codes.dart';
 
@@ -519,7 +519,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             builder.procedure, typeEnvironment, cls.typeParameters);
         library.checkTypesInProcedureBuilder(builder, typeEnvironment);
       } else {
-        assert(builder is DillMemberBuilder && builder.name == redirectingName,
+        assert(builder is DillFieldBuilder && builder.name == redirectingName,
             "Unexpected member: $builder.");
       }
     });
@@ -535,7 +535,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       } else {
         assert(
             // This is a synthesized constructor.
-            builder is DillMemberBuilder && builder.member is Constructor,
+            builder is DillConstructorBuilder && builder.member is Constructor,
             "Unexpected constructor: $builder.");
       }
     }, includeInjectedConstructors: true);
@@ -953,7 +953,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // [constructor.target].
     //
     // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
-    DillMemberBuilder constructorsField =
+    DillFieldBuilder constructorsField =
         origin.scope.lookupLocalMember(redirectingName, setter: false);
     if (constructorsField == null) {
       ListLiteral literal = new ListLiteral(<Expression>[]);
@@ -965,7 +965,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           reference: referenceFrom?.reference)
         ..fileOffset = cls.fileOffset;
       cls.addMember(field);
-      constructorsField = new DillMemberBuilder(field, this);
+      constructorsField = new DillFieldBuilder(field, this);
       origin.scope
           .addLocalMember(redirectingName, constructorsField, setter: false);
     }

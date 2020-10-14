@@ -54,6 +54,13 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// a factory this is the [member] itself. For a setter this is `null`.
   Member get invokeTarget;
 
+  /// The members from this builder that are accessible in exports through
+  /// the name of the builder.
+  ///
+  /// This is used to allow a single builder to create separate members for
+  /// the getter and setter capabilities.
+  Iterable<Member> get exportedMembers;
+
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind get kind;
 

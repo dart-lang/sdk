@@ -317,6 +317,9 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   }
 
   @override
+  Iterable<Member> get exportedMembers => [procedure];
+
+  @override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
@@ -669,6 +672,9 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
   Member get invokeTarget => procedure;
 
   @override
+  Iterable<Member> get exportedMembers => [procedure];
+
+  @override
   Statement get body => bodyInternal;
 
   @override
@@ -742,7 +748,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
     super.buildOutlineExpressions(library, coreTypes);
     LibraryBuilder thisLibrary = this.library;
     if (thisLibrary is SourceLibraryBuilder) {
-      RedirectingFactoryBody redirectingFactoryBody = member.function.body;
+      RedirectingFactoryBody redirectingFactoryBody = procedure.function.body;
       if (redirectingFactoryBody.typeArguments != null &&
           redirectingFactoryBody.typeArguments.any((t) => t is UnknownType)) {
         TypeInferrerImpl inferrer = thisLibrary.loader.typeInferenceEngine

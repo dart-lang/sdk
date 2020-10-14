@@ -43,7 +43,7 @@ import 'package:kernel/type_environment.dart'
 
 import 'package:kernel/src/types.dart' show Types;
 
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+import '../dill/dill_member_builder.dart';
 
 import '../fasta_codes.dart';
 
@@ -912,10 +912,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (redirectionTarget.target is FunctionBuilder) {
       FunctionBuilder targetBuilder = redirectionTarget.target;
       target = targetBuilder.function;
-    } else if (redirectionTarget.target is DillMemberBuilder &&
-        (redirectionTarget.target.isConstructor ||
-            redirectionTarget.target.isFactory)) {
-      DillMemberBuilder targetBuilder = redirectionTarget.target;
+    } else if (redirectionTarget.target is DillConstructorBuilder) {
+      DillConstructorBuilder targetBuilder = redirectionTarget.target;
       // It seems that the [redirectionTarget.target] is an instance of
       // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
       // e.g.
@@ -925,7 +923,19 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       //   }
       //   class B implements A {}
       //
-      target = targetBuilder.member.function;
+      target = targetBuilder.constructor.function;
+    } else if (redirectionTarget.target is DillFactoryBuilder) {
+      DillFactoryBuilder targetBuilder = redirectionTarget.target;
+      // It seems that the [redirectionTarget.target] is an instance of
+      // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
+      // e.g.
+      //
+      //   class A {
+      //     factory A() = B;
+      //   }
+      //   class B implements A {}
+      //
+      target = targetBuilder.procedure.function;
     } else if (redirectionTarget.target is AmbiguousBuilder) {
       // Multiple definitions with the same name: An error has already been
       // issued.

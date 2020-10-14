@@ -4,8 +4,7 @@
 
 library fasta.dill_class_builder;
 
-import 'package:kernel/ast.dart'
-    show Class, DartType, Member, Supertype, TypeParameter;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import '../builder/class_builder.dart';
 import '../builder/library_builder.dart';
@@ -21,7 +20,7 @@ import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
-import 'dill_member_builder.dart' show DillMemberBuilder;
+import 'dill_member_builder.dart';
 
 class DillClassBuilder extends ClassBuilderImpl {
   final Class cls;
@@ -72,14 +71,37 @@ class DillClassBuilder extends ClassBuilderImpl {
   Class get actualCls => cls;
 
   void addMember(Member member) {
-    DillMemberBuilder builder = new DillMemberBuilder(member, this);
-    String name = member.name.text;
-    if (builder.isConstructor || builder.isFactory) {
-      constructorScopeBuilder.addMember(name, builder);
-    } else if (builder.isSetter) {
-      scopeBuilder.addSetter(name, builder);
-    } else {
+    if (member is Field) {
+      DillFieldBuilder builder = new DillFieldBuilder(member, this);
+      String name = member.name.text;
       scopeBuilder.addMember(name, builder);
+    } else if (member is Procedure) {
+      String name = member.name.text;
+      switch (member.kind) {
+        case ProcedureKind.Factory:
+          constructorScopeBuilder.addMember(
+              name, new DillFactoryBuilder(member, this));
+          break;
+        case ProcedureKind.Setter:
+          scopeBuilder.addSetter(name, new DillSetterBuilder(member, this));
+          break;
+        case ProcedureKind.Getter:
+          scopeBuilder.addMember(name, new DillGetterBuilder(member, this));
+          break;
+        case ProcedureKind.Operator:
+          scopeBuilder.addMember(name, new DillOperatorBuilder(member, this));
+          break;
+        case ProcedureKind.Method:
+          scopeBuilder.addMember(name, new DillMethodBuilder(member, this));
+          break;
+      }
+    } else if (member is Constructor) {
+      DillConstructorBuilder builder = new DillConstructorBuilder(member, this);
+      String name = member.name.text;
+      constructorScopeBuilder.addMember(name, builder);
+    } else {
+      throw new UnsupportedError(
+          "Unexpected class member ${member} (${member.runtimeType})");
     }
   }
 

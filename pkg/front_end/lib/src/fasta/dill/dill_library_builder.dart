@@ -22,6 +22,7 @@ import 'package:kernel/ast.dart'
         NeverType,
         Nullability,
         Procedure,
+        ProcedureKind,
         Reference,
         StaticGet,
         StringConstant,
@@ -59,7 +60,7 @@ import 'dill_class_builder.dart' show DillClassBuilder;
 
 import 'dill_extension_builder.dart';
 
-import 'dill_member_builder.dart' show DillMemberBuilder;
+import 'dill_member_builder.dart';
 
 import 'dill_loader.dart' show DillLoader;
 
@@ -206,7 +207,38 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       unserializableExports =
           json != null ? new Map<String, String>.from(json) : null;
     } else {
-      addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
+      if (member is Field) {
+        addBuilder(name, new DillFieldBuilder(member, this), member.fileOffset);
+      } else if (member is Procedure) {
+        switch (member.kind) {
+          case ProcedureKind.Factory:
+            addBuilder(
+                name, new DillFactoryBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Setter:
+            addBuilder(
+                name, new DillSetterBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Getter:
+            addBuilder(
+                name, new DillGetterBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Operator:
+            addBuilder(
+                name, new DillOperatorBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Method:
+            addBuilder(
+                name, new DillMethodBuilder(member, this), member.fileOffset);
+            break;
+          case ProcedureKind.Factory:
+            throw new UnsupportedError(
+                "Unexpected library procedure ${member.kind} for ${member}");
+        }
+      } else {
+        throw new UnsupportedError(
+            "Unexpected library member ${member} (${member.runtimeType})");
+      }
     }
   }
 
