@@ -33,6 +33,12 @@ class NullabilityFixDescription {
       appliedMessage: 'Added a late keyword, due to assignment in `setUp`',
       kind: NullabilityFixKind.addLateDueToTestSetup);
 
+  /// A variable declaration needs to be marked as "late" and "final" due to the
+  /// presence of a `/*late final*/` hint.
+  static const addLateFinalDueToHint = NullabilityFixDescription._(
+      appliedMessage: 'Added late and final keywords, due to a hint',
+      kind: NullabilityFixKind.addLateFinalDueToHint);
+
   /// An expression's value needs to be null-checked.
   static const checkExpression = NullabilityFixDescription._(
     appliedMessage: 'Added a non-null assertion to nullable expression',
@@ -242,6 +248,7 @@ enum NullabilityFixKind {
   addLate,
   addLateDueToHint,
   addLateDueToTestSetup,
+  addLateFinalDueToHint,
   addRequired,
   addType,
   checkExpression,

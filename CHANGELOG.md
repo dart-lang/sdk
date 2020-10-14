@@ -27,7 +27,7 @@ Updated the Linter to `0.1.121`, which includes:
 
 # 0.1.121
 
-* Performance improvements to `always_use_package_imports`, 
+* Performance improvements to `always_use_package_imports`,
   `avoid_renaming_method_parameters`, `prefer_relative_imports` and
   `public_member_api_docs`.
 * (internal): updates to analyzer `0.40.4` APIs
@@ -40,6 +40,12 @@ Updated the Linter to `0.1.121`, which includes:
 * New lint: `unnecessary_null_checks`.
 * Fixed `unawaited_futures` to handle `Future` subtypes.
 * New lint: `avoid_type_to_string`.
+
+## 2.10.2 - 2020-10-13
+
+This is a patch release that fixes a DDC compiler crash (issue [#43589]).
+
+[#43589]: https://github.com/dart-lang/sdk/issues/43589
 
 ## 2.10.1 - 2020-10-06
 

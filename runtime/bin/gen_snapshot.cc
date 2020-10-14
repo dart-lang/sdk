@@ -645,7 +645,7 @@ static void NextLoadingUnit(void* callback_data,
                             const char* main_filename,
                             const char* suffix) {
   char* filename = loading_unit_id == 1
-                       ? strdup(main_filename)
+                       ? Utils::StrDup(main_filename)
                        : Utils::SCreate("%s-%" Pd ".part.%s", main_filename,
                                         loading_unit_id, suffix);
   File* file = OpenFile(filename);
@@ -654,7 +654,7 @@ static void NextLoadingUnit(void* callback_data,
   if (debugging_info_filename != nullptr) {
     char* debug_filename =
         loading_unit_id == 1
-            ? strdup(debugging_info_filename)
+            ? Utils::StrDup(debugging_info_filename)
             : Utils::SCreate("%s-%" Pd ".part.so", debugging_info_filename,
                              loading_unit_id);
     File* debug_file = OpenFile(debug_filename);

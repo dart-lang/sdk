@@ -16,6 +16,8 @@
 // The advantage is that finalizers can be used when passing ownership of data
 // (buffers) from C to Dart.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:typed_data';

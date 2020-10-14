@@ -148,6 +148,8 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
           args: args,
         ).send(analyticsInstance);
       } else if (commandName == migrateCmdName) {
+        // TODO(devoncarew): Remove this special casing once the migrate command
+        // subclasses DartdevCommand.
         // ignore: unawaited_futures
         MigrateUsageEvent(
           exitCode: exitCode,

@@ -125,80 +125,80 @@ static const field core::bool notBarFromEnvOrNull = #C12;
 static const field core::bool conditionalOnNull = #C14;
 static const field core::bool nullAwareOnNull = #C15;
 static const field core::bool andOnNull = #C16;
-static const field core::bool andOnNull2 = #C17;
-static const field core::bool orOnNull = #C18;
-static const field core::bool orOnNull2 = #C19;
+static const field core::bool andOnNull2 = #C11;
+static const field core::bool orOnNull = #C17;
+static const field core::bool orOnNull2 = #C18;
 static const field core::bool orOnNull3 = #C8;
-static const field core::bool orOnNull4 = #C20;
+static const field core::bool orOnNull4 = #C11;
 static const field core::int fromDeferredLib = invalid-expression "'lib' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.";
-static const field self::Foo<core::int> x = #C22;
+static const field self::Foo<core::int> x = #C20;
 static const field core::bool? y = #C8;
 static const field core::bool z = #C13;
-static const field core::Object maybeInt = #C23;
-static const field core::bool isItInt = #C24;
+static const field core::Object maybeInt = #C21;
+static const field core::bool isItInt = #C22;
 static const field core::Object maybeInt2 = #C8;
 static const field core::bool isItInt2 = #C13;
 static const field core::int? maybeInt3 = #C9;
 static const field core::bool isItInt3 = #C13;
-static const field dynamic listOfNull = #C25;
+static const field dynamic listOfNull = #C23;
 static const field core::bool isListOfNull = #C8;
-static const field dynamic listOfInt = #C26;
+static const field dynamic listOfInt = #C24;
 static const field core::bool isListOfInt = #C8;
 static const field core::bool isList = #C8;
-static const field dynamic setOfInt = #C27;
+static const field dynamic setOfInt = #C25;
 static const field core::bool isSetOfInt = #C8;
-static const field dynamic mapOfInt = #C28;
+static const field dynamic mapOfInt = #C26;
 static const field core::bool isMapOfInt = #C8;
-static const field dynamic listOfListOfInt = #C29;
+static const field dynamic listOfListOfInt = #C27;
 static const field core::bool isListOfListOfInt = #C8;
-static const field dynamic setOfSetOfInt = #C30;
+static const field dynamic setOfSetOfInt = #C28;
 static const field core::bool isSetOfSetOfInt = #C8;
-static const field dynamic mapOfMapOfInt1 = #C31;
-static const field dynamic mapOfMapOfInt2 = #C32;
+static const field dynamic mapOfMapOfInt1 = #C29;
+static const field dynamic mapOfMapOfInt2 = #C30;
 static const field core::bool isMapOfMapOfInt1 = #C8;
 static const field core::bool isMapOfMapOfInt2 = #C8;
-static const field core::Symbol symbolWithUnevaluatedParameter = #C33;
+static const field core::Symbol symbolWithUnevaluatedParameter = #C31;
 static const field core::Symbol symbolWithInvalidName = invalid-expression "The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '\"42\"'.";
-static const field self::Class<self::B>? c0 = #C35;
+static const field self::Class<self::B>? c0 = #C33;
 static const field self::Class<self::A>? c1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^";
-static const field self::Subclass<self::B>? c2 = #C36;
-static const field self::Class<self::A>? c3 = #C37;
-static const field self::Class<self::B>? c4 = #C38;
-static const field self::Subclass<self::A>? c5 = #C39;
-static const field self::Subclass<self::B>? c6 = #C40;
-static const field core::Type f = #C41;
-static field self::ConstClassWithF constClassWithF1 = #C43;
-static const field self::ConstClassWithF constClassWithF2 = #C43;
-static const field core::bool unevaluatedBool = #C44;
-static const field core::bool notUnevaluatedBool = #C45;
-static const field core::bool? unevaluatedBoolOrNull = #C46;
-static const field core::bool unevaluatedBoolNotNull = #C47;
+static const field self::Subclass<self::B>? c2 = #C34;
+static const field self::Class<self::A>? c3 = #C35;
+static const field self::Class<self::B>? c4 = #C36;
+static const field self::Subclass<self::A>? c5 = #C37;
+static const field self::Subclass<self::B>? c6 = #C38;
+static const field core::Type f = #C39;
+static field self::ConstClassWithF constClassWithF1 = #C41;
+static const field self::ConstClassWithF constClassWithF2 = #C41;
+static const field core::bool unevaluatedBool = #C42;
+static const field core::bool notUnevaluatedBool = #C43;
+static const field core::bool? unevaluatedBoolOrNull = #C44;
+static const field core::bool unevaluatedBoolNotNull = #C45;
 static method procedure(core::int i, {core::int named = #C9}) → core::int
   return i;
 static method main() → dynamic {
-  core::print(#C48);
+  core::print(#C33);
   core::print(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^");
-  core::print(#C49);
-  core::print(#C50);
-  core::print(#C51);
-  core::print(#C52);
-  core::print(#C53);
-  core::print(#C54);
-  core::print((#C55).{self::Foo::saved});
-  core::print((#C56).{self::Foo::value});
+  core::print(#C34);
+  core::print(#C35);
+  core::print(#C36);
+  core::print(#C37);
+  core::print(#C38);
+  core::print(#C20);
+  core::print((#C20).{self::Foo::saved});
+  core::print((#C20).{self::Foo::value});
 }
 
 library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
-static const field core::int x = #C21;
+static const field core::int x = #C19;
 
 constants  {
   #C1 = "foo"
@@ -217,44 +217,33 @@ constants  {
   #C14 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) ?{core::bool} #C8 : #C13
   #C15 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!).==(#C9) ?{core::bool} #C8 : const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
   #C16 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) && (#C8)
-  #C17 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
-  #C18 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || (#C8)
-  #C19 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || (#C13)
-  #C20 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
-  #C21 = 42
-  #C22 = eval self::Foo<core::int>{saved:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), saved2:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), initialized:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), value:#C21}
-  #C23 = eval const core::bool::fromEnvironment(#C1) ?{core::Object} #C21 : #C8
-  #C24 = eval (const core::bool::fromEnvironment(#C1) ?{core::Object} #C21 : #C8) is{ForNonNullableByDefault} core::int ?{core::bool} #C8 : #C13
-  #C25 = <core::Null?>[#C9]
-  #C26 = <core::int>[#C21]
-  #C27 = <core::int>{#C21}
-  #C28 = <core::int, core::int>{#C21:#C21)
-  #C29 = <core::List<core::int>>[#C26]
-  #C30 = <core::Set<core::int>>{#C27}
-  #C31 = <core::Map<core::int, core::int>, core::int>{#C28:#C21)
-  #C32 = <core::int, core::Map<core::int, core::int>>{#C21:#C28)
-  #C33 = eval const _in::Symbol::•(const core::String::fromEnvironment(#C1))
-  #C34 = "x"
-  #C35 = eval const core::bool::fromEnvironment(#C34) ?{self::Class<self::B>?} #C9 : self::Class<self::B>{(self::C{}) as{ForNonNullableByDefault} self::B}
-  #C36 = eval const core::bool::fromEnvironment(#C34) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B>{(self::C{}) as{ForNonNullableByDefault} self::B}
-  #C37 = eval const core::bool::fromEnvironment(#C34) ?{self::Class<self::A>?} #C9 : self::Class<self::A>{self::A{}}
-  #C38 = eval const core::bool::fromEnvironment(#C34) ?{self::Class<self::B>?} #C9 : self::Class<self::B>{(self::B{}) as{ForNonNullableByDefault} self::B}
-  #C39 = eval const core::bool::fromEnvironment(#C34) ?{self::Subclass<self::A>?} #C9 : self::Subclass<self::A>{(self::A{}) as{ForNonNullableByDefault} self::A}
-  #C40 = eval const core::bool::fromEnvironment(#C34) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B>{(self::B{}) as{ForNonNullableByDefault} self::B}
-  #C41 = TypeLiteralConstant((core::int, {named: core::int}) → core::int)
-  #C42 = tearoff self::procedure
-  #C43 = self::ConstClassWithF {foo:#C42}
-  #C44 = eval const core::bool::fromEnvironment(#C1)
-  #C45 = eval !const core::bool::fromEnvironment(#C1)
-  #C46 = eval const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9
-  #C47 = eval (const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9)!
-  #C48 = eval const core::bool::fromEnvironment(#C34) ?{self::Class<self::B>?} #C9 : self::Class<self::B>{(self::C{}) as{ForNonNullableByDefault} self::B}
-  #C49 = eval const core::bool::fromEnvironment(#C34) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B>{(self::C{}) as{ForNonNullableByDefault} self::B}
-  #C50 = eval const core::bool::fromEnvironment(#C34) ?{self::Class<self::A>?} #C9 : self::Class<self::A>{self::A{}}
-  #C51 = eval const core::bool::fromEnvironment(#C34) ?{self::Class<self::B>?} #C9 : self::Class<self::B>{(self::B{}) as{ForNonNullableByDefault} self::B}
-  #C52 = eval const core::bool::fromEnvironment(#C34) ?{self::Subclass<self::A>?} #C9 : self::Subclass<self::A>{(self::A{}) as{ForNonNullableByDefault} self::A}
-  #C53 = eval const core::bool::fromEnvironment(#C34) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B>{(self::B{}) as{ForNonNullableByDefault} self::B}
-  #C54 = eval self::Foo<core::int>{saved:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), saved2:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), initialized:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), value:#C21}
-  #C55 = eval self::Foo<core::int>{saved:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), saved2:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), initialized:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), value:#C21}
-  #C56 = eval self::Foo<core::int>{saved:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), saved2:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), initialized:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), value:#C21}
+  #C17 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || (#C8)
+  #C18 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || (#C13)
+  #C19 = 42
+  #C20 = eval self::Foo<core::int>{saved:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), saved2:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), initialized:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), value:#C19}
+  #C21 = eval const core::bool::fromEnvironment(#C1) ?{core::Object} #C19 : #C8
+  #C22 = eval (const core::bool::fromEnvironment(#C1) ?{core::Object} #C19 : #C8) is{ForNonNullableByDefault} core::int ?{core::bool} #C8 : #C13
+  #C23 = <core::Null?>[#C9]
+  #C24 = <core::int>[#C19]
+  #C25 = <core::int>{#C19}
+  #C26 = <core::int, core::int>{#C19:#C19)
+  #C27 = <core::List<core::int>>[#C24]
+  #C28 = <core::Set<core::int>>{#C25}
+  #C29 = <core::Map<core::int, core::int>, core::int>{#C26:#C19)
+  #C30 = <core::int, core::Map<core::int, core::int>>{#C19:#C26)
+  #C31 = eval const _in::Symbol::•(const core::String::fromEnvironment(#C1))
+  #C32 = "x"
+  #C33 = eval const core::bool::fromEnvironment(#C32) ?{self::Class<self::B>?} #C9 : self::Class<self::B>{(self::C{}) as{ForNonNullableByDefault} self::B}
+  #C34 = eval const core::bool::fromEnvironment(#C32) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B>{(self::C{}) as{ForNonNullableByDefault} self::B}
+  #C35 = eval const core::bool::fromEnvironment(#C32) ?{self::Class<self::A>?} #C9 : self::Class<self::A>{self::A{}}
+  #C36 = eval const core::bool::fromEnvironment(#C32) ?{self::Class<self::B>?} #C9 : self::Class<self::B>{(self::B{}) as{ForNonNullableByDefault} self::B}
+  #C37 = eval const core::bool::fromEnvironment(#C32) ?{self::Subclass<self::A>?} #C9 : self::Subclass<self::A>{(self::A{}) as{ForNonNullableByDefault} self::A}
+  #C38 = eval const core::bool::fromEnvironment(#C32) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B>{(self::B{}) as{ForNonNullableByDefault} self::B}
+  #C39 = TypeLiteralConstant((core::int, {named: core::int}) → core::int)
+  #C40 = tearoff self::procedure
+  #C41 = self::ConstClassWithF {foo:#C40}
+  #C42 = eval const core::bool::fromEnvironment(#C1)
+  #C43 = eval !const core::bool::fromEnvironment(#C1)
+  #C44 = eval const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9
+  #C45 = eval (const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9)!
 }

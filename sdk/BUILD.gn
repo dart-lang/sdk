@@ -586,16 +586,17 @@ copy("copy_wasmer") {
   visibility = [ ":create_common_sdk" ]
   deps = [
     ":copy_libraries",
-    "../third_party/wasmer:wasmer_wrapper",
+    "../third_party/wasmer:wasmer",
   ]
   outputs =
       [ "$root_out_dir/dart-sdk/bin/third_party/wasmer/{{source_file_part}}" ]
   if (is_win) {
-    sources = [ "$root_out_dir/wasmer_wrapper.dll" ]
+    sources = [ "$target_out_dir/../third_party/wasmer/wasmer.dll" ]
   } else if (is_mac) {
-    sources = [ "$root_out_dir/libwasmer_wrapper.dylib" ]
+    sources = [ "$target_out_dir/../third_party/wasmer/libwasmer.dylib" ]
   } else {
-    sources = [ "$root_out_dir/libwasmer_wrapper.so" ]
+    # TODO(dartbug.com/37882): Support Fuchsia.
+    sources = [ "$target_out_dir/../third_party/wasmer/libwasmer.so" ]
   }
 }
 

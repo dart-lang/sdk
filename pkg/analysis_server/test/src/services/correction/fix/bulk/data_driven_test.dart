@@ -16,6 +16,7 @@ void main() {
     defineReflectiveTests(InvalidOverrideTest);
     defineReflectiveTests(MixinOfNonClassTest);
     defineReflectiveTests(NewWithUndefinedConstructorDefaultTest);
+    defineReflectiveTests(NonBulkFixTest);
     defineReflectiveTests(NotEnoughPositionalArgumentsTest);
     defineReflectiveTests(OverrideOnNonOverridingMethodTest);
     defineReflectiveTests(UndefinedClassTest);
@@ -457,6 +458,36 @@ C c() => C(C());
 import '$importUri';
 C c() => C.new(C.new());
 ''');
+  }
+}
+
+@reflectiveTest
+class NonBulkFixTest extends _DataDrivenTest {
+  Future<void> test_rename_deprecated() async {
+    setPackageContent('''
+@deprecated
+class Old {}
+class New {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2020-09-01
+  bulkApply: false
+  element:
+    uris: ['$importUri']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestUnit('''
+import '$importUri';
+class A extends Old {}
+class B extends Old {}
+''');
+    await assertNoFix();
   }
 }
 

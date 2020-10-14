@@ -79,6 +79,3 @@ change. If you find issues, please let us know.
 
 Please file issues in our [GitHub issue
 tracker](https://github.com/dart-lang/sdk/issues).
-
-You can also view or join our [mailing
-list](https://groups.google.com/a/dartlang.org/forum/#!forum/dev-compiler).

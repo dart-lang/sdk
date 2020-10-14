@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -103,6 +104,10 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @override
   void finalizeInput(ResolvedUnitResult result) {
+    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
+      // This library has already been migrated; nothing more to do.
+      return;
+    }
     ExperimentStatusException.sanityCheck(result);
     if (!_propagated) {
       _propagated = true;
@@ -154,11 +159,21 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void finish() {
+    if (!_propagated) {
+      // [finalizeInput] sets this field to `true`, so if it's still false, that
+      // means it was never called; this probably means that all the code fed
+      // to the migration tool was already migrated.
+      throw ExperimentStatusException.migratedAlready();
+    }
     _postmortemFileWriter?.write();
     _instrumentation?.finished();
   }
 
   void prepareInput(ResolvedUnitResult result) {
+    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
+      // This library has already been migrated; nothing more to do.
+      return;
+    }
     ExperimentStatusException.sanityCheck(result);
     if (_variables == null) {
       _variables = Variables(_graph, result.typeProvider, _getLineInfo,
@@ -183,6 +198,10 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void processInput(ResolvedUnitResult result) {
+    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
+      // This library has already been migrated; nothing more to do.
+      return;
+    }
     ExperimentStatusException.sanityCheck(result);
     var unit = result.unit;
     try {

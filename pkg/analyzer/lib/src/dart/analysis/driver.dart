@@ -1343,6 +1343,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the newly computed resolution result of the library with the
   /// given [path].
   ResolvedLibraryResultImpl _computeResolvedLibrary(String path) {
+    return NullSafetyUnderstandingFlag.enableNullSafetyTypes(
+        () => _computeResolvedLibrary2(path));
+  }
+
+  /// Unwrapped implementation of [_computeResolvedLibrary].
+  ResolvedLibraryResultImpl _computeResolvedLibrary2(String path) {
     FileState library = _fsState.getFileForPath(path);
 
     return _logger.run('Compute resolved library $path', () {

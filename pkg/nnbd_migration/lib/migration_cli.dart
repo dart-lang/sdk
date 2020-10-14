@@ -43,6 +43,51 @@ String _removePeriod(String value) {
   return value.endsWith('.') ? value.substring(0, value.length - 1) : value;
 }
 
+/// The result of a round of static analysis; primarily a list of
+/// [AnalysisError]s.
+class AnalysisResult {
+  final List<AnalysisError> errors;
+  final Map<String, LineInfo> lineInfo;
+  final Context pathContext;
+  final String rootDirectory;
+
+  AnalysisResult(
+      this.errors, this.lineInfo, this.pathContext, this.rootDirectory) {
+    errors.sort((AnalysisError one, AnalysisError two) {
+      if (one.source != two.source) {
+        return one.source.fullName.compareTo(two.source.fullName);
+      }
+      return one.offset - two.offset;
+    });
+  }
+
+  bool get hasErrors => errors.isNotEmpty;
+
+  /// Whether the errors include any which may be the result of not yet having
+  /// run "pub get".
+  bool get hasImportErrors => errors.any(
+      (error) => error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+
+  /// Converts the list of errors into JSON, for displaying in the web preview.
+  List<Map<String, dynamic>> toJson() {
+    var result = <Map<String, dynamic>>[];
+    // severity • Message ... at foo/bar.dart:6:1 • (error_code)
+    for (var error in errors) {
+      var lineInfoForThisFile = lineInfo[error.source.fullName];
+      var location = lineInfoForThisFile.getLocation(error.offset);
+      var path =
+          pathContext.relative(error.source.fullName, from: rootDirectory);
+      result.add({
+        'severity': error.severity.name,
+        'message': _removePeriod(error.message),
+        'location': '$path:${location.lineNumber}:${location.columnNumber}',
+        'code': error.errorCode.name.toLowerCase(),
+      });
+    }
+    return result;
+  }
+}
+
 /// Data structure recording command-line options for the migration tool that
 /// have been passed in by the client.
 class CommandLineOptions {
@@ -152,19 +197,18 @@ class DependencyChecker {
       // migrate when `pub outdated` is misbehaving, or if there is a bug above.
     }
     if (preNullSafetyPackages.isNotEmpty) {
-      _logger.stderr(
-          'Warning: dependencies are outdated. The version(s) of one or more '
-          'packages currently checked out have not yet migrated to the Null '
-          'Safety feature.');
+      _logger.stderr('Warning: not all current dependencies have migrated to '
+          'null safety:');
       _logger.stderr('');
       for (var package in preNullSafetyPackages.entries) {
         _logger.stderr(
-            '    ${package.key}, currently at version ${package.value}');
+            '  package:${package.key} (currently at version ${package.value})');
       }
       _logger.stderr('');
-      _logger.stderr('It is highly recommended to upgrade all dependencies to '
-          'versions which have migrated. Use `dart pub outdated '
-          '--mode=null-safety` to check the status of dependencies.');
+      _logger.stderr('For the best migration experience, please update to null '
+          'safe versions of these packages before migrating your code. You can '
+          'use \'dart pub outdated --mode=null-safety\' to check the status of '
+          'dependencies.');
       _logger.stderr('');
       _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
           'more information.');
@@ -174,21 +218,36 @@ class DependencyChecker {
   }
 }
 
+// TODO(devoncarew): Refactor so this class extends DartdevCommand.
 class MigrateCommand extends Command<dynamic> {
+  static const String cmdName = 'migrate';
+
+  static const String cmdDescription =
+      'Perform a null safety migration on a project or package.'
+      '\n\nThe migration tool is in preview; see '
+      'https://dart.dev/go/null-safety-migration for a migration guide.';
+
   final bool verbose;
 
   @override
   final bool hidden;
+
+  ArgParser _argParser;
 
   MigrateCommand({this.verbose = false, this.hidden = false}) {
     MigrationCli._defineOptions(argParser, !verbose);
   }
 
   @override
-  String get description =>
-      'Perform a null safety migration on a project or package.'
-      '\n\nThe migration tool is in preview; see '
-      'https://dart.dev/go/null-safety-migration for a migration guide.';
+  ArgParser get argParser {
+    // We override this in order to configure the help text line wrapping.
+    return _argParser ??= ArgParser(
+      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : null,
+    );
+  }
+
+  @override
+  String get description => cmdDescription;
 
   @override
   String get invocation {
@@ -196,7 +255,7 @@ class MigrateCommand extends Command<dynamic> {
   }
 
   @override
-  String get name => 'migrate';
+  String get name => cmdName;
 
   @override
   FutureOr<int> run() async {
@@ -218,6 +277,111 @@ class MigrateCommand extends Command<dynamic> {
 /// [MigrationCliRunner.run] on the result.  If either method throws a
 /// [MigrationExit], exit with the error code contained therein.
 class MigrationCli {
+  /// A list of all the command-line options supported by the tool.
+  ///
+  /// This may be used by clients that wish to run migration but provide their
+  /// own command-line interface.
+  static final List<MigrationCliOption> options = [
+    MigrationCliOption(
+        CommandLineOptions.verboseFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.verboseFlag,
+              abbr: 'v',
+              defaultsTo: false,
+              help: 'Show additional command output.',
+              negatable: false,
+            )),
+    MigrationCliOption(
+        CommandLineOptions.applyChangesFlag,
+        (parser, hide) => parser.addFlag(CommandLineOptions.applyChangesFlag,
+            defaultsTo: false,
+            negatable: false,
+            help:
+                'Apply the proposed null safety changes to the files on disk.')),
+    MigrationCliOption(
+        CommandLineOptions.ignoreErrorsFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.ignoreErrorsFlag,
+              defaultsTo: false,
+              negatable: false,
+              help:
+                  'Attempt to perform null safety analysis even if the package has '
+                  'analysis errors.',
+            )),
+    MigrationCliOption(
+        CommandLineOptions.skipPubOutdatedFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.skipPubOutdatedFlag,
+              // TODO(srawlins): Before "beta," change the default to "false," and
+              // negatable to "false." See
+              // https://github.com/dart-lang/sdk/issues/43774.
+              defaultsTo: true,
+              negatable: true,
+              help:
+                  'Skip the `pub outdated --mode=null-safety` check. This allows a '
+                  'migration to proceed even if some package dependencies have not yet '
+                  'been migrated.',
+            )),
+    MigrationCliOption.separator('Web interface options:'),
+    MigrationCliOption(
+        CommandLineOptions.webPreviewFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.webPreviewFlag,
+              defaultsTo: true,
+              negatable: true,
+              help:
+                  'Show an interactive preview of the proposed null safety changes '
+                  'in a browser window. Use --no-web-preview to print proposed changes '
+                  'to the console.',
+            )),
+    MigrationCliOption(
+        CommandLineOptions.previewHostnameOption,
+        (parser, hide) => parser.addOption(
+              CommandLineOptions.previewHostnameOption,
+              defaultsTo: 'localhost',
+              valueHelp: 'host',
+              help: 'Run the preview server on the specified hostname. If not '
+                  'specified, "localhost" is used. Use "any" to specify IPv6.any or '
+                  'IPv4.any.',
+            )),
+    MigrationCliOption(
+        CommandLineOptions.previewPortOption,
+        (parser, hide) => parser.addOption(
+              CommandLineOptions.previewPortOption,
+              valueHelp: 'port',
+              help:
+                  'Run the preview server on the specified port. If not specified, '
+                  'dynamically allocate a port.',
+            )),
+    MigrationCliOption.separator('Additional options:'),
+    MigrationCliOption(
+        CommandLineOptions.summaryOption,
+        (parser, hide) => parser.addOption(
+              CommandLineOptions.summaryOption,
+              help: 'Output a machine-readable summary of migration changes.',
+              valueHelp: 'path',
+            )),
+    // hidden options
+    MigrationCliOption(
+        CommandLineOptions.ignoreExceptionsFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.ignoreExceptionsFlag,
+              defaultsTo: false,
+              negatable: false,
+              help:
+                  'Attempt to perform null safety analysis even if exceptions occur.',
+              hide: hide,
+            )),
+    MigrationCliOption(
+        CommandLineOptions.sdkPathOption,
+        (parser, hide) => parser.addOption(
+              CommandLineOptions.sdkPathOption,
+              valueHelp: 'sdk-path',
+              help: 'The path to the Dart SDK.',
+              hide: hide,
+            )),
+  ];
+
   /// The name of the executable, for reporting in help messages.
   final String binaryName;
 
@@ -360,6 +524,27 @@ class MigrationCli {
     }
   }
 
+  /// Adds a set of "core" command line options to [parser].  If [hide] is
+  /// `true`, then rarely-used options are hidden.
+  ///
+  /// This method will be removed soon; please use [options] instead, and filter
+  /// out the options you don't need.
+  @deprecated
+  static void addCoreOptions(ArgParser parser, bool hide) {
+    const nonCoreOptions = {
+      CommandLineOptions.skipPubOutdatedFlag,
+      CommandLineOptions.webPreviewFlag,
+      CommandLineOptions.summaryOption,
+      CommandLineOptions.sdkPathOption
+    };
+    for (var option in options) {
+      if (!option.isSeparator && nonCoreOptions.contains(option.name)) {
+        continue;
+      }
+      option.addToParser(parser, hide);
+    }
+  }
+
   static ArgParser createParser({bool hide = true}) {
     var parser = ArgParser();
     parser.addFlag(CommandLineOptions.helpFlag,
@@ -382,58 +567,32 @@ class MigrationCli {
   }
 
   static void _defineOptions(ArgParser parser, bool hide) {
-    addCoreOptions(parser, hide);
-    parser.addFlag(
-      CommandLineOptions.skipPubOutdatedFlag,
-      defaultsTo: false,
-      negatable: false,
-      help: 'Skip the `pub outdated --mode=null-safety` check.',
-    );
-    parser.addFlag(CommandLineOptions.webPreviewFlag,
-        defaultsTo: true,
-        negatable: true,
-        help: 'Show an interactive preview of the proposed null safety changes '
-            'in a browser window.\n'
-            '--no-web-preview prints proposed changes to the console.');
-
-    parser.addOption(CommandLineOptions.sdkPathOption,
-        help: 'The path to the Dart SDK.', hide: hide);
-    parser.addOption(CommandLineOptions.summaryOption,
-        help: 'Output a machine-readable summary of migration changes.');
+    for (var option in options) {
+      option.addToParser(parser, hide);
+    }
   }
+}
 
-  static void addCoreOptions(ArgParser parser, bool hide) {
-    parser.addFlag(CommandLineOptions.applyChangesFlag,
-        defaultsTo: false,
-        negatable: false,
-        help: 'Apply the proposed null safety changes to the files on disk.');
-    parser.addFlag(
-      CommandLineOptions.ignoreErrorsFlag,
-      defaultsTo: false,
-      negatable: false,
-      help: 'Attempt to perform null safety analysis even if the package has '
-          'analysis errors.',
-    );
-    parser.addFlag(CommandLineOptions.ignoreExceptionsFlag,
-        defaultsTo: false,
-        negatable: false,
-        help:
-            'Attempt to perform null safety analysis even if exceptions occur.',
-        hide: hide);
-    parser.addFlag(CommandLineOptions.verboseFlag,
-        abbr: 'v',
-        defaultsTo: false,
-        help: 'Show additional command output.',
-        negatable: false);
-    parser.addOption(CommandLineOptions.previewHostnameOption,
-        defaultsTo: 'localhost',
-        help: 'Run the preview server on the specified hostname.\nIf not '
-            'specified, "localhost" is used. Use "any" to specify IPv6.any or '
-            'IPv4.any.');
-    parser.addOption(CommandLineOptions.previewPortOption,
-        help: 'Run the preview server on the specified port. If not specified, '
-            'dynamically allocate a port.');
-  }
+/// Data structure representing a single command-line option to the migration
+/// tool, or a separator in the list of command-line options.
+class MigrationCliOption {
+  /// The name of the option, without the leading `--`.
+  final String name;
+
+  /// Callback function that can be used to add the option or separator to the
+  /// given [parser].  If [hide] is `true`, and the option is rarely used, it
+  /// is added as a hidden option.
+  final void Function(ArgParser parser, bool hide) addToParser;
+
+  /// If `true`, this is a separator between command line options; if `false`,
+  /// it's an option.
+  final bool isSeparator;
+
+  MigrationCliOption(this.name, this.addToParser) : isSeparator = false;
+
+  MigrationCliOption.separator(this.name)
+      : addToParser = ((parser, hide) => parser.addSeparator(name)),
+        isSeparator = true;
 }
 
 /// Internals of the command-line API for the migration tool, with additional
@@ -721,42 +880,6 @@ When finished with the preview, hit ctrl-c to terminate this process.
     }
   }
 
-  void _logErrors(AnalysisResult analysisResult) {
-    logger.stdout('');
-
-    var issueCount = analysisResult.errors.length;
-    logger.stdout(
-        '$issueCount analysis ${_pluralize(issueCount, 'issue')} found:');
-
-    _IssueRenderer renderer =
-        _IssueRenderer(logger, options.directory, pathContext, lineInfo);
-    for (AnalysisError error in analysisResult.errors) {
-      renderer.render(error);
-    }
-
-    logger.stdout('');
-    logger.stdout('Note: analysis errors will result in erroneous migration '
-        'suggestions.');
-
-    _hasAnalysisErrors = true;
-    if (options.ignoreErrors) {
-      logger.stdout('Continuing with migration suggestions due to the use of '
-          '--${CommandLineOptions.ignoreErrorsFlag}.');
-    } else {
-      // Fail with how to continue.
-      logger.stdout('');
-      if (analysisResult.hasImportErrors) {
-        logger
-            .stdout('Unresolved URIs found.  Did you forget to run "pub get"?');
-        logger.stdout('');
-      }
-      logger.stdout(
-          'Please fix the analysis issues (or, force generation of migration '
-          'suggestions by re-running with '
-          '--${CommandLineOptions.ignoreErrorsFlag}).');
-    }
-  }
-
   void _displayChangeSummary(DartFixListener migrationResults) {
     Map<String, List<DartFixSuggestion>> fileSuggestions = {};
     for (DartFixSuggestion suggestion in migrationResults.suggestions) {
@@ -830,6 +953,42 @@ Exception details:
     }
   }
 
+  void _logErrors(AnalysisResult analysisResult) {
+    logger.stdout('');
+
+    var issueCount = analysisResult.errors.length;
+    logger.stdout(
+        '$issueCount analysis ${_pluralize(issueCount, 'issue')} found:');
+
+    _IssueRenderer renderer =
+        _IssueRenderer(logger, options.directory, pathContext, lineInfo);
+    for (AnalysisError error in analysisResult.errors) {
+      renderer.render(error);
+    }
+
+    logger.stdout('');
+    logger.stdout('Note: analysis errors will result in erroneous migration '
+        'suggestions.');
+
+    _hasAnalysisErrors = true;
+    if (options.ignoreErrors) {
+      logger.stdout('Continuing with migration suggestions due to the use of '
+          '--${CommandLineOptions.ignoreErrorsFlag}.');
+    } else {
+      // Fail with how to continue.
+      logger.stdout('');
+      if (analysisResult.hasImportErrors) {
+        logger
+            .stdout('Unresolved URIs found.  Did you forget to run "pub get"?');
+        logger.stdout('');
+      }
+      logger.stdout(
+          'Please fix the analysis issues (or, force generation of migration '
+          'suggestions by re-running with '
+          '--${CommandLineOptions.ignoreErrorsFlag}).');
+    }
+  }
+
   Future<MigrationState> _rerunFunction() async {
     logger.stdout(ansi.emphasized('Re-analyzing project...'));
 
@@ -865,51 +1024,6 @@ Exception details:
       for (var edit in edits)
         edit.offset: [AtomicEdit.replace(edit.length, edit.replacement)]
     };
-  }
-}
-
-/// The result of a round of static analysis; primarily a list of
-/// [AnalysisError]s.
-class AnalysisResult {
-  final List<AnalysisError> errors;
-  final Map<String, LineInfo> lineInfo;
-  final Context pathContext;
-  final String rootDirectory;
-
-  AnalysisResult(
-      this.errors, this.lineInfo, this.pathContext, this.rootDirectory) {
-    errors.sort((AnalysisError one, AnalysisError two) {
-      if (one.source != two.source) {
-        return one.source.fullName.compareTo(two.source.fullName);
-      }
-      return one.offset - two.offset;
-    });
-  }
-
-  bool get hasErrors => errors.isNotEmpty;
-
-  /// Whether the errors include any which may be the result of not yet having
-  /// run "pub get".
-  bool get hasImportErrors => errors.any(
-      (error) => error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST);
-
-  /// Converts the list of errors into JSON, for displaying in the web preview.
-  List<Map<String, dynamic>> toJson() {
-    var result = <Map<String, dynamic>>[];
-    // severity • Message ... at foo/bar.dart:6:1 • (error_code)
-    for (var error in errors) {
-      var lineInfoForThisFile = lineInfo[error.source.fullName];
-      var location = lineInfoForThisFile.getLocation(error.offset);
-      var path =
-          pathContext.relative(error.source.fullName, from: rootDirectory);
-      result.add({
-        'severity': error.severity.name,
-        'message': _removePeriod(error.message),
-        'location': '$path:${location.lineNumber}:${location.columnNumber}',
-        'code': error.errorCode.name.toLowerCase(),
-      });
-    }
-    return result;
   }
 }
 
@@ -1021,7 +1135,7 @@ class _FixCodeProcessor extends Object {
 
   Future<AnalysisResult> runFirstPhase() async {
     // All tasks should be registered; [numPhases] should be finalized.
-    _progressBar = _ProgressBar(pathsToProcess.length);
+    _progressBar = _ProgressBar(_migrationCli.logger, pathsToProcess.length);
 
     // Process package
     _task.processPackage(context.contextRoot.root);
@@ -1048,7 +1162,8 @@ class _FixCodeProcessor extends Object {
   }
 
   Future<MigrationState> runLaterPhases() async {
-    _progressBar = _ProgressBar(pathsToProcess.length * (numPhases - 1));
+    _progressBar = _ProgressBar(
+        _migrationCli.logger, pathsToProcess.length * (numPhases - 1));
 
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
@@ -1117,6 +1232,8 @@ class _ProgressBar {
   /// The width of the terminal, in terms of characters.
   /*late*/ int _width;
 
+  final Logger _logger;
+
   /// The inner width of the terminal, in terms of characters.
   ///
   /// This represents the number of characters available for drawing progress.
@@ -1126,14 +1243,14 @@ class _ProgressBar {
 
   int _tickCount = 0;
 
-  _ProgressBar(this._totalTickCount) {
+  _ProgressBar(this._logger, this._totalTickCount) {
     if (!stdout.hasTerminal) {
       _shouldDrawProgress = false;
     } else {
       _shouldDrawProgress = true;
       _width = stdout.terminalColumns;
       _innerWidth = stdout.terminalColumns - 2;
-      stdout.write('[' + ' ' * _innerWidth + ']');
+      _logger.write('[' + ' ' * _innerWidth + ']');
     }
   }
 
@@ -1143,7 +1260,7 @@ class _ProgressBar {
     if (!_shouldDrawProgress) {
       return;
     }
-    stdout.write('\r' + ' ' * _width + '\r');
+    _logger.write('\r' + ' ' * _width + '\r');
   }
 
   /// Draw the progress bar as complete, and print two newlines.
@@ -1151,7 +1268,7 @@ class _ProgressBar {
     if (!_shouldDrawProgress) {
       return;
     }
-    stdout.write('\r[' + '-' * _innerWidth + ']\n\n');
+    _logger.write('\r[' + '-' * _innerWidth + ']\n\n');
   }
 
   /// Progress the bar by one tick.
@@ -1162,7 +1279,7 @@ class _ProgressBar {
     _tickCount++;
     var fractionComplete = _tickCount * _innerWidth ~/ _totalTickCount - 1;
     var remaining = _innerWidth - fractionComplete - 1;
-    stdout.write('\r[' + // Bring cursor back to the start of the line.
+    _logger.write('\r[' + // Bring cursor back to the start of the line.
         '-' * fractionComplete + // Print complete work.
         AnsiProgress.kAnimationItems[_tickCount % 4] + // Print spinner.
         ' ' * remaining + // Print remaining work.

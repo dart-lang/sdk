@@ -48,7 +48,7 @@ vars = {
   "co19_2_rev": "e48b3090826cf40b8037648f19d211e8eab1b4b6",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "7030a669aa70e2558cdebb3a89b6d11a34d09051",
+  "benchmarks_internal_rev": "354c978979c57e4a76f62e22cf644ed0804f4421",
   "checkout_benchmarks_internal": False,
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -75,8 +75,8 @@ vars = {
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "4a685faba42d86ebd9d661eadd1e79d0a1c34c43",
   "chrome_rev" : "19997",
-  "cli_util_tag" : "0.2.0",
-  "collection_rev": "52e219581f72a3eac013d6f5550c580962677425",
+  "cli_util_rev" : "335ed165887d0ec97c2a09173ebf22dcf56a6c4e",
+  "collection_rev": "7d44763d62f97698b15c08ee360d838dccb63c88",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
   "csslib_rev": "6f77b3dcee957d3e2d5083f666221a220e9ed1f1",
@@ -158,7 +158,7 @@ vars = {
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
   "usage_tag": "3.4.0",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
-  "watcher_rev": "fc3c9aae5d31d707b3013b42634dde8d8a1161b4",
+  "watcher_rev": "5df2e364b0c3ec12b9ed9cf2eedb71f9ddf8b7cd",
   "webdriver_rev": "5a8d6805d9cf8a3cbb4fcd64849b538b7491e50e",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "490061ef0e22d3c8460ad2802f9948219365ad6b",
@@ -312,7 +312,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
-      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_tag"),
+      Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
   Var("dart_root") + "/third_party/pkg/collection":
       Var("dart_git") + "collection.git" + "@" + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/convert":

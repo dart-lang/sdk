@@ -398,7 +398,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
           '''
 name: test
 environment:
-  sdk: '${migrated ? '>=2.9.0 <2.10.0' : '>=2.6.0 <3.0.0'}'
+  sdk: '${migrated ? '>=2.10.0 <2.12.0' : '>=2.6.0 <3.0.0'}'
 ''',
       '.dart_tool/package_config.json': packageConfigText ??
           '''
@@ -409,7 +409,7 @@ environment:
       "name": "test",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "${migrated ? '2.9' : '2.6'}"
+      "languageVersion": "${migrated ? '2.10' : '2.6'}"
     }
   ]
 }
@@ -537,12 +537,12 @@ int${migrated ? '?' : ''} f() => null;
   }
 
   test_flag_skip_pub_outdated_default() {
-    expect(assertParseArgsSuccess([]).skipPubOutdated, isFalse);
+    expect(assertParseArgsSuccess([]).skipPubOutdated, isTrue);
   }
 
-  test_flag_skip_pub_outdated_disable() async {
-    // "--no-skip-pub-outdated" is not an option.
-    await assertParseArgsFailure(['--no-skip-pub-outdated']);
+  test_flag_skip_pub_outdated_negated() async {
+    expect(assertParseArgsSuccess(['--no-skip-pub-outdated']).skipPubOutdated,
+        isFalse);
   }
 
   test_flag_skip_pub_outdated_enable() {
@@ -560,6 +560,40 @@ int${migrated ? '?' : ''} f() => null;
 
   test_flag_web_preview_enable() {
     expect(assertParseArgsSuccess(['--web-preview']).webPreview, isTrue);
+  }
+
+  test_lifecycle_already_migrated_file() async {
+    Map<String, String> createProject({bool migrated = false}) {
+      var projectContents = simpleProject(sourceText: '''
+${migrated ? '' : '// @dart = 2.6'}
+import 'already_migrated.dart';
+int${migrated ? '?' : ''} x = y;
+''', migrated: true);
+      projectContents['lib/already_migrated.dart'] = '''
+int? y = 0;
+''';
+      return projectContents;
+    }
+
+    var projectContents = createProject();
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli(nullSafePackages: ['test'])
+        .decodeCommandLineArgs(
+            _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertNormalExit(cliRunner);
+    // Check that a summary was printed
+    expect(logger.stdoutBuffer.toString(), contains('Applying changes'));
+    // And that it refers to test.dart, but not pubspec.yaml or
+    // already_migrated.dart.
+    expect(logger.stdoutBuffer.toString(), contains('test.dart'));
+    expect(logger.stdoutBuffer.toString(), isNot(contains('pubspec.yaml')));
+    expect(logger.stdoutBuffer.toString(),
+        isNot(contains('already_migrated.dart')));
+    // And that it does not tell the user they can rerun with `--apply-changes`
+    expect(logger.stdoutBuffer.toString(), isNot(contains('--apply-changes')));
+    // Check that the non-migrated library was changed but not the migrated one
+    assertProjectContents(projectDir, createProject(migrated: true));
   }
 
   test_lifecycle_apply_changes() async {
@@ -894,7 +928,6 @@ void call_g() => g(null);
       final aLink = RegExp(r'<a href="([^"]+)" class="nav-link">');
       for (final match in aLink.allMatches(navigation)) {
         var href = match.group(1);
-        print(href);
         final contentsResponse = await http.get(
             uri.replace(
                 path: Uri.parse(href).path,
@@ -925,7 +958,6 @@ void call_g() => g(null);
         var navTree = NavigationTreeNode.fromJson(root);
         for (final file in navTree.subtree) {
           if (file.href != null) {
-            print(file.href);
             final contentsResponse = await http.get(
                 uri
                     .resolve(file.href)
@@ -1071,7 +1103,7 @@ void call_g() => g(null);
   }
 
   test_lifecycle_preview_rerun_deleted_file() async {
-    var projectContents = simpleProject();
+    var projectContents = {...simpleProject(), 'lib/other.dart': ''};
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     // Note: we use the summary to verify that the deletion was noticed
@@ -1258,8 +1290,10 @@ int f() => null;
 }
 ''' /* stdout */,
         '' /* stderr */);
-    var output = await assertRunFailure([projectDir], expectedExitCode: 1);
-    expect(output, contains('Warning: dependencies are outdated.'));
+    var output = await assertRunFailure([projectDir, '--no-skip-pub-outdated'],
+        expectedExitCode: 1);
+    expect(output,
+        contains('Warning: not all current dependencies have migrated'));
   }
 
   test_lifecycle_skip_pub_outdated_enable() async {
@@ -1700,7 +1734,7 @@ environment:
 name: test
 environment:
   foo: 1
-  sdk: '>=2.9.0 <2.10.0'
+  sdk: '>=2.10.0 <2.12.0'
 '''));
   }
 
@@ -1751,7 +1785,7 @@ name: test
         // This is strange-looking, but valid.
         '''
 environment:
-  sdk: '>=2.9.0 <2.10.0'
+  sdk: '>=2.10.0 <2.12.0'
 
 name: test
 '''));
@@ -1779,8 +1813,9 @@ name: test
         headers: {'Content-Type': 'application/json; charset=UTF-8'});
   }
 
-  _MigrationCli _createCli() {
-    mock_sdk.MockSdk(resourceProvider: resourceProvider);
+  _MigrationCli _createCli({List<String> nullSafePackages = const []}) {
+    mock_sdk.MockSdk(
+        resourceProvider: resourceProvider, nullSafePackages: nullSafePackages);
     return _MigrationCli(this);
   }
 

@@ -1300,6 +1300,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   EmitParamMoves(compiler);
 
+  if (compiler::Assembler::EmittingComments()) {
+    __ Comment("Call");
+  }
   // We need to copy the return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
   __ mov(TMP, compiler::Operand(PC));
@@ -1405,33 +1408,6 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
-void NativeEntryInstr::SaveArgument(
-    FlowGraphCompiler* compiler,
-    const compiler::ffi::NativeLocation& nloc) const {
-  if (nloc.IsFpuRegisters()) {
-    auto const& fpu_loc = nloc.AsFpuRegisters();
-    ASSERT(fpu_loc.fpu_reg_kind() != compiler::ffi::kQuadFpuReg);
-    const intptr_t size = fpu_loc.payload_type().SizeInBytes();
-    // TODO(dartbug.com/40469): Reduce code size.
-    __ SubImmediate(SPREG, SPREG, 8);
-    if (size == 8) {
-      __ StoreDToOffset(fpu_loc.fpu_d_reg(), SPREG, 0);
-    } else {
-      ASSERT(size == 4);
-      __ StoreSToOffset(fpu_loc.fpu_s_reg(), SPREG, 0);
-    }
-
-  } else if (nloc.IsRegisters()) {
-    const auto& reg_loc = nloc.WidenTo4Bytes(compiler->zone()).AsRegisters();
-    const intptr_t num_regs = reg_loc.num_regs();
-    // Save higher-order component first, so bytes are in little-endian layout
-    // overall.
-    for (intptr_t i = num_regs - 1; i >= 0; i--) {
-      __ Push(reg_loc.reg_at(i));
-    }
-  }
-}
-
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Constant pool cannot be used until we enter the actual Dart frame.
   __ set_constant_pool_allowed(false);
@@ -1443,9 +1419,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Save the argument registers, in reverse order.
-  for (intptr_t i = marshaller_.num_args(); i-- > 0;) {
-    SaveArgument(compiler, marshaller_.Location(i));
-  }
+  SaveArguments(compiler);
 
   // Enter the entry frame.
   __ EnterFrame((1 << FP) | (1 << LR), 0);

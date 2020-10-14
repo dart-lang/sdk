@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This file has been automatically generated. Please do not edit it manually.
+// To regenerate the file, use the following command
+// "generate_ffi_boilerplate.py".
+
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
@@ -14,62 +18,92 @@ class WasmImportDescriptor {
   int kind;
   String moduleName;
   String name;
-  WasmImportDescriptor(this.kind, this.moduleName, this.name);
+  Pointer<WasmerFunctype> funcType;
+  WasmImportDescriptor(this.kind, this.moduleName, this.name, this.funcType);
 }
 
 class WasmExportDescriptor {
   int kind;
   String name;
-  WasmExportDescriptor(this.kind, this.name);
+  Pointer<WasmerFunctype> funcType;
+  WasmExportDescriptor(this.kind, this.name, this.funcType);
 }
 
 class WasmRuntime {
   static WasmRuntime? _inst;
 
   DynamicLibrary _lib;
-  late WasmerCompileFn _compile;
-  late WasmerInstantiateFn _instantiate;
+  late Pointer<WasmerEngine> _engine;
+  late WasmerByteVecDeleteFn _byte_vec_delete;
+  late WasmerByteVecNewFn _byte_vec_new;
+  late WasmerByteVecNewEmptyFn _byte_vec_new_empty;
+  late WasmerByteVecNewUninitializedFn _byte_vec_new_uninitialized;
+  late WasmerEngineDeleteFn _engine_delete;
+  late WasmerEngineNewFn _engine_new;
+  late WasmerExporttypeNameFn _exporttype_name;
+  late WasmerExporttypeTypeFn _exporttype_type;
+  late WasmerExporttypeVecDeleteFn _exporttype_vec_delete;
+  late WasmerExporttypeVecNewFn _exporttype_vec_new;
+  late WasmerExporttypeVecNewEmptyFn _exporttype_vec_new_empty;
+  late WasmerExporttypeVecNewUninitializedFn _exporttype_vec_new_uninitialized;
+  late WasmerExternAsFuncFn _extern_as_func;
+  late WasmerExternAsMemoryFn _extern_as_memory;
+  late WasmerExternDeleteFn _extern_delete;
+  late WasmerExternKindFn _extern_kind;
+  late WasmerExternVecDeleteFn _extern_vec_delete;
+  late WasmerExternVecNewFn _extern_vec_new;
+  late WasmerExternVecNewEmptyFn _extern_vec_new_empty;
+  late WasmerExternVecNewUninitializedFn _extern_vec_new_uninitialized;
+  late WasmerExterntypeAsFunctypeFn _externtype_as_functype;
+  late WasmerExterntypeDeleteFn _externtype_delete;
+  late WasmerExterntypeKindFn _externtype_kind;
+  late WasmerFuncCallFn _func_call;
+  late WasmerFuncDeleteFn _func_delete;
+  late WasmerFunctypeDeleteFn _functype_delete;
+  late WasmerFunctypeParamsFn _functype_params;
+  late WasmerFunctypeResultsFn _functype_results;
+  late WasmerImporttypeModuleFn _importtype_module;
+  late WasmerImporttypeNameFn _importtype_name;
+  late WasmerImporttypeTypeFn _importtype_type;
+  late WasmerImporttypeVecDeleteFn _importtype_vec_delete;
+  late WasmerImporttypeVecNewFn _importtype_vec_new;
+  late WasmerImporttypeVecNewEmptyFn _importtype_vec_new_empty;
+  late WasmerImporttypeVecNewUninitializedFn _importtype_vec_new_uninitialized;
+  late WasmerInstanceDeleteFn _instance_delete;
   late WasmerInstanceExportsFn _instance_exports;
-  late WasmerExportsLenFn _exports_len;
-  late WasmerExportsGetFn _exports_get;
-  late WasmerExportKindFn _export_kind;
-  late WasmerExportToFuncFn _export_to_func;
-  late WasmerExportFuncReturnsArityFn _export_func_returns_arity;
-  late WasmerExportFuncReturnsFn _export_func_returns;
-  late WasmerExportFuncParamsArityFn _export_func_params_arity;
-  late WasmerExportFuncParamsFn _export_func_params;
-  late WasmerExportFuncCallFn _export_func_call;
-  late WasmerExportNamePtrFn _export_name_ptr;
-  late WasmerExportDescriptorsFn _export_descriptors;
-  late WasmerExportDescriptorsDestroyFn _export_descriptors_destroy;
-  late WasmerExportDescriptorsLenFn _export_descriptors_len;
-  late WasmerExportDescriptorsGetFn _export_descriptors_get;
-  late WasmerExportDescriptorKindFn _export_descriptor_kind;
-  late WasmerExportDescriptorNamePtrFn _export_descriptor_name_ptr;
-  late WasmerImportDescriptorModuleNamePtrFn _import_descriptor_module_name_ptr;
-  late WasmerImportDescriptorNamePtrFn _import_descriptor_name_ptr;
-  late WasmerImportDescriptorsFn _import_descriptors;
-  late WasmerImportDescriptorsDestroyFn _import_descriptors_destroy;
-  late WasmerImportDescriptorsLenFn _import_descriptors_len;
-  late WasmerImportDescriptorsGetFn _import_descriptors_get;
-  late WasmerImportDescriptorKindFn _import_descriptor_kind;
-  late WasmerExportToMemoryFn _export_to_memory;
-  late WasmerMemoryNewPtrFn _memory_new_ptr;
-  late WasmerMemoryGrowFn _memory_grow;
-  late WasmerMemoryLengthFn _memory_length;
+  late WasmerInstanceNewFn _instance_new;
   late WasmerMemoryDataFn _memory_data;
-  late WasmerMemoryDataLengthFn _memory_data_length;
+  late WasmerMemoryDataSizeFn _memory_data_size;
+  late WasmerMemoryDeleteFn _memory_delete;
+  late WasmerMemoryGrowFn _memory_grow;
+  late WasmerMemoryNewFn _memory_new;
+  late WasmerMemorySizeFn _memory_size;
+  late WasmerMemorytypeDeleteFn _memorytype_delete;
+  late WasmerMemorytypeNewFn _memorytype_new;
+  late WasmerModuleDeleteFn _module_delete;
+  late WasmerModuleExportsFn _module_exports;
+  late WasmerModuleImportsFn _module_imports;
+  late WasmerModuleNewFn _module_new;
+  late WasmerStoreDeleteFn _store_delete;
+  late WasmerStoreNewFn _store_new;
+  late WasmerTrapDeleteFn _trap_delete;
+  late WasmerValtypeDeleteFn _valtype_delete;
+  late WasmerValtypeKindFn _valtype_kind;
+  late WasmerValtypeVecDeleteFn _valtype_vec_delete;
+  late WasmerValtypeVecNewFn _valtype_vec_new;
+  late WasmerValtypeVecNewEmptyFn _valtype_vec_new_empty;
+  late WasmerValtypeVecNewUninitializedFn _valtype_vec_new_uninitialized;
 
   factory WasmRuntime() {
-    if (_inst == null) {
-      _inst = WasmRuntime._init();
-    }
-    return _inst as WasmRuntime;
+    WasmRuntime inst = _inst ?? WasmRuntime._init();
+    _inst = inst;
+    return inst;
   }
 
   static String _getLibName() {
-    if (Platform.isMacOS) return "libwasmer_wrapper.dylib";
-    if (Platform.isLinux) return "libwasmer_wrapper.so";
+    if (Platform.isMacOS) return "libwasmer.dylib";
+    if (Platform.isLinux) return "libwasmer.so";
+    // TODO(dartbug.com/37882): Support more platforms.
     throw Exception("Wasm not currently supported on this platform");
   }
 
@@ -104,296 +138,322 @@ class WasmRuntime {
 
   WasmRuntime._init()
       : _lib = DynamicLibrary.open(path.join(_getLibDir(), _getLibName())) {
-    _compile = _lib.lookupFunction<NativeWasmerCompileFn, WasmerCompileFn>(
-        'wasmer_compile');
-    _instantiate =
-        _lib.lookupFunction<NativeWasmerInstantiateFn, WasmerInstantiateFn>(
-            'wasmer_module_instantiate');
+    _byte_vec_delete =
+        _lib.lookupFunction<NativeWasmerByteVecDeleteFn, WasmerByteVecDeleteFn>(
+            'wasm_byte_vec_delete');
+    _byte_vec_new =
+        _lib.lookupFunction<NativeWasmerByteVecNewFn, WasmerByteVecNewFn>(
+            'wasm_byte_vec_new');
+    _byte_vec_new_empty = _lib.lookupFunction<NativeWasmerByteVecNewEmptyFn,
+        WasmerByteVecNewEmptyFn>('wasm_byte_vec_new_empty');
+    _byte_vec_new_uninitialized = _lib.lookupFunction<
+        NativeWasmerByteVecNewUninitializedFn,
+        WasmerByteVecNewUninitializedFn>('wasm_byte_vec_new_uninitialized');
+    _engine_delete =
+        _lib.lookupFunction<NativeWasmerEngineDeleteFn, WasmerEngineDeleteFn>(
+            'wasm_engine_delete');
+    _engine_new =
+        _lib.lookupFunction<NativeWasmerEngineNewFn, WasmerEngineNewFn>(
+            'wasm_engine_new');
+    _exporttype_name = _lib.lookupFunction<NativeWasmerExporttypeNameFn,
+        WasmerExporttypeNameFn>('wasm_exporttype_name');
+    _exporttype_type = _lib.lookupFunction<NativeWasmerExporttypeTypeFn,
+        WasmerExporttypeTypeFn>('wasm_exporttype_type');
+    _exporttype_vec_delete = _lib.lookupFunction<
+        NativeWasmerExporttypeVecDeleteFn,
+        WasmerExporttypeVecDeleteFn>('wasm_exporttype_vec_delete');
+    _exporttype_vec_new = _lib.lookupFunction<NativeWasmerExporttypeVecNewFn,
+        WasmerExporttypeVecNewFn>('wasm_exporttype_vec_new');
+    _exporttype_vec_new_empty = _lib.lookupFunction<
+        NativeWasmerExporttypeVecNewEmptyFn,
+        WasmerExporttypeVecNewEmptyFn>('wasm_exporttype_vec_new_empty');
+    _exporttype_vec_new_uninitialized = _lib.lookupFunction<
+            NativeWasmerExporttypeVecNewUninitializedFn,
+            WasmerExporttypeVecNewUninitializedFn>(
+        'wasm_exporttype_vec_new_uninitialized');
+    _extern_as_func =
+        _lib.lookupFunction<NativeWasmerExternAsFuncFn, WasmerExternAsFuncFn>(
+            'wasm_extern_as_func');
+    _extern_as_memory = _lib.lookupFunction<NativeWasmerExternAsMemoryFn,
+        WasmerExternAsMemoryFn>('wasm_extern_as_memory');
+    _extern_delete =
+        _lib.lookupFunction<NativeWasmerExternDeleteFn, WasmerExternDeleteFn>(
+            'wasm_extern_delete');
+    _extern_kind =
+        _lib.lookupFunction<NativeWasmerExternKindFn, WasmerExternKindFn>(
+            'wasm_extern_kind');
+    _extern_vec_delete = _lib.lookupFunction<NativeWasmerExternVecDeleteFn,
+        WasmerExternVecDeleteFn>('wasm_extern_vec_delete');
+    _extern_vec_new =
+        _lib.lookupFunction<NativeWasmerExternVecNewFn, WasmerExternVecNewFn>(
+            'wasm_extern_vec_new');
+    _extern_vec_new_empty = _lib.lookupFunction<NativeWasmerExternVecNewEmptyFn,
+        WasmerExternVecNewEmptyFn>('wasm_extern_vec_new_empty');
+    _extern_vec_new_uninitialized = _lib.lookupFunction<
+        NativeWasmerExternVecNewUninitializedFn,
+        WasmerExternVecNewUninitializedFn>('wasm_extern_vec_new_uninitialized');
+    _externtype_as_functype = _lib.lookupFunction<
+        NativeWasmerExterntypeAsFunctypeFn,
+        WasmerExterntypeAsFunctypeFn>('wasm_externtype_as_functype');
+    _externtype_delete = _lib.lookupFunction<NativeWasmerExterntypeDeleteFn,
+        WasmerExterntypeDeleteFn>('wasm_externtype_delete');
+    _externtype_kind = _lib.lookupFunction<NativeWasmerExterntypeKindFn,
+        WasmerExterntypeKindFn>('wasm_externtype_kind');
+    _func_call = _lib.lookupFunction<NativeWasmerFuncCallFn, WasmerFuncCallFn>(
+        'wasm_func_call');
+    _func_delete =
+        _lib.lookupFunction<NativeWasmerFuncDeleteFn, WasmerFuncDeleteFn>(
+            'wasm_func_delete');
+    _functype_delete = _lib.lookupFunction<NativeWasmerFunctypeDeleteFn,
+        WasmerFunctypeDeleteFn>('wasm_functype_delete');
+    _functype_params = _lib.lookupFunction<NativeWasmerFunctypeParamsFn,
+        WasmerFunctypeParamsFn>('wasm_functype_params');
+    _functype_results = _lib.lookupFunction<NativeWasmerFunctypeResultsFn,
+        WasmerFunctypeResultsFn>('wasm_functype_results');
+    _importtype_module = _lib.lookupFunction<NativeWasmerImporttypeModuleFn,
+        WasmerImporttypeModuleFn>('wasm_importtype_module');
+    _importtype_name = _lib.lookupFunction<NativeWasmerImporttypeNameFn,
+        WasmerImporttypeNameFn>('wasm_importtype_name');
+    _importtype_type = _lib.lookupFunction<NativeWasmerImporttypeTypeFn,
+        WasmerImporttypeTypeFn>('wasm_importtype_type');
+    _importtype_vec_delete = _lib.lookupFunction<
+        NativeWasmerImporttypeVecDeleteFn,
+        WasmerImporttypeVecDeleteFn>('wasm_importtype_vec_delete');
+    _importtype_vec_new = _lib.lookupFunction<NativeWasmerImporttypeVecNewFn,
+        WasmerImporttypeVecNewFn>('wasm_importtype_vec_new');
+    _importtype_vec_new_empty = _lib.lookupFunction<
+        NativeWasmerImporttypeVecNewEmptyFn,
+        WasmerImporttypeVecNewEmptyFn>('wasm_importtype_vec_new_empty');
+    _importtype_vec_new_uninitialized = _lib.lookupFunction<
+            NativeWasmerImporttypeVecNewUninitializedFn,
+            WasmerImporttypeVecNewUninitializedFn>(
+        'wasm_importtype_vec_new_uninitialized');
+    _instance_delete = _lib.lookupFunction<NativeWasmerInstanceDeleteFn,
+        WasmerInstanceDeleteFn>('wasm_instance_delete');
     _instance_exports = _lib.lookupFunction<NativeWasmerInstanceExportsFn,
-        WasmerInstanceExportsFn>('wasmer_instance_exports');
-    _exports_len =
-        _lib.lookupFunction<NativeWasmerExportsLenFn, WasmerExportsLenFn>(
-            'wasmer_exports_len');
-    _exports_get =
-        _lib.lookupFunction<NativeWasmerExportsGetFn, WasmerExportsGetFn>(
-            'wasmer_exports_get');
-    _export_kind =
-        _lib.lookupFunction<NativeWasmerExportKindFn, WasmerExportKindFn>(
-            'wasmer_export_kind');
-    _export_to_func =
-        _lib.lookupFunction<NativeWasmerExportToFuncFn, WasmerExportToFuncFn>(
-            'wasmer_export_to_func');
-    _export_func_returns_arity = _lib.lookupFunction<
-        NativeWasmerExportFuncReturnsArityFn,
-        WasmerExportFuncReturnsArityFn>('wasmer_export_func_returns_arity');
-    _export_func_returns = _lib.lookupFunction<NativeWasmerExportFuncReturnsFn,
-        WasmerExportFuncReturnsFn>('wasmer_export_func_returns');
-    _export_func_params_arity = _lib.lookupFunction<
-        NativeWasmerExportFuncParamsArityFn,
-        WasmerExportFuncParamsArityFn>('wasmer_export_func_params_arity');
-    _export_func_params = _lib.lookupFunction<NativeWasmerExportFuncParamsFn,
-        WasmerExportFuncParamsFn>('wasmer_export_func_params');
-    _export_func_call = _lib.lookupFunction<NativeWasmerExportFuncCallFn,
-        WasmerExportFuncCallFn>('wasmer_export_func_call');
-    _export_descriptors = _lib.lookupFunction<NativeWasmerExportDescriptorsFn,
-        WasmerExportDescriptorsFn>('wasmer_export_descriptors');
-    _export_descriptors_destroy = _lib.lookupFunction<
-        NativeWasmerExportDescriptorsDestroyFn,
-        WasmerExportDescriptorsDestroyFn>('wasmer_export_descriptors_destroy');
-    _export_descriptors_len = _lib.lookupFunction<
-        NativeWasmerExportDescriptorsLenFn,
-        WasmerExportDescriptorsLenFn>('wasmer_export_descriptors_len');
-    _export_descriptors_get = _lib.lookupFunction<
-        NativeWasmerExportDescriptorsGetFn,
-        WasmerExportDescriptorsGetFn>('wasmer_export_descriptors_get');
-    _export_descriptor_kind = _lib.lookupFunction<
-        NativeWasmerExportDescriptorKindFn,
-        WasmerExportDescriptorKindFn>('wasmer_export_descriptor_kind');
-    _export_name_ptr =
-        _lib.lookupFunction<NativeWasmerExportNamePtrFn, WasmerExportNamePtrFn>(
-            'wasmer_export_name_ptr');
-    _export_descriptor_name_ptr = _lib.lookupFunction<
-        NativeWasmerExportDescriptorNamePtrFn,
-        WasmerExportDescriptorNamePtrFn>('wasmer_export_descriptor_name_ptr');
-    _import_descriptors = _lib.lookupFunction<NativeWasmerImportDescriptorsFn,
-        WasmerImportDescriptorsFn>('wasmer_import_descriptors');
-    _import_descriptors_destroy = _lib.lookupFunction<
-        NativeWasmerImportDescriptorsDestroyFn,
-        WasmerImportDescriptorsDestroyFn>('wasmer_import_descriptors_destroy');
-    _import_descriptors_len = _lib.lookupFunction<
-        NativeWasmerImportDescriptorsLenFn,
-        WasmerImportDescriptorsLenFn>('wasmer_import_descriptors_len');
-    _import_descriptors_get = _lib.lookupFunction<
-        NativeWasmerImportDescriptorsGetFn,
-        WasmerImportDescriptorsGetFn>('wasmer_import_descriptors_get');
-    _import_descriptor_kind = _lib.lookupFunction<
-        NativeWasmerImportDescriptorKindFn,
-        WasmerImportDescriptorKindFn>('wasmer_import_descriptor_kind');
-    _import_descriptor_module_name_ptr = _lib.lookupFunction<
-            NativeWasmerImportDescriptorModuleNamePtrFn,
-            WasmerImportDescriptorModuleNamePtrFn>(
-        'wasmer_import_descriptor_module_name_ptr');
-    _import_descriptor_name_ptr = _lib.lookupFunction<
-        NativeWasmerImportDescriptorNamePtrFn,
-        WasmerImportDescriptorNamePtrFn>('wasmer_import_descriptor_name_ptr');
-    _export_to_memory = _lib.lookupFunction<NativeWasmerExportToMemoryFn,
-        WasmerExportToMemoryFn>('wasmer_export_to_memory');
-    _memory_new_ptr =
-        _lib.lookupFunction<NativeWasmerMemoryNewPtrFn, WasmerMemoryNewPtrFn>(
-            'wasmer_memory_new_ptr');
-    _memory_grow =
-        _lib.lookupFunction<NativeWasmerMemoryGrowFn, WasmerMemoryGrowFn>(
-            'wasmer_memory_grow');
-    _memory_length =
-        _lib.lookupFunction<NativeWasmerMemoryLengthFn, WasmerMemoryLengthFn>(
-            'wasmer_memory_length');
+        WasmerInstanceExportsFn>('wasm_instance_exports');
+    _instance_new =
+        _lib.lookupFunction<NativeWasmerInstanceNewFn, WasmerInstanceNewFn>(
+            'wasm_instance_new');
     _memory_data =
         _lib.lookupFunction<NativeWasmerMemoryDataFn, WasmerMemoryDataFn>(
-            'wasmer_memory_data');
-    _memory_data_length = _lib.lookupFunction<NativeWasmerMemoryDataLengthFn,
-        WasmerMemoryDataLengthFn>('wasmer_memory_data_length');
+            'wasm_memory_data');
+    _memory_data_size = _lib.lookupFunction<NativeWasmerMemoryDataSizeFn,
+        WasmerMemoryDataSizeFn>('wasm_memory_data_size');
+    _memory_delete =
+        _lib.lookupFunction<NativeWasmerMemoryDeleteFn, WasmerMemoryDeleteFn>(
+            'wasm_memory_delete');
+    _memory_grow =
+        _lib.lookupFunction<NativeWasmerMemoryGrowFn, WasmerMemoryGrowFn>(
+            'wasm_memory_grow');
+    _memory_new =
+        _lib.lookupFunction<NativeWasmerMemoryNewFn, WasmerMemoryNewFn>(
+            'wasm_memory_new');
+    _memory_size =
+        _lib.lookupFunction<NativeWasmerMemorySizeFn, WasmerMemorySizeFn>(
+            'wasm_memory_size');
+    _memorytype_delete = _lib.lookupFunction<NativeWasmerMemorytypeDeleteFn,
+        WasmerMemorytypeDeleteFn>('wasm_memorytype_delete');
+    _memorytype_new =
+        _lib.lookupFunction<NativeWasmerMemorytypeNewFn, WasmerMemorytypeNewFn>(
+            'wasm_memorytype_new');
+    _module_delete =
+        _lib.lookupFunction<NativeWasmerModuleDeleteFn, WasmerModuleDeleteFn>(
+            'wasm_module_delete');
+    _module_exports =
+        _lib.lookupFunction<NativeWasmerModuleExportsFn, WasmerModuleExportsFn>(
+            'wasm_module_exports');
+    _module_imports =
+        _lib.lookupFunction<NativeWasmerModuleImportsFn, WasmerModuleImportsFn>(
+            'wasm_module_imports');
+    _module_new =
+        _lib.lookupFunction<NativeWasmerModuleNewFn, WasmerModuleNewFn>(
+            'wasm_module_new');
+    _store_delete =
+        _lib.lookupFunction<NativeWasmerStoreDeleteFn, WasmerStoreDeleteFn>(
+            'wasm_store_delete');
+    _store_new = _lib.lookupFunction<NativeWasmerStoreNewFn, WasmerStoreNewFn>(
+        'wasm_store_new');
+    _trap_delete =
+        _lib.lookupFunction<NativeWasmerTrapDeleteFn, WasmerTrapDeleteFn>(
+            'wasm_trap_delete');
+    _valtype_delete =
+        _lib.lookupFunction<NativeWasmerValtypeDeleteFn, WasmerValtypeDeleteFn>(
+            'wasm_valtype_delete');
+    _valtype_kind =
+        _lib.lookupFunction<NativeWasmerValtypeKindFn, WasmerValtypeKindFn>(
+            'wasm_valtype_kind');
+    _valtype_vec_delete = _lib.lookupFunction<NativeWasmerValtypeVecDeleteFn,
+        WasmerValtypeVecDeleteFn>('wasm_valtype_vec_delete');
+    _valtype_vec_new =
+        _lib.lookupFunction<NativeWasmerValtypeVecNewFn, WasmerValtypeVecNewFn>(
+            'wasm_valtype_vec_new');
+    _valtype_vec_new_empty = _lib.lookupFunction<
+        NativeWasmerValtypeVecNewEmptyFn,
+        WasmerValtypeVecNewEmptyFn>('wasm_valtype_vec_new_empty');
+    _valtype_vec_new_uninitialized = _lib.lookupFunction<
+            NativeWasmerValtypeVecNewUninitializedFn,
+            WasmerValtypeVecNewUninitializedFn>(
+        'wasm_valtype_vec_new_uninitialized');
+
+    _engine = _engine_new();
   }
 
-  Pointer<WasmerModule> compile(Uint8List data) {
+  Pointer<WasmerStore> newStore() {
+    return _store_new(_engine);
+  }
+
+  Pointer<WasmerModule> compile(Pointer<WasmerStore> store, Uint8List data) {
     var dataPtr = allocate<Uint8>(count: data.length);
     for (int i = 0; i < data.length; ++i) {
       dataPtr[i] = data[i];
     }
+    var dataVec = allocate<WasmerByteVec>();
+    dataVec.ref.data = dataPtr;
+    dataVec.ref.length = data.length;
 
-    var modulePtrPtr = allocate<Pointer<WasmerModule>>();
-    int result = _compile(modulePtrPtr, dataPtr, data.length);
-    Pointer<WasmerModule> modulePtr = modulePtrPtr.value;
+    var modulePtr = _module_new(store, dataVec);
 
-    free(modulePtrPtr);
     free(dataPtr);
+    free(dataVec);
 
-    if (result != WasmerResultOk) {
+    if (modulePtr == nullptr) {
       throw Exception("Wasm module compile failed");
     }
 
     return modulePtr;
   }
 
-  String _callStringWrapperFunction(Function fn, dynamic arg) {
-    var strPtr = allocate<WasmerByteArray>();
-    fn(arg, strPtr);
-    var str = strPtr.ref.string;
-    free(strPtr);
-    return str;
-  }
-
   List<WasmExportDescriptor> exportDescriptors(Pointer<WasmerModule> module) {
-    var exportsPtrPtr = allocate<Pointer<WasmerExportDescriptors>>();
-    _export_descriptors(module, exportsPtrPtr);
-    Pointer<WasmerExportDescriptors> exportsPtr = exportsPtrPtr.value;
-    free(exportsPtrPtr);
-    var n = _export_descriptors_len(exportsPtr);
+    var exportsVec = allocate<WasmerExporttypeVec>();
+    _module_exports(module, exportsVec);
     var exps = <WasmExportDescriptor>[];
-    for (var i = 0; i < n; ++i) {
-      var exp = _export_descriptors_get(exportsPtr, i);
-      exps.add(WasmExportDescriptor(_export_descriptor_kind(exp),
-          _callStringWrapperFunction(_export_descriptor_name_ptr, exp)));
+    for (var i = 0; i < exportsVec.ref.length; ++i) {
+      var exp = exportsVec.ref.data[i];
+      var extern = _exporttype_type(exp);
+      var kind = _externtype_kind(extern);
+      var fnType = kind == WasmerExternKindFunction
+          ? _externtype_as_functype(extern)
+          : nullptr;
+      exps.add(WasmExportDescriptor(
+          kind, _exporttype_name(exp).ref.toString(), fnType));
     }
-    _export_descriptors_destroy(exportsPtr);
+    free(exportsVec);
     return exps;
   }
 
   List<WasmImportDescriptor> importDescriptors(Pointer<WasmerModule> module) {
-    var importsPtrPtr = allocate<Pointer<WasmerImportDescriptors>>();
-    _import_descriptors(module, importsPtrPtr);
-    Pointer<WasmerImportDescriptors> importsPtr = importsPtrPtr.value;
-    free(importsPtrPtr);
-
-    var n = _import_descriptors_len(importsPtr);
+    var importsVec = allocate<WasmerImporttypeVec>();
+    _module_imports(module, importsVec);
     var imps = <WasmImportDescriptor>[];
-    for (var i = 0; i < n; ++i) {
-      var imp = _import_descriptors_get(importsPtr, i);
+    for (var i = 0; i < importsVec.ref.length; ++i) {
+      var imp = importsVec.ref.data[i];
+      var extern = _importtype_type(imp);
+      var kind = _externtype_kind(extern);
+      var fnType = kind == WasmerExternKindFunction
+          ? _externtype_as_functype(extern)
+          : nullptr;
       imps.add(WasmImportDescriptor(
-          _import_descriptor_kind(imp),
-          _callStringWrapperFunction(_import_descriptor_module_name_ptr, imp),
-          _callStringWrapperFunction(_import_descriptor_name_ptr, imp)));
+          kind,
+          _importtype_module(imp).ref.toString(),
+          _importtype_name(imp).ref.toString(),
+          fnType));
     }
-    _import_descriptors_destroy(importsPtr);
+    free(importsVec);
     return imps;
   }
 
-  Pointer<WasmerInstance> instantiate(Pointer<WasmerModule> module,
-      Pointer<WasmerImport> imports, int numImports) {
-    var instancePtrPtr = allocate<Pointer<WasmerInstance>>();
-    int result = _instantiate(module, instancePtrPtr, imports, numImports);
-    Pointer<WasmerInstance> instancePtr = instancePtrPtr.value;
-    free(instancePtrPtr);
+  Pointer<WasmerInstance> instantiate(
+      Pointer<WasmerStore> store,
+      Pointer<WasmerModule> module,
+      Pointer<Pointer<WasmerExtern>> imports,
+      int numImports) {
+    var importsVec = allocate<WasmerImporttypeVec>();
+    _module_imports(module, importsVec);
+    if (importsVec.ref.length != numImports) {
+      throw Exception(
+          "Wrong number of imports. Expected ${importsVec.ref.length} but " +
+              "found $numImports.");
+    }
+    free(importsVec);
 
-    if (result != WasmerResultOk) {
+    var instancePtr = _instance_new(store, module, imports, nullptr);
+    if (instancePtr == nullptr) {
       throw Exception("Wasm module instantiation failed");
     }
 
     return instancePtr;
   }
 
-  List<Pointer<WasmerExport>> exports(Pointer<WasmerInstance> instancePtr) {
-    var exportsPtrPtr = allocate<Pointer<WasmerExports>>();
-    _instance_exports(instancePtr, exportsPtrPtr);
-    Pointer<WasmerExports> exportsPtr = exportsPtrPtr.value;
-    free(exportsPtrPtr);
-
-    var n = _exports_len(exportsPtr);
-    var exps = <Pointer<WasmerExport>>[];
-    for (var i = 0; i < n; ++i) {
-      exps.add(_exports_get(exportsPtr, i));
-    }
-    return exps;
+  Pointer<WasmerExternVec> exports(Pointer<WasmerInstance> instancePtr) {
+    var exports = allocate<WasmerExternVec>();
+    _instance_exports(instancePtr, exports);
+    return exports;
   }
 
-  int exportKind(Pointer<WasmerExport> export) {
-    return _export_kind(export);
+  int externKind(Pointer<WasmerExtern> extern) {
+    return _extern_kind(extern);
   }
 
-  String exportName(Pointer<WasmerExport> export) {
-    return _callStringWrapperFunction(_export_name_ptr, export);
+  Pointer<WasmerFunc> externToFunction(Pointer<WasmerExtern> extern) {
+    return _extern_as_func(extern);
   }
 
-  Pointer<WasmerExportFunc> exportToFunction(Pointer<WasmerExport> export) {
-    return _export_to_func(export);
-  }
-
-  List<int> getArgTypes(Pointer<WasmerExportFunc> func) {
+  List<int> getArgTypes(Pointer<WasmerFunctype> funcType) {
     var types = <int>[];
-    var nPtr = allocate<Uint32>();
-    var result = _export_func_params_arity(func, nPtr);
-    if (result != WasmerResultOk) {
-      free(nPtr);
-      throw Exception("Failed to get number of WASM function args");
+    var args = _functype_params(funcType);
+    for (var i = 0; i < args.ref.length; ++i) {
+      types.add(_valtype_kind(args.ref.data[i]));
     }
-    var n = nPtr.value;
-    free(nPtr);
-    var argsPtr = allocate<Uint32>(count: n);
-    result = _export_func_params(func, argsPtr, n);
-    if (result != WasmerResultOk) {
-      free(argsPtr);
-      throw Exception("Failed to get WASM function args");
-    }
-    for (var i = 0; i < n; ++i) {
-      types.add(argsPtr[i]);
-    }
-    free(argsPtr);
     return types;
   }
 
-  int getReturnType(Pointer<WasmerExportFunc> func) {
-    var nPtr = allocate<Uint32>();
-    var result = _export_func_returns_arity(func, nPtr);
-    if (result != WasmerResultOk) {
-      free(nPtr);
-      throw Exception("Failed to get number of WASM function returns");
-    }
-    var n = nPtr.value;
-    free(nPtr);
-    if (n == 0) {
-      return WasmerValueTagVoid;
-    } else if (n > 1) {
+  int getReturnType(Pointer<WasmerFunctype> funcType) {
+    var rets = _functype_results(funcType);
+    if (rets.ref.length == 0) {
+      return WasmerValKindVoid;
+    } else if (rets.ref.length > 1) {
       throw Exception("Multiple return values are not supported");
     }
-    var returnsPtr = allocate<Uint32>();
-    result = _export_func_returns(func, returnsPtr, 1);
-    if (result != WasmerResultOk) {
-      free(returnsPtr);
-      throw Exception("Failed to get WASM function args");
-    }
-    var type = returnsPtr.value;
-    free(returnsPtr);
-    return type;
+    return _valtype_kind(rets.ref.data[0]);
   }
 
-  void call(Pointer<WasmerExportFunc> func, Pointer<WasmerValue> args,
-      int numArgs, Pointer<WasmerValue> results, int numResults) {
-    var result = _export_func_call(func, args, numArgs, results, numArgs);
-    if (result != WasmerResultOk) {
-      throw Exception("Failed to call WASM function");
-    }
+  void call(Pointer<WasmerFunc> func, Pointer<WasmerVal> args,
+      Pointer<WasmerVal> results) {
+    _func_call(func, args, results);
   }
 
-  Pointer<WasmerMemory> exportToMemory(Pointer<WasmerExport> export) {
-    var memPtrPtr = allocate<Pointer<WasmerMemory>>();
-    var result = _export_to_memory(export, memPtrPtr);
-    if (result != WasmerResultOk) {
-      free(memPtrPtr);
-      throw Exception("Failed to get exported memory");
-    }
-    Pointer<WasmerMemory> memPtr = memPtrPtr.value;
-    free(memPtrPtr);
-    return memPtr;
+  Pointer<WasmerMemory> externToMemory(Pointer<WasmerExtern> extern) {
+    return _extern_as_memory(extern);
   }
 
-  Pointer<WasmerMemory> newMemory(int pages, int? maxPages) {
-    var memPtrPtr = allocate<Pointer<WasmerMemory>>();
+  Pointer<WasmerMemory> newMemory(
+      Pointer<WasmerStore> store, int pages, int? maxPages) {
     var limPtr = allocate<WasmerLimits>();
     limPtr.ref.min = pages;
-    limPtr.ref.has_max = maxPages != null ? 1 : 0;
-    limPtr.ref.max = maxPages ?? 0;
-    var result = _memory_new_ptr(memPtrPtr, limPtr);
+    limPtr.ref.max = maxPages ?? wasm_limits_max_default;
+    var memType = _memorytype_new(limPtr);
     free(limPtr);
-    if (result != WasmerResultOk) {
-      free(memPtrPtr);
+    Pointer<WasmerMemory> memPtr = _memory_new(store, memType);
+
+    if (memPtr == nullptr) {
       throw Exception("Failed to create memory");
     }
-    Pointer<WasmerMemory> memPtr = memPtrPtr.value;
-    free(memPtrPtr);
     return memPtr;
   }
 
   void growMemory(Pointer<WasmerMemory> memory, int deltaPages) {
     var result = _memory_grow(memory, deltaPages);
-    if (result != WasmerResultOk) {
+    if (result == 0) {
       throw Exception("Failed to grow memory");
     }
   }
 
   int memoryLength(Pointer<WasmerMemory> memory) {
-    return _memory_length(memory);
+    return _memory_size(memory);
   }
 
   Uint8List memoryView(Pointer<WasmerMemory> memory) {
-    return _memory_data(memory).asTypedList(_memory_data_length(memory));
+    return _memory_data(memory).asTypedList(_memory_data_size(memory));
   }
 }

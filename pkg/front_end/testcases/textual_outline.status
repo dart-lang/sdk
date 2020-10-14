@@ -71,6 +71,7 @@ extensions/issue40596: FormatterCrash
 extensions/issue40713: FormatterCrash
 extensions/issue40816: FormatterCrash
 extensions/issue43218: FormatterCrash
+extensions/language_issue1182: FormatterCrash
 extensions/missing_toplevel: FormatterCrash
 extensions/nested_on_types: FormatterCrash
 extensions/null_aware: FormatterCrash
@@ -82,6 +83,7 @@ extensions/other_kinds: FormatterCrash
 extensions/static_access: FormatterCrash
 extensions/static_access_of_instance: FormatterCrash
 extensions/tear_offs: FormatterCrash
+extensions/type_variable_bound: FormatterCrash
 extensions/type_variables: FormatterCrash
 extensions/unnamed_extensions: FormatterCrash
 extensions/use_this: FormatterCrash
@@ -171,6 +173,7 @@ nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
 nnbd/extension_bounds: FormatterCrash
 nnbd/extension_never: FormatterCrash
+nnbd/extension_type_variable_bound: FormatterCrash
 nnbd/external_field_errors: FormatterCrash
 nnbd/external_fields: FormatterCrash
 nnbd/forbidden_supers: FormatterCrash
@@ -186,6 +189,7 @@ nnbd/issue42967: FormatterCrash
 nnbd/issue43211: FormatterCrash
 nnbd/issue43278: FormatterCrash
 nnbd/issue43354: FormatterCrash
+nnbd/language_issue1182: FormatterCrash
 nnbd/late: FormatterCrash
 nnbd/later: FormatterCrash
 nnbd/no_null_shorting_explicit_extension: FormatterCrash

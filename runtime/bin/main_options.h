@@ -47,7 +47,8 @@ namespace bin {
   V(preview_dart_2, nop_option)                                                \
   V(suppress_core_dump, suppress_core_dump)                                    \
   V(enable_service_port_fallback, enable_service_port_fallback)                \
-  V(disable_dart_dev, disable_dart_dev)
+  V(disable_dart_dev, disable_dart_dev)                                        \
+  V(long_ssl_cert_evaluation, long_ssl_cert_evaluation)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \

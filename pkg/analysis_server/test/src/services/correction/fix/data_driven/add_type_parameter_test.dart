@@ -483,6 +483,7 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
               libraryUris: [Uri.parse(importUri)],
               kind: ElementKindUtilities.fromName(_kind),
               components: components ?? ['C', 'm']),
+          bulkApply: false,
           changes: [
             AddTypeParameter(
                 index: index,

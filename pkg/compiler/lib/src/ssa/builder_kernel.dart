@@ -3794,6 +3794,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       AbstractValue typeMask,
       List<HInstruction> arguments,
       SourceInformation sourceInformation) {
+    // Recognize e.g. `bool.fromEnvironment('x')`
+    // TODO(sra): Can we delete this code now that the CFE does constant folding
+    // for us during loading?
     if (function.isExternal && function.isFromEnvironmentConstructor) {
       if (invocation.isConst) {
         // Just like all const constructors (see visitConstructorInvocation).
@@ -3810,151 +3813,215 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
 
-    bool isFixedList = false; // Any fixed list, e.g. new List(10),  UInt8List.
+    // Recognize `List()` and `List(n)`.
+    if (_commonElements.isUnnamedListConstructor(function)) {
+      if (invocation.arguments.named.isEmpty) {
+        int argumentCount = invocation.arguments.positional.length;
+        if (argumentCount == 0) {
+          // `List()` takes no arguments, `JSArray.list()` takes a sentinel.
+          assert(arguments.length == 0 || arguments.length == 1,
+              '\narguments: $arguments\n');
+          _handleInvokeLegacyGrowableListFactoryConstructor(
+              invocation, function, typeMask, arguments, sourceInformation);
+          return;
+        }
+        if (argumentCount == 1) {
+          assert(arguments.length == 1);
+          _handleInvokeLegacyFixedListFactoryConstructor(
+              invocation, function, typeMask, arguments, sourceInformation);
+          return;
+        }
+      }
+    }
 
-    // Recognize `new List()` and `new List(n)`.
-    bool isFixedListConstructorCall = false;
-    bool isGrowableListConstructorCall = false;
-    if (_commonElements.isUnnamedListConstructor(function) &&
-        invocation.arguments.named.isEmpty) {
-      int argumentCount = invocation.arguments.positional.length;
-      isFixedListConstructorCall = argumentCount == 1;
-      isGrowableListConstructorCall = argumentCount == 0;
-      isFixedList = isFixedListConstructorCall;
+    // Recognize `JSArray<E>.typed(allocation)`.
+    if (function == _commonElements.jsArrayTypedConstructor) {
+      if (invocation.arguments.named.isEmpty) {
+        if (invocation.arguments.positional.length == 1) {
+          assert(arguments.length == 1);
+          _handleInvokeJSArrayTypedConstructor(
+              invocation, function, typeMask, arguments, sourceInformation);
+          return;
+        }
+      }
     }
 
     InterfaceType instanceType = _elementMap.createInterfaceType(
         invocation.target.enclosingClass, invocation.arguments.types);
 
-    AbstractValue resultType = typeMask;
+    // Factory constructors take type parameters.
+    List<DartType> typeArguments =
+        _getConstructorTypeArguments(function, invocation.arguments);
 
-    bool isJSArrayTypedConstructor =
-        function == _commonElements.jsArrayTypedConstructor;
+    // This could be a List factory constructor that returned a fresh list and
+    // we have a call-site-specific type from type inference.
+    var inferredListType = globalInferenceResults.typeOfNewList(invocation);
+    AbstractValue resultType = inferredListType ?? typeMask;
 
-    _inferredTypeOfNewList(ir.StaticInvocation node) {
-      return globalInferenceResults.typeOfNewList(node) ??
-          _abstractValueDomain.dynamicType;
+    // TODO(johnniwinther): Remove this when type arguments are passed to
+    // constructors like calling a generic method.
+    _addTypeArguments(
+        arguments,
+        _getClassTypeArguments(function.enclosingClass, invocation.arguments),
+        sourceInformation);
+    instanceType = localsHandler.substInContext(instanceType);
+    _addImplicitInstantiation(instanceType);
+    _pushStaticInvocation(function, arguments, resultType, typeArguments,
+        sourceInformation: sourceInformation, instanceType: instanceType);
+
+    if (inferredListType != null) {
+      // Is the constructor call one from which we can extract the length
+      // argument?
+      bool isFixedList = false;
+
+      if (_abstractValueDomain.isFixedArray(resultType).isDefinitelyTrue) {
+        // These constructors all take a length as the first argument.
+        if (_commonElements.isNamedListConstructor('filled', function) ||
+            _commonElements.isNamedListConstructor('generate', function)) {
+          isFixedList = true;
+        }
+      }
+
+      if (_abstractValueDomain.isTypedArray(resultType).isDefinitelyTrue) {
+        // The unnamed constructors of typed arrays take a length as the first
+        // argument.
+        if (function.name == '') isFixedList = true;
+        // TODO(sra): Can this misfire?
+      }
+
+      if (isFixedList) {
+        HInstruction newInstance = stack.last;
+        newInstance = newInstance.nonCheck();
+        if (newInstance is HInvokeStatic || newInstance is HForeignCode) {
+          graph.allocatedFixedLists.add(newInstance);
+        }
+      }
+    }
+  }
+
+  /// Handle the `JSArray<E>.typed` constructor, which returns its argument,
+  /// which must be a JSArray, with the JSArray type Rti information added on a
+  /// property.
+  void _handleInvokeJSArrayTypedConstructor(
+      ir.StaticInvocation invocation,
+      ConstructorEntity function,
+      AbstractValue typeMask,
+      List<HInstruction> arguments,
+      SourceInformation sourceInformation) {
+    // TODO(sra): We rely here on inlining the identity-like factory
+    // constructor. Instead simply select the single argument and add the type.
+
+    // Factory constructors take type parameters.
+    List<DartType> typeArguments =
+        _getConstructorTypeArguments(function, invocation.arguments);
+    // TODO(johnniwinther): Remove this when type arguments are passed to
+    // constructors like calling a generic method.
+    _addTypeArguments(
+        arguments,
+        _getClassTypeArguments(function.enclosingClass, invocation.arguments),
+        sourceInformation);
+    _pushStaticInvocation(function, arguments, typeMask, typeArguments,
+        sourceInformation: sourceInformation);
+
+    InterfaceType type = _elementMap.createInterfaceType(
+        invocation.target.enclosingClass, invocation.arguments.types);
+    stack.add(_setListRuntimeTypeInfoIfNeeded(pop(), type, sourceInformation));
+  }
+
+  /// Handle the legacy `List<T>()` constructor.
+  void _handleInvokeLegacyGrowableListFactoryConstructor(
+      ir.StaticInvocation invocation,
+      ConstructorEntity function,
+      AbstractValue typeMask,
+      List<HInstruction> arguments,
+      SourceInformation sourceInformation) {
+    // `List<T>()` is essentially the same as `<T>[]`.
+    push(_buildLiteralList(<HInstruction>[]));
+    HInstruction allocation = pop();
+    var inferredType = globalInferenceResults.typeOfNewList(invocation);
+    if (inferredType != null) {
+      allocation.instructionType = inferredType;
+    }
+    InterfaceType type = _elementMap.createInterfaceType(
+        invocation.target.enclosingClass, invocation.arguments.types);
+    stack.add(
+        _setListRuntimeTypeInfoIfNeeded(allocation, type, sourceInformation));
+  }
+
+  /// Handle the `JSArray<T>.list(length)` and legacy `List<T>(length)`
+  /// constructors.
+  void _handleInvokeLegacyFixedListFactoryConstructor(
+      ir.StaticInvocation invocation,
+      ConstructorEntity function,
+      AbstractValue typeMask,
+      List<HInstruction> arguments,
+      SourceInformation sourceInformation) {
+    assert(
+        // Arguments may include the type.
+        arguments.length == 1 || arguments.length == 2,
+        failedAt(
+            function,
+            "Unexpected arguments. "
+            "Expected 1-2 argument, actual: $arguments."));
+    HInstruction lengthInput = arguments.first;
+    if (lengthInput.isNumber(_abstractValueDomain).isPotentiallyFalse) {
+      HPrimitiveCheck conversion = new HPrimitiveCheck(
+          _commonElements.numType,
+          HPrimitiveCheck.ARGUMENT_TYPE_CHECK,
+          _abstractValueDomain.numType,
+          lengthInput,
+          sourceInformation);
+      add(conversion);
+      lengthInput = conversion;
+    }
+    js.Template code = js.js.parseForeignJS('new Array(#)');
+    var behavior = new NativeBehavior();
+
+    var expectedType = _elementMap.getDartType(invocation.getStaticType(null));
+    behavior.typesInstantiated.add(expectedType);
+    behavior.typesReturned.add(expectedType);
+
+    // The allocation can throw only if the given length is a double or
+    // outside the unsigned 32 bit range.
+    // TODO(sra): Array allocation should be an instruction so that canThrow
+    // can depend on a length type discovered in optimization.
+    bool canThrow = true;
+    if (lengthInput.isUInt32(_abstractValueDomain).isDefinitelyTrue) {
+      canThrow = false;
     }
 
-    if (isFixedListConstructorCall) {
-      assert(
-          // Arguments may include the type.
-          arguments.length == 1 || arguments.length == 2,
-          failedAt(
-              function,
-              "Unexpected arguments. "
-              "Expected 1-2 argument, actual: $arguments."));
-      HInstruction lengthInput = arguments.first;
-      if (lengthInput.isNumber(_abstractValueDomain).isPotentiallyFalse) {
-        HPrimitiveCheck conversion = new HPrimitiveCheck(
-            _commonElements.numType,
-            HPrimitiveCheck.ARGUMENT_TYPE_CHECK,
-            _abstractValueDomain.numType,
-            lengthInput,
-            sourceInformation);
-        add(conversion);
-        lengthInput = conversion;
-      }
-      js.Template code = js.js.parseForeignJS('new Array(#)');
-      var behavior = new NativeBehavior();
+    var resultType = globalInferenceResults.typeOfNewList(invocation) ??
+        _abstractValueDomain.fixedListType;
 
-      var expectedType =
-          _elementMap.getDartType(invocation.getStaticType(null));
-      behavior.typesInstantiated.add(expectedType);
-      behavior.typesReturned.add(expectedType);
-
-      // The allocation can throw only if the given length is a double or
-      // outside the unsigned 32 bit range.
-      // TODO(sra): Array allocation should be an instruction so that canThrow
-      // can depend on a length type discovered in optimization.
-      bool canThrow = true;
-      if (lengthInput.isUInt32(_abstractValueDomain).isDefinitelyTrue) {
-        canThrow = false;
-      }
-
-      var inferredType = _inferredTypeOfNewList(invocation);
-      resultType =
-          _abstractValueDomain.containsAll(inferredType).isPotentiallyTrue
-              ? _abstractValueDomain.fixedListType
-              : inferredType;
-      HForeignCode foreign = new HForeignCode(
-          code, resultType, <HInstruction>[lengthInput],
-          nativeBehavior: behavior,
-          throwBehavior:
-              canThrow ? NativeThrowBehavior.MAY : NativeThrowBehavior.NEVER)
-        ..sourceInformation = sourceInformation;
-      push(foreign);
-      // TODO(redemption): Global type analysis tracing may have determined that
-      // the fixed-length property is never checked. If so, we can avoid marking
-      // the array.
-      {
-        js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
-        // We set the instruction as [canThrow] to avoid it being dead code.
-        // We need a finer grained side effect.
-        add(new HForeignCode(code, _abstractValueDomain.nullType, [stack.last],
-            throwBehavior: NativeThrowBehavior.MAY));
-      }
-    } else if (isGrowableListConstructorCall) {
-      push(_buildLiteralList(<HInstruction>[]));
-      var inferredType = _inferredTypeOfNewList(invocation);
-      resultType =
-          _abstractValueDomain.containsAll(inferredType).isPotentiallyTrue
-              ? _abstractValueDomain.growableListType
-              : inferredType;
-      stack.last.instructionType = resultType;
-    } else if (isJSArrayTypedConstructor) {
-      // TODO(sra): Instead of calling the identity-like factory constructor,
-      // simply select the single argument.
-
-      // Factory constructors take type parameters.
-      List<DartType> typeArguments =
-          _getConstructorTypeArguments(function, invocation.arguments);
-      // TODO(johnniwinther): Remove this when type arguments are passed to
-      // constructors like calling a generic method.
-      _addTypeArguments(
-          arguments,
-          _getClassTypeArguments(function.enclosingClass, invocation.arguments),
-          sourceInformation);
-      _pushStaticInvocation(function, arguments, typeMask, typeArguments,
-          sourceInformation: sourceInformation);
-    } else {
-      // Factory constructors take type parameters.
-      List<DartType> typeArguments =
-          _getConstructorTypeArguments(function, invocation.arguments);
-      // TODO(johnniwinther): Remove this when type arguments are passed to
-      // constructors like calling a generic method.
-      _addTypeArguments(
-          arguments,
-          _getClassTypeArguments(function.enclosingClass, invocation.arguments),
-          sourceInformation);
-      instanceType = localsHandler.substInContext(instanceType);
-      _addImplicitInstantiation(instanceType);
-      _pushStaticInvocation(function, arguments, typeMask, typeArguments,
-          sourceInformation: sourceInformation, instanceType: instanceType);
-
-      // TODO(sra): Special handling of List.filled, List.generate, List.of and
-      // other list constructors where 'growable' is false.
+    HForeignCode foreign = new HForeignCode(
+        code, resultType, <HInstruction>[lengthInput],
+        nativeBehavior: behavior,
+        throwBehavior:
+            canThrow ? NativeThrowBehavior.MAY : NativeThrowBehavior.NEVER)
+      ..sourceInformation = sourceInformation;
+    push(foreign);
+    // TODO(redemption): Global type analysis tracing may have determined that
+    // the fixed-length property is never checked. If so, we can avoid marking
+    // the array.
+    {
+      js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
+      // We set the instruction as [canThrow] to avoid it being dead code.
+      // We need a finer grained side effect.
+      add(new HForeignCode(code, _abstractValueDomain.nullType, [stack.last],
+          throwBehavior: NativeThrowBehavior.MAY));
     }
 
     HInstruction newInstance = stack.last;
 
-    if (isFixedList) {
-      // If we inlined a constructor the call-site-specific type from type
-      // inference (e.g. a container type) will not be on the node. Store the
-      // more specialized type on the allocation.
-      newInstance.instructionType = resultType;
-      graph.allocatedFixedLists.add(newInstance);
-    }
+    // If we inlined a constructor the call-site-specific type from type
+    // inference (e.g. a container type) will not be on the node. Store the
+    // more specialized type on the allocation.
+    newInstance.instructionType = resultType;
+    graph.allocatedFixedLists.add(newInstance);
 
-    if (_rtiNeed.classNeedsTypeArguments(_commonElements.listClass) &&
-        (isFixedListConstructorCall ||
-            isGrowableListConstructorCall ||
-            isJSArrayTypedConstructor)) {
-      InterfaceType type = _elementMap.createInterfaceType(
-          invocation.target.enclosingClass, invocation.arguments.types);
-      stack
-          .add(_setListRuntimeTypeInfoIfNeeded(pop(), type, sourceInformation));
-    }
+    InterfaceType type = _elementMap.createInterfaceType(
+        invocation.target.enclosingClass, invocation.arguments.types);
+    stack.add(_setListRuntimeTypeInfoIfNeeded(pop(), type, sourceInformation));
   }
 
   /// Replace calls to `extractTypeArguments` with equivalent code. Returns

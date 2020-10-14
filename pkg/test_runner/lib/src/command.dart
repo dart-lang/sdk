@@ -10,6 +10,7 @@ import 'dart:io' as io;
 import 'command_output.dart';
 import 'configuration.dart';
 import 'path.dart';
+import 'test_case.dart';
 import 'utils.dart';
 
 /// A command executed as a step in a test case.
@@ -529,6 +530,75 @@ class VMBatchCommand extends ProcessCommand implements VMCommand {
     builder.addJson(dartFile);
     builder.addJson(checked);
   }
+}
+
+// Run a VM test under RR, and copy the trace if it crashes. Using a helper
+// script like the precompiler does not work because the RR traces are large
+// and we must diligently erase them for non-crashes even if the test times
+// out and would be killed by the harness, so the copying and cleanup logic
+// must be in the harness.
+class RRCommand extends Command {
+  VMCommand originalCommand;
+  VMCommand wrappedCommand;
+  io.Directory recordingDir;
+  io.Directory savedDir;
+
+  RRCommand(this.originalCommand)
+      : super._("rr", index: originalCommand.index) {
+    final suffix = "/rr-trace-" + originalCommand.hashCode.toString();
+    recordingDir = io.Directory(io.Directory.systemTemp.path + suffix);
+    savedDir = io.Directory("out" + suffix);
+    final executable = "rr";
+    final arguments = <String>[
+      "record",
+      "--chaos",
+      "--output-trace-dir=" + recordingDir.path,
+    ];
+    arguments.add(originalCommand.executable);
+    arguments.addAll(originalCommand.arguments);
+    wrappedCommand = VMCommand(
+        executable, arguments, originalCommand.environmentOverrides,
+        index: originalCommand.index);
+  }
+
+  RRCommand indexedCopy(int index) =>
+      RRCommand(originalCommand.indexedCopy(index));
+
+  Future<CommandOutput> run(int timeout) async {
+    // rr will fail if the output trace directory already exists. Delete any
+    // that might be leftover from interrupting the harness.
+    if (await recordingDir.exists()) {
+      await recordingDir.delete(recursive: true);
+    }
+    final output = await RunningProcess(wrappedCommand, timeout).run();
+    if (output.hasCrashed) {
+      if (await savedDir.exists()) {
+        await savedDir.delete(recursive: true);
+      }
+      await recordingDir.rename(savedDir.path);
+      await io.File(savedDir.path + "/command.txt")
+          .writeAsString(wrappedCommand.reproductionCommand);
+      await io.File(savedDir.path + "/stdout.txt").writeAsBytes(output.stdout);
+      await io.File(savedDir.path + "/stderr.txt").writeAsBytes(output.stderr);
+    } else {
+      await recordingDir.delete(recursive: true);
+    }
+
+    return VMCommandOutput(this, output.exitCode, output.hasTimedOut,
+        output.stdout, output.stderr, output.time, output.pid);
+  }
+
+  String get reproductionCommand =>
+      wrappedCommand.reproductionCommand + " (rr replay " + savedDir.path + ")";
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    originalCommand._buildHashCode(builder);
+    builder.add(42);
+  }
+
+  bool _equal(RRCommand other) =>
+      hashCode == other.hashCode &&
+      originalCommand._equal(other.originalCommand);
 }
 
 abstract class AdbCommand {

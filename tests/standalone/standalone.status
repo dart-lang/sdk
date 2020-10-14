@@ -61,6 +61,9 @@ io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
 io/wait_for_test: SkipByDesign # Uses mirrors.
 verbose_gc_to_bmu_test: Skip # Attempts to spawn dart using Platform.executable
 
+[ $system != macos ]
+io/https_nonblocking_trust_evaluation_test: SkipByDesign
+
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:io' show Directory, File;
 
 import 'package:cli_util/cli_util.dart';
@@ -389,7 +391,7 @@ void main() {
           expression: 'x + 1',
           expectedResult: '''
           (function(x) {
-            return dart.dsend(x, '+', [1]);
+            return dart.notNull(x) + 1;
           }.bind(this)(
           1
           ))
@@ -402,7 +404,7 @@ void main() {
           expression: 'x + staticField',
           expectedResult: '''
           (function(x) {
-            return dart.dsend(x, '+', [foo.C.staticField]);
+            return dart.notNull(x) + dart.notNull(foo.C.staticField);
           }.bind(this)(
           1
           ))
@@ -417,7 +419,7 @@ void main() {
           (function(x) {
             let foo = require('foo.dart').foo;
             let _staticField = dart.privateName(foo, "_staticField");
-            return dart.dsend(x, '+', [foo.C._staticField]);
+            return dart.notNull(x) + dart.notNull(foo.C._staticField);
           }.bind(this)(
           1
           ))
@@ -430,7 +432,7 @@ void main() {
           expression: 'x + field',
           expectedResult: '''
           (function(x) {
-            return dart.dsend(x, '+', [this.field]);
+            return dart.notNull(x) + dart.notNull(this.field);
           }.bind(this)(
           1
           ))
@@ -445,7 +447,7 @@ void main() {
           (function(x) {
             let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
-            return dart.dsend(x, '+', [this[_field]]);
+            return dart.notNull(x) + dart.notNull(this[_field]);
           }.bind(this)(
           1
           ))
@@ -458,7 +460,7 @@ void main() {
           expression: 'x + global',
           expectedResult: '''
           (function(x) {
-            return dart.dsend(x, '+', [foo.global]);
+            return dart.notNull(x) + dart.notNull(foo.global);
           }.bind(this)(
           1
           ))
@@ -615,7 +617,7 @@ void main() {
           expression: 'x + staticField',
           expectedResult: '''
           (function(x) {
-            return dart.dsend(x, '+', [foo.C.staticField]);
+            return dart.notNull(x) + dart.notNull(foo.C.staticField);
           }.bind(this)(
           1
           ))
@@ -630,7 +632,7 @@ void main() {
           (function(x) {
             let foo = require('foo.dart').foo;
             let _staticField = dart.privateName(foo, "_staticField");
-            return dart.dsend(x, '+', [foo.C._staticField]);
+            return dart.notNull(x) + dart.notNull(foo.C._staticField);
           }.bind(this)(
           1
           ))
@@ -643,7 +645,7 @@ void main() {
           expression: 'x + field',
           expectedResult: '''
           (function(x) {
-            return dart.dsend(x, '+', [this.field]);
+            return dart.notNull(x) + dart.notNull(this.field);
           }.bind(this)(
           1
           ))
@@ -658,7 +660,7 @@ void main() {
           (function(x) {
             let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
-            return dart.dsend(x, '+', [this[_field]]);
+            return dart.notNull(x) + dart.notNull(this[_field]);
           }.bind(this)(
           1
           ))
@@ -917,7 +919,7 @@ void main() {
           expression: 'c.field',
           expectedResult: '''
           (function(x, c) {
-            return dart.dloadRepl(c, 'field');
+            return c.field;
           }(
           1, null
           ))
@@ -932,7 +934,7 @@ void main() {
           (function(x, c) {
             let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
-            return dart.dloadRepl(c, _field);
+            return c[_field];
           }(
           1, null
           ))
@@ -945,7 +947,7 @@ void main() {
           expression: 'c.methodFieldAccess(2)',
           expectedResult: '''
           (function(x, c) {
-            return dart.dsendRepl(c, 'methodFieldAccess', [2]);
+            return c.methodFieldAccess(2);
           }(
           1, null
           ))
@@ -958,7 +960,7 @@ void main() {
           expression: 'c.asyncMethod(2)',
           expectedResult: '''
           (function(x, c) {
-            return dart.dsendRepl(c, 'asyncMethod', [2]);
+            return c.asyncMethod(2);
           }(
           1, null
           ))
@@ -986,7 +988,7 @@ void main() {
           (function(x, c) {
             let foo = require('foo.dart').foo;
             let _field = dart.privateName(foo, "_field");
-            return dart.dputRepl(c, _field, 2);
+            return c[_field] = 2;
           }(
           1, null
           ))
@@ -999,7 +1001,7 @@ void main() {
           expression: 'c.field = 2',
           expectedResult: '''
           (function(x, c) {
-            return dart.dputRepl(c, 'field', 2);
+            return c.field = 2;
           }(
           1, null
           ))
@@ -1128,6 +1130,9 @@ void main() {
       int bar(int p){
         return p;
       }
+      int baz(String t){
+        return t;
+      }
       void main() {
         var k = Key('t');
         MyClass c = MyClass(0);
@@ -1154,10 +1159,23 @@ void main() {
           expression: 'bar(p)',
           expectedResult: '''
           (function(p) {
-            var intL = () => (intL = dart.constFn(dart.legacy(core.int)))();
-            return foo.bar(intL().as(p));
+            return foo.bar(p);
           }(
           1
+          ))
+          ''');
+    });
+
+    test('call function using type', () async {
+      await driver.check(
+          scope: <String, String>{'p': '0'},
+          expression: 'baz(p as String)',
+          expectedResult: '''
+          (function(p) {
+            var StringL = () => (StringL = dart.constFn(dart.legacy(core.String)))();
+            return foo.baz(StringL().as(p));
+          }(
+          0
           ))
           ''');
     });

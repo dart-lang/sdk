@@ -7,6 +7,8 @@
 // The material is licensed under the Creative Commons Attribution-Share-Alike
 // License 3.0: https://creativecommons.org/licenses/by-sa/3.0/
 
+// @dart=2.9
+
 const String en = '''
 Anarchism
 

@@ -38,7 +38,8 @@ class DataDriven extends MultiCorrectionProducer {
     var matcher =
         ElementMatcher(importedUris: importedUris, name: name, kinds: _kinds);
     for (var set in _availableTransformSetsForLibrary(library)) {
-      for (var transform in set.transformsFor(matcher)) {
+      for (var transform
+          in set.transformsFor(matcher, applyingBulkFixes: applyingBulkFixes)) {
         yield DataDrivenFix(transform);
       }
     }

@@ -16,7 +16,10 @@
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/frame_rebase.h"
+#include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
+#include "vm/compiler/ffi/native_location.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"
@@ -4164,6 +4167,42 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* NativeEntryInstr::MakeLocationSummary(Zone* zone,
                                                        bool optimizing) const {
   UNREACHABLE();
+}
+
+void NativeEntryInstr::SaveArguments(FlowGraphCompiler* compiler) const {
+  __ Comment("SaveArguments");
+
+  // Save the argument registers, in reverse order.
+  for (intptr_t i = marshaller_.num_args(); i-- > 0;) {
+    SaveArgument(compiler, marshaller_.Location(i));
+  }
+
+  __ Comment("SaveArgumentsEnd");
+}
+
+void NativeEntryInstr::SaveArgument(
+    FlowGraphCompiler* compiler,
+    const compiler::ffi::NativeLocation& nloc) const {
+  if (nloc.IsStack()) return;
+
+  if (nloc.IsRegisters()) {
+    const auto& reg_loc = nloc.WidenTo4Bytes(compiler->zone()).AsRegisters();
+    const intptr_t num_regs = reg_loc.num_regs();
+    // Save higher-order component first, so bytes are in little-endian layout
+    // overall.
+    for (intptr_t i = num_regs - 1; i >= 0; i--) {
+      __ PushRegister(reg_loc.reg_at(i));
+    }
+  } else if (nloc.IsFpuRegisters()) {
+    // TODO(dartbug.com/40469): Reduce code size.
+    __ AddImmediate(SPREG, -8);
+    NoTemporaryAllocator temp_alloc;
+    const auto& dst = compiler::ffi::NativeStackLocation(
+        nloc.payload_type(), nloc.payload_type(), SPREG, 0);
+    compiler->EmitNativeMove(dst, nloc, &temp_alloc);
+  } else {
+    UNREACHABLE();
+  }
 }
 
 LocationSummary* OsrEntryInstr::MakeLocationSummary(Zone* zone,

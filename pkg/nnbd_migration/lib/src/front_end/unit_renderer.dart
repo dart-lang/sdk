@@ -41,6 +41,7 @@ class UnitRenderer {
     NullabilityFixKind.addLate,
     NullabilityFixKind.addLateDueToTestSetup,
     NullabilityFixKind.addLateDueToHint,
+    NullabilityFixKind.addLateFinalDueToHint,
     NullabilityFixKind.checkExpressionDueToHint,
     NullabilityFixKind.makeTypeNullableDueToHint,
     NullabilityFixKind.removeLanguageVersionComment
@@ -265,6 +266,8 @@ class UnitRenderer {
         return '$count late hint$s converted to late keyword$s';
       case NullabilityFixKind.addLateDueToTestSetup:
         return '$count late keyword$s added, due to assignment in `setUp`';
+      case NullabilityFixKind.addLateFinalDueToHint:
+        return '$count late final hint$s converted to late and final keywords';
       case NullabilityFixKind.addRequired:
         return '$count required keyword$s added';
       case NullabilityFixKind.addType:

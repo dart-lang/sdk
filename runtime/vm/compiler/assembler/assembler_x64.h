@@ -705,6 +705,9 @@ class Assembler : public AssemblerBase {
   void AddImmediate(Register reg,
                     const Immediate& imm,
                     OperandWidth width = k64Bit);
+  void AddImmediate(Register reg, int32_t value, OperandWidth width = k64Bit) {
+    AddImmediate(reg, Immediate(value), width);
+  }
   void AddImmediate(const Address& address, const Immediate& imm);
   void SubImmediate(Register reg,
                     const Immediate& imm,

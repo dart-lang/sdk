@@ -8,22 +8,23 @@ import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
 import 'package:test_runner/src/test_suite.dart';
 
-final Path _suiteDirectory = Path("language_2");
-
-TestFile parseTestFile(String source, {String path = "some_test.dart"}) {
-  path = _suiteDirectory.absolute.append(path).toNativePath();
-  return TestFile.parse(_suiteDirectory.absolute, path, source);
+TestFile parseTestFile(String source,
+    {String path = "some_test.dart", String suite = "language"}) {
+  final suiteDirectory = Path(suite);
+  path = suiteDirectory.absolute.append(path).toNativePath();
+  return TestFile.parse(suiteDirectory.absolute, path, source);
 }
 
 // TODO(rnystrom): Would be nice if there was a simpler way to create a
 // configuration for use in unit tests.
-TestConfiguration makeConfiguration(List<String> arguments) =>
-    OptionsParser().parse([...arguments, "language_2"]).first;
+TestConfiguration makeConfiguration(List<String> arguments, String suite) {
+  return OptionsParser().parse([...arguments, suite]).first;
+}
 
 /// Creates a [StandardTestSuite] hardcoded to contain [testFiles].
-StandardTestSuite makeTestSuite(
-        TestConfiguration configuration, List<TestFile> testFiles) =>
-    _MockTestSuite(configuration, testFiles);
+StandardTestSuite makeTestSuite(TestConfiguration configuration,
+        List<TestFile> testFiles, String suite) =>
+    _MockTestSuite(configuration, testFiles, suite);
 
 StaticError makeError(
     {int line = 1,
@@ -43,8 +44,8 @@ StaticError makeError(
 class _MockTestSuite extends StandardTestSuite {
   final List<TestFile> _testFiles;
 
-  _MockTestSuite(TestConfiguration configuration, this._testFiles)
-      : super(configuration, "language_2", _suiteDirectory, []);
+  _MockTestSuite(TestConfiguration configuration, this._testFiles, String suite)
+      : super(configuration, suite, Path(suite), []);
 
   @override
   Iterable<TestFile> findTests() => _testFiles;

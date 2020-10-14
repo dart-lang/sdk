@@ -4,6 +4,7 @@
 
 import 'dart:convert' show jsonDecode, JsonEncoder;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -27,14 +28,16 @@ import 'package:yaml/yaml.dart';
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
   // TODO(srawlins): Refactor to use
-  //  `Feature.non_nullable.releaseVersion` when this becomes non-null.
-  static const String _intendedMinimumSdkVersion = '2.9.0';
+  //  `Feature.non_nullable.releaseVersion` when this becomes non-null (perhaps
+  //  after "Beta").
+  static final Version _intendedMinimumSdkVersion =
+      Feature.non_nullable.experimentalReleaseVersion;
 
   // In the package_config.json file, the patch number is omitted.
-  static const String _intendedLanguageVersion = '2.9';
+  static const String _intendedLanguageVersion = '2.10';
 
-  static const String _intendedSdkVersionConstraint =
-      '>=$_intendedMinimumSdkVersion <2.10.0';
+  static final String _intendedSdkVersionConstraint =
+      '>=$_intendedMinimumSdkVersion <2.12.0';
 
   static final List<HttpPreviewServer> _allServers = [];
 
@@ -207,7 +210,7 @@ class NonNullableFix {
   }
 
   /// Updates the Package Config file to specify a minimum Dart SDK version
-  /// which enables the Null Safety feature.
+  /// which supports null safety.
   void _processConfigFile(Folder pkgFolder, _Pubspec pubspec) {
     if (!_packageIsNNBD) {
       return;
@@ -291,7 +294,7 @@ class NonNullableFix {
   }
 
   /// Updates the pubspec.yaml file to specify a minimum Dart SDK version which
-  /// enables the Null Safety feature.
+  /// supports null safety.
   bool _processPubspec(_Pubspec pubspec) {
     /// Inserts [content] into [pubspecFile], immediately after [parentSpan].
     void insertAfterParent(SourceSpan parentSpan, String content) {
@@ -351,9 +354,8 @@ environment:
         VersionConstraint currentConstraint;
         if (sdk.value is String) {
           currentConstraint = VersionConstraint.parse(sdk.value as String);
-          var minimumVersion = Version.parse(_intendedMinimumSdkVersion);
           if (currentConstraint is VersionRange &&
-              currentConstraint.min >= minimumVersion) {
+              currentConstraint.min >= _intendedMinimumSdkVersion) {
             // The current SDK version constraint already enables Null Safety.
             // Do not edit pubspec.yaml, nor package_config.json.
             return false;

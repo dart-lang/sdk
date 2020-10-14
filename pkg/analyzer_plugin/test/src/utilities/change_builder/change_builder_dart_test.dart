@@ -2815,12 +2815,12 @@ class B extends A {
       nameToOverride: 'value=',
       expected: '''
   @override
-  void set value(int value) {
+  set value(int value) {
     // TODO: implement value
   }
 ''',
       displayText: 'value(int value) { … }',
-      selection: SourceRange(133, 0),
+      selection: SourceRange(128, 0),
     );
   }
 
@@ -2837,13 +2837,13 @@ class B extends A {
       invokeSuper: true,
       expected: '''
   @override
-  void set value(int value) {
+  set value(int value) {
     // TODO: implement value
     super.value = value;
   }
 ''',
       displayText: 'value(int value) { … }',
-      selection: SourceRange(131, 20),
+      selection: SourceRange(126, 20),
     );
   }
 

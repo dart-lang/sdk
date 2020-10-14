@@ -36,6 +36,7 @@ class ErrorContext {
 /// A parser used to read a transform set from a file.
 class TransformSetParser {
   static const String _argumentValueKey = 'argumentValue';
+  static const String _bulkApplyKey = 'bulkApply';
   static const String _changesKey = 'changes';
   static const String _classKey = 'class';
   static const String _constantKey = 'constant';
@@ -377,6 +378,27 @@ class TransformSetParser {
     return null;
   }
 
+  /// Translate the [node] into a bool. Return the resulting bool, or `null`
+  /// if the [node] does not represent a valid bool. If the [node] is not
+  /// valid, use the [context] to report the error.
+  bool _translateBool(YamlNode node, ErrorContext context,
+      {bool required = true}) {
+    if (node is YamlScalar) {
+      var value = node.value;
+      if (value is bool) {
+        return value;
+      }
+      return _reportInvalidValue(node, context, 'boolean');
+    } else if (node == null) {
+      if (required) {
+        return _reportMissingKey(context);
+      }
+      return null;
+    } else {
+      return _reportInvalidValue(node, context, 'boolean');
+    }
+  }
+
   /// Translate the [node] into a change. Return the resulting change, or `null`
   /// if the [node] does not represent a valid change. If the [node] is not
   /// valid, use the [context] to report the error.
@@ -712,12 +734,16 @@ class TransformSetParser {
   Transform _translateTransform(YamlNode node, ErrorContext context) {
     assert(node != null);
     if (node is YamlMap) {
-      _reportUnsupportedKeys(
-          node, const {_changesKey, _dateKey, _elementKey, _titleKey});
+      _reportUnsupportedKeys(node,
+          const {_bulkApplyKey, _changesKey, _dateKey, _elementKey, _titleKey});
       var title = _translateString(node.valueAt(_titleKey),
           ErrorContext(key: _titleKey, parentNode: node));
       var date = _translateDate(node.valueAt(_dateKey),
           ErrorContext(key: _dateKey, parentNode: node));
+      var bulkApply = _translateBool(node.valueAt(_bulkApplyKey),
+              ErrorContext(key: _bulkApplyKey, parentNode: node),
+              required: false) ??
+          true;
       var element = _translateElement(node.valueAt(_elementKey),
           ErrorContext(key: _elementKey, parentNode: node));
       var changes = _translateList(node.valueAt(_changesKey),
@@ -731,7 +757,11 @@ class TransformSetParser {
         _parameterModifications = null;
       }
       return Transform(
-          title: title, date: date, element: element, changes: changes);
+          title: title,
+          date: date,
+          bulkApply: bulkApply,
+          element: element,
+          changes: changes);
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }

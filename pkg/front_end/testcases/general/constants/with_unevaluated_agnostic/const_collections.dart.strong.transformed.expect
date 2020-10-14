@@ -29,54 +29,53 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static const field core::List<core::bool> listWithUnevaluated = #C7;
-static const field core::List<core::bool> listWithUnevaluatedSpread = #C11;
-static const field core::Set<core::bool> setWithUnevaluated = #C15;
-static const field core::Set<core::bool> setWithUnevaluatedSpread = #C18;
-static const field core::List<core::int> a = #C19;
-static const field core::List<core::int?> b = #C20;
+static const field core::List<core::bool> listWithUnevaluated = #C5;
+static const field core::List<core::bool> listWithUnevaluatedSpread = #C9;
+static const field core::Set<core::bool> setWithUnevaluated = #C11;
+static const field core::Set<core::bool> setWithUnevaluatedSpread = #C14;
+static const field core::List<core::int> a = #C15;
+static const field core::List<core::int?> b = #C16;
 static const field core::Set<core::List<core::int?>> setNotAgnosticOK = invalid-expression "Constant value is not strong/weak mode agnostic.";
-static const field invalid-type MapWithUnevaluated = #C23;
+static const field invalid-type MapWithUnevaluated = #C18;
 static const field core::Map<core::List<core::int?>, core::int> mapNotAgnosticOK = invalid-expression "Constant value is not strong/weak mode agnostic.";
 static method main() → dynamic {
-  core::print(#C24);
+  core::print(#C21);
+  core::print(#C22);
   core::print(#C25);
   core::print(#C26);
-  core::print(#C27);
   core::print(<core::String>{"hello"});
-  core::print(#C29);
+  core::print(#C28);
 }
 
 constants  {
   #C1 = <core::bool>[]
-  #C2 = <dynamic>[]
-  #C3 = "foo"
-  #C4 = "bar"
-  #C5 = true
-  #C6 = <dynamic>[#C5]
-  #C7 = eval #C1 + #C2 + #C2 + const <dynamic>[const core::bool::fromEnvironment(#C3)] + #C2 + #C2 + const <dynamic>[const core::bool::fromEnvironment(#C4)] + #C6
-  #C8 = <core::bool>[#C5]
-  #C9 = false
-  #C10 = <core::bool>[#C9]
-  #C11 = eval #C8 + #C1 + #C2 + #C2 + #C2 + const <dynamic>[const core::bool::fromEnvironment(#C3)] + #C2 + #C2 + #C2 + const <dynamic>[const core::bool::fromEnvironment(#C4)] + #C6 + #C10
-  #C12 = <core::bool>{}
-  #C13 = <dynamic>{}
-  #C14 = <dynamic>{#C5}
-  #C15 = eval #C12 + #C13 + #C13 + const <dynamic>{const core::bool::fromEnvironment(#C3)} + #C13 + #C13 + const <dynamic>{const core::bool::fromEnvironment(#C4)} + #C14
-  #C16 = <core::bool>{#C5}
-  #C17 = <core::bool>{#C9}
-  #C18 = eval #C16 + #C12 + #C13 + #C13 + #C13 + const <dynamic>{const core::bool::fromEnvironment(#C3)} + #C13 + #C13 + #C13 + const <dynamic>{const core::bool::fromEnvironment(#C4)} + #C14 + #C17
-  #C19 = <core::int>[]
-  #C20 = <core::int?>[]
-  #C21 = <core::bool, core::bool>{)
-  #C22 = <dynamic, dynamic>{)
-  #C23 = eval #C21 + #C22 + const <dynamic, dynamic>{const core::bool::fromEnvironment(#C3): const core::bool::fromEnvironment(#C4)}
-  #C24 = eval #C1 + #C2 + #C2 + const <dynamic>[const core::bool::fromEnvironment(#C3)] + #C2 + #C2 + const <dynamic>[const core::bool::fromEnvironment(#C4)] + #C6
-  #C25 = eval #C8 + #C1 + #C2 + #C2 + #C2 + const <dynamic>[const core::bool::fromEnvironment(#C3)] + #C2 + #C2 + #C2 + const <dynamic>[const core::bool::fromEnvironment(#C4)] + #C6 + #C10
-  #C26 = eval #C12 + #C13 + #C13 + const <dynamic>{const core::bool::fromEnvironment(#C3)} + #C13 + #C13 + const <dynamic>{const core::bool::fromEnvironment(#C4)} + #C14
-  #C27 = eval #C16 + #C12 + #C13 + #C13 + #C13 + const <dynamic>{const core::bool::fromEnvironment(#C3)} + #C13 + #C13 + #C13 + const <dynamic>{const core::bool::fromEnvironment(#C4)} + #C14 + #C17
-  #C28 = "hello"
-  #C29 = <core::String>{#C28}
+  #C2 = "foo"
+  #C3 = "bar"
+  #C4 = true
+  #C5 = eval #C1 + const <dynamic>[const core::bool::fromEnvironment(#C2)] + const <dynamic>[const core::bool::fromEnvironment(#C3)] + const <dynamic>[#C4]
+  #C6 = <core::bool>[#C4]
+  #C7 = false
+  #C8 = <core::bool>[#C7]
+  #C9 = eval #C6 + #C1 + const <dynamic>[const core::bool::fromEnvironment(#C2)] + const <dynamic>[const core::bool::fromEnvironment(#C3)] + const <dynamic>[#C4] + #C8
+  #C10 = <core::bool>{}
+  #C11 = eval #C10 + const <dynamic>{const core::bool::fromEnvironment(#C2)} + const <dynamic>{const core::bool::fromEnvironment(#C3)} + const <dynamic>{#C4}
+  #C12 = <core::bool>{#C4}
+  #C13 = <core::bool>{#C7}
+  #C14 = eval #C12 + #C10 + const <dynamic>{const core::bool::fromEnvironment(#C2)} + const <dynamic>{const core::bool::fromEnvironment(#C3)} + const <dynamic>{#C4} + #C13
+  #C15 = <core::int>[]
+  #C16 = <core::int?>[]
+  #C17 = <core::bool, core::bool>{)
+  #C18 = eval #C17 + const <dynamic, dynamic>{const core::bool::fromEnvironment(#C2): const core::bool::fromEnvironment(#C3)}
+  #C19 = <dynamic>[]
+  #C20 = <dynamic>[#C4]
+  #C21 = eval #C1 + #C19 + const <dynamic>[const core::bool::fromEnvironment(#C2)] + #C19 + const <dynamic>[const core::bool::fromEnvironment(#C3)] + #C20
+  #C22 = eval #C6 + #C1 + #C19 + const <dynamic>[const core::bool::fromEnvironment(#C2)] + #C19 + const <dynamic>[const core::bool::fromEnvironment(#C3)] + #C20 + #C8
+  #C23 = <dynamic>{}
+  #C24 = <dynamic>{#C4}
+  #C25 = eval #C10 + #C23 + const <dynamic>{const core::bool::fromEnvironment(#C2)} + #C23 + const <dynamic>{const core::bool::fromEnvironment(#C3)} + #C24
+  #C26 = eval #C12 + #C10 + #C23 + const <dynamic>{const core::bool::fromEnvironment(#C2)} + #C23 + const <dynamic>{const core::bool::fromEnvironment(#C3)} + #C24 + #C13
+  #C27 = "hello"
+  #C28 = <core::String>{#C27}
 }
 
 Extra constant evaluation status:

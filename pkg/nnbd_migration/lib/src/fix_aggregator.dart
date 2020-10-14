@@ -1017,9 +1017,11 @@ class NodeChangeForVariableDeclarationList
     innerPlans.addAll(aggregator.innerPlansForNode(node));
     var plan = aggregator.planner.passThrough(node, innerPlans: innerPlans);
     if (lateHint != null) {
+      var description = lateHint.kind == HintCommentKind.late_
+          ? NullabilityFixDescription.addLateDueToHint
+          : NullabilityFixDescription.addLateFinalDueToHint;
       plan = aggregator.planner.acceptLateHint(plan, lateHint,
-          info: AtomicEditInfo(NullabilityFixDescription.addLateDueToHint, {},
-              hintComment: lateHint));
+          info: AtomicEditInfo(description, {}, hintComment: lateHint));
     }
     return plan;
   }

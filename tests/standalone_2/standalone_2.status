@@ -70,6 +70,9 @@ io/socket_ipv6_test: Skip
 package/invalid_uri_test: Skip
 regress_29350_test: Skip
 
+[ $system != macos ]
+io/https_nonblocking_trust_evaluation_test: SkipByDesign
+
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 

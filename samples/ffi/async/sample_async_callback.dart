@@ -8,6 +8,8 @@
 //
 // TODO(dartbug.com/37022): Update this when we get real async callbacks.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 import 'dart:isolate';
 

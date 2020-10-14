@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // ignore_for_file: slash_for_doc_comments, prefer_single_quotes
 // ignore_for_file: always_declare_return_types, prefer_final_fields
 // ignore_for_file: always_require_non_null_named_parameters

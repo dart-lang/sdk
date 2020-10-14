@@ -1727,7 +1727,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
-              .map((name) => new VariableDeclarationImpl(name, 0))
+              .map((name) =>
+                  new VariableDeclarationImpl(name, 0, type: definitions[name]))
               .toList());
 
       debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);

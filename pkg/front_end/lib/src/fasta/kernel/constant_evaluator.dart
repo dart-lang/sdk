@@ -925,8 +925,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (errorOnUnevaluatedConstant) {
         return createErrorConstant(node, messageConstEvalUnevaluated);
       }
-      return new UnevaluatedConstant(
-          removeRedundantFileUriExpressions(result.expression));
+      return canonicalize(new UnevaluatedConstant(
+          removeRedundantFileUriExpressions(result.expression)));
     }
     return result;
   }
@@ -1142,8 +1142,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     Constant constant = node.constant;
     Constant result = constant;
     if (constant is UnevaluatedConstant) {
-      result = _evaluateSubexpression(constant.expression);
-      if (result is AbortConstant) return result;
+      if (environmentDefines != null) {
+        result = _evaluateSubexpression(constant.expression);
+        if (result is AbortConstant) return result;
+      } else {
+        // Still no environment. Doing anything is just wasted time.
+        result = constant;
+      }
     }
     // If there were already constants in the AST then we make sure we
     // re-canonicalize them.  After running the transformer we will therefore

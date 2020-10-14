@@ -7,6 +7,8 @@
 // The material is licensed under the Creative Commons Attribution-Share-Alike
 // License 3.0: https://creativecommons.org/licenses/by-sa/3.0/
 
+// @dart=2.9
+
 const String zh = '''
 最簡單的漢字只有一笔画，但卻不止一個字：除了「一」字以外，「乙」、「〇」、「丶」、「丨」、「亅」、「丿」、「乀」、「乁」、「𠄌」、「𠃋」、「𠃉」、「𠃊」、「乚」等都是漢字，而且都有各自的讀音。
 

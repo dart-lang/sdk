@@ -4,6 +4,8 @@
 //
 // Benchmark for UTF-8 encoding
 
+// @dart=2.9
+
 import 'dart:convert';
 
 import 'package:benchmark_harness/benchmark_harness.dart';

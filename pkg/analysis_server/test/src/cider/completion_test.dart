@@ -30,11 +30,6 @@ class CiderCompletionComputerTest extends CiderServiceTest {
   CiderCompletionResult _completionResult;
   List<CompletionSuggestion> _suggestions;
 
-  @override
-  void setUp() {
-    super.setUp();
-  }
-
   Future<void> test_compute() async {
     await _compute(r'''
 class A {}

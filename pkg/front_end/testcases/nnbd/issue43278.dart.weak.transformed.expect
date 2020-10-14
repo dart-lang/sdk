@@ -19,8 +19,15 @@ library /*isNonNullableByDefault*/;
 //   b.fooExtension ??= x; // Error.
 //     ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: Property 'fooExtension' cannot be accessed on 'T' because it is potentially null.
-// Try accessing using ?. instead.
+// pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: The getter 'fooExtension' isn't defined for the class 'B?'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'fooExtension'.
+//   t.fooExtension ??= x; // Error.
+//     ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: The setter 'fooExtension' isn't defined for the class 'B?'.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'fooExtension'.
 //   t.fooExtension ??= x; // Error.
 //     ^^^^^^^^^^^^
 //
@@ -79,13 +86,15 @@ Try accessing using ?. instead.
 Try accessing using ?. instead.
   b.fooExtension ??= x; // Error.
     ^^^^^^^^^^^^" in self::Extension|set#fooExtension(#t10, x) : null;
-  let final self::testExtension::T% #t13 = t in (let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: Property 'fooExtension' cannot be accessed on 'T' because it is potentially null.
-Try accessing using ?. instead.
+  let final self::testExtension::T% #t13 = t in invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: The getter 'fooExtension' isn't defined for the class 'B?'.
+ - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'fooExtension'.
   t.fooExtension ??= x; // Error.
-    ^^^^^^^^^^^^" in self::Extension|get#fooExtension(#t13)).{core::num::==}(null) ?{core::int} let final<BottomType> #t15 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: Property 'fooExtension' cannot be accessed on 'T' because it is potentially null.
-Try accessing using ?. instead.
+    ^^^^^^^^^^^^".{core::Object::==}(null) ?{dynamic} invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: The setter 'fooExtension' isn't defined for the class 'B?'.
+ - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'fooExtension'.
   t.fooExtension ??= x; // Error.
-    ^^^^^^^^^^^^" in self::Extension|set#fooExtension(#t13, x) : null;
-  let final self::B? #t16 = b in #t16.{core::Object::==}(null) ?{core::int?} null : let final self::B #t17 = self::Extension|get#barExtension(#t16{self::B}) in self::Extension|get#fooExtension(#t17).{core::num::==}(null) ?{core::int} self::Extension|set#fooExtension(#t17, x) : null;
+    ^^^^^^^^^^^^" : null;
+  let final self::B? #t14 = b in #t14.{core::Object::==}(null) ?{core::int?} null : let final self::B #t15 = self::Extension|get#barExtension(#t14{self::B}) in self::Extension|get#fooExtension(#t15).{core::num::==}(null) ?{core::int} self::Extension|set#fooExtension(#t15, x) : null;
 }
 static method main() → dynamic {}
