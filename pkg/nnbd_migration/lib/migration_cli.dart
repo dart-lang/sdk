@@ -277,6 +277,111 @@ class MigrateCommand extends Command<dynamic> {
 /// [MigrationCliRunner.run] on the result.  If either method throws a
 /// [MigrationExit], exit with the error code contained therein.
 class MigrationCli {
+  /// A list of all the command-line options supported by the tool.
+  ///
+  /// This may be used by clients that wish to run migration but provide their
+  /// own command-line interface.
+  static final List<MigrationCliOption> options = [
+    MigrationCliOption(
+        CommandLineOptions.verboseFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.verboseFlag,
+              abbr: 'v',
+              defaultsTo: false,
+              help: 'Show additional command output.',
+              negatable: false,
+            )),
+    MigrationCliOption(
+        CommandLineOptions.applyChangesFlag,
+        (parser, hide) => parser.addFlag(CommandLineOptions.applyChangesFlag,
+            defaultsTo: false,
+            negatable: false,
+            help:
+                'Apply the proposed null safety changes to the files on disk.')),
+    MigrationCliOption(
+        CommandLineOptions.ignoreErrorsFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.ignoreErrorsFlag,
+              defaultsTo: false,
+              negatable: false,
+              help:
+                  'Attempt to perform null safety analysis even if the package has '
+                  'analysis errors.',
+            )),
+    MigrationCliOption(
+        CommandLineOptions.skipPubOutdatedFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.skipPubOutdatedFlag,
+              // TODO(srawlins): Before "beta," change the default to "false," and
+              // negatable to "false." See
+              // https://github.com/dart-lang/sdk/issues/43774.
+              defaultsTo: true,
+              negatable: true,
+              help:
+                  'Skip the `pub outdated --mode=null-safety` check. This allows a '
+                  'migration to proceed even if some package dependencies have not yet '
+                  'been migrated.',
+            )),
+    MigrationCliOption.separator('Web interface options:'),
+    MigrationCliOption(
+        CommandLineOptions.webPreviewFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.webPreviewFlag,
+              defaultsTo: true,
+              negatable: true,
+              help:
+                  'Show an interactive preview of the proposed null safety changes '
+                  'in a browser window. Use --no-web-preview to print proposed changes '
+                  'to the console.',
+            )),
+    MigrationCliOption(
+        CommandLineOptions.previewHostnameOption,
+        (parser, hide) => parser.addOption(
+              CommandLineOptions.previewHostnameOption,
+              defaultsTo: 'localhost',
+              valueHelp: 'host',
+              help: 'Run the preview server on the specified hostname. If not '
+                  'specified, "localhost" is used. Use "any" to specify IPv6.any or '
+                  'IPv4.any.',
+            )),
+    MigrationCliOption(
+        CommandLineOptions.previewPortOption,
+        (parser, hide) => parser.addOption(
+              CommandLineOptions.previewPortOption,
+              valueHelp: 'port',
+              help:
+                  'Run the preview server on the specified port. If not specified, '
+                  'dynamically allocate a port.',
+            )),
+    MigrationCliOption.separator('Additional options:'),
+    MigrationCliOption(
+        CommandLineOptions.summaryOption,
+        (parser, hide) => parser.addOption(
+              CommandLineOptions.summaryOption,
+              help: 'Output a machine-readable summary of migration changes.',
+              valueHelp: 'path',
+            )),
+    // hidden options
+    MigrationCliOption(
+        CommandLineOptions.ignoreExceptionsFlag,
+        (parser, hide) => parser.addFlag(
+              CommandLineOptions.ignoreExceptionsFlag,
+              defaultsTo: false,
+              negatable: false,
+              help:
+                  'Attempt to perform null safety analysis even if exceptions occur.',
+              hide: hide,
+            )),
+    MigrationCliOption(
+        CommandLineOptions.sdkPathOption,
+        (parser, hide) => parser.addOption(
+              CommandLineOptions.sdkPathOption,
+              valueHelp: 'sdk-path',
+              help: 'The path to the Dart SDK.',
+              hide: hide,
+            )),
+  ];
+
   /// The name of the executable, for reporting in help messages.
   final String binaryName;
 
@@ -419,6 +524,27 @@ class MigrationCli {
     }
   }
 
+  /// Adds a set of "core" command line options to [parser].  If [hide] is
+  /// `true`, then rarely-used options are hidden.
+  ///
+  /// This method will be removed soon; please use [options] instead, and filter
+  /// out the options you don't need.
+  @deprecated
+  static void addCoreOptions(ArgParser parser, bool hide) {
+    const nonCoreOptions = {
+      CommandLineOptions.skipPubOutdatedFlag,
+      CommandLineOptions.webPreviewFlag,
+      CommandLineOptions.summaryOption,
+      CommandLineOptions.sdkPathOption
+    };
+    for (var option in options) {
+      if (!option.isSeparator && nonCoreOptions.contains(option.name)) {
+        continue;
+      }
+      option.addToParser(parser, hide);
+    }
+  }
+
   static ArgParser createParser({bool hide = true}) {
     var parser = ArgParser();
     parser.addFlag(CommandLineOptions.helpFlag,
@@ -441,82 +567,32 @@ class MigrationCli {
   }
 
   static void _defineOptions(ArgParser parser, bool hide) {
-    parser.addFlag(
-      CommandLineOptions.verboseFlag,
-      abbr: 'v',
-      defaultsTo: false,
-      help: 'Show additional command output.',
-      negatable: false,
-    );
-    parser.addFlag(CommandLineOptions.applyChangesFlag,
-        defaultsTo: false,
-        negatable: false,
-        help: 'Apply the proposed null safety changes to the files on disk.');
-    parser.addFlag(
-      CommandLineOptions.ignoreErrorsFlag,
-      defaultsTo: false,
-      negatable: false,
-      help: 'Attempt to perform null safety analysis even if the package has '
-          'analysis errors.',
-    );
-    parser.addFlag(
-      CommandLineOptions.skipPubOutdatedFlag,
-      // TODO(srawlins): Before "beta," change the default to "false," and
-      // negatable to "false." See
-      // https://github.com/dart-lang/sdk/issues/43774.
-      defaultsTo: true,
-      negatable: true,
-      help: 'Skip the `pub outdated --mode=null-safety` check. This allows a '
-          'migration to proceed even if some package dependencies have not yet '
-          'been migrated.',
-    );
-
-    parser.addSeparator('Web interface options:');
-    parser.addFlag(
-      CommandLineOptions.webPreviewFlag,
-      defaultsTo: true,
-      negatable: true,
-      help: 'Show an interactive preview of the proposed null safety changes '
-          'in a browser window. Use --no-web-preview to print proposed changes '
-          'to the console.',
-    );
-    parser.addOption(
-      CommandLineOptions.previewHostnameOption,
-      defaultsTo: 'localhost',
-      valueHelp: 'host',
-      help: 'Run the preview server on the specified hostname. If not '
-          'specified, "localhost" is used. Use "any" to specify IPv6.any or '
-          'IPv4.any.',
-    );
-    parser.addOption(
-      CommandLineOptions.previewPortOption,
-      valueHelp: 'port',
-      help: 'Run the preview server on the specified port. If not specified, '
-          'dynamically allocate a port.',
-    );
-
-    parser.addSeparator('Additional options:');
-    parser.addOption(
-      CommandLineOptions.summaryOption,
-      help: 'Output a machine-readable summary of migration changes.',
-      valueHelp: 'path',
-    );
-
-    // hidden options
-    parser.addFlag(
-      CommandLineOptions.ignoreExceptionsFlag,
-      defaultsTo: false,
-      negatable: false,
-      help: 'Attempt to perform null safety analysis even if exceptions occur.',
-      hide: hide,
-    );
-    parser.addOption(
-      CommandLineOptions.sdkPathOption,
-      valueHelp: 'sdk-path',
-      help: 'The path to the Dart SDK.',
-      hide: hide,
-    );
+    for (var option in options) {
+      option.addToParser(parser, hide);
+    }
   }
+}
+
+/// Data structure representing a single command-line option to the migration
+/// tool, or a separator in the list of command-line options.
+class MigrationCliOption {
+  /// The name of the option, without the leading `--`.
+  final String name;
+
+  /// Callback function that can be used to add the option or separator to the
+  /// given [parser].  If [hide] is `true`, and the option is rarely used, it
+  /// is added as a hidden option.
+  final void Function(ArgParser parser, bool hide) addToParser;
+
+  /// If `true`, this is a separator between command line options; if `false`,
+  /// it's an option.
+  final bool isSeparator;
+
+  MigrationCliOption(this.name, this.addToParser) : isSeparator = false;
+
+  MigrationCliOption.separator(this.name)
+      : addToParser = ((parser, hide) => parser.addSeparator(name)),
+        isSeparator = true;
 }
 
 /// Internals of the command-line API for the migration tool, with additional
