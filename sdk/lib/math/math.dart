@@ -11,7 +11,8 @@
 /// {@category Core}
 library dart.math;
 
-part "jenkins_smi_hash.dart";
+import "dart:_internal" show SystemHash;
+
 part "point.dart";
 part "random.dart";
 part "rectangle.dart";
