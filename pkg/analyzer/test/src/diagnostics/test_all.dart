@@ -10,7 +10,6 @@ import 'abstract_field_constructor_initializer_test.dart'
 import 'abstract_field_initializer_test.dart' as abstract_field_initializer;
 import 'abstract_super_member_reference_test.dart'
     as abstract_super_member_reference;
-import 'access_private_enum_field_test.dart' as access_private_enum_field;
 import 'ambiguous_export_test.dart' as ambiguous_export;
 import 'ambiguous_extension_member_access_test.dart'
     as ambiguous_extension_member_access;
@@ -658,7 +657,6 @@ main() {
     abstract_field_constructor_initializer.main();
     abstract_field_initializer.main();
     abstract_super_member_reference.main();
-    access_private_enum_field.main();
     ambiguous_export.main();
     ambiguous_extension_member_access.main();
     ambiguous_import.main();
