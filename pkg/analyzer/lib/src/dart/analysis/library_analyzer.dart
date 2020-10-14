@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -107,6 +108,10 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyzeSync() {
+    // Analyzer understands null safety, so it should set
+    // NullSafetyUnderstandingFlag.
+    assert(NullSafetyUnderstandingFlag.isEnabled);
+
     timerLibraryAnalyzer.start();
     Map<FileState, CompilationUnit> units = {};
 
