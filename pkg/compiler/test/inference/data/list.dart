@@ -126,9 +126,8 @@ newUint32List() => new Uint32List((13));
 // Create a Uint8ClampedList using a constant multiplication as length.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: newUint8ClampedList:Container([exact=NativeUint8ClampedList], element: [exact=JSUInt31], length: null)*/
-newUint8ClampedList() =>
-    new Uint8ClampedList(2 /*invoke: [exact=JSUInt31]*/ * 7);
+/*member: newUint8ClampedList:Container([exact=NativeUint8ClampedList], element: [exact=JSUInt31], length: 14)*/
+newUint8ClampedList() => new Uint8ClampedList(2 * 7);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Create a Uint8List using a const static field as length.

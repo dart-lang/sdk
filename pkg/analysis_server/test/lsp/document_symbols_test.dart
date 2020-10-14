@@ -154,8 +154,10 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     final result = await getDocumentSymbols(pubspecFileUri.toString());
+    // Since the list is empty, it will deserialise into whatever the first
+    // type is, so just accept both types.
     final symbols = result.map(
-      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (docsymbols) => docsymbols,
       (symbolInfos) => symbolInfos,
     );
     expect(symbols, isEmpty);

@@ -93,7 +93,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.10.0'
+current-version: '2.11.0'
 
 features:
   non-nullable:
@@ -126,20 +126,20 @@ features:
 
   constant-update-2018:
     help: "Enhanced constant expressions"
-    enabledIn: '2.4.1'
+    enabledIn: '2.0.0'
     expired: true
 
   control-flow-collections:
     help: "Control Flow Collections"
-    enabledIn: '2.2.2'
+    enabledIn: '2.0.0'
     expired: true
 
   set-literals:
     help: "Set Literals"
-    enabledIn: 2.2
+    enabledIn: '2.0.0'
     expired: true
 
   spread-collections:
     help: "Spread Collections"
-    enabledIn: '2.2.2'
+    enabledIn: '2.0.0'
     expired: true

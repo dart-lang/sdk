@@ -1,0 +1,49 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///initializer_rewrite_from_opt_out_lib.dart";
+
+class Class extends core::Object {
+  static field core::int nonNullableStaticFieldReads;
+  static field core::int? _#nonNullableStaticField;
+  static field core::int nullableStaticFieldReads;
+  static field core::int? _#nullableStaticField;
+  static field core::bool _#nullableStaticField#isSet;
+  field core::int nonNullableInstanceFieldReads;
+  field core::int? _#Class#nonNullableInstanceField;
+  field core::int nullableInstanceFieldReads;
+  field core::int? _#Class#nullableInstanceField;
+  field core::bool _#Class#nullableInstanceField#isSet;
+  synthetic constructor •() → self::Class
+    ;
+  static get nonNullableStaticField() → core::int;
+  static get nullableStaticField() → core::int?;
+  get nonNullableInstanceField() → core::int;
+  get nullableInstanceField() → core::int?;
+}
+static field core::int nonNullableTopLevelFieldReads;
+static field core::int? _#nonNullableTopLevelField;
+static field core::int nullableTopLevelFieldReads;
+static field core::int? _#nullableTopLevelField;
+static field core::bool _#nullableTopLevelField#isSet;
+static get nonNullableTopLevelField() → core::int;
+static get nullableTopLevelField() → core::int?;
+static method main() → void
+  ;
+static method throws(() → dynamic f, core::String message) → dynamic
+  ;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/initializer_rewrite_from_opt_out_lib.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart=2.8
+// ^^^^^^^^^^^^
+//
+import self as self2;
+import "dart:core" as core;
+
+static method computeInitialValue() → core::int*
+  ;

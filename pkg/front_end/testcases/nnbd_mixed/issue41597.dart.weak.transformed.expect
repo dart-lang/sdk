@@ -73,26 +73,32 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:8:6: Error: Expected an identifier, but got '.'.
+// Try inserting an identifier before '.'.
 //   c?..f;
 //      ^
 //
 // pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:8:6: Error: Expected an identifier, but got ''.
+// Try inserting an identifier before ''.
 //   c?..f;
 //      ^
 //
 // pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:9:7: Error: Expected an identifier, but got '.'.
+// Try inserting an identifier before '.'.
 //   !c?..f;
 //       ^
 //
 // pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:9:7: Error: Expected an identifier, but got ''.
+// Try inserting an identifier before ''.
 //   !c?..f;
 //       ^
 //
 // pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:10:6: Error: Expected an identifier, but got '.'.
+// Try inserting an identifier before '.'.
 //   c?..f!;
 //      ^
 //
 // pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:10:6: Error: Expected an identifier, but got ''.
+// Try inserting an identifier before ''.
 //   c?..f!;
 //      ^
 //
@@ -109,12 +115,15 @@ import "dart:core" as core;
 
 static method errors(dynamic c) → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:8:6: Error: Expected an identifier, but got ''.
+Try inserting an identifier before ''.
   c?..f;
      ^".f;
   !(invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:9:7: Error: Expected an identifier, but got ''.
+Try inserting an identifier before ''.
   !c?..f;
       ^".f as{TypeError,ForDynamic} core::bool*);
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:10:6: Error: Expected an identifier, but got ''.
+Try inserting an identifier before ''.
   c?..f!;
      ^".f!;
 }

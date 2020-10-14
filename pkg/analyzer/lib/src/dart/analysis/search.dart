@@ -67,6 +67,7 @@ class Search {
     ElementKind kind = element.kind;
     if (kind == ElementKind.CLASS ||
         kind == ElementKind.CONSTRUCTOR ||
+        kind == ElementKind.ENUM ||
         kind == ElementKind.EXTENSION ||
         kind == ElementKind.FUNCTION_TYPE_ALIAS ||
         kind == ElementKind.SETTER) {

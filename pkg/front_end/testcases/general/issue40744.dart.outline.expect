@@ -7,3 +7,8 @@ static method helper(core::Map<core::String*, dynamic>* input) → void
   ;
 static method main() → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue40744.dart:5:53 -> InstanceConstant(const _ImmutableMap<String*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>["a", 1]})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

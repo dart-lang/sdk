@@ -44,6 +44,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return success(const []);
     }
 
+    final path = pathOfDoc(params.textDocument);
+    if (!path.isError && !server.isAnalyzedFile(path.result)) {
+      return success(const []);
+    }
+
     final capabilities = server?.clientCapabilities?.textDocument;
 
     final clientSupportsWorkspaceApplyEdit =
@@ -60,7 +65,6 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     final clientSupportedDiagnosticTags = HashSet<DiagnosticTag>.of(
         capabilities?.publishDiagnostics?.tagSupport?.valueSet ?? []);
 
-    final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
 
     return unit.mapResult((unit) {

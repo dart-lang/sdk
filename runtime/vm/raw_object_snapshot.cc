@@ -110,7 +110,7 @@ TypePtr Type::ReadFrom(SnapshotReader* reader,
   type.SetTypeTestingStub(code);
 
   if (is_canonical) {
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(Thread::Current(), nullptr);
   }
 
   return type.raw();
@@ -262,7 +262,7 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.SetTypeTestingStub(code);
 
   if (is_canonical) {
-    type_parameter ^= type_parameter.Canonicalize();
+    type_parameter ^= type_parameter.Canonicalize(Thread::Current(), nullptr);
   }
 
   return type_parameter.raw();
@@ -333,7 +333,7 @@ TypeArgumentsPtr TypeArguments::ReadFrom(SnapshotReader* reader,
 
   // Set the canonical bit.
   if (is_canonical) {
-    type_arguments = type_arguments.Canonicalize();
+    type_arguments = type_arguments.Canonicalize(Thread::Current(), nullptr);
   }
 
   return type_arguments.raw();
@@ -399,8 +399,8 @@ void ClosureLayout::WriteTo(SnapshotWriter* writer,
   // Check if closure is serializable, throw an exception otherwise.
   FunctionPtr func = writer->IsSerializableClosure(ClosurePtr(this));
   if (func != Function::null()) {
-    writer->WriteStaticImplicitClosure(object_id, func,
-                                       writer->GetObjectTags(this));
+    writer->WriteStaticImplicitClosure(
+        object_id, func, writer->GetObjectTags(this), delayed_type_arguments_);
     return;
   }
 
@@ -717,11 +717,7 @@ InstancePtr Instance::ReadFrom(SnapshotReader* reader,
   Instance& obj = Instance::ZoneHandle(reader->zone(), Instance::null());
   obj ^= Object::Allocate(kInstanceCid, Instance::InstanceSize(), Heap::kNew);
   if (ObjectLayout::IsCanonical(tags)) {
-    const char* error_str = NULL;
-    obj = obj.CheckAndCanonicalize(reader->thread(), &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
+    obj = obj.Canonicalize(reader->thread());
   }
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
 
@@ -1041,11 +1037,7 @@ ImmutableArrayPtr ImmutableArray::ReadFrom(SnapshotReader* reader,
     // Read all the individual elements for inlined objects.
     reader->ArrayReadFrom(object_id, *array, len, tags);
     if (ObjectLayout::IsCanonical(tags)) {
-      const char* error_str = NULL;
-      *array ^= array->CheckAndCanonicalize(reader->thread(), &error_str);
-      if (error_str != NULL) {
-        FATAL1("Failed to canonicalize: %s", error_str);
-      }
+      *array ^= array->Canonicalize(reader->thread());
     }
   }
   return raw(*array);
@@ -1354,11 +1346,7 @@ TypedDataPtr TypedData::ReadFrom(SnapshotReader* reader,
   // When reading a script snapshot or a message snapshot we always have
   // to canonicalize the object.
   if (ObjectLayout::IsCanonical(tags)) {
-    const char* error_str = NULL;
-    result ^= result.CheckAndCanonicalize(reader->thread(), &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
+    result ^= result.Canonicalize(reader->thread());
     ASSERT(!result.IsNull());
     ASSERT(result.IsCanonical());
   }

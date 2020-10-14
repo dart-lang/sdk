@@ -1055,17 +1055,11 @@ bool KernelIsolate::DetectNullSafety(const char* script_uri,
                                      const char* original_working_directory) {
   // Start the kernel Isolate if it is not already running.
   if (!Start()) {
-    Dart_KernelCompilationResult result = {};
-    result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = Utils::StrDup("Error while starting Kernel isolate task");
     return false;
   }
   // Wait for Kernel isolate to finish initialization.
   Dart_Port kernel_port = WaitForKernelPort();
   if (kernel_port == ILLEGAL_PORT) {
-    Dart_KernelCompilationResult result = {};
-    result.status = Dart_KernelCompilationStatus_Unknown;
-    result.error = Utils::StrDup("Error while initializing Kernel isolate");
     return false;
   }
   KernelCompilationRequest request;

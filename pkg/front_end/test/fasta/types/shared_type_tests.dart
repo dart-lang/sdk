@@ -696,7 +696,7 @@ abstract class SubtypeTest<T, E> {
     // Tests for bottom and top types.
     isSubtype('Null', 'Null');
     isNotSubtype('Null', 'bottom');
-    isNotSubtype('Null', 'Never');
+    isObliviousSubtype('Null', 'Never');
     isSubtype('bottom', 'Null');
     isSubtype('bottom', 'bottom');
     isSubtype('bottom', 'Never');
@@ -889,7 +889,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Never', 'Id<Object>');
     isSubtype('Never', 'Id<Never>');
     isSubtype('Id<Never>', 'Never');
-    isNotSubtype('Null', 'Id<Never>');
+    isObliviousSubtype('Null', 'Id<Never>');
     isSubtype('Id<Never>', 'Null');
     isNotSubtype('Id<Object>', 'Never');
     isSubtype('Id<int>', 'num');

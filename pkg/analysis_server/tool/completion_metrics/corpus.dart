@@ -74,7 +74,7 @@ Future<CloneResult> _clone(String repo) async {
   final name =
       _trimName(repo.split('https://github.com/').last.replaceAll('/', '_'));
   final cloneDir = path.join(_appDir, name);
-  var result;
+  ProcessResult result;
   if (Directory(cloneDir).existsSync()) {
     if (!updateExistingClones) {
       return CloneResult(0, cloneDir);

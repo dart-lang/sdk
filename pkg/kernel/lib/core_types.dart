@@ -31,6 +31,7 @@ class CoreTypes {
     ],
     'dart:_internal': [
       'LateInitializationErrorImpl',
+      'ReachabilityError',
       'Symbol',
     ],
     'dart:async': [
@@ -71,6 +72,8 @@ class CoreTypes {
   Procedure _iterableGetIterator;
   Procedure _iteratorMoveNext;
   Procedure _iteratorGetCurrent;
+  Procedure _isSentinelMethod;
+  Procedure _createSentinelMethod;
 
   Class _internalSymbolClass;
 
@@ -95,6 +98,7 @@ class CoreTypes {
   Procedure _awaitHelperProcedure;
   Procedure _boolFromEnvironment;
   Constructor _lateInitializationErrorConstructor;
+  Constructor _reachabilityErrorConstructor;
 
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   Library _mirrorsLibrary;
@@ -495,6 +499,16 @@ class CoreTypes {
   Procedure get boolFromEnvironment {
     return _boolFromEnvironment ??=
         index.getMember('dart:core', 'bool', 'fromEnvironment');
+  }
+
+  Procedure get createSentinelMethod {
+    return _createSentinelMethod ??=
+        index.getTopLevelMember('dart:_internal', 'createSentinel');
+  }
+
+  Procedure get isSentinelMethod {
+    return _isSentinelMethod ??=
+        index.getTopLevelMember('dart:_internal', 'isSentinel');
   }
 
   InterfaceType get objectLegacyRawType {
@@ -1221,6 +1235,11 @@ class CoreTypes {
   Constructor get lateInitializationErrorConstructor {
     return _lateInitializationErrorConstructor ??=
         index.getMember('dart:_internal', 'LateInitializationErrorImpl', '');
+  }
+
+  Constructor get reachabilityErrorConstructor {
+    return _reachabilityErrorConstructor ??=
+        index.getMember('dart:_internal', 'ReachabilityError', '');
   }
 
   InterfaceType bottomInterfaceType(Class klass, Nullability nullability) {

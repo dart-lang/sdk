@@ -135,7 +135,6 @@ class ProgramBuilder {
       this._rtiNeededClasses,
       this._mainFunction)
       : this.collector = new Collector(
-            _options,
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
@@ -653,16 +652,11 @@ class ProgramBuilder {
   Class _buildClass(ClassEntity cls) {
     bool onlyForConstructor =
         collector.classesOnlyNeededForConstructor.contains(cls);
-    bool onlyForRti = _options.deferClassTypes
-        ? false
-        : collector.classesOnlyNeededForRti.contains(cls);
+    // TODO(joshualitt): Can we just emit JSInteropClasses as types?
+    // TODO(jacobr): check whether the class has any active static fields
+    // if it does not we can suppress it completely.
+    bool onlyForRti = _nativeData.isJsInteropClass(cls);
     bool hasRtiField = _rtiNeed.classNeedsTypeArguments(cls);
-    if (_nativeData.isJsInteropClass(cls)) {
-      // TODO(joshualitt): Can we just emit JSInteropClasses as types?
-      // TODO(jacobr): check whether the class has any active static fields
-      // if it does not we can suppress it completely.
-      onlyForRti = true;
-    }
     bool onlyForConstructorOrRti = onlyForConstructor || onlyForRti;
     bool isClosureBaseClass = cls == _commonElements.closureClass;
 

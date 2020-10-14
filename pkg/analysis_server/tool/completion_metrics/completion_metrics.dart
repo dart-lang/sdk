@@ -506,15 +506,11 @@ class CompletionMetricsComputer {
       bool doPrintMissedCompletions) {
     assert(suggestions != null);
 
-    var rank;
-
     var place = placementInSuggestionList(suggestions, expectedCompletion);
 
     metrics.mrrComputer.addRank(place.rank);
 
     if (place.denominator != 0) {
-      rank = place.rank;
-
       metrics.completionCounter.count('successful');
 
       metrics.recordCompletionResult(CompletionResult(place, request, listener,
@@ -527,9 +523,9 @@ class CompletionMetricsComputer {
           _computeCharsBeforeTop(expectedCompletion, suggestions, minRank: 5));
       metrics.insertionLengthTheoretical
           .addValue(expectedCompletion.completion.length - charsBeforeTop);
-    } else {
-      rank = -1;
 
+      return place.rank;
+    } else {
       metrics.completionCounter.count('unsuccessful');
 
       metrics.completionMissedTokenCounter.count(expectedCompletion.completion);
@@ -538,7 +534,7 @@ class CompletionMetricsComputer {
           .count(expectedCompletion.elementKind.toString());
 
       if (doPrintMissedCompletions) {
-        var closeMatchSuggestion;
+        protocol.CompletionSuggestion closeMatchSuggestion;
         for (var suggestion in suggestions) {
           if (suggestion.completion == expectedCompletion.completion) {
             closeMatchSuggestion = suggestion;
@@ -553,8 +549,9 @@ class CompletionMetricsComputer {
         }
         print('');
       }
+
+      return -1;
     }
-    return rank;
   }
 
   void printMetrics(CompletionMetrics metrics) {
@@ -713,7 +710,7 @@ class CompletionMetricsComputer {
       [DeclarationsTracker declarationsTracker,
       protocol.CompletionAvailableSuggestionsParams
           availableSuggestionsParams]) async {
-    var suggestions;
+    List<protocol.CompletionSuggestion> suggestions;
 
     if (declarationsTracker == null) {
       // available suggestions == false
@@ -801,8 +798,8 @@ class CompletionMetricsComputer {
 
     // Set the DeclarationsTracker, only call doWork to build up the available
     // suggestions if doComputeCompletionsFromAnalysisServer is true.
-    var declarationsTracker;
-    var availableSuggestionsParams;
+    DeclarationsTracker declarationsTracker;
+    protocol.CompletionAvailableSuggestionsParams availableSuggestionsParams;
     if (availableSuggestions) {
       declarationsTracker = DeclarationsTracker(
           MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
@@ -912,7 +909,7 @@ class CompletionMetricsComputer {
 
             // First we compute the completions useNewRelevance set to
             // false:
-            var oldRank;
+            int oldRank;
             if (!skipOldRelevance) {
               oldRank = await handleExpectedCompletion(
                   metrics: metricsOldMode,

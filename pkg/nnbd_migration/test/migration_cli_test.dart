@@ -145,7 +145,7 @@ class _MigrationCliRunner extends MigrationCliRunner {
   NonNullableFix createNonNullableFix(
       DartFixListener listener,
       ResourceProvider resourceProvider,
-      LineInfo getLineInfo(String path),
+      LineInfo Function(String path) getLineInfo,
       Object bindAddress,
       {List<String> included = const <String>[],
       int preferredPort,
@@ -165,7 +165,7 @@ class _MigrationCliRunner extends MigrationCliRunner {
     }
   }
 
-  Future<void> runWithPreviewServer(Future<void> callback()) async {
+  Future<void> runWithPreviewServer(Future<void> Function() callback) async {
     _runWhilePreviewServerActive = callback;
     await run();
     if (_runWhilePreviewServerActive != null) {
@@ -192,7 +192,7 @@ abstract class _MigrationCliTestBase {
 
   bool Function(String) overrideShouldBeMigrated;
 
-  void set logger(_TestLogger logger);
+  set logger(_TestLogger logger);
 
   _MockProcessManager get processManager;
 
@@ -389,7 +389,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Map<String, String> simpleProject(
-      {bool migrated: false,
+      {bool migrated = false,
       String sourceText,
       String pubspecText,
       String packageConfigText}) {
@@ -444,7 +444,7 @@ int${migrated ? '?' : ''} f() => null;
         'external bool operator ==(dynamic other)');
     expect(newCoreLibText, isNot(oldCoreLibText));
     coreLib.writeAsStringSync(newCoreLibText);
-    var projectDir = await createProjectDir(simpleProject());
+    var projectDir = createProjectDir(simpleProject());
     await assertRunFailure([projectDir], cli: cli);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains(messages.sdkNnbdOff));
@@ -464,7 +464,7 @@ int${migrated ? '?' : ''} f() => null;
         'external bool operator ==(dynamic other)');
     expect(newCoreLibText, isNot(oldCoreLibText));
     coreLib.writeAsStringSync(newCoreLibText);
-    var projectDir = await createProjectDir(simpleProject());
+    var projectDir = createProjectDir(simpleProject());
     await assertRunFailure([projectDir], cli: cli);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains(messages.sdkNnbdOff));
@@ -564,7 +564,7 @@ int${migrated ? '?' : ''} f() => null;
 
   test_lifecycle_apply_changes() async {
     var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     var cliRunner = cli.decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
@@ -602,7 +602,7 @@ linter:
     - empty_constructor_bodies
 ''';
 
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
         .decodeCommandLineArgs(_parseArgs(['--no-web-preview', projectDir]));
     await cliRunner.run();
@@ -615,7 +615,7 @@ linter:
 
   test_lifecycle_contextdiscovery_handles_single() async {
     var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
         .decodeCommandLineArgs(_parseArgs(['--no-web-preview', projectDir]));
     await cliRunner.run();
@@ -626,7 +626,7 @@ linter:
 
   test_lifecycle_exception_handling() async {
     var projectContents = simpleProject(sourceText: 'main() { print(0); }');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     injectArtificialException = true;
     await assertRunFailure([projectDir]);
     var errorOutput = logger.stderrBuffer.toString();
@@ -638,7 +638,7 @@ linter:
 
   test_lifecycle_exception_handling_ignore() async {
     var projectContents = simpleProject(sourceText: 'main() { print(0); }');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     injectArtificialException = true;
     var cli = _createCli();
     await runWithPreviewServer(cli, ['--ignore-exceptions', projectDir],
@@ -659,7 +659,7 @@ linter:
   test_lifecycle_exception_handling_multiple() async {
     var projectContents =
         simpleProject(sourceText: 'main() { print(0); print(1); }');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     injectArtificialException = true;
     await assertRunFailure([projectDir]);
     var errorOutput = logger.stderrBuffer.toString();
@@ -673,7 +673,7 @@ linter:
   test_lifecycle_exception_handling_with_error() async {
     var projectContents =
         simpleProject(sourceText: 'main() { print(0); unresolved; }');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     injectArtificialException = true;
     await assertRunFailure(['--ignore-errors', projectDir]);
     var errorOutput = logger.stderrBuffer.toString();
@@ -686,7 +686,7 @@ linter:
     var projectContents = simpleProject(sourceText: '''
 int f() => null
 ''');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     await assertRunFailure([projectDir]);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains('1 analysis issue found'));
@@ -694,7 +694,7 @@ int f() => null
     expect(
         output,
         contains("error • Expected to find ';' at lib${sep}test.dart:1:12 • "
-            "(expected_token)"));
+            '(expected_token)'));
     expect(
         output,
         contains(
@@ -706,7 +706,7 @@ int f() => null
     var projectContents = simpleProject(sourceText: '''
 int? f() => null
 ''');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, ['--ignore-errors', projectDir],
         (url) async {
@@ -722,7 +722,7 @@ int? f() => null
 
   test_lifecycle_no_preview() async {
     var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
         .decodeCommandLineArgs(_parseArgs(['--no-web-preview', projectDir]));
     await cliRunner.run();
@@ -764,7 +764,7 @@ void call_g() => g(null);
     }
 
     var projectContents = makeProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var testPath =
         resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
     var analyzeButDoNotMigratePath = resourceProvider.pathContext
@@ -789,7 +789,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview() async {
     var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       var localhostAddressText = Platform.environment.containsKey('FORCE_IPV6')
@@ -806,7 +806,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_add_hint() async {
     var projectContents = simpleProject(sourceText: 'int x;');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
@@ -835,7 +835,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_apply_changes() async {
     var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     bool applyHookCalled = false;
     cli._onApplyHook = () {
@@ -861,7 +861,7 @@ void call_g() => g(null);
   }
 
   test_lifecycle_preview_extra_forward_slash() async {
-    var projectDir = await createProjectDir(simpleProject());
+    var projectDir = createProjectDir(simpleProject());
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       var uri = Uri.parse(url);
@@ -873,7 +873,7 @@ void call_g() => g(null);
   test_lifecycle_preview_navigation_links() async {
     var projectContents = simpleProject(sourceText: 'int x;');
     projectContents['lib/src/test.dart'] = 'import "../test.dart"; int y = x;';
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
@@ -907,7 +907,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_navigation_tree() async {
     var projectContents = simpleProject(sourceText: 'int x;');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
@@ -940,7 +940,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_on_host_any() async {
     var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli()
       ..decodeCommandLineArgs(_parseArgs(['--preview-hostname=any']));
     await runWithPreviewServer(cli, [projectDir], (url) async {
@@ -953,7 +953,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_region_link() async {
     var projectContents = simpleProject(sourceText: 'int x;');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
@@ -994,7 +994,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_region_table_path() async {
     var projectContents = simpleProject(sourceText: 'int x;');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
@@ -1027,7 +1027,7 @@ void call_g() => g(null);
   test_lifecycle_preview_rerun() async {
     var origSourceText = 'void f() {}';
     var projectContents = simpleProject(sourceText: origSourceText);
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       await assertPreviewServerResponsive(url);
@@ -1049,7 +1049,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_rerun_added_file() async {
     var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       await assertPreviewServerResponsive(url);
@@ -1072,7 +1072,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_rerun_deleted_file() async {
     var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     // Note: we use the summary to verify that the deletion was noticed
     var summaryPath = resourceProvider.convertPath('/summary.json');
@@ -1106,13 +1106,46 @@ void call_g() => g(null);
     });
   }
 
+  test_lifecycle_preview_rerun_with_new_analysis_errors() async {
+    var origSourceText = 'void f(int i) {}';
+    var projectContents = simpleProject(sourceText: origSourceText);
+    var projectDir = createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      var newSourceText = 'void f(int? i) {}';
+      resourceProvider.getFile(testPath).writeAsStringSync(newSourceText);
+      // We haven't rerun, so getting the file details from the server should
+      // still yield the original source text, with informational space.
+      expect(await getSourceFromServer(uri, testPath), 'void f(int  i) {}');
+      var response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      var body = jsonDecode(response.body);
+      expect(body['success'], isFalse);
+      expect(body['errors'], hasLength(1));
+      var error = body['errors'].single;
+      expect(error['severity'], equals('error'));
+      expect(
+          error['message'],
+          equals(
+              "This requires the 'non-nullable' language feature to be enabled"));
+      expect(error['location'],
+          equals(resourceProvider.pathContext.join('lib', 'test.dart:1:11')));
+      expect(error['code'], equals('experiment_not_enabled'));
+    });
+  }
+
   test_lifecycle_preview_serves_only_from_project_dir() async {
     var crazyFunctionName = 'crazyFunctionNameThatHasNeverBeenSeenBefore';
     var projectContents =
         simpleProject(sourceText: 'void $crazyFunctionName() {}');
-    var mainProjectDir = await createProjectDir(projectContents);
-    var otherProjectDir = await createProjectDir(projectContents,
-        posixPath: '/other_project_dir');
+    var mainProjectDir = createProjectDir(projectContents);
+    var otherProjectDir =
+        createProjectDir(projectContents, posixPath: '/other_project_dir');
     var cli = _createCli();
     await runWithPreviewServer(cli, [mainProjectDir], (url) async {
       await assertPreviewServerResponsive(url);
@@ -1141,7 +1174,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_stack_hint_action() async {
     var projectContents = simpleProject(sourceText: 'int x;');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
@@ -1176,7 +1209,7 @@ void call_g() => g(null);
 
   test_lifecycle_preview_stacktrace_link() async {
     var projectContents = simpleProject(sourceText: 'int x;');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     await runWithPreviewServer(cli, [projectDir], (url) async {
       expect(
@@ -1213,7 +1246,7 @@ void call_g() => g(null);
     var projectContents = simpleProject(sourceText: '''
 int f() => null;
 ''');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     processManager._mockResult = ProcessResult(
         123 /* pid */,
         0 /* exitCode */,
@@ -1233,7 +1266,7 @@ int f() => null;
     var projectContents = simpleProject(sourceText: '''
 int f() => null;
 ''');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     processManager._mockResult = ProcessResult(
         123 /* pid */,
         0 /* exitCode */,
@@ -1254,7 +1287,7 @@ int f() => null;
 
   test_lifecycle_summary() async {
     var projectContents = simpleProject();
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var summaryPath = resourceProvider.convertPath('/summary.json');
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--summary', summaryPath, projectDir]));
@@ -1268,7 +1301,7 @@ int f() => null;
 
   test_lifecycle_summary_does_not_double_count_hint_removals() async {
     var projectContents = simpleProject(sourceText: 'int/*?*/ x;');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var summaryPath = resourceProvider.convertPath('/summary.json');
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--summary', summaryPath, projectDir]));
@@ -1283,7 +1316,7 @@ int f() => null;
 
   test_lifecycle_summary_rewritten_upon_rerun() async {
     var projectContents = simpleProject(sourceText: 'int f(int/*?*/ i) => i;');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
     var summaryPath = resourceProvider.convertPath('/summary.json');
     await runWithPreviewServer(cli, ['--summary', summaryPath, projectDir],
@@ -1318,7 +1351,7 @@ int f() => null;
 import 'package:does_not/exist.dart';
 int f() => null;
 ''');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     await assertRunFailure([projectDir]);
     var output = logger.stdoutBuffer.toString();
     expect(output, contains('1 analysis issue found'));
@@ -1431,7 +1464,7 @@ int f() => null;
   test_package_config_does_not_exist() async {
     var projectContents = simpleProject()
       ..remove('.dart_tool/package_config.json');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     await cliRunner.run();
@@ -1456,7 +1489,7 @@ int f() => null;
 }
 ''';
     var projectContents = simpleProject(packageConfigText: packageConfigText);
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     await cliRunner.run();
@@ -1474,7 +1507,7 @@ int f() => null;
 }
 ''';
     var projectContents = simpleProject(packageConfigText: packageConfigText);
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     await cliRunner.run();
@@ -1498,7 +1531,7 @@ int f() => null;
 }
 ''';
     var projectContents = simpleProject(packageConfigText: packageConfigText);
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     await cliRunner.run();
@@ -1639,7 +1672,7 @@ int f() => null;
     var projectContents = simpleProject()
       ..remove('pubspec.yaml')
       ..remove('.dart_tool/package_config.json');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     await cliRunner.run();
@@ -1657,7 +1690,7 @@ name: test
 environment:
   foo: 1
 ''');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     await cliRunner.run();
@@ -1677,7 +1710,7 @@ name: test
 environment: 1
 ''';
     var projectContents = simpleProject(pubspecText: pubspecText);
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     await cliRunner.run();
@@ -1694,7 +1727,7 @@ environment:
 ''';
     var projectContents = simpleProject(pubspecText: pubspecText)
       ..remove('.dart_tool/package_config.json');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     await cliRunner.run();
@@ -1709,7 +1742,7 @@ environment:
     var projectContents = simpleProject(pubspecText: '''
 name: test
 ''');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     await cliRunner.run();
@@ -1726,7 +1759,7 @@ name: test
 
   test_pubspec_is_not_a_map() async {
     var projectContents = simpleProject(pubspecText: 'not-a-map');
-    var projectDir = await createProjectDir(projectContents);
+    var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
     expect(() async => await cliRunner.run(), throwsUnsupportedError);
@@ -1850,6 +1883,11 @@ class _TestLogger implements Logger {
   }
 
   @override
+  void trace(String message) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   void write(String message) {
     stdoutBuffer.write(message);
   }
@@ -1857,10 +1895,5 @@ class _TestLogger implements Logger {
   @override
   void writeCharCode(int charCode) {
     stdoutBuffer.writeCharCode(charCode);
-  }
-
-  @override
-  void trace(String message) {
-    throw UnimplementedError('TODO(paulberry)');
   }
 }

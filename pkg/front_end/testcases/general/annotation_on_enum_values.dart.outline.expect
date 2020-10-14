@@ -31,7 +31,7 @@ class Foo extends core::Object /*isEnum*/  {
     : self::Foo::index = index, self::Foo::_name = _name, super core::Object::•()
     ;
   method toString() → core::String*
-    return this.{=self::Foo::_name};
+    return this.{self::Foo::_name};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -45,3 +45,13 @@ class Foo extends core::Object /*isEnum*/  {
 static const field core::int* hest = 42;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///annotation_on_enum_values.dart:15:6 -> ListConstant(const <Foo*>[const Foo{Foo.index: 0, Foo._name: "Foo.bar"}, const Foo{Foo.index: 1, Foo._name: "Foo.baz"}, const Foo{Foo.index: 2, Foo._name: "Foo.cafebabe"}])
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_on_enum_values.dart:16:4 -> IntConstant(42)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:17:3 -> InstanceConstant(const Foo{Foo.index: 0, Foo._name: "Foo.bar"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:18:4 -> InstanceConstant(const Fisk<int*>{Fisk.x: 42})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:19:3 -> InstanceConstant(const Foo{Foo.index: 1, Foo._name: "Foo.baz"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_on_enum_values.dart:20:3 -> InstanceConstant(const Foo{Foo.index: 2, Foo._name: "Foo.cafebabe"})
+Extra constant evaluation: evaluated: 11, effectively constant: 6

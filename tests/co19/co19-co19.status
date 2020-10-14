@@ -23,38 +23,17 @@ Language/Generics/typedef_A01_t10: Skip # Type aliases are not fully implemented
 Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # Triple shift is not implemented yet
 Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # Triple shift is not implemented yet
 Language/Reference/Operator_Precedence/precedence_t05: Skip # Triple shift is not implemented yet
-Language/Statements/Assert/*: Skip # Not migrated to NNBD
 Language/Statements/Expression_Statements/syntax_t06: Skip # Type aliases are not fully implemented
 Language/Types/Type_Aliases/built-in_types_t11: Skip # Triple shift is not implemented yet
 LanguageFeatures/Extension-methods/explicit_extension_member_invocation_A15_t09: Skip # Triple shift is not implemented yet
-LanguageFeatures/Instantiate-to-bound/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/class/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/class/dynamic/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/class/static/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/dynamic/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/static/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/typedef/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/typedef/dynamic/*: Skip # Not migrated to NNBD
-LanguageFeatures/Instantiate-to-bound/typedef/static/*: Skip # Not migrated to NNBD
-LanguageFeatures/Simple-bounds/*: Skip # Not migrated to NNBD
-LanguageFeatures/Simple-bounds/dynamic/*: Skip # Not migrated to NNBD
-LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Not migrated to NNBD
-LanguageFeatures/Simple-bounds/static/*: Skip # Not migrated to NNBD
-LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Not migrated to NNBD
-LanguageFeatures/Spread-collections/*: Skip # Not migrated to NNBD
+LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/static/*: Skip # Type aliases are not fully implemented
+LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Type aliases are not fully implemented
+LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Type aliases are not fully implemented
 LanguageFeatures/Triple-Shift/*: Skip # Triple shift is not implemented yet
-LanguageFeatures/int-to-double/*: Skip # Not migrated to NNBD
+LanguageFeatures/nnbd/local_variable_read_A01_t03: Skip # Triple shift is not implemented yet
+LanguageFeatures/nnbd/local_variable_read_A02_t03: Skip # Triple shift is not implemented yet
+LanguageFeatures/nnbd/local_variable_read_A03_t03: Skip # Triple shift is not implemented yet
 LanguageFeatures/regression/34560_t02/01: Skip # Type aliases are not fully implemented
-LibTest/html/CanvasRenderingContext2D/*: Skip # Not migrated to NNBD
-LibTest/html/Document/*: Skip # Not migrated to NNBD
-LibTest/html/Element/*: Skip # Not migrated to NNBD
-LibTest/html/Event/*: Skip # Not migrated to NNBD
-LibTest/html/HttpRequest/*: Skip # Not migrated to NNBD
-LibTest/html/HttpRequestUpload/*: Skip # Not migrated to NNBD
-LibTest/html/IFrameElement/*: Skip # Not migrated to NNBD
-LibTest/html/Node/*: Skip # Not migrated to NNBD
-LibTest/html/Window/*: Skip # Not migrated to NNBD
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
 
 [ $compiler == dart2analyzer ]

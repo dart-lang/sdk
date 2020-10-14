@@ -12,3 +12,11 @@ static method main() → void
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///issue41657.dart:6:38 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///issue41657.dart:8:38 -> BoolConstant(false)
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue41657.dart:10:38 -> ListConstant(const <Null?>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue41657.dart:12:38 -> ListConstant(const <int?>[])
+Extra constant evaluation: evaluated: 6, effectively constant: 4

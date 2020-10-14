@@ -770,10 +770,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('IndexExpression');
     _withIndent(() {
       var properties = _Properties();
-      properties.addAuxiliaryElements(
-        'auxiliaryElements',
-        node.auxiliaryElements,
-      );
       properties.addNode('index', node.index);
       properties.addToken('period', node.period);
       properties.addNode('target', node.target);
@@ -1152,7 +1148,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SimpleIdentifier');
     _withIndent(() {
-      _writeAuxiliaryElements('auxiliaryElements', node.auxiliaryElements);
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
       _writeToken('token', node.token);
@@ -1681,14 +1676,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _indent = indent;
   }
 
-  void _writeAuxiliaryElements(String name, AuxiliaryElements elements) {
-    if (elements != null) {
-      _sink.write(_indent);
-      _sink.write('$name: ');
-      _writeElement0(elements.staticElement);
-    }
-  }
-
   void _writeElement(String name, Element element) {
     _sink.write(_indent);
     _sink.write('$name: ');
@@ -1801,17 +1788,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 }
 
-class _AuxiliaryElementsProperty extends _Property {
-  final AuxiliaryElements elements;
-
-  _AuxiliaryElementsProperty(String name, this.elements) : super(name);
-
-  @override
-  void write(ResolvedAstPrinter printer) {
-    printer._writeAuxiliaryElements(name, elements);
-  }
-}
-
 class _ElementProperty extends _Property {
   final Element element;
 
@@ -1847,12 +1823,6 @@ class _NodeProperty extends _Property {
 
 class _Properties {
   final properties = <_Property>[];
-
-  void addAuxiliaryElements(String name, AuxiliaryElements elements) {
-    properties.add(
-      _AuxiliaryElementsProperty(name, elements),
-    );
-  }
 
   void addElement(String name, Element element) {
     properties.add(

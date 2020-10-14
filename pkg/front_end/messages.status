@@ -416,6 +416,20 @@ InvalidCastTopLevelFunction/example: Fail
 InvalidCatchArguments/example: Fail
 InvalidContinueTarget/analyzerCode: Fail
 InvalidContinueTarget/example: Fail
+InvalidGetterSetterType/analyzerCode: Fail
+InvalidGetterSetterTypeBothInheritedField/analyzerCode: Fail
+InvalidGetterSetterTypeBothInheritedFieldLegacy/analyzerCode: Fail
+InvalidGetterSetterTypeBothInheritedGetter/analyzerCode: Fail
+InvalidGetterSetterTypeBothInheritedGetterLegacy/analyzerCode: Fail
+InvalidGetterSetterTypeFieldInherited/analyzerCode: Fail
+InvalidGetterSetterTypeFieldInheritedLegacy/analyzerCode: Fail
+InvalidGetterSetterTypeGetterInherited/analyzerCode: Fail
+InvalidGetterSetterTypeGetterInheritedLegacy/analyzerCode: Fail
+InvalidGetterSetterTypeLegacy/analyzerCode: Fail
+InvalidGetterSetterTypeSetterInheritedField/analyzerCode: Fail
+InvalidGetterSetterTypeSetterInheritedFieldLegacy/analyzerCode: Fail
+InvalidGetterSetterTypeSetterInheritedGetter/analyzerCode: Fail
+InvalidGetterSetterTypeSetterInheritedGetterLegacy/analyzerCode: Fail
 InvalidInitializer/example: Fail
 InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
@@ -448,6 +462,8 @@ JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
 JsInteropNamedParameters/example: Fail # Web compiler specific
 JsInteropNonExternalConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalConstructor/example: Fail # Web compiler specific
+JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
+JsInteropNonExternalMember/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
@@ -455,6 +471,8 @@ LanguageVersionMismatchInPatch/analyzerCode: Fail
 LanguageVersionMismatchInPatch/example: Fail
 LanguageVersionTooHigh/analyzerCode: Fail
 LanguageVersionTooHigh/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
+LateDefinitelyAssignedError/analyzerCode: Fail
+LateDefinitelyUnassignedError/analyzerCode: Fail
 LibraryDirectiveNotFirst/part_wrapped_script1: Fail # Defining library name in the (now) part.
 LibraryDirectiveNotFirst/part_wrapped_script2: Fail
 LibraryDirectiveNotFirst/part_wrapped_script3: Fail
@@ -462,6 +480,18 @@ LibraryDirectiveNotFirst/script2: Fail
 LibraryDirectiveNotFirst/script3: Fail
 ListLiteralTooManyTypeArguments/example: Fail
 LoadLibraryTakesNoArguments/example: Fail
+MainNotFunctionDeclaration/analyzerCode: Fail
+MainNotFunctionDeclarationExported/analyzerCode: Fail
+MainNotFunctionDeclarationExported/part_wrapped_script: Fail
+MainRequiredNamedParameters/analyzerCode: Fail
+MainRequiredNamedParametersExported/analyzerCode: Fail
+MainRequiredNamedParametersExported/part_wrapped_script: Fail
+MainTooManyRequiredParameters/analyzerCode: Fail
+MainTooManyRequiredParametersExported/analyzerCode: Fail
+MainTooManyRequiredParametersExported/part_wrapped_script: Fail
+MainWrongParameterType/analyzerCode: Fail
+MainWrongParameterTypeExported/analyzerCode: Fail
+MainWrongParameterTypeExported/part_wrapped_script: Fail
 MapLiteralTypeArgumentMismatch/example: Fail
 MetadataTypeArguments/example: Fail
 MethodNotFound/example: Fail
@@ -495,6 +525,14 @@ NamedFunctionExpression/example: Fail
 NamedMixinOverride/analyzerCode: Fail
 NamedMixinOverride/example: Fail
 NativeClauseShouldBeAnnotation/example: Fail
+NeverReachableSwitchDefaultError/analyzerCode: Fail
+NeverReachableSwitchDefaultError/example: Fail
+NeverReachableSwitchDefaultWarning/analyzerCode: Fail
+NeverReachableSwitchDefaultWarning/example: Fail
+NeverValueError/analyzerCode: Fail
+NeverValueError/example: Fail
+NeverValueWarning/analyzerCode: Fail
+NeverValueWarning/example: Fail
 NoFormals/example: Fail
 NonAgnosticConstant/analyzerCode: Fail
 NonAgnosticConstant/example: Fail
@@ -505,8 +543,6 @@ NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonNullableInNullAware/analyzerCode: Fail
 NonNullableInNullAware/example: Fail
-NonNullableLateDefinitelyAssignedError/analyzerCode: Fail
-NonNullableLateDefinitelyUnassignedError/analyzerCode: Fail
 NonNullableNotAssignedError/analyzerCode: Fail
 NonNullableNotAssignedWarning/analyzerCode: Fail
 NonNullableNotAssignedWarning/example: Fail

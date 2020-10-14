@@ -15,18 +15,22 @@ library;
 //             ^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:39:9: Error: Expected an identifier, but got '>'.
+// Try inserting an identifier before '>'.
 //   print(>foo);
 //         ^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:40:9: Error: Expected an identifier, but got '<='.
+// Try inserting an identifier before '<='.
 //   print(<=foo);
 //         ^^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:41:9: Error: Expected an identifier, but got '>='.
+// Try inserting an identifier before '>='.
 //   print(>=foo);
 //         ^^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:42:9: Error: Expected an identifier, but got '=='.
+// Try inserting an identifier before '=='.
 //   print(==foo);
 //         ^^
 //
@@ -36,38 +40,47 @@ library;
 //         ^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:44:9: Error: Expected an identifier, but got '/'.
+// Try inserting an identifier before '/'.
 //   print(/foo);
 //         ^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:45:9: Error: Expected an identifier, but got '~/'.
+// Try inserting an identifier before '~/'.
 //   print(~/foo);
 //         ^^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:46:9: Error: Expected an identifier, but got '*'.
+// Try inserting an identifier before '*'.
 //   print(*foo);
 //         ^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:47:9: Error: Expected an identifier, but got '%'.
+// Try inserting an identifier before '%'.
 //   print(%foo);
 //         ^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:48:9: Error: Expected an identifier, but got '|'.
+// Try inserting an identifier before '|'.
 //   print(|foo);
 //         ^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:49:9: Error: Expected an identifier, but got '^'.
+// Try inserting an identifier before '^'.
 //   print(^foo);
 //         ^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:50:9: Error: Expected an identifier, but got '&'.
+// Try inserting an identifier before '&'.
 //   print(&foo);
 //         ^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:51:9: Error: Expected an identifier, but got '<<'.
+// Try inserting an identifier before '<<'.
 //   print(<<foo);
 //         ^^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/operator_method_not_found.dart:52:9: Error: Expected an identifier, but got '>>'.
+// Try inserting an identifier before '>>'.
 //   print(>>foo);
 //         ^^
 //
@@ -352,3 +365,8 @@ Try correcting the operator to an existing operator, or defining a 'unary-' oper
   print(foo ~ 2);
             ^");
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///operator_method_not_found.dart:31:18 -> IntConstant(2)
+Extra constant evaluation: evaluated: 74, effectively constant: 1

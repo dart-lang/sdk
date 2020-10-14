@@ -32,8 +32,8 @@ B? nullB() => null;
 C? nullC() => null;
 
 main() {
-  int? one = 1;
-  B? b = B('B');
+  var one = 1 as int?;
+  var b = B('B') as B?;
   Expect.equals(1, one ?? 2);
   Expect.equals(1, one ?? null);
   Expect.equals(2, null ?? 2);

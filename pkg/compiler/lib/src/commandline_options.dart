@@ -23,6 +23,7 @@ class Flags {
   static const String enableCheckedMode = '--enable-checked-mode';
   static const String enableAsserts = '--enable-asserts';
   static const String enableNullAssertions = '--null-assertions';
+  static const String enableNativeNullAssertions = '--native-null-assertions';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
@@ -41,6 +42,11 @@ class Flags {
 
   // Experimentally rely on JavaScript ToBoolean conversions.
   static const String experimentToBoolean = '--experiment-code-3';
+
+  // Experiment to make methods that are inferred as unreachable throw an
+  // exception rather than generate suspect code.
+  static const String experimentUnreachableMethodsThrow =
+      '--experiment-unreachable-throw';
 
   // Add instrumentation to log every method call.
   static const String experimentCallInstrumentation =
@@ -106,13 +112,6 @@ class Flags {
 
   static const String soundNullSafety = '--sound-null-safety';
   static const String noSoundNullSafety = '--no-sound-null-safety';
-
-  static const String newDeferredSplit = '--new-deferred-split';
-  static const String noNewDeferredSplit = '--no-new-deferred-split';
-  static const String reportInvalidInferredDeferredTypes =
-      '--report-invalid-deferred-types';
-  static const String deferClassTypes = '--defer-class-types';
-  static const String noDeferClassTypes = '--no-defer-class-types';
 
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';

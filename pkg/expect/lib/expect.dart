@@ -612,6 +612,12 @@ class Expect {
     Expect.throws(f, (error) => error is NoSuchMethodError, reason);
   }
 
+  static void throwsReachabilityError(void f(),
+      [String reason = "ReachabilityError"]) {
+    Expect.throws(
+        f, (error) => error.toString().startsWith('ReachabilityError'), reason);
+  }
+
   /// Checks that [f] throws an appropriate error on a null argument.
   ///
   /// In strong mode, this is expected to be a [TypeError] when casting the

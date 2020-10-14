@@ -211,7 +211,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final Set<PromotableElement> _lateHintedLocals = {};
 
-  Map<Token, HintComment> _nullCheckHints = {};
+  final Map<Token, HintComment> _nullCheckHints = {};
 
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
@@ -447,6 +447,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
         operatorType == TokenType.BAR_BAR) {
       bool isAnd = operatorType == TokenType.AMPERSAND_AMPERSAND;
+      _flowAnalysis.logicalBinaryOp_begin();
       _checkExpressionNotNull(leftOperand);
       _flowAnalysis.logicalBinaryOp_rightBegin(node.leftOperand, isAnd: isAnd);
       _postDominatedLocals.doScoped(
@@ -484,7 +485,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         var calleeType =
             getOrComputeElementType(callee, targetType: targetType);
-        assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
+        assert(calleeType.positionalParameters.isNotEmpty); // TODO(paulberry)
         _handleAssignment(rightOperand,
             destinationType: calleeType.positionalParameters[0]);
         return _fixNumericTypes(calleeType.returnType, node.staticType);
@@ -619,6 +620,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitConditionalExpression(ConditionalExpression node) {
+    _flowAnalysis.conditional_conditionBegin();
     _checkExpressionNotNull(node.condition);
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
@@ -947,6 +949,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitIfStatement(IfStatement node) {
+    _flowAnalysis.ifStatement_conditionBegin();
     _checkExpressionNotNull(node.condition);
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
@@ -1728,7 +1731,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           var instantiatedType =
               _variables.decoratedTypeAnnotation(source, typeName);
           if (instantiatedType == null) {
-            throw new StateError('No type annotation for type name '
+            throw StateError('No type annotation for type name '
                 '${typeName.toSource()}, offset=${typeName.offset}');
           }
           var origin = InstantiateToBoundsOrigin(source, typeName);
@@ -2238,7 +2241,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           DecoratedType compoundOperatorType = getOrComputeElementType(
               compoundOperatorMethod,
               targetType: destinationType);
-          assert(compoundOperatorType.positionalParameters.length > 0);
+          assert(compoundOperatorType.positionalParameters.isNotEmpty);
           _checkAssignment(edgeOrigin, FixReasonTarget.root,
               source: sourceType,
               destination: compoundOperatorType.positionalParameters[0],
@@ -2757,7 +2760,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     int i = 0;
-    var suppliedNamedParameters = Set<String>();
+    var suppliedNamedParameters = <String>{};
     for (var argument in arguments) {
       String name;
       Expression expression;

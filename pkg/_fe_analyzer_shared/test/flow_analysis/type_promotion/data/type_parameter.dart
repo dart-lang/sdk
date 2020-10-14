@@ -12,7 +12,7 @@ class C<T extends num?> {
   void promoteNullable(T? t) {
     T? s;
     if (t is int) {
-      s = /*T & int*/ t;
+      s = /*analyzer.T? & int*/ /*cfe.T & int*/ t;
     }
   }
 
@@ -50,7 +50,7 @@ class E<T> {
 class F<S, T extends S> {
   void nonNull(T t) {
     if (t != null) {
-      /*T & S*/ t;
+      /*analyzer.T & S & Object*/ /*cfe.T & S*/ t;
     }
   }
 }

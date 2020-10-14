@@ -50,6 +50,7 @@ void main() {
         startTime: 1,
         runnable: true,
         livePorts: 2,
+        isolateFlags: [],
         pauseOnExit: false,
         pauseEvent: Event(
           kind: EventKind.kResume,
@@ -57,6 +58,7 @@ void main() {
         ),
         libraries: [],
         breakpoints: [],
+        isSystemIsolate: false,
       );
       var request = rpcRequest("getIsolate", params: {'isolateId': isolate.id});
       when(serviceMock.getIsolate(isolate.id))
@@ -77,6 +79,7 @@ void main() {
         startTime: 1,
         runnable: true,
         livePorts: 2,
+        isolateFlags: [],
         pauseOnExit: false,
         pauseEvent: Event(
           kind: EventKind.kResume,
@@ -84,6 +87,7 @@ void main() {
         ),
         libraries: [],
         breakpoints: [],
+        isSystemIsolate: false,
       );
       var request = rpcRequest("setVMTimelineFlags", params: {
         'isolateId': isolate.id,

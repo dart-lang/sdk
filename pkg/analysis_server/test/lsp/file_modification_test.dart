@@ -25,7 +25,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     // Since this is a notification and not a request, the server cannot
     // respond with an error, but instead sends a ShowMessage notification
     // to alert the user to something failing.
-    final error = await expectErrorNotification<ShowMessageParams>(() async {
+    final error = await expectErrorNotification(() async {
       await changeFile(222, mainFileUri, [
         Either2<TextDocumentContentChangeEvent1,
             TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
@@ -87,7 +87,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
       text: 'test',
     ));
     await initialize();
-    final notificationParams = await expectErrorNotification<ShowMessageParams>(
+    final notificationParams = await expectErrorNotification(
       () => changeFile(222, mainFileUri, [simpleEdit]),
     );
     expect(notificationParams, isNotNull);
@@ -133,7 +133,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_open_invalidPath() async {
     await initialize();
 
-    final notificationParams = await expectErrorNotification<ShowMessageParams>(
+    final notificationParams = await expectErrorNotification(
       () => openFile(Uri.http('localhost', 'not-a-file'), ''),
     );
     expect(notificationParams, isNotNull);

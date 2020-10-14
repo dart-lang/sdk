@@ -13,7 +13,12 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/kernel.dart'
-    show CanonicalName, Component, Location, Version;
+    show
+        CanonicalName,
+        Component,
+        Location,
+        NonNullableByDefaultCompiledMode,
+        Version;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
@@ -175,6 +180,8 @@ class ProcessedOptions {
   bool get emitDeps => _raw.emitDeps;
 
   NnbdMode get nnbdMode => _raw.nnbdMode;
+
+  bool get warnOnReachabilityCheck => _raw.warnOnReachabilityCheck;
 
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
@@ -357,6 +364,18 @@ class ProcessedOptions {
             _raw.experimentReleasedVersionForTesting);
   }
 
+  Component _validateNullSafetyMode(Component component) {
+    if (nnbdMode == NnbdMode.Strong &&
+        !(component.mode == NonNullableByDefaultCompiledMode.Strong ||
+            component.mode == NonNullableByDefaultCompiledMode.Agnostic)) {
+      throw new FormatException(
+          'Provided .dill file for the following libraries does not '
+          'support sound null safety:\n'
+          '${component.libraries.join('\n')}');
+    }
+    return component;
+  }
+
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<Component> loadSdkSummary(CanonicalName nameRoot) async {
@@ -374,6 +393,7 @@ class ProcessedOptions {
     if (_sdkSummaryComponent != null) {
       throw new StateError("sdkSummary already loaded.");
     }
+    _validateNullSafetyMode(platform);
     _sdkSummaryComponent = platform;
   }
 
@@ -399,6 +419,7 @@ class ProcessedOptions {
     if (_additionalDillComponents != null) {
       throw new StateError("inputAdditionalDillsComponents already loaded.");
     }
+    components.forEach(_validateNullSafetyMode);
     _additionalDillComponents = components;
   }
 
@@ -414,7 +435,7 @@ class ProcessedOptions {
             disableLazyReading: false,
             alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes)
         .readComponent(component);
-    return component;
+    return _validateNullSafetyMode(component);
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.

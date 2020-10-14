@@ -341,13 +341,6 @@ class TypeSystemTypeOperations
   }
 
   @override
-  bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
-    return variable is LocalVariableElement &&
-        variable.hasImplicitType &&
-        !variable.hasInitializer;
-  }
-
-  @override
   bool isNever(DartType type) {
     return typeSystem.isBottom(type);
   }
@@ -443,7 +436,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     assignedVariables.beginNode();
     _declareParameters(node.functionExpression.parameters);
     super.visitFunctionDeclaration(node);
-    assignedVariables.endNode(node, isClosure: true);
+    assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
   }
 
   @override
@@ -457,7 +450,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     assignedVariables.beginNode();
     _declareParameters(node.parameters);
     super.visitFunctionExpression(node);
-    assignedVariables.endNode(node, isClosure: true);
+    assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
   }
 
   @override
@@ -530,8 +523,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    assignedVariables.declare(node.declaredElement);
-    super.visitVariableDeclaration(node);
+    var declaredElement = node.declaredElement;
+    assignedVariables.declare(declaredElement);
+    if (declaredElement.isLate && node.initializer != null) {
+      assignedVariables.beginNode();
+      super.visitVariableDeclaration(node);
+      assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
+    } else {
+      super.visitVariableDeclaration(node);
+    }
   }
 
   @override
@@ -576,7 +576,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
         var variable = forLoopParts.loopVariable.declaredElement;
         assignedVariables.declare(variable);
-        assignedVariables.write(variable);
       } else {
         throw StateError('Unrecognized for loop parts');
       }

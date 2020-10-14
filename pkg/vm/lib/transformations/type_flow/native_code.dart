@@ -14,7 +14,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
 
 import 'calls.dart';
 import 'types.dart';
-import 'utils.dart';
 import '../pragma.dart';
 
 abstract class EntryPointsListener {
@@ -43,7 +42,7 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   PragmaEntryPointsVisitor(
       this.entryPoints, this.nativeCodeOracle, this.matcher) {
-    assertx(matcher != null);
+    assert(matcher != null);
   }
 
   PragmaEntryPointType _annotationsDefineRoot(List<Expression> annotations) {
@@ -85,8 +84,8 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
       Member target = proc;
       while (target is Procedure && target.isRedirectingFactoryConstructor) {
         target = getRedirectingFactoryBody(target).target;
-        assertx(target != null);
-        assertx(
+        assert(target != null);
+        assert(
             (target is Procedure && target.isFactory) || target is Constructor);
       }
       entryPoints
@@ -198,7 +197,7 @@ class NativeCodeOracle {
   final PragmaAnnotationParser _matcher;
 
   NativeCodeOracle(this._libraryIndex, this._matcher) {
-    assertx(_matcher != null);
+    assert(_matcher != null);
   }
 
   void addClassReferencedFromNativeCode(Class klass) {

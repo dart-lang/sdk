@@ -63,6 +63,8 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   /// a verification error for anything that should have been removed by it.
   final bool afterConst;
 
+  AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
+
   bool inCatchBlock = false;
 
   bool inUnevaluatedConstant = false;
@@ -273,11 +275,11 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     var oldParent = enterParent(node);
     bool isTopLevel = node.parent == currentLibrary;
     if (isTopLevel && !node.isStatic) {
-      problem(node, "The top-level field '${node.name.name}' should be static",
+      problem(node, "The top-level field '${node.name.text}' should be static",
           context: node);
     }
     if (node.isConst && !node.isStatic) {
-      problem(node, "The const field '${node.name.name}' should be static",
+      problem(node, "The const field '${node.name.text}' should be static",
           context: node);
     }
     classTypeParametersAreInScope = !node.isStatic;
@@ -378,9 +380,12 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
   visitFunctionNode(FunctionNode node) {
     declareTypeParameters(node.typeParameters);
     bool savedInCatchBlock = inCatchBlock;
+    AsyncMarker savedAsyncMarker = currentAsyncMarker;
+    currentAsyncMarker = node.asyncMarker;
     inCatchBlock = false;
     visitWithLocalScope(node);
     inCatchBlock = savedInCatchBlock;
+    currentAsyncMarker = savedAsyncMarker;
     undeclareTypeParameters(node.typeParameters);
   }
 
@@ -441,6 +446,40 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     inCatchBlock = true;
     visitWithLocalScope(node);
     inCatchBlock = savedInCatchBlock;
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    switch (currentAsyncMarker) {
+      case AsyncMarker.Sync:
+      case AsyncMarker.Async:
+      case AsyncMarker.SyncYielding:
+        // ok
+        break;
+      case AsyncMarker.SyncStar:
+      case AsyncMarker.AsyncStar:
+        problem(node,
+            "Return statement in function with async marker: $currentAsyncMarker");
+        break;
+    }
+    super.visitReturnStatement(node);
+  }
+
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    switch (currentAsyncMarker) {
+      case AsyncMarker.Sync:
+      case AsyncMarker.Async:
+        problem(node,
+            "Yield statement in function with async marker: $currentAsyncMarker");
+        break;
+      case AsyncMarker.SyncStar:
+      case AsyncMarker.AsyncStar:
+      case AsyncMarker.SyncYielding:
+        // ok
+        break;
+    }
+    super.visitYieldStatement(node);
   }
 
   @override
@@ -570,45 +609,6 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
           node,
           "${node.runtimeType} with wrong number of type arguments"
           " for '${target}'.");
-    }
-  }
-
-  @override
-  visitDirectPropertyGet(DirectPropertyGet node) {
-    visitChildren(node);
-    if (node.target == null) {
-      problem(node, "DirectPropertyGet without target.");
-    }
-    if (!node.target.hasGetter) {
-      problem(node, "DirectPropertyGet of '${node.target}' without getter.");
-    }
-    if (!node.target.isInstanceMember) {
-      problem(
-          node,
-          "DirectPropertyGet of '${node.target}' that isn't an"
-          " instance member.");
-    }
-  }
-
-  @override
-  visitDirectPropertySet(DirectPropertySet node) {
-    visitChildren(node);
-    if (node.target == null) {
-      problem(node, "DirectPropertySet without target.");
-    }
-    if (!node.target.hasSetter) {
-      problem(node, "DirectPropertySet of '${node.target}' without setter.");
-    }
-    if (!node.target.isInstanceMember) {
-      problem(node, "DirectPropertySet of '${node.target}' that is static.");
-    }
-  }
-
-  @override
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
-    checkTargetedInvocation(node.target, node);
-    if (node.receiver == null) {
-      problem(node, "DirectMethodInvocation without receiver.");
     }
   }
 

@@ -322,10 +322,6 @@ class Heap {
 
   void MergeFrom(Heap* donor);
 
-  void SetGCEventCallback(Dart_GCEventCallback callback) {
-    gc_event_callback_ = callback;
-  }
-
  private:
   class GCStats : public ValueObject {
    public:
@@ -421,8 +417,6 @@ class Heap {
   // CollectAllGarbage. Used within unit tests for testing GC on certain
   // sensitive codepaths.
   intptr_t gc_on_nth_allocation_;
-
-  Dart_GCEventCallback gc_event_callback_;
 
   friend class Become;       // VisitObjectPointers
   friend class GCCompactor;  // VisitObjectPointers

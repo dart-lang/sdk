@@ -44,6 +44,15 @@ void nonNullAsserts(bool enable) {
   _nonNullAsserts = enable;
 }
 
+@notNull
+bool _nativeNonNullAsserts = false;
+
+/// Enables null assertions on native APIs to make sure value returned from the
+/// browser is sound. These apply to dart:html and similar web libraries.
+void nativeNonNullAsserts(bool enable) {
+  _nativeNonNullAsserts = enable;
+}
+
 final metadata = JS('', 'Symbol("metadata")');
 
 /// Types in dart are represented internally at runtime as follows.
@@ -168,7 +177,7 @@ F tearoffInterop<F extends Function?>(F f) {
 /// we disable type checks for in these cases, and allow any JS object to work
 /// as if it were an instance of this JS type.
 class LazyJSType extends DartType {
-  Function()? _getRawJSTypeFn;
+  Function() _getRawJSTypeFn;
   @notNull
   final String _dartName;
   Object? _rawJSType;
@@ -190,14 +199,14 @@ class LazyJSType extends DartType {
     // overhead, especially if exceptions are being thrown. Also it means the
     // behavior of a given type check can change later on.
     try {
-      raw = _getRawJSTypeFn!();
+      raw = _getRawJSTypeFn();
     } catch (e) {}
 
     if (raw == null) {
       _warn('Cannot find native JavaScript type ($_dartName) for type check');
     } else {
       _rawJSType = raw;
-      _getRawJSTypeFn = null; // Free the function that computes the JS type.
+      JS('', '#.push(() => # = null)', _resetFields, _rawJSType);
     }
     return raw;
   }
@@ -369,7 +378,7 @@ class NullableType extends DartType {
   NullableType(@notNull this.type);
 
   @override
-  String get name => '$type?';
+  String get name => _jsInstanceOf(type, FunctionType) ? '($type)?' : '$type?';
 
   @override
   String toString() => name;

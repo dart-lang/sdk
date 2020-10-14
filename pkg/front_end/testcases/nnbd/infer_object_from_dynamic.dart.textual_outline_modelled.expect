@@ -1,0 +1,5 @@
+T f<T>(T t) => t;
+T g<T>(T? t) => t!;
+T h<T extends Object>(T? t) => t!;
+foo(dynamic d, void v, Object? onull, Object o, String? snull, String s) {}
+main() {}

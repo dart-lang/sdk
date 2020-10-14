@@ -13,7 +13,7 @@ abstract class B<T> implements A<T> {}
 class C {
   foo(num x) {
     if (x is! num) {
-      throw "Soudness issue: expected x to be num, got ${x.runtimeType}.";
+      throw "Soundness issue: expected x to be num, got ${x.runtimeType}.";
     }
   }
 }

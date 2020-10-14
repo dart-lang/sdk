@@ -65,7 +65,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    await newFile(nestedFilePath);
+    newFile(nestedFilePath);
 
     await initialize(allowEmptyRootUri: true);
     await openFile(nestedFileUri, '');
@@ -98,7 +98,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    await newFile(nestedFilePath);
+    newFile(nestedFilePath);
 
     await initialize(allowEmptyRootUri: true);
     await openFile(nestedFileUri, '');
@@ -132,7 +132,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    await newFile(nestedFilePath);
+    newFile(nestedFilePath);
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
 
@@ -164,7 +164,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    await newFile(nestedFilePath);
+    newFile(nestedFilePath);
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
 
@@ -201,10 +201,10 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     // the pub cache folder being added as an analysis root, it should be analyzed
     // by the existing project's driver.
     final workspace1FilePath = join(workspaceFolder1Path, 'test.dart');
-    await newFile(workspace1FilePath);
+    newFile(workspace1FilePath);
     final workspace2FilePath = join(workspaceFolder2Path, 'test.dart');
     final workspace2FileUri = Uri.file(workspace2FilePath);
-    await newFile(workspace2FilePath);
+    newFile(workspace2FilePath);
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
 

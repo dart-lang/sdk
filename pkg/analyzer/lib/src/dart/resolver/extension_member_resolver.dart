@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -40,12 +41,12 @@ class ExtensionMemberResolver {
   ///
   /// If no applicable extensions, return [ResolutionResult.none].
   ///
-  /// If the match is ambiguous, report an error and return
-  /// [ResolutionResult.ambiguous].
+  /// If the match is ambiguous, report an error on the [nameEntity], and
+  /// return [ResolutionResult.ambiguous].
   ResolutionResult findExtension(
     DartType type,
+    SyntacticEntity nameEntity,
     String name,
-    Expression target,
   ) {
     var extensions = _getApplicable(type, name);
 
@@ -62,9 +63,10 @@ class ExtensionMemberResolver {
       return extension.asResolutionResult;
     }
 
-    _errorReporter.reportErrorForNode(
+    _errorReporter.reportErrorForOffset(
       CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
-      target,
+      nameEntity.offset,
+      nameEntity.length,
       [
         name,
         extensions[0].extension.name,

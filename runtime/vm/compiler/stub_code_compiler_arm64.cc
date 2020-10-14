@@ -49,16 +49,12 @@ static void EnsureIsNewOrRemembered(Assembler* assembler,
   Label done;
   __ tbnz(&done, R0, target::ObjectAlignment::kNewObjectBitPosition);
 
-  if (preserve_registers) {
-    __ EnterCallRuntimeFrame(0);
-  } else {
-    __ ReserveAlignedFrameSpace(0);
-  }
-  // [R0] already contains first argument.
-  __ mov(R1, THR);
-  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
-  if (preserve_registers) {
-    __ LeaveCallRuntimeFrame();
+  {
+    Assembler::CallRuntimeScope scope(
+        assembler, kEnsureRememberedAndMarkingDeferredRuntimeEntry,
+        /*frame_size=*/0, /*preserve_registers=*/preserve_registers);
+    __ mov(R1, THR);
+    scope.Call(/*argument_count=*/2);
   }
 
   __ Bind(&done);
@@ -295,7 +291,7 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 // Calls native code within a safepoint.
 //
 // On entry:
-//   R8: target to call
+//   R9: target to call
 //   Stack: set up for native call (SP), aligned, CSP < SP
 //
 // On exit:
@@ -306,29 +302,29 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   COMPILE_ASSERT((1 << R19) & kAbiPreservedCpuRegs);
 
   __ mov(R19, LR);
-  __ LoadImmediate(R9, target::Thread::exit_through_ffi());
-  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/,
+  __ LoadImmediate(R10, target::Thread::exit_through_ffi());
+  __ TransitionGeneratedToNative(R9, FPREG, R10 /*volatile*/,
                                  /*enter_safepoint=*/true);
   __ mov(R25, CSP);
   __ mov(CSP, SP);
 
 #if defined(DEBUG)
   // Check CSP alignment.
-  __ andi(R10 /*volatile*/, SP,
+  __ andi(R11 /*volatile*/, SP,
           Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  __ cmp(R10, Operand(SP));
+  __ cmp(R11, Operand(SP));
   Label done;
   __ b(&done, EQ);
   __ Breakpoint();
   __ Bind(&done);
 #endif
 
-  __ blr(R8);
+  __ blr(R9);
 
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
-  __ TransitionNativeToGenerated(R9, /*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(R10, /*leave_safepoint=*/true);
   __ ret(R19);
 }
 
@@ -342,8 +338,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 #else
   Label done;
 
-  // R8 is volatile and not used for passing any arguments.
-  COMPILE_ASSERT(!IsCalleeSavedRegister(R8) && !IsArgumentRegister(R8));
+  // R9 is volatile and not used for passing any arguments.
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R9) && !IsArgumentRegister(R9));
   for (intptr_t i = 0;
        i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
     // We don't use LoadImmediate because we need the trampoline size to be
@@ -351,7 +347,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     //
     // Instead we paste the callback ID directly in the code load it
     // PC-relative.
-    __ ldr(R8, compiler::Address::PC(2 * Instr::kInstrSize));
+    __ ldr(R9, compiler::Address::PC(2 * Instr::kInstrSize));
     __ b(&done);
     __ Emit(next_callback_id + i);
   }
@@ -366,7 +362,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // The load of the callback ID might have incorrect higher-order bits, since
   // we only emit a 32-bit callback ID.
-  __ uxtw(R8, R8);
+  __ uxtw(R9, R9);
 
   // Save THR (callee-saved) and LR on real real C stack (CSP). Keeps it
   // aligned.
@@ -378,8 +374,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   RegisterSet all_registers;
   all_registers.AddAllArgumentRegisters();
 
-  // The call below might clobber R8 (volatile, holding callback_id).
-  all_registers.Add(Location::RegisterLocation(R8));
+  // The call below might clobber R9 (volatile, holding callback_id).
+  all_registers.Add(Location::RegisterLocation(R9));
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
@@ -400,7 +396,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     // loaded anywhere, we use the same trick as before to ensure a predictable
     // instruction sequence.
     Label call;
-    __ mov(R0, R8);
+    __ mov(R0, R9);
     __ ldr(R1, compiler::Address::PC(2 * Instr::kInstrSize));
     __ b(&call);
 
@@ -419,29 +415,30 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     __ mov(CSP, SP);
   }
 
-  COMPILE_ASSERT(!IsCalleeSavedRegister(R9) && !IsArgumentRegister(R9));
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
 
   // Load the code object.
-  __ LoadFromOffset(R9, THR, compiler::target::Thread::callback_code_offset());
-  __ LoadFieldFromOffset(R9, R9,
+  __ LoadFromOffset(R10, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFieldFromOffset(R10, R10,
                          compiler::target::GrowableObjectArray::data_offset());
-  __ ldr(R9, __ ElementAddressForRegIndex(
-                 /*external=*/false,
-                 /*array_cid=*/kArrayCid,
-                 /*index, smi-tagged=*/compiler::target::kWordSize * 2,
-                 /*index_unboxed=*/false,
-                 /*array=*/R9,
-                 /*index=*/R8,
-                 /*temp=*/TMP));
-  __ LoadFieldFromOffset(R9, R9, compiler::target::Code::entry_point_offset());
+  __ ldr(R10, __ ElementAddressForRegIndex(
+                  /*external=*/false,
+                  /*array_cid=*/kArrayCid,
+                  /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                  /*index_unboxed=*/false,
+                  /*array=*/R10,
+                  /*index=*/R9,
+                  /*temp=*/TMP));
+  __ LoadFieldFromOffset(R10, R10,
+                         compiler::target::Code::entry_point_offset());
 
-  // Clobbers all volatile registers, including the callback ID in R8.
+  // Clobbers all volatile registers, including the callback ID in R9.
   // Resets CSP and SP, important for EnterSafepoint below.
-  __ blr(R9);
+  __ blr(R10);
 
-  // EnterSafepoint clobbers TMP, TMP2 and R8 -- all volatile and not holding
+  // EnterSafepoint clobbers TMP, TMP2 and R9 -- all volatile and not holding
   // return values.
-  __ EnterSafepoint(/*scratch=*/R8);
+  __ EnterSafepoint(/*scratch=*/R9);
 
   // Pop LR and THR from the real stack (CSP).
   __ ldp(THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
@@ -1973,16 +1970,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&overflow);
-  // Setup frame, push callee-saved registers.
-
-  __ Push(CODE_REG);
-  __ ldr(CODE_REG, stub_code);
-  __ EnterCallRuntimeFrame(0 * target::kWordSize);
-  __ mov(R0, THR);
-  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
-  // Restore callee-saved registers, tear down frame.
-  __ LeaveCallRuntimeFrame();
-  __ Pop(CODE_REG);
+  {
+    Assembler::CallRuntimeScope scope(assembler,
+                                      kStoreBufferBlockProcessRuntimeEntry,
+                                      /*frame_size=*/0, stub_code);
+    __ mov(R0, THR);
+    scope.Call(/*argument_count=*/1);
+  }
   __ ret();
 
   __ Bind(&add_to_mark_stack);
@@ -2020,13 +2014,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ ret();
 
   __ Bind(&marking_overflow);
-  __ Push(CODE_REG);
-  __ ldr(CODE_REG, stub_code);
-  __ EnterCallRuntimeFrame(0 * target::kWordSize);
-  __ mov(R0, THR);
-  __ CallRuntime(kMarkingStackBlockProcessRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ Pop(CODE_REG);
+  {
+    Assembler::CallRuntimeScope scope(assembler,
+                                      kMarkingStackBlockProcessRuntimeEntry,
+                                      /*frame_size=*/0, stub_code);
+    __ mov(R0, THR);
+    scope.Call(/*argument_count=*/1);
+  }
   __ ret();
 
   __ Bind(&lost_race);
@@ -2059,16 +2053,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Card table not yet allocated.
     __ Bind(&remember_card_slow);
-    __ Push(CODE_REG);
-    __ PushPair(R0, R1);
-    __ ldr(CODE_REG, stub_code);
-    __ mov(R0, R1);   // Arg0 = Object
-    __ mov(R1, R25);  // Arg1 = Slot
-    __ EnterCallRuntimeFrame(0);
-    __ CallRuntime(kRememberCardRuntimeEntry, 2);
-    __ LeaveCallRuntimeFrame();
-    __ PopPair(R0, R1);
-    __ Pop(CODE_REG);
+    {
+      Assembler::CallRuntimeScope scope(assembler, kRememberCardRuntimeEntry,
+                                        /*frame_size=*/0, stub_code);
+      __ mov(R0, R1);   // Arg0 = Object
+      __ mov(R1, R25);  // Arg1 = Slot
+      scope.Call(/*argument_count=*/2);
+    }
     __ ret();
   }
 }
@@ -4077,6 +4068,126 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
 
   __ Bind(&cache_lookup);
   GenerateInstantiateTypeArgumentsStub(assembler);
+}
+
+static int GetScaleFactor(intptr_t size) {
+  switch (size) {
+    case 1:
+      return 0;
+    case 2:
+      return 1;
+    case 4:
+      return 2;
+    case 8:
+      return 3;
+    case 16:
+      return 4;
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
+                                                          intptr_t cid) {
+  const intptr_t element_size = TypedDataElementSizeInBytes(cid);
+  const intptr_t max_len = TypedDataMaxNewSpaceElements(cid);
+  const intptr_t scale_shift = GetScaleFactor(element_size);
+
+  COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == R4);
+  COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == R0);
+
+  Label call_runtime;
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &call_runtime));
+  __ mov(R2, AllocateTypedDataArrayABI::kLengthReg);
+  /* Check that length is a positive Smi. */
+  /* R2: requested array length argument. */
+  __ BranchIfNotSmi(R2, &call_runtime);
+  __ CompareRegisters(R2, ZR);
+  __ b(&call_runtime, LT);
+  __ SmiUntag(R2);
+  /* Check for maximum allowed length. */
+  /* R2: untagged array length. */
+  __ CompareImmediate(R2, max_len);
+  __ b(&call_runtime, GT);
+  __ LslImmediate(R2, R2, scale_shift);
+  const intptr_t fixed_size_plus_alignment_padding =
+      target::TypedData::InstanceSize() +
+      target::ObjectAlignment::kObjectAlignment - 1;
+  __ AddImmediate(R2, fixed_size_plus_alignment_padding);
+  __ andi(R2, R2, Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
+  __ ldr(R0, Address(THR, target::Thread::top_offset()));
+
+  /* R2: allocation size. */
+  __ adds(R1, R0, Operand(R2));
+  __ b(&call_runtime, CS); /* Fail on unsigned overflow. */
+
+  /* Check if the allocation fits into the remaining space. */
+  /* R0: potential new object start. */
+  /* R1: potential next object start. */
+  /* R2: allocation size. */
+  __ ldr(R6, Address(THR, target::Thread::end_offset()));
+  __ cmp(R1, Operand(R6));
+  __ b(&call_runtime, CS);
+
+  /* Successfully allocated the object(s), now update top to point to */
+  /* next object start and initialize the object. */
+  __ str(R1, Address(THR, target::Thread::top_offset()));
+  __ AddImmediate(R0, kHeapObjectTag);
+  /* Initialize the tags. */
+  /* R0: new object start as a tagged pointer. */
+  /* R1: new object end address. */
+  /* R2: allocation size. */
+  {
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ LslImmediate(R2, R2,
+                    target::ObjectLayout::kTagBitsSizeTagPos -
+                        target::ObjectAlignment::kObjectAlignmentLog2);
+    __ csel(R2, ZR, R2, HI);
+
+    /* Get the class index and insert it into the tags. */
+    uint32_t tags =
+        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    __ LoadImmediate(TMP, tags);
+    __ orr(R2, R2, Operand(TMP));
+    __ str(R2, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */
+  }
+  /* Set the length field. */
+  /* R0: new object start as a tagged pointer. */
+  /* R1: new object end address. */
+  __ mov(R2, AllocateTypedDataArrayABI::kLengthReg); /* Array length. */
+  __ StoreIntoObjectNoBarrier(
+      R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R2);
+  /* Initialize all array elements to 0. */
+  /* R0: new object start as a tagged pointer. */
+  /* R1: new object end address. */
+  /* R2: iterator which initially points to the start of the variable */
+  /* R3: scratch register. */
+  /* data area to be initialized. */
+  __ mov(R3, ZR);
+  __ AddImmediate(R2, R0, target::TypedData::InstanceSize() - 1);
+  __ StoreInternalPointer(
+      R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);
+  Label init_loop, done;
+  __ Bind(&init_loop);
+  __ cmp(R2, Operand(R1));
+  __ b(&done, CS);
+  __ str(R3, Address(R2, 0));
+  __ add(R2, R2, Operand(target::kWordSize));
+  __ b(&init_loop);
+  __ Bind(&done);
+
+  __ Ret();
+
+  __ Bind(&call_runtime);
+  __ EnterStubFrame();
+  __ Push(ZR);                                     // Result slot.
+  __ PushImmediate(target::ToRawSmi(cid));         // Cid
+  __ Push(AllocateTypedDataArrayABI::kLengthReg);  // Array length
+  __ CallRuntime(kAllocateTypedDataRuntimeEntry, 2);
+  __ Drop(2);  // Drop arguments.
+  __ Pop(AllocateTypedDataArrayABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 }  // namespace compiler

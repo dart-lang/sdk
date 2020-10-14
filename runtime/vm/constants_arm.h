@@ -285,11 +285,11 @@ extern const char* fpu_d_reg_names[kNumberOfDRegisters];
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
-const Register PP = R5;     // Caches object pool pointer in generated code.
+const Register PP = R5;  // Caches object pool pointer in generated code.
 const Register DISPATCH_TABLE_REG = NOTFP;  // Dispatch table register.
-const Register SPREG = SP;  // Stack pointer register.
-const Register FPREG = FP;  // Frame pointer register.
-const Register LRREG = LR;  // Link register.
+const Register SPREG = SP;                  // Stack pointer register.
+const Register FPREG = FP;                  // Frame pointer register.
+const Register LRREG = LR;                  // Link register.
 const Register ARGS_DESC_REG = R4;
 const Register CODE_REG = R6;
 const Register THR = R10;  // Caches current thread in generated code.
@@ -394,6 +394,12 @@ struct AllocateMintABI {
   static const Register kTempReg = R1;
 };
 
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = R4;
+  static const Register kResultReg = R0;
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 
@@ -447,6 +453,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
   static const Register ArgumentRegisters[];
   static const intptr_t kNumArgRegs = 4;
+  static const Register kPointerToReturnStructRegister = R0;
 
   static const intptr_t kFpuArgumentRegisters = 0;
 
@@ -492,6 +499,10 @@ class CallingConventions {
   static constexpr Register kSecondNonArgumentRegister = R9;
   static constexpr Register kFirstCalleeSavedCpuReg = R4;
   static constexpr Register kStackPointerRegister = SPREG;
+
+  COMPILE_ASSERT(
+      ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
+       (kArgumentRegisters | R(kPointerToReturnStructRegister))) == 0);
 };
 
 #undef R
@@ -968,7 +979,7 @@ float ReciprocalStep(float op1, float op2);
 float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
 
-constexpr uword kBreakInstructionFiller = 0xE1200070;  // bkpt #0
+constexpr uword kBreakInstructionFiller = 0xE1200070;   // bkpt #0
 constexpr uword kDataMemoryBarrier = 0xf57ff050 | 0xb;  // dmb ish
 
 }  // namespace dart

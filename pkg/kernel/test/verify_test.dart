@@ -57,7 +57,7 @@ main() {
       VariableDeclaration variable = test.makeVariable();
       test.addNode(LogicalExpression(
           new Let(variable, new VariableGet(variable)),
-          '&&',
+          LogicalExpressionOperator.AND,
           new VariableGet(variable)));
       return variable;
     },
@@ -236,7 +236,7 @@ main() {
     'Dangling field get',
     (TestHarness test) {
       Field orphan = new Field(new Name('foo'));
-      test.addNode(new DirectPropertyGet(new NullLiteral(), orphan));
+      test.addNode(new PropertyGet(new NullLiteral(), orphan.name, orphan));
       return orphan;
     },
     (Node node) => "Dangling reference to '$node', parent is: 'null'.",

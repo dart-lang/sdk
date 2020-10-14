@@ -704,15 +704,31 @@ class DeclarationsTracker {
 
   _File _getFileByUri(DeclarationsContext context, Uri uri) {
     var file = _uriToFile[uri];
-    if (file == null) {
-      var path = context._resolveUri(uri);
-      if (path != null) {
-        file = _File(this, path, uri);
-        _pathToFile[path] = file;
-        _uriToFile[uri] = file;
-        file.refresh(context);
-      }
+    if (file != null) {
+      return file;
     }
+
+    var path = context._resolveUri(uri);
+    if (path == null) {
+      return null;
+    }
+
+    try {
+      path = _resolveLinks(path);
+    } on FileSystemException {
+      // Not existing file, or the link target.
+    }
+
+    file = _pathToFile[path];
+    if (file != null) {
+      return file;
+    }
+
+    file = _File(this, path, uri);
+    _pathToFile[path] = file;
+    _uriToFile[uri] = file;
+
+    file.refresh(context);
     return file;
   }
 
@@ -790,6 +806,13 @@ class DeclarationsTracker {
     _changesController.add(
       LibraryChange._(changedLibraries, removedLibraries),
     );
+  }
+
+  /// Return the [path] with resolved file system links.
+  String _resolveLinks(String path) {
+    var resource = _resourceProvider.getFile(path);
+    resource = resource.resolveSymbolicLinksSync();
+    return resource.path;
   }
 }
 

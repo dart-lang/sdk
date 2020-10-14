@@ -13,33 +13,64 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropEnclosingClassJSAnnotationContext,
         messageJsInteropIndexNotSupported,
         messageJsInteropNamedParameters,
-        messageJsInteropNonExternalConstructor;
+        messageJsInteropNonExternalConstructor,
+        messageJsInteropNonExternalMember;
 
 import 'src/js_interop.dart';
 
 class JsInteropChecks extends RecursiveVisitor<void> {
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
+  bool _classHasJSAnnotation = false;
+  bool _libraryHasJSAnnotation = false;
 
   JsInteropChecks(this._diagnosticsReporter);
 
   @override
   void defaultMember(Member member) {
-    _checkMemberJSInteropAnnotation(member);
+    _checkJSInteropAnnotation(member);
+    // TODO(43530): Disallow having JS interop annotations on non-external
+    // members (class members or otherwise). Currently, they're being ignored.
     super.defaultMember(member);
   }
 
   @override
-  void visitProcedure(Procedure procedure) {
-    _checkMemberJSInteropAnnotation(procedure);
+  void visitClass(Class cls) {
+    _classHasJSAnnotation = hasJSInteropAnnotation(cls);
+    super.visitClass(cls);
+    _classHasJSAnnotation = false;
+  }
 
-    if (!procedure.isExternal || !isJSInteropMember(procedure)) return;
+  @override
+  void visitLibrary(Library lib) {
+    _libraryHasJSAnnotation = hasJSInteropAnnotation(lib);
+    super.visitLibrary(lib);
+    _libraryHasJSAnnotation = false;
+  }
+
+  @override
+  void visitProcedure(Procedure procedure) {
+    _checkJSInteropAnnotation(procedure);
+    if (_classHasJSAnnotation && !procedure.isExternal) {
+      // If not one of few exceptions, member is not allowed to exclude
+      // `external` inside of a JS interop class.
+      if (!(procedure.isAbstract ||
+          procedure.isFactory ||
+          procedure.isStatic)) {
+        _diagnosticsReporter.report(
+            messageJsInteropNonExternalMember,
+            procedure.fileOffset,
+            procedure.name.text.length,
+            procedure.location.file);
+      }
+    }
+    if (!_isJSInteropMember(procedure)) return;
 
     if (!procedure.isStatic &&
-        (procedure.name.name == '[]=' || procedure.name.name == '[]')) {
+        (procedure.name.text == '[]=' || procedure.name.text == '[]')) {
       _diagnosticsReporter.report(
           messageJsInteropIndexNotSupported,
           procedure.fileOffset,
-          procedure.name.name.length,
+          procedure.name.text.length,
           procedure.location.file);
     }
 
@@ -65,17 +96,18 @@ class JsInteropChecks extends RecursiveVisitor<void> {
 
   @override
   void visitConstructor(Constructor constructor) {
-    _checkMemberJSInteropAnnotation(constructor);
-
-    if (!isJSInteropMember(constructor)) return;
-
-    if (!constructor.isExternal && !constructor.isSynthetic) {
+    _checkJSInteropAnnotation(constructor);
+    if (_classHasJSAnnotation &&
+        !constructor.isExternal &&
+        !constructor.isSynthetic) {
+      // Non-synthetic constructors must be annotated with `external`.
       _diagnosticsReporter.report(
           messageJsInteropNonExternalConstructor,
           constructor.fileOffset,
-          constructor.name.name.length,
+          constructor.name.text.length,
           constructor.location.file);
     }
+    if (!_isJSInteropMember(constructor)) return;
 
     _checkNoNamedParameters(constructor.function);
   }
@@ -92,14 +124,18 @@ class JsInteropChecks extends RecursiveVisitor<void> {
     }
   }
 
-  /// Reports an error if [m] has a JS interop annotation and is part of a class
-  /// that does not.
-  void _checkMemberJSInteropAnnotation(Member m) {
-    if (!hasJSInteropAnnotation(m)) return;
-    var enclosingClass = m.enclosingClass;
-    if (enclosingClass != null && !hasJSInteropAnnotation(enclosingClass)) {
+  /// Reports an error if [member] does not correctly use the JS interop
+  /// annotation or the keyword `external`.
+  void _checkJSInteropAnnotation(Member member) {
+    var enclosingClass = member.enclosingClass;
+
+    if (!_classHasJSAnnotation &&
+        enclosingClass != null &&
+        hasJSInteropAnnotation(member)) {
+      // If in a class that is not JS interop, this member is not allowed to be
+      // JS interop.
       _diagnosticsReporter.report(messageJsInteropEnclosingClassJSAnnotation,
-          m.fileOffset, m.name.name.length, m.location.file,
+          member.fileOffset, member.name.text.length, member.location.file,
           context: <LocatedMessage>[
             messageJsInteropEnclosingClassJSAnnotationContext.withLocation(
                 enclosingClass.location.file,
@@ -107,5 +143,16 @@ class JsInteropChecks extends RecursiveVisitor<void> {
                 enclosingClass.name.length)
           ]);
     }
+  }
+
+  /// Returns whether [member] is considered to be a JS interop member.
+  bool _isJSInteropMember(Member member) {
+    if (!member.isExternal) return false;
+    if (_classHasJSAnnotation) return true;
+    if (!_classHasJSAnnotation && member.enclosingClass != null) return false;
+    // In the case where the member does not belong to any class, a JS
+    // annotation is not needed on the library to be considered JS interop as
+    // long as the member has an annotation.
+    return hasJSInteropAnnotation(member) || _libraryHasJSAnnotation;
   }
 }

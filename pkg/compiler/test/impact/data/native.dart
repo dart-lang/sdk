@@ -58,7 +58,6 @@ testNativeMethodReturns() native;
 
 @Native("NativeClass")
 class NativeClass {
-  @annotation_Creates_SerializedScriptValue
   /*member: NativeClass.field:
    static=[
     Rti._bind(1),
@@ -108,6 +107,7 @@ class NativeClass {
     native:int,
     param:Object*]
   */
+  @annotation_Creates_SerializedScriptValue
   final Object field;
 
   factory NativeClass._() {

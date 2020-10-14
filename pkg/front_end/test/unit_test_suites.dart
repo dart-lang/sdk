@@ -30,7 +30,6 @@ import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
 import 'incremental_load_from_dill_suite.dart' as incremental_load
     show createContext;
 import 'lint_suite.dart' as lint show createContext;
-import 'old_dill_suite.dart' as old_dill show createContext;
 import 'parser_suite.dart' as parser show createContext;
 import 'parser_all_suite.dart' as parserAll show createContext;
 import 'spelling_test_not_src_suite.dart' as spelling_not_src
@@ -45,9 +44,10 @@ class Options {
   final bool printFailureLog;
   final Uri outputDirectory;
   final String testFilter;
+  final List<String> environmentOptions;
 
   Options(this.configurationName, this.verbose, this.printFailureLog,
-      this.outputDirectory, this.testFilter);
+      this.outputDirectory, this.testFilter, this.environmentOptions);
 
   static Options parse(List<String> args) {
     var parser = new ArgParser()
@@ -59,7 +59,9 @@ class Options {
       ..addFlag("verbose",
           abbr: "v", help: "print additional information", defaultsTo: false)
       ..addFlag("print",
-          abbr: "p", help: "print failure logs", defaultsTo: false);
+          abbr: "p", help: "print failure logs", defaultsTo: false)
+      ..addMultiOption('environment',
+          abbr: 'D', help: "environment options for the test suite");
     var parsedArguments = parser.parse(args);
     String outputPath = parsedArguments["output-directory"] ?? ".";
     Uri outputDirectory = Uri.base.resolveUri(Uri.directory(outputPath));
@@ -75,7 +77,8 @@ class Options {
         parsedArguments["verbose"],
         parsedArguments["print"],
         outputDirectory,
-        filter);
+        filter,
+        parsedArguments['environment']);
   }
 }
 
@@ -142,8 +145,17 @@ class ResultLogger implements Logger {
       if (result.trace != null) {
         failureLog = "$failureLog\n\n${result.trace}";
       }
-      failureLog = "$failureLog\n\nRe-run this test: dart "
-          "pkg/front_end/test/unit_test_suites.dart -p $testName";
+      if (result.autoFixCommand != null) {
+        failureLog = "$failureLog\n\n"
+            "To re-run this test, run:\n\n"
+            "   dart pkg/front_end/test/unit_test_suites.dart -p $testName\n\n"
+            "To automatically update the test expectations, run:\n\n"
+            "   dart pkg/front_end/test/unit_test_suites.dart -p $testName "
+            "-D${result.autoFixCommand}\n";
+      } else {
+        failureLog = "$failureLog\n\nRe-run this test: dart "
+            "pkg/front_end/test/unit_test_suites.dart -p $testName";
+      }
       String outcome = "${result.outcome}";
       logsPort.send(jsonEncode({
         "name": testName,
@@ -265,7 +277,6 @@ const List<Suite> suites = [
   const Suite("incremental_load_from_dill", incremental_load.createContext,
       "../testing.json"),
   const Suite("lint", lint.createContext, "../testing.json"),
-  const Suite("old_dill", old_dill.createContext, "../testing.json"),
   const Suite("parser", parser.createContext, "../testing.json"),
   const Suite("parser_all", parserAll.createContext, "../testing.json"),
   const Suite("spelling_test_not_src", spelling_not_src.createContext,
@@ -287,6 +298,8 @@ class SuiteConfiguration {
   final bool printFailureLog;
   final String configurationName;
   final String testFilter;
+  final List<String> environmentOptions;
+
   const SuiteConfiguration(
       this.name,
       this.resultsPort,
@@ -294,7 +307,8 @@ class SuiteConfiguration {
       this.verbose,
       this.printFailureLog,
       this.configurationName,
-      this.testFilter);
+      this.testFilter,
+      this.environmentOptions);
 }
 
 void runSuite(SuiteConfiguration configuration) {
@@ -312,9 +326,11 @@ void runSuite(SuiteConfiguration configuration) {
       configuration.verbose,
       configuration.printFailureLog,
       configuration.configurationName);
-  runMe(
-      <String>[if (configuration.testFilter != null) configuration.testFilter],
-      suite.createContext,
+  runMe(<String>[
+    if (configuration.testFilter != null) configuration.testFilter,
+    if (configuration.environmentOptions != null)
+      for (String option in configuration.environmentOptions) '-D${option}',
+  ], suite.createContext,
       me: suiteUri,
       configurationPath: suite.testingRootPath,
       logger: logger,
@@ -359,7 +375,8 @@ main([List<String> arguments = const <String>[]]) async {
         options.verbose,
         options.printFailureLog,
         options.configurationName,
-        filter);
+        filter,
+        options.environmentOptions);
     Future future = Future<bool>(() async {
       Stopwatch stopwatch = Stopwatch()..start();
       print("Running suite $name");

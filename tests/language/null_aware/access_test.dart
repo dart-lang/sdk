@@ -26,6 +26,8 @@ main() {
   // e1?.id is equivalent to ((x) => x == null ? null : x.id)(e1).
   Expect.equals(null, nullC()?.v);
   Expect.equals(1, new C(1)?.v);
+  //                   ^
+  // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
   //                       ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
@@ -35,6 +37,8 @@ main() {
 
   // The static type of e1?.d is the static type of e1.id.
   { int? i = new C(1)?.v; Expect.equals(1, i); }
+  //             ^
+  // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
   //                 ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   { String? s = new C(null)?.v; Expect.equals(null, s); }
@@ -42,6 +46,8 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                ^
   // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
+  //                ^
+  // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
   //                       ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   { C.staticInt = 1; int? i = C?.staticInt; Expect.equals(1, i); }
@@ -64,8 +70,8 @@ main() {
   //                           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'bad' isn't defined for the class 'C'.
-  { B? b = new C(1); Expect.equals(1, b?.v); }
-  //                                     ^
+  { var b = new C(1) as B?; Expect.equals(1, b?.v); }
+  //                                            ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'v' isn't defined for the class 'B'.
 

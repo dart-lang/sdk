@@ -2,11 +2,11 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned_late_local_variables.dart:15:9: Error: Non-nullable late variable 'value' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned_late_local_variables.dart:15:9: Error: Late variable 'value' without initializer is definitely unassigned.
 //     bar(value); // Error.
 //         ^^^^^
 //
-// pkg/front_end/testcases/nnbd/definitely_unassigned_late_local_variables.dart:16:12: Error: Non-nullable late variable 'intValue' without initializer is definitely unassigned.
+// pkg/front_end/testcases/nnbd/definitely_unassigned_late_local_variables.dart:16:12: Error: Late variable 'intValue' without initializer is definitely unassigned.
 //     barInt(intValue); // Error.
 //            ^^^^^^^^
 //
@@ -22,10 +22,10 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
   method foo() → dynamic {
     late self::A::T% value;
     late core::int intValue;
-    this.{self::A::bar}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned_late_local_variables.dart:15:9: Error: Non-nullable late variable 'value' without initializer is definitely unassigned.
+    this.{self::A::bar}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned_late_local_variables.dart:15:9: Error: Late variable 'value' without initializer is definitely unassigned.
     bar(value); // Error.
         ^^^^^" in value);
-    this.{self::A::barInt}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned_late_local_variables.dart:16:12: Error: Non-nullable late variable 'intValue' without initializer is definitely unassigned.
+    this.{self::A::barInt}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned_late_local_variables.dart:16:12: Error: Late variable 'intValue' without initializer is definitely unassigned.
     barInt(intValue); // Error.
            ^^^^^^^^" in intValue);
   }

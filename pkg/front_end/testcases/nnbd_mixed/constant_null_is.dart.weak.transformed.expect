@@ -123,3 +123,22 @@ constants  {
   #C6 = self::Class<core::int*> {field:#C2}
   #C7 = self::Class<core::Null?> {field:#C3}
 }
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:46:15 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:47:15 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:48:15 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:49:15 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:50:15 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:51:15 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:52:15 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:53:15 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:54:15 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:55:15 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:56:15 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:57:15 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:58:15 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is.dart:8:40 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is_lib.dart:24:15 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///constant_null_is_lib.dart:25:15 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 139, effectively constant: 16

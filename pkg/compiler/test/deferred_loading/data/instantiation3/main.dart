@@ -6,14 +6,14 @@
 
 // Test instantiation used only in a deferred library.
 
-/*class: global#Instantiation:OutputUnit(1, {b}), type=OutputUnit(1, {b})*/
-/*class: global#Instantiation1:OutputUnit(1, {b}), type=OutputUnit(1, {b})*/
+/*class: global#Instantiation:class_unit=1{b},type_unit=1{b}*/
+/*class: global#Instantiation1:class_unit=1{b},type_unit=1{b}*/
 
-/*member: global#instantiate1:OutputUnit(1, {b})*/
+/*member: global#instantiate1:member_unit=1{b}*/
 
 import 'lib1.dart' deferred as b;
 
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 main() async {
   await b.loadLibrary();
   print(b.m(3));

@@ -21,7 +21,45 @@ class Rename extends Change<SimpleIdentifier> {
   @override
   void apply(DartFileEditBuilder builder, DataDrivenFix fix,
       SimpleIdentifier nameNode) {
-    builder.addSimpleReplacement(range.node(nameNode), newName);
+    if (fix.element.isConstructor) {
+      var parent = nameNode.parent;
+      if (parent is ConstructorName) {
+        if (nameNode != null && newName.isEmpty) {
+          // The constructor was renamed from a named constructor to an unnamed
+          // constructor.
+          builder.addDeletion(range.startEnd(parent.period, parent));
+        } else if (nameNode == null && newName.isNotEmpty) {
+          // The constructor was renamed from an unnamed constructor to a named
+          // constructor.
+          builder.addSimpleInsertion(parent.end, '.$newName');
+        } else {
+          // The constructor was renamed from a named constructor to another
+          // named constructor.
+          builder.addSimpleReplacement(range.node(nameNode), newName);
+        }
+      } else if (parent is MethodInvocation) {
+        if (newName.isEmpty) {
+          // The constructor was renamed from a named constructor to an unnamed
+          // constructor.
+          builder.addDeletion(range.startEnd(parent.operator, nameNode));
+        } else {
+          // The constructor was renamed from a named constructor to another
+          // named constructor.
+          builder.addSimpleReplacement(range.node(nameNode), newName);
+        }
+      } else if (parent is TypeName && parent.parent is ConstructorName) {
+        // The constructor was renamed from an unnamed constructor to a named
+        // constructor.
+        builder.addSimpleInsertion(parent.end, '.$newName');
+      } else {
+        // The constructor was renamed from a named constructor to another named
+        // constructor.
+        builder.addSimpleReplacement(range.node(nameNode), newName);
+      }
+    } else {
+      // The name is a simple identifier.
+      builder.addSimpleReplacement(range.node(nameNode), newName);
+    }
   }
 
   @override

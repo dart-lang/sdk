@@ -786,7 +786,8 @@ class SuggestionBuilder {
   void suggestNamedArgument(ParameterElement parameter,
       {@required bool appendColon, @required bool appendComma}) {
     var name = parameter.name;
-    var type = parameter.type?.getDisplayString(withNullability: false);
+    var type = parameter.type?.getDisplayString(
+        withNullability: request.libraryElement.isNonNullableByDefault);
 
     var completion = name;
     if (appendColon) {
@@ -799,7 +800,9 @@ class SuggestionBuilder {
     var element = parameter.enclosingElement;
     if (element is ConstructorElement) {
       if (Flutter.instance.isWidget(element.enclosingElement)) {
-        var defaultValue = getDefaultStringParameterValue(parameter);
+        // Don't bother with nullability. It won't affect default list values.
+        var defaultValue =
+            getDefaultStringParameterValue(parameter, withNullability: false);
         // TODO(devoncarew): Should we remove the check here? We would then
         // suggest values for param types like closures.
         if (defaultValue != null && defaultValue.text == '[]') {
@@ -934,7 +937,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion for a [prefix] associated with a [library].
   void suggestPrefix(LibraryElement library, String prefix) {
-    var relevance;
+    int relevance;
     if (request.useNewRelevance) {
       var elementKind = _computeElementKind(library);
       // TODO(brianwilkerson) If we are in a constant context it would be nice
@@ -1286,7 +1289,8 @@ class SuggestionBuilder {
         var paramType = parameter.type;
         // Gracefully degrade if type not resolved yet
         return paramType != null
-            ? paramType.getDisplayString(withNullability: false)
+            ? paramType.getDisplayString(
+                withNullability: request.libraryElement.isNonNullableByDefault)
             : 'var';
       }).toList();
 

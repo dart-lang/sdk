@@ -206,7 +206,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   TypeInformation run() {
     if (_analyzedMember.isField) {
-      if (_analyzedNode == null || _analyzedNode is ir.NullLiteral) {
+      if (_analyzedNode == null || isNullLiteral(_analyzedNode)) {
         // Eagerly bailout, because computing the closure data only
         // works for functions and field assignments.
         return _types.nullType;
@@ -301,8 +301,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           assert(definition.kind == MemberKind.regular);
           ir.Field node = definition.node;
           if (type == null &&
-              (node.initializer == null ||
-                  node.initializer is ir.NullLiteral)) {
+              (node.initializer == null || isNullLiteral(node.initializer))) {
             _inferrer.recordTypeOfField(member, _types.nullType);
           }
         }
@@ -1188,7 +1187,34 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return null;
   }
 
-  /// Returns `true` if
+  /// Find the base type for a system List constructor from the value passed to
+  /// the 'growable' argument. [defaultGrowable] is the default value of the
+  /// 'growable' parameter.
+  TypeInformation _listBaseType(ir.Arguments arguments,
+      {bool defaultGrowable}) {
+    TypeInformation finish(bool /*?*/ growable) {
+      if (growable == true) return _types.growableListType;
+      if (growable == false) return _types.fixedListType;
+      return _types.mutableArrayType;
+    }
+
+    for (ir.NamedExpression named in arguments.named) {
+      if (named.name == 'growable') {
+        ir.Expression argument = named.value;
+        if (argument is ir.BoolLiteral) return finish(argument.value);
+        if (argument is ir.ConstantExpression) {
+          ir.Constant constant = argument.constant;
+          if (constant is ir.BoolConstant) return finish(constant.value);
+        }
+        // 'growable' is present, but indeterminate.
+        return finish(null);
+      }
+    }
+    // 'growable' is missing.
+    return finish(defaultGrowable);
+  }
+
+  /// Returns `true` for constructors of typed arrays.
   bool _isConstructorOfTypedArraySubclass(ConstructorEntity constructor) {
     ClassEntity cls = constructor.enclosingClass;
     return cls.library.canonicalUri == Uris.dart__native_typed_data &&
@@ -1208,7 +1234,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       ArgumentsTypes argumentsTypes) {
     TypeInformation returnType =
         handleStaticInvoke(node, selector, constructor, argumentsTypes);
-    if (_elementMap.commonElements.isUnnamedListConstructor(constructor)) {
+
+    // See if we can replace the returned type with one that better describes
+    // the operation. For system List constructors we can treat this as the
+    // allocation point of a new collection. The static invoke above ensures
+    // that the implementation of the constructor sees the arguments.
+
+    var commonElements = _elementMap.commonElements;
+
+    if (commonElements.isUnnamedListConstructor(constructor)) {
       // We have `new List(...)`.
       if (arguments.positional.isEmpty && arguments.named.isEmpty) {
         // We have `new List()`.
@@ -1224,18 +1258,52 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             () => _types.allocateList(_types.fixedListType, node,
                 _analyzedMember, _types.nullType, length));
       }
-    } else if (_elementMap.commonElements
-        .isFilledListConstructor(constructor)) {
-      // We have `new Uint32List(len, fill)`.
+    }
+
+    if (commonElements.isNamedListConstructor('filled', constructor)) {
+      // We have something like `List.filled(len, fill)`.
       int length = _findLength(arguments);
       TypeInformation elementType = argumentsTypes.positional[1];
-
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: false);
       return _inferrer.concreteTypes.putIfAbsent(
           node,
-          () => _types.allocateList(_types.fixedListType, node, _analyzedMember,
-              elementType, length));
-    } else if (_isConstructorOfTypedArraySubclass(constructor)) {
-      // We have something like `new List.filled(len, fill)`.
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType, length));
+    }
+
+    if (commonElements.isNamedListConstructor('generate', constructor)) {
+      // We have something like `List.generate(len, generator)`.
+      int length = _findLength(arguments);
+      // TODO(sra): What we really want here is the result of calling the
+      // `generator` parameter with a non-negative integer.
+      TypeInformation elementType = _types.dynamicType;
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: true);
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType, length));
+    }
+
+    if (commonElements.isNamedListConstructor('empty', constructor)) {
+      // We have something like `List.empty(growable: true)`.
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: false);
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, _types.nonNullEmpty(), 0));
+    }
+    if (commonElements.isNamedListConstructor('of', constructor) ||
+        commonElements.isNamedListConstructor('from', constructor)) {
+      // We have something like `List.of(elements)`.
+      TypeInformation baseType =
+          _listBaseType(arguments, defaultGrowable: true);
+      return baseType;
+    }
+    if (_isConstructorOfTypedArraySubclass(constructor)) {
+      // We have something like `Uint32List(len)`.
       int length = _findLength(arguments);
       MemberEntity member = _elementMap.elementEnvironment
           .lookupClassMember(constructor.enclosingClass, '[]');
@@ -1248,9 +1316,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
               _analyzedMember,
               elementType,
               length));
-    } else {
-      return returnType;
     }
+
+    return returnType;
   }
 
   TypeInformation handleStaticInvoke(ir.Node node, Selector selector,
@@ -1386,13 +1454,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    TypeInformation receiverType = thisType;
-    return handlePropertyGet(node, node.receiver, receiverType, node.target,
-        isThis: true);
-  }
-
-  @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
@@ -1522,7 +1583,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitLogicalExpression(ir.LogicalExpression node) {
-    if (node.operator == '&&') {
+    if (node.operatorEnum == ir.LogicalExpressionOperator.AND) {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
       TypeInformation leftInfo = handleCondition(node.left);
@@ -1547,7 +1608,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       }
       // TODO(sra): Add a selector/mux node to improve precision.
       return _types.boolType;
-    } else if (node.operator == '||') {
+    } else if (node.operatorEnum == ir.LogicalExpressionOperator.OR) {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
       TypeInformation leftInfo = handleCondition(node.left);
@@ -1574,7 +1635,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       return _types.boolType;
     }
     failedAt(CURRENT_ELEMENT_SPANNABLE,
-        "Unexpected logical operator '${node.operator}'.");
+        "Unexpected logical operator '${node.operatorEnum}'.");
     return null;
   }
 

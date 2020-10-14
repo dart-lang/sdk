@@ -69,3 +69,7 @@ static method main() → dynamic {}
 constants  {
   #C1 = self::Constant {}
 }
+
+Extra constant evaluation status:
+Evaluated: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///magic_const.dart:23:8 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

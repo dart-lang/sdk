@@ -47,3 +47,9 @@ static method main() → dynamic {
   let final self::Foo<core::num*>* #t3 = fooNum in let final core::double* #t4 = 2.5 in (#t3.{self::Foo::mutableCallbackField} as{TypeError,CovarianceCheck} (core::num*) →* void).call(#t4);
   fooNum.{self::Foo::mutableCallbackField} = (core::num* x) → core::Null? {};
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///covariant_generic.dart:42:31 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///covariant_generic.dart:43:31 -> DoubleConstant(2.5)
+Extra constant evaluation: evaluated: 58, effectively constant: 2

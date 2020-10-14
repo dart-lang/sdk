@@ -7,7 +7,8 @@ import 'dart:core' as core show Symbol;
 import 'dart:_js_primitives' show printString;
 import 'dart:_js_helper' show patch;
 import 'dart:_interceptors' show JSArray;
-import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
+import 'dart:_foreign_helper'
+    show JS, JS_GET_FLAG, createJsSentinel, isJsSentinel;
 
 @patch
 @pragma('dart2js:tryInline')
@@ -64,3 +65,11 @@ Object? extractTypeArguments<T>(T instance, Function extract) {
   // the returned value flows to the result of extractTypeArguments.
   return extract();
 }
+
+@patch
+@pragma('dart2js:tryInline')
+T createSentinel<T>() => createJsSentinel<T>();
+
+@patch
+@pragma('dart2js:tryInline')
+bool isSentinel(dynamic value) => isJsSentinel(value);

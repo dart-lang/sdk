@@ -83,6 +83,12 @@ Variance convertVariance(ir.TypeParameter node) {
   }
 }
 
+/// Returns `true` if [node] is a null literal or a null constant.
+bool isNullLiteral(ir.Expression node) {
+  return node is ir.NullLiteral ||
+      (node is ir.ConstantExpression && node.constant is ir.NullConstant);
+}
+
 /// Kernel encodes a null-aware expression `a?.b` as
 ///
 ///     let final #1 = a in #1 == null ? null : #1.b
@@ -117,13 +123,13 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
         node.variable.isFinal &&
         body is ir.ConditionalExpression &&
         body.condition is ir.MethodInvocation &&
-        body.then is ir.NullLiteral) {
+        isNullLiteral(body.then)) {
       ir.MethodInvocation invocation = body.condition;
       ir.Expression receiver = invocation.receiver;
-      if (invocation.name.name == '==' &&
+      if (invocation.name.text == '==' &&
           receiver is ir.VariableGet &&
           receiver.variable == node.variable &&
-          invocation.arguments.positional.single is ir.NullLiteral) {
+          isNullLiteral(invocation.arguments.positional.single)) {
         // We have
         //   let #t1 = e0 in #t1 == null ? null : e1
         return new NullAwareExpression(node.variable, body.otherwise);

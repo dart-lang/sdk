@@ -69,3 +69,14 @@ collection_forEach_assigns_to_declared_var() {
     for (int i in [0, 1, 2]) i
   ];
 }
+
+forEach_contains_unreachable_assignment() {
+  late Object v1;
+  for (var _ in [0, 1, 2]) {
+    break;
+    v1 = 0;
+  }
+  // v1 is considered potentially assigned here, for consistency with how we
+  // would analyze the equivalent desugared loop.
+  v1;
+}

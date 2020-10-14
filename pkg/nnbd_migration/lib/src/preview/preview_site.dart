@@ -219,7 +219,17 @@ class PreviewSite extends Site
       } else if (path == rerunMigrationPath) {
         await rerunMigration();
 
-        respondOk(request);
+        if (migrationState.hasErrors) {
+          return await respondJson(
+              request,
+              {
+                'success': false,
+                'errors': migrationState.analysisResult.toJson(),
+              },
+              HttpStatus.ok);
+        } else {
+          respondOk(request);
+        }
         return;
       } else if (path == applyHintPath) {
         final hintAction = HintAction.fromJson(await requestBodyJson(request));

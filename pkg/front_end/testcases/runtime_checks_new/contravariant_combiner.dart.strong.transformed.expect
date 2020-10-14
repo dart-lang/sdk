@@ -57,3 +57,11 @@ static method test4(self::C* c) → void {
   self::B<core::num*, (core::num*) →* void>* x = self::C::y = self::C::y.{self::B::+}(2) as{TypeError,CovarianceCheck} self::B<core::num*, (core::num*) →* void>*;
 }
 static method main() → void {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:27:5 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:27:5 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:28:13 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:28:13 -> IntConstant(0)
+Extra constant evaluation: evaluated: 58, effectively constant: 4

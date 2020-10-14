@@ -440,6 +440,62 @@ class B extends A {
     );
   }
 
+  test_targetTypeParameter_dynamicBounded() async {
+    await assertNoErrorsInCode('''
+class A<T extends dynamic> {
+  void f(T t) {
+    (t).foo;
+  }
+}
+''');
+
+    var propertyAccess = findNode.propertyAccess('.foo');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_targetTypeParameter_noBound() async {
+    await resolveTestCode('''
+class C<T> {
+  void f(T t) {
+    (t).foo;
+  }
+}
+''');
+    assertErrorsInResult(expectedErrorsByNullability(
+      nullable: [
+        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 33, 3),
+      ],
+      legacy: [
+        error(CompileTimeErrorCode.UNDEFINED_GETTER, 37, 3),
+      ],
+    ));
+
+    var propertyAccess = findNode.propertyAccess('.foo');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+  }
+
   test_tearOff_method() async {
     await assertNoErrorsInCode('''
 class A {
@@ -489,7 +545,7 @@ class A {
   int get bar => 0;
 }
 
-main(A? a) {
+void f(A? a) {
   a?..foo..bar;
 }
 ''');

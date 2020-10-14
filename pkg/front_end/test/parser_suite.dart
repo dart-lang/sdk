@@ -46,6 +46,7 @@ import 'package:testing/testing.dart'
         TestDescription,
         runMe;
 
+import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
 import 'utils/kernel_chain.dart' show MatchContext;
 
 import 'parser_test_listener.dart' show ParserTestListener;
@@ -86,6 +87,10 @@ ScannerConfiguration scannerConfigurationNonNNBD = new ScannerConfiguration(
 
 class Context extends ChainContext with MatchContext {
   final bool updateExpectations;
+
+  @override
+  String get updateExpectationsOption => '${UPDATE_EXPECTATIONS}=true';
+
   final bool addTrace;
   final bool annotateLines;
   final String suiteName;
@@ -406,14 +411,18 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
 
   void doPrint(String s) {
     super.doPrint(s);
-    if (s.startsWith("beginCompilationUnit(") ||
-        s.startsWith("endCompilationUnit(")) {
-      if (indent != 0) {
-        throw "Incorrect indents: '$s' (indent = $indent).\n\n${sb.toString()}";
-      }
-    } else {
-      if (indent <= 0) {
-        throw "Incorrect indents: '$s' (indent = $indent).\n\n${sb.toString()}";
+    if (!annotateLines) {
+      if (s.startsWith("beginCompilationUnit(") ||
+          s.startsWith("endCompilationUnit(")) {
+        if (indent != 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
+      } else {
+        if (indent <= 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
       }
     }
   }

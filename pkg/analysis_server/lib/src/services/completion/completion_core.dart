@@ -40,9 +40,8 @@ class CompletionRequestImpl implements CompletionRequest {
   /// Initialize a newly created completion request based on the given
   /// arguments.
   CompletionRequestImpl(
-      this.result, int offset, this.useNewRelevance, this.performance)
-      : offset = offset,
-        replacementOffset = offset,
+      this.result, this.offset, this.useNewRelevance, this.performance)
+      : replacementOffset = offset,
         replacementLength = 0;
 
   @override

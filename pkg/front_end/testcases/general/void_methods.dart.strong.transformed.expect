@@ -29,3 +29,8 @@ static method main() → dynamic {
   new self::Foo::•().{self::Foo::[]=}(3, 4);
   new self::Foo::•().{self::Foo::clear}();
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///void_methods.dart:7:24 -> IntConstant(0)
+Extra constant evaluation: evaluated: 36, effectively constant: 1

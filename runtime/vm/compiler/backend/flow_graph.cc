@@ -1453,13 +1453,23 @@ void FlowGraph::RenameRecursive(
           // there as incoming value by renaming or it was stored there by
           // StoreLocal which took this Phi from another local via LoadLocal,
           // to which this reasoning applies recursively.
+          //
           // This means that we are guaranteed to process LoadLocal for a
-          // matching variable first.
+          // matching variable first, unless there was an OSR with a non-empty
+          // expression stack. In the latter case, Phi inserted by
+          // FlowGraph::AddSyntheticPhis for expression temp will not have an
+          // assigned type and may be accessed by StoreLocal and subsequent
+          // LoadLocal.
+          //
           if (!phi->HasType()) {
-            ASSERT((index < phi->block()->phis()->length()) &&
-                   ((*phi->block()->phis())[index] == phi));
-            phi->UpdateType(
-                CompileType::FromAbstractType(load->local().type()));
+            // Check if phi corresponds to the same slot.
+            auto* phis = phi->block()->phis();
+            if ((index < phis->length()) && (*phis)[index] == phi) {
+              phi->UpdateType(
+                  CompileType::FromAbstractType(load->local().type()));
+            } else {
+              ASSERT(IsCompiledForOsr() && (phi->block()->stack_depth() > 0));
+            }
           }
         }
         break;

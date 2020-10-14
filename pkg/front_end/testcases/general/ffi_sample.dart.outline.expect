@@ -28,3 +28,9 @@ class Coordinate extends ffi::Struct {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:13:4 -> InstanceConstant(const Double{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:16:4 -> InstanceConstant(const Double{})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

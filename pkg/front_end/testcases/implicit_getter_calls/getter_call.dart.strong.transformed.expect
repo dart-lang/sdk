@@ -185,3 +185,23 @@ constants  {
   #C7 = tearoff self::method7
   #C8 = 0
 }
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:7:45 -> IntConstant(-1)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:130:10 -> IntConstant(-42)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:131:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:133:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:136:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:138:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:141:10 -> IntConstant(-23)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:142:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:143:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:149:10 -> IntConstant(-42)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:150:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:152:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:155:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:157:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:160:10 -> IntConstant(-23)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:161:10 -> IntConstant(-11)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///getter_call.dart:162:10 -> IntConstant(-11)
+Extra constant evaluation: evaluated: 322, effectively constant: 17

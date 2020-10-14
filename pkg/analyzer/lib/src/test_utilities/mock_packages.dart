@@ -28,6 +28,7 @@ const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
 const _DoNotStore doNotStore = _DoNotStore();
 const _Factory factory = const _Factory();
 const Immutable immutable = const Immutable();
+const _Internal internal = const Internal();
 const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 const _NonVirtual nonVirtual = const _NonVirtual();
@@ -49,6 +50,9 @@ class _Factory {
 class Immutable {
   final String reason;
   const Immutable([this.reason]);
+}
+class _Internal {
+  const Internal();
 }
 class _Literal {
   const _Literal();

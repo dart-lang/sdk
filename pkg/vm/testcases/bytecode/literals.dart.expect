@@ -522,11 +522,11 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           CP#0, 1
+  InterfaceCall        CP#0, 1
   ReturnTOS
 }
 ConstantPool {
-  [0] = DirectCall '#lib::A::get:_name', ArgDesc num-args 1, num-type-args 0, names []
+  [0] = InterfaceCall '#lib::A::get:_name', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
 }
 
@@ -852,7 +852,7 @@ ConstantPool {
       : #lib::A::index = index, #lib::A::_name = _name, super dart.core::Object::•()
       ;
     method toString() → dart.core::String*
-      return this.{=#lib::A::_name};
+      return this.{#lib::A::_name};
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf

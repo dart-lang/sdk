@@ -58,6 +58,9 @@
     "flutter": {
       "experimentSet": "nullSafety"
     },
+    "flutter_driver": {
+      "experimentSet": "nullSafety"
+    },
     "flutter_test": {
       "experimentSet": "nullSafety"
     },
@@ -67,13 +70,28 @@
     "flutter_goldens_client": {
       "experimentSet": "nullSafety"
     },
+    "http": {
+      "experimentSet": "nullSafety"
+    },
+    "http_parser": {
+      "experimentSet": "nullSafety"
+    },
+    "intl": {
+      "experimentSet": "nullSafety"
+    },
     "js": {
+      "experimentSet": "nullSafety"
+    },
+    "logging": {
       "experimentSet": "nullSafety"
     },
     "matcher": {
       "experimentSet": "nullSafety"
     },
     "meta": {
+      "experimentSet": "nullSafety"
+    },
+    "native_stack_traces": {
       "experimentSet": "nullSafety"
     },
     "path": {
@@ -89,6 +107,9 @@
       "experimentSet": "nullSafety"
     },
     "process": {
+      "experimentSet": "nullSafety"
+    },
+    "pub_semver": {
       "experimentSet": "nullSafety"
     },
     "sky_engine": {

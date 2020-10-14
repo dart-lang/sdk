@@ -177,15 +177,33 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
 
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
+#define BOOL_ISOLATE_FLAG_LIST(V)                                              \
+  BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                                     \
+  BOOL_ISOLATE_FLAG_LIST_CUSTOM_GETTER(V)
+
+// List of Isolate flags with default getters.
 //
-//       V(when, name, bit-name, Dart_IsolateFlags-name, command-line-flag-name)
+//     V(when, name, bit-name, Dart_IsolateFlags-name, command-line-flag-name)
 //
-#define ISOLATE_FLAG_LIST(V)                                                   \
+#define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
   V(NONPRODUCT, use_field_guards, UseFieldGuards, use_field_guards,            \
     FLAG_use_field_guards)                                                     \
   V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
-  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)
+  V(PRECOMPILER, obfuscate, Obfuscate, obfuscate, false_by_default)            \
+  V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
+    load_vmservice_library, false_by_default)                                  \
+  V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code,               \
+    false_by_default)                                                          \
+  V(PRODUCT, is_system_isolate, IsSystemIsolate, is_system_isolate,            \
+    false_by_default)
+
+// List of Isolate flags with custom getters named #name().
+//
+//     V(when, name, bit-name, Dart_IsolateFlags-name, default_value)
+//
+#define BOOL_ISOLATE_FLAG_LIST_CUSTOM_GETTER(V)                                \
+  V(PRODUCT, null_safety, NullSafety, null_safety, false_by_default)
 
 // Represents the information used for spawning the first isolate within an
 // isolate group.
@@ -986,7 +1004,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void AddErrorListener(const SendPort& listener);
   void RemoveErrorListener(const SendPort& listener);
-  bool NotifyErrorListeners(const String& msg, const String& stacktrace);
+  bool NotifyErrorListeners(const char* msg, const char* stacktrace);
 
   bool ErrorsFatal() const { return ErrorsFatalBit::decode(isolate_flags_); }
   void SetErrorsFatal(bool val) {
@@ -1275,7 +1293,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     USE(false_by_default);                                                     \
     return FLAG_FOR_##when(bitname##Bit::decode(isolate_flags_), flag_name);   \
   }
-  ISOLATE_FLAG_LIST(DECLARE_GETTER)
+  BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(DECLARE_GETTER)
 #undef FLAG_FOR_NONPRODUCT
 #undef FLAG_FOR_PRECOMPILER
 #undef FLAG_FOR_PRODUCT
@@ -1297,6 +1315,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     ASSERT(!null_safety_not_set());
     return NullSafetyBit::decode(isolate_flags_);
   }
+
   void set_null_safety(bool null_safety) {
     isolate_flags_ = NullSafetySetBit::update(true, isolate_flags_);
     isolate_flags_ = NullSafetyBit::update(null_safety, isolate_flags_);
@@ -1404,7 +1423,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_is_system_isolate(bool is_system_isolate) {
     is_system_isolate_ = is_system_isolate;
   }
-  bool is_system_isolate() const { return is_system_isolate_; }
 
 #if !defined(PRODUCT)
   GrowableObjectArrayPtr GetAndClearPendingServiceExtensionCalls();
@@ -1478,9 +1496,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \
+  V(CopyParentCode)                                                            \
   V(ShouldLoadVmService)                                                       \
   V(NullSafety)                                                                \
-  V(NullSafetySet)
+  V(NullSafetySet)                                                             \
+  V(IsSystemIsolate)
 
   // Isolate specific flags.
   enum FlagBits {

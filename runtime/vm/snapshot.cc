@@ -229,6 +229,8 @@ const char* Snapshot::KindToCString(Kind kind) {
   switch (kind) {
     case kFull:
       return "full";
+    case kFullCore:
+      return "full-core";
     case kFullJIT:
       return "full-jit";
     case kFullAOT:
@@ -458,11 +460,25 @@ ObjectPtr SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   if (func.IsNull()) {
     SetReadException("Invalid function object found in message.");
   }
+  TypeArguments& delayed_type_arguments = TypeArguments::Handle(zone());
+  delayed_type_arguments ^= ReadObjectImpl(kAsInlinedObject);
+
   func = func.ImplicitClosureFunction();
   ASSERT(!func.IsNull());
 
-  // Return the associated implicit static closure.
-  obj = func.ImplicitStaticClosure();
+  // If delayedtype arguments were provided, create and return new closure with
+  // those, otherwise return associated implicit static closure.
+  // Note that static closures can't have instantiator or function types since
+  // statics can't refer to class type arguments, don't have outer functions.
+  if (!delayed_type_arguments.IsNull()) {
+    const Context& context = Context::Handle(zone());
+    obj = Closure::New(
+        /*instantiator_type_arguments=*/Object::null_type_arguments(),
+        /*function_type_arguments=*/Object::null_type_arguments(),
+        delayed_type_arguments, func, context, Heap::kOld);
+  } else {
+    obj = func.ImplicitStaticClosure();
+  }
   return obj.raw();
 }
 
@@ -662,11 +678,7 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
       offset += kWordSize;
     }
     if (ObjectLayout::IsCanonical(tags)) {
-      const char* error_str = NULL;
-      *result = result->CheckAndCanonicalize(thread(), &error_str);
-      if (error_str != NULL) {
-        FATAL1("Failed to canonicalize %s\n", error_str);
-      }
+      *result = result->Canonicalize(thread());
       ASSERT(!result->IsNull());
     }
   }
@@ -893,12 +905,10 @@ MessageSnapshotReader::~MessageSnapshotReader() {
 
 SnapshotWriter::SnapshotWriter(Thread* thread,
                                Snapshot::Kind kind,
-                               ReAlloc alloc,
-                               DeAlloc dealloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
                                bool can_send_any_object)
-    : BaseWriter(alloc, dealloc, initial_size),
+    : BaseWriter(initial_size),
       thread_(thread),
       kind_(kind),
       object_store_(isolate()->object_store()),
@@ -1313,9 +1323,11 @@ void SnapshotWriter::WriteClassId(ClassLayout* cls) {
   WriteObjectImpl(cls->name_, kAsInlinedObject);
 }
 
-void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
-                                                FunctionPtr func,
-                                                intptr_t tags) {
+void SnapshotWriter::WriteStaticImplicitClosure(
+    intptr_t object_id,
+    FunctionPtr func,
+    intptr_t tags,
+    TypeArgumentsPtr delayed_type_arguments) {
   // Write out the serialization header value for this object.
   WriteInlinedObjectHeader(object_id);
 
@@ -1333,6 +1345,7 @@ void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
   WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
   WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
+  WriteObjectImpl(delayed_type_arguments, kAsInlinedObject);
 }
 
 void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
@@ -1559,22 +1572,9 @@ void SnapshotWriterVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
   }
 }
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
 MessageWriter::MessageWriter(bool can_send_any_object)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kMessage,
-                     malloc_allocator,
-                     malloc_deallocator,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
@@ -1612,9 +1612,10 @@ std::unique_ptr<Message> MessageWriter::WriteMessage(
   }
 
   MessageFinalizableData* finalizable_data = finalizable_data_;
-  finalizable_data_ = NULL;
-  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
-                      priority);
+  finalizable_data_ = nullptr;
+  intptr_t size;
+  uint8_t* buffer = Steal(&size);
+  return Message::New(dest_port, buffer, size, finalizable_data, priority);
 }
 
 }  // namespace dart

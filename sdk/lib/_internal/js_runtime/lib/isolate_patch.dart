@@ -41,7 +41,8 @@ class Isolate {
       {bool paused = false,
       bool errorsAreFatal = true,
       SendPort? onExit,
-      SendPort? onError}) {
+      SendPort? onError,
+      String? debugName}) {
     throw new UnsupportedError("Isolate.spawn");
   }
 

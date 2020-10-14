@@ -544,11 +544,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
   CHECK_RESULT(result);
 
-  // TODO(bkonyi): remove after 2.10 branch.
-  const bool disable_dds = true;
-
   int vm_service_server_port = INVALID_VM_SERVICE_SERVER_PORT;
-  if (Options::disable_dart_dev() || disable_dds) {
+  if (Options::disable_dart_dev()) {
     vm_service_server_port = Options::vm_service_server_port();
   } else if (Options::vm_service_server_port() !=
              INVALID_VM_SERVICE_SERVER_PORT) {
@@ -556,15 +553,14 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   }
 
   // Load embedder specific bits and return.
-  if (!VmService::Setup((Options::disable_dart_dev() || disable_dds)
-                            ? Options::vm_service_server_ip()
-                            : DEFAULT_VM_SERVICE_SERVER_IP,
-                        vm_service_server_port, Options::vm_service_dev_mode(),
-                        Options::vm_service_auth_disabled(),
-                        Options::vm_write_service_info_filename(),
-                        Options::trace_loading(), Options::deterministic(),
-                        Options::enable_service_port_fallback(),
-                        !Options::disable_dart_dev() && !disable_dds)) {
+  if (!VmService::Setup(
+          Options::disable_dart_dev() ? Options::vm_service_server_ip()
+                                      : DEFAULT_VM_SERVICE_SERVER_IP,
+          vm_service_server_port, Options::vm_service_dev_mode(),
+          Options::vm_service_auth_disabled(),
+          Options::vm_write_service_info_filename(), Options::trace_loading(),
+          Options::deterministic(), Options::enable_service_port_fallback(),
+          !Options::disable_dart_dev())) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return NULL;
   }
@@ -1240,8 +1236,9 @@ void main(int argc, char** argv) {
 // Note: must read platform only *after* VM flags are parsed because
 // they might affect how the platform is loaded.
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // Load vm_platform_strong.dill for dart:* source support.
+  dfe.Init();
   if (script_name != nullptr) {
-    dfe.Init();
     uint8_t* application_kernel_buffer = NULL;
     intptr_t application_kernel_buffer_size = 0;
     dfe.ReadScript(script_name, &application_kernel_buffer,

@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-08-18T15:38:52.410101",
+  "generated": "2020-10-09T10:15:45.502457",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -136,7 +136,7 @@
       "name": "build_integration",
       "rootUri": "../pkg/build_integration",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.1"
     },
     {
       "name": "charcode",
@@ -178,13 +178,13 @@
       "name": "csslib",
       "rootUri": "../third_party/pkg/csslib",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.11"
     },
     {
       "name": "dart2js_info",
       "rootUri": "../third_party/pkg/dart2js_info",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.3"
     },
     {
       "name": "dart2js_tools",
@@ -208,7 +208,7 @@
       "name": "dart_style",
       "rootUri": "../third_party/pkg_tested/dart_style",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.9"
     },
     {
       "name": "dartdev",
@@ -220,7 +220,7 @@
       "name": "dartdoc",
       "rootUri": "../third_party/pkg/dartdoc",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.10"
     },
     {
       "name": "dartfix",
@@ -348,8 +348,7 @@
     {
       "name": "js_runtime",
       "rootUri": "../sdk/lib/_internal/js_runtime",
-      "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "packageUri": "lib/"
     },
     {
       "name": "json_rpc_2",
@@ -426,7 +425,7 @@
       "name": "native_stack_traces",
       "rootUri": "../pkg/native_stack_traces",
       "packageUri": "lib/",
-      "languageVersion": "2.8"
+      "languageVersion": "2.10"
     },
     {
       "name": "nnbd_migration",
@@ -447,8 +446,19 @@
       "languageVersion": "2.2"
     },
     {
+      "name": "observatory_2",
+      "rootUri": "../runtime/observatory_2",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
+    },
+    {
       "name": "observatory_test_package",
       "rootUri": "../runtime/observatory/tests/service/observatory_test_package",
+      "languageVersion": "2.7"
+    },
+    {
+      "name": "observatory_test_package_2",
+      "rootUri": "../runtime/observatory_2/tests/service_2/observatory_test_package_2",
       "languageVersion": "2.7"
     },
     {
@@ -485,7 +495,7 @@
       "name": "pub",
       "rootUri": "../third_party/pkg/pub",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.9"
     },
     {
       "name": "pub_semver",
@@ -508,8 +518,7 @@
     {
       "name": "sdk_library_metadata",
       "rootUri": "../sdk/lib/_internal/sdk_library_metadata",
-      "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "packageUri": "lib/"
     },
     {
       "name": "shelf",

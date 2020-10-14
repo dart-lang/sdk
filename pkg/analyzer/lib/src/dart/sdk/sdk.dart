@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -35,36 +34,8 @@ abstract class AbstractDartSdk implements DartSdk {
   /// A mapping from Dart library URI's to the library represented by that URI.
   LibraryMap libraryMap = LibraryMap();
 
-  /// The [AnalysisOptions] to use to create the [context].
-  AnalysisOptions _analysisOptions;
-
-  /// The [AnalysisContext] which is used for all of the sources in this SDK.
-  SdkAnalysisContext _analysisContext;
-
   /// The mapping from Dart URI's to the corresponding sources.
   final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
-
-  /// Return the analysis options for this SDK analysis context.
-  AnalysisOptions get analysisOptions => _analysisOptions;
-
-  /// Set the [options] for this SDK analysis context.  Throw [StateError] if
-  /// the context has been already created.
-  set analysisOptions(AnalysisOptions options) {
-    if (_analysisContext != null) {
-      throw StateError(
-          'Analysis options cannot be changed after context creation.');
-    }
-    _analysisOptions = options;
-  }
-
-  @override
-  AnalysisContext get context {
-    if (_analysisContext == null) {
-      var factory = SourceFactory([DartUriResolver(this)]);
-      _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
-    }
-    return _analysisContext;
-  }
 
   @override
   List<SdkLibrary> get sdkLibraries => libraryMap.sdkLibraries;

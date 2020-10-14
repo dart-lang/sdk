@@ -1,0 +1,94 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:32:26: Error: The parameter 'i' of the method 'B2.property6' has type 'int', which does not match the corresponding type, 'int?', in the overridden method, 'B1.property6'.
+// Change to a supertype of 'int?', or, for a covariant parameter, a subtype.
+//   void set property6(int i); // error
+//                          ^
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:20:19: Context: This is the overridden method ('property6').
+//   late final int? property6;
+//                   ^
+//
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:32:12: Error: The type 'int?' of the inherited getter 'B1.property6' is not a subtype of the type 'int' of the setter 'B2.property6'.
+//   void set property6(int i); // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:20:19: Context: This is the declaration of the getter 'B1.property6'.
+//   late final int? property6;
+//                   ^^^^^^^^^
+//
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:52:12: Error: The return type of the method 'C2.property6' is 'int?', which does not match the return type, 'int', of the overridden method, 'C1.property6'.
+// Change to a subtype of 'int'.
+//   int? get property6; // error
+//            ^
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:40:12: Context: This is the overridden method ('property6').
+//   late int property6;
+//            ^
+//
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:52:12: Error: The type 'int?' of the getter 'C2.property6' is not a subtype of the type 'int' of the inherited setter 'C1.property6'.
+//   int? get property6; // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/late_lowering/getter_vs_setter_type.dart:40:12: Context: This is the declaration of the setter 'C1.property6'.
+//   late int property6;
+//            ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  field core::int? _#A#property4;
+  field core::int? _#A#property5;
+  field core::bool _#A#property5#isSet;
+  field core::int? _#A#property6;
+  constructor •(core::int property4, core::int? property5, core::int property6) → self::A
+    ;
+  get property4() → core::int;
+  set property4(core::int #t1) → void;
+  get property5() → core::int?;
+  set property5(core::int? #t2) → void;
+  get property6() → core::int;
+  set property6(covariant core::int #t3) → void;
+}
+abstract class B1 extends core::Object {
+  field core::int? _#B1#property4;
+  field core::int? _#B1#property5;
+  field core::int? _#B1#property6;
+  field core::bool _#B1#property6#isSet;
+  constructor •(core::int property4, core::int property5, core::int? property6) → self::B1
+    ;
+  get property4() → core::int;
+  set property4(core::int #t4) → void;
+  get property5() → core::int;
+  set property5(core::int #t5) → void;
+  get property6() → core::int?;
+  set property6(core::int? #t6) → void;
+}
+abstract class B2 extends core::Object implements self::B1 {
+  synthetic constructor •() → self::B2
+    ;
+  abstract set property4(core::int i) → void;
+  abstract set property5(core::int? i) → void;
+  abstract set property6(core::int i) → void;
+}
+abstract class C1 extends core::Object {
+  field core::int? _#C1#property4;
+  field core::int? _#C1#property5;
+  field core::int? _#C1#property6;
+  constructor •(core::int property4, core::int property5, core::int property6) → self::C1
+    ;
+  get property4() → core::int;
+  set property4(core::int #t7) → void;
+  get property5() → core::int;
+  set property5(core::int #t8) → void;
+  get property6() → core::int;
+  set property6(core::int #t9) → void;
+}
+abstract class C2 extends core::Object implements self::C1 {
+  synthetic constructor •() → self::C2
+    ;
+  abstract get property4() → core::int;
+  abstract get property5() → core::int;
+  abstract get property6() → core::int?;
+}
+static method main() → dynamic
+  ;

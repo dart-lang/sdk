@@ -1,4 +1,3 @@
-import '../nnbd_mixed/nnbd_opt_out_language_version.dart';
 import 'value_class_support_lib.dart';
 
 class Animal {

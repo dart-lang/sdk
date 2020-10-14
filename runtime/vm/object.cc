@@ -13,6 +13,7 @@
 #include "platform/unicode.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
+#include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_comments.h"
 #include "vm/code_descriptors.h"
@@ -57,7 +58,6 @@
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
-#include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/zone_text_buffer.h"
 
@@ -550,6 +550,7 @@ void Object::InitNullAndBool(Isolate* isolate) {
     null_ = static_cast<InstancePtr>(address + kHeapObjectTag);
     // The call below is using 'null_' to initialize itself.
     InitializeObject(address, kNullCid, Instance::InstanceSize());
+    null_->ptr()->SetCanonical();
   }
 
   // Allocate and initialize the bool instances.
@@ -706,7 +707,7 @@ void Object::Init(Isolate* isolate) {
   *null_type_arguments_ = TypeArguments::null();
   *empty_type_arguments_ = TypeArguments::null();
   *null_abstract_type_ = AbstractType::null();
-  *null_compressed_stack_maps_ = CompressedStackMaps::null();
+  *null_compressed_stackmaps_ = CompressedStackMaps::null();
   *bool_true_ = true_;
   *bool_false_ = false_;
 
@@ -998,6 +999,19 @@ void Object::Init(Isolate* isolate) {
     empty_object_pool_->SetCanonical();
   }
 
+  // Allocate and initialize the empty_compressed_stackmaps instance.
+  {
+    const intptr_t instance_size = CompressedStackMaps::InstanceSize(0);
+    uword address = heap->Allocate(instance_size, Heap::kOld);
+    InitializeObject(address, kCompressedStackMapsCid, instance_size);
+    CompressedStackMaps::initializeHandle(
+        empty_compressed_stackmaps_,
+        static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
+    empty_compressed_stackmaps_->StoreNonPointer(
+        &empty_compressed_stackmaps_->raw_ptr()->flags_and_size_, 0);
+    empty_compressed_stackmaps_->SetCanonical();
+  }
+
   // Allocate and initialize the empty_descriptors instance.
   {
     uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
@@ -1183,14 +1197,16 @@ void Object::Init(Isolate* isolate) {
   ASSERT(null_function_->IsFunction());
   ASSERT(!null_type_arguments_->IsSmi());
   ASSERT(null_type_arguments_->IsTypeArguments());
-  ASSERT(!null_compressed_stack_maps_->IsSmi());
-  ASSERT(null_compressed_stack_maps_->IsCompressedStackMaps());
+  ASSERT(!null_compressed_stackmaps_->IsSmi());
+  ASSERT(null_compressed_stackmaps_->IsCompressedStackMaps());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
   ASSERT(zero_array_->IsArray());
   ASSERT(!empty_context_scope_->IsSmi());
   ASSERT(empty_context_scope_->IsContextScope());
+  ASSERT(!empty_compressed_stackmaps_->IsSmi());
+  ASSERT(empty_compressed_stackmaps_->IsCompressedStackMaps());
   ASSERT(!empty_descriptors_->IsSmi());
   ASSERT(empty_descriptors_->IsPcDescriptors());
   ASSERT(!empty_var_descriptors_->IsSmi());
@@ -1740,7 +1756,7 @@ ErrorPtr Object::Init(Isolate* isolate,
         Type::New(Class::Handle(zone, cls.raw()), TypeArguments::Handle(zone),
                   TokenPosition::kNoSource, Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     object_store->set_array_type(type);
     type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
     object_store->set_legacy_array_type(type);
@@ -2195,7 +2211,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = Type::New(cls, Object::null_type_arguments(),
                      TokenPosition::kNoSource, Nullability::kNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     object_store->set_null_type(type);
     ASSERT(type.IsNullable());
 
@@ -2207,7 +2223,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     type = Type::New(cls, Object::null_type_arguments(),
                      TokenPosition::kNoSource, Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     object_store->set_never_type(type);
 
     // Create and cache commonly used type arguments <int>, <double>,
@@ -2215,87 +2231,87 @@ ErrorPtr Object::Init(Isolate* isolate,
     type_args = TypeArguments::New(1);
     type = object_store->int_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_int(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->legacy_int_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_int(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->non_nullable_int_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_int(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->double_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_double(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->legacy_double_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_double(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->non_nullable_double_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_double(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_string(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->legacy_string_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_string(type_args);
     type_args = TypeArguments::New(1);
     type = object_store->non_nullable_string_type();
     type_args.SetTypeAt(0, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_string(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, Object::dynamic_type());
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_string_dynamic(type_args);
     type_args = TypeArguments::New(2);
     type = object_store->legacy_string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, Object::dynamic_type());
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_string_dynamic(type_args);
     type_args = TypeArguments::New(2);
     type = object_store->non_nullable_string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, Object::dynamic_type());
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_string_dynamic(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_string_string(type_args);
     type_args = TypeArguments::New(2);
     type = object_store->legacy_string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_legacy_string_legacy_string(type_args);
     type_args = TypeArguments::New(2);
     type = object_store->non_nullable_string_type();
     type_args.SetTypeAt(0, type);
     type_args.SetTypeAt(1, type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(thread, nullptr);
     object_store->set_type_argument_non_nullable_string_non_nullable_string(
         type_args);
 
@@ -2900,7 +2916,7 @@ void Class::InitEmptyFields() {
     return;
   }
   StorePointer(&raw_ptr()->interfaces_, Object::empty_array().raw());
-  StorePointer(&raw_ptr()->constants_, Object::empty_array().raw());
+  StorePointer(&raw_ptr()->constants_, Object::null_array().raw());
   StorePointer(&raw_ptr()->functions_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->fields_, Object::empty_array().raw());
   StorePointer(&raw_ptr()->invocation_dispatcher_cache_,
@@ -4992,7 +5008,6 @@ ArrayPtr Class::constants() const {
 }
 
 void Class::set_constants(const Array& value) const {
-  ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->constants_, value.raw());
 }
 
@@ -5654,7 +5669,7 @@ typedef UnorderedHashSet<CanonicalNumberTraits<Mint, CanonicalMintKey> >
 // Returns an instance of Double or Double::null().
 DoublePtr Class::LookupCanonicalDouble(Zone* zone, double value) const {
   ASSERT(this->raw() == Isolate::Current()->object_store()->double_class());
-  if (this->constants() == Object::empty_array().raw()) return Double::null();
+  if (this->constants() == Array::null()) return Double::null();
 
   Double& canonical_value = Double::Handle(zone);
   CanonicalDoubleSet constants(zone, this->constants());
@@ -5666,7 +5681,7 @@ DoublePtr Class::LookupCanonicalDouble(Zone* zone, double value) const {
 // Returns an instance of Mint or Mint::null().
 MintPtr Class::LookupCanonicalMint(Zone* zone, int64_t value) const {
   ASSERT(this->raw() == Isolate::Current()->object_store()->mint_class());
-  if (this->constants() == Object::empty_array().raw()) return Mint::null();
+  if (this->constants() == Array::null()) return Mint::null();
 
   Mint& canonical_value = Mint::Handle(zone);
   CanonicalMintSet constants(zone, this->constants());
@@ -5727,7 +5742,7 @@ InstancePtr Class::LookupCanonicalInstance(Zone* zone,
   ASSERT(this->raw() == value.clazz());
   ASSERT(is_finalized() || is_prefinalized());
   Instance& canonical_value = Instance::Handle(zone);
-  if (this->constants() != Object::empty_array().raw()) {
+  if (this->constants() != Array::null()) {
     CanonicalInstancesSet constants(zone, this->constants());
     canonical_value ^= constants.GetOrNull(CanonicalInstanceKey(value));
     this->set_constants(constants.Release());
@@ -5739,7 +5754,7 @@ InstancePtr Class::InsertCanonicalConstant(Zone* zone,
                                            const Instance& constant) const {
   ASSERT(this->raw() == constant.clazz());
   Instance& canonical_value = Instance::Handle(zone);
-  if (this->constants() == Object::empty_array().raw()) {
+  if (this->constants() == Array::null()) {
     CanonicalInstancesSet constants(
         HashTables::New<CanonicalInstancesSet>(128, Heap::kOld));
     canonical_value ^= constants.InsertNewOrGet(CanonicalInstanceKey(constant));
@@ -5754,7 +5769,7 @@ InstancePtr Class::InsertCanonicalConstant(Zone* zone,
 }
 
 void Class::InsertCanonicalDouble(Zone* zone, const Double& constant) const {
-  if (this->constants() == Object::empty_array().raw()) {
+  if (this->constants() == Array::null()) {
     this->set_constants(Array::Handle(
         zone, HashTables::New<CanonicalDoubleSet>(128, Heap::kOld)));
   }
@@ -5764,7 +5779,7 @@ void Class::InsertCanonicalDouble(Zone* zone, const Double& constant) const {
 }
 
 void Class::InsertCanonicalMint(Zone* zone, const Mint& constant) const {
-  if (this->constants() == Object::empty_array().raw()) {
+  if (this->constants() == Array::null()) {
     this->set_constants(Array::Handle(
         zone, HashTables::New<CanonicalMintSet>(128, Heap::kOld)));
   }
@@ -5782,9 +5797,9 @@ void Class::RehashConstants(Zone* zone) const {
   }
 
   const Array& old_constants = Array::Handle(zone, constants());
-  if (old_constants.Length() == 0) return;
+  if (old_constants.IsNull()) return;
 
-  set_constants(Object::empty_array());
+  set_constants(Object::null_array());
 
   CanonicalInstancesSet set(zone, old_constants.raw());
   Instance& constant = Instance::Handle(zone);
@@ -5915,7 +5930,7 @@ TypeArgumentsPtr TypeArguments::Prepend(Zone* zone,
     type = IsNull() ? Type::DynamicType() : TypeAt(i - other_length);
     result.SetTypeAt(i, type);
   }
-  return result.Canonicalize();
+  return result.Canonicalize(Thread::Current(), nullptr);
 }
 
 TypeArgumentsPtr TypeArguments::ConcatenateTypeParameters(
@@ -6397,7 +6412,7 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
   result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
                            kAllFree, Heap::kOld);
   // Canonicalize type arguments.
-  result = result.Canonicalize();
+  result = result.Canonicalize(thread, nullptr);
   // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
   // indirectly, so the prior_instantiations array cannot have grown.
   ASSERT(prior_instantiations.raw() == instantiations());
@@ -6476,7 +6491,8 @@ void TypeArguments::SetLength(intptr_t value) const {
   StoreSmi(&raw_ptr()->length_, Smi::New(value));
 }
 
-TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
+TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
+                                             TrailPtr trail) const {
   if (IsNull() || IsCanonical()) {
     ASSERT(IsOld());
     return this->raw();
@@ -6485,7 +6501,6 @@ TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
   if (IsRaw(0, num_types)) {
     return TypeArguments::null();
   }
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
@@ -6502,7 +6517,7 @@ TypeArgumentsPtr TypeArguments::Canonicalize(TrailPtr trail) const {
     AbstractType& type_arg = AbstractType::Handle(zone);
     for (intptr_t i = 0; i < num_types; i++) {
       type_arg = TypeAt(i);
-      type_arg = type_arg.Canonicalize(trail);
+      type_arg = type_arg.Canonicalize(thread, trail);
       if (IsCanonical()) {
         // Canonicalizing this type_arg canonicalized this type.
         ASSERT(IsRecursive());
@@ -9359,6 +9374,13 @@ StringPtr Function::QualifiedUserVisibleName() const {
   ZoneTextBuffer printer(thread->zone());
   PrintName(NameFormattingParams(kUserVisibleName), &printer);
   return Symbols::New(thread, printer.buffer());
+}
+
+const char* Function::QualifiedUserVisibleNameCString() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintName(NameFormattingParams(kUserVisibleName), &printer);
+  return printer.buffer();
 }
 
 void Function::PrintName(const NameFormattingParams& params,
@@ -14078,10 +14100,6 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
-
 #undef CHECK_FINGERPRINTS
 #undef CHECK_FINGERPRINTS2
 
@@ -14095,7 +14113,9 @@ void Library::CheckFunctionFingerprints() {
         func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
   }
 
+  all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
 
 #undef CHECK_FACTORY_FINGERPRINTS
@@ -14152,35 +14172,6 @@ void Instructions::set_stats(CodeStatistics* stats) const {
 
 const char* InstructionsSection::ToCString() const {
   return "InstructionsSection";
-}
-
-// Encode integer |value| in SLEB128 format and store into |data|.
-static void EncodeSLEB128(GrowableArray<uint8_t>* data, intptr_t value) {
-  bool is_last_part = false;
-  while (!is_last_part) {
-    uint8_t part = value & 0x7f;
-    value >>= 7;
-    if ((value == 0 && (part & 0x40) == 0) ||
-        (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
-      is_last_part = true;
-    } else {
-      part |= 0x80;
-    }
-    data->Add(part);
-  }
-}
-
-// Encode integer in SLEB128 format.
-void PcDescriptors::EncodeInteger(GrowableArray<uint8_t>* data,
-                                  intptr_t value) {
-  return EncodeSLEB128(data, value);
-}
-
-// Decode SLEB128 encoded integer. Update byte_index to the next integer.
-intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
-  NoSafepointScope no_safepoint;
-  const uint8_t* data = raw_ptr()->data();
-  return Utils::DecodeSLEB128<intptr_t>(data, Length(), byte_index);
 }
 
 ObjectPoolPtr ObjectPool::New(intptr_t len) {
@@ -14295,25 +14286,25 @@ void PcDescriptors::SetLength(intptr_t value) const {
   StoreNonPointer(&raw_ptr()->length_, value);
 }
 
-void PcDescriptors::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
+void PcDescriptors::CopyData(const void* bytes, intptr_t size) {
   NoSafepointScope no_safepoint;
   uint8_t* data = UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
-  for (intptr_t i = 0; i < delta_encoded_data->length(); ++i) {
-    data[i] = (*delta_encoded_data)[i];
-  }
+  // We're guaranted these memory spaces do not overlap.
+  memcpy(data, bytes, size);  // NOLINT
 }
 
-PcDescriptorsPtr PcDescriptors::New(GrowableArray<uint8_t>* data) {
+PcDescriptorsPtr PcDescriptors::New(const void* delta_encoded_data,
+                                    intptr_t size) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
   Thread* thread = Thread::Current();
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
-    uword size = PcDescriptors::InstanceSize(data->length());
-    ObjectPtr raw = Object::Allocate(PcDescriptors::kClassId, size, Heap::kOld);
+    ObjectPtr raw = Object::Allocate(
+        PcDescriptors::kClassId, PcDescriptors::InstanceSize(size), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.SetLength(data->length());
-    result.CopyData(data);
+    result.SetLength(size);
+    result.CopyData(delta_encoded_data, size);
   }
   return result.raw();
 }
@@ -14469,45 +14460,195 @@ const char* CodeSourceMap::ToCString() const {
 }
 
 intptr_t CompressedStackMaps::Hashcode() const {
+  NoSafepointScope scope;
+  uint8_t* data = UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
+  uint8_t* end = data + payload_size();
   uint32_t hash = payload_size();
-  for (uintptr_t i = 0; i < payload_size(); i++) {
-    uint8_t byte = PayloadByte(i);
-    hash = CombineHashes(hash, byte);
+  for (uint8_t* cursor = data; cursor < end; cursor++) {
+    hash = CombineHashes(hash, *cursor);
   }
   return FinalizeHash(hash, kHashBits);
 }
 
-CompressedStackMapsPtr CompressedStackMaps::New(
-    const GrowableArray<uint8_t>& payload,
-    bool is_global_table,
-    bool uses_global_table) {
+CompressedStackMaps::Iterator::Iterator(const CompressedStackMaps& maps,
+                                        const CompressedStackMaps& global_table)
+    : maps_(maps),
+      bits_container_(maps_.UsesGlobalTable() ? global_table : maps_) {
+  ASSERT(!maps_.IsNull());
+  ASSERT(!bits_container_.IsNull());
+  ASSERT(!maps_.IsGlobalTable());
+  ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
+}
+
+CompressedStackMaps::Iterator::Iterator(Thread* thread,
+                                        const CompressedStackMaps& maps)
+    : CompressedStackMaps::Iterator(
+          maps,
+          // Only look up the global table if the map will end up using it.
+          maps.UsesGlobalTable() ? CompressedStackMaps::Handle(
+                                       thread->zone(),
+                                       thread->isolate()
+                                           ->object_store()
+                                           ->canonicalized_stack_map_entries())
+                                 : Object::null_compressed_stackmaps()) {}
+
+CompressedStackMaps::Iterator::Iterator(const CompressedStackMaps::Iterator& it)
+    : maps_(it.maps_),
+      bits_container_(it.bits_container_),
+      next_offset_(it.next_offset_),
+      current_pc_offset_(it.current_pc_offset_),
+      current_global_table_offset_(it.current_global_table_offset_),
+      current_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+      current_non_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+      current_bits_offset_(it.current_bits_offset_) {}
+
+bool CompressedStackMaps::Iterator::MoveNext() {
+  if (next_offset_ >= maps_.payload_size()) {
+    return false;
+  }
+
+  NoSafepointScope scope;
+  ReadStream stream(maps_.raw_ptr()->data(), maps_.payload_size(),
+                    next_offset_);
+
+  auto const pc_delta = stream.ReadLEB128();
+  ASSERT(pc_delta <= (kMaxUint32 - current_pc_offset_));
+  current_pc_offset_ += pc_delta;
+
+  // Table-using CSMs have a table offset after the PC offset delta, whereas
+  // the post-delta part of inlined entries has the same information as
+  // global table entries.
+  if (maps_.UsesGlobalTable()) {
+    current_global_table_offset_ = stream.ReadLEB128();
+    ASSERT(current_global_table_offset_ < bits_container_.payload_size());
+
+    // Since generally we only use entries in the GC and the GC only needs
+    // the rest of the entry information if the PC offset matches, we lazily
+    // load and cache the information stored in the global object when it is
+    // actually requested.
+    current_spill_slot_bit_count_ = -1;
+    current_non_spill_slot_bit_count_ = -1;
+    current_bits_offset_ = -1;
+
+    next_offset_ = stream.Position();
+  } else {
+    current_spill_slot_bit_count_ = stream.ReadLEB128();
+    ASSERT(current_spill_slot_bit_count_ >= 0);
+
+    current_non_spill_slot_bit_count_ = stream.ReadLEB128();
+    ASSERT(current_non_spill_slot_bit_count_ >= 0);
+
+    const auto stackmap_bits =
+        current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+    const uintptr_t stackmap_size =
+        Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
+    ASSERT(stackmap_size <= (maps_.payload_size() - stream.Position()));
+
+    current_bits_offset_ = stream.Position();
+    next_offset_ = current_bits_offset_ + stackmap_size;
+  }
+
+  return true;
+}
+
+intptr_t CompressedStackMaps::Iterator::Length() const {
+  EnsureFullyLoadedEntry();
+  return current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+}
+intptr_t CompressedStackMaps::Iterator::SpillSlotBitCount() const {
+  EnsureFullyLoadedEntry();
+  return current_spill_slot_bit_count_;
+}
+
+bool CompressedStackMaps::Iterator::IsObject(intptr_t bit_index) const {
+  EnsureFullyLoadedEntry();
+  ASSERT(bit_index >= 0 && bit_index < Length());
+  const intptr_t byte_index = bit_index >> kBitsPerByteLog2;
+  const intptr_t bit_remainder = bit_index & (kBitsPerByte - 1);
+  uint8_t byte_mask = 1U << bit_remainder;
+  const intptr_t byte_offset = current_bits_offset_ + byte_index;
+  NoSafepointScope scope;
+  return (bits_container_.raw_ptr()->data()[byte_offset] & byte_mask) != 0;
+}
+
+void CompressedStackMaps::Iterator::LazyLoadGlobalTableEntry() const {
+  ASSERT(maps_.UsesGlobalTable());
+  ASSERT(HasLoadedEntry());
+  ASSERT(current_global_table_offset_ < bits_container_.payload_size());
+
+  NoSafepointScope scope;
+  ReadStream stream(bits_container_.raw_ptr()->data(),
+                    bits_container_.payload_size(),
+                    current_global_table_offset_);
+
+  current_spill_slot_bit_count_ = stream.ReadLEB128();
+  ASSERT(current_spill_slot_bit_count_ >= 0);
+
+  current_non_spill_slot_bit_count_ = stream.ReadLEB128();
+  ASSERT(current_non_spill_slot_bit_count_ >= 0);
+
+  const auto stackmap_bits = Length();
+  const uintptr_t stackmap_size =
+      Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
+  ASSERT(stackmap_size <= (bits_container_.payload_size() - stream.Position()));
+
+  current_bits_offset_ = stream.Position();
+}
+
+void CompressedStackMaps::Iterator::WriteToBuffer(BaseTextBuffer* buffer,
+                                                  const char* separator) const {
+  CompressedStackMaps::Iterator it(*this);
+  // If we haven't loaded an entry yet, do so (but don't skip the current
+  // one if we have!)
+  if (!it.HasLoadedEntry()) {
+    if (!it.MoveNext()) return;
+  }
+  bool first_entry = true;
+  do {
+    if (!first_entry) {
+      buffer->AddString(separator);
+    }
+    buffer->Printf("0x%0.8" Px32 ": ", it.pc_offset());
+    for (intptr_t i = 0, n = it.Length(); i < n; i++) {
+      buffer->AddString(it.IsObject(i) ? "1" : "0");
+    }
+    first_entry = false;
+  } while (it.MoveNext());
+}
+
+CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
+                                                intptr_t size,
+                                                bool is_global_table,
+                                                bool uses_global_table) {
   ASSERT(Object::compressed_stackmaps_class() != Class::null());
   // We don't currently allow both flags to be true.
   ASSERT(!is_global_table || !uses_global_table);
-  auto& result = CompressedStackMaps::Handle();
+  // The canonical empty instance should be used instead.
+  ASSERT(size != 0);
 
-  const uintptr_t payload_size = payload.length();
-  if (!CompressedStackMapsLayout::SizeField::is_valid(payload_size)) {
+  if (!CompressedStackMapsLayout::SizeField::is_valid(size)) {
     FATAL1(
         "Fatal error in CompressedStackMaps::New: "
         "invalid payload size %" Pu "\n",
-        payload_size);
+        size);
   }
+
+  auto& result = CompressedStackMaps::Handle();
   {
     // CompressedStackMaps data objects are associated with a code object,
     // allocate them in old generation.
-    ObjectPtr raw = Object::Allocate(
-        CompressedStackMaps::kClassId,
-        CompressedStackMaps::InstanceSize(payload_size), Heap::kOld);
+    ObjectPtr raw =
+        Object::Allocate(CompressedStackMaps::kClassId,
+                         CompressedStackMaps::InstanceSize(size), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(
         &result.raw_ptr()->flags_and_size_,
         CompressedStackMapsLayout::GlobalTableBit::encode(is_global_table) |
             CompressedStackMapsLayout::UsesTableBit::encode(uses_global_table) |
-            CompressedStackMapsLayout::SizeField::encode(payload_size));
+            CompressedStackMapsLayout::SizeField::encode(size));
     auto cursor = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
-    memcpy(cursor, payload.data(), payload.length());  // NOLINT
+    memcpy(cursor, payload, size);  // NOLINT
   }
 
   ASSERT(!result.IsGlobalTable() || !result.UsesGlobalTable());
@@ -14517,12 +14658,16 @@ CompressedStackMapsPtr CompressedStackMaps::New(
 
 const char* CompressedStackMaps::ToCString() const {
   ASSERT(!IsGlobalTable());
+  if (payload_size() == 0) {
+    return "CompressedStackMaps()";
+  }
   auto const t = Thread::Current();
-  auto zone = t->zone();
-  const auto& global_table = CompressedStackMaps::Handle(
-      zone, t->isolate()->object_store()->canonicalized_stack_map_entries());
-  CompressedStackMapsIterator it(*this, global_table);
-  return it.ToCString(zone);
+  CompressedStackMaps::Iterator it(t, *this);
+  ZoneTextBuffer buffer(t->zone(), 100);
+  buffer.AddString("CompressedStackMaps(");
+  it.WriteToBuffer(&buffer, ", ");
+  buffer.AddString(")");
+  return buffer.buffer();
 }
 
 StringPtr LocalVarDescriptors::GetName(intptr_t var_index) const {
@@ -16474,6 +16619,7 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
     NOT_IN_PRODUCT(result.set_comments(Comments::New(0)));
     NOT_IN_PRODUCT(result.set_compile_timestamp(0));
     result.set_pc_descriptors(Object::empty_descriptors());
+    result.set_compressed_stackmaps(Object::empty_compressed_stackmaps());
   }
   return result.raw();
 }
@@ -18338,42 +18484,26 @@ class CheckForPointers : public ObjectPointerVisitor {
 };
 #endif  // DEBUG
 
-bool Instance::CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const {
-  ASSERT(error_str != NULL);
-  ASSERT(*error_str == NULL);
+void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
   const intptr_t class_id = GetClassId();
   if (class_id >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
     Zone* zone = thread->zone();
-    Object& obj = Object::Handle(zone);
+    Instance& obj = Instance::Handle(zone);
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
         thread->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            GetClassId());
+            class_id);
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kWordSize) {
       if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
         continue;
       }
-      obj = *this->FieldAddrAtOffset(offset);
-      if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
-        if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, error_str);
-          if (*error_str != NULL) {
-            return false;
-          }
-          ASSERT(!obj.IsNull());
-          this->SetFieldAtOffset(offset, obj);
-        } else {
-          char* chars = OS::SCreate(zone, "field: %s, owner: %s\n",
-                                    obj.ToCString(), ToCString());
-          *error_str = chars;
-          return false;
-        }
-      }
+      obj ^= *this->FieldAddrAtOffset(offset);
+      obj = obj.CanonicalizeLocked(thread);
+      this->SetFieldAtOffset(offset, obj);
     }
   } else {
 #if defined(DEBUG)
@@ -18383,45 +18513,40 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
     ASSERT(!has_pointers.has_pointers());
 #endif  // DEBUG
   }
-  return true;
 }
 
 InstancePtr Instance::CopyShallowToOldSpace(Thread* thread) const {
   return Instance::RawCast(Object::Clone(*this, Heap::kOld));
 }
 
-InstancePtr Instance::CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const {
-  ASSERT(error_str != NULL);
-  ASSERT(*error_str == NULL);
-  ASSERT(!IsNull());
+InstancePtr Instance::Canonicalize(Thread* thread) const {
+  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  return CanonicalizeLocked(thread);
+}
+
+InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
   if (this->IsCanonical()) {
     return this->raw();
   }
-  if (!CheckAndCanonicalizeFields(thread, error_str)) {
-    return Instance::null();
-  }
+  ASSERT(!IsNull());
+  CanonicalizeFieldsLocked(thread);
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  {
-    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    result = cls.LookupCanonicalInstance(zone, *this);
-    if (!result.IsNull()) {
-      return result.raw();
-    }
-    if (IsNew()) {
-      ASSERT((isolate == Dart::vm_isolate()) || !InVMIsolateHeap());
-      // Create a canonical object in old space.
-      result ^= Object::Clone(*this, Heap::kOld);
-    } else {
-      result = this->raw();
-    }
-    ASSERT(result.IsOld());
-    result.SetCanonical();
-    return cls.InsertCanonicalConstant(zone, result);
+  Instance& result =
+      Instance::Handle(zone, cls.LookupCanonicalInstance(zone, *this));
+  if (!result.IsNull()) {
+    return result.raw();
   }
+  if (IsNew()) {
+    ASSERT((thread->isolate() == Dart::vm_isolate()) || !InVMIsolateHeap());
+    // Create a canonical object in old space.
+    result ^= Object::Clone(*this, Heap::kOld);
+  } else {
+    result = this->raw();
+  }
+  ASSERT(result.IsOld());
+  result.SetCanonical();
+  return cls.InsertCanonicalConstant(zone, result);
 }
 
 #if defined(DEBUG)
@@ -18495,7 +18620,9 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
   if (IsNull()) {
     return Type::NullType();
   }
-  const Class& cls = Class::Handle(clazz());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Class& cls = Class::Handle(zone, clazz());
   if (!cls.is_finalized()) {
     // Various predefined classes can be instantiated by the VM or
     // Dart_NewString/Integer/TypedData/... before the class is finalized.
@@ -18503,29 +18630,28 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
     cls.EnsureDeclarationLoaded();
   }
   if (cls.IsClosureClass()) {
-    Function& signature =
-        Function::Handle(Closure::Cast(*this).GetInstantiatedSignature(
-            Thread::Current()->zone()));
-    Type& type = Type::Handle(signature.SignatureType());
+    Function& signature = Function::Handle(
+        zone, Closure::Cast(*this).GetInstantiatedSignature(zone));
+    Type& type = Type::Handle(zone, signature.SignatureType());
     if (!type.IsFinalized()) {
       type.SetIsFinalized();
     }
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
     return type.raw();
   }
-  Type& type = Type::Handle();
+  Type& type = Type::Handle(zone);
   if (!cls.IsGeneric()) {
     type = cls.DeclarationType();
   }
   if (type.IsNull()) {
-    TypeArguments& type_arguments = TypeArguments::Handle();
+    TypeArguments& type_arguments = TypeArguments::Handle(zone);
     if (cls.NumTypeArguments() > 0) {
       type_arguments = GetTypeArguments();
     }
     type = Type::New(cls, type_arguments, TokenPosition::kNoSource,
                      Nullability::kNonNullable, space);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(thread, nullptr);
   }
   return type.raw();
 }
@@ -19153,7 +19279,8 @@ AbstractTypePtr AbstractType::InstantiateFrom(
   return NULL;
 }
 
-AbstractTypePtr AbstractType::Canonicalize(TrailPtr trail) const {
+AbstractTypePtr AbstractType::Canonicalize(Thread* thread,
+                                           TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -19806,7 +19933,7 @@ TypePtr Type::NewNonParameterizedType(const Class& type_class) {
                      Object::null_type_arguments(), TokenPosition::kNoSource,
                      Nullability::kNonNullable);
     type.SetIsFinalized();
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(Thread::Current(), nullptr);
     type_class.set_declaration_type(type);
   }
   ASSERT(type.IsFinalized());
@@ -19860,7 +19987,7 @@ TypePtr Type::ToNullability(Nullability value, Heap::Space space) const {
   if (IsCanonical()) {
     // Object::Clone does not clone canonical bit.
     ASSERT(!type.IsCanonical());
-    type ^= type.Canonicalize();
+    type ^= type.Canonicalize(Thread::Current(), nullptr);
   }
   return type.raw();
 }
@@ -20191,13 +20318,12 @@ bool Type::IsDeclarationTypeOf(const Class& cls) const {
   return nullability() == Nullability::kNonNullable;
 }
 
-AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
+AbstractTypePtr Type::Canonicalize(Thread* thread, TrailPtr trail) const {
   ASSERT(IsFinalized());
   if (IsCanonical()) {
     ASSERT(TypeArguments::Handle(arguments()).IsOld());
     return this->raw();
   }
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
@@ -20224,7 +20350,7 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
              (isolate == Dart::vm_isolate()));
       // Canonicalize the type arguments of the supertype, if any.
       TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
-      type_args = type_args.Canonicalize(trail);
+      type_args = type_args.Canonicalize(thread, trail);
       if (IsCanonical()) {
         // Canonicalizing type_args canonicalized this type.
         ASSERT(IsRecursive());
@@ -20290,7 +20416,7 @@ AbstractTypePtr Type::Canonicalize(TrailPtr trail) const {
         SetHash(0);  // Flush cached hash value.
       }
     }
-    type_args = type_args.Canonicalize(trail);
+    type_args = type_args.Canonicalize(thread, trail);
     if (IsCanonical()) {
       // Canonicalizing type_args canonicalized this type as a side effect.
       ASSERT(IsRecursive());
@@ -20617,7 +20743,7 @@ void TypeRef::set_type(const AbstractType& value) const {
 // Consider the type Derived, where class Derived extends Base<Derived>.
 // The first type argument of its flattened type argument vector is Derived,
 // represented by a TypeRef pointing to itself.
-AbstractTypePtr TypeRef::Canonicalize(TrailPtr trail) const {
+AbstractTypePtr TypeRef::Canonicalize(Thread* thread, TrailPtr trail) const {
   if (TestAndAddToTrail(&trail)) {
     return raw();
   }
@@ -20625,7 +20751,7 @@ AbstractTypePtr TypeRef::Canonicalize(TrailPtr trail) const {
   // referenced recursive type.
   AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsNull());
-  ref_type = ref_type.Canonicalize(trail);
+  ref_type = ref_type.Canonicalize(thread, trail);
   set_type(ref_type);
   return raw();
 }
@@ -20733,7 +20859,7 @@ TypeParameterPtr TypeParameter::ToNullability(Nullability value,
     // Object::Clone does not clone canonical bit.
     ASSERT(!type_parameter.IsCanonical());
     if (IsFinalized()) {
-      type_parameter ^= type_parameter.Canonicalize();
+      type_parameter ^= type_parameter.Canonicalize(Thread::Current(), nullptr);
     }
   }
   return type_parameter.raw();
@@ -20953,12 +21079,12 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
   return result.NormalizeFutureOrType(space);
 }
 
-AbstractTypePtr TypeParameter::Canonicalize(TrailPtr trail) const {
+AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
+                                            TrailPtr trail) const {
   ASSERT(IsFinalized());
   if (IsCanonical()) {
     return this->raw();
   }
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 
@@ -21157,16 +21283,15 @@ const char* TypeParameter::ToCString() const {
   return printer.buffer();
 }
 
-InstancePtr Number::CheckAndCanonicalize(Thread* thread,
-                                         const char** error_str) const {
+InstancePtr Number::CanonicalizeLocked(Thread* thread) const {
   intptr_t cid = GetClassId();
   switch (cid) {
     case kSmiCid:
       return static_cast<SmiPtr>(raw_value());
     case kMintCid:
-      return Mint::NewCanonical(Mint::Cast(*this).value());
+      return Mint::NewCanonicalLocked(thread, Mint::Cast(*this).value());
     case kDoubleCid:
-      return Double::NewCanonical(Double::Cast(*this).value());
+      return Double::NewCanonicalLocked(thread, Double::Cast(*this).value());
     default:
       UNREACHABLE();
   }
@@ -21539,33 +21664,28 @@ MintPtr Mint::New(int64_t val, Heap::Space space) {
 }
 
 MintPtr Mint::NewCanonical(int64_t value) {
+  Thread* thread = Thread::Current();
+  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  return NewCanonicalLocked(thread, value);
+}
+
+MintPtr Mint::NewCanonicalLocked(Thread* thread, int64_t value) {
   // Do not allocate a Mint if Smi would do.
   ASSERT(!Smi::IsValid(value));
-  Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, isolate->object_store()->mint_class());
-  Mint& canonical_value = Mint::Handle(zone);
-  canonical_value = cls.LookupCanonicalMint(zone, value);
+  Mint& canonical_value =
+      Mint::Handle(zone, cls.LookupCanonicalMint(zone, value));
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
-  {
-    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    // Retry lookup.
-    {
-      canonical_value = cls.LookupCanonicalMint(zone, value);
-      if (!canonical_value.IsNull()) {
-        return canonical_value.raw();
-      }
-    }
-    canonical_value = Mint::New(value, Heap::kOld);
-    canonical_value.SetCanonical();
-    // The value needs to be added to the constants list. Grow the list if
-    // it is full.
-    cls.InsertCanonicalMint(zone, canonical_value);
-    return canonical_value.raw();
-  }
+  canonical_value = Mint::New(value, Heap::kOld);
+  canonical_value.SetCanonical();
+  // The value needs to be added to the constants list. Grow the list if
+  // it is full.
+  cls.InsertCanonicalMint(zone, canonical_value);
+  return canonical_value.raw();
 }
 
 bool Mint::Equals(const Instance& other) const {
@@ -21672,32 +21792,27 @@ DoublePtr Double::New(const String& str, Heap::Space space) {
 
 DoublePtr Double::NewCanonical(double value) {
   Thread* thread = Thread::Current();
+  SafepointMutexLocker ml(thread->isolate()->constant_canonicalization_mutex());
+  return NewCanonicalLocked(thread, value);
+}
+
+DoublePtr Double::NewCanonicalLocked(Thread* thread, double value) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  const Class& cls = Class::Handle(isolate->object_store()->double_class());
+  const Class& cls =
+      Class::Handle(zone, isolate->object_store()->double_class());
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
-  Double& canonical_value = Double::Handle(zone);
-
-  canonical_value = cls.LookupCanonicalDouble(zone, value);
+  Double& canonical_value =
+      Double::Handle(zone, cls.LookupCanonicalDouble(zone, value));
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
-  {
-    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
-    // Retry lookup.
-    {
-      canonical_value = cls.LookupCanonicalDouble(zone, value);
-      if (!canonical_value.IsNull()) {
-        return canonical_value.raw();
-      }
-    }
-    canonical_value = Double::New(value, Heap::kOld);
-    canonical_value.SetCanonical();
-    // The value needs to be added to the constants list.
-    cls.InsertCanonicalDouble(zone, canonical_value);
-    return canonical_value.raw();
-  }
+  canonical_value = Double::New(value, Heap::kOld);
+  canonical_value.SetCanonical();
+  // The value needs to be added to the constants list.
+  cls.InsertCanonicalDouble(zone, canonical_value);
+  return canonical_value.raw();
 }
 
 DoublePtr Double::NewCanonical(const String& str) {
@@ -21736,25 +21851,6 @@ const char* Double::ToCString() const {
   return buffer;
 }
 
-// Synchronize with implementation in compiler (intrinsifier).
-class StringHasher : ValueObject {
- public:
-  StringHasher() : hash_(0) {}
-  void Add(int32_t ch) { hash_ = CombineHashes(hash_, ch); }
-  void Add(const String& str, intptr_t begin_index, intptr_t len);
-
-  // Return a non-zero hash of at most 'bits' bits.
-  intptr_t Finalize(int bits) {
-    ASSERT(1 <= bits && bits <= (kBitsPerWord - 1));
-    hash_ = FinalizeHash(hash_, bits);
-    ASSERT(hash_ <= static_cast<uint32_t>(kMaxInt32));
-    return hash_;
-  }
-
- private:
-  uint32_t hash_;
-};
-
 void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT(begin_index >= 0);
   ASSERT(len >= 0);
@@ -21764,48 +21860,32 @@ void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
   }
   if (str.IsOneByteString()) {
     NoSafepointScope no_safepoint;
-    uint8_t* str_addr = OneByteString::CharAddr(str, begin_index);
-    for (intptr_t i = 0; i < len; i++) {
-      Add(*str_addr);
-      str_addr++;
-    }
+    Add(OneByteString::CharAddr(str, begin_index), len);
+  } else if (str.IsExternalOneByteString()) {
+    NoSafepointScope no_safepoint;
+    Add(ExternalOneByteString::CharAddr(str, begin_index), len);
+  } else if (str.IsTwoByteString()) {
+    NoSafepointScope no_safepoint;
+    Add(TwoByteString::CharAddr(str, begin_index), len);
+  } else if (str.IsExternalOneByteString()) {
+    NoSafepointScope no_safepoint;
+    Add(ExternalTwoByteString::CharAddr(str, begin_index), len);
   } else {
-    String::CodePointIterator it(str, begin_index, len);
-    while (it.Next()) {
-      Add(it.Current());
-    }
+    UNREACHABLE();
   }
 }
 
 intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
   StringHasher hasher;
   hasher.Add(str, begin_index, len);
-  return hasher.Finalize(kHashBits);
+  return hasher.Finalize();
 }
 
 intptr_t String::HashConcat(const String& str1, const String& str2) {
-  intptr_t len1 = str1.Length();
-  // Since String::Hash works at the code point (rune) level, a surrogate pair
-  // that crosses the boundary between str1 and str2 must be composed.
-  if (str1.IsTwoByteString() && Utf16::IsLeadSurrogate(str1.CharAt(len1 - 1))) {
-    const String& temp = String::Handle(String::Concat(str1, str2));
-    return temp.Hash();
-  } else {
-    StringHasher hasher;
-    hasher.Add(str1, 0, len1);
-    hasher.Add(str2, 0, str2.Length());
-    return hasher.Finalize(kHashBits);
-  }
-}
-
-template <typename T>
-static intptr_t HashImpl(const T* characters, intptr_t len) {
-  ASSERT(len >= 0);
   StringHasher hasher;
-  for (intptr_t i = 0; i < len; i++) {
-    hasher.Add(characters[i]);
-  }
-  return hasher.Finalize(String::kHashBits);
+  hasher.Add(str1, 0, str1.Length());
+  hasher.Add(str2, 0, str2.Length());
+  return hasher.Finalize();
 }
 
 intptr_t String::Hash(StringPtr raw) {
@@ -21835,24 +21915,21 @@ intptr_t String::Hash(StringPtr raw) {
 }
 
 intptr_t String::Hash(const char* characters, intptr_t len) {
-  return HashImpl(characters, len);
+  StringHasher hasher;
+  hasher.Add(reinterpret_cast<const uint8_t*>(characters), len);
+  return hasher.Finalize();
 }
 
 intptr_t String::Hash(const uint8_t* characters, intptr_t len) {
-  return HashImpl(characters, len);
+  StringHasher hasher;
+  hasher.Add(characters, len);
+  return hasher.Finalize();
 }
 
 intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
   StringHasher hasher;
-  intptr_t i = 0;
-  while (i < len) {
-    hasher.Add(Utf16::Next(characters, &i, len));
-  }
-  return hasher.Finalize(kHashBits);
-}
-
-intptr_t String::Hash(const int32_t* characters, intptr_t len) {
-  return HashImpl(characters, len);
+  hasher.Add(characters, len);
+  return hasher.Finalize();
 }
 
 intptr_t String::CharSize() const {
@@ -22034,8 +22111,7 @@ bool String::EndsWith(const String& other) const {
   return true;
 }
 
-InstancePtr String::CheckAndCanonicalize(Thread* thread,
-                                         const char** error_str) const {
+InstancePtr String::CanonicalizeLocked(Thread* thread) const {
   if (IsCanonical()) {
     return this->raw();
   }
@@ -22650,8 +22726,13 @@ static bool EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
     int32_t ch = T1::CharAt(str1, pos);
     pos++;
 
+    if ((str2_pos < str2_len) && (ch == T2::CharAt(str2, str2_pos))) {
+      str2_pos++;
+      continue;
+    }
+
     if (ch == Library::kPrivateKeySeparator) {
-      // Consume a private key separator.
+      // Consume a private key separator if str1 has it but str2 does not.
       while ((pos < len) && (T1::CharAt(str1, pos) != '.') &&
              (T1::CharAt(str1, pos) != '&')) {
         pos++;
@@ -22659,10 +22740,8 @@ static bool EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
       // Resume matching characters.
       continue;
     }
-    if ((str2_pos == str2_len) || (ch != T2::CharAt(str2, str2_pos))) {
-      return false;
-    }
-    str2_pos++;
+
+    return false;
   }
 
   // We have reached the end of mangled_name string.
@@ -23306,7 +23385,7 @@ ArrayPtr Array::New(intptr_t len,
   if (!element_type.IsDynamicType()) {
     TypeArguments& type_args = TypeArguments::Handle(TypeArguments::New(1));
     type_args.SetTypeAt(0, element_type);
-    type_args = type_args.Canonicalize();
+    type_args = type_args.Canonicalize(Thread::Current(), nullptr);
     result.SetTypeArguments(type_args);
   }
   return result.raw();
@@ -23467,36 +23546,17 @@ ArrayPtr Array::MakeFixedLength(const GrowableObjectArray& growable_array,
   return array.raw();
 }
 
-bool Array::CheckAndCanonicalizeFields(Thread* thread,
-                                       const char** error_str) const {
-  ASSERT(error_str != NULL);
-  ASSERT(*error_str == NULL);
+void Array::CanonicalizeFieldsLocked(Thread* thread) const {
   intptr_t len = Length();
   if (len > 0) {
     Zone* zone = thread->zone();
-    Object& obj = Object::Handle(zone);
-    // Iterate over all elements, canonicalize numbers and strings, expect all
-    // other instances to be canonical otherwise report error (return false).
+    Instance& obj = Instance::Handle(zone);
     for (intptr_t i = 0; i < len; i++) {
-      obj = At(i);
-      if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
-        if (obj.IsNumber() || obj.IsString()) {
-          obj = Instance::Cast(obj).CheckAndCanonicalize(thread, error_str);
-          if (*error_str != NULL) {
-            return false;
-          }
-          ASSERT(!obj.IsNull());
-          this->SetAt(i, obj);
-        } else {
-          char* chars = OS::SCreate(zone, "element at index %" Pd ": %s\n", i,
-                                    obj.ToCString());
-          *error_str = chars;
-          return false;
-        }
-      }
+      obj ^= At(i);
+      obj = obj.CanonicalizeLocked(thread);
+      this->SetAt(i, obj);
     }
   }
-  return true;
 }
 
 ImmutableArrayPtr ImmutableArray::New(intptr_t len, Heap::Space space) {
@@ -24068,7 +24128,7 @@ PointerPtr Pointer::New(const AbstractType& type_arg,
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
   type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
-  type_args = type_args.Canonicalize();
+  type_args = type_args.Canonicalize(thread, nullptr);
 
   const Class& cls =
       Class::Handle(Isolate::Current()->class_table()->At(kFfiPointerCid));
@@ -24437,8 +24497,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
 static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
-                                           uword vm_instructions,
-                                           uword isolate_relocated_address) {
+                                           uword vm_instructions) {
   const Image vm_image(reinterpret_cast<const void*>(vm_instructions));
   const Image isolate_image(
       reinterpret_cast<const void*>(isolate_instructions));
@@ -24449,7 +24508,9 @@ static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
     // Only print the relocated address of the call when we know the saved
     // debugging information (if any) will have the same relocated address.
     if (isolate_image.compiled_to_elf()) {
-      buffer->Printf(" virt %" Pp "", isolate_relocated_address + offset);
+      const uword relocated_section_start =
+          isolate_image.instructions_relocated_address();
+      buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
     }
     buffer->Printf(" %s+0x%" Px "", symbol_name, offset);
   } else if (vm_image.contains(call_addr)) {
@@ -24497,10 +24558,10 @@ static void PrintSymbolicStackFrame(Zone* zone,
                                     intptr_t frame_index) {
   ASSERT(!function.IsNull());
   const auto& script = Script::Handle(zone, function.script());
-  auto& handle = String::Handle(zone, function.QualifiedUserVisibleName());
-  auto const function_name = handle.ToCString();
-  handle = script.IsNull() ? String::New("Kernel") : script.url();
-  auto url = handle.ToCString();
+  const char* function_name = function.QualifiedUserVisibleNameCString();
+  const char* url = script.IsNull()
+                        ? "Kernel"
+                        : String::Handle(zone, script.url()).ToCString();
 
   // If the URI starts with "data:application/dart;" this is a URI encoded
   // script so we shouldn't print the entire URI because it could be very long.
@@ -24521,16 +24582,6 @@ static void PrintSymbolicStackFrame(Zone* zone,
   PrintSymbolicStackFrameBody(buffer, function_name, url, line, column);
 }
 
-// Find the relocated base of the given instructions section.
-uword InstructionsRelocatedAddress(uword instructions_start) {
-  Image image(reinterpret_cast<const uint8_t*>(instructions_start));
-  auto const bss_start =
-      reinterpret_cast<const uword*>(instructions_start + image.bss_offset());
-  auto const index =
-      BSS::RelocationIndex(BSS::Relocation::InstructionsRelocatedAddress);
-  return bss_start[index];
-}
-
 const char* StackTrace::ToCString() const {
   auto const T = Thread::Current();
   auto const zone = T->zone();
@@ -24540,6 +24591,7 @@ const char* StackTrace::ToCString() const {
   auto& code = Code::Handle(zone);
   auto& bytecode = Bytecode::Handle(zone);
 
+  NoSafepointScope no_allocation;
   GrowableArray<const Function*> inlined_functions;
   GrowableArray<TokenPosition> inlined_token_positions;
   ZoneTextBuffer buffer(zone, 1024);
@@ -24549,11 +24601,15 @@ const char* StackTrace::ToCString() const {
       T->isolate_group()->source()->snapshot_instructions);
   auto const vm_instructions = reinterpret_cast<uword>(
       Dart::vm_isolate()->group()->source()->snapshot_instructions);
-  auto const vm_relocated_address =
-      InstructionsRelocatedAddress(vm_instructions);
-  auto const isolate_relocated_address =
-      InstructionsRelocatedAddress(isolate_instructions);
   if (FLAG_dwarf_stack_traces_mode) {
+    const Image isolate_instructions_image(
+        reinterpret_cast<const void*>(isolate_instructions));
+    const Image vm_instructions_image(
+        reinterpret_cast<const void*>(vm_instructions));
+    auto const isolate_relocated_address =
+        isolate_instructions_image.instructions_relocated_address();
+    auto const vm_relocated_address =
+        vm_instructions_image.instructions_relocated_address();
     // The Dart standard requires the output of StackTrace.toString to include
     // all pending activations with precise source locations (i.e., to expand
     // inlined frames and provide line and column numbers).
@@ -24567,6 +24623,14 @@ const char* StackTrace::ToCString() const {
     OSThread* thread = OSThread::Current();
     buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
                   OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
+    if (auto const build_id = isolate_instructions_image.build_id()) {
+      const intptr_t length = isolate_instructions_image.build_id_length();
+      buffer.Printf("build_id: '");
+      for (intptr_t i = 0; i < length; i++) {
+        buffer.Printf("%02.2x", build_id[i]);
+      }
+      buffer.Printf("'\n");
+    }
     // Print the dso_base of the VM and isolate_instructions. We print both here
     // as the VM and isolate may be loaded from different snapshot images.
     buffer.Printf("isolate_dso_base: %" Px "",
@@ -24628,8 +24692,7 @@ const char* StackTrace::ToCString() const {
             // prints call addresses instead of return addresses.
             buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
             PrintNonSymbolicStackFrameBody(
-                &buffer, call_addr, isolate_instructions, vm_instructions,
-                isolate_relocated_address);
+                &buffer, call_addr, isolate_instructions, vm_instructions);
             frame_index++;
             continue;
           } else if (function.IsNull()) {
@@ -24638,8 +24701,7 @@ const char* StackTrace::ToCString() const {
             // non-symbolic stack traces.
             PrintSymbolicStackFrameIndex(&buffer, frame_index);
             PrintNonSymbolicStackFrameBody(
-                &buffer, call_addr, isolate_instructions, vm_instructions,
-                isolate_relocated_address);
+                &buffer, call_addr, isolate_instructions, vm_instructions);
             frame_index++;
             continue;
           }

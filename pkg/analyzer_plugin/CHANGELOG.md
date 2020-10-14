@@ -4,6 +4,7 @@
 - Deprecated the method `ChangeBuilder.addFileEdit` and introduced
   `ChangeBuilder.addDartFileEdit` and `ChangeBuilder.addGenericFileEdit` to be
   the replacements for it.
+- Bump maximum supported version of the analyzer to `<0.41.0`.
 
 ## 0.3.0
 - Removed deprecated `Plugin.getResolveResult`. Use `getResolvedUnitResult`.

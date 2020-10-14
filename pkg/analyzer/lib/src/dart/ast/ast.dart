@@ -4346,6 +4346,19 @@ abstract class FormalParameterImpl extends AstNodeImpl
 
   /// Return the kind of this parameter.
   ParameterKind get kind;
+
+  static void setDeclaredElement(
+    FormalParameter node,
+    ParameterElement element,
+  ) {
+    if (node is DefaultFormalParameter) {
+      setDeclaredElement(node.parameter, element);
+    } else if (node is SimpleFormalParameterImpl) {
+      node.declaredElement = element;
+    } else {
+      node.identifier.staticElement = element;
+    }
+  }
 }
 
 /// The formal parameter list of a method declaration, function declaration, or
@@ -5810,6 +5823,8 @@ class IndexExpressionImpl extends ExpressionImpl
   /// If this expression is both in a getter and setter context, the
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
+  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
+      'CompoundAssignmentExpression.writeElement')
   @override
   AuxiliaryElements auxiliaryElements;
 
@@ -8092,8 +8107,7 @@ class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @override
-  bool _extendsNullShorting(Expression child) =>
-      operator.type != TokenType.BANG && identical(child, operand);
+  bool _extendsNullShorting(Expression child) => identical(child, operand);
 }
 
 /// An identifier that is prefixed or an access to an object property where the
@@ -8821,6 +8835,8 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// If this expression is both in a getter and setter context, the
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
+  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
+      'CompoundAssignmentExpression.writeElement')
   @override
   AuxiliaryElements auxiliaryElements;
 

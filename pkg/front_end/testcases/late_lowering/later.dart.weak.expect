@@ -55,12 +55,12 @@ library /*isNonNullableByDefault*/;
 //   late String s2 = '${fisk}${await hest()}${fisk}'; // Error.
 //                              ^^^^^
 //
-// pkg/front_end/testcases/late_lowering/later.dart:48:9: Error: Constructor is marked 'const' so fields can't be late.
-//   const B(); // Error: B has late final fields.
-//         ^
-// pkg/front_end/testcases/late_lowering/later.dart:46:18: Context: Field is late, but constructor is 'const'.
+// pkg/front_end/testcases/late_lowering/later.dart:46:18: Error: Can't have a late final field in a class with a const constructor.
 //   late final int x = 42;
 //                  ^
+// pkg/front_end/testcases/late_lowering/later.dart:48:9: Context: This constructor is const.
+//   const B(); // Error: B has late final fields.
+//         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -70,35 +70,55 @@ import "dart:async" as asy;
 class A extends core::Object {
   field core::int a = 42;
   field core::int? _#A#b = null;
+  field core::bool _#A#b#isSet = false;
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  get b() → core::int
-    return let final core::int? #t1 = this.{self::A::_#A#b} in #t1.==(null) ?{core::int} this.{self::A::_#A#b} = this.{self::A::a}.{core::num::*}(2).{core::int::>>}(1) : #t1{core::int};
-  set b(core::int #t2) → void
+  get b() → core::int {
+    if(!this.{self::A::_#A#b#isSet}) {
+      this.{self::A::_#A#b} = this.{self::A::a}.{core::num::*}(2).{core::int::>>}(1);
+      this.{self::A::_#A#b#isSet} = true;
+    }
+    return let final core::int? #t1 = this.{self::A::_#A#b} in #t1{core::int};
+  }
+  set b(core::int #t2) → void {
+    this.{self::A::_#A#b#isSet} = true;
     this.{self::A::_#A#b} = #t2;
+  }
   method foo(core::int x) → dynamic {}
 }
 class B extends core::Object /*hasConstConstructor*/  {
   field core::int? _#B#x = null;
+  field core::bool _#B#x#isSet = false;
   const constructor •() → self::B
     : super core::Object::•()
     ;
-  get x() → core::int
-    return let final core::int? #t3 = this.{self::B::_#B#x} in #t3.==(null) ?{core::int} let final core::int #t4 = 42 in this.{self::B::_#B#x}.==(null) ?{core::int} this.{self::B::_#B#x} = #t4 : throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.") : #t3{core::int};
+  get x() → core::int {
+    if(!this.{self::B::_#B#x#isSet}) {
+      final core::int #t3 = 42;
+      if(this.{self::B::_#B#x#isSet})
+        throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.");
+      this.{self::B::_#B#x} = #t3;
+      this.{self::B::_#B#x#isSet} = true;
+    }
+    return let final core::int? #t4 = this.{self::B::_#B#x} in #t4{core::int};
+  }
 }
 class C extends core::Object {
   field core::int? _#C#x = null;
+  field core::bool _#C#x#isSet = false;
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
   get x() → core::int
-    return let final core::int? #t5 = this.{self::C::_#C#x} in #t5.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.") : #t5{core::int};
+    return this.{self::C::_#C#x#isSet} ?{core::int} let final core::int? #t5 = this.{self::C::_#C#x} in #t5{core::int} : throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.");
   set x(core::int #t6) → void
-    if(this.{self::C::_#C#x}.==(null))
-      this.{self::C::_#C#x} = #t6;
-    else
+    if(this.{self::C::_#C#x#isSet})
       throw new _in::LateInitializationErrorImpl::•("Field 'x' has already been initialized.");
+    else {
+      this.{self::C::_#C#x#isSet} = true;
+      this.{self::C::_#C#x} = #t6;
+    }
   method initVars() → dynamic {
     this.{self::C::x} = 42;
   }
@@ -138,24 +158,48 @@ static method hest() → dynamic async {
 }
 static method fisk() → dynamic async {
   core::String? s1;
-  function #s1#get() → core::String
-    return let final core::String? #t8 = s1 in #t8.==(null) ?{core::String} s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
+  core::bool #s1#isSet = false;
+  function #s1#get() → core::String {
+    if(!#s1#isSet) {
+      s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
   late String s1 = await hest(); // Error.
-                   ^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::String : #t8{core::String};
-  function #s1#set(core::String #t9) → dynamic
-    return s1 = #t9;
+                   ^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+      #s1#isSet = true;
+    }
+    return s1{core::String};
+  }
+  function #s1#set(core::String #t8) → dynamic {
+    #s1#isSet = true;
+    return s1 = #t8;
+  }
   core::String? s2;
-  function #s2#get() → core::String
-    return let final core::String? #t10 = s2 in #t10.==(null) ?{core::String} s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
+  core::bool #s2#isSet = false;
+  function #s2#get() → core::String {
+    if(!#s2#isSet) {
+      s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
   late String s2 = '\${fisk}\${await hest()}\${fisk}'; // Error.
-                             ^^^^^"}${#C1}" : #t10{core::String};
-  function #s2#set(core::String #t11) → dynamic
-    return s2 = #t11;
+                             ^^^^^"}${#C1}";
+      #s2#isSet = true;
+    }
+    return s2{core::String};
+  }
+  function #s2#set(core::String #t9) → dynamic {
+    #s2#isSet = true;
+    return s2 = #t9;
+  }
   core::Function? f;
-  function #f#get() → core::Function
-    return let final core::Function? #t12 = f in #t12.==(null) ?{core::Function} f = () → asy::Future<dynamic> async => await self::hest() : #t12{core::Function};
-  function #f#set(core::Function #t13) → dynamic
-    return f = #t13;
+  core::bool #f#isSet = false;
+  function #f#get() → core::Function {
+    if(!#f#isSet) {
+      f = () → asy::Future<dynamic> async => await self::hest();
+      #f#isSet = true;
+    }
+    return f{core::Function};
+  }
+  function #f#set(core::Function #t10) → dynamic {
+    #f#isSet = true;
+    return f = #t10;
+  }
 }
 static method main() → dynamic {}
 

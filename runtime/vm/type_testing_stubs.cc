@@ -23,7 +23,6 @@ TypeTestingStubNamer::TypeTestingStubNamer()
     : lib_(Library::Handle()),
       klass_(Class::Handle()),
       type_(AbstractType::Handle()),
-      type_arguments_(TypeArguments::Handle()),
       string_(String::Handle()) {}
 
 const char* TypeTestingStubNamer::StubNameForType(
@@ -56,16 +55,18 @@ const char* TypeTestingStubNamer::StringifyType(
         OS::SCreate(Z, "%s_%s", curl, klass_.ScrubbedNameCString()));
 
     const intptr_t type_parameters = klass_.NumTypeParameters();
+    auto& type_arguments = TypeArguments::Handle();
     if (type.arguments() != TypeArguments::null() && type_parameters > 0) {
-      type_arguments_ = type.arguments();
-      ASSERT(type_arguments_.Length() >= type_parameters);
-      const intptr_t length = type_arguments_.Length();
+      type_arguments = type.arguments();
+      ASSERT(type_arguments.Length() >= type_parameters);
+      const intptr_t length = type_arguments.Length();
       for (intptr_t i = 0; i < type_parameters; ++i) {
-        type_ = type_arguments_.TypeAt(length - type_parameters + i);
+        type_ = type_arguments.TypeAt(length - type_parameters + i);
         concatenated =
             OS::SCreate(Z, "%s__%s", concatenated, StringifyType(type_));
       }
     }
+
     return concatenated;
   } else if (type.IsTypeParameter()) {
     string_ = TypeParameter::Cast(type).name();
@@ -523,8 +524,8 @@ void RegisterTypeArgumentsUse(const Function& function,
   //      type_arguments <- Constant(#TypeArguments: [ ... ])
   //
   //   Case b)
-  //      type_arguments <- InstantiateTypeArguments(
-  //          <type-expr-with-parameters>, ita, fta)
+  //      type_arguments <- InstantiateTypeArguments(ita, fta, uta)
+  //      (where uta may or may not be a constant TypeArguments object)
   //
   //   Case c)
   //      type_arguments <- LoadField(vx)
@@ -543,8 +544,10 @@ void RegisterTypeArgumentsUse(const Function& function,
     type_usage_info->UseTypeArgumentsInInstanceCreation(klass, type_arguments);
   } else if (InstantiateTypeArgumentsInstr* instantiate =
                  type_arguments->AsInstantiateTypeArguments()) {
-    const TypeArguments& ta = instantiate->type_arguments();
-    ASSERT(!ta.IsNull());
+    ASSERT(instantiate->type_arguments()->BindsToConstant());
+    ASSERT(!instantiate->type_arguments()->BoundConstant().IsNull());
+    const auto& ta =
+        TypeArguments::Cast(instantiate->type_arguments()->BoundConstant());
     type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
   } else if (LoadFieldInstr* load_field = type_arguments->AsLoadField()) {
     Definition* instance = load_field->instance()->definition();
@@ -641,7 +644,7 @@ const TypeArguments& TypeArgumentInstantiator::InstantiateTypeArguments(
             AbstractType::Handle(TypeRef::Cast(type_).type()).IsCanonical()));
   }
   *instantiated_type_arguments =
-      instantiated_type_arguments->Canonicalize(NULL);
+      instantiated_type_arguments->Canonicalize(Thread::Current(), nullptr);
   return *instantiated_type_arguments;
 }
 
@@ -684,7 +687,7 @@ AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     *to_type_arguments = from.arguments();
     to->set_arguments(InstantiateTypeArguments(klass_, *to_type_arguments));
     to->SetIsFinalized();
-    *to ^= to->Canonicalize(NULL);
+    *to ^= to->Canonicalize(Thread::Current(), nullptr);
 
     return to->raw();
   }

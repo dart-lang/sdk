@@ -1,134 +1,134 @@
 Problems reported:
 
-parser/error_recovery/keyword_named_top_level_fields:3:5: Expected an identifier, but got 'assert'.
+parser/error_recovery/keyword_named_top_level_fields:3:5: 'assert' can't be used as an identifier because it's a keyword.
 int assert = 42;
     ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:6:5: Expected an identifier, but got 'break'.
+parser/error_recovery/keyword_named_top_level_fields:6:5: 'break' can't be used as an identifier because it's a keyword.
 int break = 42;
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:7:5: Expected an identifier, but got 'case'.
+parser/error_recovery/keyword_named_top_level_fields:7:5: 'case' can't be used as an identifier because it's a keyword.
 int case = 42;
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:8:5: Expected an identifier, but got 'catch'.
+parser/error_recovery/keyword_named_top_level_fields:8:5: 'catch' can't be used as an identifier because it's a keyword.
 int catch = 42;
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:9:5: Expected an identifier, but got 'class'.
+parser/error_recovery/keyword_named_top_level_fields:9:5: 'class' can't be used as an identifier because it's a keyword.
 int class = 42;
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:10:5: Expected an identifier, but got 'const'.
+parser/error_recovery/keyword_named_top_level_fields:10:5: 'const' can't be used as an identifier because it's a keyword.
 int const = 42;
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:11:5: Expected an identifier, but got 'continue'.
+parser/error_recovery/keyword_named_top_level_fields:11:5: 'continue' can't be used as an identifier because it's a keyword.
 int continue = 42;
     ^^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:13:5: Expected an identifier, but got 'default'.
+parser/error_recovery/keyword_named_top_level_fields:13:5: 'default' can't be used as an identifier because it's a keyword.
 int default = 42;
     ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:15:5: Expected an identifier, but got 'do'.
+parser/error_recovery/keyword_named_top_level_fields:15:5: 'do' can't be used as an identifier because it's a keyword.
 int do = 42;
     ^^
 
-parser/error_recovery/keyword_named_top_level_fields:17:5: Expected an identifier, but got 'else'.
+parser/error_recovery/keyword_named_top_level_fields:17:5: 'else' can't be used as an identifier because it's a keyword.
 int else = 42;
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:18:5: Expected an identifier, but got 'enum'.
+parser/error_recovery/keyword_named_top_level_fields:18:5: 'enum' can't be used as an identifier because it's a keyword.
 int enum = 42;
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:20:5: Expected an identifier, but got 'extends'.
+parser/error_recovery/keyword_named_top_level_fields:20:5: 'extends' can't be used as an identifier because it's a keyword.
 int extends = 42;
     ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:24:5: Expected an identifier, but got 'false'.
+parser/error_recovery/keyword_named_top_level_fields:24:5: 'false' can't be used as an identifier because it's a keyword.
 int false = 42;
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:25:5: Expected an identifier, but got 'final'.
+parser/error_recovery/keyword_named_top_level_fields:25:5: 'final' can't be used as an identifier because it's a keyword.
 int final = 42;
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:26:5: Expected an identifier, but got 'finally'.
+parser/error_recovery/keyword_named_top_level_fields:26:5: 'finally' can't be used as an identifier because it's a keyword.
 int finally = 42;
     ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:27:5: Expected an identifier, but got 'for'.
+parser/error_recovery/keyword_named_top_level_fields:27:5: 'for' can't be used as an identifier because it's a keyword.
 int for = 42;
     ^^^
 
-parser/error_recovery/keyword_named_top_level_fields:31:5: Expected an identifier, but got 'if'.
+parser/error_recovery/keyword_named_top_level_fields:31:5: 'if' can't be used as an identifier because it's a keyword.
 int if = 42;
     ^^
 
-parser/error_recovery/keyword_named_top_level_fields:34:5: Expected an identifier, but got 'in'.
+parser/error_recovery/keyword_named_top_level_fields:34:5: 'in' can't be used as an identifier because it's a keyword.
 int in = 42;
     ^^
 
-parser/error_recovery/keyword_named_top_level_fields:37:5: Expected an identifier, but got 'is'.
+parser/error_recovery/keyword_named_top_level_fields:37:5: 'is' can't be used as an identifier because it's a keyword.
 int is = 42;
     ^^
 
-parser/error_recovery/keyword_named_top_level_fields:42:5: Expected an identifier, but got 'new'.
+parser/error_recovery/keyword_named_top_level_fields:42:5: 'new' can't be used as an identifier because it's a keyword.
 int new = 42;
     ^^^
 
-parser/error_recovery/keyword_named_top_level_fields:43:5: Expected an identifier, but got 'null'.
+parser/error_recovery/keyword_named_top_level_fields:43:5: 'null' can't be used as an identifier because it's a keyword.
 int null = 42;
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:51:5: Expected an identifier, but got 'rethrow'.
+parser/error_recovery/keyword_named_top_level_fields:51:5: 'rethrow' can't be used as an identifier because it's a keyword.
 int rethrow = 42;
     ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:52:5: Expected an identifier, but got 'return'.
+parser/error_recovery/keyword_named_top_level_fields:52:5: 'return' can't be used as an identifier because it's a keyword.
 int return = 42;
     ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:57:5: Expected an identifier, but got 'super'.
+parser/error_recovery/keyword_named_top_level_fields:57:5: 'super' can't be used as an identifier because it's a keyword.
 int super = 42;
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:58:5: Expected an identifier, but got 'switch'.
+parser/error_recovery/keyword_named_top_level_fields:58:5: 'switch' can't be used as an identifier because it's a keyword.
 int switch = 42;
     ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:60:5: Expected an identifier, but got 'this'.
+parser/error_recovery/keyword_named_top_level_fields:60:5: 'this' can't be used as an identifier because it's a keyword.
 int this = 42;
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:61:5: Expected an identifier, but got 'throw'.
+parser/error_recovery/keyword_named_top_level_fields:61:5: 'throw' can't be used as an identifier because it's a keyword.
 int throw = 42;
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:62:5: Expected an identifier, but got 'true'.
+parser/error_recovery/keyword_named_top_level_fields:62:5: 'true' can't be used as an identifier because it's a keyword.
 int true = 42;
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:63:5: Expected an identifier, but got 'try'.
+parser/error_recovery/keyword_named_top_level_fields:63:5: 'try' can't be used as an identifier because it's a keyword.
 int try = 42;
     ^^^
 
-parser/error_recovery/keyword_named_top_level_fields:65:5: Expected an identifier, but got 'var'.
+parser/error_recovery/keyword_named_top_level_fields:65:5: 'var' can't be used as an identifier because it's a keyword.
 int var = 42;
     ^^^
 
-parser/error_recovery/keyword_named_top_level_fields:66:5: Expected an identifier, but got 'void'.
+parser/error_recovery/keyword_named_top_level_fields:66:5: 'void' can't be used as an identifier because it's a keyword.
 int void = 42;
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:67:5: Expected an identifier, but got 'while'.
+parser/error_recovery/keyword_named_top_level_fields:67:5: 'while' can't be used as an identifier because it's a keyword.
 int while = 42;
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_fields:68:5: Expected an identifier, but got 'with'.
+parser/error_recovery/keyword_named_top_level_fields:68:5: 'with' can't be used as an identifier because it's a keyword.
 int with = 42;
     ^^^^
 
@@ -166,7 +166,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(assert)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'assert'., null, {token: assert}], assert, assert)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'assert' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: assert}], assert, assert)
       handleIdentifier(assert, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -206,7 +206,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(break)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'break'., null, {token: break}], break, break)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'break' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: break}], break, break)
       handleIdentifier(break, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -220,7 +220,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(case)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'case'., null, {token: case}], case, case)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'case' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: case}], case, case)
       handleIdentifier(case, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -234,7 +234,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(catch)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'catch'., null, {token: catch}], catch, catch)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'catch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: catch}], catch, catch)
       handleIdentifier(catch, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -248,7 +248,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(class)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'class'., null, {token: class}], class, class)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'class' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: class}], class, class)
       handleIdentifier(class, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -262,7 +262,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(const)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'const'., null, {token: const}], const, const)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'const' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: const}], const, const)
       handleIdentifier(const, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -276,7 +276,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(continue)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'continue'., null, {token: continue}], continue, continue)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'continue' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: continue}], continue, continue)
       handleIdentifier(continue, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -303,7 +303,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(default)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'default'., null, {token: default}], default, default)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'default' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: default}], default, default)
       handleIdentifier(default, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -330,7 +330,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(do)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'do'., null, {token: do}], do, do)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'do' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: do}], do, do)
       handleIdentifier(do, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -357,7 +357,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(else)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., null, {token: else}], else, else)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'else' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: else}], else, else)
       handleIdentifier(else, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -371,7 +371,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(enum)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'enum'., null, {token: enum}], enum, enum)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: enum}], enum, enum)
       handleIdentifier(enum, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -398,7 +398,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(extends)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'extends'., null, {token: extends}], extends, extends)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: extends}], extends, extends)
       handleIdentifier(extends, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -451,7 +451,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(false)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'false'., null, {token: false}], false, false)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'false' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: false}], false, false)
       handleIdentifier(false, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -465,7 +465,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(final)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'final'., null, {token: final}], final, final)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'final' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: final}], final, final)
       handleIdentifier(final, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -479,7 +479,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(finally)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'finally'., null, {token: finally}], finally, finally)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'finally' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: finally}], finally, finally)
       handleIdentifier(finally, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -493,7 +493,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(for)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'for'., null, {token: for}], for, for)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'for' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: for}], for, for)
       handleIdentifier(for, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -546,7 +546,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(if)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., null, {token: if}], if, if)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'if' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: if}], if, if)
       handleIdentifier(if, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -586,7 +586,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(in)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'in'., null, {token: in}], in, in)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'in' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: in}], in, in)
       handleIdentifier(in, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -626,7 +626,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(is)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'is'., null, {token: is}], is, is)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'is' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: is}], is, is)
       handleIdentifier(is, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -692,7 +692,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(new)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'new'., null, {token: new}], new, new)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: new}], new, new)
       handleIdentifier(new, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -706,7 +706,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(null)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'null'., null, {token: null}], null, null)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'null' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: null}], null, null)
       handleIdentifier(null, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -811,7 +811,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(rethrow)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'rethrow'., null, {token: rethrow}], rethrow, rethrow)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'rethrow' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: rethrow}], rethrow, rethrow)
       handleIdentifier(rethrow, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -825,7 +825,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(return)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'return'., null, {token: return}], return, return)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'return' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: return}], return, return)
       handleIdentifier(return, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -891,7 +891,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(super)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'super'., null, {token: super}], super, super)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: super}], super, super)
       handleIdentifier(super, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -905,7 +905,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(switch)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'switch'., null, {token: switch}], switch, switch)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'switch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: switch}], switch, switch)
       handleIdentifier(switch, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -932,7 +932,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(this)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'this'., null, {token: this}], this, this)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: this}], this, this)
       handleIdentifier(this, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -946,7 +946,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(throw)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'throw'., null, {token: throw}], throw, throw)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'throw' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: throw}], throw, throw)
       handleIdentifier(throw, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -960,7 +960,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(true)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'true'., null, {token: true}], true, true)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'true' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: true}], true, true)
       handleIdentifier(true, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -974,7 +974,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(try)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'try'., null, {token: try}], try, try)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'try' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: try}], try, try)
       handleIdentifier(try, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -1001,7 +1001,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(var)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'var'., null, {token: var}], var, var)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'var' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: var}], var, var)
       handleIdentifier(var, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -1015,7 +1015,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(void)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'void'., null, {token: void}], void, void)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'void' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: void}], void, void)
       handleIdentifier(void, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -1029,7 +1029,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(while)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'while'., null, {token: while}], while, while)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'while' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: while}], while, while)
       handleIdentifier(while, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)
@@ -1043,7 +1043,7 @@ beginCompilationUnit(int)
       handleIdentifier(int, typeReference)
       handleNoTypeArguments(with)
       handleType(int, null)
-      handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'with'., null, {token: with}], with, with)
+      handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: with}], with, with)
       handleIdentifier(with, topLevelVariableDeclaration)
       beginFieldInitializer(=)
         handleLiteralInt(42)

@@ -123,7 +123,7 @@ class _CacheTable {
   /// Heuristically choose a good name for the cache and generator
   /// variables.
   js_ast.TemporaryId chooseTypeName(DartType type) {
-    return js_ast.TemporaryId(_typeString(type));
+    return js_ast.TemporaryId(escapeIdentifier(_typeString(type)));
   }
 }
 

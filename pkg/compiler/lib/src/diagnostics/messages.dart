@@ -74,7 +74,6 @@ enum MessageKind {
   INVALID_PACKAGE_URI,
   INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
-  JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_INTEROP_FIELD_NOT_SUPPORTED,
   JS_INTEROP_NON_EXTERNAL_MEMBER,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
@@ -199,25 +198,6 @@ class MessageTemplate {
       MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER,
           "Js-interop members must be 'external'."),
-
-      MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER: const MessageTemplate(
-          MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-          "Member '#{member}' in js-interop class '#{cls}' is not external.",
-          howToFix: "Try adding 'external' to '#{member}'.",
-          examples: const [
-            """
-              import 'package:js/js.dart';
-
-              @JS()
-              class Foo {
-                bar() {}
-              }
-
-              main() {
-                new Foo().bar();
-              }
-              """
-          ]),
 
       MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED:
           const MessageTemplate(

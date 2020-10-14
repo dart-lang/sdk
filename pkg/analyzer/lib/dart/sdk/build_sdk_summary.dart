@@ -5,11 +5,13 @@
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -38,7 +40,6 @@ Uint8List buildSdkSummary({
     resourceProvider,
     resourceProvider.getFolder(sdkPath),
   );
-  sdk.analysisOptions = AnalysisOptionsImpl();
 
   // Append libraries from the embedder.
   if (embedderYamlPath != null) {
@@ -62,8 +63,13 @@ Uint8List buildSdkSummary({
     return sdk.mapDartUri(e.shortName);
   }).toList();
 
+  var analysisContext = AnalysisContextImpl(
+    SynchronousSession(AnalysisOptionsImpl(), DeclaredVariables()),
+    SourceFactory([DartUriResolver(sdk)]),
+  );
+
   return _Builder(
-    sdk.context,
+    analysisContext,
     sdk.allowedExperimentsJson,
     sdk.languageVersion,
     librarySources,
@@ -71,7 +77,7 @@ Uint8List buildSdkSummary({
 }
 
 class _Builder {
-  final AnalysisContext context;
+  final AnalysisContextImpl context;
   final String allowedExperimentsJson;
   final Iterable<Source> librarySources;
 

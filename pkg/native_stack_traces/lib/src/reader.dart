@@ -14,26 +14,35 @@ class Reader {
   final ByteData bdata;
   // These are mutable so we can update them, in case the endianness and
   // wordSize are read using the reader (e.g., ELF files).
-  Endian endian;
-  int wordSize;
+  Endian? _endian;
+  int? _wordSize;
 
   int _offset = 0;
 
+  Endian get endian => _endian as Endian;
+  void set endian(Endian value) => _endian = value;
+  int get wordSize => _wordSize as int;
+  void set wordSize(int value) => _wordSize = value;
+
   /// Unless provided, [wordSize] and [endian] are initialized to values that
   /// ensure no reads are made that depend on their value (e.g., readBytes).
-  Reader.fromTypedData(TypedData data, {this.wordSize = -1, this.endian})
-      : bdata =
+  Reader.fromTypedData(TypedData data, {int? wordSize, Endian? endian})
+      : _wordSize = wordSize,
+        _endian = endian,
+        bdata =
             ByteData.view(data.buffer, data.offsetInBytes, data.lengthInBytes);
 
-  Reader.fromFile(String path, {this.wordSize, this.endian})
-      : bdata = ByteData.sublistView(File(path).readAsBytesSync());
+  Reader.fromFile(String path, {int? wordSize, Endian? endian})
+      : _wordSize = wordSize,
+        _endian = endian,
+        bdata = ByteData.sublistView(File(path).readAsBytesSync());
 
   /// Returns a reader focused on a different portion of the underlying buffer.
   Reader refocusedCopy(int pos, int size) {
     assert(pos >= 0 && pos < bdata.buffer.lengthInBytes);
     assert(size >= 0 && (pos + size) <= bdata.buffer.lengthInBytes);
     return Reader.fromTypedData(ByteData.view(bdata.buffer, pos, size),
-        wordSize: wordSize, endian: endian);
+        wordSize: _wordSize, endian: _endian);
   }
 
   int get start => bdata.offsetInBytes;
@@ -65,7 +74,6 @@ class Reader {
         return signed
             ? bdata.getInt32(start, endian)
             : bdata.getUint32(start, endian);
-        break;
       case 8:
         return signed
             ? bdata.getInt64(start, endian)
@@ -116,7 +124,7 @@ class Reader {
   /// Stops either when the reader is empty or when a null item is returned
   /// from the callback.
   Iterable<MapEntry<int, S>> readRepeatedWithOffsets<S>(
-      S Function(Reader) callback,
+      S? Function(Reader) callback,
       {bool absolute = false}) sync* {
     final start = offset;
     while (!done) {
@@ -127,7 +135,7 @@ class Reader {
     }
   }
 
-  Iterable<S> readRepeated<S>(S Function(Reader) callback) =>
+  Iterable<S> readRepeated<S>(S? Function(Reader) callback) =>
       readRepeatedWithOffsets(callback).map((kv) => kv.value);
 
   void writeCurrentReaderPosition(StringBuffer buffer,
@@ -160,27 +168,27 @@ class Reader {
     final buffer = StringBuffer();
     buffer
       ..write("Word size: ")
-      ..write(wordSize)
+      ..write(_wordSize)
       ..writeln();
     buffer
       ..write("Endianness: ")
-      ..write(endian)
+      ..write(_endian)
       ..writeln();
     buffer
       ..write("Start:  0x")
-      ..write(paddedHex(start, wordSize ?? 0))
+      ..write(paddedHex(start, _wordSize ?? 0))
       ..write(" (")
       ..write(start)
       ..writeln(")");
     buffer
       ..write("Offset: 0x")
-      ..write(paddedHex(offset, wordSize ?? 0))
+      ..write(paddedHex(offset, _wordSize ?? 0))
       ..write(" (")
       ..write(offset)
       ..writeln(")");
     buffer
       ..write("Length: 0x")
-      ..write(paddedHex(length, wordSize ?? 0))
+      ..write(paddedHex(length, _wordSize ?? 0))
       ..write(" (")
       ..write(length)
       ..writeln(")");

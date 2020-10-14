@@ -1042,4 +1042,13 @@ DART_EXPORT int32_t PassStruct(void*) {
   return 42;
 }
 
+struct Struct43693 {
+  void* pSomePtr;
+  uint64_t someValue;
+};
+
+DART_EXPORT uint64_t Regress43693(Struct43693* my_struct) {
+  return my_struct->someValue;
+}
+
 }  // namespace dart

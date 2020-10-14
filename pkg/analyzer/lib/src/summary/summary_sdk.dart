@@ -3,11 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
-import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart'
-    show DartUriResolver, Source, SourceFactory;
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -21,9 +18,6 @@ class SummaryBasedDartSdk implements DartSdk {
   InSummaryUriResolver _uriResolver;
   PackageBundle _bundle;
   ResourceProvider resourceProvider;
-
-  /// The [AnalysisContext] which is used for all of the sources in this sdk.
-  SdkAnalysisContext _analysisContext;
 
   SummaryBasedDartSdk(String summaryPath, bool _, {this.resourceProvider}) {
     _dataStore = SummaryDataStore(<String>[summaryPath],
@@ -47,16 +41,6 @@ class SummaryBasedDartSdk implements DartSdk {
 
   /// Return the [PackageBundle] for this SDK, not `null`.
   PackageBundle get bundle => _bundle;
-
-  @override
-  AnalysisContext get context {
-    if (_analysisContext == null) {
-      var analysisOptions = AnalysisOptionsImpl();
-      var factory = SourceFactory([DartUriResolver(this)]);
-      _analysisContext = SdkAnalysisContext(analysisOptions, factory);
-    }
-    return _analysisContext;
-  }
 
   @override
   Version get languageVersion {

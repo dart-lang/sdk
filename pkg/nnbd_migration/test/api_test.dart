@@ -49,13 +49,13 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
-    var listener = new TestMigrationListener();
+    var listener = TestMigrationListener();
     var migration = NullabilityMigration(listener, getLineInfo,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
     for (var path in input.keys) {
-      if (!(await session.getFile(path)).isPart) {
+      if (!(session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
           migration.prepareInput(unit);
         }
@@ -63,7 +63,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     _betweenStages();
     for (var path in input.keys) {
-      if (!(await session.getFile(path)).isPart) {
+      if (!(session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
           migration.processInput(unit);
         }
@@ -71,7 +71,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     _betweenStages();
     for (var path in input.keys) {
-      if (!(await session.getFile(path)).isPart) {
+      if (!(session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
           migration.finalizeInput(unit);
         }
@@ -1710,7 +1710,6 @@ C<int, num?> f(List<int> a) => a;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39609')
   Future<void> test_dynamic_dispatch_to_object_method() async {
     var content = '''
 String f(dynamic x) => x.toString();
@@ -1787,7 +1786,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39609')
   Future<void> test_dynamic_toString() async {
     var content = '''
 String f(dynamic x) => x.toString();
@@ -4628,7 +4626,7 @@ void test() {
   // here non-null is OK.
   int i1 = 0, i2 = i1.gcd(2);
   // here non-null is not OK.
-  int? i3 = 0, i4 = i3!.gcd(2), i5 = null;
+  int? i3 = 0, i4 = i3.gcd(2), i5 = null;
 }
 ''';
 

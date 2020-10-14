@@ -583,7 +583,7 @@ class StandardTestSuite extends TestSuite {
       _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
       _enqueueBrowserTest(testFile, expectationSet, onTest);
-    } else if (suiteName == 'service') {
+    } else if (suiteName == 'service' || suiteName == 'service_2') {
       _enqueueServiceTest(testFile, expectationSet, onTest);
     } else {
       _enqueueStandardTest(testFile, expectationSet, onTest);
@@ -678,7 +678,7 @@ class StandardTestSuite extends TestSuite {
       for (var name in testFile.otherResources) {
         var namePath = Path(name);
         var fromPath = testFile.path.directoryPath.join(namePath);
-        File('$tempDir/$name').parent.createSync(recursive: true);
+        File('$tempDir/$name').createSync(recursive: true);
         File(fromPath.toNativePath()).copySync('$tempDir/$name');
       }
     }

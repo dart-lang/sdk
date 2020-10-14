@@ -1206,12 +1206,17 @@ final Matcher isParameterInfo = LazyMatcher(() => MatchesJsonObject(
 /// ParameterKind
 ///
 /// enum {
-///   NAMED
-///   OPTIONAL
-///   REQUIRED
+///   OPTIONAL_NAMED
+///   OPTIONAL_POSITIONAL
+///   REQUIRED_NAMED
+///   REQUIRED_POSITIONAL
 /// }
-final Matcher isParameterKind =
-    MatchesEnum('ParameterKind', ['NAMED', 'OPTIONAL', 'REQUIRED']);
+final Matcher isParameterKind = MatchesEnum('ParameterKind', [
+  'OPTIONAL_NAMED',
+  'OPTIONAL_POSITIONAL',
+  'REQUIRED_NAMED',
+  'REQUIRED_POSITIONAL'
+]);
 
 /// Position
 ///
@@ -1365,6 +1370,7 @@ final Matcher isRequestError = LazyMatcher(() => MatchesJsonObject(
 ///   FORMAT_INVALID_FILE
 ///   FORMAT_WITH_ERRORS
 ///   GET_ERRORS_INVALID_FILE
+///   GET_FIXES_INVALID_FILE
 ///   GET_IMPORTED_ELEMENTS_INVALID_FILE
 ///   GET_KYTHE_ENTRIES_INVALID_FILE
 ///   GET_NAVIGATION_INVALID_FILE
@@ -1401,6 +1407,7 @@ final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
   'FORMAT_INVALID_FILE',
   'FORMAT_WITH_ERRORS',
   'GET_ERRORS_INVALID_FILE',
+  'GET_FIXES_INVALID_FILE',
   'GET_IMPORTED_ELEMENTS_INVALID_FILE',
   'GET_KYTHE_ENTRIES_INVALID_FILE',
   'GET_NAVIGATION_INVALID_FILE',

@@ -296,7 +296,7 @@ void Class::CopyCanonicalConstants(const Class& old_cls) const {
   {
     // Class has no canonical constants allocated.
     const Array& my_constants = Array::Handle(constants());
-    ASSERT(my_constants.Length() == 0);
+    ASSERT(my_constants.IsNull() || my_constants.Length() == 0);
   }
 #endif  // defined(DEBUG).
   // Copy old constants into new class.

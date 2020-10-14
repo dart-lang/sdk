@@ -417,12 +417,13 @@ class Object {
   V(Instance, null_instance)                                                   \
   V(Function, null_function)                                                   \
   V(TypeArguments, null_type_arguments)                                        \
-  V(CompressedStackMaps, null_compressed_stack_maps)                           \
+  V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
   V(Array, zero_array)                                                         \
   V(ContextScope, empty_context_scope)                                         \
   V(ObjectPool, empty_object_pool)                                             \
+  V(CompressedStackMaps, empty_compressed_stackmaps)                           \
   V(PcDescriptors, empty_descriptors)                                          \
   V(LocalVarDescriptors, empty_var_descriptors)                                \
   V(ExceptionHandlers, empty_exception_handlers)                               \
@@ -2482,6 +2483,7 @@ class Function : public Object {
                  BaseTextBuffer* printer) const;
   StringPtr QualifiedScrubbedName() const;
   StringPtr QualifiedUserVisibleName() const;
+  const char* QualifiedUserVisibleNameCString() const;
 
   virtual StringPtr DictionaryName() const { return name(); }
 
@@ -4923,8 +4925,8 @@ class Library : public Object {
 
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const {
-    ASSERT(value == -1 ||
-           value >= 0 && value < std::numeric_limits<classid_t>::max());
+    ASSERT((value == -1) ||
+           ((value >= 0) && (value < std::numeric_limits<classid_t>::max())));
     StoreNonPointer(&raw_ptr()->index_, value);
   }
 
@@ -5510,21 +5512,50 @@ class Instructions : public Object {
       (kMaxInt32 - (sizeof(InstructionsLayout) + sizeof(ObjectLayout) +
                     (2 * kMaxObjectAlignment)));
 
+  // Currently, we align bare instruction payloads on 4 byte boundaries.
+  //
+  // If we later decide to align on larger boundaries to put entries at the
+  // start of cache lines, make sure to account for entry points that are
+  // _not_ at the start of the payload.
+  static const intptr_t kBarePayloadAlignment = 4;
+
+  // In non-bare mode, we align the payloads on word boundaries.
+  static const intptr_t kNonBarePayloadAlignment = kWordSize;
+
+  // In the precompiled runtime when running in bare instructions mode,
+  // Instructions objects don't exist, just their bare payloads, so we
+  // mark them as unreachable in that case.
+
+  static intptr_t HeaderSize() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_use_bare_instructions) {
+      UNREACHABLE();
+    }
+#endif
+    return Utils::RoundUp(sizeof(InstructionsLayout), kNonBarePayloadAlignment);
+  }
+
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(InstructionsLayout) ==
-           OFFSET_OF_RETURNED_VALUE(InstructionsLayout, data));
+    ASSERT_EQUAL(sizeof(InstructionsLayout),
+                 OFFSET_OF_RETURNED_VALUE(InstructionsLayout, data));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t size) {
-    return Utils::RoundUp(HeaderSize() + size, kObjectAlignment);
-  }
-
-  static intptr_t HeaderSize() {
-    return Utils::RoundUp(sizeof(InstructionsLayout), kWordSize);
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_use_bare_instructions) {
+      UNREACHABLE();
+    }
+#endif
+    return RoundedAllocationSize(HeaderSize() + size);
   }
 
   static InstructionsPtr FromPayloadStart(uword payload_start) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_use_bare_instructions) {
+      UNREACHABLE();
+    }
+#endif
     return static_cast<InstructionsPtr>(payload_start - HeaderSize() +
                                         kHeapObjectTag);
   }
@@ -5572,12 +5603,19 @@ class Instructions : public Object {
   friend class ImageWriter;
 };
 
-// Used only to provide memory accounting for the bare instruction payloads
-// we serialize, since they are no longer part of RawInstructions objects.
+// An InstructionsSection contains extra information about serialized AOT
+// snapshots.
+//
+// To avoid changing the embedder to return more information about an AOT
+// snapshot and possibly disturbing existing clients of that interface, we
+// serialize a single InstructionsSection object at the start of any text
+// segments. In bare instructions mode, it also has the benefit of providing
+// memory accounting for the instructions payloads and avoiding special casing
+// Images with bare instructions payloads in the GC. Otherwise, it is empty
+// and the Instructions objects come after it in the Image.
 class InstructionsSection : public Object {
  public:
   // Excludes HeaderSize().
-  intptr_t Size() const { return raw_ptr()->payload_length_; }
   static intptr_t Size(const InstructionsSectionPtr instr) {
     return instr->ptr()->payload_length_;
   }
@@ -5592,10 +5630,18 @@ class InstructionsSection : public Object {
   }
 
   static intptr_t HeaderSize() {
-    return Utils::RoundUp(sizeof(InstructionsSectionLayout), kWordSize);
+    return Utils::RoundUp(sizeof(InstructionsSectionLayout),
+                          Instructions::kBarePayloadAlignment);
   }
 
+  // There are no public instance methods for the InstructionsSection class, as
+  // all access to the contents is handled by methods on the Image class.
+
  private:
+  // Note there are no New() methods for InstructionsSection. Instead, the
+  // serializer writes the InstructionsSectionLayout object manually at the
+  // start of instructions Images in precompiled snapshots.
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(InstructionsSection, Object);
   friend class Class;
 };
@@ -5645,15 +5691,14 @@ class PcDescriptors : public Object {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t HeaderSize() { return sizeof(PcDescriptorsLayout); }
   static intptr_t UnroundedSize(PcDescriptorsPtr desc) {
     return UnroundedSize(desc->ptr()->length_);
   }
-  static intptr_t UnroundedSize(intptr_t len) {
-    return sizeof(PcDescriptorsLayout) + len;
-  }
+  static intptr_t UnroundedSize(intptr_t len) { return HeaderSize() + len; }
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(PcDescriptorsLayout) ==
-           OFFSET_OF_RETURNED_VALUE(PcDescriptorsLayout, data));
+    ASSERT_EQUAL(sizeof(PcDescriptorsLayout),
+                 OFFSET_OF_RETURNED_VALUE(PcDescriptorsLayout, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -5661,7 +5706,7 @@ class PcDescriptors : public Object {
     return RoundedAllocationSize(UnroundedSize(len));
   }
 
-  static PcDescriptorsPtr New(GrowableArray<uint8_t>* delta_encoded_data);
+  static PcDescriptorsPtr New(const void* delta_encoded_data, intptr_t size);
 
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(const Function& function) const;
@@ -5669,12 +5714,6 @@ class PcDescriptors : public Object {
   static void PrintHeaderString();
 
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
-
-  // Encode integer in SLEB128 format.
-  static void EncodeInteger(GrowableArray<uint8_t>* data, intptr_t value);
-
-  // Decode SLEB128 encoded integer. Update byte_index to the next integer.
-  intptr_t DecodeInteger(intptr_t* byte_index) const;
 
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
@@ -5694,10 +5733,12 @@ class PcDescriptors : public Object {
           cur_yield_index_(PcDescriptorsLayout::kInvalidYieldIndex) {}
 
     bool MoveNext() {
+      NoSafepointScope scope;
+      ReadStream stream(descriptors_.raw_ptr()->data(), descriptors_.Length(),
+                        byte_index_);
       // Moves to record that matches kind_mask_.
       while (byte_index_ < descriptors_.Length()) {
-        const int32_t kind_and_metadata =
-            descriptors_.DecodeInteger(&byte_index_);
+        const int32_t kind_and_metadata = stream.ReadSLEB128<int32_t>();
         cur_kind_ =
             PcDescriptorsLayout::KindAndMetadata::DecodeKind(kind_and_metadata);
         cur_try_index_ = PcDescriptorsLayout::KindAndMetadata::DecodeTryIndex(
@@ -5706,12 +5747,13 @@ class PcDescriptors : public Object {
             PcDescriptorsLayout::KindAndMetadata::DecodeYieldIndex(
                 kind_and_metadata);
 
-        cur_pc_offset_ += descriptors_.DecodeInteger(&byte_index_);
+        cur_pc_offset_ += stream.ReadSLEB128();
 
         if (!FLAG_precompiled_mode) {
-          cur_deopt_id_ += descriptors_.DecodeInteger(&byte_index_);
-          cur_token_pos_ += descriptors_.DecodeInteger(&byte_index_);
+          cur_deopt_id_ += stream.ReadSLEB128();
+          cur_token_pos_ += stream.ReadSLEB128();
         }
+        byte_index_ = stream.Position();
 
         if ((cur_kind_ & kind_mask_) != 0) {
           return true;  // Current is valid.
@@ -5772,7 +5814,7 @@ class PcDescriptors : public Object {
   static PcDescriptorsPtr New(intptr_t length);
 
   void SetLength(intptr_t value) const;
-  void CopyData(GrowableArray<uint8_t>* data);
+  void CopyData(const void* bytes, intptr_t size);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;
@@ -5784,15 +5826,14 @@ class CodeSourceMap : public Object {
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t HeaderSize() { return sizeof(CodeSourceMapLayout); }
   static intptr_t UnroundedSize(CodeSourceMapPtr map) {
     return UnroundedSize(map->ptr()->length_);
   }
-  static intptr_t UnroundedSize(intptr_t len) {
-    return sizeof(CodeSourceMapLayout) + len;
-  }
+  static intptr_t UnroundedSize(intptr_t len) { return HeaderSize() + len; }
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(CodeSourceMapLayout) ==
-           OFFSET_OF_RETURNED_VALUE(CodeSourceMapLayout, data));
+    ASSERT_EQUAL(sizeof(CodeSourceMapLayout),
+                 OFFSET_OF_RETURNED_VALUE(CodeSourceMapLayout, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -5849,61 +5890,133 @@ class CompressedStackMaps : public Object {
   bool Equals(const CompressedStackMaps* other) const { return Equals(*other); }
   intptr_t Hashcode() const;
 
+  static intptr_t HeaderSize() { return sizeof(CompressedStackMapsLayout); }
   static intptr_t UnroundedSize(CompressedStackMapsPtr maps) {
     return UnroundedSize(CompressedStackMaps::PayloadSizeOf(maps));
   }
   static intptr_t UnroundedSize(intptr_t length) {
-    return sizeof(CompressedStackMapsLayout) + length;
+    return HeaderSize() + length;
   }
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(CompressedStackMapsLayout) ==
-           OFFSET_OF_RETURNED_VALUE(CompressedStackMapsLayout, data));
+    ASSERT_EQUAL(sizeof(CompressedStackMapsLayout),
+                 OFFSET_OF_RETURNED_VALUE(CompressedStackMapsLayout, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
     return RoundedAllocationSize(UnroundedSize(length));
   }
 
-  bool UsesGlobalTable() const { return !IsNull() && UsesGlobalTable(raw()); }
+  bool UsesGlobalTable() const { return UsesGlobalTable(raw()); }
   static bool UsesGlobalTable(const CompressedStackMapsPtr raw) {
     return CompressedStackMapsLayout::UsesTableBit::decode(
         raw->ptr()->flags_and_size_);
   }
 
-  bool IsGlobalTable() const { return !IsNull() && IsGlobalTable(raw()); }
+  bool IsGlobalTable() const { return IsGlobalTable(raw()); }
   static bool IsGlobalTable(const CompressedStackMapsPtr raw) {
     return CompressedStackMapsLayout::GlobalTableBit::decode(
         raw->ptr()->flags_and_size_);
   }
 
-  static CompressedStackMapsPtr NewInlined(
-      const GrowableArray<uint8_t>& bytes) {
-    return New(bytes, /*is_global_table=*/false, /*uses_global_table=*/false);
+  static CompressedStackMapsPtr NewInlined(const void* payload, intptr_t size) {
+    return New(payload, size, /*is_global_table=*/false,
+               /*uses_global_table=*/false);
   }
-  static CompressedStackMapsPtr NewUsingTable(
-      const GrowableArray<uint8_t>& bytes) {
-    return New(bytes, /*is_global_table=*/false, /*uses_global_table=*/true);
+  static CompressedStackMapsPtr NewUsingTable(const void* payload,
+                                              intptr_t size) {
+    return New(payload, size, /*is_global_table=*/false,
+               /*uses_global_table=*/true);
   }
 
-  static CompressedStackMapsPtr NewGlobalTable(
-      const GrowableArray<uint8_t>& bytes) {
-    return New(bytes, /*is_global_table=*/true, /*uses_global_table=*/false);
+  static CompressedStackMapsPtr NewGlobalTable(const void* payload,
+                                               intptr_t size) {
+    return New(payload, size, /*is_global_table=*/true,
+               /*uses_global_table=*/false);
   }
+
+  class Iterator : public ValueObject {
+   public:
+    Iterator(const CompressedStackMaps& maps,
+             const CompressedStackMaps& global_table);
+    Iterator(Thread* thread, const CompressedStackMaps& maps);
+
+    explicit Iterator(const CompressedStackMaps::Iterator& it);
+
+    // Loads the next entry from [maps_], if any. If [maps_] is the null value,
+    // this always returns false.
+    bool MoveNext();
+
+    // Finds the entry with the given PC offset starting at the current position
+    // of the iterator. If [maps_] is the null value, this always returns false.
+    bool Find(uint32_t pc_offset) {
+      // We should never have an entry with a PC offset of 0 inside an
+      // non-empty CSM, so fail.
+      if (pc_offset == 0) return false;
+      do {
+        if (current_pc_offset_ >= pc_offset) break;
+      } while (MoveNext());
+      return current_pc_offset_ == pc_offset;
+    }
+
+    // Methods for accessing parts of an entry should not be called until
+    // a successful MoveNext() or Find() call has been made.
+
+    // Returns the PC offset of the loaded entry.
+    uint32_t pc_offset() const {
+      ASSERT(HasLoadedEntry());
+      return current_pc_offset_;
+    }
+
+    // Returns the bit length of the loaded entry.
+    intptr_t Length() const;
+    // Returns the number of spill slot bits of the loaded entry.
+    intptr_t SpillSlotBitCount() const;
+    // Returns whether the stack entry represented by the offset contains
+    // a tagged objecet.
+    bool IsObject(intptr_t bit_offset) const;
+
+    void WriteToBuffer(BaseTextBuffer* buffer, const char* separator) const;
+
+   private:
+    bool HasLoadedEntry() const { return next_offset_ > 0; }
+
+    // Caches the corresponding values from the global table in the mutable
+    // fields. We lazily load these as some clients only need the PC offset.
+    void LazyLoadGlobalTableEntry() const;
+
+    void EnsureFullyLoadedEntry() const {
+      ASSERT(HasLoadedEntry());
+      if (current_spill_slot_bit_count_ < 0) {
+        LazyLoadGlobalTableEntry();
+        ASSERT(current_spill_slot_bit_count_ >= 0);
+      }
+    }
+
+    const CompressedStackMaps& maps_;
+    const CompressedStackMaps& bits_container_;
+
+    uintptr_t next_offset_ = 0;
+    uint32_t current_pc_offset_ = 0;
+    // Only used when looking up non-PC information in the global table.
+    uintptr_t current_global_table_offset_ = 0;
+    // Marked as mutable as these fields may be updated with lazily loaded
+    // values from the global table when their associated accessor is called,
+    // but those values will never change for a given entry once loaded..
+    mutable intptr_t current_spill_slot_bit_count_ = -1;
+    mutable intptr_t current_non_spill_slot_bit_count_ = -1;
+    mutable intptr_t current_bits_offset_ = -1;
+
+    friend class StackMapEntry;
+  };
 
  private:
-  static CompressedStackMapsPtr New(const GrowableArray<uint8_t>& bytes,
+  static CompressedStackMapsPtr New(const void* payload,
+                                    intptr_t size,
                                     bool is_global_table,
                                     bool uses_global_table);
 
-  uint8_t PayloadByte(uintptr_t offset) const {
-    ASSERT(offset < payload_size());
-    return raw_ptr()->data()[offset];
-  }
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps, Object);
   friend class Class;
-  friend class CompressedStackMapsIterator;  // For PayloadByte
-  friend class StackMapEntry;                // For PayloadByte
 };
 
 class ExceptionHandlers : public Object {
@@ -7328,17 +7441,10 @@ class Instance : public Object {
     return (clazz()->ptr()->host_instance_size_in_words_ * kWordSize);
   }
 
-  // Returns Instance::null() if instance cannot be canonicalized.
-  // Any non-canonical number of string will be canonicalized here.
-  // An instance cannot be canonicalized if it still contains non-canonical
-  // instances in its fields.
-  // Returns error in error_str, pass NULL if an error cannot occur.
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const;
-
-  // Returns true if all fields are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const;
+  InstancePtr Canonicalize(Thread* thread) const;
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
 
   InstancePtr CopyShallowToOldSpace(Thread* thread) const;
 
@@ -7709,13 +7815,13 @@ class TypeArguments : public Instance {
   // Return true if this vector contains a recursive type argument.
   bool IsRecursive() const;
 
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const {
-    return Canonicalize();
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
+    return Canonicalize(thread, nullptr);
   }
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
-  TypeArgumentsPtr Canonicalize(TrailPtr trail = nullptr) const;
+  TypeArgumentsPtr Canonicalize(Thread* thread, TrailPtr trail = nullptr) const;
 
   // Add the class name and URI of each type argument of this vector to the uris
   // list and mark ambiguous triplets to be printed.
@@ -7902,13 +8008,13 @@ class AbstractType : public Instance {
       Heap::Space space,
       TrailPtr trail = nullptr) const;
 
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const {
-    return Canonicalize();
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
+    return Canonicalize(thread, nullptr);
   }
 
   // Return the canonical version of this type.
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 
 #if defined(DEBUG)
   // Check if abstract type is canonical.
@@ -8165,7 +8271,7 @@ class Type : public AbstractType {
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -8322,7 +8428,7 @@ class TypeRef : public AbstractType {
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if typeref is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -8414,7 +8520,7 @@ class TypeParameter : public AbstractType {
       intptr_t num_free_fun_type_params,
       Heap::Space space,
       TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type parameter is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
@@ -8469,8 +8575,8 @@ class Number : public Instance {
   StringPtr ToString(Heap::Space space) const;
 
   // Numbers are canonicalized differently from other instances/strings.
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const;
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
 
 #if defined(DEBUG)
   // Check if number is canonical.
@@ -8675,6 +8781,7 @@ class Mint : public Integer {
   static MintPtr New(int64_t value, Heap::Space space = Heap::kNew);
 
   static MintPtr NewCanonical(int64_t value);
+  static MintPtr NewCanonicalLocked(Thread* thread, int64_t value);
 
  private:
   void set_value(int64_t value) const;
@@ -8701,6 +8808,7 @@ class Double : public Number {
 
   // Returns a canonical double object allocated in the old gen space.
   static DoublePtr NewCanonical(double d);
+  static DoublePtr NewCanonicalLocked(Thread* thread, double d);
 
   // Returns a canonical double object (allocated in the old gen space) or
   // Double::null() if str points to a string that does not convert to a
@@ -8859,8 +8967,8 @@ class String : public Instance {
   bool EndsWith(const String& other) const;
 
   // Strings are canonicalized using the symbol table.
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const;
+  // Caller must hold Isolate::constant_canonicalization_mutex_.
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
 
 #if defined(DEBUG)
   // Check if string is canonical.
@@ -9063,6 +9171,32 @@ class String : public Instance {
   friend class OneByteStringLayout;
   friend class RODataSerializationCluster;  // SetHash
   friend class Pass2Visitor;                // Stack "handle"
+};
+
+// Synchronize with implementation in compiler (intrinsifier).
+class StringHasher : ValueObject {
+ public:
+  StringHasher() : hash_(0) {}
+  void Add(uint16_t code_unit) { hash_ = CombineHashes(hash_, code_unit); }
+  void Add(const uint8_t* code_units, intptr_t len) {
+    while (len > 0) {
+      Add(*code_units);
+      code_units++;
+      len--;
+    }
+  }
+  void Add(const uint16_t* code_units, intptr_t len) {
+    while (len > 0) {
+      Add(LoadUnaligned(code_units));
+      code_units++;
+      len--;
+    }
+  }
+  void Add(const String& str, intptr_t begin_index, intptr_t len);
+  intptr_t Finalize() { return FinalizeHash(hash_, String::kHashBits); }
+
+ private:
+  uint32_t hash_;
 };
 
 class OneByteString : public AllStatic {
@@ -9327,6 +9461,7 @@ class TwoByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class StringHasher;
   friend class SnapshotReader;
   friend class Symbols;
 };
@@ -9424,6 +9559,7 @@ class ExternalOneByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class StringHasher;
   friend class SnapshotReader;
   friend class Symbols;
   friend class Utf8;
@@ -9518,6 +9654,7 @@ class ExternalTwoByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class StringHasher;
   friend class SnapshotReader;
   friend class Symbols;
 };
@@ -9665,9 +9802,7 @@ class Array : public Instance {
                                  (len * kBytesPerElement));
   }
 
-  // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
 
   // Make the array immutable to Dart code by switching the class pointer
   // to ImmutableArray.
@@ -9842,8 +9977,7 @@ class GrowableObjectArray : public Instance {
   }
 
   // We don't expect a growable object array to be canonicalized.
-  virtual InstancePtr CheckAndCanonicalize(Thread* thread,
-                                           const char** error_str) const {
+  virtual InstancePtr CanonicalizeLocked(Thread* thread) const {
     UNREACHABLE();
     return Instance::null();
   }
@@ -10212,7 +10346,6 @@ class TypedData : public TypedDataBase {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, TypedDataBase);
   friend class Class;
-  friend class CompressedStackMapsIterator;
   friend class ExternalTypedData;
   friend class TypedDataView;
 };
@@ -10644,10 +10777,8 @@ class Closure : public Instance {
   }
 
   // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const {
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const {
     // None of the fields of a closure are instances.
-    return true;
   }
   virtual uint32_t CanonicalizeHash() const {
     return Function::Handle(function()).Hash();

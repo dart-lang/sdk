@@ -1,0 +1,6 @@
+import 'dart:async';
+
+ok<T extends FutureOr<num>>(T t) {}
+error<T extends FutureOr<int>>(T t) {}
+bar(bool condition) {}
+main() {}

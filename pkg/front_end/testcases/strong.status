@@ -62,6 +62,7 @@ general/error_recovery/issue_39958_04: RuntimeError
 general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
 general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
+general/getter_vs_setter_type: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
@@ -88,7 +89,6 @@ general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
 general/reject_generic_function_types_in_bounds: RuntimeError # Expected
 general/spread_collection: RuntimeError
-general/statements: Crash
 general/type_parameter_type_named_int: RuntimeError # Expected
 general/type_variable_as_super: RuntimeError
 general/type_variable_bound_access: TypeCheckError
@@ -171,7 +171,10 @@ inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
 late_lowering/covariant_late_field: TypeCheckError
+late_lowering/initializer_rewrite_from_opt_out: RuntimeError # Test is inherently mixed mode
+late_lowering/non_nullable_from_opt_out: RuntimeError # Test is inherently mixed mode
 nnbd/covariant_late_field: TypeCheckError
+nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue41180: RuntimeError # Strong mode runtime checking fails due to mixed strong mode.
 nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError
@@ -256,3 +259,4 @@ set_literals/disambiguation_rule: RuntimeError
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected
 value_class/value_implements_non_value: RuntimeError # Expected
+value_class/copy_with_call_sites: RuntimeError # Expected

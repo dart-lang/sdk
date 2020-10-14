@@ -6,9 +6,9 @@
 
 import 'lib.dart' deferred as lib;
 
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 void main() {
-  lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
+  lib.loadLibrary().then(/*closure_unit=main{}*/ (_) {
     print(lib.finalVar);
     print(lib.globalVar);
     lib.globalVar = "foobar";

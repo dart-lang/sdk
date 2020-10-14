@@ -4,16 +4,7 @@
 
 import 'dart:convert' show utf8;
 import 'dart:io'
-    show
-        Directory,
-        File,
-        FileSystemEntity,
-        Platform,
-        Process,
-        ProcessResult,
-        exitCode,
-        stdin,
-        stdout;
+    show Directory, File, FileSystemEntity, exitCode, stdin, stdout;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
@@ -41,16 +32,9 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import "package:vm/target/vm.dart" show VmTarget;
 
-final Uri repoDir = _computeRepoDir();
+import "utils/io_utils.dart";
 
-Uri _computeRepoDir() {
-  ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true,
-      workingDirectory: new File.fromUri(Platform.script).parent.path);
-  String dirPath = (result.stdout as String).trim();
-  return new Directory(dirPath).uri;
-}
+final Uri repoDir = computeRepoDirUri();
 
 Set<Uri> libUris = {};
 
@@ -184,11 +168,6 @@ class InvocationVisitor extends RecursiveVisitor<void> {
     if (node.interfaceTargetReference?.node != null) {
       note(node.interfaceTargetReference?.node, node.arguments, node);
     }
-  }
-
-  void visitDirectMethodInvocation(DirectMethodInvocation node) {
-    super.visitDirectMethodInvocation(node);
-    note(node.targetReference.node, node.arguments, node);
   }
 
   void visitSuperMethodInvocation(SuperMethodInvocation node) {

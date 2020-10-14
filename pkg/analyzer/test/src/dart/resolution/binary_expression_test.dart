@@ -735,7 +735,7 @@ int g() => f(null) ?? 0;
 
   test_ifNull_nullableInt_int() async {
     await assertNoErrorsInCode(r'''
-main(int? x, int y) {
+void f(int? x, int y) {
   x ?? y;
 }
 ''');
@@ -749,7 +749,7 @@ main(int? x, int y) {
 
   test_ifNull_nullableInt_nullableDouble() async {
     await assertNoErrorsInCode(r'''
-main(int? x, double? y) {
+void f(int? x, double? y) {
   x ?? y;
 }
 ''');
@@ -763,7 +763,7 @@ main(int? x, double? y) {
 
   test_ifNull_nullableInt_nullableInt() async {
     await assertNoErrorsInCode(r'''
-main(int? x) {
+void f(int? x) {
   x ?? x;
 }
 ''');
@@ -776,11 +776,11 @@ main(int? x) {
   }
 
   test_plus_int_never() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 f(int a, Never b) {
   a + b;
 }
-''', []);
+''');
 
     assertBinaryExpression(findNode.binary('a + b'),
         element: numElement.getMethod('+'), type: 'num');

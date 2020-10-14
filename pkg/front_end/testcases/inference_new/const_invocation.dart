@@ -8,7 +8,7 @@ library test;
 typedef V F<U, V>(U u);
 
 class Foo<T> {
-  Bar<T> get v1 => const /*@ typeArgs=Null? */ Bar();
+  Bar<T> get v1 => const /*@typeArgs=Null?*/ Bar();
   Bar<List<T>> get v2 => const /*@ typeArgs=List<Null?>* */ Bar();
   Bar<F<T, T>> get v3 => const /*@ typeArgs=(Object*) ->* Null? */ Bar();
   Bar<F<F<T, T>, T>> get v4 =>

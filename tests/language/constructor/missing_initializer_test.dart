@@ -12,7 +12,7 @@ abstract class A {
   final dynamic n;
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.FINAL_NOT_INITIALIZED
-  // [cfe] unspecified
+  // [cfe] Final field 'n' is not initialized.
 
   // Uninitialized, but no errors.
   abstract final int x1;
@@ -34,6 +34,7 @@ class B implements A {
 class C = Object with A;
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+  // [cfe] The non-abstract class 'C' is missing implementations for these members:
 
 // Has a generative constructor: default.
 abstract class D {

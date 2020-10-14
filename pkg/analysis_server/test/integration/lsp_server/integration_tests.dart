@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -25,24 +24,17 @@ class AbstractLspAnalysisServerIntegrationTest
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
   @override
-  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
+  Future<T> expectSuccessfulResponseTo<T, R>(
+      RequestMessage request, T Function(R) fromJson) async {
     final resp = await sendRequestToServer(request);
     if (resp.error != null) {
       throw resp.error;
-      // TODO(dantup): It would be better if we had some code-gen'd way
-      // to be able to deserialise into the correct types. We could either
-      // code-gen this list, or code-gen the LSP client (used in tests) to
-      // give strongly typed sendXxx functions that return the correct types.
-    } else if (T == DartDiagnosticServer) {
-      return DartDiagnosticServer.fromJson(resp.result) as T;
     } else if (T == Null) {
       return resp.result == null
           ? null
           : throw 'Expected Null response but got ${resp.result}';
     } else {
-      throw 'Unable to deserialise ${resp.result.runtimeType} into $T.\n\n'
-          'You may need to extend expectSuccessfulResponseTo in '
-          'AbstractLspAnalysisServerIntegrationTest';
+      return fromJson(resp.result);
     }
   }
 

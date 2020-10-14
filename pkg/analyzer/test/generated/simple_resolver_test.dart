@@ -538,37 +538,6 @@ class A {
     verifyTestResolved();
   }
 
-  test_getter_and_setter_fromMixins_property_access() async {
-    await assertNoErrorsInCode(r'''
-class B {}
-class M1 {
-  get x => null;
-  set x(value) {}
-}
-class M2 {
-  get x => null;
-  set x(value) {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().x += 1;
-}
-''');
-    verifyTestResolved();
-
-    // Verify that both the getter and setter for "x" in "new C().x" refer to
-    // the accessors defined in M2.
-    var leftHandSide = findNode.simple('x +=');
-    expect(
-      leftHandSide.staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-    expect(
-      leftHandSide.auxiliaryElements.staticElement,
-      findElement.getter('x', of: 'M2'),
-    );
-  }
-
   test_getter_fromMixins_bare_identifier() async {
     await assertNoErrorsInCode('''
 class B {}

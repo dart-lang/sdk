@@ -151,7 +151,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
         return;
       }
 
-      String memberName = name.name;
+      String memberName = name.text;
       if (isSetter) {
         memberName += '=';
       }

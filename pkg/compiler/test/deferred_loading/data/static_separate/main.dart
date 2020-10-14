@@ -14,14 +14,14 @@ import "package:async_helper/async_helper.dart";
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' deferred as lib2;
 
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 void main() {
   asyncStart();
-  Expect.throws(/*OutputUnit(main, {})*/ () {
+  Expect.throws(/*closure_unit=main{}*/ () {
     new lib1.C();
   });
-  lib1.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
-    lib2.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
+  lib1.loadLibrary().then(/*closure_unit=main{}*/ (_) {
+    lib2.loadLibrary().then(/*closure_unit=main{}*/ (_) {
       print("HERE");
       Expect.equals(1, new lib1.C().bar());
       var x = new lib1.C2();

@@ -54,6 +54,8 @@ void generateOutput(String sourcePath, String outPath, String type) {
   args.add("--enable-experiment=non-nullable");
   args.add(sourcePath);
   var result = Process.runSync(exec, args);
+  print('snapshot $type stdout: ${result.stdout}');
+  print('snapshot $type stderr: ${result.stderr}');
 }
 
 void generateKernel(String sourcePath, String outPath) {
@@ -70,5 +72,7 @@ void testNullSafetyMode(String filePath, String expected) {
   args.add("--enable-experiment=non-nullable");
   args.add(filePath);
   var result = Process.runSync(exec, args);
+  print('test stdout: ${result.stdout}');
+  print('test stderr: ${result.stderr}');
   expect(result.stdout.contains('$expected'), true);
 }

@@ -42,9 +42,11 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
@@ -105,15 +107,21 @@ class EditDomainHandler extends AbstractRequestHandler {
         }
       }
 
-      var paths = <String>[];
-      for (var include in params.included) {
-        var resource = server.resourceProvider.getResource(include);
-        resource.collectDartFilePaths(paths);
-      }
-
       var workspace = DartChangeWorkspace(server.currentSessions);
       var processor = BulkFixProcessor(workspace);
-      var changeBuilder = await processor.fixErrorsInLibraries(paths);
+
+      String sdkPath;
+      var sdk = server.findSdk();
+      if (sdk is FolderBasedDartSdk) {
+        sdkPath = sdk.directory.path;
+      }
+      var collection = AnalysisContextCollectionImpl(
+        includedPaths: params.included,
+        resourceProvider: server.resourceProvider,
+        sdkPath: sdkPath,
+      );
+      var changeBuilder = await processor.fixErrors(collection.contexts);
+
       var response = EditBulkFixesResult(changeBuilder.sourceChange.edits)
           .toResponse(request.id);
       server.sendResponse(response);
@@ -280,6 +288,12 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
+
+    if (!server.contextManager.isInAnalysisRoot(file)) {
+      server.sendResponse(Response.getFixesInvalidFile(request));
+      return;
+    }
+
     //
     // Allow plugins to start computing fixes.
     //
@@ -555,7 +569,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
 
     // Prepare the file information.
-    var result = await server.getParsedUnit(file);
+    var result = server.getParsedUnit(file);
     if (result == null) {
       server.sendResponse(Response.fileNotAnalyzed(request, file));
       return;
@@ -1309,15 +1323,3 @@ class _RefactoringManager {
 /// [_RefactoringManager] throws instances of this class internally to stop
 /// processing in a manager that was reset.
 class _ResetError {}
-
-extension ResourceExtension on Resource {
-  void collectDartFilePaths(List<String> paths) {
-    if (this is File && AnalysisEngine.isDartFileName(path)) {
-      paths.add(path);
-    } else if (this is Folder) {
-      for (var child in (this as Folder).getChildren()) {
-        child.collectDartFilePaths(paths);
-      }
-    }
-  }
-}

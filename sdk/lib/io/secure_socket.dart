@@ -812,11 +812,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _secureHandshake() {
     try {
-      _secureFilter!.handshake();
-      _filterStatus.writeEmpty = false;
-      _readSocket();
-      _writeSocket();
-      _scheduleFilter();
+      _secureFilter!.handshake().then((needRetryHandshake) {
+        if (needRetryHandshake) {
+          // Some certificates have been evaluated, need to rety handshake.
+          _secureHandshake();
+        } else {
+          _filterStatus.writeEmpty = false;
+          _readSocket();
+          _writeSocket();
+          _scheduleFilter();
+        }
+      }).catchError((e, stackTrace) {
+        _reportError(e, stackTrace);
+      });
     } catch (e, stackTrace) {
       _reportError(e, stackTrace);
     }
@@ -1235,7 +1243,7 @@ abstract class _SecureFilter {
       bool requireClientCertificate,
       Uint8List protocols);
   void destroy();
-  void handshake();
+  Future<bool> handshake();
   String? selectedProtocol();
   void rehandshake();
   void renegotiate(bool useSessionCache, bool requestClientCertificate,

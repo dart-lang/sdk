@@ -100,3 +100,11 @@ static method main() → dynamic {
 }
 static method oracle() → dynamic
   return true;
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:9:26 -> IntConstant(-1)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:18:26 -> IntConstant(-1)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:27:29 -> IntConstant(-1)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///control_flow_collection.dart:27:33 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 160, effectively constant: 4

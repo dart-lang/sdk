@@ -4738,6 +4738,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
         _isEqualNodes(node.index, toNode.index),
         _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      // ignore: deprecated_member_use_from_same_package
       toNode.auxiliaryElements = node.auxiliaryElements;
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
@@ -5136,6 +5137,7 @@ class ResolutionCopier implements AstVisitor<bool> {
     if (_isEqualTokens(node.token, toNode.token)) {
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
+      // ignore: deprecated_member_use_from_same_package
       toNode.auxiliaryElements = node.auxiliaryElements;
       (toNode as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
           node.tearOffTypeArgumentTypes;

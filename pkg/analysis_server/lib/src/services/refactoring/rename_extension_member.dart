@@ -104,10 +104,9 @@ class _ExtensionMemberValidator {
   final List<SearchMatch> references = <SearchMatch>[];
 
   _ExtensionMemberValidator.forRename(
-      this.searchEngine, this.sessionHelper, Element element, this.name)
+      this.searchEngine, this.sessionHelper, this.element, this.name)
       : isRename = true,
         library = element.library,
-        element = element,
         elementExtension = element.enclosingElement,
         elementKind = element.kind;
 

@@ -1108,13 +1108,6 @@ class FlowGraphCompiler : public ValueObject {
 
   intptr_t GetOptimizationThreshold() const;
 
-  CompressedStackMapsBuilder* compressed_stackmaps_builder() {
-    if (compressed_stackmaps_builder_ == NULL) {
-      compressed_stackmaps_builder_ = new CompressedStackMapsBuilder();
-    }
-    return compressed_stackmaps_builder_;
-  }
-
 #if defined(DEBUG)
   void FrameStateUpdateWith(Instruction* instr);
   void FrameStatePush(Definition* defn);

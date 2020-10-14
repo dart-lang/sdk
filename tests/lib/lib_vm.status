@@ -17,7 +17,7 @@ convert/streamed_conversion_json_utf8_decode_test: Skip # Verification not yet i
 [ $arch == simarm64 && $runtime == vm ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
-[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $runtime == vm ]
+[ $compiler != app_jitk && $compiler != dartk && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
@@ -34,7 +34,7 @@ mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: RuntimeError
 mirrors/redirecting_factory_test/none: RuntimeError
 
-[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $runtime == vm && !$checked ]
+[ $compiler != app_jitk && $compiler != dartk && $runtime == vm && !$checked ]
 mirrors/inference_and_no_such_method_test: RuntimeError
 
 [ $runtime == vm && $system == fuchsia ]
@@ -74,6 +74,16 @@ math/rectangle_test: RuntimeError
 mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
+
+[ $runtime == vm && $system == windows ]
+isolate/detect_nullsafety_1_test: Skip # Issue 43583
+isolate/detect_nullsafety_2_test: Skip # Issue 43583
+isolate/nnbd_spawn_autodetect_1_test: Skip # Issue 43583
+isolate/nnbd_spawn_autodetect_2_test: Skip # Issue 43583
+isolate/nnbd_spawnuri_autodetect_1_test: Skip # Issue 43583
+isolate/nnbd_spawnuri_autodetect_2_test: Skip # Issue 43583
+isolate/nnbd_spawnuri_autodetect_3_test: Skip # Issue 43583
+isolate/nnbd_spawnuri_autodetect_4_test: Skip # Issue 43583
 
 [ $runtime == vm && ($arch == simarm || $arch == simarmv6) ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.

@@ -3495,36 +3495,36 @@ void test() {
   }
 
   test_instantiateToBounds_class_error_recursion() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 C c;
-''', []);
+''');
     _assertTopVarType('c', 'C<List<dynamic>, List<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C<T extends C<T>> {}
 C c;
-''', []);
+''');
     _assertTopVarType('c', 'C<C<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self2() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class A<E> {}
 class C<T extends A<T>> {}
 C c;
-''', []);
+''');
     _assertTopVarType('c', 'C<A<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_typedef() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 typedef T F<T>(T x);
 class C<T extends F<T>> {}
 C c;
-''', []);
+''');
     _assertTopVarType('c', 'C<dynamic Function(dynamic)>');
   }
 

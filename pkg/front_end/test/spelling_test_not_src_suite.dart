@@ -10,17 +10,24 @@ import 'spelling_test_base.dart';
 
 import 'spell_checking_utils.dart' as spell;
 
+import 'testing_utils.dart' show checkEnvironment;
+
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<SpellContext> createContext(
     Chain suite, Map<String, String> environment) async {
+  const Set<String> knownEnvironmentKeys = {"interactive", "onlyInGit"};
+  checkEnvironment(environment, knownEnvironmentKeys);
+
   bool interactive = environment["interactive"] == "true";
-  return new SpellContextTest(interactive: interactive);
+  bool onlyInGit = environment["onlyInGit"] != "false";
+  return new SpellContextTest(interactive: interactive, onlyInGit: onlyInGit);
 }
 
 class SpellContextTest extends SpellContext {
-  SpellContextTest({bool interactive}) : super(interactive: interactive);
+  SpellContextTest({bool interactive, bool onlyInGit})
+      : super(interactive: interactive, onlyInGit: onlyInGit);
 
   @override
   List<spell.Dictionaries> get dictionaries => const <spell.Dictionaries>[
@@ -31,4 +38,8 @@ class SpellContextTest extends SpellContext {
 
   @override
   bool get onlyDenylisted => false;
+
+  @override
+  String get repoRelativeSuitePath =>
+      "pkg/front_end/test/spelling_test_not_src_suite.dart";
 }

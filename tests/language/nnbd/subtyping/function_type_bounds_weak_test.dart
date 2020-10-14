@@ -13,9 +13,13 @@ main() {
   // Should pass with weak checking because when the nullability information on
   // Object and Object? are erased the type bounds are equivalent.
   Expect.isTrue(fnWithNonNullObjectBound is fnTypeWithNullableObjectBound);
+  const test1 = fnWithNonNullObjectBound is fnTypeWithNullableObjectBound;
+  Expect.isTrue(test1);
 
   // void fn<T extends Null>() is void Function<T extends Never>()
   // Should pass with weak checking because because Null becomes equivalent to
   // the bottom type.
   Expect.isTrue(fnWithNullBound is fnTypeWithNeverBound);
+  const test2 = fnWithNullBound is fnTypeWithNeverBound;
+  Expect.isTrue(test2);
 }

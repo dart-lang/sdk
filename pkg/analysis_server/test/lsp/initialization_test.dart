@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:path/path.dart' as path;
@@ -25,7 +26,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     List<Registration> registrations,
     Method method,
   ) {
-    return registrationFor(registrations, method)?.registerOptions;
+    return TextDocumentRegistrationOptions.fromJson(
+        registrationFor(registrations, method)?.registerOptions);
   }
 
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
@@ -45,7 +47,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Because we support dynamic registration for synchronisation, we won't send
     // static registrations for them.
     // https://github.com/dart-lang/sdk/issues/38490
-    InitializeResult initResult = initResponse.result;
+    final initResult = InitializeResult.fromJson(initResponse.result);
     expect(initResult.serverInfo.name, 'Dart SDK LSP Analysis Server');
     expect(initResult.serverInfo.version, isNotNull);
     expect(initResult.capabilities, isNotNull);
@@ -86,16 +88,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Set a flag if any registerCapability request comes through.
     var didGetRegisterCapabilityRequest = false;
     requestsFromServer
-        .firstWhere((n) => n.method == Method.client_registerCapability)
-        .then((params) {
-      didGetRegisterCapabilityRequest = true;
-    });
+        .where((n) => n.method == Method.client_registerCapability)
+        .listen((_) => didGetRegisterCapabilityRequest = true);
 
     // Initialize with no dynamic registrations advertised.
     final initResponse = await initialize();
     await pumpEventQueue();
 
-    InitializeResult initResult = initResponse.result;
+    final initResult = InitializeResult.fromJson(initResponse.result);
     expect(initResult.capabilities, isNotNull);
     // When dynamic registration is not supported, we will always statically
     // request text document open/close and incremental updates.
@@ -151,7 +151,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
               emptyTextDocumentClientCapabilities)),
     );
 
-    InitializeResult initResult = initResponse.result;
+    final initResult = InitializeResult.fromJson(initResponse.result);
     expect(initResult.capabilities, isNotNull);
 
     // Ensure no static registrations. This list should include all server equivilents
@@ -196,7 +196,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       pluginManager.pluginsChangedController.add(null);
     });
     final unregistrations =
-        (unregisterRequest.params as UnregistrationParams).unregisterations;
+        UnregistrationParams.fromJson(unregisterRequest.params)
+            .unregisterations;
 
     // folding method should have been unregistered as the server now supports
     // *.foo files for it as well.
@@ -226,7 +227,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         .firstWhere((r) => r.method == Method.client_unregisterCapability)
         .then((request) {
       respondTo(request, null);
-      return (request.params as UnregistrationParams).unregisterations;
+      return UnregistrationParams.fromJson(request.params).unregisterations;
     });
 
     final request = await expectRequest(Method.client_registerCapability, () {
@@ -236,36 +237,35 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       pluginManager.pluginsChangedController.add(null);
     });
 
-    final registrations = (request.params as RegistrationParams).registrations;
+    final registrations =
+        RegistrationParams.fromJson(request.params).registrations;
 
     final documentFilterSql =
         DocumentFilter(scheme: 'file', pattern: '**/*.sql');
     final documentFilterDart = DocumentFilter(language: 'dart', scheme: 'file');
-    final expectedFoldingRegistration =
-        isA<TextDocumentRegistrationOptions>().having(
-      (o) => o.documentSelector,
-      'documentSelector',
-      containsAll([documentFilterSql, documentFilterDart]),
-    );
 
     expect(
       registrations,
       contains(isA<Registration>()
           .having((r) => r.method, 'method', 'textDocument/foldingRange')
-          .having((r) => r.registerOptions, 'registerOptions',
-              expectedFoldingRegistration)),
+          .having(
+            (r) => TextDocumentRegistrationOptions.fromJson(r.registerOptions)
+                .documentSelector,
+            'registerOptions.documentSelector',
+            containsAll([documentFilterSql, documentFilterDart]),
+          )),
     );
   }
 
   Future<void> test_emptyAnalysisRoots_multipleOpenFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
     final file1Uri = Uri.file(file1);
-    await newFile(file1);
+    newFile(file1);
     final file2 = join(projectFolderPath, 'file2.dart');
     final file2Uri = Uri.file(file2);
-    await newFile(file2);
+    newFile(file2);
     final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    await newFile(pubspecPath);
+    newFile(pubspecPath);
 
     await initialize(allowEmptyRootUri: true);
 
@@ -288,7 +288,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    await newFile(nestedFilePath);
+    newFile(nestedFilePath);
 
     // The project folder shouldn't be added to start with.
     await initialize(allowEmptyRootUri: true);
@@ -304,9 +304,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    await newFile(nestedFilePath);
+    newFile(nestedFilePath);
     final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    await newFile(pubspecPath);
+    newFile(pubspecPath);
 
     // The project folder shouldn't be added to start with.
     await initialize(allowEmptyRootUri: true);
@@ -329,13 +329,61 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([]));
   }
 
+  Future<void> test_excludedFolders_absolute() async {
+    final excludedFolderPath = join(projectFolderPath, 'excluded');
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      // Exclude the folder with a relative path.
+      {
+        'analysisExcludedFolders': [excludedFolderPath]
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  Future<void> test_excludedFolders_nonList() async {
+    final excludedFolderPath = join(projectFolderPath, 'excluded');
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      // Include a single string instead of an array since it's an easy mistake
+      // to make without editor validation of settings.
+      {'analysisExcludedFolders': 'excluded'},
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  Future<void> test_excludedFolders_relative() async {
+    final excludedFolderPath = join(projectFolderPath, 'excluded');
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      // Exclude the folder with a relative path.
+      {
+        'analysisExcludedFolders': ['excluded']
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
   Future<void> test_initialize() async {
     final response = await initialize();
     expect(response, isNotNull);
     expect(response.error, isNull);
     expect(response.result, isNotNull);
-    expect(response.result, TypeMatcher<InitializeResult>());
-    InitializeResult result = response.result;
+    expect(InitializeResult.canParse(response.result, nullLspJsonReporter),
+        isTrue);
+    final result = InitializeResult.fromJson(response.result);
     expect(result.capabilities, isNotNull);
     // Check some basic capabilities that are unlikely to change.
     expect(result.capabilities.textDocumentSync, isNotNull);
@@ -393,12 +441,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
     final file1Uri = Uri.file(file1);
-    await newFile(file1);
+    newFile(file1);
     final file2 = join(projectFolderPath, 'file2.dart');
     final file2Uri = Uri.file(file2);
-    await newFile(file2);
+    newFile(file2);
     final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    await newFile(pubspecPath);
+    newFile(pubspecPath);
 
     await initialize(
       rootUri: projectFolderUri,
@@ -424,7 +472,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    await newFile(nestedFilePath);
+    newFile(nestedFilePath);
 
     // The project folder shouldn't be added to start with.
     await initialize(
@@ -443,9 +491,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    await newFile(nestedFilePath);
+    newFile(nestedFilePath);
     final pubspecPath = join(projectFolderPath, 'pubspec.yaml');
-    await newFile(pubspecPath);
+    newFile(pubspecPath);
 
     // The project folder shouldn't be added to start with.
     await initialize(

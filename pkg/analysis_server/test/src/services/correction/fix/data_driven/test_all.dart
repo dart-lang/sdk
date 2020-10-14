@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_type_parameter_test.dart' as add_type_parameter_change;
+import 'code_template_test.dart' as code_template;
 import 'diagnostics/test_all.dart' as diagnostics;
 import 'end_to_end_test.dart' as end_to_end;
 import 'modify_parameters_test.dart' as modify_parameters;
@@ -15,6 +16,7 @@ import 'transform_set_parser_test.dart' as transform_set_parser;
 void main() {
   defineReflectiveSuite(() {
     add_type_parameter_change.main();
+    code_template.main();
     diagnostics.main();
     end_to_end.main();
     modify_parameters.main();

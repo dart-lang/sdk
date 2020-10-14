@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
 import '../helpers/memory_compiler.dart';
 import 'analysis_helper.dart';
@@ -35,7 +36,8 @@ main() {
 class Visitor extends StaticTypeVisitorBase {
   Visitor(ir.Component component)
       : super(component,
-            new ir.ClassHierarchy(component, new ir.CoreTypes(component)));
+            new ir.ClassHierarchy(component, new ir.CoreTypes(component)),
+            evaluationMode: ir.EvaluationMode.weak);
 
   ir.DartType getStaticType(ir.Expression node) {
     if (typeEnvironment == null) {

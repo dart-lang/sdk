@@ -287,6 +287,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
+  /// The language version to use for libraries that are not in a package.
+  ///
+  /// If a library is in a package, this language version is *not* used,
+  /// even if the package does not specify the language version.
+  Version nonPackageLanguageVersion = ExperimentStatus.currentVersion;
+
   /// The set of features to use for libraries that are not in a package.
   ///
   /// If a library is in a package, this feature set is *not* used, even if the

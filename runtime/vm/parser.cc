@@ -211,6 +211,9 @@ void ParsedFunction::AllocateVariables() {
       if (variable->is_explicit_covariant_parameter()) {
         raw_parameter->set_is_explicit_covariant_parameter();
       }
+      if (variable->needs_covariant_check_in_method()) {
+        raw_parameter->set_needs_covariant_check_in_method();
+      }
       raw_parameter->set_type_check_mode(variable->type_check_mode());
       if (function().HasOptionalParameters()) {
         bool ok = scope->AddVariable(raw_parameter);
@@ -345,8 +348,6 @@ ParsedFunction::EnsureDynamicClosureCallVars() {
   if (dynamic_closure_call_vars_ != nullptr) return dynamic_closure_call_vars_;
   dynamic_closure_call_vars_ = new (zone()) DynamicClosureCallVars();
 
-  const auto& type_Array = Type::ZoneHandle(zone(), Type::ArrayType());
-  const auto& type_Bool = Type::ZoneHandle(zone(), Type::BoolType());
   const auto& type_Smi = Type::ZoneHandle(zone(), Type::SmiType());
 #define INIT_FIELD(Name, TypeName, Symbol)                                     \
   dynamic_closure_call_vars_->Name = new (zone())                              \

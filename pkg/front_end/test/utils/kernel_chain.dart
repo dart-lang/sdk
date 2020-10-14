@@ -26,9 +26,10 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/fasta_codes.dart' show templateUnspecified;
 
-import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelTarget;
 
-import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
+import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 
 import 'package:front_end/src/fasta/messages.dart'
     show DiagnosticMessageFromJson, LocatedMessage;
@@ -65,6 +66,8 @@ final Uri platformBinariesLocation = computePlatformBinariesLocation();
 abstract class MatchContext implements ChainContext {
   bool get updateExpectations;
 
+  String get updateExpectationsOption;
+
   ExpectationSet get expectationSet;
 
   Expectation get expectationFileMismatch =>
@@ -92,7 +95,10 @@ abstract class MatchContext implements ChainContext {
         String diff = await runDiff(expectedFile.uri, actual);
         onMismatch ??= expectationFileMismatch;
         return new Result<O>(output, onMismatch,
-            "$uri doesn't match ${expectedFile.uri}\n$diff", null);
+            "$uri doesn't match ${expectedFile.uri}\n$diff", null,
+            autoFixCommand: onMismatch == expectationFileMismatch
+                ? updateExpectationsOption
+                : null);
       } else {
         return new Result<O>.pass(output);
       }
@@ -107,7 +113,8 @@ abstract class MatchContext implements ChainContext {
           """
 Please create file ${expectedFile.path} with this content:
 $actual""",
-          null);
+          null,
+          autoFixCommand: updateExpectationsOption);
     }
   }
 
@@ -149,41 +156,6 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
     });
     print("$sb");
     return pass(result);
-  }
-}
-
-class Verify extends Step<ComponentResult, ComponentResult, ChainContext> {
-  final bool fullCompile;
-
-  const Verify(this.fullCompile);
-
-  String get name => "verify";
-
-  Future<Result<ComponentResult>> run(
-      ComponentResult result, ChainContext context) async {
-    Component component = result.component;
-    StringBuffer messages = new StringBuffer();
-    ProcessedOptions options = new ProcessedOptions(
-        options: new CompilerOptions()
-          ..onDiagnostic = (DiagnosticMessage message) {
-            if (messages.isNotEmpty) {
-              messages.write("\n");
-            }
-            messages.writeAll(message.plainTextFormatted, "\n");
-          });
-    return await CompilerContext.runWithOptions(options,
-        (compilerContext) async {
-      compilerContext.uriToSource.addAll(component.uriToSource);
-      List<LocatedMessage> verificationErrors = verifyComponent(component,
-          isOutline: !fullCompile, skipPlatform: true);
-      assert(verificationErrors.isEmpty || messages.isNotEmpty);
-      if (messages.isEmpty) {
-        return pass(result);
-      } else {
-        return new Result<ComponentResult>(null,
-            context.expectationSet["VerificationError"], "$messages", null);
-      }
-    }, errorOnMissingInput: false);
   }
 }
 
@@ -316,6 +288,15 @@ class MatchExpectation
       printer.endLine();
     });
     printer.writeConstantTable(componentToText);
+
+    if (result.extraConstantStrings.isNotEmpty) {
+      buffer.writeln("");
+      buffer.writeln("Extra constant evaluation status:");
+      for (String extraConstantString in result.extraConstantStrings) {
+        buffer.writeln(extraConstantString);
+      }
+    }
+
     String actual = "$buffer";
     String binariesPath =
         relativizeUri(Uri.base, platformBinariesLocation, isWindows);
@@ -418,8 +399,8 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
     Uri uri = tmp.uri.resolve("generated.dill");
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
-    result = new ComponentResult(
-        result.description, result.component, result.userLibraries, uri);
+    result = new ComponentResult(result.description, result.component,
+        result.userLibraries, result.options, result.sourceTarget, uri);
     try {
       new BinaryPrinter(sink).writeComponentFile(component);
     } catch (e, s) {
@@ -515,8 +496,12 @@ class ComponentResult {
   final Component component;
   final Set<Uri> userLibraries;
   final Uri outputUri;
+  final ProcessedOptions options;
+  final KernelTarget sourceTarget;
+  final List<String> extraConstantStrings = [];
 
   ComponentResult(this.description, this.component, this.userLibraries,
+      this.options, this.sourceTarget,
       [this.outputUri]);
 
   bool isUserLibrary(Library library) {

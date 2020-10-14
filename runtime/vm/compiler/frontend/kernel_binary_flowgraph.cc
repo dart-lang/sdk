@@ -479,7 +479,7 @@ void StreamingFlowGraphBuilder::ReadDefaultFunctionTypeArguments(
     }
     helper.Finish();
   }
-  default_types = default_types.Canonicalize();
+  default_types = default_types.Canonicalize(thread(), nullptr);
   parsed_function()->SetDefaultFunctionTypeArguments(default_types);
 }
 
@@ -1284,10 +1284,6 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildPropertyGet(position);
     case kPropertySet:
       return BuildPropertySet(position);
-    case kDirectPropertyGet:
-      return BuildDirectPropertyGet(position);
-    case kDirectPropertySet:
-      return BuildDirectPropertySet(position);
     case kSuperPropertyGet:
       return BuildSuperPropertyGet(position);
     case kSuperPropertySet:
@@ -1300,8 +1296,6 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildMethodInvocation(position);
     case kSuperMethodInvocation:
       return BuildSuperMethodInvocation(position);
-    case kDirectMethodInvocation:
-      return BuildDirectMethodInvocation(position);
     case kStaticInvocation:
       return BuildStaticInvocation(position);
     case kConstructorInvocation:
@@ -2668,92 +2662,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
   return instructions;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
-  const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
-  const TokenPosition position = ReadPosition();  // read position.
-  if (p != NULL) *p = position;
-
-  const InferredTypeMetadata result_type =
-      inferred_type_metadata_helper_.GetInferredType(offset);
-
-  const Tag receiver_tag = PeekTag();         // peek tag for receiver.
-  Fragment instructions = BuildExpression();  // read receiver.
-  const NameIndex kernel_name =
-      ReadInterfaceMemberNameReference();  // read target_reference.
-
-  Function& target = Function::ZoneHandle(Z);
-  if (H.IsProcedure(kernel_name)) {
-    if (H.IsGetter(kernel_name)) {
-      target =
-          H.LookupMethodByMember(kernel_name, H.DartGetterName(kernel_name));
-    } else if (receiver_tag == kThisExpression) {
-      // Undo stack change for the BuildExpression.
-      Pop();
-
-      target =
-          H.LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name));
-      target = target.ImplicitClosureFunction();
-      ASSERT(!target.IsNull());
-
-      // Generate inline code for allocating closure object with context which
-      // captures `this`.
-      return BuildImplicitClosureCreation(target);
-    } else {
-      // Need to create implicit closure (tear-off), receiver != this.
-      // Ensure method extractor exists and call it directly.
-      const Function& target_method = Function::ZoneHandle(
-          Z,
-          H.LookupMethodByMember(kernel_name, H.DartMethodName(kernel_name)));
-      const String& getter_name = H.DartGetterName(kernel_name);
-      target = target_method.GetMethodExtractor(getter_name);
-    }
-  } else {
-    ASSERT(H.IsField(kernel_name));
-    const String& getter_name = H.DartGetterName(kernel_name);
-    target = H.LookupMethodByMember(kernel_name, getter_name);
-    ASSERT(target.IsGetterFunction() || target.IsImplicitGetterFunction());
-  }
-
-  // Static calls are marked as "no-rebind", which is currently safe because
-  // DirectPropertyGet are only used in enums (index in toString) and enums
-  // can't change their structure during hot reload.
-  // If there are other sources of DirectPropertyGet in the future, this code
-  // have to be adjusted.
-  return instructions + StaticCall(position, target, 1, Array::null_array(),
-                                   ICData::kNoRebind, &result_type);
-}
-
-Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
-  const TokenPosition position = ReadPosition();  // read position.
-  if (p != NULL) *p = position;
-
-  Fragment instructions(MakeTemp());
-  LocalVariable* value = MakeTemporary();
-
-  instructions += BuildExpression();  // read receiver.
-
-  const NameIndex target_reference =
-      ReadInterfaceMemberNameReference();  // read target_reference.
-  const String& method_name = H.DartSetterName(target_reference);
-  const Function& target = Function::ZoneHandle(
-      Z, H.LookupMethodByMember(target_reference, method_name));
-  ASSERT(target.IsSetterFunction() || target.IsImplicitSetterFunction());
-
-  instructions += BuildExpression();  // read value.
-  instructions += StoreLocal(TokenPosition::kNoSource, value);
-
-  // Static calls are marked as "no-rebind", which is currently safe because
-  // DirectPropertyGet are only used in enums (index in toString) and enums
-  // can't change their structure during hot reload.
-  // If there are other sources of DirectPropertyGet in the future, this code
-  // have to be adjusted.
-  instructions +=
-      StaticCall(position, target, 2, Array::null_array(), ICData::kNoRebind,
-                 /* result_type = */ NULL);
-
-  return instructions + Drop();
-}
-
 Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
@@ -3063,72 +2971,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   return instructions;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
-    TokenPosition* p) {
-  const intptr_t offset = ReaderOffset() - 1;  // Include the tag.
-  TokenPosition position = ReadPosition();     // read offset.
-  if (p != NULL) *p = position;
-
-  const InferredTypeMetadata result_type =
-      inferred_type_metadata_helper_.GetInferredType(offset);
-
-  Tag receiver_tag = PeekTag();  // peek tag for receiver.
-
-  Fragment instructions;
-  intptr_t type_args_len = 0;
-  {
-    AlternativeReadingScope alt(&reader_);
-    SkipExpression();                         // skip receiver
-    ReadInterfaceMemberNameReference();       // skip target reference
-    ReadUInt();                               // read argument count.
-    intptr_t list_length = ReadListLength();  // read types list length.
-    if (list_length > 0) {
-      const TypeArguments& type_arguments =
-          T.BuildTypeArguments(list_length);  // read types.
-      instructions += TranslateInstantiatedTypeArguments(type_arguments);
-    }
-    type_args_len = list_length;
-  }
-
-  instructions += BuildExpression();  // read receiver.
-
-  NameIndex kernel_name =
-      ReadInterfaceMemberNameReference();  // read target_reference.
-  const String& method_name = H.DartProcedureName(kernel_name);
-  const Token::Kind token_kind =
-      MethodTokenRecognizer::RecognizeTokenKind(method_name);
-
-  // Detect comparison with null.
-  if ((token_kind == Token::kEQ || token_kind == Token::kNE) &&
-      PeekArgumentsCount() == 1 &&
-      (receiver_tag == kNullLiteral ||
-       PeekArgumentsFirstPositionalTag() == kNullLiteral)) {
-    ASSERT(type_args_len == 0);
-    // "==" or "!=" with null on either side.
-    instructions +=
-        BuildArguments(NULL /* names */, NULL /* arg count */,
-                       NULL /* positional arg count */);  // read arguments.
-    Token::Kind strict_cmp_kind =
-        token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
-    return instructions +
-           StrictCompare(position, strict_cmp_kind, /*number_check = */ true);
-  }
-
-  const Function& target =
-      Function::ZoneHandle(Z, H.LookupMethodByMember(kernel_name, method_name));
-
-  Array& argument_names = Array::ZoneHandle(Z);
-  intptr_t argument_count, positional_argument_count;
-  instructions +=
-      BuildArguments(&argument_names, &argument_count,
-                     &positional_argument_count);  // read arguments.
-  ++argument_count;
-
-  return instructions + StaticCall(position, target, argument_count,
-                                   argument_names, ICData::kNoRebind,
-                                   &result_type, type_args_len);
-}
-
 Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
     TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
@@ -3417,7 +3259,7 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
       TypeArguments& canonicalized_type_arguments =
           TypeArguments::ZoneHandle(Z, type.arguments());
       canonicalized_type_arguments =
-          canonicalized_type_arguments.Canonicalize();
+          canonicalized_type_arguments.Canonicalize(thread(), nullptr);
       instructions += Constant(canonicalized_type_arguments);
     } else {
       const TypeArguments& type_arguments =
@@ -3613,33 +3455,86 @@ Fragment StreamingFlowGraphBuilder::BuildConditionalExpression(
          LoadLocal(parsed_function()->expression_temp_var());
 }
 
-Fragment StreamingFlowGraphBuilder::BuildStringConcatenation(TokenPosition* p) {
-  TokenPosition position = ReadPosition();  // read position.
-  if (p != NULL) *p = position;
+void StreamingFlowGraphBuilder::FlattenStringConcatenation(
+    PiecesCollector* collector) {
+  const auto length = ReadListLength();
+  for (intptr_t i = 0; i < length; ++i) {
+    const auto offset = reader_.offset();
+    switch (PeekTag()) {
+      case kStringLiteral: {
+        ReadTag();
+        const String& s = H.DartSymbolPlain(ReadStringReference());
+        // Skip empty strings.
+        if (!s.Equals("")) {
+          collector->Add({-1, &s});
+        }
+        break;
+      }
+      case kStringConcatenation: {
+        // Flatten by hoisting nested expressions up into the outer concat.
+        ReadTag();
+        ReadPosition();
+        FlattenStringConcatenation(collector);
+        break;
+      }
+      default: {
+        collector->Add({offset, nullptr});
+        SkipExpression();
+      }
+    }
+  }
+}
 
-  intptr_t length = ReadListLength();  // read list length.
-  // Note: there will be "length" expressions.
+Fragment StreamingFlowGraphBuilder::BuildStringConcatenation(TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) {
+    *p = position;
+  }
+
+  // Collect and flatten all pieces of this and any nested StringConcats.
+  // The result is a single sequence of pieces, potentially flattened to
+  // a single String.
+  // The collector will hold concatenated strings and Reader offsets of
+  // non-string pieces.
+  PiecesCollector collector(Z, &H);
+  FlattenStringConcatenation(&collector);
+  collector.FlushRun();
+
+  if (collector.pieces.length() == 1) {
+    // No need to Interp. a single string, so return string as a Constant:
+    if (collector.pieces[0].literal != nullptr) {
+      return Constant(*collector.pieces[0].literal);
+    }
+    // A single non-string piece is handle by StringInterpolateSingle:
+    AlternativeReadingScope scope(&reader_, collector.pieces[0].offset);
+    Fragment instructions;
+    instructions += BuildExpression();
+    instructions += StringInterpolateSingle(position);
+    return instructions;
+  }
 
   Fragment instructions;
-  if (length == 1) {
-    instructions += BuildExpression();  // read expression.
-    instructions += StringInterpolateSingle(position);
-  } else {
-    // The type arguments for CreateArray.
-    instructions += Constant(TypeArguments::ZoneHandle(Z));
-    instructions += IntConstant(length);
-    instructions += CreateArray();
-    LocalVariable* array = MakeTemporary();
-
-    for (intptr_t i = 0; i < length; ++i) {
+  instructions += Constant(TypeArguments::ZoneHandle(Z));
+  instructions += IntConstant(collector.pieces.length());
+  instructions += CreateArray();
+  LocalVariable* array = MakeTemporary();
+  for (intptr_t i = 0; i < collector.pieces.length(); ++i) {
+    // All pieces are now either a concat'd string or an expression we can
+    // read at a given offset.
+    if (collector.pieces[i].literal != nullptr) {
       instructions += LoadLocal(array);
       instructions += IntConstant(i);
-      instructions += BuildExpression();  // read ith expression.
-      instructions += StoreIndexed(kArrayCid);
+      instructions += Constant(*collector.pieces[i].literal);
+    } else {
+      AlternativeReadingScope scope(&reader_, collector.pieces[i].offset);
+      instructions += LoadLocal(array);
+      instructions += IntConstant(i);
+      instructions += BuildExpression();
     }
-
-    instructions += StringInterpolate(position);
+    instructions += StoreIndexed(kArrayCid);
   }
+
+  instructions += StringInterpolate(position);
 
   return instructions;
 }

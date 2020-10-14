@@ -8,6 +8,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 abstract class A extends core::Object {
   synthetic constructor •() → self::A
@@ -18,7 +19,7 @@ abstract class A extends core::Object {
       #L1:
       case #C1:
         {
-          this.{self::A::neverReturn}();
+          let final Never #t1 = this.{self::A::neverReturn}() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
         }
       #L2:
       default:
@@ -35,7 +36,7 @@ static method foo(core::int x, core::bool b) → dynamic {
     #L3:
     case #C1:
       {
-        b ?{Never} throw "hest" : throw "fisk";
+        let final Never #t2 = b ?{Never} throw "hest" : throw "fisk" in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
       }
     #L4:
     case #C2:

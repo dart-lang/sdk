@@ -607,7 +607,10 @@ Function(int, String) v;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 3)]
+        ? [
+            expectedError(
+                ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 4, 3)
+          ]
         : [
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 3),
             expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 3)
@@ -3633,7 +3636,8 @@ class Foo {
           errors: usingFastaParser
               ? [
                   expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 5),
-                  expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 5)
+                  expectedError(
+                      ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 9, 5)
                 ]
               : [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 5)]);
     }
@@ -3976,7 +3980,8 @@ class Wrong<T> {
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
       usingFastaParser
-          ? expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 4)
+          ? expectedError(
+              ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 2, 4)
           : expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 0, 1)
     ]);
   }
@@ -5453,7 +5458,7 @@ main() {
   void test_typedef_namedFunction() {
     parseCompilationUnit('typedef void Function();',
         codes: usingFastaParser
-            ? [ParserErrorCode.MISSING_IDENTIFIER]
+            ? [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD]
             : [
                 ParserErrorCode.UNEXPECTED_TOKEN,
                 ParserErrorCode.MISSING_IDENTIFIER,
@@ -11347,9 +11352,7 @@ class C {
     // TODO(brianwilkerson) We could do better with this.
     parseCompilationUnit("do() {}",
         codes: usingFastaParser
-            // fasta reports ExpectedIdentifier
-            // which gets mapped to MISSING_IDENTIFIER
-            ? [ParserErrorCode.MISSING_IDENTIFIER]
+            ? [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD]
             : [
                 ParserErrorCode.EXPECTED_EXECUTABLE,
                 ParserErrorCode.UNEXPECTED_TOKEN

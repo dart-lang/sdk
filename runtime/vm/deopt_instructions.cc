@@ -1231,12 +1231,6 @@ intptr_t DeoptInfoBuilder::FindMaterialization(
   return -1;
 }
 
-static uint8_t* ZoneReAlloc(uint8_t* ptr,
-                            intptr_t old_size,
-                            intptr_t new_size) {
-  return Thread::Current()->zone()->Realloc<uint8_t>(ptr, old_size, new_size);
-}
-
 TypedDataPtr DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   intptr_t length = instructions_.length();
 
@@ -1260,9 +1254,8 @@ TypedDataPtr DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
     length -= (suffix_length - 1);
   }
 
-  uint8_t* buffer;
-  typedef WriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
-  WriteStream stream(&buffer, ZoneReAlloc, 2 * length * kWordSize);
+  typedef ZoneWriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
+  ZoneWriteStream stream(zone(), 2 * length * kWordSize);
 
   Writer::Write(&stream, FrameSize());
 

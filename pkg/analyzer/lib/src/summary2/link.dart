@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
+import 'package:analyzer/src/summary2/variance_builder.dart';
 
 var timerLinkingLinkingBundle = Stopwatch();
 var timerLinkingRemoveBundle = Stopwatch();
@@ -227,6 +228,7 @@ class Linker {
     for (var library in builders.values) {
       library.resolveTypes(nodesToBuildType);
     }
+    VarianceBuilder().perform(this);
     computeSimplyBounded(bundleContext, builders.values);
     TypesBuilder().build(nodesToBuildType);
   }

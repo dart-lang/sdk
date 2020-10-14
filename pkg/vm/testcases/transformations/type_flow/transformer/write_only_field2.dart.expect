@@ -12,7 +12,7 @@ class A extends core::Object {
     ;
 }
 class B extends core::Object {
-  constructor •([@vm.inferred-type.metadata=dart.core::_OneByteString (value: hi)] dynamic unused4) → self::B*
+  constructor •([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "hi")] dynamic unused4) → self::B*
     : dynamic #t1 = [@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::foo(), super core::Object::•()
     ;
 }

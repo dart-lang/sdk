@@ -25,23 +25,57 @@ extension E on C {
   void set foo(int _) {}
 }
 
-f(C c) {
+void f(C c) {
   c.foo = 0;
+  c.foo += 1;
+  c.foo++;
+  --c.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 87, 5),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 94, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 107, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 121, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 134, 3),
     ]);
   }
 
-  test_method() async {
+  test_prefixedIdentifier_instanceMethod() async {
     await assertErrorsInCode('''
 class A {
-  m() {}
+  void foo() {}
 }
-f(A a) {
-  a.m = () {};
-}''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 32, 3),
+
+void f(A a) {
+  a.foo = 0;
+  a.foo += 1;
+  a.foo++;
+  ++a.foo;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 47, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 60, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 74, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 87, 3),
+    ]);
+  }
+
+  test_propertyAccess_instanceMethod() async {
+    await assertErrorsInCode('''
+class A {
+  void foo() {}
+}
+
+void f(A a) {
+  (a).foo = 0;
+  (a).foo += 1;
+  (a).foo++;
+  ++(a).foo;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 49, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 64, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 80, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 95, 3),
     ]);
   }
 
@@ -59,7 +93,7 @@ extension E on C {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 86, 8),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 91, 3),
     ]);
   }
 }

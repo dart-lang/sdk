@@ -71,7 +71,7 @@ main() {
 
   // e1?.v op= e2 is equivalent to ((x) => x?.v = x.v op e2)(e1).
 
-  { C? c = new C(1); Expect.equals(3, c?.v += 2); Expect.equals(3, c!.v); }
+  { var c = new C(1) as C?; Expect.equals(3, c?.v += 2); Expect.equals(3, c!.v); }
 
   // C?.v op= e2 is equivalent to C.v op= e2.
 

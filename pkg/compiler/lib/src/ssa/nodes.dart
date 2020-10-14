@@ -4143,26 +4143,20 @@ AbstractBool _typeTest(
   AbstractValue supersetType = checkedAbstractValue.abstractValue;
   AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
-  if (!isCast && options.useNullSafety) {
+  bool _nullIs(DartType type) =>
+      dartTypes.isStrongTopType(type) ||
+      type is LegacyType &&
+          (type.baseType.isObject || type.baseType is NeverType) ||
+      type is NullableType ||
+      type is FutureOrType && _nullIs(type.typeArgument) ||
+      type.isNull;
+
+  if (!isCast) {
     if (expressionIsNull.isDefinitelyTrue) {
-      if (dartType.isObject) return AbstractBool.False;
-      if (dartTypes.isTopType(dartType) ||
-          dartType is NullableType ||
-          dartType.isNull) {
-        return AbstractBool.True;
-      }
-      if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
-        return AbstractBool.Maybe;
-      }
-      if (dartType is LegacyType) {
-        DartType baseType = dartType.baseType;
-        if (baseType is NeverType) return AbstractBool.True;
-        if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
-          return AbstractBool.Maybe;
-        }
-      }
-      return AbstractBool.False;
-    } else if (expressionIsNull.isPotentiallyTrue) {
+      if (dartType.containsFreeTypeVariables) return AbstractBool.Maybe;
+      return AbstractBool.trueOrFalse(_nullIs(dartType));
+    }
+    if (expressionIsNull.isPotentiallyTrue) {
       if (dartType.isObject) return AbstractBool.Maybe;
     }
   }
@@ -4231,8 +4225,7 @@ AbstractBool _typeTest(
   AbstractBool isNullAsCheck = !options.useLegacySubtyping && isCast
       ? expressionIsNull
       : AbstractBool.False;
-  AbstractBool isNullIsTest =
-      options.useNullSafety && !isCast ? expressionIsNull : AbstractBool.False;
+  AbstractBool isNullIsTest = !isCast ? expressionIsNull : AbstractBool.False;
 
   AbstractBool unwrapAndCheck(DartType type) {
     if (dartTypes.isTopType(dartType)) return AbstractBool.True;

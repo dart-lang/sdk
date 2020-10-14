@@ -20,6 +20,7 @@ library;
 //                   ^
 //
 // pkg/front_end/testcases/general/error_recovery/issue_39202.crash_dart:1:25: Error: Expected an identifier, but got ''.
+// Try inserting an identifier before ''.
 // () async => a b < c $? >
 //                         ^...
 //

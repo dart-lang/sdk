@@ -4,11 +4,14 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -21,43 +24,106 @@ class DataDriven extends MultiCorrectionProducer {
   @override
   Iterable<CorrectionProducer> get producers sync* {
     var name = _name;
-    var importedUris = <String>[];
+    var importedUris = <Uri>[];
     var library = resolvedResult.libraryElement;
     for (var importElement in library.imports) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.
-      importedUris.add(importElement.uri);
+      var uri = importElement.uri;
+      if (uri != null) {
+        // The [uri] is `null` if the literal string is not a valid URI.
+        importedUris.add(Uri.parse(uri));
+      }
     }
+    var matcher =
+        ElementMatcher(importedUris: importedUris, name: name, kinds: _kinds);
     for (var set in _availableTransformSetsForLibrary(library)) {
-      for (var transform in set.transformsFor(name, importedUris)) {
+      for (var transform in set.transformsFor(matcher)) {
         yield DataDrivenFix(transform);
       }
     }
   }
 
+  List<ElementKind> get _kinds {
+    AstNode child;
+    var node = this.node;
+    while (node != null) {
+      if (node is ConstructorName) {
+        return const [ElementKind.constructorKind];
+      } else if (node is ExtensionOverride) {
+        return const [ElementKind.extensionKind];
+      } else if (node is InstanceCreationExpression) {
+        return const [ElementKind.constructorKind];
+      } else if (node is MethodInvocation) {
+        if (node.target == child) {
+          return const [
+            ElementKind.classKind,
+            ElementKind.enumKind,
+            ElementKind.mixinKind
+          ];
+        } else if (node.realTarget != null) {
+          return const [ElementKind.constructorKind, ElementKind.methodKind];
+        }
+        return const [
+          ElementKind.classKind,
+          ElementKind.extensionKind,
+          ElementKind.functionKind,
+          ElementKind.methodKind
+        ];
+      } else if (node is NamedType) {
+        var parent = node.parent;
+        if (parent is ConstructorName && parent.name == null) {
+          return const [ElementKind.classKind, ElementKind.constructorKind];
+        }
+        return const [
+          ElementKind.classKind,
+          ElementKind.enumKind,
+          ElementKind.mixinKind,
+          ElementKind.typedefKind
+        ];
+      }
+      child = node;
+      node = node.parent;
+    }
+    return null;
+  }
+
   /// Return the name of the element that was changed.
   String get _name {
+    String nameFromParent(AstNode node) {
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        return parent.methodName.name;
+      } else if (parent is InstanceCreationExpression) {
+        var constructorName = parent.constructorName;
+        if (constructorName.name != null) {
+          return constructorName.name.name;
+        }
+        return constructorName.type.name.name;
+      } else if (parent is ExtensionOverride) {
+        return parent.extensionName.name;
+      }
+      return null;
+    }
+
     var node = this.node;
     if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is Label && parent.parent is NamedExpression) {
+        // The parent of the named expression is an argument list. Because we
+        // don't represent parameters as elements, the element we need to match
+        // against is the invocation containing those arguments.
+        return nameFromParent(parent.parent.parent);
+      }
       return node.name;
     } else if (node is ConstructorName) {
       return node.name.name;
     } else if (node is NamedType) {
       return node.name.name;
     } else if (node is TypeArgumentList) {
-      var parent = node.parent;
-      if (parent is MethodInvocation) {
-        return parent.methodName.name;
-      } else if (parent is ExtensionOverride) {
-        return parent.extensionName.name;
-      }
+      return nameFromParent(node);
     } else if (node is ArgumentList) {
-      var parent = node.parent;
-      if (parent is MethodInvocation) {
-        return parent.methodName.name;
-      } else if (parent is ExtensionOverride) {
-        return parent.extensionName.name;
-      }
+      return nameFromParent(node);
     }
     return null;
   }
@@ -82,6 +148,9 @@ class DataDrivenFix extends CorrectionProducer {
   final Transform _transform;
 
   DataDrivenFix(this._transform);
+
+  /// Return a description of the element that was changed.
+  ElementDescriptor get element => _transform.element;
 
   @override
   List<Object> get fixArguments => [_transform.title];

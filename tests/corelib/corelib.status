@@ -45,7 +45,7 @@ bigint_test/15: SkipSlow # modPow is very slow
 uri_parse_test: Slow, Pass
 uri_test: Slow, Pass
 
-[ $compiler == dartkb || $compiler == dartkp ]
+[ $compiler == dartkp ]
 bigint_parse_radix_test: Slow, Pass # --no_intrinsify
 bigint_test/03: SkipSlow # --no_intrinsify
 bigint_test/15: SkipSlow # --no_intrinsify

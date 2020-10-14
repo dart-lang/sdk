@@ -21,6 +21,16 @@ library from "org-dartlang-test:///lib.dart" as lib {
   }
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
+//
+// Problems in library:
+//
+// org-dartlang-test:///lib2.dart:3:9: Error: Constant evaluation error:
+//   const Foo(0);
+//         ^
+// org-dartlang-test:///lib.dart:2:31: Context: This assertion failed.
+//   const Foo(int i) : assert(i > 0);
+//                               ^
+//
 
   import "org-dartlang-test:///lib.dart";
 

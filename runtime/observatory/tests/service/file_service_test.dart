@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 import 'test_helper.dart';
 
 Future setupFiles() async {
-  var dir = await io.Directory.systemTemp.createTemp('file_service');
+  final dir = await io.Directory.systemTemp.createTemp('file_service');
   var writingFile;
   var readingFile;
 
@@ -28,20 +28,20 @@ Future setupFiles() async {
 
   Future<ServiceExtensionResponse> cleanup(ignored_a, ignored_b) {
     closeDown();
-    var result = jsonEncode({'type': 'foobar'});
-    return new Future.value(new ServiceExtensionResponse.result(result));
+    final result = jsonEncode({'type': 'foobar'});
+    return Future.value(ServiceExtensionResponse.result(result));
   }
 
   Future<ServiceExtensionResponse> setup(ignored_a, ignored_b) async {
     try {
-      var filePath = dir.path + io.Platform.pathSeparator + "file";
-      var f = new io.File(filePath);
+      final filePath = dir.path + io.Platform.pathSeparator + "file";
+      final f = io.File(filePath);
       writingFile = await f.open(mode: io.FileMode.write);
       await writingFile.writeByte(42);
       await writingFile.writeByte(42);
       await writingFile.writeByte(42);
 
-      var file = new io.File.fromUri(io.Platform.script);
+      final file = io.File.fromUri(io.Platform.script);
       readingFile = await file.open();
       await readingFile.readByte();
       await readingFile.readByte();
@@ -51,18 +51,18 @@ Future setupFiles() async {
 
       // The utility functions should close the files after them, so we
       // don't expect the calls below to result in open files.
-      var writeTemp = dir.path + io.Platform.pathSeparator + "other_file";
-      var utilFile = new io.File(writeTemp);
+      final writeTemp = dir.path + io.Platform.pathSeparator + "other_file";
+      final utilFile = io.File(writeTemp);
       await utilFile.writeAsString('foobar');
-      var readTemp = new io.File(writeTemp);
-      var result = await readTemp.readAsString();
+      final readTemp = io.File(writeTemp);
+      final result = await readTemp.readAsString();
       Expect.equals(result, 'foobar');
     } catch (e) {
       closeDown();
       throw e;
     }
-    var result = jsonEncode({'type': 'foobar'});
-    return new Future.value(new ServiceExtensionResponse.result(result));
+    final result = jsonEncode({'type': 'foobar'});
+    return Future.value(ServiceExtensionResponse.result(result));
   }
 
   registerExtension('ext.dart.io.cleanup', cleanup);
@@ -73,30 +73,29 @@ var fileTests = <IsolateTest>[
   (Isolate isolate) async {
     await isolate.invokeRpcNoUpgrade('ext.dart.io.setup', {});
     try {
-      var result =
+      final result =
           await isolate.invokeRpcNoUpgrade('ext.dart.io.getOpenFiles', {});
-      expect(result['type'], equals('_openfiles'));
+      expect(result['type'], equals('OpenFileList'));
+      expect(result['files'].length, equals(2));
+      final writing = await isolate.invokeRpcNoUpgrade(
+          'ext.dart.io.getOpenFileById', {'id': result['files'][0]['id']});
 
-      expect(result['data'].length, equals(2));
-      var writing = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getFileByID', {'id': result['data'][0]['id']});
-
-      expect(writing['totalRead'], equals(0));
+      expect(writing['readBytes'], equals(0));
       expect(writing['readCount'], equals(0));
       expect(writing['writeCount'], equals(3));
-      expect(writing['totalWritten'], equals(3));
-      expect(writing['lastWrite'], greaterThan(0));
-      expect(writing['lastRead'], equals(0));
+      expect(writing['writeBytes'], equals(3));
+      expect(writing['lastWriteTime'], greaterThan(0));
+      expect(writing['lastReadTime'], equals(0));
 
-      var reading = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getFileByID', {'id': result['data'][1]['id']});
+      final reading = await isolate.invokeRpcNoUpgrade(
+          'ext.dart.io.getOpenFileById', {'id': result['files'][1]['id']});
 
-      expect(reading['totalRead'], equals(5));
+      expect(reading['readBytes'], equals(5));
       expect(reading['readCount'], equals(5));
       expect(reading['writeCount'], equals(0));
-      expect(reading['totalWritten'], equals(0));
-      expect(reading['lastWrite'], equals(0));
-      expect(reading['lastRead'], greaterThan(0));
+      expect(reading['writeBytes'], equals(0));
+      expect(reading['lastWriteTime'], equals(0));
+      expect(reading['lastReadTime'], greaterThan(0));
     } finally {
       await isolate.invokeRpcNoUpgrade('ext.dart.io.cleanup', {});
     }

@@ -33,7 +33,7 @@ class DillMemberBuilder extends MemberBuilderImpl {
 
   String get debugName => "DillMemberBuilder";
 
-  String get name => member.name.name;
+  String get name => member.name.text;
 
   bool get isConstructor => member is Constructor;
 
@@ -187,8 +187,13 @@ class DillClassMember extends BuilderClassMember {
   }
 
   @override
-  void registerOverrideDependency(ClassMember overriddenMember) {
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
     // Do nothing; this is only for source members.
+  }
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    return other is DillClassMember && memberBuilder == other.memberBuilder;
   }
 
   String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';

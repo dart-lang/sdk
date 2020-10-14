@@ -6,7 +6,6 @@
 
 import "dart:async";
 
-@pragma('dart2js:disableFinal')
 /*member: main:
  dynamic=[runtimeType],
  runtimeType=[unknown:FutureOr<int*>*],
@@ -22,6 +21,7 @@ import "dart:async";
   inst:JSUInt31,
   inst:JSUInt32]
 */
+@pragma('dart2js:disableFinal')
 void main() {
   FutureOr<int> i = new Future<int>.value(0);
   print(i.runtimeType);

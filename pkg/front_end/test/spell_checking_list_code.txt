@@ -73,6 +73,7 @@ b
 b0i
 b0m
 b0n
+b1a
 b1i
 b1m
 b1n
@@ -81,6 +82,7 @@ b2i
 b2m
 b2n
 backping
+backstop
 badly
 bang
 bar
@@ -163,6 +165,7 @@ chars
 checkpoint
 chunks
 ci
+circuited
 ck
 cl
 claim
@@ -526,6 +529,7 @@ initializations
 initializer's
 insertion
 inspect
+inspecting
 inspection
 inspector
 inspired
@@ -552,6 +556,7 @@ iterables
 iterating
 iterations
 iterators
+ith
 j
 jacobr
 jakemac
@@ -564,12 +569,15 @@ json
 jumps
 juxtaposition
 juxtapositions
+jvm
 k
 kallentu
 kernel's
 kernel2kernel
 klass
 kmillikin
+kotlin
+kotlinlang
 kustermann
 kv
 k’s
@@ -752,6 +760,7 @@ overlap
 overloader
 overlooked
 overshadowed
+oversight
 overwrite
 overwriting
 ownership
@@ -845,6 +854,7 @@ r'\t
 r'\u
 r'\v
 r0i
+r0j
 r1i
 r2i
 ra
@@ -859,6 +869,8 @@ rb
 rc
 re
 reach
+reachabilities
+reachability
 react
 realign
 realise
@@ -884,12 +896,14 @@ redeclared
 redefine
 redirectee
 redirector
+redo
 reexports
 ref
 reflect
 reflective
 reg
 regis
+registering
 rehash
 reindexed
 reissued
@@ -971,7 +985,9 @@ shallow
 shas
 shelf
 shifts
+shl
 showing
+shr
 shrinking
 shru
 si
@@ -1026,9 +1042,12 @@ statics
 stderr
 stdin
 stdio
+stdlib
 stdout
+sticky
 stmt
 str
+strategies
 streak
 streaming
 strict
@@ -1194,8 +1213,11 @@ unreachable
 unseen
 unshadowed
 unsortable
+unsound
+unsoundness
 unwrapper
 unwraps
+unwritten
 unzip
 upcast
 update2018
@@ -1215,6 +1237,7 @@ variable's
 variances
 variant
 variants
+variation
 vary
 vb
 vector
@@ -1238,6 +1261,7 @@ wb
 wc
 weakened
 weakener
+weed
 weird
 weren't
 werror
@@ -1291,6 +1315,7 @@ xdc
 xdfff
 xef
 xi
+xj
 xk
 xm
 xn
@@ -1310,6 +1335,7 @@ y`s
 yaml
 yb
 yet
+yi
 yielding
 yields
 yn

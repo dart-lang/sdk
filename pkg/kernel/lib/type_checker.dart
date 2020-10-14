@@ -456,27 +456,6 @@ class TypeCheckingVisitor
   }
 
   @override
-  DartType visitDirectMethodInvocation(DirectMethodInvocation node) {
-    return handleCall(node.arguments, node.target.getterType,
-        receiver: getReceiverType(node, node.receiver, node.target));
-  }
-
-  @override
-  DartType visitDirectPropertyGet(DirectPropertyGet node) {
-    var receiver = getReceiverType(node, node.receiver, node.target);
-    return receiver.substituteType(node.target.getterType);
-  }
-
-  @override
-  DartType visitDirectPropertySet(DirectPropertySet node) {
-    var receiver = getReceiverType(node, node.receiver, node.target);
-    var value = visitExpression(node.value);
-    checkAssignable(node, value,
-        receiver.substituteType(node.target.setterType, contravariant: true));
-    return value;
-  }
-
-  @override
   DartType visitDoubleLiteral(DoubleLiteral node) {
     return environment.coreTypes.doubleLegacyRawType;
   }
@@ -622,11 +601,11 @@ class TypeCheckingVisitor
     var target = node.interfaceTarget;
     if (target == null) {
       var receiver = visitExpression(node.receiver);
-      if (node.name.name == '==') {
+      if (node.name.text == '==') {
         visitExpression(node.arguments.positional.single);
         return environment.coreTypes.boolLegacyRawType;
       }
-      if (node.name.name == 'call' && receiver is FunctionType) {
+      if (node.name.text == 'call' && receiver is FunctionType) {
         return handleFunctionCall(node, receiver, node.arguments);
       }
       checkUnresolvedInvocation(receiver, node);

@@ -129,3 +129,12 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 var missingPropertySet = emptyClass.property = 42;
                                     ^^^^^^^^";
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///missing_toplevel.dart:30:41 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///missing_toplevel.dart:30:48 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///missing_toplevel.dart:30:48 -> IntConstant(2)
+Evaluated: VariableGet @ org-dartlang-testcase:///missing_toplevel.dart:31:41 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///missing_toplevel.dart:31:48 -> IntConstant(2)
+Extra constant evaluation: evaluated: 37, effectively constant: 5

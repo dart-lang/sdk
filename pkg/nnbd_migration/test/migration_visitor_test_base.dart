@@ -210,7 +210,7 @@ mixin EdgeTester {
       Object guards = isEmpty,
       Object codeReference}) {
     var edges = getEdges(source, destination);
-    if (edges.length == 0) {
+    if (edges.isEmpty) {
       fail('Expected edge $source -> $destination, found none');
     } else if (edges.length != 1) {
       fail('Found multiple edges $source -> $destination');

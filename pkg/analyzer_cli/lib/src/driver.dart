@@ -51,11 +51,9 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /// Shared IO sink for standard error reporting.
-@visibleForTesting
 StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
-@visibleForTesting
 StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
@@ -96,9 +94,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   PathFilter pathFilter;
 
   /// Create a new Driver instance.
-  ///
-  /// [isTesting] is true if we're running in a test environment.
-  Driver({bool isTesting = false});
+  Driver({@Deprecated('This parameter has no effect') bool isTesting = false});
 
   /// Converts the given [filePath] into absolute and normalized.
   String normalizePath(String filePath) {
@@ -439,7 +435,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
       } else {
         // The embedder uri resolver has mappings, use it instead of the default
         // Dart SDK uri resolver.
-        embedderSdk.analysisOptions = analysisOptions;
         resolvers.add(DartUriResolver(embedderSdk));
       }
     }
@@ -648,10 +643,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
         sdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
       } else {
         var dartSdkPath = options.dartSdkPath;
-        var dartSdk = FolderBasedDartSdk(
-            resourceProvider, resourceProvider.getFolder(dartSdkPath));
-        dartSdk.analysisOptions = analysisOptions;
-        sdk = dartSdk;
+        sdk = FolderBasedDartSdk(
+          resourceProvider,
+          resourceProvider.getFolder(dartSdkPath),
+        );
       }
     }
   }

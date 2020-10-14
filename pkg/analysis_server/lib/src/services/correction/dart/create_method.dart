@@ -41,7 +41,7 @@ class CreateMethod extends CorrectionProducer {
     if (methodDecl != null && classDecl != null) {
       final classElement = classDecl.declaredElement;
 
-      var element;
+      ExecutableElement element;
       if (methodDecl.name.name == 'hashCode') {
         _memberName = '==';
         element = classElement.lookUpInheritedMethod(

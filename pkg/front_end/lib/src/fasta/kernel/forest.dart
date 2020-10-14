@@ -424,12 +424,21 @@ class Forest {
   }
 
   /// Return a representation of a logical expression at the given [fileOffset]
-  /// having the [leftOperand], [rightOperand] and the [operator]
+  /// having the [leftOperand], [rightOperand] and the [operatorString]
   /// (either `&&` or `||`).
   Expression createLogicalExpression(int fileOffset, Expression leftOperand,
-      String operator, Expression rightOperand) {
+      String operatorString, Expression rightOperand) {
     assert(fileOffset != null);
-    assert(operator == '&&' || operator == '||');
+    LogicalExpressionOperator operator;
+    if (operatorString == '&&') {
+      operator = LogicalExpressionOperator.AND;
+    } else if (operatorString == '||') {
+      operator = LogicalExpressionOperator.OR;
+    } else {
+      throw new UnsupportedError(
+          "Unhandled logical operator '$operatorString'");
+    }
+
     return new LogicalExpression(leftOperand, operator, rightOperand)
       ..fileOffset = fileOffset;
   }

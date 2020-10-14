@@ -7,6 +7,7 @@
 
 #include "vm/class_finalizer.h"
 
+#include "vm/canonical_tables.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
@@ -21,7 +22,6 @@
 #include "vm/runtime_entry.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
-#include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 
 namespace dart {
@@ -626,22 +626,26 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
             // We need to finish finalizing its type arguments.
-            ASSERT(super_type_arg.IsTypeRef());
-            AbstractType& ref_super_type_arg =
-                AbstractType::Handle(TypeRef::Cast(super_type_arg).type());
-            if (FLAG_trace_type_finalization) {
-              THR_Print("Instantiated TypeRef '%s': '%s'\n",
-                        String::Handle(super_type_arg.Name()).ToCString(),
-                        ref_super_type_arg.ToCString());
+            AbstractType& unfinalized_type = AbstractType::Handle();
+            if (super_type_arg.IsTypeRef()) {
+              unfinalized_type = TypeRef::Cast(super_type_arg).type();
+            } else {
+              ASSERT(super_type_arg.IsType());
+              unfinalized_type = super_type_arg.raw();
             }
-            CheckRecursiveType(cls, ref_super_type_arg, pending_types);
-            pending_types->Add(ref_super_type_arg);
+            if (FLAG_trace_type_finalization) {
+              THR_Print("Instantiated unfinalized '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
+            }
+            CheckRecursiveType(cls, unfinalized_type, pending_types);
+            pending_types->Add(unfinalized_type);
             const Class& super_cls =
-                Class::Handle(ref_super_type_arg.type_class());
+                Class::Handle(unfinalized_type.type_class());
             const TypeArguments& super_args =
-                TypeArguments::Handle(ref_super_type_arg.arguments());
+                TypeArguments::Handle(unfinalized_type.arguments());
             // Mark as finalized before finalizing to avoid cycles.
-            ref_super_type_arg.SetIsFinalized();
+            unfinalized_type.SetIsFinalized();
             // Although the instantiator is different between cls and super_cls,
             // we still need to pass the current instantiation trail as to avoid
             // divergence. Finalizing the type arguments of super_cls may indeed
@@ -652,9 +656,9 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                 super_cls.NumTypeArguments() - super_cls.NumTypeParameters(),
                 pending_types, trail);
             if (FLAG_trace_type_finalization) {
-              THR_Print("Finalized instantiated TypeRef '%s': '%s'\n",
-                        String::Handle(super_type_arg.Name()).ToCString(),
-                        ref_super_type_arg.ToCString());
+              THR_Print("Finalized instantiated '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
             }
           }
         }
@@ -676,7 +680,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
   if (type.IsFinalized()) {
     // Ensure type is canonical if canonicalization is requested.
     if ((finalization >= kCanonicalize) && !type.IsCanonical()) {
-      return type.Canonicalize();
+      return type.Canonicalize(Thread::Current(), nullptr);
     }
     return type.raw();
   }
@@ -733,7 +737,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
       ASSERT(type_parameter.IsCanonical());
       return type_parameter.raw();
     }
-    return type_parameter.Canonicalize();
+    return type_parameter.Canonicalize(Thread::Current(), nullptr);
   }
 
   // At this point, we can only have a Type.
@@ -817,13 +821,13 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
     if (FLAG_trace_type_finalization) {
       THR_Print("Canonicalizing type '%s'\n",
                 String::Handle(zone, type.Name()).ToCString());
-      AbstractType& canonical_type =
-          AbstractType::Handle(zone, type.Canonicalize());
+      AbstractType& canonical_type = AbstractType::Handle(
+          zone, type.Canonicalize(Thread::Current(), nullptr));
       THR_Print("Done canonicalizing type '%s'\n",
                 String::Handle(zone, canonical_type.Name()).ToCString());
       return canonical_type.raw();
     }
-    return type.Canonicalize();
+    return type.Canonicalize(Thread::Current(), nullptr);
   } else {
     return type.raw();
   }
@@ -1269,8 +1273,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   enum_value = Instance::New(enum_cls, Heap::kOld);
   enum_value.SetField(index_field, Smi::Handle(zone, Smi::New(-1)));
   enum_value.SetField(name_field, enum_ident);
-  const char* error_msg = NULL;
-  enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
+  enum_value = enum_value.Canonicalize(thread);
   ASSERT(!enum_value.IsNull());
   ASSERT(enum_value.IsCanonical());
   const Field& sentinel = Field::Handle(

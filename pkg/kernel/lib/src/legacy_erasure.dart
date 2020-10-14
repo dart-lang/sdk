@@ -56,7 +56,7 @@ class _LegacyErasure extends ReplacementVisitor {
   _LegacyErasure(this.coreTypes);
 
   Nullability visitNullability(DartType node) {
-    if (node.nullability != Nullability.legacy) {
+    if (node.declaredNullability != Nullability.legacy) {
       return Nullability.legacy;
     }
     return null;

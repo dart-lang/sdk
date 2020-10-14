@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/heap/pages.h"
 #include "vm/heap/safepoint.h"
@@ -67,8 +68,7 @@ Heap::Heap(IsolateGroup* isolate_group,
       read_only_(false),
       last_gc_was_old_space_(false),
       assume_scavenge_will_fail_(false),
-      gc_on_nth_allocation_(kNoForcedGarbageCollection),
-      gc_event_callback_(nullptr) {
+      gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     new_weak_tables_[sel] = new WeakTable();
@@ -111,15 +111,13 @@ uword Heap::AllocateNew(intptr_t size) {
 
 uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
-  CollectForDebugging();
-  uword addr = old_space_.TryAllocate(size, type);
-  if (addr != 0) {
-    return addr;
-  }
-  // If we are in the process of running a sweep, wait for the sweeper to free
-  // memory.
-  Thread* thread = Thread::Current();
   if (old_space_.GrowthControlState()) {
+    CollectForDebugging();
+    uword addr = old_space_.TryAllocate(size, type);
+    if (addr != 0) {
+      return addr;
+    }
+    Thread* thread = Thread::Current();
     // Wait for any GC tasks that are in progress.
     WaitForSweeperTasks(thread);
     addr = old_space_.TryAllocate(size, type);
@@ -148,7 +146,7 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
     CollectAllGarbage(kLowMemory);
     WaitForSweeperTasks(thread);
   }
-  addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
+  uword addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
   if (addr != 0) {
     return addr;
   }
@@ -725,6 +723,16 @@ void Heap::MergeFrom(Heap* donor) {
     new_weak_tables_[i]->MergeFrom(donor->new_weak_tables_[i]);
     old_weak_tables_[i]->MergeFrom(donor->old_weak_tables_[i]);
   }
+
+  StoreBufferBlock* block =
+      donor->isolate_group()->store_buffer()->TakeBlocks();
+  while (block != nullptr) {
+    StoreBufferBlock* next = block->next();
+    block->set_next(nullptr);
+    isolate_group()->store_buffer()->PushBlock(block,
+                                               StoreBuffer::kIgnoreThreshold);
+    block = next;
+  }
 }
 
 void Heap::CollectForDebugging() {
@@ -1026,7 +1034,7 @@ void Heap::RecordAfterGC(GCType type) {
     });
   }
 #endif  // !PRODUCT
-  if (gc_event_callback_ != nullptr) {
+  if (Dart::gc_event_callback() != nullptr) {
     isolate_group_->ForEachIsolate([&](Isolate* isolate) {
       if (!Isolate::IsSystemIsolate(isolate)) {
         Dart_GCEvent event;
@@ -1072,7 +1080,7 @@ void Heap::RecordAfterGC(GCType type) {
               AvgCollectionPeriod(isolate_uptime_micros, old_space_collections);
         }
 
-        (*gc_event_callback_)(&event);
+        (*Dart::gc_event_callback())(&event);
       }
     });
   }

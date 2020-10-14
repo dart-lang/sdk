@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'recovery_test_support.dart';
@@ -58,31 +56,6 @@ f() => [a, if (x) b else y, c];
 /// Test how well the parser recovers when tokens are missing in a map literal.
 @reflectiveTest
 class MapLiteralTest extends AbstractRecoveryTest {
-  final beforeUiAsCode = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.2.0'),
-    flags: [],
-  );
-
-  void test_extraComma() {
-    testRecovery('''
-f() => {a: b, , c: d};
-''', [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.MISSING_IDENTIFIER
-    ], '''
-f() => {a: b, _s_: _s_, c: d};
-''', featureSet: beforeUiAsCode);
-  }
-
-  void test_missingColonAndValue_last() {
-    testRecovery('''
-f() => {a: b, c };
-''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
-f() => {a: b, c: _s_};
-''', featureSet: beforeUiAsCode);
-  }
-
   void test_missingComma() {
     testRecovery('''
 f() => {a: b, c: d e: f};

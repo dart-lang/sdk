@@ -1,0 +1,12 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ !$browser ]
+*: SkipByDesign
+
+# custom elements are not supported on old browsers, we don't
+# intend for observatory to work on old browser versions, so
+# skipping.
+[ $runtime == ff || $runtime == ie10 || $runtime == ie11 || $runtime == safari ]
+*: SkipByDesign

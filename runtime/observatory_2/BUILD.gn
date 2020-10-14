@@ -1,0 +1,272 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("../../build/dart/copy_tree.gni")
+import("../../build/dart/dart_action.gni")
+import("observatory_sources.gni")
+
+prebuilt_dart2js_action("build_observatory") {
+  visibility = [ ":copy_main_dart_js" ]
+
+  script = "web/main.dart"
+
+  # dart2js produces a .deps file, but it is not in a format that is understood
+  # by ninja, so we explicitly list all the sources here.
+  inputs = [ "../../.packages" ] + observatory_sources
+
+  output = "$target_gen_dir/observatory/web/main.dart.js"
+  outputs = [ output ]
+  if (is_debug) {
+    outputs += [ "$target_gen_dir/observatory/web/main.dart.js.map" ]
+  }
+
+  version_string = exec_script("../../tools/make_version.py",
+                               [
+                                 "--quiet",
+                                 "--no_git_hash",
+                               ],  # Arguments to the script
+                               "trim string",  # Input conversions
+                               [
+                                 "../../tools/VERSION",
+                                 "../tools/utils.py",
+                               ])  # Dependencies
+
+  args = [
+    "-DOBS_VER=${version_string}",
+    "-o",
+    rebase_path(output),
+    "--packages=" + rebase_path("../../.packages"),
+  ]
+  if (is_debug) {
+    args += [ "--enable-asserts" ]
+  } else {
+    args += [ "--minify" ]
+  }
+}
+
+# The rules here down to "deploy_observatory" copy files into place such that
+# they can be packaged into a tar file. These rules do the following copies:
+#
+# web/* ->
+#     $target_out_dir/observatory/deployed/web
+# $target_gen_dir/observatory/web/main.dart.js ->
+#     $target_out_dir/observatory/deployed/web/main.dart.js
+# ../../third_party/observatory_pub_packages/packages/$PACKAGE/lib/* ->
+#     $target_out_dir/observatory/deployed/web/packages/$PACKAGE
+# lib/* ->
+#     $target_out_dir/observatory/deployed/web/packages/observatory
+#
+# Files matching "observatory_ignore_patterns" are excluded.
+
+# Files matching these patterns are filtered out of the Observatory assets.
+observatory_ignore_patterns = [
+  # "\$sdk", this is the first element concatenated into the string below.
+  "*.concat.js",
+  "*.dart",
+  "*.log",
+  "*.precompiled.js",
+  "*.scriptUrls",
+  "*_buildLogs*",
+  "*~",
+  "CustomElements.*",
+  "HTMLImports.*",
+  "MutationObserver.*",
+  "ShadowDOM.*",
+  "bower.json",
+  "dart_support.*",
+  "interop_support.*",
+  "package.json",
+  "unittest*",
+]
+
+if (!is_debug) {
+  observatory_ignore_patterns += [ "*.map" ]
+}
+
+# The ignore_patterns entry in the scopes accepted by copy_trees() is a
+# string of comma delimited patterns.
+observatory_ignore_string = "\$sdk"
+foreach(pattern, observatory_ignore_patterns) {
+  observatory_ignore_string = "$observatory_ignore_string,$pattern"
+}
+
+copy_tree_specs = []
+
+copy_tree_specs += [
+  {
+    target = "copy_web_package"
+    visibility = [ ":deploy_observatory" ]
+    source = "web"
+    dest = "$target_out_dir/observatory/deployed/web"
+    ignore_patterns = observatory_ignore_string
+  },
+]
+
+copy_tree_specs += [
+  {
+    target = "copy_observatory_package"
+    visibility = [ ":deploy_observatory" ]
+    source = "lib"
+    dest = "$target_out_dir/observatory/deployed/web/packages/observatory"
+    ignore_patterns = observatory_ignore_string
+  },
+]
+
+# This is not a rule, rather, it generates rules with names of the form:
+#   "copy_$package_package" for the packages in observatory_pub_packages.
+copy_trees("copy_observatory_packages") {
+  sources = copy_tree_specs
+}
+
+copy("copy_main_dart_js") {
+  visibility = [ ":deploy_observatory" ]
+  deps = [ ":build_observatory" ]
+  sources = [ "$target_gen_dir/observatory/web/main.dart.js" ]
+  if (is_debug) {
+    sources += [ "$target_gen_dir/observatory/web/main.dart.js.map" ]
+  }
+  outputs = [ "$target_out_dir/observatory/deployed/web/{{source_file_part}}" ]
+}
+
+group("deploy_observatory") {
+  deps = [
+    ":copy_main_dart_js",
+    ":copy_observatory_package",
+    ":copy_web_package",
+  ]
+}
+
+template("observatory_archive") {
+  enable_compression = false
+  if (defined(invoker.compress) && invoker.compress) {
+    enable_compression = true
+  }
+  action(target_name) {
+    deps = [ ":deploy_observatory" ]
+
+    output_name = target_name
+
+    output = "$target_gen_dir/${output_name}.tar"
+    outputs = [ output ]
+
+    script = "../tools/create_archive.py"
+    args = [
+      "--tar_output",
+      rebase_path(output),
+      "--client_root",
+      rebase_path("$target_out_dir/observatory/deployed/web/"),
+    ]
+    if (enable_compression) {
+      args += [ "--compress" ]
+    }
+  }
+}
+
+observatory_archive("compressed_observatory_archive") {
+  compress = true
+}
+
+copy("copy_compressed_observatory_archive") {
+  archive_target = ":compressed_observatory_archive"
+  deps = [ archive_target ]
+  archive_dir = get_label_info(archive_target, "target_gen_dir")
+  archive_name = get_label_info(archive_target, "name")
+  archive_file = "${archive_dir}/${archive_name}.tar"
+  sources = [ archive_file ]
+  outputs = [ "$root_out_dir/${archive_name}.tar" ]
+}
+
+observatory_archive("observatory_archive") {
+  compress = false
+}
+
+copy("copy_observatory_archive") {
+  archive_target = ":observatory_archive"
+  deps = [ archive_target ]
+  archive_dir = get_label_info(archive_target, "target_gen_dir")
+  archive_name = get_label_info(archive_target, "name")
+  archive_file = "${archive_dir}/${archive_name}.tar"
+  sources = [ archive_file ]
+  outputs = [ "$root_out_dir/${archive_name}.tar" ]
+}
+
+# Generates a .cc file containing the bytes of the observatory archive in a C
+# array.
+#
+# Parameters:
+#  inner_namespace (required):
+#    The inner C++ namespace that the C array lives in.
+#
+#  outer_namespace (required):
+#    The outer C++ namespace that the C array lives in.
+#
+#  archive_file (required):
+#    The path to the observatory archive.
+#
+template("observatory_archive_source") {
+  assert(defined(invoker.inner_namespace),
+         "Need inner_namespace in $target_name")
+  assert(defined(invoker.outer_namespace),
+         "Need outer_namespace in $target_name")
+  assert(defined(invoker.archive_file), "Need archive_file in $target_name")
+
+  action(target_name) {
+    forward_variables_from(invoker, [ "deps" ])
+
+    inputs = [ invoker.archive_file ]
+
+    output = "$target_gen_dir/${target_name}.cc"
+    outputs = [ output ]
+
+    script = "../tools/create_archive.py"
+    args = [
+      "--tar_input",
+      rebase_path(invoker.archive_file),
+      "--output",
+      rebase_path(output),
+      "--outer_namespace",
+      invoker.outer_namespace,
+      "--inner_namespace",
+      invoker.inner_namespace,
+      "--name",
+      "observatory_assets_archive",
+    ]
+  }
+}
+
+observatory_archive_source("embedded_archive_observatory") {
+  outer_namespace = "dart"
+  inner_namespace = "observatory"
+
+  # TODO(zra): In a Fuchsia build, use a prebuilt Observatory archive.
+  archive_target = ":observatory_archive"
+  deps = [ archive_target ]
+  archive_dir = get_label_info(archive_target, "target_gen_dir")
+  archive_name = get_label_info(archive_target, "name")
+  archive_file = "${archive_dir}/${archive_name}.tar"
+}
+
+source_set("embedded_observatory_archive") {
+  deps = [ ":embedded_archive_observatory" ]
+
+  sources = [ rebase_path("$target_gen_dir/embedded_archive_observatory.cc") ]
+}
+
+observatory_archive_source("standalone_archive_observatory") {
+  outer_namespace = "dart"
+  inner_namespace = "bin"
+
+  # TODO(zra): In a Fuchsia build, use a prebuilt Observatory archive.
+  archive_target = ":compressed_observatory_archive"
+  deps = [ archive_target ]
+  archive_dir = get_label_info(archive_target, "target_gen_dir")
+  archive_name = get_label_info(archive_target, "name")
+  archive_file = "${archive_dir}/${archive_name}.tar"
+}
+
+source_set("standalone_observatory_archive") {
+  deps = [ ":standalone_archive_observatory" ]
+
+  sources = [ rebase_path("$target_gen_dir/standalone_archive_observatory.cc") ]
+}

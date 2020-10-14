@@ -194,8 +194,12 @@ class A {
 }
 f(A a) {
   a['0'] += 0;
+  ++a['0'];
+  a['0']++;
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
     ]);
   }
 
@@ -219,8 +223,12 @@ class A {
 }
 f(A a) {
   a['0'] += 0;
+  ++a['0'];
+  a['0']++;
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 103, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 120, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 130, 3),
     ]);
   }
 
@@ -440,15 +448,15 @@ class A {
   bool operator==(covariant A other) => false;
 }
 
-main(A a, A? aq) {
+void f(A a, A? aq) {
   a == 0;
   aq == 1;
   aq == aq;
   aq == null;
 }
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 86, 1),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 97, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
     ]);
   }
 

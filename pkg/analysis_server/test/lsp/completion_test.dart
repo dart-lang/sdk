@@ -53,7 +53,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
 
     // By default, there should be no commit characters.
     var reg = registration(Method.textDocument_completion);
-    var options = reg.registerOptions as CompletionRegistrationOptions;
+    var options = CompletionRegistrationOptions.fromJson(reg.registerOptions);
     expect(options.allCommitCharacters, isNull);
 
     // When we change config, we should get a re-registration (unregister then
@@ -61,7 +61,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     await monitorDynamicReregistration(
         registrations, () => updateConfig({'previewCommitCharacters': true}));
     reg = registration(Method.textDocument_completion);
-    options = reg.registerOptions as CompletionRegistrationOptions;
+    options = CompletionRegistrationOptions.fromJson(reg.registerOptions);
     expect(options.allCommitCharacters, equals(dartCompletionCommitCharacters));
   }
 
@@ -935,6 +935,7 @@ main() {
     final commandResponse = await handleExpectedRequest<Object,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
       Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(resolved.command),
       handler: (edit) {
         // When the server sends the edit back, just keep a copy and say we

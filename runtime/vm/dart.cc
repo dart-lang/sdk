@@ -69,6 +69,7 @@ Dart_FileReadCallback Dart::file_read_callback_ = NULL;
 Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
+Dart_GCEventCallback Dart::gc_event_callback_ = nullptr;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -105,6 +106,9 @@ static void CheckOffsets() {
                  static_cast<intptr_t>(offset));                               \
     ok = false;                                                                \
   }
+
+// No consistency checks needed for this construct.
+#define CHECK_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define CHECK_FIELD(Class, Name)                                               \
@@ -143,11 +147,12 @@ static void CheckOffsets() {
 #define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-  COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE,
-                      CHECK_CONSTANT)
+  COMMON_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
+                      CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT)
 
-  NOT_IN_PRECOMPILED_RUNTIME(JIT_OFFSETS_LIST(
-      CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
+  NOT_IN_PRECOMPILED_RUNTIME(
+      JIT_OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_SIZEOF,
+                       CHECK_PAYLOAD_SIZEOF, CHECK_RANGE, CHECK_CONSTANT))
 
   if (!ok) {
     FATAL(
@@ -161,6 +166,7 @@ static void CheckOffsets() {
 #undef CHECK_RANGE
 #undef CHECK_CONSTANT
 #undef CHECK_OFFSET
+#undef CHECK_PAYLOAD_SIZEOF
 #endif  // !defined(IS_SIMARM_X64)
 }
 
@@ -186,11 +192,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     return Utils::StrDup("VM already initialized or flags not initialized.");
   }
 
-  if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
-    return Utils::StrDup(
-        "To use --lazy-async-stacks, please disable --causal-async-stacks!");
-  }
-
   const Snapshot* snapshot = nullptr;
   if (vm_isolate_snapshot != nullptr) {
     snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
@@ -209,6 +210,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     if (error != nullptr) {
       return error;
     }
+  }
+  if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
+    return Utils::StrDup(
+        "To use --lazy-async-stacks, please disable --causal-async-stacks!");
   }
 
   FrameLayout::Init();
@@ -777,12 +782,12 @@ bool Dart::DetectNullSafety(const char* script_uri,
   //   when generating the snapshot.
   ASSERT(FLAG_sound_null_safety == kNullSafetyOptionUnspecified);
 
-  // If snapshot is an appJIT/AOT snapshot we will figure out the mode by
+  // If snapshot is not a core snapshot we will figure out the mode by
   // sniffing the feature string in the snapshot.
   if (snapshot_data != nullptr) {
     // Read the snapshot and check for null safety option.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
-    if (Snapshot::IncludesCode(snapshot->kind())) {
+    if (!Snapshot::IsAgnosticToNullSafety(snapshot->kind())) {
       return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
     }
   }
@@ -1029,7 +1034,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
 #error What architecture?
 #endif
+  }
 
+  if (!Snapshot::IsAgnosticToNullSafety(kind)) {
     if (isolate != NULL) {
       if (isolate->null_safety()) {
         buffer.AddString(" null-safety");

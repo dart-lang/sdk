@@ -205,6 +205,26 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         exists: true);
   }
 
+  void test_resolveAbsolute_null_doubleDot() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
+    var uri = Uri.parse('package:foo..bar/baz.dart');
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_null_doubleSlash() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
+    var uri = Uri.parse('package:foo//bar/baz.dart');
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
   void test_resolveAbsolute_null_noSlash() {
     _addResources([
       '/workspace/WORKSPACE',

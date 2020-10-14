@@ -13,6 +13,7 @@ import 'package:kernel/binary/ast_from_binary.dart'
         CanonicalNameError,
         CanonicalNameSdkError,
         CompilationModeError,
+        InvalidKernelSdkVersionError,
         InvalidKernelVersionError,
         SubComponentView;
 
@@ -125,7 +126,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final CompilerContext context;
 
   final Ticker ticker;
-
+  final bool resetTicker;
   final bool outlineOnly;
   bool trackNeededDillLibraries = false;
   Set<Library> neededDillLibraries;
@@ -160,6 +161,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       this.context, this.componentToInitializeFrom,
       [bool outlineOnly, this.incrementalSerializer])
       : ticker = context.options.ticker,
+        resetTicker = true,
         initializeFromDillUri = null,
         this.outlineOnly = outlineOnly ?? false,
         this.initializedForExpressionCompilationOnly = false {
@@ -171,6 +173,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       bool outlineOnly,
       this.incrementalSerializer])
       : ticker = context.options.ticker,
+        resetTicker = true,
         componentToInitializeFrom = null,
         this.outlineOnly = outlineOnly ?? false,
         this.initializedForExpressionCompilationOnly = false {
@@ -178,8 +181,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   IncrementalCompiler.forExpressionCompilationOnly(
-      this.context, this.componentToInitializeFrom)
+      this.context, this.componentToInitializeFrom,
+      [bool resetTicker])
       : ticker = context.options.ticker,
+        this.resetTicker = resetTicker ?? true,
         initializeFromDillUri = null,
         this.outlineOnly = false,
         this.incrementalSerializer = null,
@@ -201,7 +206,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<Component> computeDelta(
       {List<Uri> entryPoints, bool fullComponent: false}) async {
-    ticker.reset();
+    if (resetTicker) {
+      ticker.reset();
+    }
     entryPoints ??= context.options.inputs;
     return context.runInContext<Component>((CompilerContext c) async {
       if (computeDeltaRunOnce && initializedForExpressionCompilationOnly) {
@@ -1008,6 +1015,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
 
             if (e is InvalidKernelVersionError ||
+                e is InvalidKernelSdkVersionError ||
                 e is PackageChangedError ||
                 e is CanonicalNameSdkError ||
                 e is CompilationModeError) {
@@ -1570,6 +1578,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return await context.runInContext((_) async {
       LibraryBuilder libraryBuilder =
           userCode.loader.read(libraryUri, -1, accessor: userCode.loader.first);
+      ticker.logMs("Loaded library $libraryUri");
 
       Class cls;
       if (className != null) {
@@ -1597,6 +1606,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         nameOrigin: libraryBuilder.library,
       );
       debugLibrary.setLanguageVersion(libraryBuilder.library.languageVersion);
+      ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryDependency dependency
@@ -1629,6 +1639,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
 
         debugLibrary.addImportsToScope();
+        ticker.logMs("Added imports");
       }
 
       HybridFileSystem hfs = userCode.fileSystem;
@@ -1662,6 +1673,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Make sure the library has a canonical name.
       Component c = new Component(libraries: [debugLibrary.library]);
       c.computeCanonicalNames();
+      ticker.logMs("Built debug library");
 
       userCode.runProcedureTransformations(procedure);
 

@@ -1,5 +1,21 @@
 # Changelog
 
+## 5.3.0
+- Added support for `dart:io` extensions version 1.4.
+- Update to version `3.40.0` of the spec.
+- Added `IsolateFlag` class.
+- Added `isolateFlags` property to `Isolate`.
+
+## 5.2.0
+- Added support for `dart:io` extensions version 1.3.
+- Added combination getter/setter `httpEnableTimelineLogging`.
+- Deprecated `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging`.
+
+## 5.1.0
+- Added support for `dart:io` extensions version 1.2.
+- Added `getOpenFiles`, `getOpenFileById`, `getSpawnedProcesses`, and `getSpawnedProcessById` RPCs.
+- Added `OpenFileList`, `OpenFileRef`, `OpenFile`, `SpawnedProcessList`, `SpawnedProcessRef`, and `SpawnedProcess` objects.
+
 ## 5.0.0
 
 - **breaking**: Update to version `3.39.0` of the spec.

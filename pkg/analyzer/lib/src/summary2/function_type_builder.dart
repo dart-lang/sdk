@@ -53,7 +53,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   ) {
     return FunctionTypeBuilder(
       _getTypeParameters(node.typeParameters),
-      _getParameters(isNNBD, node.parameters),
+      getParameters(isNNBD, node.parameters),
       _getNodeType(node.returnType),
       nullabilitySuffix,
       node: node,
@@ -138,6 +138,20 @@ class FunctionTypeBuilder extends TypeBuilder {
     );
   }
 
+  /// [isNNBD] indicates whether the containing library is opted into NNBD.
+  static List<ParameterElementImpl> getParameters(
+    bool isNNBD,
+    FormalParameterList node,
+  ) {
+    return node.parameters.asImpl.map((parameter) {
+      return ParameterElementImpl.synthetic(
+        parameter.identifier?.name ?? '',
+        _getParameterType(isNNBD, parameter),
+        parameter.kind,
+      );
+    }).toList();
+  }
+
   /// If the [type] is a [TypeBuilder], build it; otherwise return as is.
   static DartType _buildType(DartType type) {
     if (type is TypeBuilder) {
@@ -154,20 +168,6 @@ class FunctionTypeBuilder extends TypeBuilder {
     } else {
       return node.type;
     }
-  }
-
-  /// [isNNBD] indicates whether the containing library is opted into NNBD.
-  static List<ParameterElementImpl> _getParameters(
-    bool isNNBD,
-    FormalParameterList node,
-  ) {
-    return node.parameters.asImpl.map((parameter) {
-      return ParameterElementImpl.synthetic(
-        parameter.identifier?.name ?? '',
-        _getParameterType(isNNBD, parameter),
-        parameter.kind,
-      );
-    }).toList();
   }
 
   /// Return the type of the [node] as is, possibly a [TypeBuilder].
@@ -190,7 +190,7 @@ class FunctionTypeBuilder extends TypeBuilder {
 
       return FunctionTypeBuilder(
         _getTypeParameters(node.typeParameters),
-        _getParameters(isNNBD, node.parameters),
+        getParameters(isNNBD, node.parameters),
         _getNodeType(node.returnType),
         nullabilitySuffix,
       );

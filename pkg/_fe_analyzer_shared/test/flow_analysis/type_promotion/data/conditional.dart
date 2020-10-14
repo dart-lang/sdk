@@ -29,3 +29,19 @@ void conditional_factor_nullable(num? x) {
   x is int? ? /*int?*/ x : /*num*/ x;
   x;
 }
+
+void conditional_join_then(bool b, Object x) {
+  if (b ? x is int : x is int) {
+    /*int*/ x;
+  } else {
+    x;
+  }
+}
+
+void conditional_join_else(bool b, Object x) {
+  if (b ? x is! int : x is! int) {
+    x;
+  } else {
+    /*int*/ x;
+  }
+}

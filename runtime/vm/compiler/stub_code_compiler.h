@@ -142,6 +142,10 @@ class StubCodeCompiler : public AllStatic {
   // InitLateFinalInstanceField stubs.
   static void GenerateInitLateInstanceFieldStub(Assembler* assembler,
                                                 bool is_final);
+
+  // Common function for generating Allocate<TypedData>Array stubs.
+  static void GenerateAllocateTypedDataArrayStub(Assembler* assembler,
+                                                 intptr_t cid);
 };
 
 }  // namespace compiler

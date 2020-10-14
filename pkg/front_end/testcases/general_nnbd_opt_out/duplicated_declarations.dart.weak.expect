@@ -490,7 +490,7 @@ class Enum#4 extends core::Object /*isEnum*/  { // from org-dartlang-testcase://
     : self::Enum#4::index = index, self::Enum#4::_name = _name, super core::Object::•()
     ;
   method toString() → core::String*
-    return this.{=self::Enum#4::_name};
+    return this.{self::Enum#4::_name};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -512,7 +512,7 @@ class Enum#3 extends core::Object /*isEnum*/  { // from org-dartlang-testcase://
     : self::Enum#3::index = index, self::Enum#3::_name = _name, super core::Object::•()
     ;
   method toString() → core::String*
-    return this.{=self::Enum#3::_name};
+    return this.{self::Enum#3::_name};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -534,7 +534,7 @@ class Enum#2 extends core::Object /*isEnum*/  { // from org-dartlang-testcase://
     : self::Enum#2::index = index, self::Enum#2::_name = _name, super core::Object::•()
     ;
   method toString() → core::String*
-    return this.{=self::Enum#2::_name};
+    return this.{self::Enum#2::_name};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -556,7 +556,7 @@ class Enum#1 extends core::Object /*isEnum*/  {
     : self::Enum#1::index = index, self::Enum#1::_name = _name, super core::Object::•()
     ;
   method toString() → core::String*
-    return this.{=self::Enum#1::_name};
+    return this.{self::Enum#1::_name};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -578,7 +578,7 @@ class Enum extends core::Object /*isEnum*/  {
     : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String*
-    return this.{=self::Enum::_name};
+    return this.{self::Enum::_name};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -600,7 +600,7 @@ class AnotherEnum extends core::Object /*isEnum*/  {
     : self::AnotherEnum::index = index, self::AnotherEnum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String*
-    return this.{=self::AnotherEnum::_name};
+    return this.{self::AnotherEnum::_name};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

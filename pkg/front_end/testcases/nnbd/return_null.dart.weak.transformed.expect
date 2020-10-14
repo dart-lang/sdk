@@ -55,6 +55,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
+import "dart:_internal" as _in;
 
 import "dart:async";
 
@@ -68,7 +69,7 @@ class Enum extends core::Object /*isEnum*/  {
     : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return this.{=self::Enum::_name};
+    return this.{self::Enum::_name};
 }
 static method returnImplicit() → core::String {
   core::print("foo");
@@ -320,16 +321,19 @@ static method caseReturn1(self::Enum e) → self::Enum {
       {
         return e;
       }
+    #L11:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method caseReturn2(self::Enum e) → self::Enum {
   switch(e) {
-    #L11:
+    #L12:
     case #C3:
       {
         return e;
       }
-    #L12:
+    #L13:
     default:
       {}
   }
@@ -372,7 +376,7 @@ static method localFunctions() → dynamic {
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
-        #L13:
+        #L14:
         {}
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
@@ -396,7 +400,7 @@ static method localFunctions() → dynamic {
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
-        #L14:
+        #L15:
         {}
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
@@ -420,12 +424,12 @@ static method localFunctions() → dynamic {
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
-        #L15:
+        #L16:
         {
           :return_value = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   FutureOr<int> returnAsync3() async {} // error
   ^" in null;
-          break #L15;
+          break #L16;
         }
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
@@ -449,7 +453,7 @@ static method localFunctions() → dynamic {
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
-        #L16:
+        #L17:
         {}
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
@@ -473,7 +477,7 @@ static method localFunctions() → dynamic {
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
-        #L17:
+        #L18:
         {}
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
@@ -497,10 +501,10 @@ static method localFunctions() → dynamic {
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
-        #L18:
+        #L19:
         {
           :return_value = null;
-          break #L18;
+          break #L19;
         }
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
@@ -524,7 +528,7 @@ static method localFunctions() → dynamic {
     dynamic :await_ctx_var;
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try {
-        #L19:
+        #L20:
         {}
         asy::_completeOnAsyncReturn(:async_completer, :return_value);
         return;
@@ -560,7 +564,7 @@ static method localFunctions() → dynamic {
     function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
       try
         try {
-          #L20:
+          #L21:
           {}
           return;
         }
@@ -579,26 +583,29 @@ static method localFunctions() → dynamic {
   }
   function caseReturn1(self::Enum e) → self::Enum {
     switch(e) {
-      #L21:
+      #L22:
       case #C3:
         {
           return e;
         }
-      #L22:
+      #L23:
       case #C6:
         {
           return e;
         }
+      #L24:
+      default:
+        throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
     }
   }
   function caseReturn2(self::Enum e) → self::Enum {
     switch(e) {
-      #L23:
+      #L25:
       case #C3:
         {
           return e;
         }
-      #L24:
+      #L26:
       default:
         {}
     }

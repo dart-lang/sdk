@@ -462,11 +462,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = node.isFinal;
         element.parameterKind = node.kind;
         _setCodeRange(element, node);
-        element.metadata = _createElementAnnotations(node.metadata);
       }
       nameNode.staticElement = element;
     }
 
+    element.metadata = _createElementAnnotations(node.metadata);
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
 

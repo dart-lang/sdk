@@ -118,7 +118,8 @@ class ClosingLabel implements ToJsonable {
 
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
-    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['range'] =
+        range?.toJson() ?? (throw 'range is required but was not set');
     __result['label'] = label ?? (throw 'label is required but was not set');
     return __result;
   }
@@ -507,7 +508,7 @@ class Element implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     if (range != null) {
-      __result['range'] = range;
+      __result['range'] = range.toJson();
     }
     __result['name'] = name ?? (throw 'name is required but was not set');
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
@@ -715,11 +716,12 @@ class FlutterOutline implements ToJsonable {
       __result['attributes'] = attributes;
     }
     if (dartElement != null) {
-      __result['dartElement'] = dartElement;
+      __result['dartElement'] = dartElement.toJson();
     }
-    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['range'] =
+        range?.toJson() ?? (throw 'range is required but was not set');
     __result['codeRange'] =
-        codeRange ?? (throw 'codeRange is required but was not set');
+        codeRange?.toJson() ?? (throw 'codeRange is required but was not set');
     if (children != null) {
       __result['children'] = children;
     }
@@ -919,7 +921,7 @@ class FlutterOutlineAttribute implements ToJsonable {
     __result['name'] = name ?? (throw 'name is required but was not set');
     __result['label'] = label ?? (throw 'label is required but was not set');
     if (valueRange != null) {
-      __result['valueRange'] = valueRange;
+      __result['valueRange'] = valueRange.toJson();
     }
     return __result;
   }
@@ -1045,10 +1047,11 @@ class Outline implements ToJsonable {
   Map<String, dynamic> toJson() {
     var __result = <String, dynamic>{};
     __result['element'] =
-        element ?? (throw 'element is required but was not set');
-    __result['range'] = range ?? (throw 'range is required but was not set');
+        element?.toJson() ?? (throw 'element is required but was not set');
+    __result['range'] =
+        range?.toJson() ?? (throw 'range is required but was not set');
     __result['codeRange'] =
-        codeRange ?? (throw 'codeRange is required but was not set');
+        codeRange?.toJson() ?? (throw 'codeRange is required but was not set');
     if (children != null) {
       __result['children'] = children;
     }
@@ -1282,7 +1285,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
     var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['outline'] =
-        outline ?? (throw 'outline is required but was not set');
+        outline?.toJson() ?? (throw 'outline is required but was not set');
     return __result;
   }
 
@@ -1376,7 +1379,7 @@ class PublishOutlineParams implements ToJsonable {
     var __result = <String, dynamic>{};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
     __result['outline'] =
-        outline ?? (throw 'outline is required but was not set');
+        outline?.toJson() ?? (throw 'outline is required but was not set');
     return __result;
   }
 

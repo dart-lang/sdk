@@ -37,6 +37,8 @@ main() {
   // { a is bool ?? true : 3 } is parsed as a map literal { ((a is bool) ?? true) : 3 }.
   a = true;
   var x5 = {a is bool ?? true : 3};
+  //          ^
+  // [cfe] Operand of null-aware operation '??' has type 'bool' which excludes null.
   //                     ^^^^
   // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   Expect.type<Map<dynamic, dynamic>>(x5);

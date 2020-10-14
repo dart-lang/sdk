@@ -426,6 +426,7 @@ struct InstrAttrs {
   M(InstanceOf, _)                                                             \
   M(CreateArray, _)                                                            \
   M(AllocateObject, _)                                                         \
+  M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
   M(StoreUntagged, kNoGC)                                                      \
@@ -6243,6 +6244,52 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
 
+class AllocateTypedDataInstr : public TemplateAllocation<1, Throws> {
+ public:
+  AllocateTypedDataInstr(TokenPosition token_pos,
+                         classid_t class_id,
+                         Value* num_elements,
+                         intptr_t deopt_id)
+      : TemplateAllocation(deopt_id),
+        token_pos_(token_pos),
+        class_id_(class_id),
+        identity_(AliasIdentity::Unknown()) {
+    SetInputAt(kLengthPos, num_elements);
+  }
+
+  enum { kLengthPos = 0 };
+
+  DECLARE_INSTRUCTION(AllocateTypedData)
+  virtual CompileType ComputeType() const;
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+  classid_t class_id() const { return class_id_; }
+  Value* num_elements() const { return inputs_[kLengthPos]; }
+
+  // Throw needs environment, which is created only if instruction can
+  // deoptimize.
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
+
+  virtual bool WillAllocateNewOrRemembered() const {
+    // No write barriers are generated for typed data accesses.
+    return false;
+  }
+
+ private:
+  const TokenPosition token_pos_;
+  classid_t class_id_;
+  AliasIdentity identity_;
+
+  DISALLOW_COPY_AND_ASSIGN(AllocateTypedDataInstr);
+};
+
 // Note: This instruction must not be moved without the indexed access that
 // depends on it (e.g. out of loops). GC may collect the array while the
 // external data-array is still accessed.
@@ -6497,32 +6544,38 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeInstr);
 };
 
-class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
+class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
  public:
   InstantiateTypeArgumentsInstr(TokenPosition token_pos,
-                                const TypeArguments& type_arguments,
-                                const Class& instantiator_class,
-                                const Function& function,
                                 Value* instantiator_type_arguments,
                                 Value* function_type_arguments,
+                                Value* type_arguments,
+                                const Class& instantiator_class,
+                                const Function& function,
                                 intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
-        type_arguments_(type_arguments),
         instantiator_class_(instantiator_class),
         function_(function) {
-    ASSERT(type_arguments.IsZoneHandle());
+    // These asserts hold for current uses.
+    ASSERT(type_arguments->BindsToConstant());
+    // Note: Non-dynamic uses never provide a null TypeArguments value.
+    ASSERT(!type_arguments->BoundConstant().IsNull());
+    ASSERT(type_arguments->BoundConstant().IsTypeArguments());
     ASSERT(instantiator_class.IsZoneHandle());
+    ASSERT(!instantiator_class.IsNull());
     ASSERT(function.IsZoneHandle());
+    ASSERT(!function.IsNull());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
+    SetInputAt(2, type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateTypeArguments)
 
   Value* instantiator_type_arguments() const { return inputs_[0]; }
   Value* function_type_arguments() const { return inputs_[1]; }
-  const TypeArguments& type_arguments() const { return type_arguments_; }
+  Value* type_arguments() const { return inputs_[2]; }
   const Class& instantiator_class() const { return instantiator_class_; }
   const Function& function() const { return function_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
@@ -6537,12 +6590,18 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
 
   const Code& GetStub() const {
     bool with_runtime_check;
-    if (type_arguments().CanShareInstantiatorTypeArguments(
-            instantiator_class(), &with_runtime_check)) {
+    ASSERT(!instantiator_class().IsNull());
+    ASSERT(!function().IsNull());
+    ASSERT(type_arguments()->BindsToConstant());
+    ASSERT(type_arguments()->BoundConstant().IsTypeArguments());
+    const auto& type_args =
+        TypeArguments::Cast(type_arguments()->BoundConstant());
+    if (type_args.CanShareInstantiatorTypeArguments(instantiator_class(),
+                                                    &with_runtime_check)) {
       ASSERT(with_runtime_check);
       return StubCode::InstantiateTypeArgumentsMayShareInstantiatorTA();
-    } else if (type_arguments().CanShareFunctionTypeArguments(
-                   function(), &with_runtime_check)) {
+    } else if (type_args.CanShareFunctionTypeArguments(function(),
+                                                       &with_runtime_check)) {
       ASSERT(with_runtime_check);
       return StubCode::InstantiateTypeArgumentsMayShareFunctionTA();
     }
@@ -6553,7 +6612,6 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
 
  private:
   const TokenPosition token_pos_;
-  const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
   const Function& function_;
 

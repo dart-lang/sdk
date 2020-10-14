@@ -162,7 +162,6 @@ abstract class AbstractAnalysisServer {
       sdkLanguageVersion: analyzer_features.ExperimentStatus.currentVersion,
       flags: options.enabledExperiments,
     );
-    defaultContextOptions.useFastaParser = options.useFastaParser;
 
     {
       var name = options.newAnalysisDriverLog;

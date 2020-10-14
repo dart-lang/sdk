@@ -30,7 +30,7 @@ class as = A with B;
     await assertErrorsInCode(r'''
 typedef void as();
 ''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 13, 2),
+      error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 13, 2),
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 2),
     ]);
   }
@@ -40,7 +40,7 @@ typedef void as();
 typedef as = void Function();
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 2),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 8, 2)
+      error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 2)
     ]);
   }
 }

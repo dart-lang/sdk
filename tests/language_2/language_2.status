@@ -41,7 +41,7 @@ identifier/built_in_type_annotation_test/*: SkipByDesign # Analyzer/CFE only tes
 [ $compiler != dart2js && $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
 
-[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
+[ $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
 identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
 [ $hot_reload || $hot_reload_rollback ]

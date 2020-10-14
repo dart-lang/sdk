@@ -6,6 +6,9 @@
 
 import "deferred_overlapping_lib3.dart";
 
-/*class: C2:OutputUnit(3, {lib2}), type=OutputUnit(3, {lib2})*/
-/*member: C2.:OutputUnit(3, {lib2})*/
+/*class: C2:
+ class_unit=3{lib2},
+ type_unit=3{lib2}
+*/
+/*member: C2.:member_unit=3{lib2}*/
 class C2 extends C3 {}

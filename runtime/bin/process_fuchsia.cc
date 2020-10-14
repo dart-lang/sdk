@@ -625,7 +625,8 @@ class ProcessStarter {
     LOG_INFO("ProcessStarter: Start() Calling fdio_spawn_vmo\n");
     zx_handle_t process = ZX_HANDLE_INVALID;
     char err_msg[FDIO_SPAWN_ERR_MSG_MAX_LENGTH];
-    uint32_t flags = FDIO_SPAWN_CLONE_JOB | FDIO_SPAWN_DEFAULT_LDSVC;
+    uint32_t flags = FDIO_SPAWN_CLONE_JOB | FDIO_SPAWN_DEFAULT_LDSVC |
+                     FDIO_SPAWN_CLONE_UTC_CLOCK;
     status = fdio_spawn_vmo(ZX_HANDLE_INVALID, flags, vmo, program_arguments_,
                             program_environment_, actions_count, actions,
                             &process, err_msg);

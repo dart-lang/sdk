@@ -115,11 +115,7 @@ IntegerPtr Evaluator::BinaryIntegerEvaluate(const Object& left,
       // specialized instructions that use this value under this assumption.
       return Integer::null();
     }
-    const char* error_str = NULL;
-    result ^= result.CheckAndCanonicalize(thread, &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
+    result ^= result.Canonicalize(thread);
   }
 
   return result.raw();
@@ -148,11 +144,7 @@ IntegerPtr Evaluator::UnaryIntegerEvaluate(const Object& value,
       return Integer::null();
     }
 
-    const char* error_str = NULL;
-    result ^= result.CheckAndCanonicalize(thread, &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
+    result ^= result.Canonicalize(thread);
   }
 
   return result.raw();

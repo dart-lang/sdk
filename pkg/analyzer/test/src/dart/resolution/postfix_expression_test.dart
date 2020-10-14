@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -141,7 +139,27 @@ void f() {
     );
   }
 
-  test_inc_notLValue_typeLiteral_typeParameter() async {
+  test_inc_notLValue_simpleIdentifier_typeLiteral() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
+    ]);
+
+    assertPostfixExpression(
+      findNode.postfix('int++'),
+      readElement: intElement,
+      readType: 'dynamic',
+      writeElement: intElement,
+      writeType: 'dynamic',
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_inc_notLValue_simpleIdentifier_typeLiteral_typeParameter() async {
     await assertErrorsInCode(r'''
 void f<T>() {
   T++;
@@ -153,7 +171,7 @@ void f<T>() {
     var postfix = findNode.postfix('T++');
     assertPostfixExpression(
       postfix,
-      readElement: null,
+      readElement: findElement.typeParameter('T'),
       readType: 'dynamic',
       writeElement: findElement.typeParameter('T'),
       writeType: 'dynamic',
@@ -165,7 +183,7 @@ void f<T>() {
       postfix.operand,
       readElement: findElement.typeParameter('T'),
       writeElement: findElement.typeParameter('T'),
-      type: 'Type',
+      type: 'dynamic',
     );
   }
 
@@ -474,26 +492,6 @@ class A {
       type: 'num',
     );
   }
-
-  test_inc_simpleIdentifier_typeLiteral() async {
-    await assertErrorsInCode(r'''
-void f() {
-  int++;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
-    ]);
-
-    assertPostfixExpression(
-      findNode.postfix('int++'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: intElement,
-      writeType: 'dynamic',
-      element: null,
-      type: 'dynamic',
-    );
-  }
 }
 
 @reflectiveTest
@@ -641,6 +639,67 @@ int g() => f(null)!;
     );
   }
 
+  /// See https://github.com/dart-lang/language/issues/1163
+  test_nullCheck_participatesNullShorting() async {
+    await assertErrorsInCode('''
+class A {
+  int zero;
+  int? zeroOrNull;
+
+  A(this.zero, [this.zeroOrNull]);
+}
+
+void test1(A? a) => a?.zero!;
+void test2(A? a) => a?.zeroOrNull!;
+void test3(A? a) => a?.zero!.isEven;
+void test4(A? a) => a?.zeroOrNull!.isEven;
+
+class Foo {
+  Bar? bar;
+
+  Foo(this.bar);
+
+  Bar? operator [](int? index) => null;
+}
+
+class Bar {
+  int baz;
+
+  Bar(this.baz);
+
+  int operator [](int index) => index;
+}
+
+void test5(Foo? foo) => foo?.bar!;
+void test6(Foo? foo) => foo?.bar!.baz;
+void test7(Foo? foo, int a) => foo?.bar![a];
+void test8(Foo? foo, int? a) => foo?[a]!;
+void test9(Foo? foo, int? a) => foo?[a]!.baz;
+void test10(Foo? foo, int? a, int b) => foo?[a]![b];
+''', [
+      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 107, 1),
+      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 173, 1),
+    ]);
+
+    void assertTestType(int index, String expected) {
+      var function = findNode.functionDeclaration('test$index(');
+      var body = function.functionExpression.body as ExpressionFunctionBody;
+      assertType(body.expression, expected);
+    }
+
+    assertTestType(1, 'int?');
+    assertTestType(2, 'int?');
+    assertTestType(3, 'bool?');
+    assertTestType(4, 'bool?');
+
+    assertTestType(5, 'Bar?');
+    assertTestType(6, 'int?');
+    assertTestType(7, 'int?');
+    assertTestType(8, 'Bar?');
+    assertTestType(9, 'int?');
+    assertTestType(10, 'int?');
+  }
+
   test_nullCheck_superExpression() async {
     await assertErrorsInCode(r'''
 class A {
@@ -692,14 +751,8 @@ void f<T>(T? x) {
       writeElement: null,
       writeType: null,
       element: null,
-      type: 'T',
+      type: 'T & Object',
     );
-    expect(
-        postfixExpression.staticType,
-        TypeMatcher<TypeParameterType>().having(
-            (t) => t.bound.getDisplayString(withNullability: true),
-            'bound',
-            'Object'));
   }
 
   test_nullCheck_typeParameter_already_promoted() async {
@@ -719,13 +772,7 @@ void f<T>(T? x) {
       writeElement: null,
       writeType: null,
       element: null,
-      type: 'T',
+      type: 'T & num',
     );
-    expect(
-        postfixExpression.staticType,
-        TypeMatcher<TypeParameterType>().having(
-            (t) => t.bound.getDisplayString(withNullability: true),
-            'bound',
-            'num'));
   }
 }

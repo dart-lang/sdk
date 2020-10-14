@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'resolved_ast_printer.dart';
@@ -55,6 +56,7 @@ void checkElementText(
   bool withSyntheticAccessors = false,
   bool withSyntheticFields = false,
   bool withTypes = false,
+  bool withTypeParameterVariance = false,
   bool annotateNullability = false,
 }) {
   var writer = _ElementWriter(
@@ -67,6 +69,7 @@ void checkElementText(
     withSyntheticAccessors: withSyntheticAccessors,
     withSyntheticFields: withSyntheticFields,
     withTypes: withTypes,
+    withTypeParameterVariance: withTypeParameterVariance,
     annotateNullability: annotateNullability,
   );
   writer.writeLibraryElement(library);
@@ -136,6 +139,7 @@ class _ElementWriter {
   final bool withSyntheticAccessors;
   final bool withSyntheticFields;
   final bool withTypes;
+  final bool withTypeParameterVariance;
   final bool annotateNullability;
   final StringBuffer buffer = StringBuffer();
 
@@ -151,6 +155,7 @@ class _ElementWriter {
     this.withSyntheticAccessors = false,
     this.withSyntheticFields = false,
     this.withTypes = false,
+    this.withTypeParameterVariance,
     this.annotateNullability = false,
   });
 
@@ -200,7 +205,7 @@ class _ElementWriter {
 
     writeName(e);
     writeCodeRange(e);
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: true);
 
     if (e.supertype != null && e.supertype.element.name != 'Object' ||
         e.mixins.isNotEmpty) {
@@ -365,7 +370,7 @@ class _ElementWriter {
     buffer.write('extension ');
     writeName(e);
     writeCodeRange(e);
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: false);
     if (e.extendedType != null) {
       buffer.write(' on ');
       writeType(e.extendedType);
@@ -400,7 +405,7 @@ class _ElementWriter {
     writeName(e);
     writeCodeRange(e);
 
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: false);
     writeParameterElements(e.parameters);
 
     writeBodyModifiers(e);
@@ -417,7 +422,7 @@ class _ElementWriter {
       buffer.write('typedef ');
       writeName(e);
       writeCodeRange(e);
-      writeTypeParameterElements(e.typeParameters);
+      writeTypeParameterElements(e.typeParameters, withDefault: true);
 
       buffer.write(' = ');
 
@@ -425,7 +430,7 @@ class _ElementWriter {
       if (function != null) {
         writeType(function.returnType);
         buffer.write(' Function');
-        writeTypeParameterElements(function.typeParameters);
+        writeTypeParameterElements(function.typeParameters, withDefault: false);
         writeParameterElements(function.parameters);
       } else {
         buffer.write('<null>');
@@ -535,7 +540,7 @@ class _ElementWriter {
     writeCodeRange(e);
     writeTypeInferenceError(e);
 
-    writeTypeParameterElements(e.typeParameters);
+    writeTypeParameterElements(e.typeParameters, withDefault: false);
     writeParameterElements(e.parameters);
 
     writeBodyModifiers(e);
@@ -1042,30 +1047,45 @@ class _ElementWriter {
     }
   }
 
-  void writeTypeParameterElement(TypeParameterElement e) {
+  void writeTypeParameterElement(
+    TypeParameterElement e, {
+    @required bool withDefault,
+  }) {
+    var impl = e as TypeParameterElementImpl;
+
     writeMetadata(e, '', '\n');
+
     // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
     // variance is added to the interface.
-    if (!(e as TypeParameterElementImpl).isLegacyCovariant) {
-      buffer.write(
-          (e as TypeParameterElementImpl).variance.toKeywordString() + ' ');
+    if (withTypeParameterVariance) {
+      var variance = impl.variance;
+      buffer.write(variance.toString() + ' ');
     }
+
     writeName(e);
     writeCodeRange(e);
     if (e.bound != null && !e.bound.isDartCoreObject) {
       buffer.write(' extends ');
       writeType(e.bound);
     }
-    // TODO(scheglov) print the default type
-//    if (e is TypeParameterElementImpl && e.defaultType != null) {
-//      buffer.write(' = ');
-//      writeType(e.defaultType);
-//    }
+
+    if (withDefault) {
+      var defaultType = impl.defaultType;
+      if (defaultType is! DynamicTypeImpl) {
+        buffer.write(' = ');
+        writeType(defaultType);
+      }
+    }
   }
 
-  void writeTypeParameterElements(List<TypeParameterElement> elements) {
+  void writeTypeParameterElements(
+    List<TypeParameterElement> elements, {
+    @required bool withDefault,
+  }) {
     if (!withFullyResolvedAst) {
-      writeList('<', '>', elements, ', ', writeTypeParameterElement);
+      writeList('<', '>', elements, ', ', (e) {
+        writeTypeParameterElement(e, withDefault: withDefault);
+      });
     }
   }
 

@@ -425,9 +425,6 @@ template("component") {
     configs = []  # Prevent list overwriting warning.
     configs = invoker.configs
 
-    # See above call.
-    set_sources_assignment_filter([])
-
     if (defined(invoker.all_dependent_configs)) {
       all_dependent_configs = invoker.all_dependent_configs
     }

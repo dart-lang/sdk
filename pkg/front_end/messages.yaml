@@ -61,7 +61,12 @@
 # `#unicode` a Unicode short identifier (U+xxxx). We use this to represent code
 #  units or code points.
 #
-# `#name`, `#name2`, `#name3`, `#name4`: names (as strings).
+# `#name`, `#name2`, `#name3`, `#name4`: names (as strings). Note that asserts
+#    check if these are empty. If they can be empty use an available `OKEmpty`
+#    version (or add the missing needed one(s)) to avoid triggering an assert.
+#
+# `#nameOKEmpty`: name (as string). Will use an "(unnamed)" default message if
+#    the string is null or empty. Otherwise see the describtion above.
 #
 # `#names`: A list of names (strings).
 #
@@ -71,6 +76,13 @@
 #    Note: as a rule of thumb, avoid using the `#string` keys. In particular,
 #    do not use them for composing error messages, see [diagnostics.md](
 #    lib/src/fasta/diagnostics.md#avoid-composing-messages-programmatically).
+#    Note that asserts check if these are empty. If they can be empty use an
+#    available `OKEmpty` version (or add the missing needed one(s)) to avoid
+#    triggering an assert.
+#
+# `#stringOKEmpty`: string (that isn't a name). Will use an "(empty)" default
+#    message if the string is null or empty.
+#    Otherwise see the describtion above.
 #
 # `#type`, #type2`, `#type3`: Kernel types.
 #
@@ -117,7 +129,7 @@ ConstEvalInvalidType:
   template: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
 
 ConstEvalInvalidBinaryOperandType:
-  template: "Binary operator '#string' on '#constant' requires operand of type '#type', but was of type '#type2'."
+  template: "Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'."
 
 ConstEvalInvalidEqualsOperandType:
   template: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
@@ -136,11 +148,11 @@ ConstEvalNonNull:
   template: "Constant expression must be non-null."
 
 ConstEvalInvalidMethodInvocation:
-  template: "The method '#string' can't be invoked on '#constant' in a constant expression."
+  template: "The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
 
 ConstEvalInvalidPropertyGet:
-  template: "The property '#string' can't be accessed on '#constant' in a constant expression."
+  template: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalInvalidStringInterpolationOperand:
@@ -150,7 +162,7 @@ ConstEvalInvalidStringInterpolationOperand:
   analyzerCode: CONST_EVAL_TYPE_BOOL_NUM_STRING
 
 ConstEvalInvalidStaticInvocation:
-  template: "The invocation of '#name' is not allowed in a constant expression."
+  template: "The invocation of '#nameOKEmpty' is not allowed in a constant expression."
   analyzerCode: CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 
 ConstEvalInvalidSymbolName:
@@ -162,16 +174,16 @@ ConstEvalFailedAssertion:
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalFailedAssertionWithMessage:
-  template: "This assertion failed with message: #string"
+  template: "This assertion failed with message: #stringOKEmpty"
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalNonConstantVariableGet:
-  template: "The variable '#string' is not a constant, only constant expressions are allowed."
+  template: "The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed."
   analyzerCode: NON_CONSTANT_VALUE_IN_INITIALIZER
 
 ConstEvalDeferredLibrary:
   template: >
-    '#name' can't be used in a constant expression because it's marked as
+    '#nameOKEmpty' can't be used in a constant expression because it's marked as
     'deferred' which means it isn't available until loaded.
   tip: >
     Try moving the constant from the deferred library, or removing 'deferred'
@@ -494,8 +506,16 @@ ExpectedHexDigit:
 
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
+  tip: "Try inserting an identifier before '#lexeme'."
   analyzerCode: MISSING_IDENTIFIER
-  script: "do() {} main() {}"
+  script: "var = 42;"
+
+ExpectedIdentifierButGotKeyword:
+  template: "'#lexeme' can't be used as an identifier because it's a keyword."
+  tip: "Try renaming this to be an identifier that isn't a keyword."
+  index: 113
+  analyzerCode: ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  script: "var default = 42;"
 
 EqualityCannotBeEqualityOperand:
   index: 1
@@ -2119,8 +2139,8 @@ DeclaredMemberConflictsWithInheritedMemberCause:
   template: "This is the inherited member."
   severity: CONTEXT
 
-DeclaredMemberConflictsWithInheritedMembersCause:
-  template: "This is one of the inherited members."
+DeclaredMemberConflictsWithOverriddenMembersCause:
+  template: "This is one of the overridden members."
   severity: CONTEXT
 
 InheritedMembersConflict:
@@ -2215,6 +2235,171 @@ OverrideMismatchRequiredNamedParameter:
     abstract class B implements A {
       method({required int? a});
     }
+
+InvalidGetterSetterType:
+  template: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      num get property;
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeGetterInherited:
+  template: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      num get property;
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeFieldInherited:
+  template: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      final num property;
+      A(this.property);
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeSetterInheritedGetter:
+  template: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      num get property;
+    }
+
+InvalidGetterSetterTypeSetterInheritedField:
+  template: "The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      final num property;
+      B(this.property);
+    }
+
+InvalidGetterSetterTypeBothInheritedField:
+  template: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      final num property;
+      A(this.property);
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeBothInheritedGetter:
+  template: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      num get property;
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeLegacy:
+  template: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
+  script: |
+    abstract class A {
+      String get property;
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeGetterInheritedLegacy:
+  template: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the setter '#name2'."
+  script: |
+    abstract class A {
+      String get property;
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeFieldInheritedLegacy:
+  template: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the setter '#name2'."
+  script: |
+    abstract class A {
+      final String property;
+      A(this.property);
+    }
+    abstract class B implements A {
+      void set property(int i);
+    }
+
+InvalidGetterSetterTypeSetterInheritedGetterLegacy:
+  template: "The type '#type' of the getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      String get property;
+    }
+
+InvalidGetterSetterTypeSetterInheritedFieldLegacy:
+  template: "The type '#type' of the field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      void set property(int i);
+    }
+    abstract class B implements A {
+      final String property;
+      B(this.property);
+    }
+
+InvalidGetterSetterTypeBothInheritedFieldLegacy:
+  template: "The type '#type' of the inherited field '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      final String property;
+      A(this.property);
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeBothInheritedGetterLegacy:
+  template: "The type '#type' of the inherited getter '#name' is not assignable to the type '#type2' of the inherited setter '#name2'."
+  script: |
+    abstract class A {
+      String get property;
+    }
+    abstract class B {
+      void set property(int i);
+    }
+    abstract class C implements A, B {}
+
+InvalidGetterSetterTypeFieldContext:
+  template: "This is the declaration of the field '#name'."
+  severity: CONTEXT
+
+InvalidGetterSetterTypeGetterContext:
+  template: "This is the declaration of the getter '#name'."
+  severity: CONTEXT
+
+InvalidGetterSetterTypeSetterContext:
+  template: "This is the declaration of the setter '#name'."
+  severity: CONTEXT
 
 PartOfSelf:
   template: "A file can't be a part of itself."
@@ -2940,10 +3125,10 @@ ConstConstructorNonFinalFieldCause:
   severity: CONTEXT
 
 ConstConstructorLateFinalFieldError:
-  template: "Constructor is marked 'const' so fields can't be late."
+  template: "Can't have a late final field in a class with a const constructor."
 
 ConstConstructorLateFinalFieldCause:
-  template: "Field is late, but constructor is 'const'."
+  template: "This constructor is const."
   severity: CONTEXT
 
 ConstConstructorRedirectionToNonConst:
@@ -3060,6 +3245,14 @@ ColonInPlaceOfIn:
   template: "For-in loops use 'in' rather than a colon."
   tip: "Try replacing the colon with the keyword 'in'."
   analyzerCode: ParserErrorCode.COLON_IN_PLACE_OF_IN
+
+BinaryOperatorWrittenOut:
+  index: 112
+  template: "Binary operator '#string' is written as '#string2' instead of the written out word."
+  tip: "Try replacing '#string' with '#string2'."
+  analyzerCode: ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT
+  script: >
+    int foo(int x, int y) => x xor y;
 
 ExternalFactoryRedirection:
   index: 85
@@ -3253,14 +3446,46 @@ DillOutlineSummary:
     #num2%12.3 bytes/ms, and
     #num3%12.3 ms/libraries.
 
+CantInferTypeDueToNoCombinedSignature:
+  template: "Can't infer a type for '#name' as the overridden members don't have a combined signature."
+  tip: "Try adding an explicit type."
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  configuration: nnbd-strong
+  script: |
+    class A {
+      void method(int a) {}
+    }
+    class B {
+      void method(String a) {}
+    }
+    class C implements A, B {
+      void method(a) {}
+    }
+
+CantInferReturnTypeDueToNoCombinedSignature:
+  template: "Can't infer a return type for '#name' as the overridden members don't have a combined signature."
+  tip: "Try adding an explicit type."
+  analyzerCode: COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE
+  configuration: nnbd-strong
+  script: |
+    abstract class A {
+      int get getter;
+    }
+    abstract class B {
+      String get getter;
+    }
+    abstract class C implements A, B {
+      get getter;
+    }
+
 CantInferTypeDueToInconsistentOverrides:
-  template: "Can't infer a type for '#name' as some of the inherited members have different types."
+  template: "Can't infer a type for '#name' as some of the overridden members have different types."
   tip: "Try adding an explicit type."
   analyzerCode: INVALID_METHOD_OVERRIDE
   external: testcases/inference/inconsistent_overrides.dart
 
 CantInferReturnTypeDueToInconsistentOverrides:
-  template: "Can't infer a return type for '#name' as some of the inherited members have different types."
+  template: "Can't infer a return type for '#name' as some of the overridden members have different types."
   tip: "Try adding an explicit type."
   analyzerCode: INVALID_METHOD_OVERRIDE
   external: testcases/inference/inconsistent_overrides.dart
@@ -4163,6 +4388,10 @@ JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."
   tip: "Try annotating with `external`."
 
+JsInteropNonExternalMember:
+  template: "This JS interop member must be annotated with `external`. Only factories and static methods can be non-external."
+  tip: "Try annotating the member with `external`."
+
 DefaultListConstructorError:
   template: "Can't use the default List constructor."
   tip: "Try using List.filled instead."
@@ -4179,22 +4408,46 @@ NonNullableNotAssignedError:
       T t; t;
     }
 
-NonNullableLateDefinitelyUnassignedError:
-  template: "Non-nullable late variable '#name' without initializer is definitely unassigned."
+FinalNotAssignedError:
+  template: "Final variable '#name' must be assigned before it can be used."
+  analyzerCode: READ_POTENTIALLY_UNASSIGNED_FINAL
+  configuration: nnbd-strong
+  script: >
+    method(bool b) {
+      final int i;
+      if (b) {
+        i = 0;
+      }
+      i;
+    }
+
+LateDefinitelyUnassignedError:
+  template: "Late variable '#name' without initializer is definitely unassigned."
   configuration: nnbd-strong
   script: |
     method<T>() {
       late T t; t;
     }
 
-NonNullableLateDefinitelyAssignedError:
-  template: "Non-nullable late final variable '#name' definitely assigned."
+LateDefinitelyAssignedError:
+  template: "Late final variable '#name' definitely assigned."
   configuration: nnbd-strong
   script: |
     method() {
       late final int t;
       t = 0;
       t = 0;
+    }
+
+FinalPossiblyAssignedError:
+  template: "Final variable '#name' might already be assigned at this point."
+  analyzerCode: ASSIGNMENT_TO_FINAL_LOCAL
+  configuration: nnbd-strong
+  script: |
+    method() {
+      final int i;
+      i = 0;
+      i = 0;
     }
 
 NonAgnosticConstant:
@@ -4278,3 +4531,85 @@ NonVoidReturnSetter:
   script:
     - int set setter(_) {}
     - dynamic set setter(_) {}
+
+NeverReachableSwitchDefaultError:
+  template: "`null` encountered as case in a switch expression with a non-nullable enum type."
+
+NeverReachableSwitchDefaultWarning:
+  template: "The default case is not reachable with sound null safety because the switch expression is non-nullable."
+  severity: WARNING
+
+NeverValueError:
+  template: "`null` encountered as the result from expression with type `Never`."
+
+NeverValueWarning:
+  template: "The expression can not result in a value with sound null safety because the expression type is `Never`."
+  severity: WARNING
+
+MainNotFunctionDeclaration:
+  template: "The 'main' declaration must be a function declaration."
+  configuration: nnbd-strong
+  script:
+    - var main;
+
+MainNotFunctionDeclarationExported:
+  template: "The exported 'main' declaration must be a function declaration."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      var main;
+
+MainTooManyRequiredParameters:
+  template: "The 'main' method must have at most 2 required parameters."
+  configuration: nnbd-strong
+  script:
+    - main(a, b, c) {}
+
+MainTooManyRequiredParametersExported:
+  template: "The exported 'main' method must have at most 2 required parameters."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      main(a, b, c) {}
+
+MainRequiredNamedParameters:
+  template: "The 'main' method cannot have required named parameters."
+  configuration: nnbd-strong
+  script:
+    - main({required a}) {}
+
+MainRequiredNamedParametersExported:
+  template: "The exported 'main' method cannot have required named parameters."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      main({required a}) {}
+
+MainWrongParameterType:
+  template: "The type '#type' of the first parameter of the 'main' method is not a supertype of '#type2'."
+  configuration: nnbd-strong
+  script:
+    - main(Set<String> args) {}
+
+MainWrongParameterTypeExported:
+  template: "The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'."
+  configuration: nnbd-strong
+  exampleAllowMoreCodes: true
+  script:
+    main.dart:
+      export 'lib.dart';
+    lib.dart:
+      main(Set<String> args) {}
+
+ExportedMain:
+  template: "This is exported 'main' declaration."
+  severity: CONTEXT

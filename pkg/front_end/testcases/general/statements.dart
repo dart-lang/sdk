@@ -10,8 +10,8 @@ foo() {
   }
 }
 
-bar() async {
-  await for (var x in []) {
+bar(d) async* {
+  await for (var x in d) {
     yield x;
     yield* x;
   }

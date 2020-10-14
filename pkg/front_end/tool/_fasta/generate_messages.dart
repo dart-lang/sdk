@@ -246,6 +246,13 @@ Template compileTemplate(String name, int index, String template, String tip,
         conversions.add("name4 = demangleMixinApplicationName(name4);");
         break;
 
+      case "nameOKEmpty":
+        parameters.add("String nameOKEmpty");
+        conversions.add("if (nameOKEmpty == null || nameOKEmpty.isEmpty) "
+            "nameOKEmpty = '(unnamed)';");
+        arguments.add("'nameOKEmpty': nameOKEmpty");
+        break;
+
       case "names":
         parameters.add("List<String> _names");
         conversions.add("if (_names.isEmpty) throw 'No names provided';");
@@ -281,6 +288,13 @@ Template compileTemplate(String name, int index, String template, String tip,
         parameters.add("String string3");
         conversions.add("if (string3.isEmpty) throw 'No string provided';");
         arguments.add("'string3': string3");
+        break;
+
+      case "stringOKEmpty":
+        parameters.add("String stringOKEmpty");
+        conversions.add("if (stringOKEmpty == null || stringOKEmpty.isEmpty) "
+            "stringOKEmpty = '(empty)';");
+        arguments.add("'stringOKEmpty': stringOKEmpty");
         break;
 
       case "type":

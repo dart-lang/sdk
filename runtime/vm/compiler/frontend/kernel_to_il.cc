@@ -795,6 +795,20 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int8Array_factory:
+    case MethodRecognizer::kTypedData_Uint8Array_factory:
+    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
+    case MethodRecognizer::kTypedData_Int16Array_factory:
+    case MethodRecognizer::kTypedData_Uint16Array_factory:
+    case MethodRecognizer::kTypedData_Int32Array_factory:
+    case MethodRecognizer::kTypedData_Uint32Array_factory:
+    case MethodRecognizer::kTypedData_Int64Array_factory:
+    case MethodRecognizer::kTypedData_Uint64Array_factory:
+    case MethodRecognizer::kTypedData_Float32Array_factory:
+    case MethodRecognizer::kTypedData_Float64Array_factory:
+    case MethodRecognizer::kTypedData_Float32x4Array_factory:
+    case MethodRecognizer::kTypedData_Int32x4Array_factory:
+    case MethodRecognizer::kTypedData_Float64x2Array_factory:
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:
@@ -943,6 +957,63 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += BuildTypedDataViewFactoryConstructor(
           function, kTypedDataFloat64x2ArrayViewCid);
       break;
+    case MethodRecognizer::kTypedData_Int8Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint8Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
+      body += BuildTypedDataFactoryConstructor(function,
+                                               kTypedDataUint8ClampedArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int16Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint16Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int32Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint32Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int64Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint64Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float32Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataFloat32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float64Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataFloat64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float32x4Array_factory:
+      body += BuildTypedDataFactoryConstructor(function,
+                                               kTypedDataFloat32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int32x4Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float64x2Array_factory:
+      body += BuildTypedDataFactoryConstructor(function,
+                                               kTypedDataFloat64x2ArrayCid);
+      break;
+
     case MethodRecognizer::kObjectEquals:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1444,6 +1515,23 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   return body;
 }
 
+Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
+    const Function& function,
+    classid_t cid) {
+  const auto token_pos = function.token_pos();
+  ASSERT(Thread::Current()->isolate()->class_table()->HasValidClassAt(cid));
+
+  ASSERT(function.IsFactory() && (function.NumParameters() == 2));
+  LocalVariable* length = parsed_function_->RawParameterVariable(1);
+
+  Fragment instructions;
+  instructions += LoadLocal(length);
+  // AllocateTypedData instruction checks that length is valid (a non-negative
+  // Smi below maximum allowed length).
+  instructions += AllocateTypedData(token_pos, cid);
+  return instructions;
+}
+
 static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
   ASSERT(!klass.IsNull());
   // Note that if klass is _Closure, DeclarationType will be _Closure,
@@ -1734,8 +1822,10 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
     Fragment* checks = is_covariant ? explicit_checks : implicit_checks;
 
     *checks += LoadLocal(param);
-    *checks += CheckAssignable(*target_type, name,
-                               AssertAssignableInstr::kParameterCheck);
+    *checks += AssertAssignableLoadTypeArguments(
+        TokenPosition::kNoSource, *target_type, name,
+        AssertAssignableInstr::kParameterCheck);
+    *checks += StoreLocal(param);
     *checks += Drop();
 
     if (!is_covariant && implicit_redefinitions != nullptr && optimizing_) {
@@ -1929,84 +2019,124 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
                            prologue_info);
 }
 
-Fragment FlowGraphBuilder::BuildDynamicCallVarsInit(LocalVariable* closure) {
-  auto const vars = parsed_function_->dynamic_closure_call_vars();
-  ASSERT(vars != nullptr);
-  ASSERT(has_saved_args_desc_array());
-  const ArgumentsDescriptor descriptor(saved_args_desc_array());
-  auto const rep = Slot::Function_packed_fields().representation();
+// Information used by the various dynamic closure call fragment builders.
+struct FlowGraphBuilder::ClosureCallInfo {
+  ClosureCallInfo(LocalVariable* closure,
+                  JoinEntryInstr* throw_no_such_method,
+                  const Array& arguments_descriptor_array,
+                  ParsedFunction::DynamicClosureCallVars* const vars)
+      : closure(ASSERT_NOTNULL(closure)),
+        throw_no_such_method(ASSERT_NOTNULL(throw_no_such_method)),
+        descriptor(arguments_descriptor_array),
+        vars(ASSERT_NOTNULL(vars)) {}
 
-  // We extract all the packed fields here so code generation that puts unboxed
-  // integers on the expression stack even in unoptimized code is in one place.
+  LocalVariable* const closure;
+  JoinEntryInstr* const throw_no_such_method;
+  const ArgumentsDescriptor descriptor;
+  ParsedFunction::DynamicClosureCallVars* const vars;
 
-  Fragment init;
-  init += LoadLocal(closure);
-  init += LoadNativeField(Slot::Closure_function());
-  init += LoadNativeField(Slot::Function_packed_fields());
-  init +=
-      BuildExtractPackedFieldIntoSmi<Function::PackedNumFixedParameters>(rep);
-  init += StoreLocal(TokenPosition::kNoSource, vars->num_fixed_params);
-  // Not dropping as we'll use the value to get the max number of parameters.
+  // Set up by BuildDynamicCallChecks() when needed. These values are
+  // read-only, so they don't need real local variables and are created
+  // using MakeTemporary().
+  LocalVariable* function = nullptr;
+  LocalVariable* num_fixed_params = nullptr;
+  LocalVariable* num_opt_params = nullptr;
+  LocalVariable* num_max_params = nullptr;
+  LocalVariable* has_named_params = nullptr;
+  LocalVariable* parameter_names = nullptr;
+  LocalVariable* type_parameters = nullptr;
+};
 
-  init += LoadLocal(closure);
-  init += LoadNativeField(Slot::Closure_function());
-  init += LoadNativeField(Slot::Function_packed_fields());
-  init += BuildExtractPackedFieldIntoSmi<Function::PackedNumOptionalParameters>(
-      rep);
-  init += StoreLocal(TokenPosition::kNoSource, vars->num_opt_params);
-  init += SmiBinaryOp(Token::kADD);
-  init += StoreLocal(TokenPosition::kNoSource, vars->num_max_params);
-  init += Drop();
+Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
+    const ClosureCallInfo& info,
+    Fragment set,
+    Fragment not_set) {
+  // Required named arguments only exist if null_safety is enabled.
+  if (!I->null_safety()) return not_set;
 
-  // Currently, we only need this initialized to either check provided optional
-  // names, if any, or to check for missing required parameters if null safe.
-  if (Isolate::Current()->null_safety() || descriptor.NamedCount() > 0) {
-    init += LoadLocal(closure);
-    init += LoadNativeField(Slot::Closure_function());
-    init += LoadNativeField(Slot::Function_parameter_names());
-    init += StoreLocal(TokenPosition::kNoSource, vars->parameter_names);
-    init += Drop();
-  }
+  Fragment check_required;
+  // First, we convert the index to be in terms of the number of optional
+  // parameters, not total parameters (to calculate the flag index and shift).
+  check_required += LoadLocal(info.vars->current_param_index);
+  check_required += LoadLocal(info.num_fixed_params);
+  check_required += SmiBinaryOp(Token::kSUB, /*is_truncating=*/true);
+  LocalVariable* opt_index = MakeTemporary("opt_index");  // Read-only.
 
-  init += LoadLocal(closure);
-  init += LoadNativeField(Slot::Closure_function());
-  init += LoadNativeField(Slot::Function_packed_fields());
-  init += BuildExtractPackedFieldIntoSmi<
-      Function::PackedHasNamedOptionalParameters>(rep);
-  init += IntConstant(0);
-  TargetEntryInstr *is_true, *is_false;
-  init += BranchIfEqual(&is_false, &is_true);
+  // Next, we calculate the index to dereference in the parameter names array.
+  check_required += LoadLocal(opt_index);
+  check_required +=
+      IntConstant(compiler::target::kNumParameterFlagsPerElementLog2);
+  check_required += SmiBinaryOp(Token::kSHR);
+  check_required += LoadLocal(info.num_max_params);
+  check_required += SmiBinaryOp(Token::kADD);
+  LocalVariable* flags_index = MakeTemporary("flags_index");  // Read-only.
 
-  JoinEntryInstr* join = BuildJoinEntry();
-  init.current = join;
+  // Two read-only stack values (opt_index, flag_index) that must be dropped
+  // after we rejoin at after_check.
+  JoinEntryInstr* after_check = BuildJoinEntry();
 
-  Fragment true_branch(is_true);
-  true_branch += Constant(Object::bool_true());
-  true_branch += StoreLocal(TokenPosition::kNoSource, vars->has_named_params);
-  true_branch += Drop();
-  true_branch += Goto(join);
+  // Now we check to see if the flags index is within the bounds of the
+  // parameters names array. If not, it cannot be required.
+  check_required += LoadLocal(flags_index);
+  check_required += LoadLocal(info.parameter_names);
+  check_required += LoadNativeField(Slot::Array_length());
+  check_required += SmiRelationalOp(Token::kLT);
+  TargetEntryInstr *valid_index, *invalid_index;
+  check_required += BranchIfTrue(&valid_index, &invalid_index);
 
-  Fragment false_branch(is_false);
-  false_branch += Constant(Object::bool_false());
-  false_branch += StoreLocal(TokenPosition::kNoSource, vars->has_named_params);
-  false_branch += Drop();
-  false_branch += Goto(join);
+  JoinEntryInstr* join_not_set = BuildJoinEntry();
 
-  return init;
+  Fragment(invalid_index) + Goto(join_not_set);
+
+  // Otherwise, we need to retrieve the value. We're guaranteed the Smis in
+  // the flag slots are non-null, so after loading we can immediate check
+  // the required flag bit for the given named parameter.
+  check_required.current = valid_index;
+  check_required += LoadLocal(info.parameter_names);
+  check_required += LoadLocal(flags_index);
+  check_required += LoadIndexed(compiler::target::kWordSize);
+  check_required += LoadLocal(opt_index);
+  check_required +=
+      IntConstant(compiler::target::kNumParameterFlagsPerElement - 1);
+  check_required += SmiBinaryOp(Token::kBIT_AND);
+  // If the below changes, we'll need to multiply by the number of parameter
+  // flags before shifting.
+  static_assert(compiler::target::kNumParameterFlags == 1,
+                "IL builder assumes only one flag bit per parameter");
+  check_required += SmiBinaryOp(Token::kSHR);
+  check_required +=
+      IntConstant(1 << compiler::target::kRequiredNamedParameterFlag);
+  check_required += SmiBinaryOp(Token::kBIT_AND);
+  check_required += IntConstant(0);
+  TargetEntryInstr *is_not_set, *is_set;
+  check_required += BranchIfEqual(&is_not_set, &is_set);
+
+  Fragment(is_not_set) + Goto(join_not_set);
+
+  set.Prepend(is_set);
+  set += Goto(after_check);
+
+  not_set.Prepend(join_not_set);
+  not_set += Goto(after_check);
+
+  // After rejoining, drop the introduced temporaries.
+  check_required.current = after_check;
+  check_required += DropTemporary(&flags_index);
+  check_required += DropTemporary(&opt_index);
+  return check_required;
 }
 
-Fragment FlowGraphBuilder::BuildClosureCallHasRequiredNamedArgumentsCheck(
-    LocalVariable* closure,
-    JoinEntryInstr* nsm) {
-  auto const vars = parsed_function_->dynamic_closure_call_vars();
-  ASSERT(vars != nullptr);
-  ASSERT(has_saved_args_desc_array());
-  const ArgumentsDescriptor descriptor(saved_args_desc_array());
-
-  // Required named arguments only exist if null_safety is enabled.
-  if (!Isolate::Current()->null_safety()) return Fragment();
-
-  if (descriptor.NamedCount() == 0) {
+Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
+    const ClosureCallInfo& info) {
+  // When no named arguments are provided, we just need to check for possible
+  // required named arguments.
+  if (info.descriptor.NamedCount() == 0) {
+    // No work to do if there are no possible required named parameters.
+    if (!I->null_safety()) {
+      return Fragment();
+    }
+    // If the below changes, we can no longer assume that flag slots existing
+    // means there are required parameters.
     static_assert(compiler::target::kNumParameterFlags == 1,
                   "IL builder assumes only one flag bit per parameter");
     // No named args were provided, so check for any required named params.
@@ -2014,193 +2144,177 @@ Fragment FlowGraphBuilder::BuildClosureCallHasRequiredNamedArgumentsCheck(
     // for named parameters. If this changes, we'll need to check each flag
     // entry appropriately for any set required bits.
     Fragment has_any;
-    has_any += LoadLocal(vars->num_max_params);
-    has_any += LoadLocal(vars->parameter_names);
+    has_any += LoadLocal(info.num_max_params);
+    has_any += LoadLocal(info.parameter_names);
     has_any += LoadNativeField(Slot::Array_length());
     TargetEntryInstr *no_required, *has_required;
     has_any += BranchIfEqual(&no_required, &has_required);
 
-    Fragment(has_required) + Goto(nsm);
+    Fragment(has_required) + Goto(info.throw_no_such_method);
 
     return Fragment(has_any.entry, no_required);
   }
 
-  // Loop over the indexes of the named parameters of the function, checking
-  // whether the named parameter at that index is required. If it is, then
-  // check whether it matches any of the names in the ArgumentsDescriptor.
-  JoinEntryInstr* loop = BuildJoinEntry();
+  // Otherwise, we need to loop through the parameter names to check the names
+  // of named arguments for validity (and possibly missing required ones).
+  Fragment check_names;
+  check_names += LoadLocal(info.vars->current_param_index);
+  LocalVariable* old_index = MakeTemporary("old_index");  // Read-only.
+  check_names += LoadLocal(info.vars->current_num_processed);
+  LocalVariable* old_processed = MakeTemporary("old_processed");  // Read-only.
 
-  // We iterate from [0, num_named), not [num_fixed, num_named) because the
-  // flag mask and index is based off the named index, not the param index.
-  Fragment check_required;
-  check_required += IntConstant(0);
-  check_required +=
-      StoreLocal(TokenPosition::kNoSource, vars->current_param_index);
-  check_required += Drop();
-  check_required += Goto(loop);
+  // Two local stack values (old_index, old_processed) to drop after rejoining
+  // at done.
+  JoinEntryInstr* loop = BuildJoinEntry();
+  JoinEntryInstr* done = BuildJoinEntry();
+
+  check_names += IntConstant(0);
+  check_names += StoreLocal(info.vars->current_num_processed);
+  check_names += Drop();
+  check_names += LoadLocal(info.num_fixed_params);
+  check_names += StoreLocal(info.vars->current_param_index);
+  check_names += Drop();
+  check_names += Goto(loop);
 
   Fragment loop_check(loop);
-  loop_check += LoadLocal(vars->current_param_index);
-  loop_check += LoadLocal(vars->num_opt_params);
+  loop_check += LoadLocal(info.vars->current_param_index);
+  loop_check += LoadLocal(info.num_max_params);
   loop_check += SmiRelationalOp(Token::kLT);
   TargetEntryInstr *no_more, *more;
   loop_check += BranchIfTrue(&more, &no_more);
 
-  JoinEntryInstr* done = BuildJoinEntry();
   Fragment(no_more) + Goto(done);
 
   Fragment loop_body(more);
-  // First, we calculate the index to dereference into the parameter names
-  // array and store it in :expr_temp.
-  loop_body += LoadLocal(vars->num_max_params);
-  loop_body += LoadLocal(vars->current_param_index);
-  loop_body += IntConstant(compiler::target::kNumParameterFlagsPerElementLog2);
-  loop_body += SmiBinaryOp(Token::kSHR);
-  loop_body += SmiBinaryOp(Token::kADD);
-  LocalVariable* temp = parsed_function_->expression_temp_var();
-  loop_body += StoreLocal(TokenPosition::kNoSource, temp);
-  // Now we check to see if it is within the bounds of the parameters names
-  // array. If not, we're done, as this and later indices cannot be required.
-  loop_body += LoadLocal(vars->parameter_names);
-  loop_body += LoadNativeField(Slot::Array_length());
-  loop_body += SmiRelationalOp(Token::kLT);
-  TargetEntryInstr *valid_index, *invalid_index;
-  loop_body += BranchIfTrue(&valid_index, &invalid_index);
-
-  Fragment(invalid_index) + Goto(done);
-
-  // Otherwise, we need to retrieve the value and check the appropriate bit.
-  loop_body.current = valid_index;
-  loop_body += LoadLocal(vars->parameter_names);
-  loop_body += LoadLocal(temp);  // Index into parameter names array.
+  // First load the name we need to check against.
+  loop_body += LoadLocal(info.parameter_names);
+  loop_body += LoadLocal(info.vars->current_param_index);
   loop_body += LoadIndexed(compiler::target::kWordSize);
-  loop_body += LoadLocal(vars->current_param_index);
-  loop_body += IntConstant(compiler::target::kNumParameterFlagsPerElement - 1);
-  loop_body += SmiBinaryOp(Token::kBIT_AND);
-  if (compiler::target::kNumParameterFlags > 1) {
-    loop_body += IntConstant(compiler::target::kNumParameterFlags);
-    loop_body += SmiBinaryOp(Token::kMUL, /*is_truncating=*/false);
+  LocalVariable* param_name = MakeTemporary("param_name");  // Read only.
+
+  // One additional local value on the stack within the loop body (param_name)
+  // that should be dropped after rejoining at loop_incr.
+  JoinEntryInstr* loop_incr = BuildJoinEntry();
+
+  // Now iterate over the ArgumentsDescriptor names and check for a match.
+  for (intptr_t i = 0; i < info.descriptor.NamedCount(); i++) {
+    const auto& name = String::ZoneHandle(Z, info.descriptor.NameAt(i));
+    loop_body += Constant(name);
+    loop_body += LoadLocal(param_name);
+    TargetEntryInstr *match, *mismatch;
+    loop_body += BranchIfEqual(&match, &mismatch);
+    loop_body.current = mismatch;
+
+    // We have a match, so go to the next name after incrementing the number
+    // of matched arguments. (No need to check for the required bit, as this
+    // parameter was provided.)
+    Fragment matched(match);
+    matched += LoadLocal(info.vars->current_num_processed);
+    matched += IntConstant(1);
+    matched += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
+    matched += StoreLocal(info.vars->current_num_processed);
+    matched += Drop();
+    matched += Goto(loop_incr);
   }
-  loop_body += SmiBinaryOp(Token::kSHR);
-  loop_body += IntConstant(1 << compiler::target::kRequiredNamedParameterFlag);
-  loop_body += SmiBinaryOp(Token::kBIT_AND);
-  loop_body += IntConstant(0);
-  TargetEntryInstr *not_set, *set;
-  loop_body += BranchIfEqual(&not_set, &set);
 
-  // Make a join entry for the increment at the end of the loop, so we can jump
-  // to it if we match one of the names in the ArgumentsDescriptor.
-  JoinEntryInstr* incr_index = BuildJoinEntry();
-  Fragment(not_set) + Goto(incr_index);
+  // None of the names in the arguments descriptor matched, so check if this
+  // is a required parameter.
+  loop_body += TestClosureFunctionNamedParameterRequired(
+      info,
+      /*set=*/Goto(info.throw_no_such_method),
+      /*not_set=*/{});
 
-  Fragment check_names(set);
-  if (descriptor.NamedCount() > 0) {
-    // First load the name we need to check against into :expr_temp.
-    check_names += LoadLocal(vars->parameter_names);
-    check_names += LoadLocal(vars->current_param_index);
-    check_names += LoadLocal(vars->num_fixed_params);
-    check_names += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
-    check_names += LoadIndexed(compiler::target::kWordSize);
-    check_names += StoreLocal(TokenPosition::kNoSource, temp);
-    check_names += Drop();
-    // Now iterate over the names in the ArgumentsDescriptor and add a check
-    // against each that goes to t he next loop iteration if the name is found.
-    for (intptr_t i = 0; i < descriptor.NamedCount(); i++) {
-      const auto& name = String::ZoneHandle(Z, descriptor.NameAt(i));
-      check_names += LoadLocal(temp);
-      check_names += Constant(name);
-      TargetEntryInstr *str_equal, *str_neq;
-      check_names += BranchIfEqual(&str_equal, &str_neq);
-      check_names.current = str_neq;
+  loop_body += Goto(loop_incr);
 
-      Fragment(str_equal) + Goto(incr_index);
-    }
-  }
-  // None of the names in the arguments descriptor matched, so throw NSM.
-  check_names += Goto(nsm);
+  Fragment incr_index(loop_incr);
+  incr_index += DropTemporary(&param_name);
+  incr_index += LoadLocal(info.vars->current_param_index);
+  incr_index += IntConstant(1);
+  incr_index += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
+  incr_index += StoreLocal(info.vars->current_param_index);
+  incr_index += Drop();
+  incr_index += Goto(loop);
 
-  // Increment the counter if the current parameter wasn't required or was
-  // required but provided.
-  loop_body.current = incr_index;
-  loop_body += LoadLocal(vars->current_param_index);
-  loop_body += IntConstant(1);
-  loop_body += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
-  loop_body += StoreLocal(TokenPosition::kNoSource, vars->current_param_index);
-  loop_body += Drop();
-  loop_body += Goto(loop);
+  Fragment check_processed(done);
+  check_processed += LoadLocal(info.vars->current_num_processed);
+  check_processed += IntConstant(info.descriptor.NamedCount());
+  TargetEntryInstr *all_processed, *bad_name;
+  check_processed += BranchIfEqual(&all_processed, &bad_name);
 
-  check_required.current = done;
-  return check_required;
+  // Didn't find a matching parameter name for at least one argument name.
+  Fragment(bad_name) + Goto(info.throw_no_such_method);
+
+  // Drop the temporaries at the end of the fragment.
+  check_names.current = all_processed;
+  check_names += LoadLocal(old_processed);
+  check_names += StoreLocal(info.vars->current_num_processed);
+  check_names += Drop();
+  check_names += DropTemporary(&old_processed);
+  check_names += LoadLocal(old_index);
+  check_names += StoreLocal(info.vars->current_param_index);
+  check_names += Drop();
+  check_names += DropTemporary(&old_index);
+  return check_names;
 }
 
 Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
-    LocalVariable* closure,
-    JoinEntryInstr* nsm) {
-  auto const vars = parsed_function_->dynamic_closure_call_vars();
-  ASSERT(vars != nullptr);
-  ASSERT(has_saved_args_desc_array());
-  const ArgumentsDescriptor descriptor(saved_args_desc_array());
-
-  LocalVariable* temp = parsed_function_->expression_temp_var();
-
+    const ClosureCallInfo& info) {
   Fragment check_entry;
   // We only need to check the length of any explicitly provided type arguments.
-  if (descriptor.TypeArgsLen() > 0) {
+  if (info.descriptor.TypeArgsLen() > 0) {
     Fragment check_type_args_length;
-    check_type_args_length += LoadLocal(closure);
-    check_type_args_length += LoadNativeField(Slot::Closure_function());
-    check_type_args_length += LoadNativeField(Slot::Function_type_parameters());
-    check_type_args_length += StoreLocal(TokenPosition::kNoSource, temp);
+    check_type_args_length += LoadLocal(info.type_parameters);
     TargetEntryInstr *null, *not_null;
     check_type_args_length += BranchIfNull(&null, &not_null);
     check_type_args_length.current = not_null;  // Continue in non-error case.
-
-    // The function is not generic.
-    Fragment(null) + Goto(nsm);
-
-    check_type_args_length += LoadLocal(temp);
+    check_type_args_length += LoadLocal(info.type_parameters);
     check_type_args_length += LoadNativeField(Slot::TypeArguments_length());
-    check_type_args_length += IntConstant(descriptor.TypeArgsLen());
+    check_type_args_length += IntConstant(info.descriptor.TypeArgsLen());
     TargetEntryInstr *equal, *not_equal;
     check_type_args_length += BranchIfEqual(&equal, &not_equal);
     check_type_args_length.current = equal;  // Continue in non-error case.
 
-    Fragment(not_equal) + Goto(nsm);
+    // The function is not generic.
+    Fragment(null) + Goto(info.throw_no_such_method);
+
+    // An incorrect number of type arguments were passed.
+    Fragment(not_equal) + Goto(info.throw_no_such_method);
 
     // Type arguments should not be provided if there are delayed type
     // arguments, as then the closure itself is not generic.
-    check_entry += TestDelayedTypeArgs(closure, /*present=*/Goto(nsm),
-                                       /*absent=*/check_type_args_length);
+    check_entry += TestDelayedTypeArgs(
+        info.closure, /*present=*/Goto(info.throw_no_such_method),
+        /*absent=*/check_type_args_length);
   }
 
-  check_entry += LoadLocal(vars->has_named_params);
+  check_entry += LoadLocal(info.has_named_params);
   TargetEntryInstr *has_named, *has_positional;
   check_entry += BranchIfTrue(&has_named, &has_positional);
   JoinEntryInstr* join_after_optional = BuildJoinEntry();
   check_entry.current = join_after_optional;
 
-  if (descriptor.NamedCount() > 0) {
+  if (info.descriptor.NamedCount() > 0) {
     // No reason to continue checking, as this function doesn't take named args.
-    Fragment(has_positional) + Goto(nsm);
+    Fragment(has_positional) + Goto(info.throw_no_such_method);
   } else {
     Fragment check_pos(has_positional);
-    check_pos += LoadLocal(vars->num_fixed_params);
-    check_pos += IntConstant(descriptor.PositionalCount());
+    check_pos += LoadLocal(info.num_fixed_params);
+    check_pos += IntConstant(info.descriptor.PositionalCount());
     check_pos += SmiRelationalOp(Token::kLTE);
     TargetEntryInstr *enough, *too_few;
     check_pos += BranchIfTrue(&enough, &too_few);
     check_pos.current = enough;
 
-    Fragment(too_few) + Goto(nsm);
+    Fragment(too_few) + Goto(info.throw_no_such_method);
 
-    check_pos += IntConstant(descriptor.PositionalCount());
-    check_pos += LoadLocal(vars->num_max_params);
+    check_pos += IntConstant(info.descriptor.PositionalCount());
+    check_pos += LoadLocal(info.num_max_params);
     check_pos += SmiRelationalOp(Token::kLTE);
     TargetEntryInstr *valid, *too_many;
     check_pos += BranchIfTrue(&valid, &too_many);
     check_pos.current = valid;
 
-    Fragment(too_many) + Goto(nsm);
+    Fragment(too_many) + Goto(info.throw_no_such_method);
 
     check_pos += Goto(join_after_optional);
   }
@@ -2208,90 +2322,114 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
   Fragment check_named(has_named);
 
   TargetEntryInstr *same, *different;
-  check_named += LoadLocal(vars->num_fixed_params);
-  check_named += IntConstant(descriptor.PositionalCount());
+  check_named += LoadLocal(info.num_fixed_params);
+  check_named += IntConstant(info.descriptor.PositionalCount());
   check_named += BranchIfEqual(&same, &different);
   check_named.current = same;
 
-  Fragment(different) + Goto(nsm);
+  Fragment(different) + Goto(info.throw_no_such_method);
 
-  if (descriptor.NamedCount() > 0) {
-    check_named += IntConstant(descriptor.NamedCount());
-    check_named += LoadLocal(vars->num_opt_params);
+  if (info.descriptor.NamedCount() > 0) {
+    check_named += IntConstant(info.descriptor.NamedCount());
+    check_named += LoadLocal(info.num_opt_params);
     check_named += SmiRelationalOp(Token::kLTE);
     TargetEntryInstr *valid, *too_many;
     check_named += BranchIfTrue(&valid, &too_many);
     check_named.current = valid;
 
-    Fragment(too_many) + Goto(nsm);
+    Fragment(too_many) + Goto(info.throw_no_such_method);
   }
 
-  check_named += BuildClosureCallHasRequiredNamedArgumentsCheck(closure, nsm);
+  // Check the names for optional arguments. If applicable, also check that all
+  // required named parameters are provided.
+  check_named += BuildClosureCallNamedArgumentsCheck(info);
   check_named += Goto(join_after_optional);
 
+  check_entry.current = join_after_optional;
   return check_entry;
 }
 
-Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentCheck(
-    LocalVariable* closure,
-    intptr_t pos,
-    JoinEntryInstr* nsm) {
-  auto const vars = parsed_function_->dynamic_closure_call_vars();
-  ASSERT(vars != nullptr);
-  ASSERT(has_saved_args_desc_array());
-  const ArgumentsDescriptor descriptor(saved_args_desc_array());
+Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
+    LocalVariable* closure) {
+  ClosureCallInfo info(closure, BuildThrowNoSuchMethod(),
+                       saved_args_desc_array(),
+                       parsed_function_->dynamic_closure_call_vars());
 
-  // If this isn't a named argument, then don't build anything.
-  if (pos < descriptor.PositionalCount()) return Fragment();
-  const intptr_t named_pos = pos - descriptor.PositionalCount();
-  ASSERT(named_pos < descriptor.NamedCount());
+  // We extract all the packed fields here so code generation that puts unboxed
+  // integers on the expression stack even in unoptimized code is in one place.
+  auto const rep = Slot::Function_packed_fields().representation();
 
-  // Loop over the indexes of the named parameters of the function, checking
-  // whether the named parameter at that index is required. If it is, then
-  // check whether it matches any of the names in the ArgumentsDescriptor.
-  JoinEntryInstr* loop = BuildJoinEntry();
+  Fragment body;
+  body += LoadLocal(info.closure);
+  body += LoadNativeField(Slot::Closure_function());
+  info.function = MakeTemporary("function");
 
-  // We iterate from [0, num_named), not [num_fixed, num_named) because the
-  // flag mask and index is based off the named index, not the param index.
-  Fragment check_arg_name;
-  check_arg_name += LoadLocal(vars->num_fixed_params);
-  check_arg_name +=
-      StoreLocal(TokenPosition::kNoSource, vars->current_param_index);
-  check_arg_name += Drop();
-  check_arg_name += Goto(loop);
+  body += LoadLocal(info.function);
+  body += LoadNativeField(Slot::Function_packed_fields());
+  body +=
+      BuildExtractPackedFieldIntoSmi<Function::PackedNumFixedParameters>(rep);
+  info.num_fixed_params = MakeTemporary("num_fixed_params");
 
-  Fragment loop_check(loop);
-  loop_check += LoadLocal(vars->current_param_index);
-  loop_check += LoadLocal(vars->num_max_params);
-  loop_check += SmiRelationalOp(Token::kLT);
-  TargetEntryInstr *no_more, *more;
-  loop_check += BranchIfTrue(&more, &no_more);
+  body += LoadLocal(info.function);
+  body += LoadNativeField(Slot::Function_packed_fields());
+  body += BuildExtractPackedFieldIntoSmi<Function::PackedNumOptionalParameters>(
+      rep);
+  info.num_opt_params = MakeTemporary("num_opt_params");
 
-  JoinEntryInstr* done = BuildJoinEntry();
-  // None of the parameter names matched.
-  Fragment(no_more) + Goto(nsm);
+  body += LoadLocal(info.num_fixed_params);
+  body += LoadLocal(info.num_opt_params);
+  body += SmiBinaryOp(Token::kADD);
+  info.num_max_params = MakeTemporary("num_max_params");
 
-  Fragment loop_body(more);
-  loop_body += LoadLocal(vars->parameter_names);
-  loop_body += LoadLocal(vars->current_param_index);
-  loop_body += LoadIndexed(compiler::target::kWordSize);
-  loop_body += Constant(String::ZoneHandle(Z, descriptor.NameAt(named_pos)));
-  TargetEntryInstr *str_equal, *str_neq;
-  loop_body += BranchIfEqual(&str_equal, &str_neq);
+  body += LoadLocal(info.function);
+  body += LoadNativeField(Slot::Function_packed_fields());
+  body += BuildExtractPackedFieldIntoSmi<
+      Function::PackedHasNamedOptionalParameters>(rep);
+  body += IntConstant(0);
+  body += StrictCompare(Token::kNE_STRICT);
+  info.has_named_params = MakeTemporary("has_named_params");
 
-  Fragment(str_equal) + Goto(done);
+  if (I->null_safety() || info.descriptor.NamedCount() > 0) {
+    body += LoadLocal(info.function);
+    body += LoadNativeField(Slot::Function_parameter_names());
+    info.parameter_names = MakeTemporary("parameter_names");
+  }
 
-  // Increment the index and jump back to the loop check.
-  loop_body.current = str_neq;
-  loop_body += LoadLocal(vars->current_param_index);
-  loop_body += IntConstant(1);
-  loop_body += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
-  loop_body += StoreLocal(TokenPosition::kNoSource, vars->current_param_index);
-  loop_body += Drop();
-  loop_body += Goto(loop);
+  if (info.descriptor.TypeArgsLen() > 0) {
+    body += LoadLocal(info.function);
+    body += LoadNativeField(Slot::Function_type_parameters());
+    info.type_parameters = MakeTemporary("type_parameters");
+  }
 
-  check_arg_name.current = done;
-  return check_arg_name;
+  // Check that the shape of the arguments generally matches what the
+  // closure function expects. The only remaining non-type check after this
+  // is that the names for optional arguments are valid.
+  body += BuildClosureCallArgumentsValidCheck(info);
+
+  // TODO(dartbug.com/40813): Move checks that are currently compiled
+  // in the closure body to here, using the dynamic versions of
+  // AssertSubtype to typecheck the type arguments using the runtime types
+  // available in the closure object.
+
+  // TODO(dartbug.com/40813): Move checks that are currently compiled
+  // in the closure body to here, using the dynamic versions of
+  // AssertAssignable to typecheck the parameters using the runtime types
+  // available in the closure object.
+
+  // Drop all the read-only temporaries at the end of the fragment.
+  if (info.type_parameters != nullptr) {
+    body += DropTemporary(&info.type_parameters);
+  }
+  if (info.parameter_names != nullptr) {
+    body += DropTemporary(&info.parameter_names);
+  }
+  body += DropTemporary(&info.has_named_params);
+  body += DropTemporary(&info.num_max_params);
+  body += DropTemporary(&info.num_opt_params);
+  body += DropTemporary(&info.num_fixed_params);
+  body += DropTemporary(&info.function);
+
+  return body;
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
@@ -2334,7 +2472,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   // Build any dynamic closure call checks before pushing arguments to the
   // final call on the stack to make debugging easier.
-  LocalVariable* closure = NULL;
+  LocalVariable* closure = nullptr;
   if (is_closure_call) {
     closure = parsed_function_->ParameterVariable(0);
     if (is_dynamic_call) {
@@ -2344,30 +2482,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
       InlineBailout(
           "kernel::FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher");
 
-      // Init the variables we'll be using for dynamic call checking.
-      body += BuildDynamicCallVarsInit(closure);
-
-      JoinEntryInstr* nsm = BuildThrowNoSuchMethod();
-      // Check that the shape of the arguments generally matches what the
-      // closure function expects. The only remaining non-type check after this
-      // is that the names for optional arguments are valid.
-      body += BuildClosureCallArgumentsValidCheck(closure, nsm);
-
-      // TODO(dartbug.com/40813): Move checks that are currently compiled
-      // in the closure body to here, using the dynamic versions of
-      // AssertSubtype to typecheck the type arguments using the runtime types
-      // available in the closure object.
-
-      // TODO(dartbug.com/40813): Move checks that are currently compiled
-      // in the closure body to here, using the dynamic versions of
-      // AssertAssignable to typecheck the parameters using the runtime types
-      // available in the closure object.
-      //
-      // For now, we check that any named arguments have valid names.
-      for (intptr_t pos = descriptor.PositionalCount();
-           pos < descriptor.Count(); pos++) {
-        body += BuildClosureCallNamedArgumentCheck(closure, pos, nsm);
-      }
+      body += BuildDynamicClosureCallChecks(closure);
     }
   }
 
@@ -3258,7 +3373,7 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   // do not appear in the type arguments to a any Pointer classes in an FFI
   // signature.
   ASSERT(args.IsNull() || args.IsInstantiated());
-  args = args.Canonicalize();
+  args = args.Canonicalize(thread_, nullptr);
 
   Fragment code;
   code += Constant(args);

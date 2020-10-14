@@ -25,6 +25,9 @@ class C extends A {
   void set nullProperty(Never value) {}
 }
 
+class GenericClass<T> {}
+
+genericMethod<T>() {}
 main() {}
 throws(void Function() f) {}
 var inferredOptOutNever = optInNever;

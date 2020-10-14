@@ -249,9 +249,13 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
   bool _typeEnsured = false;
   Set<ClassMember> _overrideDependencies;
 
-  void registerOverrideDependency(ClassMember overriddenMember) {
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    assert(
+        overriddenMembers.every((overriddenMember) =>
+            overriddenMember.classBuilder != classBuilder),
+        "Unexpected override dependencies for $this: $overriddenMembers");
     _overrideDependencies ??= {};
-    _overrideDependencies.add(overriddenMember);
+    _overrideDependencies.addAll(overriddenMembers);
   }
 
   void _ensureTypes(ClassHierarchyBuilder hierarchy) {
@@ -526,9 +530,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
         positionalParameters: closurePositionalParameters,
         namedParameters: closureNamedParameters,
         requiredParameterCount: _procedure.function.requiredParameterCount - 1,
-        returnType: closureReturnType,
-        asyncMarker: _procedure.function.asyncMarker,
-        dartAsyncMarker: _procedure.function.dartAsyncMarker))
+        returnType: closureReturnType))
       ..fileOffset = fileOffset;
 
     _extensionTearOff
@@ -594,8 +596,8 @@ class SourceProcedureMember extends BuilderClassMember {
   }
 
   @override
-  void registerOverrideDependency(ClassMember overriddenMember) {
-    memberBuilder.registerOverrideDependency(overriddenMember);
+  void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
+    memberBuilder.registerOverrideDependency(overriddenMembers);
   }
 
   @override
@@ -614,6 +616,12 @@ class SourceProcedureMember extends BuilderClassMember {
 
   @override
   bool get isFunction => !isProperty;
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    return other is SourceProcedureMember &&
+        memberBuilder == other.memberBuilder;
+  }
 }
 
 class RedirectingFactoryBuilder extends ProcedureBuilderImpl {

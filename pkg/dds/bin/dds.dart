@@ -13,6 +13,7 @@ import 'package:dds/dds.dart';
 ///   - VM service URI
 ///   - DDS bind address
 ///   - DDS port
+///   - Disable service authentication codes
 Future<void> main(List<String> args) async {
   if (args.isEmpty) return;
 
@@ -33,12 +34,14 @@ Future<void> main(List<String> args) async {
     host: address.address,
     port: int.parse(args[2]),
   );
+  final disableServiceAuthCodes = args[3] == 'true';
   try {
     // TODO(bkonyi): add retry logic similar to that in vmservice_server.dart
     // See https://github.com/dart-lang/sdk/issues/43192.
     await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,
       serviceUri: serviceUri,
+      enableAuthCodes: !disableServiceAuthCodes,
     );
     stderr.write('DDS started');
   } catch (e) {

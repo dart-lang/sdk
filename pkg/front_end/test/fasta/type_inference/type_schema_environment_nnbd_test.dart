@@ -661,7 +661,7 @@ class TypeSchemaEnvironmentTest {
           null,
           inferredTypes,
           testLib);
-      expect(inferredTypes[0], coreTypes.numNonNullableRawType);
+      expect(inferredTypes[0], coreTypes.numLegacyRawType);
     }
   }
 
@@ -1066,13 +1066,13 @@ class TypeSchemaEnvironmentTest {
 
     // TODO(dmitryas): Test for various nullabilities.
     testUpper("T", "T", "T", typeParameters: "T extends Object");
-    testUpper("T", "List<Never>", "List<Object>",
+    testUpper("T", "List<Never>", "List<Object?>",
         typeParameters: "T extends List<T>");
-    testUpper("List<Never>", "T", "List<Object>",
+    testUpper("List<Never>", "T", "List<Object?>",
         typeParameters: "T extends List<T>");
-    testUpper("T", "U", "List<Object>",
+    testUpper("T", "U", "List<Object?>",
         typeParameters: "T extends List<T>, U extends List<Never>");
-    testUpper("U", "T", "List<Object>",
+    testUpper("U", "T", "List<Object?>",
         typeParameters: "T extends List<T>, U extends List<Never>");
   }
 

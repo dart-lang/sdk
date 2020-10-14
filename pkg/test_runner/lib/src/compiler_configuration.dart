@@ -25,12 +25,30 @@ List<String> _replaceDartFiles(List<String> list, String replacement) {
 /// list allows the result of calling this to be spread into another list.
 List<String> _experimentsArgument(
     TestConfiguration configuration, TestFile testFile) {
-  if (configuration.experiments.isEmpty && testFile.experiments.isEmpty) {
+  var experiments = {
+    ...configuration.experiments,
+    ...testFile.experiments,
+    if (configuration.nnbdMode != NnbdMode.legacy)
+      'non-nullable',
+  };
+  if (experiments.isEmpty) {
     return const [];
   }
 
-  var experiments = {...configuration.experiments, ...testFile.experiments};
-  return ["--enable-experiment=${experiments.join(',')}"];
+  return ['--enable-experiment=${experiments.join(',')}'];
+}
+
+List<String> _nnbdModeArgument(TestConfiguration configuration) {
+  switch (configuration.nnbdMode) {
+    case NnbdMode.legacy:
+      return [];
+    case NnbdMode.strong:
+      return ['--sound-null-safety'];
+    case NnbdMode.weak:
+      return ['--no-sound-null-safety'];
+  }
+
+  throw 'unreachable';
 }
 
 /// Grouping of a command with its expected result.
@@ -175,6 +193,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -221,6 +240,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...args
     ];
   }
@@ -245,6 +265,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       else if (_configuration.hotReloadRollback)
         '--hot-reload-rollback-test-mode',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -426,13 +447,18 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2jsOptions,
+      ..._nnbdModeArgument(_configuration),
       ...args
     ];
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    var compilerArguments = [...arguments, ..._configuration.dart2jsOptions];
+    var compilerArguments = [
+      ...arguments,
+      ..._configuration.dart2jsOptions,
+      ..._nnbdModeArgument(_configuration),
+    ];
 
     // TODO(athom): input filename extraction is copied from DDC. Maybe this
     // should be passed to computeCompilationArtifact, instead?
@@ -729,9 +755,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   static const String ndkPath = "third_party/android_tools/ndk";
   String get abiTriple => _isArm || _isArmX64
       ? "arm-linux-androideabi"
-      : _isArm64 ? "aarch64-linux-android" : null;
-  String get host =>
-      Platform.isLinux ? "linux" : Platform.isMacOS ? "darwin" : null;
+      : _isArm64
+          ? "aarch64-linux-android"
+          : null;
+  String get host => Platform.isLinux
+      ? "linux"
+      : Platform.isMacOS
+          ? "darwin"
+          : null;
 
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
@@ -853,6 +884,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -900,6 +932,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -917,6 +950,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
+      ..._nnbdModeArgument(_configuration),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
@@ -958,7 +992,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       "ffi_2",
       "language_2",
       "lib_2",
-      "service",
+      "service_2",
       "standalone_2"
     };
 
@@ -1104,6 +1138,7 @@ abstract class VMKernelCompilerMixin {
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
+      ..._nnbdModeArgument(_configuration),
       ..._configuration.genKernelOptions,
     ];
 

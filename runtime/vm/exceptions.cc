@@ -252,7 +252,7 @@ class ExceptionHandlerFinder : public StackResource {
   void ExecuteCatchEntryMoves(const CatchEntryMoves& moves) {
     Zone* zone = Thread::Current()->zone();
     auto& value = Object::Handle(zone);
-    auto& dst_values = Array::Handle(zone, Array::New(moves.count()));
+    GrowableArray<Object*> dst_values;
 
     uword fp = handler_fp;
     ObjectPool* pool = nullptr;
@@ -309,7 +309,7 @@ class ExceptionHandlerFinder : public StackResource {
           UNREACHABLE();
       }
 
-      dst_values.SetAt(j, value);
+      dst_values.Add(&Object::Handle(zone, value.raw()));
     }
 
     {
@@ -317,8 +317,7 @@ class ExceptionHandlerFinder : public StackResource {
 
       for (int j = 0; j < moves.count(); j++) {
         const CatchEntryMove& move = moves.At(j);
-        value = dst_values.At(j);
-        *TaggedSlotAt(fp, move.dest_slot()) = value.raw();
+        *TaggedSlotAt(fp, move.dest_slot()) = dst_values[j]->raw();
       }
     }
   }
@@ -384,8 +383,8 @@ CatchEntryMove CatchEntryMove::ReadFrom(ReadStream* stream) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void CatchEntryMove::WriteTo(WriteStream* stream) {
-  using Writer = WriteStream::Raw<sizeof(int32_t), int32_t>;
+void CatchEntryMove::WriteTo(BaseWriteStream* stream) {
+  using Writer = BaseWriteStream::Raw<sizeof(int32_t), int32_t>;
   Writer::Write(stream, src_);
   Writer::Write(stream, dest_and_kind_);
 }
@@ -879,7 +878,10 @@ static void ThrowExceptionHelper(Thread* thread,
     // the isolate etc.). This can happen in the compiler, which is not
     // allowed to allocate in new space, so we pass the kOld argument.
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
-        zone, UnhandledException::New(exception, stacktrace, Heap::kOld));
+        zone, exception.raw() == isolate->object_store()->out_of_memory()
+                  ? isolate->isolate_object_store()
+                        ->preallocated_unhandled_exception()
+                  : UnhandledException::New(exception, stacktrace, Heap::kOld));
     stacktrace = StackTrace::null();
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
                            unhandled_exception, stacktrace);

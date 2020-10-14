@@ -1,5 +1,6 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/agnostic/map.dart:7:11: Error: Constant evaluation error:
 // const c = {a: 0, b: 1};
@@ -11,7 +12,6 @@
 // const c = {a: 0, b: 1};
 //       ^
 //
-library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 

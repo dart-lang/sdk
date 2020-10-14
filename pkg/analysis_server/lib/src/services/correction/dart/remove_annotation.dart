@@ -21,7 +21,7 @@ class RemoveAnnotation extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    void addFix(Annotation node) async {
+    Future<void> addFix(Annotation node) async {
       if (node == null) {
         return;
       }

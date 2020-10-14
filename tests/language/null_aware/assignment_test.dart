@@ -49,6 +49,8 @@ main() {
   // e1?.v = e2 is equivalent to ((x) => x == null ? null : x.v = e2)(e1).
   Expect.equals(null, nullC()?.v = bad());
   { C c = new C(1); Expect.equals(2, c?.v = 2); Expect.equals(2, c.v); }
+  //                                 ^
+  // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
   //                                  ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
@@ -57,11 +59,10 @@ main() {
   { h.C.staticInt = 1; Expect.equals(2, h.C?.staticInt = 2); Expect.equals(2, h.C.staticInt); }
 
   // The static type of e1?.v = e2 is the static type of e2.
-  { D? d = new D(new E()); G g = new G(); F? f = (d?.v = g); Expect.identical(f, g); }
-  { D? d = new D(new E()); E e = new G(); F? f = (d?.v = e); }
-  //                                              ^^^^^^^^
+  { var d = new D(new E()) as D?; G g = new G(); F? f = (d?.v = g); Expect.identical(f, g); }
+  { var d = new D(new E()) as D?; E e = new G(); F? f = (d?.v = e); }
+  //                                                     ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  //                                              ^
   // [cfe] A value of type 'E?' can't be assigned to a variable of type 'F?'.
   { D.staticE = new E(); G g = new G(); F? f = (D?.staticE = g); Expect.identical(f, g); }
   { h.D.staticE = new h.E(); h.G g = new h.G(); h.F? f = (h.D?.staticE = g); Expect.identical(f, g); }
@@ -83,6 +84,8 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'bad' isn't defined for the class 'C'.
   { B b = new C(1); Expect.equals(2, b?.v = 2); }
+  //                                 ^
+  // [cfe] Operand of null-aware operation '?.' has type 'B' which excludes null.
   //                                  ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                    ^
@@ -92,6 +95,8 @@ main() {
   // e1?.v op= e2 is equivalent to ((x) => x?.v = x.v op e2)(e1).
   Expect.equals(null, nullC()?.v += bad());
   { C c = new C(1); Expect.equals(3, c?.v += 2); Expect.equals(3, c.v); }
+  //                                 ^
+  // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
   //                                  ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 
@@ -100,6 +105,8 @@ main() {
 
   // The static type of e1?.v op= e2 is the static type of e1.v op e2.
   { D d = new D(new E()); F? f = (d?.v += 1); Expect.identical(d.v, f); }
+  //                              ^
+  // [cfe] Operand of null-aware operation '?.' has type 'D' which excludes null.
   //                               ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   { D.staticE = new E(); F? f = (D?.staticE += 1); Expect.identical(D.staticE, f); }
@@ -113,6 +120,8 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'bad' isn't defined for the class 'C'.
   { B b = new C(1); b?.v += 2; }
+  //                ^
+  // [cfe] Operand of null-aware operation '?.' has type 'B' which excludes null.
   //                 ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                   ^
@@ -122,6 +131,8 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'v' isn't defined for the class 'B'.
   { D d = new D(new E()); F? f = (d?.v += nullC()); }
+  //                              ^
+  // [cfe] Operand of null-aware operation '?.' has type 'D' which excludes null.
   //                               ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                      ^^^^^^^
@@ -130,8 +141,9 @@ main() {
   { D d = new D(new E()); H? h = (d?.v += 1); }
   //                              ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  //                              ^
   // [cfe] A value of type 'G?' can't be assigned to a variable of type 'H?'.
+  //                              ^
+  // [cfe] Operand of null-aware operation '?.' has type 'D' which excludes null.
   //                               ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   { D.staticE = new E(); F? f = (D?.staticE += nullC()); }

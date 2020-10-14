@@ -36,7 +36,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     get next() → dart.ffi::Pointer<lib::Coordinate*>*
       return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C12).{dart.core::List::[]}(dart.ffi::_abi())));
     set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()), #v.{=dart.ffi::Pointer::address});
+      return dart.ffi::_storeIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()), #v.{dart.ffi::Pointer::address});
   }
 }
 library from "org-dartlang-test:///main.dart" as main {

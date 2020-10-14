@@ -295,12 +295,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                              Fragment build_rest_of_actuals);
   Fragment BuildSuperPropertyGet(TokenPosition* position);
   Fragment BuildSuperPropertySet(TokenPosition* position);
-  Fragment BuildDirectPropertyGet(TokenPosition* position);
-  Fragment BuildDirectPropertySet(TokenPosition* position);
   Fragment BuildStaticGet(TokenPosition* position);
   Fragment BuildStaticSet(TokenPosition* position);
   Fragment BuildMethodInvocation(TokenPosition* position);
-  Fragment BuildDirectMethodInvocation(TokenPosition* position);
   Fragment BuildSuperMethodInvocation(TokenPosition* position);
   Fragment BuildStaticInvocation(TokenPosition* position);
   Fragment BuildConstructorInvocation(TokenPosition* position);
@@ -365,6 +362,53 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Build build FG for '_nativeCallbackFunction'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting Function object.
   Fragment BuildFfiNativeCallbackFunction();
+
+  // Piece of a StringConcatenation.
+  // Represents either a StringLiteral, or a Reader offset to the expression.
+  struct ConcatPiece {
+    intptr_t offset;
+    const String* literal;
+  };
+
+  // Collector that automatically concatenates adjacent string ConcatPieces.
+  struct PiecesCollector {
+    explicit PiecesCollector(Zone* z, TranslationHelper* translation_helper)
+        : pieces(5),
+          literal_run(z, 1),
+          translation_helper(translation_helper) {}
+
+    GrowableArray<ConcatPiece> pieces;
+    GrowableHandlePtrArray<const String> literal_run;
+    TranslationHelper* translation_helper;
+
+    void Add(const ConcatPiece& piece) {
+      if (piece.literal != nullptr) {
+        literal_run.Add(*piece.literal);
+      } else {
+        FlushRun();
+        pieces.Add(piece);
+      }
+    }
+
+    void FlushRun() {
+      switch (literal_run.length()) {
+        case 0:
+          return;
+        case 1:
+          pieces.Add({-1, &literal_run[0]});
+          break;
+        default:
+          pieces.Add({-1, &translation_helper->DartString(literal_run)});
+      }
+      literal_run.Clear();
+    }
+  };
+
+  // Flattens and collects pieces of StringConcatenations such that:
+  //   ["a", "", "b"] => ["ab"]
+  //   ["a", StringConcat("b", "c")] => ["abc"]
+  //   ["a", "", StringConcat("b", my_var), "c"] => ["ab", my_var, "c"]
+  void FlattenStringConcatenation(PiecesCollector* collector);
 
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;

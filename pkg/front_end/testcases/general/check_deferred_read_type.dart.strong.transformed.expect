@@ -35,3 +35,8 @@ class C extends core::Object {
 static field core::int* x = 0;
 static method m(dynamic x) → dynamic
   return null;
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///check_deferred_read_type.dart:9:13 -> TypeLiteralConstant(C*)
+Extra constant evaluation: evaluated: 4, effectively constant: 1

@@ -1,0 +1,4 @@
+import 'const_is_lib.dart';
+
+expect(expected, actual) {}
+main() {}

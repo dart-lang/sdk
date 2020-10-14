@@ -273,6 +273,7 @@ begins
 behaved
 behaves
 behavior
+behavioral
 behaviors
 behind
 being
@@ -300,6 +301,7 @@ bits
 bitwise
 black
 block
+blocked
 blocks
 blogs
 blue
@@ -430,6 +432,7 @@ check
 checked
 checker
 checking
+checkpoints
 checks
 child
 children
@@ -578,6 +581,7 @@ conform
 conformed
 confuse
 confused
+conjunction
 connect
 connected
 connection
@@ -797,6 +801,7 @@ dereferenced
 derivation
 derive
 derived
+descendant
 descendants
 describe
 described
@@ -840,6 +845,7 @@ didn't
 diet
 differ
 difference
+differences
 different
 differently
 dig
@@ -910,6 +916,7 @@ driver
 drop
 dropped
 dropping
+drops
 due
 dump
 dumped
@@ -1016,7 +1023,9 @@ equate
 equivalence
 equivalent
 equivalents
+erasure
 erroneous
+erroneously
 error
 errors
 escape
@@ -1065,6 +1074,7 @@ executed
 executes
 executing
 execution
+exempt
 exercise
 exhaustive
 exist
@@ -1375,6 +1385,7 @@ holding
 holds
 hood
 hooks
+horns
 horribly
 host
 hostnames
@@ -1483,6 +1494,7 @@ informally
 information
 informational
 informs
+inherently
 inherit
 inheritable
 inheritance
@@ -1525,6 +1537,7 @@ instantiating
 instantiation
 instantiations
 instead
+instruct
 instruction
 instructions
 instrumentation
@@ -1766,6 +1779,7 @@ magic
 main
 mainly
 maintain
+maintains
 major
 make
 makes
@@ -1809,6 +1823,7 @@ means
 meant
 measurably
 measure
+measurements
 mechanism
 medium
 meet
@@ -1836,6 +1851,7 @@ middle
 might
 millisecond
 milliseconds
+mimics
 minimal
 minimum
 minor
@@ -1857,6 +1873,7 @@ mixins
 mock
 mode
 model
+modeling
 models
 modes
 modifiable
@@ -1965,6 +1982,7 @@ notice
 noticed
 notifies
 now
+nowhere
 null
 nullability
 nullable
@@ -2122,6 +2140,7 @@ peek
 peel
 peeled
 peeling
+peels
 pending
 percent
 percolate
@@ -2282,6 +2301,7 @@ promote
 promoted
 promoter
 promotes
+promoting
 promotion
 promotions
 propagate
@@ -2353,6 +2373,7 @@ ready
 real
 realigned
 realized
+realizing
 really
 reason
 reasonable
@@ -2765,6 +2786,7 @@ specifying
 speed
 speedup
 split
+splits
 splitter
 spread
 spreadable
@@ -2788,6 +2810,7 @@ starts
 startup
 state
 stateful
+stateless
 statement
 statement's
 statements
@@ -2864,6 +2887,7 @@ sufficient
 sufficiently
 suffix
 suffixes
+sugar
 suggested
 suitable
 suites
@@ -2991,6 +3015,7 @@ throwing
 thrown
 throws
 thumb
+thunk
 thus
 time
 timeline
@@ -3156,6 +3181,7 @@ unsigned
 unsized
 unskip
 unsorted
+unsoundness
 unspecified
 unsplit
 unstable

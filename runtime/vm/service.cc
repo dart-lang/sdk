@@ -13,6 +13,7 @@
 
 #include "platform/unicode.h"
 #include "vm/base64.h"
+#include "vm/canonical_tables.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
@@ -45,7 +46,6 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
-#include "vm/type_table.h"
 #include "vm/version.h"
 
 namespace dart {
@@ -986,7 +986,6 @@ void Service::SendEvent(const char* stream_id,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  ASSERT(!Isolate::IsSystemIsolate(isolate));
 
   if (FLAG_trace_service) {
     OS::PrintErr(

@@ -20,6 +20,7 @@ class MemoryResourceProvider implements ResourceProvider {
       HashMap<String, _MemoryResource>();
   final Map<String, Uint8List> _pathToBytes = HashMap<String, Uint8List>();
   final Map<String, int> _pathToTimestamp = HashMap<String, int>();
+  final Map<String, String> _pathToLinkedPath = {};
   final Map<String, List<StreamController<WatchEvent>>> _pathToWatchers =
       HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
@@ -176,6 +177,13 @@ class MemoryResourceProvider implements ResourceProvider {
     }
   }
 
+  /// Create a link from the [path] to the [target].
+  void newLink(String path, String target) {
+    _ensureAbsoluteAndNormalized(path);
+    _ensureAbsoluteAndNormalized(target);
+    _pathToLinkedPath[path] = target;
+  }
+
   File updateFile(String path, String content, [int stamp]) {
     _ensureAbsoluteAndNormalized(path);
     newFolder(pathContext.dirname(path));
@@ -276,6 +284,30 @@ class MemoryResourceProvider implements ResourceProvider {
     return newFile;
   }
 
+  String _resolveLinks(String path) {
+    var linkTarget = _pathToLinkedPath[path];
+    if (linkTarget != null) {
+      return linkTarget;
+    }
+
+    var parentPath = _pathContext.dirname(path);
+    if (parentPath == path) {
+      return path;
+    }
+
+    var canonicalParentPath = _resolveLinks(parentPath);
+
+    var baseName = _pathContext.basename(path);
+    var result = _pathContext.join(canonicalParentPath, baseName);
+
+    linkTarget = _pathToLinkedPath[result];
+    if (linkTarget != null) {
+      return linkTarget;
+    }
+
+    return result;
+  }
+
   void _setFileContent(_MemoryFile file, List<int> bytes) {
     String path = file.path;
     _pathToResource[path] = file;
@@ -370,7 +402,10 @@ class _MemoryFile extends _MemoryResource implements File {
       : super(provider, path);
 
   @override
-  bool get exists => provider._pathToResource[path] is _MemoryFile;
+  bool get exists {
+    var canonicalPath = provider._resolveLinks(path);
+    return provider._pathToResource[canonicalPath] is _MemoryFile;
+  }
 
   @override
   int get lengthSync {
@@ -379,7 +414,8 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   int get modificationStamp {
-    int stamp = provider._pathToTimestamp[path];
+    var canonicalPath = provider._resolveLinks(path);
+    int stamp = provider._pathToTimestamp[canonicalPath];
     if (stamp == null) {
       throw FileSystemException(path, 'File "$path" does not exist.');
     }
@@ -412,7 +448,8 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   Uint8List readAsBytesSync() {
-    Uint8List content = provider._pathToBytes[path];
+    var canonicalPath = provider._resolveLinks(path);
+    Uint8List content = provider._pathToBytes[canonicalPath];
     if (content == null) {
       throw FileSystemException(path, 'File "$path" does not exist.');
     }
@@ -421,7 +458,8 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   String readAsStringSync() {
-    Uint8List content = provider._pathToBytes[path];
+    var canonicalPath = provider._resolveLinks(path);
+    Uint8List content = provider._pathToBytes[canonicalPath];
     if (content == null) {
       throw FileSystemException(path, 'File "$path" does not exist.');
     }
@@ -434,7 +472,16 @@ class _MemoryFile extends _MemoryResource implements File {
   }
 
   @override
-  File resolveSymbolicLinksSync() => this;
+  File resolveSymbolicLinksSync() {
+    var canonicalPath = provider._resolveLinks(path);
+    var result = provider.getFile(canonicalPath);
+
+    if (!result.exists) {
+      throw FileSystemException(path, 'File "$path" does not exist.');
+    }
+
+    return result;
+  }
 
   @override
   void writeAsBytesSync(List<int> bytes) {
@@ -538,7 +585,10 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   }
 
   @override
-  Folder resolveSymbolicLinksSync() => this;
+  Folder resolveSymbolicLinksSync() {
+    var canonicalPath = provider._resolveLinks(path);
+    return provider.getFolder(canonicalPath);
+  }
 
   @override
   Uri toUri() => provider.pathContext.toUri(path + '/');

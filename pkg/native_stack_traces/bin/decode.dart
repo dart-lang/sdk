@@ -123,7 +123,7 @@ ${_argParser.usage}
 Options specific to the find command:
 ${_findParser.usage}''';
 
-final _usages = <String, String>{
+final _usages = <String?, String>{
   null: _mainUsage,
   '': _mainUsage,
   'help': _helpUsage,
@@ -133,7 +133,7 @@ final _usages = <String, String>{
 
 const int _badUsageExitCode = 1;
 
-void errorWithUsage(String message, {String command}) {
+void errorWithUsage(String message, {String? command}) {
   print("Error: $message.\n");
   print(_usages[command]);
   io.exitCode = _badUsageExitCode;
@@ -156,7 +156,7 @@ void help(ArgResults options) {
   }
 }
 
-Dwarf _loadFromFile(String original, Function(String) usageError) {
+Dwarf? _loadFromFile(String? original, Function(String) usageError) {
   if (original == null) {
     usageError('must provide -d/--debug');
     return null;
@@ -178,7 +178,7 @@ void find(ArgResults options) {
   final bool forceHexadecimal = options['force_hexadecimal'];
 
   void usageError(String message) => errorWithUsage(message, command: 'find');
-  int parseIntAddress(String s) {
+  int? tryParseIntAddress(String s) {
     if (!forceHexadecimal && !s.startsWith("0x")) {
       final decimal = int.tryParse(s);
       if (decimal != null) return decimal;
@@ -186,11 +186,11 @@ void find(ArgResults options) {
     return int.tryParse(s.startsWith("0x") ? s.substring(2) : s, radix: 16);
   }
 
-  PCOffset convertAddress(StackTraceHeader header, String s) {
+  PCOffset? convertAddress(StackTraceHeader header, String s) {
     final parsedOffset = tryParseSymbolOffset(s, forceHexadecimal);
     if (parsedOffset != null) return parsedOffset;
 
-    final address = parseIntAddress(s);
+    final address = tryParseIntAddress(s);
     if (address != null) return header.offsetOf(address);
 
     return null;
@@ -209,20 +209,22 @@ void find(ArgResults options) {
 
   int vmStart = dwarf.vmStartAddress;
   if (options['vm_start'] != null) {
-    vmStart = parseIntAddress(options['vm_start']);
-    if (vmStart == null) {
+    final address = tryParseIntAddress(options['vm_start']);
+    if (address == null) {
       return usageError('could not parse VM start address '
           '${options['vm_start']}');
     }
+    vmStart = address;
   }
 
   int isolateStart = dwarf.isolateStartAddress;
   if (options['isolate_start'] != null) {
-    isolateStart = parseIntAddress(options['isolate_start']);
-    if (isolateStart == null) {
+    final address = tryParseIntAddress(options['isolate_start']);
+    if (address == null) {
       return usageError('could not parse isolate start address '
           '${options['isolate_start']}');
     }
+    isolateStart = address;
   }
 
   final header = StackTraceHeader(isolateStart, vmStart);

@@ -3,27 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
-import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:meta/meta.dart';
 
 /// An object used by instances of [ResolverVisitor] to resolve references
 /// within the AST structure to the elements being referenced. The requirements
@@ -88,18 +80,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// The element for the library containing the compilation unit being visited.
   final LibraryElement _definingLibrary;
 
-  /// The type representing the type 'dynamic'.
-  DartType _dynamicType;
-
-  /// The type representing the type 'Type'.
-  InterfaceType _typeType;
-
   /// Whether constant evaluation errors should be reported during resolution.
   @Deprecated('This field is no longer used')
   final bool reportConstEvaluationErrors;
-
-  /// Helper for extension method resolution.
-  final ExtensionMemberResolver _extensionResolver;
 
   /// Helper for resolving properties on types.
   final TypePropertyResolver _typePropertyResolver;
@@ -113,10 +96,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       MigratableAstInfoProvider migratableAstInfoProvider =
           const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
-        _extensionResolver = _resolver.extensionResolver,
         _typePropertyResolver = _resolver.typePropertyResolver {
-    _dynamicType = _typeProvider.dynamicType;
-    _typeType = _typeProvider.typeType;
     _methodInvocationResolver = MethodInvocationResolver(
       _resolver,
       migratableAstInfoProvider,
@@ -137,8 +117,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
-
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   @override
   void visitBreakStatement(BreakStatement node) {
@@ -391,68 +369,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    Expression target = node.realTarget;
-    DartType targetType = _getStaticType(target);
-
-    if (identical(targetType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
-        target,
-      );
-      return;
-    }
-
-    if (node.isNullAware) {
-      if (target is ExtensionOverride) {
-        // https://github.com/dart-lang/language/pull/953
-      } else {
-        targetType = _typeSystem.promoteToNonNull(targetType);
-      }
-    }
-
-    String getterMethodName = TokenType.INDEX.lexeme;
-    String setterMethodName = TokenType.INDEX_EQ.lexeme;
-
-    ResolutionResult result;
-    if (target is ExtensionOverride) {
-      result = _extensionResolver.getOverrideMember(target, getterMethodName);
-    } else {
-      result = _typePropertyResolver.resolve(
-        receiver: target,
-        receiverType: targetType,
-        name: getterMethodName,
-        receiverErrorNode: target,
-        nameErrorNode: target,
-      );
-    }
-
-    bool isInGetterContext = node.inGetterContext();
-    bool isInSetterContext = node.inSetterContext();
-    if (isInGetterContext && isInSetterContext) {
-      node.staticElement = result.setter;
-      node.auxiliaryElements = AuxiliaryElements(result.getter);
-      _resolver.setReadElement(node, result.getter);
-      _resolver.setWriteElement(node, result.setter);
-    } else if (isInGetterContext) {
-      node.staticElement = result.getter;
-      _resolver.setReadElement(node, result.getter);
-    } else if (isInSetterContext) {
-      node.staticElement = result.setter;
-      _resolver.setWriteElement(node, result.setter);
-    }
-
-    if (isInGetterContext) {
-      _checkForUndefinedIndexOperator(
-          node, target, getterMethodName, result, result.getter, targetType);
-    }
-    if (isInSetterContext) {
-      _checkForUndefinedIndexOperator(
-          node, target, setterMethodName, result, result.setter, targetType);
-    }
-  }
-
-  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement invokedConstructor = node.constructorName.staticElement;
     ArgumentList argumentList = node.argumentList;
@@ -486,172 +402,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitPartDirective(PartDirective node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    SimpleIdentifier prefix = node.prefix;
-    SimpleIdentifier identifier = node.identifier;
-    //
-    // First, check the "lib.loadLibrary" case
-    //
-    if (identifier.name == FunctionElement.LOAD_LIBRARY_NAME &&
-        _isDeferredPrefix(prefix)) {
-      LibraryElement importedLibrary = _getImportedLibrary(prefix);
-      var element = importedLibrary?.loadLibraryFunction;
-      element = _resolver.toLegacyElement(element);
-      identifier.staticElement = element;
-      return;
-    }
-    //
-    // Check to see whether the prefix is really a prefix.
-    //
-    Element prefixElement = prefix.staticElement;
-    if (prefixElement is PrefixElement) {
-      var lookupResult = prefixElement.scope.lookup2(identifier.name);
-
-      if (identifier.inGetterContext()) {
-        _resolver.setReadElement(
-          node,
-          _resolver.toLegacyElement(lookupResult.getter),
-        );
-      }
-
-      if (identifier.inSetterContext()) {
-        _resolver.setWriteElement(
-          node,
-          _resolver.toLegacyElement(lookupResult.setter),
-        );
-      }
-
-      var element = lookupResult.getter;
-      if (element == null && identifier.inSetterContext()) {
-        element = lookupResult.setter;
-      }
-      element = _resolver.toLegacyElement(element);
-      if (element == null && _resolver.nameScope.shouldIgnoreUndefined(node)) {
-        return;
-      }
-      if (element == null) {
-        AstNode parent = node.parent;
-        if (parent is Annotation) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_ANNOTATION,
-              parent,
-              [identifier.name]);
-        } else {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
-              identifier,
-              [identifier.name, prefixElement.name]);
-        }
-        return;
-      }
-      Element accessor = element;
-      if (accessor is PropertyAccessorElement && identifier.inSetterContext()) {
-        PropertyInducingElement variable = accessor.variable;
-        if (variable != null) {
-          PropertyAccessorElement setter = variable.setter;
-          if (setter != null) {
-            element = setter;
-          }
-        }
-      }
-      // TODO(brianwilkerson) The prefix needs to be resolved to the element for
-      // the import that defines the prefix, not the prefix's element.
-      identifier.staticElement = element;
-      // Validate annotation element.
-      AstNode parent = node.parent;
-      if (parent is Annotation) {
-        _resolveAnnotationElement(parent);
-      }
-      return;
-    }
-    // May be annotation, resolve invocation of "const" constructor.
-    AstNode parent = node.parent;
-    if (parent is Annotation) {
-      _resolveAnnotationElement(parent);
-      return;
-    }
-    //
-    // Otherwise, the prefix is really an expression that happens to be a simple
-    // identifier and this is really equivalent to a property access node.
-    //
-    _resolvePropertyAccess(
-      node,
-      prefix,
-      identifier,
-      isCascaded: false,
-      isNullAware: false,
-    );
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    Expression target = node.realTarget;
-    if (target is SuperExpression &&
-        SuperContext.of(target) != SuperContext.valid) {
-      return;
-    } else if (target is ExtensionOverride) {
-      if (target.parent is CascadeExpression) {
-        // Report this error and recover by treating it like a non-cascade.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
-          target.extensionName,
-        );
-      }
-      ExtensionElement element = target.extensionName.staticElement;
-      SimpleIdentifier propertyName = node.propertyName;
-      String memberName = propertyName.name;
-      ExecutableElement member;
-      var result = _extensionResolver.getOverrideMember(target, memberName);
-      if (propertyName.inSetterContext()) {
-        _resolver.setWriteElement(node, result.setter);
-        member = result.setter;
-        if (member == null) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
-              propertyName,
-              [memberName, element.name]);
-        }
-        if (propertyName.inGetterContext()) {
-          _resolver.setReadElement(node, result.getter);
-          ExecutableElement getter = result.getter;
-          if (getter == null) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-                propertyName,
-                [memberName, element.name]);
-          }
-          propertyName.auxiliaryElements = AuxiliaryElements(getter);
-        }
-      } else if (propertyName.inGetterContext()) {
-        _resolver.setReadElement(node, result.getter);
-        member = result.getter;
-        if (member == null) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-              propertyName,
-              [memberName, element.name]);
-        }
-      }
-      if (member != null && member.isStatic) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
-            propertyName);
-      }
-
-      propertyName.staticElement = member;
-      return;
-    }
-    SimpleIdentifier propertyName = node.propertyName;
-    _resolvePropertyAccess(
-      node,
-      target,
-      propertyName,
-      isCascaded: node.isCascaded,
-      isNullAware: node.isNullAware,
-    );
   }
 
   @override
@@ -689,113 +439,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _resolveMetadataForParameter(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    //
-    // Synthetic identifiers have been already reported during parsing.
-    //
-    if (node.isSynthetic) {
-      return;
-    }
-    //
-    // Ignore nodes that should have been resolved before getting here.
-    //
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    if (node.staticElement is LocalVariableElement ||
-        node.staticElement is ParameterElement) {
-      return;
-    }
-    AstNode parent = node.parent;
-    if (parent is FieldFormalParameter) {
-      return;
-    } else if (parent is ConstructorFieldInitializer &&
-        parent.fieldName == node) {
-      return;
-    } else if (parent is Annotation && parent.constructorName == node) {
-      return;
-    }
-    //
-    // Otherwise, the node should be resolved.
-    //
-    Element element = _resolveSimpleIdentifier(node);
-    ClassElement enclosingClass = _resolver.enclosingClass;
-    if (_isFactoryConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
-    } else if (_isConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
-      // This error is now reported by the parser.
-      element = null;
-    } else if (element == null ||
-        (element is PrefixElement && !_isValidAsPrefix(node))) {
-      // TODO(brianwilkerson) Recover from this error.
-      if (_isConstructorReturnType(node)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
-      } else if (parent is Annotation) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_ANNOTATION, parent, [node.name]);
-      } else if (element != null) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-            node,
-            [element.name]);
-      } else if (node.name == "await" && _resolver.enclosingFunction != null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
-          node,
-        );
-      } else if (!_resolver.nameScope.shouldIgnoreUndefined(node)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
-          node,
-          [node.name],
-        );
-      }
-    }
-    node.staticElement = element;
-
-    _resolver.setWriteElement(node, element);
-
-    Element getter;
-    var inGetterContext = node.inGetterContext();
-    if (inGetterContext) {
-      if (element is PropertyAccessorElement &&
-          element.enclosingElement is CompilationUnitElement) {
-        getter = element.variable.getter;
-      }
-    }
-
-    if (node.inSetterContext() && inGetterContext && enclosingClass != null) {
-      InterfaceType enclosingType = enclosingClass.thisType;
-      var result = _typePropertyResolver.resolve(
-        receiver: null,
-        receiverType: enclosingType,
-        name: node.name,
-        receiverErrorNode: node,
-        nameErrorNode: node,
-      );
-      node.auxiliaryElements = AuxiliaryElements(
-        result.getter,
-      );
-      getter ??= result.getter;
-    }
-
-    if (inGetterContext) {
-      _resolver.setReadElement(node, getter);
-    }
-
-    //
-    // Validate annotation element.
-    //
-    if (parent is Annotation) {
-      _resolveAnnotationElement(parent);
-    }
   }
 
   @override
@@ -861,7 +504,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitSuperExpression(SuperExpression node) {
     var context = SuperContext.of(node);
-    if (context == SuperContext.static) {
+    if (context == SuperContext.annotation || context == SuperContext.static) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
     } else if (context == SuperContext.extension) {
@@ -884,143 +527,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  /// If the [element] is not static, report the error on the [identifier].
-  void _checkForStaticAccessToInstanceMember(
-    SimpleIdentifier identifier,
-    ExecutableElement element,
-  ) {
-    if (element.isStatic) return;
-
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
-      identifier,
-      [identifier.name],
-    );
-  }
-
-  /// Check that the given index [expression] was resolved, otherwise a
-  /// [CompileTimeErrorCode.UNDEFINED_OPERATOR] is generated. The [target] is
-  /// the target of the expression. The [methodName] is the name of the operator
-  /// associated with the context of using of the given index expression.
-  void _checkForUndefinedIndexOperator(
-      IndexExpression expression,
-      Expression target,
-      String methodName,
-      ResolutionResult result,
-      ExecutableElement element,
-      DartType staticType) {
-    if (result.isAmbiguous) {
-      return;
-    }
-    if (element != null) {
-      return;
-    }
-    if (target is! ExtensionOverride) {
-      if (staticType == null || staticType.isDynamic) {
-        return;
-      }
-    }
-
-    var leftBracket = expression.leftBracket;
-    var rightBracket = expression.rightBracket;
-    var offset = leftBracket.offset;
-    var length = rightBracket.end - offset;
-    if (target is ExtensionOverride) {
-      _errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-        offset,
-        length,
-        [methodName, target.staticElement.name],
-      );
-    } else if (target is SuperExpression) {
-      _errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
-        offset,
-        length,
-        [methodName, staticType],
-      );
-    } else if (staticType.isVoid) {
-      _errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        offset,
-        length,
-      );
-    } else if (identical(staticType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
-        target,
-      );
-    } else {
-      _errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.UNDEFINED_OPERATOR,
-        offset,
-        length,
-        [methodName, staticType],
-      );
-    }
-  }
-
-  /// Assuming that the given [identifier] is a prefix for a deferred import,
-  /// return the library that is being imported.
-  LibraryElement _getImportedLibrary(SimpleIdentifier identifier) {
-    PrefixElement prefixElement = identifier.staticElement as PrefixElement;
-    List<ImportElement> imports =
-        prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
-    return imports[0].importedLibrary;
-  }
-
-  /// Return the static type of the given [expression] that is to be used for
-  /// type analysis.
-  DartType _getStaticType(Expression expression, {bool read = false}) {
-    if (expression is NullLiteral) {
-      return _typeProvider.nullType;
-    }
-    DartType type = read ? getReadType(expression) : expression.staticType;
-    return _resolveTypeParameter(type);
-  }
-
-  InterfaceType _instantiateAnnotationClass(ClassElement element) {
-    return element.instantiate(
-      typeArguments: List.filled(
-        element.typeParameters.length,
-        _dynamicType,
-      ),
-      nullabilitySuffix: _resolver.noneOrStarSuffix,
-    );
-  }
-
-  /// Return `true` if the given [expression] is a prefix for a deferred import.
-  bool _isDeferredPrefix(Expression expression) {
-    if (expression is SimpleIdentifier) {
-      Element element = expression.staticElement;
-      if (element is PrefixElement) {
-        List<ImportElement> imports =
-            element.enclosingElement.getImportsWithPrefix(element);
-        if (imports.length != 1) {
-          return false;
-        }
-        return imports[0].isDeferred;
-      }
-    }
-    return false;
-  }
-
-  /// Return `true` if the given [node] can validly be resolved to a prefix:
-  /// * it is the prefix in an import directive, or
-  /// * it is the prefix in a prefixed identifier.
-  bool _isValidAsPrefix(SimpleIdentifier node) {
-    AstNode parent = node.parent;
-    if (parent is ImportDirective) {
-      return identical(parent.prefix, node);
-    } else if (parent is PrefixedIdentifier) {
-      return true;
-    } else if (parent is MethodInvocation) {
-      return identical(parent.target, node) &&
-          parent.operator?.type == TokenType.PERIOD;
-    }
-    return false;
   }
 
   /// Return the target of a break or continue statement, and update the static
@@ -1061,159 +567,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       return definingScope.node;
     }
-  }
-
-  void _resolveAnnotationConstructorInvocationArguments(
-      Annotation annotation, ConstructorElement constructor) {
-    ArgumentList argumentList = annotation.arguments;
-    // error will be reported in ConstantVerifier
-    if (argumentList == null) {
-      return;
-    }
-    // resolve arguments to parameters
-    List<ParameterElement> parameters =
-        _resolveArgumentsToFunction(argumentList, constructor);
-    if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
-    }
-  }
-
-  /// Continues resolution of the given [annotation].
-  void _resolveAnnotationElement(Annotation annotation) {
-    SimpleIdentifier nameNode1;
-    SimpleIdentifier nameNode2;
-    {
-      Identifier annName = annotation.name;
-      if (annName is PrefixedIdentifier) {
-        nameNode1 = annName.prefix;
-        nameNode2 = annName.identifier;
-      } else {
-        nameNode1 = annName as SimpleIdentifier;
-        nameNode2 = null;
-      }
-    }
-    SimpleIdentifier nameNode3 = annotation.constructorName;
-    ConstructorElement constructor;
-    bool undefined = false;
-    //
-    // CONST or Class(args)
-    //
-    if (nameNode1 != null && nameNode2 == null && nameNode3 == null) {
-      Element element1 = nameNode1.staticElement;
-      // CONST
-      if (element1 is PropertyAccessorElement) {
-        _resolveAnnotationElementGetter(annotation, element1);
-        return;
-      }
-      // Class(args)
-      if (element1 is ClassElement) {
-        constructor = _instantiateAnnotationClass(element1)
-            .lookUpConstructor(null, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
-      } else if (element1 == null) {
-        undefined = true;
-      }
-    }
-    //
-    // prefix.CONST or prefix.Class() or Class.CONST or Class.constructor(args)
-    //
-    if (nameNode1 != null && nameNode2 != null && nameNode3 == null) {
-      Element element1 = nameNode1.staticElement;
-      Element element2 = nameNode2.staticElement;
-      // Class.CONST - not resolved yet
-      if (element1 is ClassElement) {
-        element2 = element1.lookUpGetter(nameNode2.name, _definingLibrary);
-        element2 = _resolver.toLegacyElement(element2);
-      }
-      // prefix.CONST or Class.CONST
-      if (element2 is PropertyAccessorElement) {
-        nameNode2.staticElement = element2;
-        annotation.element = element2;
-        _resolveAnnotationElementGetter(annotation, element2);
-        return;
-      }
-      // prefix.Class()
-      if (element2 is ClassElement) {
-        constructor = element2.unnamedConstructor;
-        constructor = _resolver.toLegacyElement(constructor);
-      }
-      // Class.constructor(args)
-      if (element1 is ClassElement) {
-        constructor = _instantiateAnnotationClass(element1)
-            .lookUpConstructor(nameNode2.name, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
-        nameNode2.staticElement = constructor;
-      }
-      if (element1 == null && element2 == null) {
-        undefined = true;
-      }
-    }
-    //
-    // prefix.Class.CONST or prefix.Class.constructor(args)
-    //
-    if (nameNode1 != null && nameNode2 != null && nameNode3 != null) {
-      Element element2 = nameNode2.staticElement;
-      // element2 should be ClassElement
-      if (element2 is ClassElement) {
-        String name3 = nameNode3.name;
-        // prefix.Class.CONST
-        PropertyAccessorElement getter =
-            element2.lookUpGetter(name3, _definingLibrary);
-        if (getter != null) {
-          getter = _resolver.toLegacyElement(getter);
-          nameNode3.staticElement = getter;
-          annotation.element = getter;
-          _resolveAnnotationElementGetter(annotation, getter);
-          return;
-        }
-        // prefix.Class.constructor(args)
-        constructor = _instantiateAnnotationClass(element2)
-            .lookUpConstructor(name3, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
-        nameNode3.staticElement = constructor;
-      } else if (element2 == null) {
-        undefined = true;
-      }
-    }
-    // we need constructor
-    if (constructor == null) {
-      if (!undefined) {
-        // If the class was not found then we've already reported the error.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
-      }
-      return;
-    }
-    // record element
-    annotation.element = constructor;
-    // resolve arguments
-    _resolveAnnotationConstructorInvocationArguments(annotation, constructor);
-  }
-
-  void _resolveAnnotationElementGetter(
-      Annotation annotation, PropertyAccessorElement accessorElement) {
-    // accessor should be synthetic
-    if (!accessorElement.isSynthetic) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION_GETTER, annotation);
-      return;
-    }
-    // variable should be constant
-    VariableElement variableElement = accessorElement.variable;
-    if (!variableElement.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
-      return;
-    }
-    // no arguments
-    if (annotation.arguments != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
-          annotation.name,
-          [annotation.name]);
-    }
-    // OK
-    return;
   }
 
   /// Given an [argumentList] and the [executableElement] that will be invoked
@@ -1283,311 +636,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     _resolveAnnotations(node.metadata);
   }
 
-  void _resolvePropertyAccess(
-    Expression node,
-    Expression target,
-    SimpleIdentifier propertyName, {
-    @required bool isCascaded,
-    @required bool isNullAware,
-  }) {
-    DartType staticType = _getStaticType(target);
-
-    //
-    // If this property access is of the form 'E.m' where 'E' is an extension,
-    // then look for the member in the extension. This does not apply to
-    // conditional property accesses (i.e. 'C?.m').
-    //
-    if (target is Identifier && target.staticElement is ExtensionElement) {
-      ExtensionElement extension = target.staticElement;
-      String memberName = propertyName.name;
-
-      if (propertyName.inGetterContext()) {
-        ExecutableElement element;
-        element ??= extension.getGetter(memberName);
-        element ??= extension.getMethod(memberName);
-        if (element != null) {
-          element = _resolver.toLegacyElement(element);
-          propertyName.staticElement = element;
-          _checkForStaticAccessToInstanceMember(propertyName, element);
-        } else {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-            propertyName,
-            [memberName, extension.name],
-          );
-        }
-      }
-
-      if (propertyName.inSetterContext()) {
-        var element = extension.getSetter(memberName);
-        if (element != null) {
-          element = _resolver.toLegacyElement(element);
-          propertyName.staticElement = element;
-          _checkForStaticAccessToInstanceMember(propertyName, element);
-        } else {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
-            propertyName,
-            [memberName, extension.name],
-          );
-        }
-      }
-
-      return;
-    }
-
-    //
-    // If this property access is of the form 'C.m' where 'C' is a class,
-    // then we don't call resolveProperty(...) which walks up the class
-    // hierarchy, instead we just look for the member in the type only.  This
-    // does not apply to conditional property accesses (i.e. 'C?.m').
-    //
-    ClassElement typeReference = getTypeReference(target);
-    if (typeReference != null) {
-      if (isCascaded) {
-        typeReference = _typeType.element;
-      }
-
-      if (propertyName.inGetterContext()) {
-        ExecutableElement element;
-
-        if (element == null) {
-          var getter = typeReference.getGetter(propertyName.name);
-          if (getter != null && getter.isAccessibleIn(_definingLibrary)) {
-            element = getter;
-          }
-        }
-
-        if (element == null) {
-          var method = typeReference.getMethod(propertyName.name);
-          if (method != null && method.isAccessibleIn(_definingLibrary)) {
-            element = method;
-          }
-        }
-
-        element = _resolver.toLegacyElement(element);
-        _resolver.setReadElement(node, element);
-
-        if (element != null) {
-          propertyName.staticElement = element;
-          _checkForStaticAccessToInstanceMember(propertyName, element);
-        } else {
-          var code = typeReference.isEnum
-              ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
-              : CompileTimeErrorCode.UNDEFINED_GETTER;
-          _errorReporter.reportErrorForNode(
-            code,
-            propertyName,
-            [propertyName.name, typeReference.name],
-          );
-        }
-      }
-
-      if (propertyName.inSetterContext()) {
-        ExecutableElement element;
-
-        var setter = typeReference.getSetter(propertyName.name);
-        setter = _resolver.toLegacyElement(setter);
-
-        _resolver.setWriteElement(node, setter);
-
-        if (setter != null) {
-          element = setter;
-          if (!setter.isAccessibleIn(_definingLibrary)) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.PRIVATE_SETTER,
-              propertyName,
-              [propertyName.name, typeReference.name],
-            );
-          }
-        }
-
-        if (element != null) {
-          propertyName.staticElement = element;
-          _checkForStaticAccessToInstanceMember(propertyName, element);
-        } else {
-          var getter = typeReference.getGetter(propertyName.name);
-          if (getter != null) {
-            propertyName.staticElement = getter;
-            _resolver.setWriteElement(node, getter);
-            // The error will be reported in ErrorVerifier.
-          } else {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_SETTER,
-              propertyName,
-              [propertyName.name, typeReference.name],
-            );
-          }
-        }
-      }
-
-      return;
-    }
-
-    if (target is SuperExpression) {
-      if (staticType is InterfaceTypeImpl) {
-        if (propertyName.inGetterContext()) {
-          var name = Name(_definingLibrary.source.uri, propertyName.name);
-          var element = _resolver.inheritance
-              .getMember2(staticType.element, name, forSuper: true);
-          _resolver.setReadElement(node, element);
-
-          if (element != null) {
-            element = _resolver.toLegacyElement(element);
-            propertyName.staticElement = element;
-          } else {
-            // We were not able to find the concrete dispatch target.
-            // But we would like to give the user at least some resolution.
-            // So, we retry simply looking for an inherited member.
-            var element =
-                _resolver.inheritance.getInherited2(staticType.element, name);
-            if (element != null) {
-              propertyName.staticElement = element;
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                propertyName,
-                [element.kind.displayName, propertyName.name],
-              );
-            } else {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.UNDEFINED_SUPER_GETTER,
-                propertyName,
-                [propertyName.name, staticType],
-              );
-            }
-          }
-        }
-
-        if (propertyName.inSetterContext()) {
-          var element = staticType.lookUpSetter2(
-            propertyName.name,
-            _definingLibrary,
-            concrete: true,
-            inherited: true,
-          );
-          _resolver.setWriteElement(node, element);
-
-          if (element != null) {
-            element = _resolver.toLegacyElement(element);
-            propertyName.staticElement = element;
-          } else {
-            // We were not able to find the concrete dispatch target.
-            // But we would like to give the user at least some resolution.
-            // So, we retry without the "concrete" requirement.
-            var element = staticType.lookUpSetter2(
-              propertyName.name,
-              _definingLibrary,
-              inherited: true,
-            );
-            if (element != null) {
-              propertyName.staticElement = element;
-              ClassElementImpl receiverSuperClass =
-                  staticType.element.supertype.element;
-              if (!receiverSuperClass.hasNoSuchMethod) {
-                _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                  propertyName,
-                  [element.kind.displayName, propertyName.name],
-                );
-              }
-            } else {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.UNDEFINED_SUPER_SETTER,
-                propertyName,
-                [propertyName.name, staticType],
-              );
-            }
-          }
-        }
-      }
-
-      return;
-    }
-
-    if (staticType == null || staticType.isDynamic) {
-      return;
-    }
-
-    if (isNullAware) {
-      staticType = _typeSystem.promoteToNonNull(staticType);
-    }
-
-    if (staticType.isVoid) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        propertyName,
-      );
-      return;
-    }
-
-    var result = _typePropertyResolver.resolve(
-      receiver: target,
-      receiverType: staticType,
-      name: propertyName.name,
-      receiverErrorNode: target,
-      nameErrorNode: propertyName,
-    );
-
-    if (propertyName.inGetterContext()) {
-      _resolver.setReadElement(node, result.getter);
-      var shouldReportUndefinedGetter = false;
-      if (result.isSingle) {
-        var getter = result.getter;
-        if (getter != null) {
-          propertyName.staticElement = getter;
-        } else {
-          shouldReportUndefinedGetter = true;
-        }
-      } else if (result.isNone) {
-        if (staticType is FunctionType &&
-            propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-          // Referencing `.call` on a `Function` type is OK.
-        } else if (staticType is InterfaceType &&
-            staticType.isDartCoreFunction &&
-            propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-          // Referencing `.call` on a `Function` type is OK.
-        } else if (staticType is NeverTypeImpl) {
-          shouldReportUndefinedGetter = false;
-        } else {
-          shouldReportUndefinedGetter = true;
-        }
-      }
-      if (shouldReportUndefinedGetter) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_GETTER,
-          propertyName,
-          [propertyName.name, staticType],
-        );
-      }
-    }
-
-    if (propertyName.inSetterContext()) {
-      _resolver.setWriteElement(node, result.setter);
-      if (result.isSingle) {
-        var setter = result.setter;
-        if (setter != null) {
-          propertyName.staticElement = setter;
-          propertyName.auxiliaryElements = AuxiliaryElements(result.getter);
-        } else {
-          var getter = result.getter;
-          propertyName.staticElement = getter;
-          _resolver.setWriteElement(node, getter);
-          // A more specific error will be reported in ErrorVerifier.
-        }
-      } else if (result.isNone) {
-        if (staticType is NeverTypeImpl) {
-          // OK
-        } else {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_SETTER,
-            propertyName,
-            [propertyName.name, staticType],
-          );
-        }
-      }
-    }
-  }
-
   /// Resolve the given simple [identifier] if possible. Return the element to
   /// which it could be resolved, or `null` if it could not be resolved. This
   /// does not record the results of the resolution.
@@ -1611,7 +659,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             receiverType: enclosingClass.thisType,
             name: identifier.name,
             receiverErrorNode: identifier,
-            nameErrorNode: identifier,
+            nameErrorEntity: identifier,
           );
           setter = result.setter;
         }
@@ -1652,7 +700,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           receiverType: enclosingType,
           name: identifier.name,
           receiverErrorNode: identifier,
-          nameErrorNode: identifier,
+          nameErrorEntity: identifier,
         );
         if (identifier.inSetterContext() ||
             identifier.parent is CommentReference) {
@@ -1681,27 +729,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
     }
     return null;
-  }
-
-  /// Return `true` if the given [identifier] is the return type of a
-  /// constructor declaration.
-  static bool _isConstructorReturnType(SimpleIdentifier identifier) {
-    AstNode parent = identifier.parent;
-    if (parent is ConstructorDeclaration) {
-      return identical(parent.returnType, identifier);
-    }
-    return false;
-  }
-
-  /// Return `true` if the given [identifier] is the return type of a factory
-  /// constructor.
-  static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
-    AstNode parent = identifier.parent;
-    if (parent is ConstructorDeclaration) {
-      return identical(parent.returnType, identifier) &&
-          parent.factoryKeyword != null;
-    }
-    return false;
   }
 
   /// Resolve each of the annotations in the given list of [annotations].

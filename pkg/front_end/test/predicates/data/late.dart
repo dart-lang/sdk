@@ -5,10 +5,12 @@
 /*member: _#topLevelNonNullableWithoutInitializer:lateField*/
 /*member: topLevelNonNullableWithoutInitializer:lateFieldGetter*/
 /*member: topLevelNonNullableWithoutInitializer=:lateFieldSetter*/
+/*member: _#topLevelNonNullableWithoutInitializer#isSet:lateIsSetField*/
 late int topLevelNonNullableWithoutInitializer;
 /*member: _#finalTopLevelNonNullableWithoutInitializer:lateField*/
 /*member: finalTopLevelNonNullableWithoutInitializer:lateFieldGetter*/
 /*member: finalTopLevelNonNullableWithoutInitializer=:lateFieldSetter*/
+/*member: _#finalTopLevelNonNullableWithoutInitializer#isSet:lateIsSetField*/
 late final int finalTopLevelNonNullableWithoutInitializer;
 /*member: _#topLevelNullableWithoutInitializer:lateField*/
 /*member: _#topLevelNullableWithoutInitializer#isSet:lateIsSetField*/
@@ -23,9 +25,11 @@ late final int? finalTopLevelNullableWithoutInitializer;
 /*member: _#topLevelNonNullableWithInitializer:lateField*/
 /*member: topLevelNonNullableWithInitializer:lateFieldGetter*/
 /*member: topLevelNonNullableWithInitializer=:lateFieldSetter*/
+/*member: _#topLevelNonNullableWithInitializer#isSet:lateIsSetField*/
 late int topLevelNonNullableWithInitializer = 0;
 /*member: _#finalTopLevelNonNullableWithInitializer:lateField*/
 /*member: finalTopLevelNonNullableWithInitializer:lateFieldGetter*/
+/*member: _#finalTopLevelNonNullableWithInitializer#isSet:lateIsSetField*/
 late final int finalTopLevelNonNullableWithInitializer = 0;
 /*member: _#topLevelNullableWithInitializer:lateField*/
 /*member: _#topLevelNullableWithInitializer#isSet:lateIsSetField*/
@@ -38,10 +42,12 @@ late int? topLevelNullableWithInitializer = 0;
 late final int? finalTopLevelNullableWithInitializer = 0;
 
 class Class {
+  /*member: Class._#Class#instanceNonNullableWithoutInitializer#isSet:lateIsSetField*/
   /*member: Class._#Class#instanceNonNullableWithoutInitializer:lateField*/
   /*member: Class.instanceNonNullableWithoutInitializer:lateFieldGetter*/
   /*member: Class.instanceNonNullableWithoutInitializer=:lateFieldSetter*/
   late int instanceNonNullableWithoutInitializer;
+  /*member: Class._#Class#finalInstanceNonNullableWithoutInitializer#isSet:lateIsSetField*/
   /*member: Class._#Class#finalInstanceNonNullableWithoutInitializer:lateField*/
   /*member: Class.finalInstanceNonNullableWithoutInitializer:lateFieldGetter*/
   /*member: Class.finalInstanceNonNullableWithoutInitializer=:lateFieldSetter*/
@@ -56,10 +62,12 @@ class Class {
   /*member: Class.finalInstanceNullableWithoutInitializer:lateFieldGetter*/
   /*member: Class.finalInstanceNullableWithoutInitializer=:lateFieldSetter*/
   late final int? finalInstanceNullableWithoutInitializer;
+  /*member: Class._#Class#instanceNonNullableWithInitializer#isSet:lateIsSetField*/
   /*member: Class._#Class#instanceNonNullableWithInitializer:lateField*/
   /*member: Class.instanceNonNullableWithInitializer:lateFieldGetter*/
   /*member: Class.instanceNonNullableWithInitializer=:lateFieldSetter*/
   late int instanceNonNullableWithInitializer = 0;
+  /*member: Class._#Class#finalInstanceNonNullableWithInitializer#isSet:lateIsSetField*/
   /*member: Class._#Class#finalInstanceNonNullableWithInitializer:lateField*/
   /*member: Class.finalInstanceNonNullableWithInitializer:lateFieldGetter*/
   late final int finalInstanceNonNullableWithInitializer = 0;
@@ -73,10 +81,12 @@ class Class {
   /*member: Class.finalInstanceNullableWithInitializer:lateFieldGetter*/
   late final int? finalInstanceNullableWithInitializer = 0;
 
+  /*member: Class._#staticNonNullableWithoutInitializer#isSet:lateIsSetField*/
   /*member: Class._#staticNonNullableWithoutInitializer:lateField*/
   /*member: Class.staticNonNullableWithoutInitializer:lateFieldGetter*/
   /*member: Class.staticNonNullableWithoutInitializer=:lateFieldSetter*/
   static late int staticNonNullableWithoutInitializer;
+  /*member: Class._#finalStaticNonNullableWithoutInitializer#isSet:lateIsSetField*/
   /*member: Class._#finalStaticNonNullableWithoutInitializer:lateField*/
   /*member: Class.finalStaticNonNullableWithoutInitializer:lateFieldGetter*/
   /*member: Class.finalStaticNonNullableWithoutInitializer=:lateFieldSetter*/
@@ -91,10 +101,12 @@ class Class {
   /*member: Class.finalStaticNullableWithoutInitializer:lateFieldGetter*/
   /*member: Class.finalStaticNullableWithoutInitializer=:lateFieldSetter*/
   static late final int? finalStaticNullableWithoutInitializer;
+  /*member: Class._#staticNonNullableWithInitializer#isSet:lateIsSetField*/
   /*member: Class._#staticNonNullableWithInitializer:lateField*/
   /*member: Class.staticNonNullableWithInitializer:lateFieldGetter*/
   /*member: Class.staticNonNullableWithInitializer=:lateFieldSetter*/
   static late int staticNonNullableWithInitializer = 0;
+  /*member: Class._#finalStaticNonNullableWithInitializer#isSet:lateIsSetField*/
   /*member: Class._#finalStaticNonNullableWithInitializer:lateField*/
   /*member: Class.finalStaticNonNullableWithInitializer:lateFieldGetter*/
   static late final int finalStaticNonNullableWithInitializer = 0;

@@ -1,6 +1,7 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
 
 import "org-dartlang-testcase:///value_class_support_lib.dart";
 
@@ -10,6 +11,12 @@ class A extends core::Object {
     ;
   operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
     return other is self::A;
+  get /*isNullableByDefault*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode});
+  method /*isNullableByDefault*/ toString() → core::String
+    return "A()";
+  method /*isNullableByDefault*/ copyWith() → dynamic
+    return new self::A::•();
 }
 class B extends core::Object {
   synthetic constructor •() → self::B
@@ -22,6 +29,12 @@ abstract class _C&B&A extends self::B implements self::A /*isAnonymousMixin,isEl
     ;
   operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
     return other is self::A;
+  get /*isNullableByDefault*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode});
+  method /*isNullableByDefault*/ toString() → core::String
+    return "A()";
+  method /*isNullableByDefault*/ copyWith() → dynamic
+    return new self::A::•();
 }
 class C extends self::_C&B&A {
   synthetic constructor •() → self::C
@@ -41,11 +54,11 @@ class D extends self::_D&A&B {
 static method main() → dynamic {}
 
 library /*isNonNullableByDefault*/;
-import self as self2;
+import self as val;
 import "dart:core" as core;
 
 class JenkinsSmiHash extends core::Object {
-  synthetic constructor •() → self2::JenkinsSmiHash
+  synthetic constructor •() → val::JenkinsSmiHash
     : super core::Object::•()
     ;
   static method combine(core::int hash, core::int value) → core::int {
@@ -64,3 +77,8 @@ static const field core::String valueClass = #C1;
 constants  {
   #C1 = "valueClass"
 }
+
+Extra constant evaluation status:
+Evaluated: StringConcatenation @ org-dartlang-testcase:///value_mixin_error.dart:8:7 -> StringConstant("A()")
+Evaluated: StringConcatenation @ org-dartlang-testcase:///value_mixin_error.dart:8:7 -> StringConstant("A()")
+Extra constant evaluation: evaluated: 46, effectively constant: 2

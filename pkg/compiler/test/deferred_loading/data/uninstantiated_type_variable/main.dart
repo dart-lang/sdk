@@ -11,13 +11,13 @@ import 'lib.dart' deferred as lib;
 ///
 /// If not, we may include it in the main unit and may not see that the base
 /// class is not added to the main unit.
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 main() {
-  lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
+  lib.loadLibrary().then(/*closure_unit=main{}*/ (_) {
     dontInline(new lib.C()).box.value;
   });
 }
 
 @pragma('dart2js:noInline')
-/*member: dontInline:OutputUnit(main, {})*/
+/*member: dontInline:member_unit=main{}*/
 dontInline(x) => x;

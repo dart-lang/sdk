@@ -402,6 +402,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractValue get growableListType => const TrivialAbstractValue();
 
   @override
+  AbstractValue get mutableArrayType => const TrivialAbstractValue();
+
+  @override
   AbstractValue get nullType => const TrivialAbstractValue();
 
   @override

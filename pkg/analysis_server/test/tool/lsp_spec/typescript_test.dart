@@ -385,5 +385,49 @@ interface SomeInformation {
       expect(output[0].commentNode.token.lexeme, equals('''// This is line 1
 // This is line 2'''));
     });
+
+    test('parses literal string values', () {
+      final input = '''
+export interface MyType {
+	kind: 'one';
+}
+    ''';
+      final output = parseString(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.name, equals('MyType'));
+      expect(interface.members, hasLength(1));
+      expect(interface.members[0], const TypeMatcher<Field>());
+      final Field field = interface.members[0];
+      expect(field.name, equals('kind'));
+      expect(field.allowsNull, isFalse);
+      expect(field.allowsUndefined, isFalse);
+      expect(field.type, isLiteralOf(isSimpleType('string'), "'one'"));
+    });
+
+    test('parses literal union values', () {
+      final input = '''
+export interface MyType {
+	kind: 'one' | 'two';
+}
+    ''';
+      final output = parseString(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.name, equals('MyType'));
+      expect(interface.members, hasLength(1));
+      expect(interface.members[0], const TypeMatcher<Field>());
+      final Field field = interface.members[0];
+      expect(field.name, equals('kind'));
+      expect(field.allowsNull, isFalse);
+      expect(field.allowsUndefined, isFalse);
+      expect(field.type, const TypeMatcher<LiteralUnionType>());
+      LiteralUnionType union = field.type;
+      expect(union.types, hasLength(2));
+      expect(union.types[0], isLiteralOf(isSimpleType('string'), "'one'"));
+      expect(union.types[1], isLiteralOf(isSimpleType('string'), "'two'"));
+    });
   });
 }

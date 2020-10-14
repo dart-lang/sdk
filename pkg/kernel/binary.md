@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 45;
+  UInt32 formatVersion = 46;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -613,23 +613,6 @@ type SuperPropertySet extends Expression {
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
-type DirectPropertyGet extends Expression {
-  Byte tag = 15; // Note: tag is out of order
-  FileOffset fileOffset;
-  Expression receiver;
-  MemberReference target;
-  MemberReference targetOrigin; // May be NullReference.
-}
-
-type DirectPropertySet extends Expression {
-  Byte tag = 16; // Note: tag is out of order
-  FileOffset fileOffset;
-  Expression receiver;
-  MemberReference target;
-  MemberReference targetOrigin; // May be NullReference.
-  Expression value;
-}
-
 type StaticGet extends Expression {
   Byte tag = 26;
   FileOffset fileOffset;
@@ -674,15 +657,6 @@ type SuperMethodInvocation extends Expression {
   Arguments arguments;
   MemberReference interfaceTarget; // May be NullReference.
   MemberReference interfaceTargetOrigin; // May be NullReference.
-}
-
-type DirectMethodInvocation extends Expression {
-  Byte tag = 17; // Note: tag is out of order
-  FileOffset fileOffset;
-  Expression receiver;
-  MemberReference target;
-  MemberReference targetOrigin; // May be NullReference.
-  Arguments arguments;
 }
 
 type StaticInvocation extends Expression {

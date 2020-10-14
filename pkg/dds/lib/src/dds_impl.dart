@@ -16,21 +16,50 @@ class _DartDevelopmentService implements DartDevelopmentService {
   }
 
   Future<void> startService() async {
+    bool started = false;
+    final completer = Completer<void>();
     // TODO(bkonyi): throw if we've already shutdown.
     // Establish the connection to the VM service.
     _vmServiceSocket = WebSocketChannel.connect(remoteVmServiceWsUri);
     _vmServiceClient = _BinaryCompatiblePeer(_vmServiceSocket, _streamManager);
     // Setup the JSON RPC client with the VM service.
-    unawaited(_vmServiceClient.listen().then((_) => shutdown()));
+    unawaited(
+      _vmServiceClient.listen().then(
+        (_) {
+          shutdown();
+          if (!started && !completer.isCompleted) {
+            completer.completeError(
+              DartDevelopmentServiceException._(
+                'Failed to start Dart Development Service',
+              ),
+            );
+          }
+        },
+        onError: (e, st) {
+          shutdown();
+          if (!completer.isCompleted) {
+            completer.completeError(e, st);
+          }
+        },
+      ),
+    );
+    try {
+      // Setup stream event handling.
+      await streamManager.listen();
 
-    // Setup stream event handling.
-    await streamManager.listen();
+      // Populate initial isolate state.
+      await _isolateManager.initialize();
 
-    // Populate initial isolate state.
-    await _isolateManager.initialize();
-
-    // Once we have a connection to the VM service, we're ready to spawn the intermediary.
-    await _startDDSServer();
+      // Once we have a connection to the VM service, we're ready to spawn the intermediary.
+      await _startDDSServer();
+      started = true;
+      completer.complete();
+    } on StateError {
+      /* Ignore json-rpc state errors */
+    } catch (e, st) {
+      completer.completeError(e, st);
+    }
+    return completer.future;
   }
 
   Future<void> _startDDSServer() async {
@@ -205,7 +234,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     }
     final pathSegments = _cleanupPathSegments(uri);
     pathSegments.add(_kSseHandlerPath);
-    return uri.replace(pathSegments: pathSegments);
+    return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
   String _getNamespace(_DartDevelopmentServiceClient client) =>

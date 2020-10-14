@@ -16,27 +16,28 @@ class ConvertToIfNull extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var conditional = node.thisOrAncestorOfType<ConditionalExpression>();
-    if (conditional == null) {
-      return;
-    }
-    var condition = conditional.condition as BinaryExpression;
-    Expression nullableExpression;
-    Expression defaultExpression;
-    if (condition.operator.type == TokenType.EQ_EQ) {
-      nullableExpression = conditional.elseExpression;
-      defaultExpression = conditional.thenExpression;
-    } else {
-      nullableExpression = conditional.thenExpression;
-      defaultExpression = conditional.elseExpression;
-    }
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addReplacement(range.node(conditional), (builder) {
-        builder.write(utils.getNodeText(nullableExpression));
-        builder.write(' ?? ');
-        builder.write(utils.getNodeText(defaultExpression));
+    var node = this.node;
+    if (node is ConditionalExpression &&
+        node.offset == errorOffset &&
+        node.length == errorLength) {
+      var condition = node.condition as BinaryExpression;
+      Expression nullableExpression;
+      Expression defaultExpression;
+      if (condition.operator.type == TokenType.EQ_EQ) {
+        nullableExpression = node.elseExpression;
+        defaultExpression = node.thenExpression;
+      } else {
+        nullableExpression = node.thenExpression;
+        defaultExpression = node.elseExpression;
+      }
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addReplacement(range.node(node), (builder) {
+          builder.write(utils.getNodeText(nullableExpression));
+          builder.write(' ?? ');
+          builder.write(utils.getNodeText(defaultExpression));
+        });
       });
-    });
+    }
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

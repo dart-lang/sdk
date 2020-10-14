@@ -340,12 +340,7 @@ NameIndex TranslationHelper::EnclosingName(NameIndex name) {
 InstancePtr TranslationHelper::Canonicalize(const Instance& instance) {
   if (instance.IsNull()) return instance.raw();
 
-  const char* error_str = NULL;
-  InstancePtr result = instance.CheckAndCanonicalize(thread(), &error_str);
-  if (result == Object::null()) {
-    ReportError("Invalid const object %s", error_str);
-  }
-  return result;
+  return instance.Canonicalize(thread());
 }
 
 const String& TranslationHelper::DartString(const char* content,
@@ -368,6 +363,11 @@ String& TranslationHelper::DartString(const uint8_t* utf8_array,
                                       intptr_t len,
                                       Heap::Space space) {
   return String::ZoneHandle(Z, String::FromUTF8(utf8_array, len, space));
+}
+
+const String& TranslationHelper::DartString(
+    const GrowableHandlePtrArray<const String>& pieces) {
+  return String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
 }
 
 const String& TranslationHelper::DartSymbolPlain(const char* content) const {
@@ -1821,13 +1821,13 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
   AlternativeReadingScopeWithNewData alt(&helper_->reader_,
                                          &H.metadata_payloads(), md_offset);
 
-  Thread* T = Thread::Current();
-  Zone* Z = T->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   intptr_t unit_count = helper_->ReadUInt();
-  Array& loading_units = Array::Handle(Z, Array::New(unit_count + 1));
-  LoadingUnit& unit = LoadingUnit::Handle(Z);
-  LoadingUnit& parent = LoadingUnit::Handle(Z);
-  Library& lib = Library::Handle(Z);
+  Array& loading_units = Array::Handle(zone, Array::New(unit_count + 1));
+  LoadingUnit& unit = LoadingUnit::Handle(zone);
+  LoadingUnit& parent = LoadingUnit::Handle(zone);
+  Library& lib = Library::Handle(zone);
 
   for (int i = 0; i < unit_count; i++) {
     intptr_t id = helper_->ReadUInt();
@@ -1844,7 +1844,7 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
     for (intptr_t j = 0; j < library_count; j++) {
       const String& uri =
           translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
-      lib = Library::LookupLibrary(T, uri);
+      lib = Library::LookupLibrary(thread, uri);
       if (lib.IsNull()) {
         FATAL1("Missing library: %s\n", uri.ToCString());
       }
@@ -2332,17 +2332,6 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();              // read value.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
-    case kDirectPropertyGet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipInterfaceMemberNameReference();  // read target_reference.
-      return;
-    case kDirectPropertySet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipInterfaceMemberNameReference();  // read target_reference.
-      SkipExpression();              // read value·
-      return;
     case kStaticGet:
       ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
@@ -2364,12 +2353,6 @@ void KernelReaderHelper::SkipExpression() {
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
-      return;
-    case kDirectMethodInvocation:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipInterfaceMemberNameReference();  // read target_reference.
-      SkipArguments();               // read arguments.
       return;
     case kStaticInvocation:
       ReadPosition();                // read position.
@@ -3258,7 +3241,7 @@ const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {
     }
 
     if (finalize_) {
-      type_arguments = type_arguments.Canonicalize();
+      type_arguments = type_arguments.Canonicalize(Thread::Current(), nullptr);
     }
   }
   return type_arguments;

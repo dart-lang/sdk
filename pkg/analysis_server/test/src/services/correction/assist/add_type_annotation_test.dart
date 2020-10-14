@@ -50,7 +50,7 @@ class A {
   var f = 0;
 }
 ''');
-    await await assertHasAssistAt('var ', '''
+    await assertHasAssistAt('var ', '''
 class A {
   int f = 0;
 }

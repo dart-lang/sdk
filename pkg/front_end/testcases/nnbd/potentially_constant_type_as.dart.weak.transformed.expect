@@ -1,5 +1,6 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/nnbd/potentially_constant_type_as.dart:65:9: Error: Constant evaluation error:
 //   const Class<num>(''); // error
@@ -125,7 +126,6 @@
 //   const ClassWithFunction(dynamic value) : field = value as T Function(T);
 //                                                          ^
 //
-library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 

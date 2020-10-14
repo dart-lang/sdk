@@ -20,14 +20,14 @@ class InvalidValueTest extends AbstractTransformSetParserTest {
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2020-09-08
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - 'rename'
 ''', [
-      error(TransformSetErrorCode.invalidValue, 123, 8),
+      error(TransformSetErrorCode.invalidValue, 129, 8),
     ]);
   }
 
@@ -36,12 +36,13 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2020-09-08
   element: 5
   changes:
     - kind: 'rename'
       newName: 'B'
 ''', [
-      error(TransformSetErrorCode.invalidValue, 54, 1),
+      error(TransformSetErrorCode.invalidValue, 73, 1),
     ]);
   }
 
@@ -52,8 +53,7 @@ transforms:
 - title: 'Rename A'
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'
@@ -69,8 +69,7 @@ transforms:
 - title: 'Rename A'
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'
@@ -93,10 +92,10 @@ transforms: 3
 version: 1
 transforms:
 - title: 0
+  date: 2020-09-08
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'
@@ -110,10 +109,10 @@ transforms:
 version: 1
 transforms:
 - title: []
+  date: 2020-09-08
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'
@@ -145,17 +144,17 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2020-09-08
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'addTypeParameter'
       index: 1
       name: 'T'
-      value: 'int'
+      argumentValue: 'int'
 ''', [
-      error(TransformSetErrorCode.invalidValue, 192, 5),
+      error(TransformSetErrorCode.invalidValue, 206, 5),
     ]);
   }
 }

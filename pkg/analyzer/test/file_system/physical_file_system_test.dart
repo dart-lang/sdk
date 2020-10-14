@@ -145,11 +145,24 @@ class PhysicalFileTest extends BaseTest with FileTestMixin {
   }
 
   @override
+  test_resolveSymbolicLinksSync_links_notExisting() {
+    var a = join(tempPath, 'a.dart');
+    var b = join(tempPath, 'b.dart');
+
+    io.Link(b).createSync(a, recursive: true);
+
+    expect(() {
+      provider.getFile(b).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
+
+  @override
   test_resolveSymbolicLinksSync_noLinks_notExisting() {
     File file = getFile(exists: false);
 
-    expect(
-        () => file.resolveSymbolicLinksSync(), throwsA(isFileSystemException));
+    expect(() {
+      file.resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
   }
 
   @override

@@ -1529,16 +1529,11 @@ bool FlowGraphDeserializer::CanonicalizeInstance(SExpression* sexp,
                                                  Object* out) {
   ASSERT(out != nullptr);
   if (!out->IsInstance()) return true;
-  const char* error_str = nullptr;
-  // CheckAndCanonicalize uses the current zone for the passed in thread,
+  // Instance::Canonicalize uses the current zone for the passed in thread,
   // not an explicitly provided zone. This means we cannot be run in a context
   // where [thread()->zone()] does not match [zone()] (e.g., due to StackZone)
   // until this is addressed.
-  *out = Instance::Cast(*out).CheckAndCanonicalize(thread(), &error_str);
-  if (error_str != nullptr) {
-    StoreError(sexp, "error during canonicalization: %s", error_str);
-    return false;
-  }
+  *out = Instance::Cast(*out).Canonicalize(thread());
   return true;
 }
 

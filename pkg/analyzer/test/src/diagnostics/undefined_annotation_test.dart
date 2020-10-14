@@ -15,6 +15,16 @@ main() {
 
 @reflectiveTest
 class UndefinedAnnotationTest extends PubPackageResolutionTest {
+  test_identifier1_localVariable_const() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  const a = 0;
+  g(@a x) {}
+  g(0);
+}
+''');
+  }
+
   test_unresolved_identifier() async {
     await assertErrorsInCode(r'''
 @unresolved

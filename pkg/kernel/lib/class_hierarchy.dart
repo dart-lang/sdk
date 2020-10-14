@@ -281,8 +281,8 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
     int firstHash = firstName.hashCode;
     int secondHash = secondName.hashCode;
     if (firstHash != secondHash) return firstHash - secondHash;
-    String firstString = firstName.name;
-    String secondString = secondName.name;
+    String firstString = firstName.text;
+    String secondString = secondName.text;
     int firstLength = firstString.length;
     int secondLength = secondString.length;
     if (firstLength != secondLength) {

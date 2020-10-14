@@ -148,6 +148,10 @@ abstract class DartEditBuilder implements EditBuilder {
       DartType returnType,
       String returnTypeGroupName});
 
+  /// Write the given [name], possibly with a prefix, assuming that the name can
+  /// be imported from any of the given [uris].
+  void writeImportedName(List<Uri> uris, String name);
+
   /// Write the code for a declaration of a local variable with the given
   /// [name]. If an [initializerWriter] is provided, it will be invoked to write
   /// the content of the initializer. (The equal sign separating the variable

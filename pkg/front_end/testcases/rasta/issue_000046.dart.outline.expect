@@ -15,6 +15,7 @@ library;
 //                   ^
 //
 // pkg/front_end/testcases/rasta/issue_000046.dart:6:20: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
 //   C c = new Object)();
 //                    ^
 //

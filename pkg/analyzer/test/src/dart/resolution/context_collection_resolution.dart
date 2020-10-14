@@ -24,6 +24,7 @@ import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+import 'context_collection_resolution_caching.dart';
 import 'resolution.dart';
 
 class AnalysisOptionsFileConfig {
@@ -127,7 +128,7 @@ abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
-  final ByteStore _byteStore = MemoryByteStore();
+  ByteStore _byteStore = getContextResolutionTestByteStore();
 
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
@@ -216,6 +217,12 @@ abstract class ContextResolutionTest
       resourceProvider: resourceProvider,
       additionalLibraries: additionalMockSdkLibraries,
     );
+  }
+
+  /// Call this method if the test needs to use the empty byte store, without
+  /// any information cached.
+  void useEmptyByteStore() {
+    _byteStore = MemoryByteStore();
   }
 
   void verifyCreatedCollection() {}

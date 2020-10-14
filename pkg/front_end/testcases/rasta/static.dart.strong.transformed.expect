@@ -337,3 +337,12 @@ constants  {
   #C1 = 42
   #C2 = tearoff self::Foo::staticFunction
 }
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///static.dart:32:13 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///static.dart:36:13 -> TearOffConstant(Foo.staticFunction)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///static.dart:75:24 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///static.dart:76:28 -> IntConstant(42)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///static.dart:79:24 -> NullConstant(null)
+Evaluated: Let @ org-dartlang-testcase:///static.dart:80:28 -> TearOffConstant(Foo.staticFunction)
+Extra constant evaluation: evaluated: 122, effectively constant: 6

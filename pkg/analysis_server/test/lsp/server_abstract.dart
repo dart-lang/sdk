@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -48,6 +48,10 @@ abstract class AbstractLspAnalysisServerTest
   TestPluginManager pluginManager;
   LspAnalysisServer server;
 
+  final testWorkDoneToken = Either2<num, String>.t2('test');
+
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions();
+
   @override
   Stream<Message> get serverToClient => channel.serverToClient;
 
@@ -77,12 +81,13 @@ abstract class AbstractLspAnalysisServerTest
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
   @override
-  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
+  Future<T> expectSuccessfulResponseTo<T, R>(
+      RequestMessage request, T Function(R) fromJson) async {
     final resp = await sendRequestToServer(request);
     if (resp.error != null) {
       throw resp.error;
     } else {
-      return resp.result as T;
+      return resp.result == null ? null : fromJson(resp.result);
     }
   }
 
@@ -119,7 +124,7 @@ abstract class AbstractLspAnalysisServerTest
     server = LspAnalysisServer(
         channel,
         resourceProvider,
-        AnalysisServerOptions(),
+        serverOptions,
         DartSdkManager(convertPath('/sdk')),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
@@ -151,16 +156,13 @@ mixin ClientCapabilitiesHelperMixin {
 
   final emptyWorkspaceClientCapabilities = ClientCapabilitiesWorkspace();
 
+  final emptyWindowClientCapabilities = ClientCapabilitiesWindow();
+
   TextDocumentClientCapabilities extendTextDocumentCapabilities(
     TextDocumentClientCapabilities source,
     Map<String, dynamic> textDocumentCapabilities,
   ) {
-    // TODO(dantup): Figure out why we need to do this to get a map...
-    // source.toJson() doesn't recursively called toJson() so we end up with
-    // objects (instead of maps) in child properties, which means multiple
-    // calls to this function do not work correctly. For now, calling jsonEncode
-    // then jsonDecode will force recursive serialisation.
-    final json = jsonDecode(jsonEncode(source));
+    final json = source.toJson();
     if (textDocumentCapabilities != null) {
       textDocumentCapabilities.keys.forEach((key) {
         json[key] = textDocumentCapabilities[key];
@@ -169,13 +171,24 @@ mixin ClientCapabilitiesHelperMixin {
     return TextDocumentClientCapabilities.fromJson(json);
   }
 
+  ClientCapabilitiesWindow extendWindowCapabilities(
+    ClientCapabilitiesWindow source,
+    Map<String, dynamic> windowCapabilities,
+  ) {
+    final json = source.toJson();
+    if (windowCapabilities != null) {
+      windowCapabilities.keys.forEach((key) {
+        json[key] = windowCapabilities[key];
+      });
+    }
+    return ClientCapabilitiesWindow.fromJson(json);
+  }
+
   ClientCapabilitiesWorkspace extendWorkspaceCapabilities(
     ClientCapabilitiesWorkspace source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
-    // TODO(dantup): As above - it seems like this round trip should be
-    // unnecessary.
-    final json = jsonDecode(jsonEncode(source));
+    final json = source.toJson();
     if (workspaceCapabilities != null) {
       workspaceCapabilities.keys.forEach((key) {
         json[key] = workspaceCapabilities[key];
@@ -369,6 +382,11 @@ mixin ClientCapabilitiesHelperMixin {
       'synchronization': {'dynamicRegistration': true}
     });
   }
+
+  ClientCapabilitiesWindow withWorkDoneProgressSupport(
+      ClientCapabilitiesWindow source) {
+    return extendWindowCapabilities(source, {'workDoneProgress': true});
+  }
 }
 
 mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
@@ -387,6 +405,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   final startOfDocRange = Range(
       start: Position(line: 0, character: 0),
       end: Position(line: 0, character: 0));
+
+  /// The client capabilities sent to the server during initialization.
+  ///
+  /// null if an initialization request has not yet been sent.
+  ClientCapabilities _clientCapabilities;
+
+  final validProgressTokens = <Either2<num, String>>{};
 
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
@@ -567,15 +592,26 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await sendNotificationToServer(notification);
   }
 
-  Future<Object> executeCommand(Command command) async {
+  Future<Object> executeCodeAction(
+      Either2<Command, CodeAction> codeAction) async {
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command,
+    );
+    return executeCommand(command);
+  }
+
+  Future<Object> executeCommand(Command command,
+      {Either2<num, String> workDoneToken}) async {
     final request = makeRequest(
       Method.workspace_executeCommand,
       ExecuteCommandParams(
         command: command.command,
         arguments: command.arguments,
+        workDoneToken: workDoneToken,
       ),
     );
-    return expectSuccessfulResponseTo(request);
+    return expectSuccessfulResponseTo(request, (result) => result);
   }
 
   void expectDocumentVersion(
@@ -617,7 +653,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
-  Future<T> expectErrorNotification<T>(
+  Future<ShowMessageParams> expectErrorNotification(
     FutureOr<void> Function() f, {
     Duration timeout = const Duration(seconds: 5),
   }) async {
@@ -627,7 +663,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final notificationFromServer = await firstError.timeout(timeout);
 
     expect(notificationFromServer, isNotNull);
-    return notificationFromServer.params as T;
+    return ShowMessageParams.fromJson(notificationFromServer.params);
   }
 
   Future<T> expectNotification<T>(
@@ -660,7 +696,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return requestFromServer;
   }
 
-  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request);
+  Future<T> expectSuccessfulResponseTo<T, R>(
+      RequestMessage request, T Function(R) fromJson);
 
   Future<List<TextEdit>> formatDocument(String fileUri) {
     final request = makeRequest(
@@ -672,7 +709,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
             insertSpaces: true), // These currently don't do anything
       ),
     );
-    return expectSuccessfulResponseTo(request);
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TextEdit.fromJson));
   }
 
   Future<List<TextEdit>> formatOnType(
@@ -688,7 +726,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo(request);
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TextEdit.fromJson));
   }
 
   Future<List<Either2<Command, CodeAction>>> getCodeActions(
@@ -707,7 +746,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         context: CodeActionContext(diagnostics: [], only: kinds),
       ),
     );
-    return expectSuccessfulResponseTo(request);
+    return expectSuccessfulResponseTo(
+      request,
+      _fromJsonList(_generateFromJsonFor(Command.canParse, Command.fromJson,
+          CodeAction.canParse, CodeAction.fromJson)),
+    );
   }
 
   Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
@@ -720,7 +763,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo<List<CompletionItem>>(request);
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CompletionItem.fromJson));
   }
 
   Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
@@ -732,7 +776,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo(request);
+    return expectSuccessfulResponseTo(
+      request,
+      _generateFromJsonFor(
+          _canParseList(Location.canParse),
+          _fromJsonList(Location.fromJson),
+          _canParseList(LocationLink.canParse),
+          _fromJsonList(LocationLink.fromJson)),
+    );
   }
 
   Future<List<Location>> getDefinitionAsLocation(Uri uri, Position pos) async {
@@ -757,7 +808,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       CustomMethods.DiagnosticServer,
       null,
     );
-    return expectSuccessfulResponseTo(request);
+    return expectSuccessfulResponseTo(request, DartDiagnosticServer.fromJson);
   }
 
   Future<List<DocumentHighlight>> getDocumentHighlights(Uri uri, Position pos) {
@@ -768,7 +819,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo<List<DocumentHighlight>>(request);
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(DocumentHighlight.fromJson));
   }
 
   Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
@@ -779,7 +831,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         textDocument: TextDocumentIdentifier(uri: fileUri),
       ),
     );
-    return expectSuccessfulResponseTo(request);
+    return expectSuccessfulResponseTo(
+      request,
+      _generateFromJsonFor(
+          _canParseList(DocumentSymbol.canParse),
+          _fromJsonList(DocumentSymbol.fromJson),
+          _canParseList(SymbolInformation.canParse),
+          _fromJsonList(SymbolInformation.fromJson)),
+    );
   }
 
   Future<List<FoldingRange>> getFoldingRegions(Uri uri) {
@@ -789,7 +848,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         textDocument: TextDocumentIdentifier(uri: uri.toString()),
       ),
     );
-    return expectSuccessfulResponseTo<List<FoldingRange>>(request);
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(FoldingRange.fromJson));
   }
 
   Future<Hover> getHover(Uri uri, Position pos) {
@@ -799,7 +859,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           textDocument: TextDocumentIdentifier(uri: uri.toString()),
           position: pos),
     );
-    return expectSuccessfulResponseTo<Hover>(request);
+    return expectSuccessfulResponseTo(request, Hover.fromJson);
   }
 
   Future<List<Location>> getImplementations(
@@ -814,7 +874,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo<List<Location>>(request);
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(Location.fromJson));
   }
 
   Future<List<Location>> getReferences(
@@ -830,7 +891,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo<List<Location>>(request);
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(Location.fromJson));
   }
 
   Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos,
@@ -843,7 +905,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         context: context,
       ),
     );
-    return expectSuccessfulResponseTo<SignatureHelp>(request);
+    return expectSuccessfulResponseTo(request, SignatureHelp.fromJson);
   }
 
   Future<Location> getSuper(
@@ -857,7 +919,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo<Location>(request);
+    return expectSuccessfulResponseTo(request, Location.fromJson);
   }
 
   Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
@@ -865,7 +927,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Method.workspace_symbol,
       WorkspaceSymbolParams(query: query),
     );
-    return expectSuccessfulResponseTo(request);
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(SymbolInformation.fromJson));
   }
 
   /// Executes [f] then waits for a request of type [method] from the server which
@@ -889,21 +952,29 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// response to the request it sends (3).
   Future<T> handleExpectedRequest<T, R, RR>(
     Method method,
+    R Function(Map<String, dynamic>) fromJson,
     Future<T> Function() f, {
     @required FutureOr<RR> Function(R) handler,
     Duration timeout = const Duration(seconds: 5),
   }) async {
-    FutureOr<T> outboundRequest;
+    Future<T> outboundRequest;
 
     // Run [f] and wait for the incoming request from the server.
     final incomingRequest = await expectRequest(method, () {
       // Don't return/await the response yet, as this may not complete until
       // after we have handled the request that comes from the server.
       outboundRequest = f();
+
+      // Because we don't await this future until "later", if it throws the
+      // error is treated as unhandled and will fail the test. Attaching an
+      // error handler prevents that, though since the Future completed with
+      // an error it will still be handled as such when the future is later
+      // awaited.
+      outboundRequest.catchError((_) {});
     });
 
     // Handle the request from the server and send the response back.
-    final clientsResponse = await handler(incomingRequest.params as R);
+    final clientsResponse = await handler(fromJson(incomingRequest.params));
     respondTo(incomingRequest, clientsResponse);
 
     // Return a future that completes when the response to the original request
@@ -927,6 +998,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
   }) async {
+    _clientCapabilities = ClientCapabilities(
+      workspace: workspaceCapabilities,
+      textDocument: textDocumentCapabilities,
+      window: windowCapabilities,
+    );
+
+    // Handle any standard incoming requests that aren't test-specific, for example
+    // accepting requests to create progress tokens.
+    requestsFromServer.listen((request) async {
+      if (request.method == Method.window_workDoneProgress_create) {
+        respondTo(request, await _handleWorkDoneProgressCreate(request));
+      }
+    });
+
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
     if (rootPath == null &&
@@ -941,11 +1026,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           rootPath: rootPath,
           rootUri: rootUri?.toString(),
           initializationOptions: initializationOptions,
-          capabilities: ClientCapabilities(
-            workspace: workspaceCapabilities,
-            textDocument: textDocumentCapabilities,
-            window: windowCapabilities,
-          ),
+          capabilities: _clientCapabilities,
           workspaceFolders: workspaceFolders?.map(toWorkspaceFolder)?.toList(),
         ));
     final response = await sendRequestToServer(request);
@@ -996,6 +1077,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   ) {
     return handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
       Method.client_registerCapability,
+      RegistrationParams.fromJson,
       f,
       handler: (registrationParams) {
         registrations.addAll(registrationParams.registrations);
@@ -1021,6 +1103,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   ) {
     return handleExpectedRequest<ResponseMessage, UnregistrationParams, void>(
       Method.client_unregisterCapability,
+      UnregistrationParams.fromJson,
       f,
       handler: (unregistrationParams) {
         registrations.removeWhere((element) => unregistrationParams
@@ -1070,7 +1153,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo<RangeAndPlaceholder>(request);
+    return expectSuccessfulResponseTo(request, RangeAndPlaceholder.fromJson);
   }
 
   /// Calls the supplied function and responds to any `workspace/configuration`
@@ -1080,6 +1163,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return handleExpectedRequest<ResponseMessage, ConfigurationParams,
         List<Map<String, dynamic>>>(
       Method.workspace_configuration,
+      ConfigurationParams.fromJson,
       f,
       handler: (configurationParams) async => [await config],
     );
@@ -1155,7 +1239,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     String newName,
   ) {
     final request = makeRenameRequest(version, uri, pos, newName);
-    return expectSuccessfulResponseTo<WorkspaceEdit>(request);
+    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
   }
 
   Future<ResponseMessage> renameRaw(
@@ -1185,7 +1269,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Method.completionItem_resolve,
       item,
     );
-    return expectSuccessfulResponseTo<CompletionItem>(request);
+    return expectSuccessfulResponseTo(request, CompletionItem.fromJson);
   }
 
   /// Sends [responseParams] to the server as a successful response to
@@ -1216,7 +1300,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<Null> sendShutdown() {
     final request = makeRequest(Method.shutdown, null);
-    return expectSuccessfulResponseTo(request);
+    return expectSuccessfulResponseTo(request, (result) => result);
   }
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
@@ -1235,23 +1319,56 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
-  Future<AnalyzerStatusParams> waitForAnalysisComplete() =>
-      waitForAnalysisStatus(false);
+  Future<void> waitForAnalysisComplete() => waitForAnalysisStatus(false);
 
-  Future<AnalyzerStatusParams> waitForAnalysisStart() =>
-      waitForAnalysisStatus(true);
+  Future<void> waitForAnalysisStart() => waitForAnalysisStatus(true);
 
-  Future<AnalyzerStatusParams> waitForAnalysisStatus(bool analyzing) async {
-    AnalyzerStatusParams params;
+  Future<void> waitForAnalysisStatus(bool analyzing) async {
     await serverToClient.firstWhere((message) {
-      if (message is NotificationMessage &&
-          message.method == CustomMethods.AnalyzerStatus) {
-        params = _convertParams(message, AnalyzerStatusParams.fromJson);
-        return params.isAnalyzing == analyzing;
+      if (message is NotificationMessage) {
+        if (message.method == CustomMethods.AnalyzerStatus) {
+          if (_clientCapabilities.window?.workDoneProgress == true) {
+            throw Exception(
+                'Recieved ${CustomMethods.AnalyzerStatus} notification '
+                'but client supports workDoneProgress');
+          }
+
+          final params = AnalyzerStatusParams.fromJson(message.params);
+          return params.isAnalyzing == analyzing;
+        } else if (message.method == Method.progress) {
+          if (_clientCapabilities.window?.workDoneProgress != true) {
+            throw Exception(
+                'Recieved ${CustomMethods.AnalyzerStatus} notification '
+                'but client supports workDoneProgress');
+          }
+
+          final params = ProgressParams.fromJson(message.params);
+          if (!validProgressTokens.contains(params.token)) {
+            throw Exception('Server sent a progress notification for a token '
+                'that has not been created: ${params.token}');
+          }
+
+          // Skip unrelated progress notifications.
+          if (params.token != analyzingProgressToken) {
+            return false;
+          }
+
+          if (params.value is Map<String, dynamic>) {
+            final isDesiredStatusMessage = analyzing
+                ? WorkDoneProgressBegin.canParse(
+                    params.value, nullLspJsonReporter)
+                : WorkDoneProgressEnd.canParse(
+                    params.value, nullLspJsonReporter);
+
+            return isDesiredStatusMessage;
+          } else {
+            throw Exception('\$/progress params value was not valid');
+          }
+        }
       }
+      // Message is not what we're waiting for.
       return false;
     });
-    return params;
   }
 
   Future<List<ClosingLabel>> waitForClosingLabels(Uri uri) async {
@@ -1260,7 +1377,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       if (message is NotificationMessage &&
           message.method == CustomMethods.PublishClosingLabels) {
         closingLabelsParams =
-            _convertParams(message, PublishClosingLabelsParams.fromJson);
+            PublishClosingLabelsParams.fromJson(message.params);
 
         return closingLabelsParams.uri == uri.toString();
       }
@@ -1274,13 +1391,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams =
-            _convertParams(message, PublishDiagnosticsParams.fromJson);
+        diagnosticParams = PublishDiagnosticsParams.fromJson(message.params);
         return diagnosticParams.uri == uri.toString();
       }
       return false;
-    });
-    return diagnosticParams.diagnostics;
+    }, orElse: () => null);
+    return diagnosticParams?.diagnostics;
   }
 
   Future<FlutterOutline> waitForFlutterOutline(Uri uri) async {
@@ -1288,8 +1404,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == CustomMethods.PublishFlutterOutline) {
-        outlineParams =
-            _convertParams(message, PublishFlutterOutlineParams.fromJson);
+        outlineParams = PublishFlutterOutlineParams.fromJson(message.params);
 
         return outlineParams.uri == uri.toString();
       }
@@ -1303,7 +1418,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == CustomMethods.PublishOutline) {
-        outlineParams = _convertParams(message, PublishOutlineParams.fromJson);
+        outlineParams = PublishOutlineParams.fromJson(message.params);
 
         return outlineParams.uri == uri.toString();
       }
@@ -1321,14 +1436,26 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   String withoutRangeMarkers(String contents) =>
       contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 
-  /// A helper to simplify processing of results for both in-process tests (where
-  /// we'll get the real type back), and out-of-process integration tests (where
-  /// params is `Map<String, dynamic>` and needs to be fromJson'd).
-  T _convertParams<T>(
-    IncomingMessage message,
-    T Function(Map<String, dynamic>) fromJson,
-  ) {
-    return message.params is T ? message.params : fromJson(message.params);
+  bool Function(List<dynamic>, LspJsonReporter) _canParseList<T>(
+          bool Function(Map<String, dynamic>, LspJsonReporter) canParse) =>
+      (input, reporter) => input
+          .cast<Map<String, dynamic>>()
+          .every((item) => canParse(item, reporter));
+
+  List<T> Function(List<dynamic>) _fromJsonList<T>(
+          T Function(Map<String, dynamic>) fromJson) =>
+      (input) => input.cast<Map<String, dynamic>>().map(fromJson).toList();
+
+  Future<void> _handleWorkDoneProgressCreate(RequestMessage request) async {
+    if (_clientCapabilities.window?.workDoneProgress != true) {
+      throw Exception('Server sent ${Method.window_workDoneProgress_create} '
+          'but client capabilities do not allow');
+    }
+    final params = WorkDoneProgressCreateParams.fromJson(request.params);
+    if (validProgressTokens.contains(params.token)) {
+      throw Exception('Server tried to create the same progress token twice');
+    }
+    validProgressTokens.add(params.token);
   }
 
   /// Checks whether a notification is likely an error from the server (for
@@ -1338,5 +1465,25 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   bool _isErrorNotification(NotificationMessage notification) {
     return notification.method == Method.window_logMessage ||
         notification.method == Method.window_showMessage;
+  }
+
+  /// Creates a `fromJson()` function for an `Either2<T1, T2>` using
+  /// the `canParse` and `fromJson` functions for each type.
+  static Either2<T1, T2> Function(R) _generateFromJsonFor<T1, T2, R>(
+      bool Function(R, LspJsonReporter) canParse1,
+      T1 Function(R) fromJson1,
+      bool Function(R, LspJsonReporter) canParse2,
+      T2 Function(R) fromJson2,
+      [LspJsonReporter reporter]) {
+    reporter ??= nullLspJsonReporter;
+    return (input) {
+      if (canParse1(input, reporter)) {
+        return Either2<T1, T2>.t1(fromJson1(input));
+      }
+      if (canParse2(input, reporter)) {
+        return Either2<T1, T2>.t2(fromJson2(input));
+      }
+      throw '$input was not one of ($T1, $T2)';
+    };
   }
 }

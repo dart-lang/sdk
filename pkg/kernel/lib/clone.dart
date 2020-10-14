@@ -138,16 +138,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         clone(node.value), node.interfaceTargetReference);
   }
 
-  visitDirectPropertyGet(DirectPropertyGet node) {
-    return new DirectPropertyGet.byReference(
-        clone(node.receiver), node.targetReference);
-  }
-
-  visitDirectPropertySet(DirectPropertySet node) {
-    return new DirectPropertySet.byReference(
-        clone(node.receiver), node.targetReference, clone(node.value));
-  }
-
   visitSuperPropertyGet(SuperPropertyGet node) {
     return new SuperPropertyGet.byReference(
         node.name, node.interfaceTargetReference);
@@ -169,11 +159,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   visitMethodInvocation(MethodInvocation node) {
     return new MethodInvocation.byReference(clone(node.receiver), node.name,
         clone(node.arguments), node.interfaceTargetReference);
-  }
-
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
-    return new DirectMethodInvocation.byReference(
-        clone(node.receiver), node.targetReference, clone(node.arguments));
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
@@ -203,7 +188,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitLogicalExpression(LogicalExpression node) {
     return new LogicalExpression(
-        clone(node.left), node.operator, clone(node.right));
+        clone(node.left), node.operatorEnum, clone(node.right));
   }
 
   visitConditionalExpression(ConditionalExpression node) {

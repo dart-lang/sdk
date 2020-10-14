@@ -4,9 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
@@ -1081,11 +1079,6 @@ class MockSdk implements DartSdk {
 
   final Map<String, String> uriMap = {};
 
-  final AnalysisOptionsImpl _analysisOptions;
-
-  /// The [AnalysisContextImpl] which is used for all of the sources.
-  AnalysisContextImpl _analysisContext;
-
   @override
   final List<SdkLibrary> sdkLibraries = [];
 
@@ -1095,9 +1088,8 @@ class MockSdk implements DartSdk {
   /// their units are relative (will be put into `sdkRoot/lib`).
   MockSdk({
     @required this.resourceProvider,
-    AnalysisOptionsImpl analysisOptions,
     List<MockSdkLibrary> additionalLibraries = const [],
-  }) : _analysisOptions = analysisOptions ?? AnalysisOptionsImpl() {
+  }) {
     _versionFile = resourceProvider
         .getFolder(resourceProvider.convertPath(sdkRoot))
         .getChildAssumingFile('version');
@@ -1187,15 +1179,6 @@ class MockSdk implements DartSdk {
     } catch (_) {
       return null;
     }
-  }
-
-  @override
-  AnalysisContextImpl get context {
-    if (_analysisContext == null) {
-      var factory = SourceFactory([DartUriResolver(this)]);
-      _analysisContext = SdkAnalysisContext(_analysisOptions, factory);
-    }
-    return _analysisContext;
   }
 
   @override

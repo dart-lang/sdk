@@ -9,38 +9,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest_language24);
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
   });
 }
 
 @reflectiveTest
 class ConstSetElementTypeImplementsEqualsTest extends PubPackageResolutionTest
-    with ConstSetElementTypeImplementsEqualsTestCases {
-  @override
-  bool get _constant_update_2018 => true;
-}
-
-@reflectiveTest
-class ConstSetElementTypeImplementsEqualsTest_language24
-    extends PubPackageResolutionTest
-    with ConstSetElementTypeImplementsEqualsTestCases {
-  @override
-  bool get _constant_update_2018 => false;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.4',
-    );
-  }
-}
+    with ConstSetElementTypeImplementsEqualsTestCases {}
 
 mixin ConstSetElementTypeImplementsEqualsTestCases on PubPackageResolutionTest {
-  bool get _constant_update_2018;
-
   test_constField() async {
     await assertErrorsInCode(r'''
 class A {
@@ -135,8 +112,7 @@ main() {
   }
 
   test_spread_list() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -145,23 +121,14 @@ class A {
 main() {
   const {...[A()]};
 }
-''',
-        _constant_update_2018
-            ? [
-                error(
-                    CompileTimeErrorCode
-                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                    75,
-                    8),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 75, 8),
-              ]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 75, 8),
+    ]);
   }
 
   test_spread_set() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -170,23 +137,10 @@ class A {
 main() {
   const {...{A()}};
 }
-''',
-        _constant_update_2018
-            ? [
-                error(
-                    CompileTimeErrorCode
-                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                    79,
-                    3),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 75, 8),
-                error(
-                    CompileTimeErrorCode
-                        .CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                    79,
-                    3),
-              ]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 79, 3),
+    ]);
   }
 
   test_super() async {

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -14,13 +15,16 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
+import 'package:analyzer/src/dart/micro/libraries_log.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -36,6 +40,9 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
+
+const M = 1024 * 1024 /*1 MiB*/;
+const memoryCacheSize = 200 * M;
 
 class FileContext {
   final AnalysisOptionsImpl analysisOptions;
@@ -71,6 +78,8 @@ class FileResolver {
   FileSystemState fsState;
 
   MicroContextObjects contextObjects;
+
+  final LibrariesLog _librariesLog = LibrariesLog();
 
   _LibraryContext libraryContext;
 
@@ -108,12 +117,16 @@ class FileResolver {
         getFileDigest = getFileDigest,
         prefetchFiles = prefetchFiles,
         workspace = workspace {
-    byteStore ??= CiderMemoryByteStore();
+    byteStore ??= CiderCachedByteStore(memoryCacheSize);
     this.byteStore = byteStore;
     _libraryContextReset = _LibraryContextReset(
       fileResolver: this,
       resetTimeout: libraryContextResetTimeout,
     );
+  }
+
+  List<LibrariesLogEntry> get librariesLogEntries {
+    return _librariesLog.entries;
   }
 
   /// Update the resolver to reflect the fact that the file with the given
@@ -129,12 +142,19 @@ class FileResolver {
     var removedFiles = <FileState>[];
     fsState.changeFile(path, removedFiles);
 
+    // Update the log.
+    var logEntry = _librariesLog.changeFile(path);
+    for (var removedFile in removedFiles) {
+      logEntry.addRemoved(
+        path: removedFile.path,
+        uri: removedFile.uri,
+      );
+    }
+
     // Remove libraries represented by removed files.
     // If we need these libraries later, we will relink and reattach them.
     if (libraryContext != null) {
-      libraryContext.elementFactory.removeLibraries(
-        removedFiles.map((e) => e.uriStr).toList(),
-      );
+      libraryContext.remove(removedFiles);
     }
   }
 
@@ -306,13 +326,28 @@ class FileResolver {
             (file) => file.getContentWithSameDigest(),
           );
 
-          results = performance.run('analyze', (performance) {
-            return libraryAnalyzer.analyzeSync(
-              completionPath: completionOffset != null ? path : null,
-              completionOffset: completionOffset,
-              performance: performance,
+          try {
+            results = performance.run('analyze', (performance) {
+              return NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+                return libraryAnalyzer.analyzeSync(
+                  completionPath: completionOffset != null ? path : null,
+                  completionOffset: completionOffset,
+                  performance: performance,
+                );
+              });
+            });
+          } catch (exception, stackTrace) {
+            var fileContentMap = <String, String>{};
+            for (var file in libraryFile.libraryFiles) {
+              var path = file.path;
+              fileContentMap[path] = _getFileContent(path);
+            }
+            throw CaughtExceptionWithFiles(
+              exception,
+              stackTrace,
+              fileContentMap,
             );
-          });
+          }
         });
         UnitAnalysisResult fileResult = results[file];
 
@@ -359,6 +394,7 @@ class FileResolver {
         resourceProvider: resourceProvider,
         packages: Packages.empty,
         packageDefaultFeatureSet: analysisOptions.contextFeatures,
+        nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
         nonPackageDefaultFeatureSet: analysisOptions.nonPackageFeatureSet,
       );
 
@@ -366,6 +402,7 @@ class FileResolver {
         resourceProvider,
         byteStore,
         sourceFactory,
+        workspace,
         analysisOptions,
         Uint32List(0),
         // linkedSalt
@@ -394,6 +431,7 @@ class FileResolver {
         resourceProvider,
         byteStore,
         contextObjects,
+        _librariesLog,
       );
     }
   }
@@ -424,10 +462,17 @@ class FileResolver {
   }) {
     YamlMap optionMap;
 
-    var optionsFile = performance.run('findOptionsFile', (_) {
-      var folder = resourceProvider.getFile(path).parent;
-      return _findOptionsFile(folder);
-    });
+    var separator = resourceProvider.pathContext.separator;
+    var isThirdParty =
+        path.contains('${separator}third_party${separator}dart$separator');
+
+    File optionsFile;
+    if (!isThirdParty) {
+      optionsFile = performance.run('findOptionsFile', (_) {
+        var folder = resourceProvider.getFile(path).parent;
+        return _findOptionsFile(folder);
+      });
+    }
 
     if (optionsFile != null) {
       performance.run('getOptionsFromFile', (_) {
@@ -441,9 +486,7 @@ class FileResolver {
     } else {
       var source = performance.run('defaultOptions', (_) {
         if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-          var separator = resourceProvider.pathContext.separator;
-          if (path
-              .contains('${separator}third_party${separator}dart$separator')) {
+          if (isThirdParty) {
             return sourceFactory.forUri(
               WorkspaceWithDefaultAnalysisOptions.thirdPartyUri,
             );
@@ -535,6 +578,7 @@ class _LibraryContext {
   final ResourceProvider resourceProvider;
   final CiderByteStore byteStore;
   final MicroContextObjects contextObjects;
+  final LibrariesLog librariesLog;
 
   LinkedElementFactory elementFactory;
 
@@ -545,9 +589,13 @@ class _LibraryContext {
     this.resourceProvider,
     this.byteStore,
     this.contextObjects,
+    this.librariesLog,
   ) {
-    // TODO(scheglov) remove it?
-    _createElementFactory();
+    elementFactory = LinkedElementFactory(
+      contextObjects.analysisContext,
+      contextObjects.analysisSession,
+      Reference.root(),
+    );
   }
 
   /// Load data required to access elements of the given [targetLibrary].
@@ -561,8 +609,20 @@ class _LibraryContext {
     var librariesLinkedTimer = Stopwatch();
     var inputsTimer = Stopwatch();
 
+    var logEntry = librariesLog.loadForTarget(
+      path: targetLibrary.path,
+      uri: targetLibrary.uri,
+    );
+
     void loadBundle(LibraryCycle cycle) {
       if (!loadedBundles.add(cycle)) return;
+
+      for (var library in cycle.libraries) {
+        logEntry.addLibrary(
+          path: library.path,
+          uri: library.uri,
+        );
+      }
 
       performance.getDataInt('cycleCount').increment();
       performance.getDataInt('libraryCount').add(cycle.libraries.length);
@@ -636,8 +696,9 @@ class _LibraryContext {
       // the element factory - it is empty anyway.
       if (!elementFactory.hasDartCore) {
         contextObjects.analysisContext.clearTypeProvider();
-        _createElementFactory();
+        elementFactory.declareDartCoreDynamicNever();
       }
+
       var cBundle = CiderLinkedLibraryCycle.fromBuffer(bytes);
       inputBundles.add(cBundle.bundle);
       elementFactory.addBundle(
@@ -665,29 +726,19 @@ class _LibraryContext {
         '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]',
       );
     });
-
-    // There might be a rare (and wrong) situation, when the external summaries
-    // already include the [targetLibrary]. When this happens, [loadBundle]
-    // exists without doing any work. But the type provider must be created.
-    _createElementFactoryTypeProvider();
   }
 
-  void _createElementFactory() {
-    elementFactory = LinkedElementFactory(
-      contextObjects.analysisContext,
-      contextObjects.analysisSession,
-      Reference.root(),
+  /// Remove libraries represented by the [removed] files.
+  /// If we need these libraries later, we will relink and reattach them.
+  void remove(List<FileState> removed) {
+    elementFactory.removeLibraries(
+      removed.map((e) => e.uriStr).toList(),
     );
-  }
 
-  /// Ensure that type provider is created.
-  void _createElementFactoryTypeProvider() {
-    var analysisContext = contextObjects.analysisContext;
-    if (analysisContext.typeProviderNonNullableByDefault == null) {
-      var dartCore = elementFactory.libraryOfUri('dart:core');
-      var dartAsync = elementFactory.libraryOfUri('dart:async');
-      elementFactory.createTypeProviders(dartCore, dartAsync);
-    }
+    var removedSet = removed.toSet();
+    loadedBundles.removeWhere((cycle) {
+      return cycle.libraries.any(removedSet.contains);
+    });
   }
 
   static CiderLinkedLibraryCycleBuilder serializeBundle(

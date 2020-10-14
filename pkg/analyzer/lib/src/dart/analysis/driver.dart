@@ -85,7 +85,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 110;
+  static const int DATA_VERSION = 112;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -1450,6 +1450,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       resourceProvider: _resourceProvider,
       packages: _packages,
       packageDefaultFeatureSet: _analysisOptions.contextFeatures,
+      nonPackageDefaultLanguageVersion:
+          _analysisOptions.nonPackageLanguageVersion,
       nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
     );
 

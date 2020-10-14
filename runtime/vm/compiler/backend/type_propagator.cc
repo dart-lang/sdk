@@ -1405,6 +1405,12 @@ CompileType StaticCallInstr::ComputeType() const {
 }
 
 CompileType LoadLocalInstr::ComputeType() const {
+  if (local().needs_covariant_check_in_method()) {
+    // We may not yet have checked the actual type of the parameter value.
+    // Assuming that the value has the required type can lead to unsound
+    // optimizations. See dartbug.com/43464.
+    return CompileType::FromCid(kDynamicCid);
+  }
   const AbstractType& local_type = local().type();
   TraceStrongModeType(this, local_type);
   return CompileType::FromAbstractType(local_type);
@@ -1465,6 +1471,10 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
 CompileType CreateArrayInstr::ComputeType() const {
   // TODO(fschneider): Add abstract type and type arguments to the compile type.
   return CompileType::FromCid(kArrayCid);
+}
+
+CompileType AllocateTypedDataInstr::ComputeType() const {
+  return CompileType::FromCid(class_id());
 }
 
 CompileType AllocateObjectInstr::ComputeType() const {

@@ -9,6 +9,8 @@ class Flags {
   static const String nnbdWeakMode = "--nnbd-weak";
 
   static const String forceLateLowering = "--force-late-lowering";
+  static const String forceLateLoweringSentinel =
+      "--force-late-lowering-sentinel";
   static const String forceStaticFieldLowering =
       "--force-static-field-lowering";
   static const String forceNoExplicitGetterCalls =
@@ -38,4 +40,5 @@ class Flags {
   static const String singleRootScheme = "--single-root-scheme";
   static const String verbose = "--verbose";
   static const String verify = "--verify";
+  static const String warnOnReachabilityCheck = "--warn-on-reachability-check";
 }

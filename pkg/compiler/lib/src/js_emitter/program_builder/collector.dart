@@ -9,7 +9,6 @@ part of dart2js.js_emitter.program_builder;
 ///
 /// The code for the containing (used) methods must exist in the `universe`.
 class Collector {
-  final CompilerOptions _options;
   final JCommonElements _commonElements;
   final JElementEnvironment _elementEnvironment;
   final OutputUnitData _outputUnitData;
@@ -43,7 +42,6 @@ class Collector {
   final List<ClassEntity> nativeClassesAndSubclasses = [];
 
   Collector(
-      this._options,
       this._commonElements,
       this._elementEnvironment,
       this._outputUnitData,
@@ -105,7 +103,7 @@ class Collector {
   // Return the classes that are just helpers for the backend's type system.
   static Iterable<ClassEntity> getBackendTypeHelpers(
       JCommonElements commonElements) {
-    return <ClassEntity>[
+    return [
       commonElements.jsMutableArrayClass,
       commonElements.jsFixedArrayClass,
       commonElements.jsExtendableArrayClass,
@@ -137,14 +135,6 @@ class Collector {
     }
   }
 
-  Map<OutputUnit, List<ClassEntity>> get _outputListsForClassType {
-    if (_options.deferClassTypes) {
-      return outputClassTypeLists;
-    } else {
-      return outputClassLists;
-    }
-  }
-
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
     Set<ClassEntity> backendTypeHelpers =
@@ -157,7 +147,6 @@ class Collector {
       return !backendTypeHelpers.contains(cls) &&
           _rtiNeededClasses.contains(cls) &&
           !classesOnlyNeededForRti.contains(cls) &&
-          _options.deferClassTypes &&
           _outputUnitData.outputUnitForClass(cls) !=
               _outputUnitData.outputUnitForClassType(cls);
     }
@@ -240,7 +229,7 @@ class Collector {
     // 7. Sort classes needed for type checking and then add them to their
     // respective OutputUnits.
     for (ClassEntity cls in _sorter.sortClasses(neededClassTypes)) {
-      _outputListsForClassType
+      outputClassTypeLists
           .putIfAbsent(_outputUnitData.outputUnitForClassType(cls), () => [])
           .add(cls);
     }

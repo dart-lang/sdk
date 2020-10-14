@@ -1,0 +1,7 @@
+const String bar =
+    "hello" " " "${String.fromEnvironment("baz", defaultValue: "world")}" "!";
+const blaSymbol = #_x;
+const bool baz = true && true && (false || true) && (42 == 21 * 4 / 2);
+const int foo = 42 * 42;
+main() {}
+void _x() {}

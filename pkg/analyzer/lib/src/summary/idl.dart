@@ -1557,8 +1557,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(23, variant: LinkedNodeKind.typeParameter)
   LinkedNodeType get typeParameter_defaultType;
 
-  @VariantId(28, variant: LinkedNodeKind.typeParameter)
-  UnlinkedTokenType get typeParameter_variance;
+  @VariantId(15, variant: LinkedNodeKind.typeParameter)
+  int get typeParameter_variance;
 
   @VariantId(2, variant: LinkedNodeKind.typeParameterList)
   List<LinkedNode> get typeParameterList_typeParameters;

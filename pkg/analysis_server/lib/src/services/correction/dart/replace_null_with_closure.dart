@@ -17,7 +17,7 @@ class ReplaceNullWithClosure extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var nodeToFix;
+    AstNode nodeToFix;
     var parameters = const <ParameterElement>[];
     if (coveredNode is NamedExpression) {
       NamedExpression namedExpression = coveredNode;

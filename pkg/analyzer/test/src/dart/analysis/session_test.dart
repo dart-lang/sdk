@@ -124,7 +124,7 @@ class B {}
     var typeProvider = resolvedUnit.typeProvider;
     var intClass = typeProvider.intType.element;
 
-    var parsedLibrary = await session.getParsedLibrary(testPath);
+    var parsedLibrary = session.getParsedLibrary(testPath);
 
     expect(() {
       parsedLibrary.getElementDeclaration(intClass);

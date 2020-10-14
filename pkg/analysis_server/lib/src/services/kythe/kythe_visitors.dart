@@ -1083,7 +1083,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
         _enclosingVName =
             _vNameFromElement(_enclosingElement, schema.FUNCTION_KIND);
       }
-      return f();
+      f();
     } finally {
       _enclosingElement = outerEnclosingElement;
       _enclosingClassElement = outerEnclosingClassElement;
@@ -1225,7 +1225,7 @@ mixin OutputUtils {
         addNodeAndFacts(schema.TAPP_KIND, element: functionElement);
     addEdge(funcTypeVName, schema.PARAM_EDGE, fnBuiltin, ordinalIntValue: i++);
 
-    var returnTypeVName;
+    KytheVName returnTypeVName;
     if (returnNode is TypeName) {
       // MethodDeclaration and FunctionDeclaration both return a TypeName from
       // returnType

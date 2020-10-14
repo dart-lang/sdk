@@ -3,6 +3,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_34614.dart:5:14: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
 // class C { C. }
 //              ^
 //

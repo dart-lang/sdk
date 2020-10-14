@@ -118,6 +118,9 @@ abstract class DartDevelopmentService {
   /// authentication code to connect.
   bool get authCodesEnabled;
 
+  /// Completes when this [DartDevelopmentService] has shut down.
+  Future<void> get done;
+
   /// The HTTP [Uri] of the remote VM service instance that this service will
   /// forward requests to.
   Uri get remoteVmServiceUri;

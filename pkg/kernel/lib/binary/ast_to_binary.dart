@@ -937,7 +937,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
-    writeStringReference(node.name);
+    writeStringReference(node.text);
     // TODO: Consider a more compressed format for private names within the
     // enclosing library.
     if (node.isPrivate) {
@@ -1235,8 +1235,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     leaveScope(memberScope: true);
 
     _currentlyInNonimplementation = currentlyInNonimplementationSaved;
-    assert((node.forwardingStubSuperTarget != null) ||
-        !(node.isForwardingStub && node.function.body != null));
+    assert(
+        (node.forwardingStubSuperTarget != null) ||
+            !(node.isForwardingStub && node.function.body != null),
+        "Invalid forwarding stub $node.");
   }
 
   @override
@@ -1443,23 +1445,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitDirectPropertyGet(DirectPropertyGet node) {
-    writeByte(Tag.DirectPropertyGet);
-    writeOffset(node.fileOffset);
-    writeNode(node.receiver);
-    writeNonNullInstanceMemberReference(node.targetReference);
-  }
-
-  @override
-  void visitDirectPropertySet(DirectPropertySet node) {
-    writeByte(Tag.DirectPropertySet);
-    writeOffset(node.fileOffset);
-    writeNode(node.receiver);
-    writeNonNullInstanceMemberReference(node.targetReference);
-    writeNode(node.value);
-  }
-
-  @override
   void visitStaticGet(StaticGet node) {
     writeByte(Tag.StaticGet);
     writeOffset(node.fileOffset);
@@ -1491,15 +1476,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeName(node.name);
     writeArgumentsNode(node.arguments);
     writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
-  }
-
-  @override
-  void visitDirectMethodInvocation(DirectMethodInvocation node) {
-    writeByte(Tag.DirectMethodInvocation);
-    writeOffset(node.fileOffset);
-    writeNode(node.receiver);
-    writeNonNullInstanceMemberReference(node.targetReference);
-    writeArgumentsNode(node.arguments);
   }
 
   @override
@@ -1547,11 +1523,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.operand);
   }
 
-  int logicalOperatorIndex(String operator) {
+  int logicalOperatorIndex(LogicalExpressionOperator operator) {
     switch (operator) {
-      case '&&':
+      case LogicalExpressionOperator.AND:
         return 0;
-      case '||':
+      case LogicalExpressionOperator.OR:
         return 1;
     }
     throw new ArgumentError('Not a logical operator: $operator');
@@ -1561,7 +1537,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitLogicalExpression(LogicalExpression node) {
     writeByte(Tag.LogicalExpression);
     writeNode(node.left);
-    writeByte(logicalOperatorIndex(node.operator));
+    writeByte(logicalOperatorIndex(node.operatorEnum));
     writeNode(node.right);
   }
 

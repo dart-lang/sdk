@@ -439,8 +439,6 @@ class LeastUpperBoundHelper {
     );
   }
 
-  InterfaceType get _objectType => _typeSystem.typeProvider.objectType;
-
   /// Compute the least upper bound of two types.
   ///
   /// https://github.com/dart-lang/language
@@ -669,10 +667,19 @@ class LeastUpperBoundHelper {
       return _functionType(T1, T2);
     }
 
-    // UP(T Function<...>(...), T2) = Object
-    // UP(T1, T Function<...>(...)) = Object
-    if (T1 is FunctionType || T2 is FunctionType) {
-      return _typeSystem.objectNone;
+    // UP(T Function<...>(...), T2) = UP(Object, T2)
+    if (T1 is FunctionType) {
+      return getLeastUpperBound(_typeSystem.objectNone, T2);
+    }
+
+    // UP(T1, T Function<...>(...)) = UP(T1, Object)
+    if (T2 is FunctionType) {
+      return getLeastUpperBound(T1, _typeSystem.objectNone);
+    }
+
+    var futureOrResult = _futureOr(T1, T2);
+    if (futureOrResult != null) {
+      return futureOrResult;
     }
 
     // UP(T1, T2) = T2 if T1 <: T2
@@ -804,13 +811,70 @@ class LeastUpperBoundHelper {
     );
   }
 
+  DartType _futureOr(DartType T1, DartType T2) {
+    var T1_futureOr = T1 is InterfaceType && T1.isDartAsyncFutureOr
+        ? T1.typeArguments[0]
+        : null;
+
+    var T1_future = T1 is InterfaceType && T1.isDartAsyncFuture
+        ? T1.typeArguments[0]
+        : null;
+
+    var T2_futureOr = T2 is InterfaceType && T2.isDartAsyncFutureOr
+        ? T2.typeArguments[0]
+        : null;
+
+    var T2_future = T2 is InterfaceType && T2.isDartAsyncFuture
+        ? T2.typeArguments[0]
+        : null;
+
+    // UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T1_futureOr != null && T2_futureOr != null) {
+      var T3 = getLeastUpperBound(T1_futureOr, T2_futureOr);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    // UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T1_future != null && T2_futureOr != null) {
+      var T3 = getLeastUpperBound(T1_future, T2_futureOr);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    // UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T1_futureOr != null && T2_future != null) {
+      var T3 = getLeastUpperBound(T1_futureOr, T2_future);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    // UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T2_futureOr != null) {
+      var T3 = getLeastUpperBound(T1, T2_futureOr);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    // UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)
+    if (T1_futureOr != null) {
+      var T3 = getLeastUpperBound(T1_futureOr, T2);
+      return _typeSystem.typeProvider.futureOrType2(T3);
+    }
+
+    return null;
+  }
+
   DartType _parameterType(ParameterElement a, ParameterElement b) {
     return _typeSystem.getGreatestLowerBound(a.type, b.type);
   }
 
+  /// TODO(scheglov) Use greatest closure.
+  /// See https://github.com/dart-lang/language/pull/1195
   DartType _typeParameterResolveToObjectBounds(DartType type) {
     var element = type.element;
-    type = type.resolveToBound(_objectType);
-    return Substitution.fromMap({element: _objectType}).substituteType(type);
+
+    var objectType = _typeSystem.isNonNullableByDefault
+        ? _typeSystem.objectQuestion
+        : _typeSystem.objectStar;
+
+    type = type.resolveToBound(objectType);
+    return Substitution.fromMap({element: objectType}).substituteType(type);
   }
 }

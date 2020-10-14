@@ -23,6 +23,17 @@
 #include "vm/token.h"
 #include "vm/token_position.h"
 
+// Currently we have two different axes for offset generation:
+//
+//  * Target architecture
+//  * DART_PRECOMPILED_RUNTIME (i.e, AOT vs. JIT)
+//
+// That is, fields in ObjectLayout and its subclasses should only be included or
+// excluded conditionally based on these factors. Otherwise, the generated
+// offsets can be wrong (which should be caught by offset checking in dart.cc).
+//
+// TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
+
 namespace dart {
 
 // For now there are no compressed pointers.
@@ -751,6 +762,7 @@ class ClassLayout : public ObjectLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&allocation_stub_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
         return reinterpret_cast<ObjectPtr*>(&direct_subclasses_);
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&dependent_code_);
@@ -825,6 +837,7 @@ class PatchClassLayout : public ObjectLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&script_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&library_kernel_data_);
       case Snapshot::kMessage:
@@ -1015,6 +1028,7 @@ class FunctionLayout : public ObjectLayout {
     switch (kind) {
       case Snapshot::kFullAOT:
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&data_);
       case Snapshot::kMessage:
@@ -1183,6 +1197,7 @@ class FieldLayout : public ObjectLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&initializer_function_);
@@ -1259,6 +1274,7 @@ class ScriptLayout : public ObjectLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&url_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&kernel_program_info_);
       case Snapshot::kMessage:
@@ -1332,6 +1348,7 @@ class LibraryLayout : public ObjectLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&exports_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&kernel_data_);
       case Snapshot::kMessage:
@@ -1619,17 +1636,29 @@ class InstructionsLayout : public ObjectLayout {
   friend class BlobImageWriter;
 };
 
-// Used only to provide memory accounting for the bare instruction payloads
-// we serialize, since they are no longer part of RawInstructions objects.
+// Used to carry extra information to the VM without changing the embedder
+// interface, to provide memory accounting for the bare instruction payloads
+// we serialize, since they are no longer part of RawInstructions objects,
+// and to avoid special casing bare instructions payload Images in the GC.
 class InstructionsSectionLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(InstructionsSection);
   VISIT_NOTHING();
 
   // Instructions section payload length in bytes.
   uword payload_length_;
+  // The offset of the corresponding BSS section from this text section.
+  word bss_offset_;
+  // The relocated address of this text section in the shared object. Properly
+  // filled for ELF snapshots, always 0 in assembly snapshots. (For the latter,
+  // we instead get the value during BSS initialization and store it there.)
+  uword instructions_relocated_address_;
+  // The offset of the GNU build ID note section from this text section.
+  word build_id_offset_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  friend class Image;
 };
 
 class PcDescriptorsLayout : public ObjectLayout {
@@ -1818,7 +1847,9 @@ class CompressedStackMapsLayout : public ObjectLayout {
                                     sizeof(flags_and_size_) * kBitsPerByte -
                                         UsesTableBit::kNextBit> {};
 
+  friend class Object;
   friend class ImageWriter;
+  friend class StackMapEntry;
 };
 
 class LocalVarDescriptorsLayout : public ObjectLayout {
@@ -2044,6 +2075,7 @@ class ICDataLayout : public CallSiteDataLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&entries_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return to();
       case Snapshot::kMessage:
@@ -2151,6 +2183,7 @@ class LibraryPrefixLayout : public InstanceLayout {
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&imports_);
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<ObjectPtr*>(&importer_);
       case Snapshot::kMessage:

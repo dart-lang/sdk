@@ -736,7 +736,6 @@ abstract class BehaviorBuilder {
   CommonElements get commonElements;
   DiagnosticReporter get reporter;
   NativeBasicData get nativeBasicData;
-  bool get trustJSInteropTypeAnnotations;
   ElementEnvironment get elementEnvironment;
   CompilerOptions get options;
   DartTypes get dartTypes => commonElements.dartTypes;
@@ -817,21 +816,13 @@ abstract class BehaviorBuilder {
           _behavior.typesInstantiated.add(type);
         }
 
-        if (!trustJSInteropTypeAnnotations || dartTypes.isTopType(type)) {
-          // By saying that only JS-interop types can be created, we prevent
-          // pulling in every other native type (e.g. all of dart:html) when a
-          // JS interop API returns dynamic or when we don't trust the type
-          // annotations. This means that to some degree we still use the return
-          // type to decide whether to include native types, even if we don't
-          // trust the type annotation.
-          ClassEntity cls = commonElements.jsJavaScriptObjectClass;
-          _behavior.typesInstantiated.add(elementEnvironment.getThisType(cls));
-        } else {
-          // Otherwise, when the declared type is a Dart type, we do not
-          // register an allocation because we assume it cannot be instantiated
-          // from within the JS-interop code. It must have escaped from another
-          // API.
-        }
+        // By saying that only JS-interop types can be created, we prevent
+        // pulling in every other native type (e.g. all of dart:html) when a
+        // JS interop API returns dynamic.  This means that to some degree we
+        // still use the return type to decide whether to include native types,
+        // even though we don't trust the type annotation.
+        ClassEntity cls = commonElements.jsJavaScriptObjectClass;
+        _behavior.typesInstantiated.add(elementEnvironment.getThisType(cls));
       }
     }
   }
@@ -855,8 +846,7 @@ abstract class BehaviorBuilder {
     // compatibility or conditional support by context.
     if (type is NullableType ||
         type is LegacyType ||
-        ((!options.useNullSafety || options.useLegacySubtyping) &&
-            type is! VoidType)) {
+        (options.useLegacySubtyping && type is! VoidType)) {
       _behavior.typesReturned.add(commonElements.nullType);
     }
   }
@@ -869,9 +859,7 @@ abstract class BehaviorBuilder {
       {bool isJsInterop}) {
     _behavior = new NativeBehavior();
     // TODO(sigmund,sra): consider doing something better for numeric types.
-    _addReturnType(!isJsInterop || trustJSInteropTypeAnnotations
-        ? type
-        : commonElements.dynamicType);
+    _addReturnType(!isJsInterop ? type : commonElements.dynamicType);
     _capture(type, isJsInterop);
     _overrideWithAnnotations(
         createsAnnotations, returnsAnnotations, lookupType);
@@ -899,15 +887,12 @@ abstract class BehaviorBuilder {
     // Note: For dart:html and other internal libraries we maintain, we can
     // trust the return type and use it to limit what we enqueue. We have to
     // be more conservative about JS interop types and assume they can return
-    // anything (unless the user provides the experimental flag to trust the
-    // type of js-interop APIs). We do restrict the allocation effects and say
-    // that interop calls create only interop types (which may be unsound if
-    // an interop call returns a DOM type and declares a dynamic return type,
-    // but otherwise we would include a lot of code by default).
+    // anything. We do restrict the allocation effects and say that interop
+    // calls create only interop types (which may be unsound if an interop call
+    // returns a DOM type and declares a dynamic return type, but otherwise we
+    // would include a lot of code by default).
     // TODO(sigmund,sra): consider doing something better for numeric types.
-    _addReturnType(!isJsInterop || trustJSInteropTypeAnnotations
-        ? returnType
-        : commonElements.dynamicType);
+    _addReturnType(!isJsInterop ? returnType : commonElements.dynamicType);
     _capture(type, isJsInterop);
 
     for (DartType type in type.optionalParameterTypes) {

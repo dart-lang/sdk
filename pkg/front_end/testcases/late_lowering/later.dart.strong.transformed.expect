@@ -55,12 +55,12 @@ library /*isNonNullableByDefault*/;
 //   late String s2 = '${fisk}${await hest()}${fisk}'; // Error.
 //                              ^^^^^
 //
-// pkg/front_end/testcases/late_lowering/later.dart:48:9: Error: Constructor is marked 'const' so fields can't be late.
-//   const B(); // Error: B has late final fields.
-//         ^
-// pkg/front_end/testcases/late_lowering/later.dart:46:18: Context: Field is late, but constructor is 'const'.
+// pkg/front_end/testcases/late_lowering/later.dart:46:18: Error: Can't have a late final field in a class with a const constructor.
 //   late final int x = 42;
 //                  ^
+// pkg/front_end/testcases/late_lowering/later.dart:48:9: Context: This constructor is const.
+//   const B(); // Error: B has late final fields.
+//         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -268,3 +268,7 @@ static method main() → dynamic {}
 constants  {
   #C1 = tearoff self::fisk
 }
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///later.dart:46:18 -> IntConstant(42)
+Extra constant evaluation: evaluated: 216, effectively constant: 1

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,6 +12,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingRequiredArgumentTest);
+    defineReflectiveTests(AddMissingRequiredArgumentWithNullSafetyTest);
   });
 }
 
@@ -248,6 +250,99 @@ main() {
 ''');
   }
 
+  Future<void> test_constructor_single_closure_nnbd() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addMetaPackage();
+    addSource('/home/test/lib/a.dart', r'''
+import 'package:meta/meta.dart';
+
+typedef int Callback(int? a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestUnit('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int? a) {  });
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_constructor_single_closure_nnbd_from_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addMetaPackage();
+    addSource('/home/test/lib/a.dart', r'''
+// @dart = 2.8
+import 'package:meta/meta.dart';
+
+typedef int Callback(int a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestUnit('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int a) {  });
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addMetaPackage();
+    addSource('/home/test/lib/a.dart', r'''
+import 'package:meta/meta.dart';
+
+typedef int Callback(int? a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestUnit('''
+// @dart = 2.8
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+// @dart = 2.8
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int a) {  });
+  print(a);
+}
+''');
+  }
+
   Future<void> test_constructor_single_list() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
@@ -362,7 +457,7 @@ class MyWidget extends Widget {
 
 build() {
   return new MyWidget(
-    foo: null,
+    foo: '',
     child: null,
   );
 }
@@ -396,7 +491,7 @@ class MyWidget extends Widget {
 
 build() {
   return new MyWidget(
-    foo: null,
+    foo: '',
     children: null,
   );
 }
@@ -460,6 +555,45 @@ import 'package:meta/meta.dart';
 test({@Required("Really who doesn't need an abc?") int abc}) {}
 main() {
   test(abc: null);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddMissingRequiredArgumentWithNullSafetyTest extends FixProcessorTest {
+  @override
+  List<String> get experiments => [EnableString.non_nullable];
+
+  @override
+  FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
+
+  Future<void> test_nonNullable() async {
+    await resolveTestUnit('''
+void f({required int x}) {}
+void g() {
+  f();
+}
+''');
+    await assertHasFix('''
+void f({required int x}) {}
+void g() {
+  f(x: null);
+}
+''');
+  }
+
+  Future<void> test_nullable() async {
+    await resolveTestUnit('''
+void f({required int? x}) {}
+void g() {
+  f();
+}
+''');
+    await assertHasFix('''
+void f({required int? x}) {}
+void g() {
+  f(x: null);
 }
 ''');
   }

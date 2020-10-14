@@ -110,6 +110,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// `true` if variance is enabled.
   bool get enableVariance => languageExperiments[fe.ExperimentalFlag.variance];
 
+  /// Whether `--enable-experiment=non-nullable` is provided.
+  bool get enableNonNullable =>
+      languageExperiments[fe.ExperimentalFlag.nonNullable];
+
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 
@@ -137,32 +141,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Location where to generate a map containing details of how deferred
   /// libraries are subdivided.
   Uri deferredMapUri;
-
-  /// Whether to apply the new deferred split fixes. The fixes improve on
-  /// performance and fix a soundness issue with inferred types. The latter will
-  /// move more code to the main output unit, because of that we are not
-  /// enabling the feature by default right away.
-  ///
-  /// When [reportInvalidInferredDeferredTypes] shows no errors, we expect this
-  /// flag to produce the same or better results than the current unsound
-  /// implementation.
-  bool newDeferredSplit = true; // default value.
-  bool _newDeferredSplit = false;
-  bool _noNewDeferredSplit = false;
-
-  /// Show errors when a deferred type is inferred as a return type of a closure
-  /// or in a type parameter. Those cases cause the compiler today to behave
-  /// unsoundly by putting the code in a deferred output unit. In the future
-  /// when [newDeferredSplit] is on by default, those cases will be treated
-  /// soundly and will cause more code to be moved to the main output unit.
-  ///
-  /// This flag is presented to help developers find and fix the affected code.
-  bool reportInvalidInferredDeferredTypes = false;
-
-  /// Whether to defer load class types.
-  bool deferClassTypes = true; // default value.
-  bool _deferClassTypes = false;
-  bool _noDeferClassTypes = false;
 
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
@@ -253,8 +231,8 @@ class CompilerOptions implements DiagnosticOptions {
   bool enableNullAssertions = false;
 
   /// Whether to generate code asserting that non-nullable return values of
-  /// `@Native` methods are checked for being non-null.
-  bool enableNativeReturnNullAssertions = false;
+  /// `@Native` methods or `JS()` invocations are checked for being non-null.
+  bool enableNativeNullAssertions = false;
 
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
@@ -276,9 +254,6 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// The compiler is run from the build bot.
   bool testMode = false;
-
-  /// Whether to trust JS-interop annotations. (experimental)
-  bool trustJSInteropTypeAnnotations = false;
 
   /// Whether to trust primitive types during inference and optimizations.
   bool trustPrimitives = false;
@@ -365,18 +340,15 @@ class CompilerOptions implements DiagnosticOptions {
   /// Experimental reliance on JavaScript ToBoolean conversions.
   bool experimentToBoolean = false;
 
+  // Experiment to make methods that are inferred as unreachable throw an
+  // exception rather than generate suspect code.
+  bool experimentUnreachableMethodsThrow = false;
+
   /// Experimental instrumentation to investigate code bloat.
   ///
   /// If [true], the compiler will emit code that logs whenever a method is
   /// called.
   bool experimentCallInstrumentation = false;
-
-  /// Whether null-safety (non-nullable types) are enabled in the sdk.
-  ///
-  /// This may be true either when `--enable-experiment=non-nullable` is
-  /// provided on the command-line, or when the provided .dill file for the sdk
-  /// was built with null-safety enabled.
-  bool useNullSafety = false;
 
   /// When null-safety is enabled, whether the compiler should emit code with
   /// unsound or sound semantics.
@@ -396,7 +368,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool get useLegacySubtyping {
     assert(nullSafetyMode != NullSafetyMode.unspecified,
         "Null safety mode unspecified");
-    return !useNullSafety || (nullSafetyMode == NullSafetyMode.unsound);
+    return !enableNonNullable || (nullSafetyMode == NullSafetyMode.unsound);
   }
 
   /// The path to the file that contains the profiled allocations.
@@ -445,12 +417,6 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
-      .._newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
-      .._noNewDeferredSplit = _hasOption(options, Flags.noNewDeferredSplit)
-      ..reportInvalidInferredDeferredTypes =
-          _hasOption(options, Flags.reportInvalidInferredDeferredTypes)
-      .._deferClassTypes = _hasOption(options, Flags.deferClassTypes)
-      .._noDeferClassTypes = _hasOption(options, Flags.noDeferClassTypes)
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
       ..terseDiagnostics = _hasOption(options, Flags.terse)
       ..suppressWarnings = _hasOption(options, Flags.suppressWarnings)
@@ -480,6 +446,8 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.enableAsserts)
       ..enableNullAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableNullAssertions)
+      ..enableNativeNullAssertions =
+          _hasOption(options, Flags.enableNativeNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
@@ -487,6 +455,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
+      ..experimentUnreachableMethodsThrow =
+          _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
@@ -501,8 +471,6 @@ class CompilerOptions implements DiagnosticOptions {
       .._legacyJavaScript = _hasOption(options, Flags.legacyJavaScript)
       .._noLegacyJavaScript = _hasOption(options, Flags.noLegacyJavaScript)
       ..testMode = _hasOption(options, Flags.testMode)
-      ..trustJSInteropTypeAnnotations =
-          _hasOption(options, Flags.trustJSInteropTypeAnnotations)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
       ..useContentSecurityPolicy =
           _hasOption(options, Flags.useContentSecurityPolicy)
@@ -551,17 +519,9 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("'${Flags.soundNullSafety}' incompatible with "
           "'${Flags.noSoundNullSafety}'");
     }
-    if (!useNullSafety && _soundNullSafety) {
+    if (!enableNonNullable && _soundNullSafety) {
       throw ArgumentError("'${Flags.soundNullSafety}' requires the "
           "'non-nullable' experiment to be enabled");
-    }
-    if (_deferClassTypes && _noDeferClassTypes) {
-      throw ArgumentError("'${Flags.deferClassTypes}' incompatible with "
-          "'${Flags.noDeferClassTypes}'");
-    }
-    if (_newDeferredSplit && _noNewDeferredSplit) {
-      throw ArgumentError("'${Flags.newDeferredSplit}' incompatible with "
-          "'${Flags.noNewDeferredSplit}'");
     }
   }
 
@@ -578,10 +538,6 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_noLegacyJavaScript) legacyJavaScript = false;
     if (_legacyJavaScript) legacyJavaScript = true;
-
-    if (languageExperiments[fe.ExperimentalFlag.nonNullable]) {
-      useNullSafety = true;
-    }
 
     if (_soundNullSafety) nullSafetyMode = NullSafetyMode.sound;
     if (_noSoundNullSafety) nullSafetyMode = NullSafetyMode.unsound;
@@ -624,17 +580,6 @@ class CompilerOptions implements DiagnosticOptions {
     if (_disableMinification) {
       enableMinification = false;
     }
-
-    if (_deferClassTypes) deferClassTypes = true;
-    if (_noDeferClassTypes) deferClassTypes = false;
-
-    if (enableNullAssertions) {
-      // TODO(sra): Add a command-line flag to control this independently.
-      enableNativeReturnNullAssertions = true;
-    }
-
-    if (_newDeferredSplit) newDeferredSplit = true;
-    if (_noNewDeferredSplit) newDeferredSplit = false;
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

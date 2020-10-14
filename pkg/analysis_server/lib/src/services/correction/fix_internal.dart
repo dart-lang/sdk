@@ -80,12 +80,14 @@ import 'package:analysis_server/src/services/correction/dart/make_field_not_fina
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
+import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/qualify_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
@@ -251,7 +253,7 @@ class DartFixContributor implements FixContributor {
         List.from(fixList[0].change.linkedEditGroups);
     for (var i = 1; i < fixList.length; i++) {
       edits.addAll(fixList[i].change.edits[0].edits);
-      sourceChange.linkedEditGroups..addAll(fixList[i].change.linkedEditGroups);
+      sourceChange.linkedEditGroups.addAll(fixList[i].change.linkedEditGroups);
     }
     // Sort the list of SourceEdits so that when the edits are applied, they
     // are applied from the end of the file to the top of the file.
@@ -528,6 +530,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
       AddSuperConstructorInvocation.newInstance,
     ],
@@ -713,12 +718,16 @@ class FixProcessor extends BaseProcessor {
       AddExplicitCast.newInstance,
       AddNullCheck.newInstance,
       ChangeTypeAnnotation.newInstance,
+      MakeVariableNullable.newInstance,
     ],
     CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
       RemoveParenthesesInGetterInvocation.newInstance,
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.newInstance,
+    ],
+    CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
+      AddMissingRequiredArgument.newInstance,
     ],
     CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE: [
       ExtendClassForMixin.newInstance,
@@ -1004,12 +1013,21 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.newInstance,
     ],
-    // TODO(brianwilkerson) Add a fix to remove the method.
-//    HintCode.UNNECESSARY_NO_SUCH_METHOD: [],
-    // TODO(brianwilkerson) Add a fix to remove the type check.
-//    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [],
-    // TODO(brianwilkerson) Add a fix to remove the type check.
-//    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [],
+//    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
+// TODO(brianwilkerson) Add a fix to remove the method.
+//    ],
+    HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
+      RemoveComparison.newInstance,
+    ],
+    HintCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
+      RemoveComparison.newInstance,
+    ],
+//    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
+// TODO(brianwilkerson) Add a fix to remove the type check.
+//    ],
+//    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [
+// TODO(brianwilkerson) Add a fix to remove the type check.
+//    ],
     HintCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.newInstance,
     ],
@@ -1108,7 +1126,8 @@ class FixProcessor extends BaseProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-      var builder = ChangeBuilder(workspace: context.workspace);
+      var builder = ChangeBuilder(
+          workspace: context.workspace, eol: context.utils.endOfLine);
       await producer.compute(builder);
       _addFixFromBuilder(builder, producer.fixKind,
           args: producer.fixArguments);

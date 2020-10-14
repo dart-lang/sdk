@@ -103,10 +103,11 @@ class ExpressionCompilerWorker {
   final _componentForModuleName = <String, Component>{};
   final _componentModuleNames = <Component, String>{};
   final ProcessedOptions _processedOptions;
+  final CompilerOptions _compilerOptions;
   final Component _sdkComponent;
 
-  ExpressionCompilerWorker._(this._processedOptions, this._sdkComponent,
-      this.requestStream, this.sendResponse);
+  ExpressionCompilerWorker._(this._processedOptions, this._compilerOptions,
+      this._sdkComponent, this.requestStream, this.sendResponse);
 
   static Future<ExpressionCompilerWorker> createFromArgs(
     List<String> args, {
@@ -172,7 +173,7 @@ class ExpressionCompilerWorker {
     void Function(Map<String, dynamic>)
         sendResponse, // Defaults to write to stdout
   }) async {
-    var options = CompilerOptions()
+    var compilerOptions = CompilerOptions()
       ..compileSdk = false
       ..sdkRoot = sdkRoot
       ..sdkSummary = sdkSummary
@@ -192,15 +193,15 @@ class ExpressionCompilerWorker {
         .cast<Map<String, dynamic>>();
     sendResponse ??= (Map<String, dynamic> response) =>
         stdout.writeln(json.encode(response));
-    var processedOpts = ProcessedOptions(options: options);
+    var processedOptions = ProcessedOptions(options: compilerOptions);
 
-    var sdkComponent = await CompilerContext(processedOpts)
+    var sdkComponent = await CompilerContext(processedOptions)
         .runInContext<Component>((CompilerContext c) async {
-      return processedOpts.loadSdkSummary(null);
+      return processedOptions.loadSdkSummary(null);
     });
 
-    return ExpressionCompilerWorker._(
-        processedOpts, sdkComponent, requestStream, sendResponse)
+    return ExpressionCompilerWorker._(processedOptions, compilerOptions,
+        sdkComponent, requestStream, sendResponse)
       .._update(sdkComponent, dartSdkModule);
   }
 
@@ -212,6 +213,7 @@ class ExpressionCompilerWorker {
     await for (var request in requestStream) {
       try {
         var command = request['command'] as String;
+        if (command == 'Shutdown') break;
         switch (command) {
           case 'UpdateDeps':
             sendResponse(
@@ -233,11 +235,14 @@ class ExpressionCompilerWorker {
         });
       }
     }
+    _processedOptions.ticker.logMs('Stopped expression compiler worker.');
   }
 
   /// Handles a `CompileExpression` request.
   Future<Map<String, dynamic>> _compileExpression(
       CompileExpressionRequest request) async {
+    _processedOptions.ticker.logMs('Compiling expression to JavaScript');
+
     var libraryUri = Uri.parse(request.libraryUri);
     if (libraryUri.scheme == 'dart') {
       // compiling expressions inside the SDK currently fails because
@@ -264,16 +269,18 @@ class ExpressionCompilerWorker {
         uriToSource: originalComponent.uriToSource,
       );
     }
+    _processedOptions.ticker.logMs('Collected dependencies for expression');
 
     errors.clear();
     warnings.clear();
 
     var incrementalCompiler = IncrementalCompiler.forExpressionCompilationOnly(
-        CompilerContext(_processedOptions), component);
+        CompilerContext(_processedOptions), component, /*resetTicker*/ false);
 
     var finalComponent =
         await incrementalCompiler.computeDelta(entryPoints: [libraryUri]);
     finalComponent.computeCanonicalNames();
+    _processedOptions.ticker.logMs('Computed delta for expression');
 
     if (errors.isNotEmpty) {
       return {
@@ -294,13 +301,15 @@ class ExpressionCompilerWorker {
       coreTypes: incrementalCompiler.getCoreTypes(),
     );
 
+    compiler.emitModule(finalComponent);
+    _processedOptions.ticker.logMs('Emitted module for expression');
+
     var expressionCompiler = ExpressionCompiler(
+      _compilerOptions,
+      errors,
       incrementalCompiler,
       compiler,
       finalComponent,
-      verbose: _processedOptions.verbose,
-      onDiagnostic: _onDiagnosticHandler(errors, warnings),
-      errors: errors,
     );
 
     var compiledProcedure = await expressionCompiler.compileExpressionToJs(
@@ -311,6 +320,8 @@ class ExpressionCompilerWorker {
         request.jsScope,
         request.moduleName,
         request.expression);
+
+    _processedOptions.ticker.logMs('Compiled expression to JavaScript');
 
     return {
       'errors': errors,
@@ -347,6 +358,9 @@ class ExpressionCompilerWorker {
 
   /// Loads in the specified dill files and invalidates any existing ones.
   Future<Map<String, dynamic>> _updateDeps(UpdateDepsRequest request) async {
+    _processedOptions.ticker
+        .logMs('Updating dependencies for expression evaluation');
+
     for (var input in request.inputs) {
       var file =
           _processedOptions.fileSystem.entityForUri(Uri.parse(input.path));
@@ -356,6 +370,9 @@ class ExpressionCompilerWorker {
           alwaysCreateNewNamedNodes: true);
       _update(component, input.moduleName);
     }
+
+    _processedOptions.ticker
+        .logMs('Updated dependencies for expression evaluation');
     return {'succeeded': true};
   }
 

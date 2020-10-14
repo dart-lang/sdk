@@ -6,13 +6,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/util/graph.dart';
+import 'package:meta/meta.dart';
 
 class DefaultTypesBuilder {
   void build(List<AstNode> nodes) {
@@ -152,12 +154,14 @@ class DefaultTypesBuilder {
     if (parameterList == null) return;
 
     var typeProvider = declarationElement.library.typeProvider;
-    var dynamicType = typeProvider.dynamicType;
-    var nullType = typeProvider.nullType;
+    var dynamicType = DynamicTypeImpl.instance;
+    var bottomType = declarationElement.library.isNonNullableByDefault
+        ? NeverTypeImpl.instance
+        : typeProvider.nullType;
 
     var nodes = parameterList.typeParameters;
     var length = nodes.length;
-    var elements = List<TypeParameterElement>(length);
+    var elements = List<TypeParameterElementImpl>(length);
     var bounds = List<DartType>(length);
     for (int i = 0; i < length; i++) {
       var node = nodes[i];
@@ -173,15 +177,17 @@ class DefaultTypesBuilder {
       for (var i in component) {
         var element = elements[i];
         dynamicSubstitution[element] = dynamicType;
-        nullSubstitution[element] = nullType;
+        nullSubstitution[element] = bottomType;
       }
 
-      var substitution = Substitution.fromUpperAndLowerBounds(
-        dynamicSubstitution,
-        nullSubstitution,
-      );
       for (var i in component) {
-        bounds[i] = substitution.substituteType(bounds[i]);
+        var variable = elements[i];
+        var visitor = _UpperLowerReplacementVisitor(
+          upper: dynamicSubstitution,
+          lower: nullSubstitution,
+          variance: variable.variance,
+        );
+        bounds[i] = visitor.run(bounds[i]);
       }
     }
 
@@ -190,14 +196,16 @@ class DefaultTypesBuilder {
       var nullSubstitution = <TypeParameterElement, DartType>{};
       var element = elements[i];
       thisSubstitution[element] = bounds[i];
-      nullSubstitution[element] = nullType;
+      nullSubstitution[element] = bottomType;
 
-      var substitution = Substitution.fromUpperAndLowerBounds(
-        thisSubstitution,
-        nullSubstitution,
-      );
       for (var j = 0; j < length; j++) {
-        bounds[j] = substitution.substituteType(bounds[j]);
+        var variable = elements[j];
+        var visitor = _UpperLowerReplacementVisitor(
+          upper: thisSubstitution,
+          lower: nullSubstitution,
+          variance: variable.variance,
+        );
+        bounds[j] = visitor.run(bounds[j]);
       }
     }
 
@@ -352,6 +360,58 @@ class _TypeParametersGraph implements Graph<int> {
       if (typeIndex != null) {
         _edges[typeIndex].add(index);
       }
+    }
+  }
+}
+
+class _UpperLowerReplacementVisitor extends ReplacementVisitor {
+  final Map<TypeParameterElement, DartType> _upper;
+  final Map<TypeParameterElement, DartType> _lower;
+  Variance _variance;
+
+  _UpperLowerReplacementVisitor({
+    @required Map<TypeParameterElement, DartType> upper,
+    @required Map<TypeParameterElement, DartType> lower,
+    @required Variance variance,
+  })  : _upper = upper,
+        _lower = lower,
+        _variance = variance;
+
+  @override
+  void changeVariance() {
+    if (_variance == Variance.covariant) {
+      _variance = Variance.contravariant;
+    } else if (_variance == Variance.contravariant) {
+      _variance = Variance.covariant;
+    }
+  }
+
+  DartType run(DartType type) {
+    return type.accept(this) ?? type;
+  }
+
+  @override
+  DartType visitTypeArgument(
+    TypeParameterElement parameter,
+    DartType argument,
+  ) {
+    var savedVariance = _variance;
+    try {
+      _variance = _variance.combine(
+        (parameter as TypeParameterElementImpl).variance,
+      );
+      return super.visitTypeArgument(parameter, argument);
+    } finally {
+      _variance = savedVariance;
+    }
+  }
+
+  @override
+  DartType visitTypeParameterType(TypeParameterType type) {
+    if (_variance == Variance.contravariant) {
+      return _lower[type.element];
+    } else {
+      return _upper[type.element];
     }
   }
 }

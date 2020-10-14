@@ -13,7 +13,6 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
-import '../options.dart';
 
 /// Visitor that converts string literals and concatenations of string literals
 /// into the string value.
@@ -44,18 +43,16 @@ class Stringifier extends ir.ExpressionVisitor<String> {
 
 /// Visitor that converts kernel dart types into [DartType].
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
-  final CompilerOptions _options;
   final IrToElementMap elementMap;
   final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
       <ir.TypeParameter, DartType>{};
   bool topLevel = true;
 
-  DartTypeConverter(this._options, this.elementMap);
+  DartTypeConverter(this.elementMap);
 
   DartTypes get _dartTypes => elementMap.commonElements.dartTypes;
 
   DartType _convertNullability(DartType baseType, ir.Nullability nullability) {
-    if (!_options.useNullSafety) return baseType;
     switch (nullability) {
       case ir.Nullability.nullable:
         return _dartTypes.nullableType(baseType);

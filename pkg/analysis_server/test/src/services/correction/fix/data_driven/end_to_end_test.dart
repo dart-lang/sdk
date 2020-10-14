@@ -24,6 +24,7 @@ class C {
 version: 1
 transforms:
 - title: 'Add parameter'
+  date: 2020-09-09
   element:
     uris: ['$importUri']
     method: 'm'
@@ -34,8 +35,11 @@ transforms:
       name: 'y'
       style: required_positional
       argumentValue:
-        kind: 'argument'
-        index: 0
+        expression: '{% y %}'
+        variables:
+          y:
+            kind: 'argument'
+            index: 0
 ''');
     await resolveTestUnit('''
 import '$importUri';
@@ -63,6 +67,7 @@ class C {
 version: 1
 transforms:
 - title: 'Add type argument'
+  date: 2020-09-03
   element:
     uris:
       - '$importUri'
@@ -72,9 +77,12 @@ transforms:
     - kind: 'addTypeParameter'
       index: 1
       name: 'T'
-      value:
-        kind: 'argument'
-        index: 0
+      argumentValue:
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'argument'
+            index: 0
 ''');
     await resolveTestUnit('''
 import '$importUri';
@@ -102,6 +110,7 @@ class C {
 version: 1
 transforms:
 - title: 'Add argument'
+  date: 2020-09-09
   element:
     uris: ['$importUri']
     method: 'm'
@@ -134,6 +143,7 @@ class New {}
 version: 1
 transforms:
 - title: 'Rename to New'
+  date: 2020-09-01
   element:
     uris:
       - '$importUri'

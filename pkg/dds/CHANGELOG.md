@@ -1,3 +1,29 @@
+# 1.4.1
+- Fixed issue where `evaluate` and `evaluateInFrame` requests were not being
+  forwarded to the VM service properly when no external compilation service
+  was registered.
+
+# 1.4.0
+- Added `done` property to `DartDevelopmentService`.
+- Throw `DartDeveloperServiceException` when shutdown occurs during startup.
+- Fixed issue where `StateError` was thrown when DDS was shutdown with pending
+  requests.
+
+# 1.3.5
+
+- Fixed issue where clients subscribing to the `Service` stream were not being
+  sent `ServiceRegistered` events on connection.
+
+# 1.3.4
+
+- Fixed issue where `isolateId`s were expected to take the form `isolates/123`
+  although this is not required by the VM service specification.
+
+# 1.3.3
+
+- Fixed issue where `DartDevelopmentService.sseUri` did not return a URI with a
+  `sse` scheme.
+
 # 1.3.2
 
 - Add IPv6 hosting support.

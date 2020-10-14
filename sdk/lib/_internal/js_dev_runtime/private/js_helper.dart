@@ -6,7 +6,7 @@ library dart._js_helper;
 
 import 'dart:collection';
 
-import 'dart:_foreign_helper' show JS, JS_STRING_CONCAT, JSExportName;
+import 'dart:_foreign_helper' show JS, JSExportName;
 
 import 'dart:_interceptors';
 import 'dart:_internal'
@@ -70,9 +70,9 @@ class SyncIterable<E> extends IterableBase<E> {
 class Primitives {
   static int? parseInt(@nullCheck String source, int? _radix) {
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
-    // TODO(jmesserly): this isn't reified List<String>, but it's safe to use as
-    // long as we use it locally and don't expose it to user code.
-    List<String>? match = JS('', '#.exec(#)', re, source);
+    // This isn't reified List<String?>?, but it's safe to use as long as we use
+    // it locally and don't expose it to user code.
+    var match = JS<List<String?>?>('', '#.exec(#)', re, source);
     int digitsIndex = 1;
     int hexIndex = 2;
     int decimalIndex = 3;
@@ -82,7 +82,7 @@ class Primitives {
       // again.
       return null;
     }
-    String? decimalMatch = match[decimalIndex];
+    var decimalMatch = match[decimalIndex];
     if (_radix == null) {
       if (decimalMatch != null) {
         // Cannot fail because we know that the digits are all decimal.
@@ -295,10 +295,6 @@ class Primitives {
     throw RangeError.range(charCode, 0, 0x10ffff);
   }
 
-  static String stringConcatUnchecked(String string1, String string2) {
-    return JS_STRING_CONCAT(string1, string2);
-  }
-
   static String flattenString(String str) {
     return JS<String>('!', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
   }
@@ -308,13 +304,17 @@ class Primitives {
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".
     // We extract this name using a regexp.
     var d = lazyAsJsDate(receiver);
-    List? match = JS('JSArray|Null', r'/\((.*)\)/.exec(#.toString())', d);
+    // In this method all calls to `exec()` include a single capture group and
+    // it is only read if there is a match so a value will be present. To avoid
+    // extra null checks or casts from dynamic we type the return type of
+    // `exec()` to always contain non-nullable Strings.
+    var match = JS<List<String>?>('', r'/\((.*)\)/.exec(#.toString())', d);
     if (match != null) return match[1];
 
     // Internet Explorer 10+ emits the zone name without parenthesis:
     // Example: Thu Oct 31 14:07:44 PDT 2013
-    match = JS(
-        'JSArray|Null',
+    match = JS<List<String>?>(
+        '',
         // Thu followed by a space.
         r'/^[A-Z,a-z]{3}\s'
             // Oct 31 followed by space.
@@ -333,7 +333,8 @@ class Primitives {
     // UTC/GMT offset.
     // Example (IE9): Wed Nov 20 09:51:00 UTC+0100 2013
     //       (Opera): Wed Nov 20 2013 11:03:38 GMT+0100
-    match = JS('JSArray|Null', r'/(?:GMT|UTC)[+-]\d{4}/.exec(#.toString())', d);
+    match =
+        JS<List<String>?>('', r'/(?:GMT|UTC)[+-]\d{4}/.exec(#.toString())', d);
     if (match != null) return match[0];
     return "";
   }
@@ -354,6 +355,14 @@ class Primitives {
       @nullCheck bool isUtc) {
     final int MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
     var jsMonth = month - 1;
+    // The JavaScript Date constructor 'corrects' year NN to 19NN. Sidestep that
+    // correction by adjusting years out of that range and compensating with an
+    // adjustment of months. This hack should not be sensitive to leap years but
+    // use 400 just in case.
+    if (0 <= years && years < 100) {
+      years += 400;
+      jsMonth -= 400 * 12;
+    }
     int value;
     if (isUtc) {
       value = JS<int>('!', r'Date.UTC(#, #, #, #, #, #, #)', years, jsMonth,

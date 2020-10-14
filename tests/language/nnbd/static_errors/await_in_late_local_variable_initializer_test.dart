@@ -10,9 +10,9 @@ import 'package:expect/expect.dart';
 import 'dart:core';
 
 main() async {
-  late a = 0; //# 01: ok
-  late b = await 0; //# 02: compile-time error
-  late c = () async => await 42; //# 03: ok
-  late d = () async { await 42; }; //# 04: ok
-  var e = () async { late e2 = await 42; }; //# 05: compile-time error
+  late final a = 0; //# 01: ok
+  late var b = await 0; //# 02: compile-time error
+  late Function c = () async => await 42; //# 03: ok
+  late var d = () async { await 42; }; //# 04: ok
+  var e = () async { late final e2 = await 42; }; //# 05: compile-time error
 }

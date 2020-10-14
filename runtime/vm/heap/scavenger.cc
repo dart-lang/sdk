@@ -50,7 +50,8 @@ enum {
 
 // If the forwarded bit and pointer tag bit are the same, we can avoid a few
 // conversions.
-COMPILE_ASSERT(kForwarded == kHeapObjectTag);
+COMPILE_ASSERT(static_cast<uword>(kForwarded) ==
+               static_cast<uword>(kHeapObjectTag));
 
 static inline bool IsForwarding(uword header) {
   uword bits = header & kForwardingMask;

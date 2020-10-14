@@ -39,3 +39,8 @@ class E extends core::Object {
 static const field dynamic a = null;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///metadata_named_mixin_application.dart:7:2 -> NullConstant(null)
+Extra constant evaluation: evaluated: 1, effectively constant: 1

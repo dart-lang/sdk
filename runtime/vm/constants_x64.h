@@ -207,6 +207,12 @@ struct AllocateMintABI {
   static const Register kTempReg = RBX;
 };
 
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = RAX;
+  static const Register kResultReg = RAX;
+};
+
 // Registers used inside the implementation of type testing stubs.
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = RSI;
@@ -265,6 +271,7 @@ class CallingConventions {
   static const intptr_t kFpuArgumentRegisters =
       R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3);
   static const intptr_t kNumFpuArgRegs = 4;
+  static const intptr_t kPointerToReturnStructRegister = kArg1Reg;
 
   // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
   // same time? (Windows no, rest yes)
@@ -324,6 +331,7 @@ class CallingConventions {
                                              R(kArg3Reg) | R(kArg4Reg) |
                                              R(kArg5Reg) | R(kArg6Reg);
   static const intptr_t kNumArgRegs = 6;
+  static const Register kPointerToReturnStructRegister = kArg1Reg;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
@@ -388,9 +396,9 @@ class CallingConventions {
 
   COMPILE_ASSERT(((R(kFirstCalleeSavedCpuReg)) & kCalleeSaveCpuRegisters) != 0);
 
-  COMPILE_ASSERT(((R(kFirstNonArgumentRegister) |
-                   R(kSecondNonArgumentRegister)) &
-                  kArgumentRegisters) == 0);
+  COMPILE_ASSERT(
+      ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
+       (kArgumentRegisters | R(kPointerToReturnStructRegister))) == 0);
 };
 
 #undef R

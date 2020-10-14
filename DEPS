@@ -39,12 +39,12 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.10.0-79.0.dev",
+  "sdk_tag": "version:2.11.0-190.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "d21ed3a1dd64107916db68afdce21709df65e85f",
+  "co19_rev": "0d84277b464e91f09326292b2943381dfa6056ed",
   "co19_2_rev": "e48b3090826cf40b8037648f19d211e8eab1b4b6",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
@@ -66,7 +66,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.6.0",
-  "async_rev": "128c461a97dbdbd9336ba000ba5a5c02e79b8651",
+  "async_rev": "38ace5fa83697928d5f29911e346e6311dd00857",
   "bazel_worker_rev": "26680d5e249b249c7216ab2fed0ac8ed4ee285c5",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
@@ -76,10 +76,10 @@ vars = {
   "charcode_rev": "4a685faba42d86ebd9d661eadd1e79d0a1c34c43",
   "chrome_rev" : "19997",
   "cli_util_tag" : "0.2.0",
-  "collection_rev": "583693680fc067e34ca5b72503df25e8b80579f9",
+  "collection_rev": "52e219581f72a3eac013d6f5550c580962677425",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
-  "csslib_rev": "681a6603f86bbbe64e8af42d722aef63b028d241",
+  "csslib_rev": "6f77b3dcee957d3e2d5083f666221a220e9ed1f1",
   "dart2js_info_rev" : "0632a623b08e1f601c7eba99e0186a581ae799e9",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -97,24 +97,24 @@ vars = {
   "dart_style_tag": "1.3.7",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "b039e21a7226b61ca2de7bd6c7a07fc77d4f64a9",
+  "dartdoc_rev" : "8f5f30e58bbc0f11f104888ee87f11cbd6b82cc7",
   "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
-  "html_rev": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
+  "html_rev": "22f17e97fedeacaa1e945cf84d8016284eed33a6",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
   "http_parser_rev": "6e63a97b5aaa2b4d1215fe01683e51fb73258e54",
   "http_retry_tag": "0.1.1",
-  "http_rev": "7b55a2c62a5f6fb680ad7a4607bab7281a235563",
+  "http_rev": "ca418355b5fc60cf981de3bd7364ec0dd943fa8f",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "79326efe26e5440f530963704c3c0ff965b3a4ac",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "8f189db8f0c299187a0e8fa959dba7e9b0254be5",
-  "linter_tag": "0.1.118",
-  "logging_rev": "9561ba016ae607747ae69b846c0e10958ca58ed4",
+  "linter_tag": "0.1.121",
+  "logging_rev": "1590ba0b648a51e7eb3895c612e4b72f72623b6f",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "dbeafd47759e7dd0a167602153bb9c49fb5e5fe7",
   "matcher_rev": "9cae8faa7868bf3a88a7ba45eb0bd128e66ac515",
@@ -142,9 +142,9 @@ vars = {
   "source_map_stack_trace_rev": "1c3026f69d9771acf2f8c176a1ab750463309cce",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
-  "source_span_rev": "94833d6cbf4552ebe5d2aa6714acecd93834e53a",
+  "source_span_rev": "cc7c4288a83f71ecef3414199947b52a8c112c65",
   "sse_tag": "e5cf68975e8e87171a3dc297577aa073454a91dc",
-  "stack_trace_tag": "d3813ca0a77348e0faf0d6af0cc17913e36afa39",
+  "stack_trace_tag": "45319bfd2a6da228d8c32b06e1da02ad199373c7",
   "stagehand_tag": "v3.3.9",
   "stream_channel_tag": "c446774fd077c9bdbd6235a7aadc661ef60a9727",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
@@ -154,7 +154,7 @@ vars = {
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
   "test_reflective_loader_tag": "0.1.9",
   "test_rev": "e37a93bbeae23b215972d1659ac865d71287ff6a",
-  "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
+  "tflite_native_rev": "0.4.0+1",
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
   "usage_tag": "3.4.0",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
@@ -520,16 +520,6 @@ deps = {
       {
         "package": "dart/cfe/benchmark_data",
         "version": "sha1sum:5b6e6dfa33b85c733cab4e042bf46378984d1544",
-      }
-    ],
-    "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/pkg/front_end/testcases/old_dills/dills": {
-    "packages": [
-      {
-        "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:45",
       }
     ],
     "dep_type": "cipd",

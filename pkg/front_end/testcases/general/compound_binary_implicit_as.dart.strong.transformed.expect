@@ -38,3 +38,9 @@ static method main() → dynamic {
   on dynamic catch(final dynamic _) {
   }
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///compound_binary_implicit_as.dart:16:9 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///compound_binary_implicit_as.dart:16:9 -> IntConstant(0)
+Extra constant evaluation: evaluated: 16, effectively constant: 2

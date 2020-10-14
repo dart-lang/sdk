@@ -3241,11 +3241,15 @@ abstract class IndexExpression
   /// The auxiliary elements hold the static and propagated elements associated
   /// with the getter context.
   // TODO(brianwilkerson) Replace this API.
+  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
+      'CompoundAssignmentExpression.writeElement')
   AuxiliaryElements get auxiliaryElements;
 
   /// Set the auxiliary elements associated with this identifier to the given
   /// [elements].
   // TODO(brianwilkerson) Replace this API.
+  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
+      'CompoundAssignmentExpression.writeElement')
   set auxiliaryElements(AuxiliaryElements elements);
 
   /// Return the expression used to compute the index.
@@ -4599,11 +4603,15 @@ abstract class SimpleIdentifier implements Identifier {
   /// The auxiliary elements hold the static and propagated elements associated
   /// with the getter context.
   // TODO(brianwilkerson) Replace this API.
+  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
+      'CompoundAssignmentExpression.writeElement')
   AuxiliaryElements get auxiliaryElements;
 
   /// Set the auxiliary elements associated with this identifier to the given
   /// [elements].
   // TODO(brianwilkerson) Replace this API.
+  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
+      'CompoundAssignmentExpression.writeElement')
   set auxiliaryElements(AuxiliaryElements elements);
 
   /// Return `true` if this identifier is the "name" part of a prefixed

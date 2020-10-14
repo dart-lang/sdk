@@ -1,8 +1,22 @@
+include: package:pedantic/analysis_options.1.9.0.yaml
+
 analyzer:
+  errors:
+    # There are currently 175 violations.
+    always_declare_return_types: ignore
+    # There are currently 60 violations.
+    annotate_overrides: ignore
+    # There are currently 200 violations.
+    omit_local_variable_types: ignore
+    # There are currently 20 violations.
+    unawaited_futures: ignore
+
   strong-mode:
     implicit-casts: false
+
 linter:
   rules:
+    - await_only_futures
     - empty_constructor_bodies
     - empty_statements
     - unnecessary_brace_in_string_interps

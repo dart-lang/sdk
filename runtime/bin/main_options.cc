@@ -485,8 +485,8 @@ int Options::ParseArguments(int argc,
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
 
+  bool implicitly_use_dart_dev = false;
   bool run_script = false;
-  int script_or_cmd_index = -1;
 
   // Get the script name.
   if (i < argc) {
@@ -496,11 +496,9 @@ int Options::ParseArguments(int argc,
     // to find the DartDev snapshot so we can forward the command and its
     // arguments.
     bool is_potential_file_path = !DartDevIsolate::ShouldParseCommand(argv[i]);
-    bool implicitly_use_dart_dev = false;
 #else
     bool is_potential_file_path = true;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    script_or_cmd_index = i;
     if (Options::disable_dart_dev() ||
         (is_potential_file_path && !enable_vm_service_)) {
       *script_name = Utils::StrDup(argv[i]);
@@ -511,13 +509,14 @@ int Options::ParseArguments(int argc,
     else {  // NOLINT
       DartDevIsolate::set_should_run_dart_dev(true);
     }
-    // Handle the special case where the user is running a Dart program without
-    // using a DartDev command and wants to use the VM service. Here we'll run
-    // the program using DartDev as it's used to spawn a DDS instance
-    if (!Options::disable_dart_dev() && is_potential_file_path &&
-        enable_vm_service_) {
-      implicitly_use_dart_dev = true;
-      dart_options->AddArgument("run");
+    if (!Options::disable_dart_dev() && enable_vm_service_) {
+      // Handle the special case where the user is running a Dart program
+      // without using a DartDev command and wants to use the VM service. Here
+      // we'll run the program using DartDev as it's used to spawn a DDS
+      // instance.
+      if (is_potential_file_path) {
+        implicitly_use_dart_dev = true;
+      }
     }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
@@ -548,6 +547,9 @@ int Options::ParseArguments(int argc,
   else {  // NOLINT
     return -1;
   }
+  USE(enable_dartdev_analytics);
+  USE(disable_dartdev_analytics);
+
   const char** vm_argv = temp_vm_options.arguments();
   int vm_argc = temp_vm_options.count();
 
@@ -591,26 +593,58 @@ int Options::ParseArguments(int argc,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  // If running with dartdev, attempt to parse VM flags which are part of the
+  // dartdev command (e.g., --enable-vm-service, --observe, etc).
+  if (!run_script) {
+    int tmp_i = i;
+    while (tmp_i < argc) {
+      OptionProcessor::TryProcess(argv[tmp_i], vm_options);
+      tmp_i++;
+    }
+  }
+  bool first_option = true;
   // Parse out options to be passed to dart main.
   while (i < argc) {
-    if (!run_script) {
-      OptionProcessor::TryProcess(argv[i], vm_options);
+    if (implicitly_use_dart_dev && first_option) {
+      // Special case where user enables VM service without using a dartdev
+      // run command. If 'run' is provided, it will be the first argument
+      // processed in this loop.
+      dart_options->AddArgument("run");
+    } else {
+      dart_options->AddArgument(argv[i]);
+      i++;
     }
-    dart_options->AddArgument(argv[i]);
-    i++;
+    // Add DDS specific flags immediately after the dartdev command.
+    if (first_option) {
+      // DDS is only enabled for the run command. Make sure we don't pass DDS
+      // specific flags along with other commands, otherwise argument parsing
+      // will fail unexpectedly.
+      bool run_command = implicitly_use_dart_dev;
+      if (!run_command && strcmp(argv[i - 1], "run") == 0) {
+        run_command = true;
+      }
+      if (!Options::disable_dart_dev() && enable_vm_service_ && run_command) {
+        const char* dds_format_str = "--launch-dds=%s:%d";
+        size_t size =
+            snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),
+                     vm_service_server_port());
+        // Make room for '\0'.
+        ++size;
+        char* dds_uri = new char[size];
+        snprintf(dds_uri, size, dds_format_str, vm_service_server_ip(),
+                 vm_service_server_port());
+        dart_options->AddArgument(dds_uri);
+
+        // Only add --disable-service-auth-codes if dartdev is being run
+        // implicitly. Otherwise it will already be forwarded.
+        if (implicitly_use_dart_dev && Options::vm_service_auth_disabled()) {
+          dart_options->AddArgument("--disable-service-auth-codes");
+        }
+      }
+      first_option = false;
+    }
   }
 
-  if (!Options::disable_dart_dev() && enable_vm_service_) {
-    const char* dds_format_str = "--launch-dds=%s:%d";
-    size_t size = snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),
-                           vm_service_server_port());
-    // Make room for '\0'.
-    ++size;
-    char* dds_uri = new char[size];
-    snprintf(dds_uri, size, dds_format_str, vm_service_server_ip(),
-             vm_service_server_port());
-    dart_options->AddArgument(dds_uri);
-  }
 
   // Verify consistency of arguments.
 

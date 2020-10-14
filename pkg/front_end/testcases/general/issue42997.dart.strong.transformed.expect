@@ -23,6 +23,7 @@ library;
 //                        ^^^^^^
 //
 // pkg/front_end/testcases/general/issue42997.dart:12:30: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
 //     for (PropertyState<Object, Object>> state in _states) ;
 //                              ^
 //
@@ -80,3 +81,8 @@ Try correcting the operator to an existing operator, or defining a '>>' operator
 }
 static method main() → dynamic {}
 static abstract method PropertyState() → dynamic;
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///issue42997.dart:12:24 -> TypeLiteralConstant(Object*)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

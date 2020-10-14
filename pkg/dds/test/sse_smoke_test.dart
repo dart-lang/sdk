@@ -66,7 +66,6 @@ void main() {
             'binary': Platform.environment['CHROME_PATH'] ?? '',
           },
         });
-      print('Capabilities: $capabilities');
       webdriver = await createDriver(
         desired: capabilities,
       );
@@ -93,8 +92,10 @@ void main() {
           expect(dds.isRunning, true);
           await webdriver.get('http://localhost:${server.port}');
           final testeeConnection = await handler.connections.next;
-          testeeConnection.sink.add(dds.sseUri.toString());
 
+          // Replace the sse scheme with http as sse isn't supported for CORS.
+          testeeConnection.sink
+              .add(dds.sseUri.replace(scheme: 'http').toString());
           final response = json.decode(await testeeConnection.stream.first);
           final version = service.Version.parse(response);
           expect(version.major > 0, isTrue);

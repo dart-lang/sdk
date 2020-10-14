@@ -179,6 +179,10 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
   RegExpEngine::CompilationResult result =
       RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
                               parsed_function, *ic_data_array, osr_id);
+  if (result.error_message != nullptr) {
+    Report::LongJump(LanguageError::Handle(
+        LanguageError::New(String::Handle(String::New(result.error_message)))));
+  }
   backtrack_goto_ = result.backtrack_goto;
 
   // Allocate variables now that we know the number of locals.

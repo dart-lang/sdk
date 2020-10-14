@@ -15,13 +15,16 @@ import "dart:_internal" as _in;
 
 abstract class A extends core::Object {
   field core::int? _#A#x = null;
+  field core::bool _#A#x#isSet = false;
   synthetic constructor •() → test::A
     : super core::Object::•()
     ;
   get x() → core::int
-    return let final core::int? #t1 = this.{test::A::_#A#x} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.") : #t1{core::int};
-  set x(core::int #t2) → void
+    return this.{test::A::_#A#x#isSet} ?{core::int} let final core::int? #t1 = this.{test::A::_#A#x} in #t1{core::int} : throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.");
+  set x(core::int #t2) → void {
+    this.{test::A::_#A#x#isSet} = true;
     this.{test::A::_#A#x} = #t2;
+  }
 }
 class _B extends core::Object implements test::A {
   field core::int x = 3;

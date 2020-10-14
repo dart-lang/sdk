@@ -83,3 +83,9 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))
     throw "Expected ${expected}, actual ${actual}";
 }
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///issue40662.dart:8:10 -> IntConstant(-1)
+Evaluated: MethodInvocation @ org-dartlang-testcase:///issue40662.dart:9:10 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 99, effectively constant: 2

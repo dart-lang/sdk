@@ -17,7 +17,7 @@ main() {
 class IfElementTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
-main(bool Function() b) {
+void f(bool Function() b) {
   <int>[if ( b() ) 0];
 }
 ''');

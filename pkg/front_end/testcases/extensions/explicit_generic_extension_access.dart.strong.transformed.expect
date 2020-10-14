@@ -132,3 +132,13 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:91:41 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:91:41 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:93:41 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:93:41 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:95:41 -> IntConstant(67)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_generic_extension_access.dart:95:41 -> IntConstant(67)
+Extra constant evaluation: evaluated: 217, effectively constant: 6

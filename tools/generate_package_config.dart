@@ -20,6 +20,9 @@ void main(List<String> args) {
     packageDirectory('runtime/observatory'),
     packageDirectory(
         'runtime/observatory/tests/service/observatory_test_package'),
+    packageDirectory('runtime/observatory_2'),
+    packageDirectory(
+        'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     packageDirectory('sdk/lib/_internal/sdk_library_metadata'),
     packageDirectory('sdk/lib/_internal/js_runtime'),
     packageDirectory('third_party/pkg/protobuf/protobuf'),
@@ -84,12 +87,6 @@ Iterable<Map<String, String>> makePackageConfigs(
   for (var packageDir in packageDirs) {
     var version = pubspecLanguageVersion(packageDir);
     var hasLibDirectory = Directory(p.join(packageDir, 'lib')).existsSync();
-
-    // TODO(rnystrom): Currently, the pre-built SDK does not allow language
-    // version 2.9.0. Until that's fixed, if we see that version, just write
-    // no version at all so that implementations use the current language
-    // version.
-    if (version.toString() == '2.9.0') version = null;
 
     yield {
       'name': p.basename(packageDir),

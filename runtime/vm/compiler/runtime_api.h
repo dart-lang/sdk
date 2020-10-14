@@ -68,9 +68,16 @@ class InvalidClass {};
 extern InvalidClass kWordSize;
 extern InvalidClass kWordSizeLog2;
 extern InvalidClass kBitsPerWord;
+extern InvalidClass kBitsPerWordLog2;
+extern InvalidClass kWordMin;
+extern InvalidClass kWordMax;
+extern InvalidClass kUWordMax;
 extern InvalidClass kNewObjectAlignmentOffset;
 extern InvalidClass kOldObjectAlignmentOffset;
 extern InvalidClass kNewObjectBitPosition;
+extern InvalidClass kOldPageSize;
+extern InvalidClass kOldPageSizeInWords;
+extern InvalidClass kOldPageMask;
 extern InvalidClass kObjectAlignment;
 extern InvalidClass kObjectAlignmentLog2;
 extern InvalidClass kObjectAlignmentMask;
@@ -233,6 +240,8 @@ class RuntimeEntry : public ValueObject {
 
   word OffsetFromThread() const;
 
+  bool is_leaf() const;
+
  protected:
   RuntimeEntry(const dart::RuntimeEntry* runtime_entry,
                RuntimeEntryCallInternal call)
@@ -278,6 +287,9 @@ static constexpr int kWordSizeLog2 = 3;
 #endif
 static constexpr int kWordSize = 1 << kWordSizeLog2;
 static_assert(kWordSize == sizeof(word), "kWordSize should match sizeof(word)");
+// Our compiler code currently assumes this, so formally check it.
+static_assert(dart::kWordSize >= kWordSize,
+              "Host word size smaller than target word size");
 
 static constexpr word kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
 static constexpr word kBitsPerWord = 1 << kBitsPerWordLog2;
@@ -800,13 +812,17 @@ class Bytecode : public AllStatic {
 
 class PcDescriptors : public AllStatic {
  public:
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 
 class CodeSourceMap : public AllStatic {
  public:
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 
@@ -814,6 +830,7 @@ class CompressedStackMaps : public AllStatic {
  public:
   static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 
@@ -1145,9 +1162,10 @@ class ClassTable : public AllStatic {
 
 class InstructionsSection : public AllStatic {
  public:
-  static word HeaderSize();
   static word UnalignedHeaderSize();
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 
@@ -1157,9 +1175,12 @@ class Instructions : public AllStatic {
   static const word kPolymorphicEntryOffsetJIT;
   static const word kMonomorphicEntryOffsetAOT;
   static const word kPolymorphicEntryOffsetAOT;
-  static word HeaderSize();
+  static const word kBarePayloadAlignment;
+  static const word kNonBarePayloadAlignment;
   static word UnalignedHeaderSize();
+  static word HeaderSize();
   static word InstanceSize();
+  static word InstanceSize(word payload_size);
   static word NextFieldOffset();
 };
 

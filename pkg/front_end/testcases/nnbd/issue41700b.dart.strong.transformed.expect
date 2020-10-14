@@ -47,3 +47,10 @@ Try correcting the name to the name of an existing method, or defining a method 
     ^^^";
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-testcase:///issue41700b.dart:8:12 -> BoolConstant(true)
+Evaluated: VariableGet @ org-dartlang-testcase:///issue41700b.dart:8:12 -> NullConstant(null)
+Evaluated: VariableGet @ org-dartlang-testcase:///issue41700b.dart:8:12 -> NullConstant(null)
+Extra constant evaluation: evaluated: 7, effectively constant: 3

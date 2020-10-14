@@ -8,7 +8,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -306,8 +305,6 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     Map<String, String> declaredVariables = const {},
     Map<String, DartObjectImpl> lexicalEnvironment,
   }) {
-    var analysisContext = contextFor(this.result.path);
-    var options = analysisContext.analysisOptions as AnalysisOptionsImpl;
     var expression = findNode.topVariableDeclarationByName(name).initializer;
 
     var source = this.result.unit.declaredElement.source;
@@ -321,11 +318,9 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     DartObjectImpl result = expression.accept(
       ConstantVisitor(
         ConstantEvaluationEngine(
-          typeProvider,
           DeclaredVariables.fromMap(declaredVariables),
-          experimentStatus: options.experimentStatus,
-          typeSystem: this.result.typeSystem,
         ),
+        this.result.libraryElement,
         errorReporter,
         lexicalEnvironment: lexicalEnvironment,
       ),

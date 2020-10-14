@@ -67,7 +67,7 @@ import 'package:kernel/src/bounds_checks.dart'
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName;
 
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
@@ -477,12 +477,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         } else {
           loader.registerStrongOptOutLibrary(this);
         }
-        _languageVersion = new InvalidLanguageVersion(
-            fileUri,
-            _languageVersion.charOffset,
-            _languageVersion.charCount,
-            _languageVersion.isExplicit,
-            loader.target.currentSdkVersion);
       }
     }
     _languageVersion.isFinal = true;
@@ -1616,6 +1610,100 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return typeVariablesByName;
   }
 
+  void checkGetterSetterTypes(ProcedureBuilder getterBuilder,
+      ProcedureBuilder setterBuilder, TypeEnvironment typeEnvironment) {
+    DartType getterType;
+    List<TypeParameter> getterExtensionTypeParameters;
+    if (getterBuilder.isExtensionInstanceMember) {
+      // An extension instance getter
+      //
+      //     extension E<T> on A {
+      //       T get property => ...
+      //     }
+      //
+      // is encoded as a top level method
+      //
+      //   T# E#get#property<T#>(A #this) => ...
+      //
+      Procedure procedure = getterBuilder.procedure;
+      getterType = procedure.function.returnType;
+      getterExtensionTypeParameters = procedure.function.typeParameters;
+    } else {
+      getterType = getterBuilder.procedure.getterType;
+    }
+    DartType setterType;
+    if (setterBuilder.isExtensionInstanceMember) {
+      // An extension instance setter
+      //
+      //     extension E<T> on A {
+      //       void set property(T value) { ... }
+      //     }
+      //
+      // is encoded as a top level method
+      //
+      //   void E#set#property<T#>(A #this, T# value) { ... }
+      //
+      Procedure procedure = setterBuilder.procedure;
+      setterType = procedure.function.positionalParameters[1].type;
+      if (getterExtensionTypeParameters != null &&
+          getterExtensionTypeParameters.isNotEmpty) {
+        // We substitute the setter type parameters for the getter type
+        // parameters to check them below in a shared context.
+        List<TypeParameter> setterExtensionTypeParameters =
+            procedure.function.typeParameters;
+        assert(getterExtensionTypeParameters.length ==
+            setterExtensionTypeParameters.length);
+        setterType = Substitution.fromPairs(
+                setterExtensionTypeParameters,
+                new List<DartType>.generate(
+                    getterExtensionTypeParameters.length,
+                    (int index) => new TypeParameterType.forAlphaRenaming(
+                        setterExtensionTypeParameters[index],
+                        getterExtensionTypeParameters[index])))
+            .substituteType(setterType);
+      }
+    } else {
+      setterType = setterBuilder.procedure.setterType;
+    }
+
+    if (getterType is InvalidType || setterType is InvalidType) {
+      // Don't report a problem as something else is wrong that has already
+      // been reported.
+    } else {
+      bool isValid = typeEnvironment.isSubtypeOf(
+          getterType,
+          setterType,
+          library.isNonNullableByDefault
+              ? SubtypeCheckMode.withNullabilities
+              : SubtypeCheckMode.ignoringNullabilities);
+      if (!isValid && !library.isNonNullableByDefault) {
+        // Allow assignability in legacy libraries.
+        isValid = typeEnvironment.isSubtypeOf(
+            setterType, getterType, SubtypeCheckMode.ignoringNullabilities);
+      }
+      if (!isValid) {
+        String getterMemberName = getterBuilder.fullNameForErrors;
+        String setterMemberName = setterBuilder.fullNameForErrors;
+        Template<Message Function(DartType, String, DartType, String, bool)>
+            template = library.isNonNullableByDefault
+                ? templateInvalidGetterSetterType
+                : templateInvalidGetterSetterTypeLegacy;
+        addProblem(
+            template.withArguments(getterType, getterMemberName, setterType,
+                setterMemberName, library.isNonNullableByDefault),
+            getterBuilder.charOffset,
+            getterBuilder.name.length,
+            getterBuilder.fileUri,
+            context: [
+              templateInvalidGetterSetterTypeSetterContext
+                  .withArguments(setterMemberName)
+                  .withLocation(setterBuilder.fileUri, setterBuilder.charOffset,
+                      setterBuilder.name.length)
+            ]);
+      }
+    }
+  }
+
   void addExtensionDeclaration(
       String documentationComment,
       List<MetadataBuilder> metadata,
@@ -1903,7 +1991,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isMixinDeclaration ? null : supertype,
           isNamedMixinApplication
               ? interfaces
-              : isMixinDeclaration ? [supertype, mixin] : null,
+              : isMixinDeclaration
+                  ? [supertype, mixin]
+                  : null,
           null, // No `on` clause types.
           new Scope(
               local: <String, MemberBuilder>{},
@@ -2172,7 +2262,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     if (returnType == null) {
       if (kind == ProcedureKind.Operator &&
-          identical(name, indexSetName.name)) {
+          identical(name, indexSetName.text)) {
         returnType = addVoidType(charOffset);
       } else if (kind == ProcedureKind.Setter) {
         returnType = addVoidType(charOffset);
@@ -2736,7 +2826,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         VariableDeclaration originNamed = originNamedMap[forwarderNamed.name];
         if (originNamed == null) {
           return unhandled(
-              "null", forwarder.name.name, origin.fileOffset, origin.fileUri);
+              "null", forwarder.name.text, origin.fileOffset, origin.fileUri);
         }
         if (originNamed.initializer == null) continue;
         forwarderNamed.initializer = cloner.clone(originNamed.initializer);
@@ -3195,6 +3285,63 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
+  void checkBoundsInTypeParameters(TypeEnvironment typeEnvironment,
+      List<TypeParameter> typeParameters, Uri fileUri) {
+    final DartType bottomType = library.isNonNullableByDefault
+        ? const NeverType(Nullability.nonNullable)
+        : typeEnvironment.nullType;
+
+    // Check in bounds of own type variables.
+    for (TypeParameter parameter in typeParameters) {
+      Set<TypeArgumentIssue> issues = {};
+      issues.addAll(findTypeArgumentIssues(
+              library,
+              parameter.bound,
+              typeEnvironment,
+              SubtypeCheckMode.ignoringNullabilities,
+              bottomType,
+              allowSuperBounded: true) ??
+          const []);
+      if (library.isNonNullableByDefault) {
+        issues.addAll(findTypeArgumentIssues(library, parameter.bound,
+                typeEnvironment, SubtypeCheckMode.withNullabilities, bottomType,
+                allowSuperBounded: true) ??
+            const []);
+      }
+      for (TypeArgumentIssue issue in issues) {
+        DartType argument = issue.argument;
+        TypeParameter typeParameter = issue.typeParameter;
+        if (inferredTypes.contains(argument)) {
+          // Inference in type expressions in the supertypes boils down to
+          // instantiate-to-bound which shouldn't produce anything that breaks
+          // the bounds after the non-simplicity checks are done.  So, any
+          // violation here is the result of non-simple bounds, and the error
+          // is reported elsewhere.
+          continue;
+        }
+
+        if (argument is FunctionType && argument.typeParameters.length > 0) {
+          reportTypeArgumentIssue(
+              messageGenericFunctionTypeUsedAsActualTypeArgument,
+              fileUri,
+              parameter.fileOffset,
+              null);
+        } else {
+          reportTypeArgumentIssue(
+              templateIncorrectTypeArgument.withArguments(
+                  argument,
+                  typeParameter.bound,
+                  typeParameter.name,
+                  getGenericTypeName(issue.enclosingType),
+                  library.isNonNullableByDefault),
+              fileUri,
+              parameter.fileOffset,
+              typeParameter);
+        }
+      }
+    }
+  }
+
   void checkBoundsInFunctionNodeParts(
       TypeEnvironment typeEnvironment, Uri fileUri, int fileOffset,
       {List<TypeParameter> typeParameters,
@@ -3267,6 +3414,34 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
+  }
+
+  void checkTypesInProcedureBuilder(
+      ProcedureBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(procedureBuilder.procedure.function,
+        typeEnvironment, procedureBuilder.fileUri);
+    if (procedureBuilder.formals != null &&
+        !(procedureBuilder.isAbstract || procedureBuilder.isExternal)) {
+      checkInitializersInFormals(procedureBuilder.formals, typeEnvironment);
+    }
+  }
+
+  void checkTypesInConstructorBuilder(
+      ConstructorBuilder constructorBuilder, TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(
+        constructorBuilder.constructor.function, typeEnvironment, fileUri);
+    if (!constructorBuilder.isExternal && constructorBuilder.formals != null) {
+      checkInitializersInFormals(constructorBuilder.formals, typeEnvironment);
+    }
+  }
+
+  void checkTypesInRedirectingFactoryBuilder(
+      RedirectingFactoryBuilder redirectingFactoryBuilder,
+      TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(redirectingFactoryBuilder.procedure.function,
+        typeEnvironment, redirectingFactoryBuilder.fileUri);
+    // Default values are not required on redirecting factory constructors so
+    // we don't call [checkInitializersInFormals].
   }
 
   void checkBoundsInFunctionNode(
@@ -3403,7 +3578,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         targetReceiver =
             new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
       }
-      String targetName = node.target.name.name;
+      String targetName = node.target.name.text;
       reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
           typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
@@ -3487,7 +3662,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
         targetReceiver: receiverType,
-        targetName: name.name);
+        targetName: name.text);
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
@@ -3497,13 +3672,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is FieldBuilder) {
         checkTypesInField(declaration, typeEnvironment);
       } else if (declaration is ProcedureBuilder) {
-        checkBoundsInFunctionNode(declaration.procedure.function,
-            typeEnvironment, declaration.fileUri);
-        if (declaration.formals != null) {
-          checkInitializersInFormals(declaration.formals, typeEnvironment);
+        checkTypesInProcedureBuilder(declaration, typeEnvironment);
+        if (declaration.isGetter) {
+          Builder setterDeclaration =
+              scope.lookupLocalMember(declaration.name, setter: true);
+          if (setterDeclaration != null) {
+            checkGetterSetterTypes(
+                declaration, setterDeclaration, typeEnvironment);
+          }
         }
       } else if (declaration is SourceClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
+      } else if (declaration is SourceExtensionBuilder) {
+        declaration.checkTypesInOutline(typeEnvironment);
+      } else {
+        //assert(false, "Unexpected declaration ${declaration.runtimeType}");
       }
     }
     inferredTypes.clear();

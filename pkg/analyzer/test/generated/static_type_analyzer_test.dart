@@ -588,59 +588,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitPrefixedIdentifier_getter() {
-    DartType boolType = _typeProvider.boolType;
-    PropertyAccessorElementImpl getter =
-        ElementFactory.getterElement("b", false, boolType);
-    PrefixedIdentifier node = AstTestFactory.identifier5("a", "b");
-    node.identifier.staticElement = getter;
-    expect(_analyze(node), same(boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixedIdentifier_setter() {
-    DartType boolType = _typeProvider.boolType;
-    FieldElementImpl field =
-        ElementFactory.fieldElement("b", false, false, false, boolType);
-    PropertyAccessorElement setter = field.setter;
-    PrefixedIdentifier node = AstTestFactory.identifier5("a", "b");
-    node.identifier.staticElement = setter;
-    expect(_analyze(node), same(boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixedIdentifier_variable() {
-    VariableElementImpl variable = ElementFactory.localVariableElement2("b");
-    variable.type = _typeProvider.boolType;
-    PrefixedIdentifier node = AstTestFactory.identifier5("a", "b");
-    node.identifier.staticElement = variable;
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPropertyAccess_static_getter() {
-    DartType boolType = _typeProvider.boolType;
-    PropertyAccessorElementImpl getter =
-        ElementFactory.getterElement("b", false, boolType);
-    PropertyAccess node =
-        AstTestFactory.propertyAccess2(AstTestFactory.identifier3("a"), "b");
-    node.propertyName.staticElement = getter;
-    expect(_analyze(node), same(boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPropertyAccess_static_setter() {
-    DartType boolType = _typeProvider.boolType;
-    FieldElementImpl field =
-        ElementFactory.fieldElement("b", false, false, false, boolType);
-    PropertyAccessorElement setter = field.setter;
-    PropertyAccess node =
-        AstTestFactory.propertyAccess2(AstTestFactory.identifier3("a"), "b");
-    node.propertyName.staticElement = setter;
-    expect(_analyze(node), same(boolType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitSimpleStringLiteral() {
     // "a"
     Expression node = _resolvedString("a");

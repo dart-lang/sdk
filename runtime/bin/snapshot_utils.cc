@@ -489,8 +489,8 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
   uint8_t* isolate_buffer = NULL;
   intptr_t isolate_size = 0;
 
-  Dart_Handle result =
-      Dart_CreateSnapshot(NULL, NULL, &isolate_buffer, &isolate_size);
+  Dart_Handle result = Dart_CreateSnapshot(NULL, NULL, &isolate_buffer,
+                                           &isolate_size, /*is_core=*/false);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }

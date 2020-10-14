@@ -451,20 +451,18 @@ void ProgramVisitor::ShareMegamorphicBuckets(Zone* zone, Isolate* isolate) {
 
 class StackMapEntry : public ZoneAllocated {
  public:
-  StackMapEntry(Zone* zone, const CompressedStackMapsIterator& it)
+  StackMapEntry(Zone* zone, const CompressedStackMaps::Iterator& it)
       : maps_(CompressedStackMaps::Handle(zone, it.maps_.raw())),
         bits_container_(
             CompressedStackMaps::Handle(zone, it.bits_container_.raw())),
-        spill_slot_bit_count_(it.current_spill_slot_bit_count_),
-        non_spill_slot_bit_count_(it.current_non_spill_slot_bit_count_),
+        // If the map uses the global table, this accessor call ensures the
+        // entry is fully loaded before we retrieve [it.current_bits_offset_].
+        spill_slot_bit_count_(it.SpillSlotBitCount()),
+        non_spill_slot_bit_count_(it.Length() - it.SpillSlotBitCount()),
         bits_offset_(it.current_bits_offset_) {
     ASSERT(!maps_.IsNull() && !maps_.IsGlobalTable());
     ASSERT(!bits_container_.IsNull());
     ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
-    // Check that the iterator was fully loaded when we ran the initializing
-    // expressions above. By this point we enter the body of the constructor,
-    // it's too late to run EnsureFullyLoadedEntry().
-    ASSERT(it.HasLoadedEntry());
     ASSERT(it.current_spill_slot_bit_count_ >= 0);
   }
 
@@ -475,8 +473,13 @@ class StackMapEntry : public ZoneAllocated {
     uint32_t hash = 0;
     hash = CombineHashes(hash, spill_slot_bit_count_);
     hash = CombineHashes(hash, non_spill_slot_bit_count_);
-    for (intptr_t i = 0; i < PayloadLength(); i++) {
-      hash = CombineHashes(hash, PayloadByte(i));
+    {
+      NoSafepointScope scope;
+      auto const start = PayloadData();
+      auto const end = start + PayloadLength();
+      for (auto cursor = start; cursor < end; cursor++) {
+        hash = CombineHashes(hash, *cursor);
+      }
     }
     hash_ = FinalizeHash(hash, kHashBits);
     return hash_;
@@ -490,20 +493,19 @@ class StackMapEntry : public ZoneAllocated {
     // Since we ensure that bits in the payload that are not part of the
     // actual stackmap data are cleared, we can just compare payloads by byte
     // instead of calling IsObject for each bit.
-    for (intptr_t i = 0; i < PayloadLength(); i++) {
-      if (PayloadByte(i) != other->PayloadByte(i)) return false;
-    }
-    return true;
+    NoSafepointScope scope;
+    return memcmp(PayloadData(), other->PayloadData(), PayloadLength()) == 0;
   }
 
   // Encodes this StackMapEntry to the given array of bytes and returns the
   // initial offset of the entry in the array.
-  intptr_t EncodeTo(GrowableArray<uint8_t>* array) {
-    auto const current_offset = array->length();
-    CompressedStackMapsBuilder::EncodeLEB128(array, spill_slot_bit_count_);
-    CompressedStackMapsBuilder::EncodeLEB128(array, non_spill_slot_bit_count_);
-    for (intptr_t i = 0; i < PayloadLength(); i++) {
-      array->Add(PayloadByte(i));
+  intptr_t EncodeTo(NonStreamingWriteStream* stream) {
+    auto const current_offset = stream->Position();
+    stream->WriteLEB128(spill_slot_bit_count_);
+    stream->WriteLEB128(non_spill_slot_bit_count_);
+    {
+      NoSafepointScope scope;
+      stream->WriteBytes(PayloadData(), PayloadLength());
     }
     return current_offset;
   }
@@ -518,8 +520,9 @@ class StackMapEntry : public ZoneAllocated {
   intptr_t PayloadLength() const {
     return Utils::RoundUp(Length(), kBitsPerByte) >> kBitsPerByteLog2;
   }
-  intptr_t PayloadByte(intptr_t offset) const {
-    return bits_container_.PayloadByte(bits_offset_ + offset);
+  const uint8_t* PayloadData() const {
+    ASSERT(!Thread::Current()->IsAtSafepoint());
+    return bits_container_.raw()->ptr()->data() + bits_offset_;
   }
 
   const CompressedStackMaps& maps_;
@@ -577,9 +580,9 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
 
     void VisitCode(const Code& code) {
       compressed_stackmaps_ = code.compressed_stackmaps();
-      CompressedStackMapsIterator it(compressed_stackmaps_, old_global_table_);
+      CompressedStackMaps::Iterator it(compressed_stackmaps_,
+                                       old_global_table_);
       while (it.MoveNext()) {
-        it.EnsureFullyLoadedEntry();
         auto const entry = new (zone_) StackMapEntry(zone_, it);
         auto const index = entry_indices_.LookupValue(entry);
         if (index < 0) {
@@ -598,7 +601,9 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
     CompressedStackMapsPtr CreateGlobalTable(
         StackMapEntryIntMap* entry_offsets) {
       ASSERT(entry_offsets->IsEmpty());
-      if (collected_entries_.length() == 0) return CompressedStackMaps::null();
+      if (collected_entries_.length() == 0) {
+        return CompressedStackMaps::null();
+      }
       // First, sort the entries from most used to least used. This way,
       // the most often used CSMs will have the lowest offsets, which means
       // they will be smaller when LEB128 encoded.
@@ -606,16 +611,17 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
           [](StackMapEntry* const* e1, StackMapEntry* const* e2) {
             return static_cast<int>((*e2)->UsageCount() - (*e1)->UsageCount());
           });
-      GrowableArray<uint8_t> bytes;
+      MallocWriteStream stream(128);
       // Encode the entries and record their offset in the payload. Sorting the
       // entries may have changed their indices, so update those as well.
       for (intptr_t i = 0, n = collected_entries_.length(); i < n; i++) {
         auto const entry = collected_entries_.At(i);
         entry_indices_.Update({entry, i});
-        entry_offsets->Insert({entry, entry->EncodeTo(&bytes)});
+        entry_offsets->Insert({entry, entry->EncodeTo(&stream)});
       }
       const auto& data = CompressedStackMaps::Handle(
-          zone_, CompressedStackMaps::NewGlobalTable(bytes));
+          zone_, CompressedStackMaps::NewGlobalTable(stream.buffer(),
+                                                     stream.bytes_written()));
       return data.raw();
     }
 
@@ -690,19 +696,23 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Zone* zone,
    private:
     // Creates a normalized CSM from the given non-normalized CSM.
     CompressedStackMapsPtr NormalizeEntries(const CompressedStackMaps& maps) {
-      GrowableArray<uint8_t> new_payload;
-      CompressedStackMapsIterator it(maps, old_global_table_);
+      if (maps.payload_size() == 0) {
+        // No entries, so use the canonical empty map.
+        return Object::empty_compressed_stackmaps().raw();
+      }
+      MallocWriteStream new_payload(maps.payload_size());
+      CompressedStackMaps::Iterator it(maps, old_global_table_);
       intptr_t last_offset = 0;
       while (it.MoveNext()) {
-        it.EnsureFullyLoadedEntry();
         StackMapEntry entry(zone_, it);
-        auto const entry_offset = entry_offsets_.LookupValue(&entry);
-        auto const pc_delta = it.pc_offset() - last_offset;
-        CompressedStackMapsBuilder::EncodeLEB128(&new_payload, pc_delta);
-        CompressedStackMapsBuilder::EncodeLEB128(&new_payload, entry_offset);
+        const intptr_t entry_offset = entry_offsets_.LookupValue(&entry);
+        const intptr_t pc_delta = it.pc_offset() - last_offset;
+        new_payload.WriteLEB128(pc_delta);
+        new_payload.WriteLEB128(entry_offset);
         last_offset = it.pc_offset();
       }
-      return CompressedStackMaps::NewUsingTable(new_payload);
+      return CompressedStackMaps::NewUsingTable(new_payload.buffer(),
+                                                new_payload.bytes_written());
     }
 
     const CompressedStackMaps& old_global_table_;

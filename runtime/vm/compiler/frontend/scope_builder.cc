@@ -148,8 +148,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           (parent.num_fixed_parameters() != target.num_fixed_parameters())) {
         needs_expr_temp_ = true;
       }
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case FunctionLayout::kClosureFunction:
     case FunctionLayout::kRegularFunction:
     case FunctionLayout::kGetterFunction:
@@ -441,10 +441,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 #define ADD_VAR(Name, _, __) scope_->AddVariable(vars->Name);
         FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(ADD_VAR);
 #undef ADD_VAR
-        needs_expr_temp_ = true;
       }
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case FunctionLayout::kNoSuchMethodDispatcher: {
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
         LocalVariable* variable = MakeVariable(
@@ -756,17 +755,6 @@ void ScopeBuilder::VisitExpression() {
       // read interface_target_reference.
       helper_.SkipInterfaceMemberNameReference();
       return;
-    case kDirectPropertyGet:
-      helper_.ReadPosition();                // read position.
-      VisitExpression();                     // read receiver.
-      helper_.SkipInterfaceMemberNameReference();  // read target_reference.
-      return;
-    case kDirectPropertySet:
-      helper_.ReadPosition();                // read position.
-      VisitExpression();                     // read receiver.
-      helper_.SkipInterfaceMemberNameReference();  // read target_reference.
-      VisitExpression();                     // read value·
-      return;
     case kSuperPropertyGet:
       HandleLoadReceiver();
       helper_.ReadPosition();                // read position.
@@ -796,12 +784,6 @@ void ScopeBuilder::VisitExpression() {
       VisitArguments();        // read arguments.
       // read interface_target_reference.
       helper_.SkipInterfaceMemberNameReference();
-      return;
-    case kDirectMethodInvocation:
-      helper_.ReadPosition();                // read position.
-      VisitExpression();                     // read receiver.
-      helper_.SkipInterfaceMemberNameReference();  // read target_reference.
-      VisitArguments();                      // read arguments.
       return;
     case kSuperMethodInvocation:
       HandleLoadReceiver();
@@ -1581,6 +1563,7 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   VariableDeclarationHelper helper(&helper_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   String& name = H.DartSymbolObfuscate(helper.name_index_);
+  ASSERT(name.Length() > 0);
   AbstractType& type = BuildAndVisitVariableType();  // read type.
   helper.SetJustRead(VariableDeclarationHelper::kType);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
@@ -1601,6 +1584,9 @@ void ScopeBuilder::AddVariableDeclarationParameter(
       helper.IsCovariant() ||
       (helper.IsGenericCovariantImpl() &&
        (attrs.has_non_this_uses || attrs.has_tearoff_uses));
+  if (needs_covariant_check_in_method) {
+    variable->set_needs_covariant_check_in_method();
+  }
 
   switch (type_check_mode) {
     case kTypeCheckAllParameters:

@@ -25,6 +25,9 @@ class TransformSetManager {
     var workspace = library.session.analysisContext.workspace;
     var libraryPath = library.source.fullName;
     var package = workspace.findPackageFor(libraryPath);
+    if (package == null) {
+      return transformSets;
+    }
     var packageMap = package.packagesAvailableTo(libraryPath);
     for (var entry in packageMap.entries) {
       var directory = entry.value[0];
@@ -45,8 +48,10 @@ class TransformSetManager {
     try {
       // TODO(brianwilkerson) Consider caching the transform sets.
       var content = file.readAsStringSync();
-      var parser = TransformSetParser(ErrorReporter(
-          AnalysisErrorListener.NULL_LISTENER, file.createSource()));
+      var parser = TransformSetParser(
+          ErrorReporter(
+              AnalysisErrorListener.NULL_LISTENER, file.createSource()),
+          file.parent.parent.shortName);
       return parser.parse(content);
     } on FileSystemException {
       // Fall through to return `null`.

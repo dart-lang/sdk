@@ -7,7 +7,7 @@
 import 'lib1.dart';
 import 'lib2.dart' deferred as c;
 
-/*member: main:OutputUnit(main, {})*/
+/*member: main:member_unit=main{}*/
 main() async {
   await c.loadLibrary();
   c.createA();

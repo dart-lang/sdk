@@ -13,6 +13,7 @@ import 'runtime_type_analysis.dart';
 import 'scope.dart';
 import 'static_type_base.dart';
 import 'static_type_cache.dart';
+import 'util.dart';
 
 /// Enum values for how the target of a static type should be interpreted.
 enum ClassRelation {
@@ -233,7 +234,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
-    String nameString = node.name.name;
+    String nameString = node.name.text;
     if (nameString == 'hashCode') {
       return typeEnvironment.coreTypes.intNonNullableRawType;
     } else if (nameString == 'runtimeType') {
@@ -255,7 +256,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         _computePropertyGetType(node, receiverType);
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
     handlePropertyGet(node, receiverType, resultType);
-    if (node.name.name == Identifiers.runtimeType_) {
+    if (node.name.text == Identifiers.runtimeType_) {
       RuntimeTypeUseData data =
           computeRuntimeTypeUse(_pendingRuntimeTypeUseData, node);
       if (data.leftRuntimeTypeExpression == node) {
@@ -324,61 +325,6 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return valueType;
   }
 
-  void handleDirectPropertyGet(ir.DirectPropertyGet node,
-      ir.DartType receiverType, ir.DartType resultType) {}
-
-  @override
-  ir.DartType visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.Class superclass = node.target.enclosingClass;
-    receiverType = getTypeAsInstanceOf(receiverType, superclass);
-    ir.DartType resultType = ir.Substitution.fromInterfaceType(receiverType)
-        .substituteType(node.target.getterType);
-    _expressionTypeCache[node] = resultType;
-    handleDirectPropertyGet(node, receiverType, resultType);
-    return resultType;
-  }
-
-  void handleDirectMethodInvocation(
-      ir.DirectMethodInvocation node,
-      ir.DartType receiverType,
-      ArgumentTypes argumentTypes,
-      ir.DartType returnType) {}
-
-  @override
-  ir.DartType visitDirectMethodInvocation(ir.DirectMethodInvocation node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ArgumentTypes argumentTypes = _visitArguments(node.arguments);
-    ir.DartType returnType;
-    if (typeEnvironment.isSpecialCasedBinaryOperator(node.target)) {
-      ir.DartType argumentType = argumentTypes.positional[0];
-      returnType = typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
-          receiverType, argumentType);
-    } else {
-      ir.Class superclass = node.target.enclosingClass;
-      receiverType = getTypeAsInstanceOf(receiverType, superclass);
-      ir.DartType returnType = ir.Substitution.fromInterfaceType(receiverType)
-          .substituteType(node.target.function.returnType);
-      returnType = ir.Substitution.fromPairs(
-              node.target.function.typeParameters, node.arguments.types)
-          .substituteType(returnType);
-    }
-    _expressionTypeCache[node] = returnType;
-    handleDirectMethodInvocation(node, receiverType, argumentTypes, returnType);
-    return returnType;
-  }
-
-  void handleDirectPropertySet(ir.DirectPropertySet node,
-      ir.DartType receiverType, ir.DartType valueType) {}
-
-  @override
-  ir.DartType visitDirectPropertySet(ir.DirectPropertySet node) {
-    ir.DartType receiverType = visitNode(node.receiver);
-    ir.DartType valueType = super.visitDirectPropertySet(node);
-    handleDirectPropertySet(node, receiverType, valueType);
-    return valueType;
-  }
-
   /// Returns `true` if [interfaceTarget] is an arithmetic operator whose result
   /// type is computed using both the receiver type and the argument type.
   ///
@@ -391,7 +337,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   ir.Member _getMember(ir.Class cls, String name) {
     for (ir.Member member in cls.members) {
-      if (member.name.name == name) return member;
+      if (member.name.text == name) return member;
     }
     throw fail("Member '$name' not found in $cls");
   }
@@ -599,7 +545,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // TODO(34602): Remove when `interfaceTarget` is set on synthetic calls to
     // ==.
     if (interfaceTarget == null &&
-        node.name.name == '==' &&
+        node.name.text == '==' &&
         node.arguments.types.isEmpty &&
         node.arguments.positional.length == 1 &&
         node.arguments.named.isEmpty) {
@@ -647,7 +593,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         return const ir.DynamicType();
       }
     }
-    if (node.name.name == 'call') {
+    if (node.name.text == 'call') {
       if (receiverType is ir.FunctionType) {
         if (receiverType.typeParameters.length != node.arguments.types.length) {
           return const DoesNotCompleteType();
@@ -657,7 +603,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .substituteType(receiverType.returnType);
       }
     }
-    if (node.name.name == '==') {
+    if (node.name.text == '==') {
       // We use this special case to simplify generation of '==' checks.
       return typeEnvironment.coreTypes.boolNonNullableRawType;
     }
@@ -701,12 +647,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType returnType =
         _computeMethodInvocationType(node, receiverType, argumentTypes);
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
-    if (node.name.name == '==') {
+    if (node.name.text == '==') {
       ir.Expression left = node.receiver;
       ir.Expression right = node.arguments.positional[0];
       TypeMap afterInvocation = typeMap;
       if (left is ir.VariableGet &&
-          right is ir.NullLiteral &&
+          isNullLiteral(right) &&
           !_invalidatedVariables.contains(left.variable)) {
         // If `left == null` is true, we promote the type of the variable to
         // `Null` by registering that is known _not_ to be of its declared type.
@@ -716,7 +662,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .promote(left.variable, left.variable.type, isTrue: true);
       }
       if (right is ir.VariableGet &&
-          left is ir.NullLiteral &&
+          isNullLiteral(left) &&
           !_invalidatedVariables.contains(right.variable)) {
         // If `null == right` is true, we promote the type of the variable to
         // `Null` by registering that is known _not_ to be of its declared type.
@@ -878,7 +824,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitLogicalExpression(ir.LogicalExpression node) {
-    if (node.operator == '&&') {
+    if (node.operatorEnum == ir.LogicalExpressionOperator.AND) {
       visitNode(node.left);
       TypeMap afterLeftWhenTrue = typeMapWhenTrue;
       TypeMap afterLeftWhenFalse = typeMapWhenFalse;

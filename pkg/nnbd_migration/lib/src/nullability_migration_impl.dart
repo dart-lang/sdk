@@ -73,7 +73,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// [removeViaComments]).
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
       LineInfo Function(String) getLineInfo,
-      {bool permissive: false,
+      {bool permissive = false,
       NullabilityMigrationInstrumentation instrumentation,
       bool removeViaComments = false,
       bool warnOnWeakCode = true})
@@ -209,7 +209,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   static Location _computeLocation(
       LineInfo lineInfo, SourceEdit edit, Source source) {
     final locationInfo = lineInfo.getLocation(edit.offset);
-    var location = new Location(
+    var location = Location(
       source.fullName,
       edit.offset,
       edit.length,

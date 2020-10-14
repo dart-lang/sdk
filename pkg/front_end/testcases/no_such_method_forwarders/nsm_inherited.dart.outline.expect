@@ -25,3 +25,10 @@ class A extends self::M {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///nsm_inherited.dart:13:8 -> SymbolConstant(#call)
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_inherited.dart:13:8 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///nsm_inherited.dart:13:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: evaluated: 10, effectively constant: 3

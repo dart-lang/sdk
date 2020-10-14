@@ -71,14 +71,7 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   String getText(DartType actualData, [String indentation]) {
-    if (actualData is TypeParameterTypeImpl) {
-      var element = actualData.element;
-      var promotedBound = actualData.promotedBound;
-      if (promotedBound != null) {
-        return '${element.name} & ${_typeToString(promotedBound)}';
-      }
-    }
-    return _typeToString(actualData);
+    return actualData.getDisplayString(withNullability: true);
   }
 
   @override
@@ -93,8 +86,4 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   bool isEmpty(DartType actualData) => actualData == null;
-
-  String _typeToString(DartType type) {
-    return type.getDisplayString(withNullability: true);
-  }
 }

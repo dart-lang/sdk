@@ -8,11 +8,13 @@ class A {
   static late x1;
   //     ^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^
+  // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   static late x5 = 0;
   //     ^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  //          ^
+  // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 
   static final late x9;
   //           ^^^^
@@ -32,15 +34,18 @@ class A {
   // [cfe] The modifier 'late' should be before the modifier 'final'.
   //                        ^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'A'.
 
   covariant late x15;
   //        ^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  //             ^
+  // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   covariant late x16 = '';
   //        ^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  //             ^
+  // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 
   late covariant var x17;
   //   ^^^^^^^^^
@@ -56,12 +61,14 @@ class A {
   // [cfe] The modifier 'covariant' should be before the modifier 'late'.
   //             ^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+  // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   late covariant x20 = '';
   //   ^^^^^^^^^
   // [analyzer] SYNTACTIC_ERROR.MODIFIER_OUT_OF_ORDER
   // [cfe] The modifier 'covariant' should be before the modifier 'late'.
   //             ^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
+  // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   
   covariant var late x21;
   //            ^^^^
@@ -78,6 +85,7 @@ class A {
   // [cfe] Expected ';' after this.
   //               ^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
+  // [cfe] Field 'late' should be initialized because its type 'double' doesn't allow null.
   //                    ^^^
   // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
   // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
@@ -97,11 +105,11 @@ class A {
   late x25;
   //   ^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
   late x29 = 0;
   //   ^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 
   final late x33;
   //    ^^^^
@@ -160,7 +168,7 @@ abstract class B {
       required p2 = null,
       //       ^^
       // [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_ON_REQUIRED_PARAMETER
-      // [cfe] unspecified
+      // [cfe] Named parameter 'p2' is required and can't have a default value.
       required covariant p3,
       required covariant int p4,
   });

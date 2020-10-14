@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 45;
-static const uint32_t kMaxSupportedKernelFormatVersion = 45;
+static const uint32_t kMinSupportedKernelFormatVersion = 46;
+static const uint32_t kMaxSupportedKernelFormatVersion = 46;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -42,9 +42,6 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 45;
   V(AssertInitializer, 12)                                                     \
   V(CheckLibraryIsLoaded, 13)                                                  \
   V(LoadLibrary, 14)                                                           \
-  V(DirectPropertyGet, 15)                                                     \
-  V(DirectPropertySet, 16)                                                     \
-  V(DirectMethodInvocation, 17)                                                \
   V(ConstStaticInvocation, 18)                                                 \
   V(InvalidExpression, 19)                                                     \
   V(VariableGet, 20)                                                           \
@@ -293,13 +290,17 @@ class Reader : public ValueObject {
   }
 
   intptr_t ReadSLEB128() {
-    const uint8_t* buffer = this->buffer();
-    return Utils::DecodeSLEB128<intptr_t>(buffer, size_, &offset_);
+    ReadStream stream(this->buffer(), size_, offset_);
+    const intptr_t result = stream.ReadSLEB128();
+    offset_ = stream.Position();
+    return result;
   }
 
   int64_t ReadSLEB128AsInt64() {
-    const uint8_t* buffer = this->buffer();
-    return Utils::DecodeSLEB128<int64_t>(buffer, size_, &offset_);
+    ReadStream stream(this->buffer(), size_, offset_);
+    const int64_t result = stream.ReadSLEB128<int64_t>();
+    offset_ = stream.Position();
+    return result;
   }
 
   /**

@@ -295,6 +295,36 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String string,
+        String
+            string2)> templateBinaryOperatorWrittenOut = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Binary operator '#string' is written as '#string2' instead of the written out word.""",
+    tipTemplate: r"""Try replacing '#string' with '#string2'.""",
+    withArguments: _withArgumentsBinaryOperatorWrittenOut);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeBinaryOperatorWrittenOut =
+    const Code<Message Function(String string, String string2)>(
+        "BinaryOperatorWrittenOut", templateBinaryOperatorWrittenOut,
+        index: 112);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBinaryOperatorWrittenOut(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeBinaryOperatorWrittenOut,
+      message:
+          """Binary operator '${string}' is written as '${string2}' instead of the written out word.""",
+      tip: """Try replacing '${string}' with '${string2}'.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String name,
         String
             name2)> templateBoundIssueViaCycleNonSimplicity = const Template<
@@ -657,7 +687,7 @@ const Template<Message Function(String name)>
     templateCantInferReturnTypeDueToInconsistentOverrides =
     const Template<Message Function(String name)>(
         messageTemplate:
-            r"""Can't infer a return type for '#name' as some of the inherited members have different types.""",
+            r"""Can't infer a return type for '#name' as some of the overridden members have different types.""",
         tipTemplate: r"""Try adding an explicit type.""",
         withArguments:
             _withArgumentsCantInferReturnTypeDueToInconsistentOverrides);
@@ -677,7 +707,38 @@ Message _withArgumentsCantInferReturnTypeDueToInconsistentOverrides(
   name = demangleMixinApplicationName(name);
   return new Message(codeCantInferReturnTypeDueToInconsistentOverrides,
       message:
-          """Can't infer a return type for '${name}' as some of the inherited members have different types.""",
+          """Can't infer a return type for '${name}' as some of the overridden members have different types.""",
+      tip: """Try adding an explicit type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCantInferReturnTypeDueToNoCombinedSignature =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't infer a return type for '#name' as the overridden members don't have a combined signature.""",
+        tipTemplate: r"""Try adding an explicit type.""",
+        withArguments:
+            _withArgumentsCantInferReturnTypeDueToNoCombinedSignature);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeCantInferReturnTypeDueToNoCombinedSignature =
+    const Code<Message Function(String name)>(
+        "CantInferReturnTypeDueToNoCombinedSignature",
+        templateCantInferReturnTypeDueToNoCombinedSignature,
+        analyzerCodes: <String>[
+      "COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferReturnTypeDueToNoCombinedSignature(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantInferReturnTypeDueToNoCombinedSignature,
+      message:
+          """Can't infer a return type for '${name}' as the overridden members don't have a combined signature.""",
       tip: """Try adding an explicit type.""",
       arguments: {'name': name});
 }
@@ -714,7 +775,7 @@ const Template<Message Function(String name)>
     templateCantInferTypeDueToInconsistentOverrides =
     const Template<Message Function(String name)>(
         messageTemplate:
-            r"""Can't infer a type for '#name' as some of the inherited members have different types.""",
+            r"""Can't infer a type for '#name' as some of the overridden members have different types.""",
         tipTemplate: r"""Try adding an explicit type.""",
         withArguments: _withArgumentsCantInferTypeDueToInconsistentOverrides);
 
@@ -732,7 +793,39 @@ Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeCantInferTypeDueToInconsistentOverrides,
       message:
-          """Can't infer a type for '${name}' as some of the inherited members have different types.""",
+          """Can't infer a type for '${name}' as some of the overridden members have different types.""",
+      tip: """Try adding an explicit type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateCantInferTypeDueToNoCombinedSignature = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Can't infer a type for '#name' as the overridden members don't have a combined signature.""",
+    tipTemplate: r"""Try adding an explicit type.""",
+    withArguments: _withArgumentsCantInferTypeDueToNoCombinedSignature);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeCantInferTypeDueToNoCombinedSignature =
+    const Code<Message Function(String name)>(
+        "CantInferTypeDueToNoCombinedSignature",
+        templateCantInferTypeDueToNoCombinedSignature,
+        analyzerCodes: <String>[
+      "COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferTypeDueToNoCombinedSignature(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantInferTypeDueToNoCombinedSignature,
+      message:
+          """Can't infer a type for '${name}' as the overridden members don't have a combined signature.""",
       tip: """Try adding an explicit type.""",
       arguments: {'name': name});
 }
@@ -1081,17 +1174,17 @@ const Code<Null> codeConstConstructorLateFinalFieldCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorLateFinalFieldCause =
     const MessageCode("ConstConstructorLateFinalFieldCause",
-        severity: Severity.context,
-        message: r"""Field is late, but constructor is 'const'.""");
+        severity: Severity.context, message: r"""This constructor is const.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorLateFinalFieldError =
     messageConstConstructorLateFinalFieldError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorLateFinalFieldError =
-    const MessageCode("ConstConstructorLateFinalFieldError",
-        message: r"""Constructor is marked 'const' so fields can't be late.""");
+const MessageCode messageConstConstructorLateFinalFieldError = const MessageCode(
+    "ConstConstructorLateFinalFieldError",
+    message:
+        r"""Can't have a late final field in a class with a const constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorNonFinalField =
@@ -1164,33 +1257,32 @@ const MessageCode messageConstEvalContext =
 const Template<
     Message Function(
         String
-            name)> templateConstEvalDeferredLibrary = const Template<
-        Message Function(String name)>(
+            nameOKEmpty)> templateConstEvalDeferredLibrary = const Template<
+        Message Function(String nameOKEmpty)>(
     messageTemplate:
-        r"""'#name' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+        r"""'#nameOKEmpty' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
     tipTemplate:
         r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.
 """,
     withArguments: _withArgumentsConstEvalDeferredLibrary);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConstEvalDeferredLibrary =
-    const Code<Message Function(String name)>(
+const Code<Message Function(String nameOKEmpty)> codeConstEvalDeferredLibrary =
+    const Code<Message Function(String nameOKEmpty)>(
         "ConstEvalDeferredLibrary", templateConstEvalDeferredLibrary,
         analyzerCodes: <String>[
       "NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY"
     ]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalDeferredLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsConstEvalDeferredLibrary(String nameOKEmpty) {
+  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalDeferredLibrary,
       message:
-          """'${name}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
+          """'${nameOKEmpty}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
       tip: """Try moving the constant from the deferred library, or removing 'deferred' from the import.
 """,
-      arguments: {'name': name});
+      arguments: {'nameOKEmpty': nameOKEmpty});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1213,53 +1305,53 @@ const MessageCode messageConstEvalFailedAssertion = const MessageCode(
     message: r"""This assertion failed.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
+const Template<Message Function(String stringOKEmpty)>
     templateConstEvalFailedAssertionWithMessage =
-    const Template<Message Function(String string)>(
-        messageTemplate: r"""This assertion failed with message: #string""",
+    const Template<Message Function(String stringOKEmpty)>(
+        messageTemplate:
+            r"""This assertion failed with message: #stringOKEmpty""",
         withArguments: _withArgumentsConstEvalFailedAssertionWithMessage);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)>
+const Code<Message Function(String stringOKEmpty)>
     codeConstEvalFailedAssertionWithMessage =
-    const Code<Message Function(String string)>(
+    const Code<Message Function(String stringOKEmpty)>(
         "ConstEvalFailedAssertionWithMessage",
         templateConstEvalFailedAssertionWithMessage,
         analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalFailedAssertionWithMessage(String string) {
-  if (string.isEmpty) throw 'No string provided';
+Message _withArgumentsConstEvalFailedAssertionWithMessage(
+    String stringOKEmpty) {
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   return new Message(codeConstEvalFailedAssertionWithMessage,
-      message: """This assertion failed with message: ${string}""",
-      arguments: {'string': string});
+      message: """This assertion failed with message: ${stringOKEmpty}""",
+      arguments: {'stringOKEmpty': stringOKEmpty});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateConstEvalInvalidStaticInvocation = const Template<
-        Message Function(String name)>(
-    messageTemplate:
-        r"""The invocation of '#name' is not allowed in a constant expression.""",
-    withArguments: _withArgumentsConstEvalInvalidStaticInvocation);
+const Template<Message Function(String nameOKEmpty)>
+    templateConstEvalInvalidStaticInvocation =
+    const Template<Message Function(String nameOKEmpty)>(
+        messageTemplate:
+            r"""The invocation of '#nameOKEmpty' is not allowed in a constant expression.""",
+        withArguments: _withArgumentsConstEvalInvalidStaticInvocation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConstEvalInvalidStaticInvocation =
-    const Code<Message Function(String name)>(
+const Code<Message Function(String nameOKEmpty)>
+    codeConstEvalInvalidStaticInvocation =
+    const Code<Message Function(String nameOKEmpty)>(
         "ConstEvalInvalidStaticInvocation",
         templateConstEvalInvalidStaticInvocation,
         analyzerCodes: <String>["CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalInvalidStaticInvocation(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
+Message _withArgumentsConstEvalInvalidStaticInvocation(String nameOKEmpty) {
+  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalInvalidStaticInvocation,
       message:
-          """The invocation of '${name}' is not allowed in a constant expression.""",
-      arguments: {'name': name});
+          """The invocation of '${nameOKEmpty}' is not allowed in a constant expression.""",
+      arguments: {'nameOKEmpty': nameOKEmpty});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1298,27 +1390,27 @@ Message _withArgumentsConstEvalNegativeShift(
 const Template<
     Message Function(
         String
-            string)> templateConstEvalNonConstantVariableGet = const Template<
-        Message Function(String string)>(
+            nameOKEmpty)> templateConstEvalNonConstantVariableGet = const Template<
+        Message Function(String nameOKEmpty)>(
     messageTemplate:
-        r"""The variable '#string' is not a constant, only constant expressions are allowed.""",
+        r"""The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed.""",
     withArguments: _withArgumentsConstEvalNonConstantVariableGet);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)>
+const Code<Message Function(String nameOKEmpty)>
     codeConstEvalNonConstantVariableGet =
-    const Code<Message Function(String string)>(
+    const Code<Message Function(String nameOKEmpty)>(
         "ConstEvalNonConstantVariableGet",
         templateConstEvalNonConstantVariableGet,
         analyzerCodes: <String>["NON_CONSTANT_VALUE_IN_INITIALIZER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
-  if (string.isEmpty) throw 'No string provided';
+Message _withArgumentsConstEvalNonConstantVariableGet(String nameOKEmpty) {
+  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalNonConstantVariableGet,
       message:
-          """The variable '${string}' is not a constant, only constant expressions are allowed.""",
-      arguments: {'string': string});
+          """The variable '${nameOKEmpty}' is not a constant, only constant expressions are allowed.""",
+      arguments: {'nameOKEmpty': nameOKEmpty});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1880,14 +1972,14 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
         message: r"""This is the inherited member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeDeclaredMemberConflictsWithInheritedMembersCause =
-    messageDeclaredMemberConflictsWithInheritedMembersCause;
+const Code<Null> codeDeclaredMemberConflictsWithOverriddenMembersCause =
+    messageDeclaredMemberConflictsWithOverriddenMembersCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDeclaredMemberConflictsWithInheritedMembersCause =
-    const MessageCode("DeclaredMemberConflictsWithInheritedMembersCause",
+const MessageCode messageDeclaredMemberConflictsWithOverriddenMembersCause =
+    const MessageCode("DeclaredMemberConflictsWithOverriddenMembersCause",
         severity: Severity.context,
-        message: r"""This is one of the inherited members.""");
+        message: r"""This is one of the overridden members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDefaultListConstructorError =
@@ -2807,6 +2899,7 @@ const MessageCode messageExpectedHexDigit = const MessageCode(
 const Template<Message Function(Token token)> templateExpectedIdentifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Expected an identifier, but got '#lexeme'.""",
+        tipTemplate: r"""Try inserting an identifier before '#lexeme'.""",
         withArguments: _withArgumentsExpectedIdentifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2820,6 +2913,36 @@ Message _withArgumentsExpectedIdentifier(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedIdentifier,
       message: """Expected an identifier, but got '${lexeme}'.""",
+      tip: """Try inserting an identifier before '${lexeme}'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Token
+            token)> templateExpectedIdentifierButGotKeyword = const Template<
+        Message Function(
+            Token token)>(
+    messageTemplate:
+        r"""'#lexeme' can't be used as an identifier because it's a keyword.""",
+    tipTemplate:
+        r"""Try renaming this to be an identifier that isn't a keyword.""",
+    withArguments: _withArgumentsExpectedIdentifierButGotKeyword);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExpectedIdentifierButGotKeyword =
+    const Code<Message Function(Token token)>("ExpectedIdentifierButGotKeyword",
+        templateExpectedIdentifierButGotKeyword,
+        index: 113);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedIdentifierButGotKeyword(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExpectedIdentifierButGotKeyword,
+      message:
+          """'${lexeme}' can't be used as an identifier because it's a keyword.""",
+      tip: """Try renaming this to be an identifier that isn't a keyword.""",
       arguments: {'token': token});
 }
 
@@ -3123,6 +3246,14 @@ const MessageCode messageExportOptOutFromOptIn = const MessageCode(
     "ExportOptOutFromOptIn",
     message:
         r"""Null safe libraries are not allowed to export declarations from of opt-out libraries.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExportedMain = messageExportedMain;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExportedMain = const MessageCode("ExportedMain",
+    severity: Severity.context,
+    message: r"""This is exported 'main' declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpressionNotMetadata = messageExpressionNotMetadata;
@@ -3948,6 +4079,58 @@ Message _withArgumentsFinalFieldWithoutInitializer(String name) {
   return new Message(codeFinalFieldWithoutInitializer,
       message: """The final variable '${name}' must be initialized.""",
       tip: """Try adding an initializer ('= expression') to the declaration.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFinalNotAssignedError = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Final variable '#name' must be assigned before it can be used.""",
+    withArguments: _withArgumentsFinalNotAssignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFinalNotAssignedError =
+    const Code<Message Function(String name)>(
+        "FinalNotAssignedError", templateFinalNotAssignedError,
+        analyzerCodes: <String>["READ_POTENTIALLY_UNASSIGNED_FINAL"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalNotAssignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalNotAssignedError,
+      message:
+          """Final variable '${name}' must be assigned before it can be used.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFinalPossiblyAssignedError = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Final variable '#name' might already be assigned at this point.""",
+    withArguments: _withArgumentsFinalPossiblyAssignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFinalPossiblyAssignedError =
+    const Code<Message Function(String name)>(
+        "FinalPossiblyAssignedError", templateFinalPossiblyAssignedError,
+        analyzerCodes: <String>["ASSIGNMENT_TO_FINAL_LOCAL"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalPossiblyAssignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalPossiblyAssignedError,
+      message:
+          """Final variable '${name}' might already be assigned at this point.""",
       arguments: {'name': name});
 }
 
@@ -5218,6 +5401,78 @@ Message _withArgumentsInvalidContinueTarget(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInvalidGetterSetterTypeFieldContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""This is the declaration of the field '#name'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeFieldContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInvalidGetterSetterTypeFieldContext =
+    const Code<Message Function(String name)>(
+        "InvalidGetterSetterTypeFieldContext",
+        templateInvalidGetterSetterTypeFieldContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeFieldContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidGetterSetterTypeFieldContext,
+      message: """This is the declaration of the field '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInvalidGetterSetterTypeGetterContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""This is the declaration of the getter '#name'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeGetterContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInvalidGetterSetterTypeGetterContext =
+    const Code<Message Function(String name)>(
+        "InvalidGetterSetterTypeGetterContext",
+        templateInvalidGetterSetterTypeGetterContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeGetterContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidGetterSetterTypeGetterContext,
+      message: """This is the declaration of the getter '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateInvalidGetterSetterTypeSetterContext =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""This is the declaration of the setter '#name'.""",
+        withArguments: _withArgumentsInvalidGetterSetterTypeSetterContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeInvalidGetterSetterTypeSetterContext =
+    const Code<Message Function(String name)>(
+        "InvalidGetterSetterTypeSetterContext",
+        templateInvalidGetterSetterTypeSetterContext,
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidGetterSetterTypeSetterContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeInvalidGetterSetterTypeSetterContext,
+      message: """This is the declaration of the setter '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidHexEscape = messageInvalidHexEscape;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5583,6 +5838,17 @@ const MessageCode messageJsInteropNonExternalConstructor = const MessageCode(
     tip: r"""Try annotating with `external`.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropNonExternalMember =
+    messageJsInteropNonExternalMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropNonExternalMember = const MessageCode(
+    "JsInteropNonExternalMember",
+    message:
+        r"""This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
+    tip: r"""Try annotating the member with `external`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
         Message Function(String name)>(
@@ -5697,6 +5963,57 @@ Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateLateDefinitelyAssignedError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Late final variable '#name' definitely assigned.""",
+        withArguments: _withArgumentsLateDefinitelyAssignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeLateDefinitelyAssignedError =
+    const Code<Message Function(String name)>(
+  "LateDefinitelyAssignedError",
+  templateLateDefinitelyAssignedError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLateDefinitelyAssignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeLateDefinitelyAssignedError,
+      message: """Late final variable '${name}' definitely assigned.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateLateDefinitelyUnassignedError = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Late variable '#name' without initializer is definitely unassigned.""",
+    withArguments: _withArgumentsLateDefinitelyUnassignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeLateDefinitelyUnassignedError =
+    const Code<Message Function(String name)>(
+  "LateDefinitelyUnassignedError",
+  templateLateDefinitelyUnassignedError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLateDefinitelyUnassignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeLateDefinitelyUnassignedError,
+      message:
+          """Late variable '${name}' without initializer is definitely unassigned.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeLibraryDirectiveNotFirst = messageLibraryDirectiveNotFirst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5801,6 +6118,63 @@ Message _withArgumentsLocalDefinitionHidesImport(String name, Uri uri_) {
       message: """Local definition of '${name}' hides import from '${uri}'.""",
       arguments: {'name': name, 'uri': uri_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainNotFunctionDeclaration =
+    messageMainNotFunctionDeclaration;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainNotFunctionDeclaration = const MessageCode(
+    "MainNotFunctionDeclaration",
+    message: r"""The 'main' declaration must be a function declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainNotFunctionDeclarationExported =
+    messageMainNotFunctionDeclarationExported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainNotFunctionDeclarationExported = const MessageCode(
+    "MainNotFunctionDeclarationExported",
+    message:
+        r"""The exported 'main' declaration must be a function declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainRequiredNamedParameters =
+    messageMainRequiredNamedParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainRequiredNamedParameters = const MessageCode(
+    "MainRequiredNamedParameters",
+    message: r"""The 'main' method cannot have required named parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainRequiredNamedParametersExported =
+    messageMainRequiredNamedParametersExported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainRequiredNamedParametersExported = const MessageCode(
+    "MainRequiredNamedParametersExported",
+    message:
+        r"""The exported 'main' method cannot have required named parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainTooManyRequiredParameters =
+    messageMainTooManyRequiredParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainTooManyRequiredParameters = const MessageCode(
+    "MainTooManyRequiredParameters",
+    message: r"""The 'main' method must have at most 2 required parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMainTooManyRequiredParametersExported =
+    messageMainTooManyRequiredParametersExported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMainTooManyRequiredParametersExported = const MessageCode(
+    "MainTooManyRequiredParametersExported",
+    message:
+        r"""The exported 'main' method must have at most 2 required parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMapLiteralTypeArgumentMismatch =
@@ -6281,6 +6655,45 @@ const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
         r"""Try removing this native clause and adding @native() or @native('native-name') before the declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverReachableSwitchDefaultError =
+    messageNeverReachableSwitchDefaultError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverReachableSwitchDefaultError = const MessageCode(
+    "NeverReachableSwitchDefaultError",
+    message:
+        r"""`null` encountered as case in a switch expression with a non-nullable enum type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverReachableSwitchDefaultWarning =
+    messageNeverReachableSwitchDefaultWarning;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverReachableSwitchDefaultWarning = const MessageCode(
+    "NeverReachableSwitchDefaultWarning",
+    severity: Severity.warning,
+    message:
+        r"""The default case is not reachable with sound null safety because the switch expression is non-nullable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverValueError = messageNeverValueError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverValueError = const MessageCode("NeverValueError",
+    message:
+        r"""`null` encountered as the result from expression with type `Never`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverValueWarning = messageNeverValueWarning;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverValueWarning = const MessageCode(
+    "NeverValueWarning",
+    severity: Severity.warning,
+    message:
+        r"""The expression can not result in a value with sound null safety because the expression type is `Never`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Token token)> templateNoFormals = const Template<
         Message Function(Token token)>(
@@ -6430,58 +6843,6 @@ const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     "NonInstanceTypeVariableUse",
     analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
     message: r"""Can only use type variables in instance methods.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateNonNullableLateDefinitelyAssignedError =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Non-nullable late final variable '#name' definitely assigned.""",
-        withArguments: _withArgumentsNonNullableLateDefinitelyAssignedError);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeNonNullableLateDefinitelyAssignedError =
-    const Code<Message Function(String name)>(
-  "NonNullableLateDefinitelyAssignedError",
-  templateNonNullableLateDefinitelyAssignedError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableLateDefinitelyAssignedError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeNonNullableLateDefinitelyAssignedError,
-      message:
-          """Non-nullable late final variable '${name}' definitely assigned.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateNonNullableLateDefinitelyUnassignedError =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Non-nullable late variable '#name' without initializer is definitely unassigned.""",
-        withArguments: _withArgumentsNonNullableLateDefinitelyUnassignedError);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeNonNullableLateDefinitelyUnassignedError =
-    const Code<Message Function(String name)>(
-  "NonNullableLateDefinitelyUnassignedError",
-  templateNonNullableLateDefinitelyUnassignedError,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNonNullableLateDefinitelyUnassignedError(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeNonNullableLateDefinitelyUnassignedError,
-      message:
-          """Non-nullable late variable '${name}' without initializer is definitely unassigned.""",
-      arguments: {'name': name});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -22,8 +21,6 @@ class LinkedElementFactory {
   final Reference rootReference;
   final Map<String, LinkedLibraryContext> libraryMap = {};
 
-  CoreTypes _coreTypes;
-
   LinkedElementFactory(
     this.analysisContext,
     this.analysisSession,
@@ -31,13 +28,7 @@ class LinkedElementFactory {
   ) {
     ArgumentError.checkNotNull(analysisContext, 'analysisContext');
     ArgumentError.checkNotNull(analysisSession, 'analysisSession');
-    var dartCoreRef = rootReference.getChild('dart:core');
-    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
-    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
-  }
-
-  CoreTypes get coreTypes {
-    return _coreTypes ??= CoreTypes(this);
+    declareDartCoreDynamicNever();
   }
 
   Reference get dynamicRef {
@@ -102,6 +93,12 @@ class LinkedElementFactory {
         _setLibraryTypeSystem(libraryElement);
       }
     }
+  }
+
+  void declareDartCoreDynamicNever() {
+    var dartCoreRef = rootReference.getChild('dart:core');
+    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
+    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
   }
 
   Element elementOfReference(Reference reference) {

@@ -43,8 +43,8 @@ T a<T>() => throw '';
 
   test_type() async {
     await assertNoErrorsInCode('''
-main(bool b) {
-  return b ? 42 : null;
+void f(bool b) {
+  b ? 42 : null;
 }
 ''');
     assertType(findNode.conditionalExpression('b ?'), 'int?');

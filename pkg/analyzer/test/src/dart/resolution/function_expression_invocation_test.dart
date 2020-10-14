@@ -58,7 +58,7 @@ class A {
   void call<T>(T t) {}
 }
 
-main(A a) {
+void f(A a) {
   a(0);
 }
 ''');
@@ -102,7 +102,7 @@ class A {
   }
 }
 
-main(A a, int context) {
+void f(A a, int context) {
   context = a();
 }
 ''');
@@ -124,7 +124,7 @@ class A {
   }
 }
 
-main(A a) {
+void f(A a) {
   a<int>();
 }
 ''');
@@ -140,11 +140,11 @@ main(A a) {
 
   test_never() async {
     await assertErrorsInCode(r'''
-main(Never x) {
+void f(Never x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 18, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
     ]);
 
     assertFunctionExpressionInvocation(
@@ -160,11 +160,11 @@ main(Never x) {
 
   test_neverQ() async {
     await assertErrorsInCode(r'''
-main(Never? x) {
+void f(Never? x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 21, 1),
     ]);
 
     assertFunctionExpressionInvocation(

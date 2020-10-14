@@ -1,5 +1,6 @@
+library /*isNonNullableByDefault*/;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/nnbd/constant_null_check.dart:9:17: Error: Constant evaluation error:
 // const int? d = c!;
@@ -21,7 +22,6 @@
 // const Class f = const Class(c);
 //             ^
 //
-library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 

@@ -3,11 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,11 +25,14 @@ void main() {
 
 @reflectiveTest
 class TransformSetParserTest extends AbstractTransformSetParserTest {
+  List<Uri> get uris => [Uri.parse('package:myPackage/test.dart')];
+
   void test_addParameter_optionalNamed() {
     parse('''
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -36,10 +42,13 @@ transforms:
       name: 'p'
       style: optional_named
       argumentValue:
-        kind: 'argument'
-        index: 1
+        expression: '{% p %}'
+        variables:
+          p:
+            kind: 'argument'
+            index: 1
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -52,7 +61,10 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, false);
     expect(modification.isPositional, false);
-    var value = modification.argumentValue as ArgumentExtractor;
+    var components = modification.argumentValue.components;
+    expect(components, hasLength(1));
+    var value =
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -62,6 +74,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -70,11 +83,8 @@ transforms:
       index: 0
       name: 'p'
       style: optional_positional
-      defaultValue:
-        kind: 'argument'
-        index: 1
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -87,9 +97,6 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, false);
     expect(modification.isPositional, true);
-    var value = modification.defaultValue as ArgumentExtractor;
-    var parameter = value.parameter as PositionalParameterReference;
-    expect(parameter.index, 1);
   }
 
   void test_addParameter_requiredNamed() {
@@ -97,6 +104,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -106,10 +114,13 @@ transforms:
       name: 'p'
       style: required_named
       argumentValue:
-        kind: 'argument'
-        index: 1
+        expression: '{% p %}'
+        variables:
+          p:
+            kind: 'argument'
+            index: 1
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -122,7 +133,10 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, true);
     expect(modification.isPositional, false);
-    var value = modification.argumentValue as ArgumentExtractor;
+    var components = modification.argumentValue.components;
+    expect(components, hasLength(1));
+    var value =
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -132,6 +146,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -141,10 +156,13 @@ transforms:
       name: 'p'
       style: required_positional
       argumentValue:
-        kind: 'argument'
-        index: 1
+        expression: '{% p %}'
+        variables:
+          p:
+            kind: 'argument'
+            index: 1
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -157,9 +175,100 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, true);
     expect(modification.isPositional, true);
-    var value = modification.argumentValue as ArgumentExtractor;
+    var components = modification.argumentValue.components;
+    expect(components, hasLength(1));
+    var value =
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
+  }
+
+  void test_addParameter_requiredPositional_complexTemplate() {
+    parse('''
+version: 1
+transforms:
+- title: 'Add'
+  date: 2020-09-09
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'p'
+      style: required_positional
+      argumentValue:
+        expression: '{% a %}({% b %})'
+        variables:
+          a:
+            kind: 'argument'
+            index: 1
+          b:
+            kind: 'argument'
+            index: 2
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    expect(transform.changes, hasLength(1));
+    var change = transform.changes[0] as ModifyParameters;
+    var modifications = change.modifications;
+    expect(modifications, hasLength(1));
+    var modification = modifications[0] as AddParameter;
+    expect(modification.index, 0);
+    expect(modification.name, 'p');
+    expect(modification.isRequired, true);
+    expect(modification.isPositional, true);
+    var components = modification.argumentValue.components;
+    expect(components, hasLength(4));
+    var extractorA =
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var parameterA = extractorA.parameter as PositionalParameterReference;
+    expect(parameterA.index, 1);
+    expect((components[1] as TemplateText).text, '(');
+    var extractorB =
+        (components[2] as TemplateVariable).generator as ArgumentExpression;
+    var parameterB = extractorB.parameter as PositionalParameterReference;
+    expect(parameterB.index, 2);
+    expect((components[3] as TemplateText).text, ')');
+  }
+
+  void test_addTypeParameter_fromImportedName() {
+    parse('''
+version: 1
+transforms:
+- date: 2020-09-03
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  title: 'Add'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'T'
+      argumentValue:
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'import'
+            uris: ['dart:core']
+            name: 'String'
+''');
+    var transforms = _transforms('A');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    expect(transform.changes, hasLength(1));
+    var change = transform.changes[0] as AddTypeParameter;
+    expect(change.index, 0);
+    expect(change.name, 'T');
+    var components = change.argumentValue.components;
+    expect(components, hasLength(1));
+    var value = (components[0] as TemplateVariable).generator as ImportedName;
+    expect(value.uris, [Uri.parse('dart:core')]);
+    expect(value.name, 'String');
   }
 
   void test_addTypeParameter_fromNamedArgument() {
@@ -167,6 +276,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-03
   element:
     uris:
       - 'test.dart'
@@ -175,11 +285,14 @@ transforms:
     - kind: 'addTypeParameter'
       index: 0
       name: 'T'
-      value:
-        kind: 'argument'
-        name: 'p'
+      argumentValue:
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'argument'
+            name: 'p'
 ''');
-    var transforms = result.transformsFor('A', ['test.dart']);
+    var transforms = _transforms('A');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -187,7 +300,12 @@ transforms:
     var change = transform.changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
-    var value = change.value as ArgumentExtractor;
+    expect(change.extendedType, null);
+
+    var components = change.argumentValue.components;
+    expect(components, hasLength(1));
+    var value =
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
     var parameter = value.parameter as NamedParameterReference;
     expect(parameter.name, 'p');
   }
@@ -197,6 +315,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-03
   element:
     uris:
       - 'test.dart'
@@ -205,11 +324,16 @@ transforms:
     - kind: 'addTypeParameter'
       index: 0
       name: 'T'
-      value:
-        kind: 'argument'
-        index: 2
+      extends:
+        expression: 'Object'
+      argumentValue:
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'argument'
+            index: 2
 ''');
-    var transforms = result.transformsFor('A', ['test.dart']);
+    var transforms = _transforms('A');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -217,9 +341,35 @@ transforms:
     var change = transform.changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
-    var value = change.value as ArgumentExtractor;
+
+    var extendsComponents = change.extendedType.components;
+    expect(extendsComponents, hasLength(1));
+    expect((extendsComponents[0] as TemplateText).text, 'Object');
+
+    var argumentComponents = change.argumentValue.components;
+    expect(argumentComponents, hasLength(1));
+    var value = (argumentComponents[0] as TemplateVariable).generator
+        as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 2);
+  }
+
+  void test_date() {
+    parse('''
+version: 1
+transforms:
+- title: 'Rename g'
+  date: 2020-09-10
+  element:
+    uris: ['test.dart']
+    getter: 'g'
+  changes: []
+''');
+    var transforms = _transforms('g');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename g');
+    expect(transform.changes, isEmpty);
   }
 
   void test_element_getter_inMixin() {
@@ -227,13 +377,14 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename g'
+  date: 2020-09-02
   element:
     uris: ['test.dart']
     getter: 'g'
     inMixin: 'A'
   changes: []
 ''');
-    var transforms = result.transformsFor('g', ['test.dart']);
+    var transforms = _transforms('g');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
@@ -245,12 +396,13 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename g'
+  date: 2020-09-02
   element:
     uris: ['test.dart']
     getter: 'g'
   changes: []
 ''');
-    var transforms = result.transformsFor('g', ['test.dart']);
+    var transforms = _transforms('g');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
@@ -262,16 +414,35 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename m'
+  date: 2020-09-02
   element:
     uris: ['test.dart']
     method: 'm'
     inClass: 'A'
   changes: []
 ''');
-    var transforms = result.transformsFor('m', ['test.dart']);
+    var transforms = _transforms('m');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename m');
+    expect(transform.changes, isEmpty);
+  }
+
+  void test_element_variable() {
+    parse('''
+version: 1
+transforms:
+- title: 'Rename v'
+  date: 2020-10-01
+  element:
+    uris: ['test.dart']
+    variable: 'v'
+  changes: []
+''');
+    var transforms = _transforms('v');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename v');
     expect(transform.changes, isEmpty);
   }
 
@@ -301,6 +472,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Remove'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -308,7 +480,7 @@ transforms:
     - kind: 'removeParameter'
       name: 'p'
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
@@ -326,6 +498,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Remove'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -333,7 +506,7 @@ transforms:
     - kind: 'removeParameter'
       index: 0
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = _transforms('f');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
@@ -351,6 +524,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2020-08-21
   element:
     uris:
       - 'test.dart'
@@ -359,7 +533,7 @@ transforms:
     - kind: 'rename'
       newName: 'B'
 ''');
-    var transforms = result.transformsFor('A', ['test.dart']);
+    var transforms = _transforms('A');
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename A');
@@ -367,4 +541,10 @@ transforms:
     var rename = transform.changes[0] as Rename;
     expect(rename.newName, 'B');
   }
+
+  ElementMatcher _matcher(String name) =>
+      ElementMatcher(importedUris: uris, name: name);
+
+  List<Transform> _transforms(String name) =>
+      result.transformsFor(_matcher(name));
 }

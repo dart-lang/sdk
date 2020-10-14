@@ -342,7 +342,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         isStatic: true,
         isFinal: true,
         fileUri: currentLibrary.fileUri,
-        reference: currentLibraryIndex?.lookupField(name.name)?.reference)
+        reference: currentLibraryIndex?.lookupField(name.text)?.reference)
       ..fileOffset = node.fileOffset;
     currentLibrary.addMember(field);
     return StaticGet(field);
@@ -434,7 +434,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       return;
     }
     diagnosticReporter.report(
-        templateFfiNotStatic.withArguments(fromFunctionMethod.name.name),
+        templateFfiNotStatic.withArguments(fromFunctionMethod.name.text),
         node.fileOffset,
         1,
         node.location.file);

@@ -682,10 +682,15 @@ Fragment BaseFlowGraphBuilder::StoreLocalRaw(TokenPosition position,
   return instructions;
 }
 
-LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
-  char name[64];
+LocalVariable* BaseFlowGraphBuilder::MakeTemporary(const char* suffix) {
+  static constexpr intptr_t kTemporaryNameLength = 64;
+  char name[kTemporaryNameLength];
   intptr_t index = stack_->definition()->temp_index();
-  Utils::SNPrint(name, 64, ":t%" Pd, index);
+  if (suffix != nullptr) {
+    Utils::SNPrint(name, kTemporaryNameLength, ":t_%s", suffix);
+  } else {
+    Utils::SNPrint(name, kTemporaryNameLength, ":t%" Pd, index);
+  }
   const String& symbol_name =
       String::ZoneHandle(Z, Symbols::New(thread_, name));
   LocalVariable* variable =
@@ -705,6 +710,16 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   }
 
   return variable;
+}
+
+Fragment BaseFlowGraphBuilder::DropTemporary(LocalVariable** temp) {
+  ASSERT(temp != nullptr && *temp != nullptr && (*temp)->HasIndex());
+  // Check that the temporary matches the current stack definition.
+  ASSERT_EQUAL(
+      stack_->definition()->temp_index(),
+      -(*temp)->index().value() - parsed_function_->num_stack_locals());
+  *temp = nullptr;  // Clear to avoid inadvertent usage after dropping.
+  return Drop();
 }
 
 void BaseFlowGraphBuilder::SetTempIndex(Definition* definition) {
@@ -915,6 +930,15 @@ Fragment BaseFlowGraphBuilder::CreateArray() {
   return Fragment(array);
 }
 
+Fragment BaseFlowGraphBuilder::AllocateTypedData(TokenPosition position,
+                                                 classid_t class_id) {
+  Value* num_elements = Pop();
+  auto* instr = new (Z) AllocateTypedDataInstr(position, class_id, num_elements,
+                                               GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
 Fragment BaseFlowGraphBuilder::InstantiateType(const AbstractType& type) {
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
@@ -926,15 +950,20 @@ Fragment BaseFlowGraphBuilder::InstantiateType(const AbstractType& type) {
 }
 
 Fragment BaseFlowGraphBuilder::InstantiateTypeArguments(
-    const TypeArguments& type_arguments) {
+    const TypeArguments& type_arguments_value) {
+  Fragment instructions;
+  instructions += Constant(type_arguments_value);
+
+  Value* type_arguments = Pop();
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
   const Class& instantiator_class = Class::ZoneHandle(Z, function_.Owner());
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
-      TokenPosition::kNoSource, type_arguments, instantiator_class, function_,
-      instantiator_type_args, function_type_args, GetNextDeoptId());
+      TokenPosition::kNoSource, instantiator_type_args, function_type_args,
+      type_arguments, instantiator_class, function_, GetNextDeoptId());
   Push(instr);
-  return Fragment(instr);
+  instructions += Fragment(instr);
+  return instructions;
 }
 
 Fragment BaseFlowGraphBuilder::LoadClassId() {

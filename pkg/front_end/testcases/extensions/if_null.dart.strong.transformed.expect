@@ -47,3 +47,13 @@ static method main() → dynamic {
   let final core::int* #t21 = self::Extension|get#property(c) in #t21.{core::num::==}(null) ?{core::int*} 0 : #t21;
   let final core::int* #t22 = self::Extension|get#property(c) in #t22.{core::num::==}(null) ?{core::int*} 0 : #t22;
 }
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///if_null.dart:21:20 -> IntConstant(42)
+Evaluated: Let @ org-dartlang-testcase:///if_null.dart:22:31 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:23:18 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:23:18 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:24:29 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///if_null.dart:24:29 -> IntConstant(42)
+Extra constant evaluation: evaluated: 122, effectively constant: 6

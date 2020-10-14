@@ -41,7 +41,7 @@ main() {
 @reflectiveTest
 class AssignmentCheckerTest extends Object
     with EdgeTester, DecoratedTypeTester {
-  static const EdgeOrigin origin = const _TestEdgeOrigin();
+  static const EdgeOrigin origin = _TestEdgeOrigin();
 
   LibraryElementImpl _myLibrary;
 

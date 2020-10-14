@@ -30,3 +30,9 @@ static method main() → dynamic {
   Foo();
   ^^^";
 }
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///typedef.dart:8:9 -> TypeLiteralConstant(void Function()*)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///typedef.dart:10:7 -> NullConstant(null)
+Extra constant evaluation: evaluated: 3, effectively constant: 2

@@ -365,6 +365,7 @@
       "pkg/status_file/",
       "pkg/test_runner/",
       "pkg/vm/",
+      "pkg/vm_snapshot_analysis/",
       "runtime/",
       "sdk/",
       ".dart_tool/package_config.json",
@@ -397,10 +398,7 @@
         "enable-asserts": true,
         "mode": "release",
         "runtime": "vm",
-        "timeout": 240,
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "timeout": 240
       }
     },
     "analyzer-unittest-asserts-(debug|product|release)-(linux|mac|win)": {
@@ -515,12 +513,6 @@
     "dart2js-weak-(linux|mac|win)-x64-d8": {
       "options": {
         "builder-tag": "dart2js-weak",
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ],
         "use-sdk": true
       }
     },
@@ -575,11 +567,7 @@
     "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "dart2js-options": [
-          "--no-sound-null-safety",
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
         ],
@@ -590,11 +578,7 @@
     "dart2js-hostasserts-weak-mac-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "dart2js-options": [
-          "--no-sound-null-safety",
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
@@ -605,11 +589,7 @@
     "dart2js-hostasserts-strong-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-strong",
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "dart2js-options": [
-          "--sound-null-safety",
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
         ],
@@ -620,11 +600,7 @@
     "dart2js-hostasserts-strong-mac-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-strong",
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "dart2js-options": [
-          "--sound-null-safety",
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
@@ -650,6 +626,16 @@
       }
     },
     "dartkp-linux-(debug|product|release)-simarm-crossword": {
+      "options": {
+        "builder-tag": "crossword"
+      }
+    },
+    "dartkp-weak-asserts-linux-(debug|product|release)-simarm-crossword": {
+      "options": {
+        "builder-tag": "crossword"
+      }
+    },
+    "dartkp-strong-linux-(debug|product|release)-simarm-crossword": {
       "options": {
         "builder-tag": "crossword"
       }
@@ -709,149 +695,50 @@
     },
     "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-x64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ],
         "enable-asserts": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-simarm64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ],
         "enable-asserts": true,
         "use-elf": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-weak-asserts-win-(debug|product|release)-(simarm64|x64)": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ],
         "enable-asserts": true,
         "use-elf": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
+    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "enable-asserts": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
+    "dartk-strong-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "vm-options": [
-          "--sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-(linux|mac)-(debug|product|release)-x64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--sound-null-safety"
-        ],
-        "vm-options": [
-          "--sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-(linux|mac)-(debug|product|release)-simarm64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--sound-null-safety"
-        ],
         "use-elf": true,
-        "vm-options": [
-          "--sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-win-(debug|product|release)-(simarm64|x64)": {
       "options": {
         "use-elf": true,
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--sound-null-safety"
-        ],
-        "vm-options": [
-          "--sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
-      }
-    },
-    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
-      "options": {
-        "builder-tag": "ast",
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
-    "dartkp-(linux|mac)-(debug|product|release)-x64-ast": {
-      "options": {
-        "builder-tag": "ast",
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
-    "dartkp-(linux|mac)-(debug|product|release)-simarm64-ast": {
-      "options": {
-        "builder-tag": "ast",
-        "use-elf": true,
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
-    "dartkp-linux-(debug|product|release)-simarm-crossword-ast": {
-      "options": {
-        "builder-tag": "crossword_ast",
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
       }
     },
     "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
@@ -890,60 +777,6 @@
       }
     },
     "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
-    "dartkb-interpret-(linux|mac|win)-product-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_interpreter",
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations"
-        ],
-        "vm-options": [
-          "--enable_interpreter",
-          "--compilation-counter-threshold=-1"
-        ]
-      }
-    },
-    "dartkb-interpret-(linux|mac|win)-(debug|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_interpreter",
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations,local-var-info,debugger-stops"
-        ],
-        "vm-options": [
-          "--enable_interpreter",
-          "--compilation-counter-threshold=-1"
-        ]
-      }
-    },
-    "dartkb-mixed-(linux|mac|win)-(debug|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_mixed",
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations,local-var-info,debugger-stops"
-        ],
-        "vm-options": [
-          "--enable_interpreter"
-        ]
-      }
-    },
-    "dartkb-mixed-(linux|mac|win)-product-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_mixed",
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations"
-        ],
-        "vm-options": [
-          "--enable_interpreter"
-        ]
-      }
-    },
     "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
         "checked": true,
@@ -954,9 +787,6 @@
       "options": {
         "checked": true,
         "use-sdk": true,
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "enable-asserts": true
       }
     },
@@ -964,9 +794,6 @@
       "options": {
         "checked": true,
         "use-sdk": true,
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "enable-asserts": true
       }
     },
@@ -977,18 +804,12 @@
     },
     "cfe-weak-(linux|mac|win)": {
       "options": {
-        "compiler": "fasta",
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "compiler": "fasta"
       }
     },
     "cfe-strong-(linux|mac|win)": {
       "options": {
-        "compiler": "fasta",
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "compiler": "fasta"
       }
     },
     "analyzer-(linux|mac|win)": {
@@ -1008,20 +829,14 @@
       "options": {
         "compiler": "dart2analyzer",
         "enable-asserts": true,
-        "use-sdk": true,
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "use-sdk": true
       }
     },
     "analyzer-asserts-weak-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
         "enable-asserts": true,
-        "use-sdk": true,
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "use-sdk": true
       }
     }
   },
@@ -1076,15 +891,16 @@
           "testRunner": true,
           "arguments": [
             "pkg/front_end/test/unit_test_suites.dart",
-            "-ncfe-unittest-asserts-${mode}-${system}",
-            "--verbose"
+            "-ncfe-unittest-asserts-${mode}-${system}"
           ]
         }
       ]
     },
     {
       "builders": [
-        "front-end-nnbd-linux-release-x64"
+        "front-end-nnbd-linux-release-x64",
+        "front-end-nnbd-mac-release-x64",
+        "front-end-nnbd-win-release-x64"
       ],
       "meta": {
         "description": "Runs the front-end tests with NNBD"
@@ -1107,7 +923,7 @@
             "co19"
           ],
           "fileset": "front-end",
-          "shards": 1
+          "shards": 2
         },
         {
           "name": "strong co19 tests",
@@ -1116,7 +932,7 @@
             "co19"
           ],
           "fileset": "front-end",
-          "shards": 1
+          "shards": 2
         },
         {
           "name": "weak sdk tests",
@@ -1137,59 +953,6 @@
             "language",
             "lib"
           ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-dartkb-linux-release-x64",
-        "vm-dartkb-linux-release-simarm64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm kbc builders."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--bytecode",
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm mixed mode tests",
-          "arguments": [
-            "-ndartkb-mixed-linux-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
-        },
-        {
-          "name": "vm mixed mode co19 tests",
-          "arguments": [
-            "-ndartkb-mixed-linux-${mode}-${arch}",
-            "co19_2"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
-        },
-        {
-          "name": "vm interpreter tests",
-          "arguments": [
-            "-ndartkb-interpret-linux-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
-        },
-        {
-          "name": "vm interpreter co19 tests",
-          "arguments": [
-            "-ndartkb-interpret-linux-${mode}-${arch}",
-            "co19_2"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
         }
       ]
     },
@@ -1323,8 +1086,11 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-nnbd-linux-debug-x64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64",
-        "vm-kernel-precomp-nnbd-linux-release-x64"
+        "vm-kernel-precomp-nnbd-linux-release-x64",
+        "vm-kernel-precomp-nnbd-mac-release-simarm64",
+        "vm-kernel-precomp-nnbd-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the VM AOT nnbd builder group."
@@ -1342,29 +1108,35 @@
           "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "benchmark_smoke",
             "corelib",
             "ffi",
             "language",
             "lib",
-            "standalone/io",
+            "samples",
+            "standalone",
+            "utils",
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 4
+          "shards": 6
         },
         {
           "name": "vm nnbd tests in strong mode",
           "arguments": [
             "-ndartkp-strong-${system}-${mode}-${arch}",
+            "benchmark_smoke",
             "corelib",
             "ffi",
             "language",
             "lib",
-            "standalone/io",
+            "samples",
+            "standalone",
+            "utils",
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 4
+          "shards": 6
         },
         {
           "name": "co19 nnbd tests in strong mode",
@@ -1373,7 +1145,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 6
+          "shards": 10
         },
         {
           "name": "co19 nnbd tests in weak mode with asserts",
@@ -1382,7 +1154,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 6
+          "shards": 10
         }
       ]
     },
@@ -1693,8 +1465,17 @@
     },
     {
       "builders": [
+        "vm-kernel-nnbd-linux-debug-ia32",
+        "vm-kernel-nnbd-linux-debug-x64",
+        "vm-kernel-nnbd-linux-release-ia32",
+        "vm-kernel-nnbd-linux-release-simarm",
+        "vm-kernel-nnbd-linux-release-simarm64",
         "vm-kernel-nnbd-linux-release-x64",
-        "vm-kernel-nnbd-linux-debug-x64"
+        "vm-kernel-nnbd-mac-debug-x64",
+        "vm-kernel-nnbd-mac-release-x64",
+        "vm-kernel-nnbd-win-release-ia32",
+        "vm-kernel-nnbd-win-debug-x64",
+        "vm-kernel-nnbd-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the VM nnbd builder group."
@@ -1709,34 +1490,56 @@
           ]
         },
         {
-          "name": "vm nnbd test in weak mode with asserts",
+          "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "benchmark_smoke",
             "corelib",
             "ffi",
             "language",
             "lib",
-            "co19",
-            "standalone/io",
+            "samples",
+            "standalone",
+            "utils",
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 2
+          "shards": 6
+        },
+        {
+          "name": "vm co19 nnbd tests in weak mode with asserts",
+          "arguments": [
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         },
         {
           "name": "vm nnbd tests in strong mode",
           "arguments": [
             "-ndartk-strong-${system}-${mode}-${arch}",
+            "benchmark_smoke",
             "corelib",
             "ffi",
             "language",
             "lib",
-            "co19",
-            "standalone/io",
+            "samples",
+            "standalone",
+            "utils",
             "vm"
           ],
           "fileset": "vm-kernel",
-          "shards": 2
+          "shards": 6
+        },
+        {
+          "name": "vm co19 nnbd tests in strong mode",
+          "arguments": [
+            "-ndartk-strong-${system}-${mode}-${arch}",
+            "co19"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
@@ -2895,10 +2698,12 @@
     },
     {
       "builders": [
-        "analyzer-nnbd-linux-release"
+        "analyzer-nnbd-linux-release",
+        "analyzer-nnbd-mac-release",
+        "analyzer-nnbd-win-release"
       ],
       "meta": {
-        "description": "This configuration is used by the nnbd analyzer builder."
+        "description": "This configuration is used by the nnbd analyzer builders."
       },
       "steps": [
         {
@@ -3539,7 +3344,6 @@
           "name": "build dart for simarm_x64",
           "script": "tools/build.py",
           "arguments": [
-            "--bytecode",
             "gen_snapshot"
           ]
         },
@@ -3548,7 +3352,6 @@
           "script": "tools/build.py",
           "arguments": [
             "--arch=simarm",
-            "--bytecode",
             "dart_precompiled_runtime",
             "vm_platform"
           ]
@@ -3557,6 +3360,67 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${system}-${mode}-simarm-crossword"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-nnbd-linux-debug-simarm_x64",
+        "vm-kernel-precomp-nnbd-linux-release-simarm_x64"
+      ],
+      "meta": {
+        "description": "This configuration runs tests for the simarm_x64 architecture."
+      },
+      "steps": [
+        {
+          "name": "build dart for simarm_x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart for simarm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simarm",
+            "dart_precompiled_runtime",
+            "vm_platform"
+          ]
+        },
+        {
+          "name": "vm weak tests",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-simarm-crossword",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-strong-${system}-${mode}-simarm-crossword",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
           ],
           "fileset": "vm-kernel",
           "shards": 10

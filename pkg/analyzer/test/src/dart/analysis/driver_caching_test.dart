@@ -23,6 +23,8 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
   }
 
   test_lints() async {
+    useEmptyByteStore();
+
     newFile(testFilePath, content: r'''
 void f() {
   ![0].isEmpty;

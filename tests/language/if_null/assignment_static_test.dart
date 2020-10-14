@@ -141,7 +141,7 @@ main() {
   // The static type of e1?.v op= e2 is the static type of e1.v op e2,
   // therefore the static type of e1?.v ??= e2 is the static type of
   // e1.v ?? e2, which is the LUB of NonNull(typeof(e1?.v)) and typeof(e2).
-  ClassWithInstanceGetters? c = new ClassWithInstanceGetters();
+  var c = new ClassWithInstanceGetters() as ClassWithInstanceGetters?;
   (c?.a ??= theA)!.a; //# 36: ok
   (c?.a ??= theA)!.b; //# 37: compile-time error
   (c?.a ??= theB)!.a; //# 38: ok

@@ -16,6 +16,7 @@ analyzer:
 
 linter:
   rules:
+    - await_only_futures
     - directives_ordering
     - empty_statements
     - unnecessary_brace_in_string_interps

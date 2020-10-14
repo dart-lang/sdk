@@ -698,9 +698,9 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
     }
     printer.writeClassName(target.enclosingClass.reference);
     printer.writeTypeArguments(arguments.types);
-    if (target.name.name.isNotEmpty) {
+    if (target.name.text.isNotEmpty) {
       printer.write('.');
-      printer.write(target.name.name);
+      printer.write(target.name.text);
     }
     printer.writeArguments(arguments, includeTypeArguments: false);
   }
@@ -1354,18 +1354,6 @@ class ShadowTypePromoter extends TypePromoterImpl {
   }
 
   @override
-  void setVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is VariableDeclarationImpl) {
-      variable.mutatedAnywhere = true;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-    }
-  }
-
-  @override
   void setVariableMutatedInClosure(VariableDeclaration variable) {
     if (variable is VariableDeclarationImpl) {
       variable.mutatedInClosure = true;
@@ -1374,19 +1362,6 @@ class ShadowTypePromoter extends TypePromoterImpl {
       // VariableDeclaration objects sometimes.
       // TODO(paulberry): get rid of this once the type parameter is
       // KernelVariableDeclaration.
-    }
-  }
-
-  @override
-  bool wasVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is VariableDeclarationImpl) {
-      return variable.mutatedAnywhere;
-    } else {
-      // Hack to deal with the fact that BodyBuilder still creates raw
-      // VariableDeclaration objects sometimes.
-      // TODO(paulberry): get rid of this once the type parameter is
-      // KernelVariableDeclaration.
-      return true;
     }
   }
 }
@@ -1415,9 +1390,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // be close to zero).
   bool mutatedInClosure = false;
 
-  // TODO(ahe): Investigate if this can be removed.
-  bool mutatedAnywhere = false;
-
   /// Determines whether the given [VariableDeclarationImpl] represents a
   /// local function.
   ///
@@ -1425,6 +1397,14 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// kernel.
   // TODO(ahe): Investigate if this can be removed.
   final bool isLocalFunction;
+
+  /// Whether the variable is final with no initializer in a null safe library.
+  ///
+  /// Such variables behave similar to those declared with the `late` keyword,
+  /// except that the don't have lazy evaluation semantics, and it is statically
+  /// verified by the front end that they are always assigned before they are
+  /// used.
+  bool isStaticLate;
 
   VariableDeclarationImpl(String name, this.functionNestingLevel,
       {this.forSyntheticToken: false,
@@ -1437,7 +1417,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isCovariant: false,
       bool isLocalFunction: false,
       bool isLate: false,
-      bool isRequired: false})
+      bool isRequired: false,
+      this.isStaticLate: false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
         super(name,
@@ -1455,6 +1436,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = false,
         isLocalFunction = false,
+        isStaticLate = false,
         hasDeclaredInitializer = true,
         super.forValue(initializer);
 
@@ -1463,6 +1445,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = true,
         isLocalFunction = false,
+        isStaticLate = false,
         hasDeclaredInitializer = true,
         super.forValue(initializer);
 
@@ -1490,6 +1473,12 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late
   // lowering is enabled.
   DartType lateType;
+
+  @override
+  bool get isAssignable {
+    if (isStaticLate) return true;
+    return super.isAssignable;
+  }
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -1595,23 +1584,29 @@ class LoadLibraryTearOff extends InternalExpression {
 ///     let v1 = o in v1.a == null ? v1.a = b : null
 ///
 class IfNullPropertySet extends InternalExpression {
-  /// The synthetic variable whose initializer hold the receiver.
-  VariableDeclaration variable;
+  /// The receiver used for the read/write operations.
+  Expression receiver;
 
-  /// The expression that reads the property from [variable].
-  Expression read;
+  /// Name of the property.
+  Name propertyName;
 
-  /// The expression that writes the value to the property on [variable].
-  Expression write;
+  /// The right-hand side of the binary operation.
+  Expression rhs;
 
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullPropertySet(this.variable, this.read, this.write, {this.forEffect})
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  IfNullPropertySet(this.receiver, this.propertyName, this.rhs,
+      {this.forEffect, this.readOffset, this.writeOffset})
       : assert(forEffect != null) {
-    variable?.parent = this;
-    read?.parent = this;
-    write?.parent = this;
+    receiver?.parent = this;
+    rhs?.parent = this;
   }
 
   @override
@@ -1625,24 +1620,19 @@ class IfNullPropertySet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    read?.accept(v);
-    write?.accept(v);
+    receiver?.accept(v);
+    rhs?.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
-    if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
-      variable?.parent = this;
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
     }
-    if (read != null) {
-      read = read.accept<TreeNode>(v);
-      read?.parent = this;
-    }
-    if (write != null) {
-      write = write.accept<TreeNode>(v);
-      write?.parent = this;
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
     }
   }
 
@@ -1653,12 +1643,11 @@ class IfNullPropertySet extends InternalExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write('let ');
-    printer.writeVariableDeclaration(variable);
-    printer.write(' in if-null ');
-    printer.writeExpression(read);
-    printer.write(' ?? ');
-    printer.writeExpression(write);
+    printer.writeExpression(receiver);
+    printer.write('.');
+    printer.writeName(propertyName);
+    printer.write(' ??= ');
+    printer.writeExpression(rhs);
   }
 }
 
@@ -3557,12 +3546,12 @@ class BinaryExpression extends InternalExpression {
   }
 
   @override
-  int get precedence => Precedence.binaryPrecedence[binaryName.name];
+  int get precedence => Precedence.binaryPrecedence[binaryName.text];
 
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(left, minimumPrecedence: precedence);
-    printer.write(' ${binaryName.name} ');
+    printer.write(' ${binaryName.text} ');
     printer.writeExpression(right, minimumPrecedence: precedence);
   }
 }
@@ -3611,7 +3600,7 @@ class UnaryExpression extends InternalExpression {
     if (unaryName == unaryMinusName) {
       printer.write('-');
     } else {
-      printer.write('${unaryName.name}');
+      printer.write('${unaryName.text}');
     }
     printer.writeExpression(expression, minimumPrecedence: precedence);
   }

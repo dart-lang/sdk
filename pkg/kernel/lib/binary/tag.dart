@@ -29,9 +29,6 @@ class Tag {
   // Expressions
   static const int CheckLibraryIsLoaded = 13;
   static const int LoadLibrary = 14;
-  static const int DirectPropertyGet = 15;
-  static const int DirectPropertySet = 16;
-  static const int DirectMethodInvocation = 17;
   static const int ConstStaticInvocation = 18;
   static const int InvalidExpression = 19;
   static const int VariableGet = 20;
@@ -149,7 +146,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 45;
+  static const int BinaryFormatVersion = 46;
 }
 
 abstract class ConstantTag {

@@ -89,13 +89,6 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool visitPropertySet(PropertySet node) => isNullable(node.value);
 
   @override
-  bool visitDirectPropertyGet(DirectPropertyGet node) =>
-      _getterIsNullable(node.target);
-
-  @override
-  bool visitDirectPropertySet(DirectPropertySet node) => isNullable(node.value);
-
-  @override
   bool visitSuperPropertyGet(SuperPropertyGet node) =>
       _getterIsNullable(node.interfaceTarget);
 
@@ -110,15 +103,11 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   @override
   bool visitMethodInvocation(MethodInvocation node) => _invocationIsNullable(
-      node.interfaceTarget, node.name.name, node.receiver);
-
-  @override
-  bool visitDirectMethodInvocation(DirectMethodInvocation node) =>
-      _invocationIsNullable(node.target, node.name.name, node.receiver);
+      node.interfaceTarget, node.name.text, node.receiver);
 
   @override
   bool visitSuperMethodInvocation(SuperMethodInvocation node) =>
-      _invocationIsNullable(node.interfaceTarget, node.name.name);
+      _invocationIsNullable(node.interfaceTarget, node.name.text);
 
   bool _invocationIsNullable(Member target, String name,
       [Expression receiver]) {
@@ -127,7 +116,7 @@ class NullableInference extends ExpressionVisitor<bool> {
     // https://github.com/dart-lang/sdk/issues/31854
     if (name == '==') return false;
     if (target == null) return true; // dynamic call
-    if (target.name.name == 'toString' &&
+    if (target.name.text == 'toString' &&
         receiver != null &&
         receiver.getStaticType(_staticTypeContext) ==
             coreTypes.stringLegacyRawType) {
@@ -188,7 +177,7 @@ class NullableInference extends ExpressionVisitor<bool> {
             typeString.split('|').contains('Null');
       }
     }
-    return _invocationIsNullable(target, node.name.name);
+    return _invocationIsNullable(target, node.name.text);
   }
 
   @override
@@ -274,7 +263,7 @@ class NullableInference extends ExpressionVisitor<bool> {
     if (node is StaticGet) {
       var t = node.target;
       return t is Field &&
-          t.name.name == fieldName &&
+          t.name.text == fieldName &&
           _isInternalSdkAnnotation(t.enclosingLibrary);
     }
     return false;

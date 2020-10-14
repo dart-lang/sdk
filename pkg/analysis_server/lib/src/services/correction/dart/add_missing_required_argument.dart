@@ -43,7 +43,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
     }
 
     if (targetElement is ExecutableElement) {
-      // Format: "Missing required argument 'foo"
+      // Format: "Missing required argument 'foo'."
       var messageParts = diagnostic.problemMessage.message.split("'");
       if (messageParts.length < 2) {
         return;
@@ -78,6 +78,9 @@ class AddMissingRequiredArgument extends CorrectionProducer {
           }
         }
       }
+      var defaultValue = getDefaultStringParameterValue(missingParameter,
+          withNullability: libraryElement.isNonNullableByDefault &&
+              missingParameter.library.isNonNullableByDefault);
 
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {
@@ -87,7 +90,6 @@ class AddMissingRequiredArgument extends CorrectionProducer {
 
           builder.write('$_missingParameterName: ');
 
-          var defaultValue = getDefaultStringParameterValue(missingParameter);
           // Use defaultValue.cursorPosition if it's not null.
           if (defaultValue?.cursorPosition != null) {
             builder.write(

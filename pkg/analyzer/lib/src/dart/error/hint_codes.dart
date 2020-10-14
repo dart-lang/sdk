@@ -577,6 +577,32 @@ class HintCode extends AnalyzerErrorCode {
       "The annotation '{0}' can only be used on {1}");
 
   /**
+   * This hint is generated anywhere where an element annotated with `@internal`
+   * is exported as a part of a package's public API.
+   *
+   * Parameters:
+   * 0: the name of the element
+   */
+  static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT = HintCode(
+      'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
+      "The member '{0}' can't be exported as a part of a package's public "
+          "API.",
+      correction: "Try using a hide clause to hide '{0}'.");
+
+  /**
+   * This hint is generated anywhere where an element annotated with `@internal`
+   * is exported indirectly as a part of a package's public API.
+   *
+   * Parameters:
+   * 0: the name of the element
+   */
+  static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY = HintCode(
+      'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
+      "The member '{0}' can't be exported as a part of a package's public "
+          "API, but is indirectly exported as part of the signature of '{1}'.",
+      correction: "Try using a hide clause to hide '{0}'.");
+
+  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */
@@ -611,6 +637,15 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_IMMUTABLE_ANNOTATION = HintCode(
       'INVALID_IMMUTABLE_ANNOTATION',
       "Only classes can be annotated as being immutable.");
+
+  /**
+   * This hint is generated anywhere a @internal annotation is associated with
+   * an element found in a package's public API.
+   */
+  static const HintCode INVALID_INTERNAL_ANNOTATION = HintCode(
+      'INVALID_INTERNAL_ANNOTATION',
+      "Only public elements in a package's private API can be annotated as "
+          "being internal.");
 
   /// Invalid Dart language version comments don't follow the specification [1].
   /// If a comment begins with "@dart" or "dart" (letters in any case),
@@ -921,8 +956,19 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Remove @sealed.");
 
   /**
+   * This hint is generated anywhere where a member annotated with `@internal`
+   * is used outside of the package in which it is declared.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_USE_OF_INTERNAL_MEMBER = HintCode(
+      'INVALID_USE_OF_INTERNAL_MEMBER',
+      "The member '{0}' can only be used within its package.");
+
+  /**
    * This hint is generated anywhere where a member annotated with `@protected`
-   * is used outside an instance member of a subclass.
+   * is used outside of an instance member of a subclass.
    *
    * Parameters:
    * 0: the name of the member
@@ -1132,7 +1178,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Examples
   //
-  // If the package 'p' defines a sealed class:
+  // If the package `p` defines a sealed class:
   //
   // ```dart
   // %uri="package:p/p.dart"
@@ -1142,7 +1188,7 @@ class HintCode extends AnalyzerErrorCode {
   // class C {}
   // ```
   //
-  // Then, the following code, when in a package other than 'p', produces this
+  // Then, the following code, when in a package other than `p`, produces this
   // diagnostic:
   //
   // ```dart
@@ -1553,6 +1599,16 @@ class HintCode extends AnalyzerErrorCode {
       "The receiver is of type 'Never', and will never complete with a value.",
       correction: "Try checking for throw expressions or type errors in the "
           "receiver");
+
+  /**
+   * Users should not return values marked `@doNotStore` from functions,
+   * methods or getters not marked `@doNotStore`.
+   */
+  static const HintCode RETURN_OF_DO_NOT_STORE = HintCode(
+      'RETURN_OF_DO_NOT_STORE',
+      "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
+          "'{1}' is also annotated.",
+      correction: "Annotate '{1}' with 'doNotStore'.");
 
   /**
    * No parameters.
@@ -2532,9 +2588,14 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a private class, enum, mixin,
-  // typedef, top level variable, top level function, or method is declared but
-  // never referenced.
+  // The analyzer produces this diagnostic when a private declaration isn't
+  // referenced in the library that contains the declaration. The following
+  // kinds of declarations are analyzed:
+  // - Private top-level declarations, such as classes, enums, mixins, typedefs,
+  //   top-level variables, and top-level functions
+  // - Private static and instance methods
+  // - Optional parameters of private functions for which a value is never
+  //   passed, even when the parameter doesn't have a private name
   //
   // #### Examples
   //
@@ -2545,11 +2606,30 @@ class HintCode extends AnalyzerErrorCode {
   // class [!_C!] {}
   // ```
   //
+  // Assuming that no code in the library passes a value for `y` in any
+  // invocation of `_m`, the following code produces this diagnostic:
+  //
+  // ```dart
+  // class C {
+  //   void _m(int x, [int [!y!]]) {}
+  //
+  //   void n() => _m(0);
+  // }
+  // ```
+  //
   // #### Common fixes
   //
-  // If the declaration isn't needed, then remove it.
+  // If the declaration isn't needed, then remove it:
   //
-  // If the declaration was intended to be used, then add the missing code.
+  // ```dart
+  // class C {
+  //   void _m(int x) {}
+  //
+  //   void n() => _m(0);
+  // }
+  // ```
+  //
+  // If the declaration is intended to be used, then add the code to use it.
   static const HintCode UNUSED_ELEMENT = HintCode(
       'UNUSED_ELEMENT', "The declaration '{0}' isn't referenced.",
       correction: "Try removing the declaration of '{0}'.",

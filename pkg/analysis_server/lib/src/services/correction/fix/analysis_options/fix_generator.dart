@@ -87,7 +87,7 @@ class AnalysisOptionsFixGenerator {
     return fixes;
   }
 
-  void _addFix_removeSetting() async {
+  Future<void> _addFix_removeSetting() async {
     if (coveringNodePath[0] is YamlScalar) {
       SourceRange deletionRange;
       var index = 1;

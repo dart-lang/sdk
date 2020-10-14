@@ -20,6 +20,7 @@ import 'package:dev_compiler/dev_compiler.dart'
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
 import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:front_end/widget_cache.dart';
 import 'package:kernel/ast.dart' show Library, Procedure, LibraryDependency;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart'
@@ -176,7 +177,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: false)
   ..addOption('dartdevc-module-format',
       help: 'The module format to use on for the dartdevc compiler',
-      defaultsTo: 'amd');
+      defaultsTo: 'amd')
+  ..addFlag('flutter-widget-cache',
+      help: 'Enable the widget cache to track changes to Widget subtypes',
+      defaultsTo: false);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -338,12 +342,15 @@ class FrontendCompiler implements CompilerInterface {
 
   CompilerOptions _compilerOptions;
   BytecodeOptions _bytecodeOptions;
+  ProcessedOptions _processedOptions;
   FileSystem _fileSystem;
   Uri _mainSource;
   ArgResults _options;
 
   IncrementalCompiler _generator;
   JavaScriptBundler _bundler;
+
+  WidgetCache _widgetCache;
 
   String _kernelBinaryFilename;
   String _kernelBinaryFilenameIncremental;
@@ -510,6 +517,7 @@ class FrontendCompiler implements CompilerInterface {
 
     _compilerOptions = compilerOptions;
     _bytecodeOptions = bytecodeOptions;
+    _processedOptions = ProcessedOptions(options: compilerOptions);
 
     KernelCompilationResults results;
     IncrementalSerializer incrementalSerializer;
@@ -530,6 +538,9 @@ class FrontendCompiler implements CompilerInterface {
           component.uriToSource.keys);
 
       incrementalSerializer = _generator.incrementalSerializer;
+      if (options['flutter-widget-cache']) {
+        _widgetCache = WidgetCache(component);
+      }
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -904,6 +915,7 @@ class FrontendCompiler implements CompilerInterface {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
     }
+    _updateWidgetCache(deltaProgram);
 
     _outputStream.writeln(boundaryKey);
     await _outputDependenciesDelta(results.compiledSources);
@@ -962,14 +974,21 @@ class FrontendCompiler implements CompilerInterface {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
 
+    _processedOptions.ticker.logMs('Compiling expression to JavaScript');
+
     var kernel2jsCompiler = _bundler.compilers[moduleName];
     Component component = _generator.lastKnownGoodComponent;
     component.computeCanonicalNames();
+
+    _processedOptions.ticker.logMs('Computed component');
+
     var evaluator = new ExpressionCompiler(
-        _generator.generator, kernel2jsCompiler, component,
-        verbose: _compilerOptions.verbose,
-        onDiagnostic: _compilerOptions.onDiagnostic,
-        errors: errors);
+      _compilerOptions,
+      errors,
+      _generator.generator,
+      kernel2jsCompiler,
+      component,
+    );
 
     var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
         column, jsModules, jsFrameValues, moduleName, expression);
@@ -979,6 +998,8 @@ class FrontendCompiler implements CompilerInterface {
     // TODO(annagrin): kernelBinaryFilename is too specific
     // rename to _outputFileName?
     await File(_kernelBinaryFilename).writeAsString(result);
+
+    _processedOptions.ticker.logMs('Compiled expression to JavaScript');
 
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
@@ -1095,6 +1116,7 @@ class FrontendCompiler implements CompilerInterface {
   @override
   void acceptLastDelta() {
     _generator.accept();
+    _widgetCache?.reset();
   }
 
   @override
@@ -1108,11 +1130,13 @@ class FrontendCompiler implements CompilerInterface {
   @override
   void invalidate(Uri uri) {
     _generator.invalidate(uri);
+    _widgetCache?.invalidate(uri);
   }
 
   @override
   void resetIncrementalCompiler() {
     _generator.resetDeltaState();
+    _widgetCache?.reset();
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
   }
 
@@ -1120,6 +1144,31 @@ class FrontendCompiler implements CompilerInterface {
     return IncrementalCompiler(_compilerOptions, _mainSource,
         initializeFromDillUri: initializeFromDillUri,
         incrementalSerialization: incrementalSerialization);
+  }
+
+  /// If the flutter widget cache is enabled, check if a single class was modified.
+  ///
+  /// The resulting class name is written as a String to
+  /// `_kernelBinaryFilename`.widget_cache, or else the file is deleted
+  /// if it exists.
+  ///
+  /// Should not run if a full component is requested.
+  void _updateWidgetCache(Component partialComponent) {
+    if (_widgetCache == null || _generator.fullComponent) {
+      return;
+    }
+    final String singleModifiedClassName =
+        _widgetCache.checkSingleWidgetTypeModified(
+      _generator.lastKnownGoodComponent,
+      partialComponent,
+      _generator.getClassHierarchy(),
+    );
+    final File outputFile = File('$_kernelBinaryFilename.widget_cache');
+    if (singleModifiedClassName != null) {
+      outputFile.writeAsStringSync(singleModifiedClassName);
+    } else if (outputFile.existsSync()) {
+      outputFile.deleteSync();
+    }
   }
 
   Uri _ensureFolderPath(String path) {

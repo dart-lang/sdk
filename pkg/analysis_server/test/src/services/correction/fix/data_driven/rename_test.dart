@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -15,6 +16,7 @@ void main() {
     defineReflectiveTests(RenameConstructorTest);
     defineReflectiveTests(RenameExtensionTest);
     defineReflectiveTests(RenameFieldTest);
+    defineReflectiveTests(RenameGetterTest);
     defineReflectiveTests(RenameMethodTest);
     defineReflectiveTests(RenameMixinTest);
     defineReflectiveTests(RenameTopLevelFunctionTest);
@@ -24,6 +26,109 @@ void main() {
 
 @reflectiveTest
 class RenameClassTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'class';
+
+  Future<void> test_constructor_named_deprecated() async {
+    setPackageContent('''
+@deprecated
+class Old {
+  Old.c();
+}
+class New {
+  New.c();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  Old.c();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  New.c();
+}
+''');
+  }
+
+  Future<void> test_constructor_named_removed() async {
+    setPackageContent('''
+class New {
+  New.c();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  Old.c();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  New.c();
+}
+''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_constructor_unnamed_deprecated() async {
+    setPackageContent('''
+@deprecated
+class Old {
+  Old();
+}
+class New {
+  New();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  Old();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  New();
+}
+''');
+  }
+
+  Future<void> test_constructor_unnamed_removed() async {
+    setPackageContent('''
+class New {
+  New();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  Old();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  New();
+}
+''', errorFilter: ignoreUnusedImport);
+  }
+
   Future<void> test_inExtends_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -249,7 +354,10 @@ var s = New.empty;
 
 @reflectiveTest
 class RenameConstructorTest extends _AbstractRenameTest {
-  Future<void> test_named_deprecated() async {
+  @override
+  String get _kind => 'constructor';
+
+  Future<void> test_named_named_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -274,7 +382,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_named_removed() async {
+  Future<void> test_named_named_removed() async {
     setPackageContent('''
 class C {
   C.new();
@@ -297,59 +405,108 @@ void f() {
 ''');
   }
 
-  Future<void> test_unnamed_deprecated() async {
+  Future<void> test_named_unnamed_deprecated() async {
     setPackageContent('''
-@deprecated
-class Old {
-  Old();
-}
-class New {
-  New();
+class C {
+  @deprecated
+  C.old();
+  C();
 }
 ''');
-    setPackageData(_rename(['Old'], 'New'));
+    setPackageData(_rename(['C', 'old'], ''));
     await resolveTestUnit('''
 import '$importUri';
 
 void f() {
-  Old();
+  C.old();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  New();
+  C();
 }
 ''');
   }
 
-  Future<void> test_unnamed_removed() async {
+  Future<void> test_named_unnamed_removed() async {
     setPackageContent('''
-class New {
-  New();
+class C {
+  C();
 }
 ''');
-    setPackageData(_rename(['Old'], 'New'));
+    setPackageData(_rename(['C', 'old'], ''));
     await resolveTestUnit('''
 import '$importUri';
 
 void f() {
-  Old();
+  C.old();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  New();
+  C();
 }
-''', errorFilter: ignoreUnusedImport);
+''');
+  }
+
+  Future<void> test_unnamed_named_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  C();
+  C.new();
+}
+''');
+    setPackageData(_rename(['C', ''], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  C();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  C.new();
+}
+''');
+  }
+
+  Future<void> test_unnamed_named_removed() async {
+    setPackageContent('''
+class C {
+  C.new();
+}
+''');
+    setPackageData(_rename(['C', ''], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  C();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  C.new();
+}
+''');
   }
 }
 
 @reflectiveTest
 class RenameExtensionTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'extension';
+
   Future<void> test_override_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -437,6 +594,9 @@ var s = New.empty;
 
 @reflectiveTest
 class RenameFieldTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'field';
+
   Future<void> test_instance_reference_deprecated() async {
     setPackageContent('''
 class C {
@@ -583,7 +743,151 @@ void f() {
 }
 
 @reflectiveTest
+class RenameGetterTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'getter';
+
+  Future<void> test_instance_nonReference_method_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get a => 0;
+  int get b => 1;
+}
+class D {
+  @deprecated
+  void a(int b) {}
+}
+''');
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(D d) {
+  d.a(2);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_instance_nonReference_parameter_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get a => 0;
+  int get b => 1;
+}
+class D {
+  D({@deprecated int a; int c});
+}
+''');
+    setPackageData(_rename(['C', 'a'], 'b'));
+    await resolveTestUnit('''
+import '$importUri';
+
+D d = D(a: 2);
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_instance_reference_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get old => 0;
+  int get new => 1;
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.new;
+}
+''');
+  }
+
+  Future<void> test_instance_reference_removed() async {
+    setPackageContent('''
+class C {
+  int get new => 1;
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.new;
+}
+''');
+  }
+
+  Future<void> test_topLevel_reference_deprecated() async {
+    setPackageContent('''
+@deprecated
+int get old => 0;
+int get new => 1;
+''');
+    setPackageData(_rename(['old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  new;
+}
+''');
+  }
+
+  Future<void> test_topLevel_reference_removed() async {
+    setPackageContent('''
+int get new => 1;
+''');
+    setPackageData(_rename(['old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  new;
+}
+''', errorFilter: ignoreUnusedImport);
+  }
+}
+
+@reflectiveTest
 class RenameMethodTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'method';
+
   @failingTest
   Future<void> test_instance_override_deprecated() async {
     setPackageContent('''
@@ -736,6 +1040,9 @@ void f() {
 
 @reflectiveTest
 class RenameMixinTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'mixin';
+
   Future<void> test_inWith_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -775,6 +1082,9 @@ class C with New {}
 
 @reflectiveTest
 class RenameTopLevelFunctionTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'function';
+
   Future<void> test_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -822,6 +1132,9 @@ void f() {
 
 @reflectiveTest
 class RenameTypedefTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'typedef';
+
   Future<void> test_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -859,11 +1172,16 @@ void f(New o) {}
   }
 }
 
-class _AbstractRenameTest extends DataDrivenFixProcessorTest {
+abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
+  /// Return the kind of element being renamed.
+  String get _kind;
+
   Transform _rename(List<String> components, String newName) => Transform(
           title: 'title',
           element: ElementDescriptor(
-              libraryUris: [importUri], components: components),
+              libraryUris: [Uri.parse(importUri)],
+              kind: ElementKindUtilities.fromName(_kind),
+              components: components),
           changes: [
             Rename(newName: newName),
           ]);

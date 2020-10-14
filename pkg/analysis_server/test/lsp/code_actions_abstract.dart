@@ -79,14 +79,16 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   /// the expected content.
   Future verifyCodeActionEdits(Either2<Command, CodeAction> codeAction,
       String content, String expectedContent,
-      {bool expectDocumentChanges = false}) async {
+      {bool expectDocumentChanges = false,
+      Either2<num, String> workDoneToken}) async {
     final command = codeAction.map(
       (command) => command,
       (codeAction) => codeAction.command,
     );
 
     await verifyCommandEdits(command, content, expectedContent,
-        expectDocumentChanges: expectDocumentChanges);
+        expectDocumentChanges: expectDocumentChanges,
+        workDoneToken: workDoneToken);
   }
 
   /// Verifies that executing the given command on the server results in an edit
@@ -94,13 +96,15 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   /// content.
   Future<void> verifyCommandEdits(
       Command command, String content, String expectedContent,
-      {bool expectDocumentChanges = false}) async {
+      {bool expectDocumentChanges = false,
+      Either2<num, String> workDoneToken}) async {
     ApplyWorkspaceEditParams editParams;
 
     final commandResponse = await handleExpectedRequest<Object,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
       Method.workspace_applyEdit,
-      () => executeCommand(command),
+      ApplyWorkspaceEditParams.fromJson,
+      () => executeCommand(command, workDoneToken: workDoneToken),
       handler: (edit) {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).

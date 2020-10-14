@@ -78,6 +78,10 @@ class BazelPackageUriResolver extends UriResolver {
         return null;
       }
 
+      if (uriPath.contains('//') || uriPath.contains('..')) {
+        return null;
+      }
+
       String packageName = uriPath.substring(0, slash);
       String fileUriPart = uriPath.substring(slash + 1);
       String filePath = fileUriPart.replaceAll('/', _context.separator);
@@ -256,6 +260,19 @@ class BazelWorkspace extends Workspace
   WorkspacePackage findPackageFor(String filePath) {
     path.Context context = provider.pathContext;
     Folder folder = provider.getFolder(context.dirname(filePath));
+    if (!context.isWithin(root, folder.path)) {
+      return null;
+    }
+
+    // Handle files which are given with their location in "bazel-bin", etc.
+    // This does not typically happen during usual analysis, but it still could,
+    // and it can come up in tests.
+    if ([genfiles, ...binPaths]
+        .any((binPath) => context.isWithin(binPath, folder.path))) {
+      var relative = context.relative(filePath, from: root);
+      return findPackageFor(
+          context.joinAll([root, ...context.split(relative).skip(1)]));
+    }
 
     while (true) {
       Folder parent = folder.parent;
@@ -296,7 +313,8 @@ class BazelWorkspace extends Workspace
       // [folder]'s path, relative to [root]. For example, "foo/bar".
       String relative = context.relative(folder.path, from: root);
       for (String bin in binPaths) {
-        Folder binChild = provider.getFolder(context.join(bin, relative));
+        Folder binChild =
+            provider.getFolder(context.normalize(context.join(bin, relative)));
         if (binChild.exists &&
             binChild.getChildren().any((c) => c.path.endsWith('.packages'))) {
           // [folder]'s sister folder within [bin] contains a ".packages" file.
@@ -544,4 +562,41 @@ class BazelWorkspacePackage extends WorkspacePackage {
   //  lists.
   Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
       <String, List<Folder>>{};
+
+  @override
+  bool sourceIsInPublicApi(Source source) {
+    var filePath = filePathFromSource(source);
+    if (filePath == null) return false;
+
+    var libFolder = workspace.provider.pathContext.join(root, 'lib');
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      // A file in "$root/lib" is public iff it is not in "$root/lib/src".
+      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+
+    var relativeRoot =
+        workspace.provider.pathContext.relative(root, from: workspace.root);
+    for (var binPath in workspace.binPaths) {
+      libFolder =
+          workspace.provider.pathContext.join(binPath, relativeRoot, 'lib');
+      if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+        // A file in "$bin/lib" is public iff it is not in "$bin/lib/src".
+        var libSrcFolder =
+            workspace.provider.pathContext.join(libFolder, 'src');
+        return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+      }
+    }
+
+    libFolder = workspace.provider.pathContext
+        .join(workspace.genfiles, relativeRoot, 'lib');
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      // A file in "$genfiles/lib" is public iff it is not in
+      // "$genfiles/lib/src".
+      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+
+    return false;
+  }
 }

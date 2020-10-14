@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:meta/meta.dart';
@@ -20,29 +20,28 @@ class AddTypeParameter extends Change<_Data> {
 
   /// The name of the type that the type parameter extends, or `null` if the
   /// type parameter doesn't have a bound.
-  final String extendedType;
+  final CodeTemplate extendedType;
 
-  /// The value extractor used to compute the value of the type argument.
-  final ValueExtractor value;
+  /// The code template used to compute the value of the type argument.
+  final CodeTemplate argumentValue;
 
   /// Initialize a newly created change to describe adding a type parameter to a
   /// type or a function.
-  // TODO(brianwilkerson) Support adding multiple type parameters.
   AddTypeParameter(
       {@required this.index,
       @required this.name,
-      @required this.value,
-      this.extendedType})
+      @required this.argumentValue,
+      @required this.extendedType})
       : assert(index >= 0),
         assert(name != null),
-        assert(value != null);
+        assert(argumentValue != null);
 
   @override
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     if (data is _TypeArgumentData) {
-      _applyToTypeArguments(builder, data);
+      _applyToTypeArguments(builder, fix, data);
     } else if (data is _TypeParameterData) {
-      _applyToTypeParameters(builder, data);
+      _applyToTypeParameters(builder, fix, data);
     } else {
       throw StateError('Unsupported class of data: ${data.runtimeType}');
     }
@@ -51,23 +50,23 @@ class AddTypeParameter extends Change<_Data> {
   @override
   _Data validate(DataDrivenFix fix) {
     var node = fix.node;
+    var context = TemplateContext(node, fix.utils);
     if (node is NamedType) {
       // wrong_number_of_type_arguments
       // wrong_number_of_type_arguments_constructor
-      var argument = value.from(node, fix.utils);
-      if (argument == null) {
+      if (!argumentValue.validate(context)) {
         return null;
       }
       var typeArguments = node.typeArguments;
       if (_isInvalidIndex(typeArguments?.arguments)) {
         return null;
       }
-      return _TypeArgumentData(typeArguments, argument, node.name.end);
+      return _TypeArgumentData(typeArguments, node.name.end);
     }
     var parent = node.parent;
     if (parent is InvocationExpression) {
       // wrong_number_of_type_arguments_method
-      var argument = value.from(parent, fix.utils);
+      var argument = argumentValue.validate(context);
       if (argument == null) {
         return null;
       }
@@ -75,10 +74,12 @@ class AddTypeParameter extends Change<_Data> {
       if (_isInvalidIndex(typeArguments?.arguments)) {
         return null;
       }
-      return _TypeArgumentData(
-          typeArguments, argument, parent.argumentList.offset);
+      return _TypeArgumentData(typeArguments, parent.argumentList.offset);
     } else if (parent is MethodDeclaration) {
       // invalid_override
+      if (extendedType != null && !extendedType.validate(context)) {
+        return null;
+      }
       var typeParameters = parent.typeParameters;
       if (_isInvalidIndex(typeParameters?.typeParameters)) {
         return null;
@@ -86,55 +87,81 @@ class AddTypeParameter extends Change<_Data> {
       return _TypeParameterData(typeParameters, parent.name.end);
     } else if (node is TypeArgumentList && parent is ExtensionOverride) {
       // wrong_number_of_type_arguments_extension
-      var argument = value.from(node, fix.utils);
+      var argument = argumentValue.validate(context);
       if (argument == null) {
         return null;
       }
       if (_isInvalidIndex(node?.arguments)) {
         return null;
       }
-      return _TypeArgumentData(node, argument, parent.extensionName.end);
+      return _TypeArgumentData(node, parent.extensionName.end);
     }
     return null;
   }
 
   void _applyToTypeArguments(
-      DartFileEditBuilder builder, _TypeArgumentData data) {
+      DartFileEditBuilder builder, DataDrivenFix fix, _TypeArgumentData data) {
+    var context = TemplateContext(fix.node, fix.utils);
     var typeArguments = data.typeArguments;
-    var argumentValue = data.argumentValue;
     if (typeArguments == null) {
       // Adding the first type argument.
-      builder.addSimpleInsertion(data.newListOffset, '<$argumentValue>');
+      builder.addInsertion(data.newListOffset, (builder) {
+        builder.write('<');
+        argumentValue.writeOn(builder, context);
+        builder.write('>');
+      });
     } else {
       if (index == 0) {
         // Inserting the type argument at the beginning of the list.
-        builder.addSimpleInsertion(
-            typeArguments.leftBracket.end, '$argumentValue, ');
+        builder.addInsertion(typeArguments.leftBracket.end, (builder) {
+          argumentValue.writeOn(builder, context);
+          builder.write(', ');
+        });
       } else {
         // Inserting the type argument after an existing type argument.
         var previous = typeArguments.arguments[index - 1];
-        builder.addSimpleInsertion(previous.end, ', $argumentValue');
+        builder.addInsertion(previous.end, (builder) {
+          builder.write(', ');
+          argumentValue.writeOn(builder, context);
+        });
       }
     }
   }
 
   void _applyToTypeParameters(
-      DartFileEditBuilder builder, _TypeParameterData data) {
-    var argumentValue =
-        extendedType == null ? name : '$name extends $extendedType';
+      DartFileEditBuilder builder, DataDrivenFix fix, _TypeParameterData data) {
+    var context = TemplateContext(fix.node, fix.utils);
+
+    void writeParameter(DartEditBuilder builder) {
+      builder.write(name);
+      if (extendedType != null) {
+        builder.write(' extends ');
+        extendedType.writeOn(builder, context);
+      }
+    }
+
     var typeParameters = data.typeParameters;
     if (typeParameters == null) {
       // Adding the first type argument.
-      builder.addSimpleInsertion(data.newListOffset, '<$argumentValue>');
+      builder.addInsertion(data.newListOffset, (builder) {
+        builder.write('<');
+        writeParameter(builder);
+        builder.write('>');
+      });
     } else {
       if (index == 0) {
         // Inserting the type argument at the beginning of the list.
-        builder.addSimpleInsertion(
-            typeParameters.leftBracket.end, '$argumentValue, ');
+        builder.addInsertion(typeParameters.leftBracket.end, (builder) {
+          writeParameter(builder);
+          builder.write(', ');
+        });
       } else {
         // Inserting the type argument after an existing type argument.
         var previous = typeParameters.typeParameters[index - 1];
-        builder.addSimpleInsertion(previous.end, ', $argumentValue');
+        builder.addInsertion(previous.end, (builder) {
+          builder.write(', ');
+          writeParameter(builder);
+        });
       }
     }
   }
@@ -154,15 +181,12 @@ class _TypeArgumentData extends _Data {
   /// `null` if the first type argument is being added.
   final TypeArgumentList typeArguments;
 
-  /// The value of the type argument being added.
-  final String argumentValue;
-
   /// The offset at which the type argument list should be inserted if
   /// [typeArguments] is `null`.
   final int newListOffset;
 
   /// Initialize newly created data.
-  _TypeArgumentData(this.typeArguments, this.argumentValue, this.newListOffset);
+  _TypeArgumentData(this.typeArguments, this.newListOffset);
 }
 
 /// The data returned when updating a type parameter list.

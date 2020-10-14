@@ -23,7 +23,7 @@ DEFINE_NATIVE_ENTRY(DartAsync_fatal, 0, 1) {
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const char* msg = instance.ToCString();
   OS::PrintErr("Fatal error in dart:async: %s\n", msg);
-  FATAL(msg);
+  FATAL("%s", msg);
   return Object::null();
 }
 
@@ -367,7 +367,8 @@ DEFINE_NATIVE_ENTRY(Internal_extractTypeArguments, 0, 2) {
         type_arg = interface_type_args.TypeAt(offset + i);
         extracted_type_args.SetTypeAt(i, type_arg);
       }
-      extracted_type_args = extracted_type_args.Canonicalize();  // Can be null.
+      extracted_type_args =
+          extracted_type_args.Canonicalize(thread, nullptr);  // Can be null.
     }
   }
   // Call the closure 'extract'.
@@ -496,9 +497,14 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
   InvocationMirror::Kind kind;
   InvocationMirror::DecodeType(invocation_type.Value(), &level, &kind);
 
-  Function& function = Function::Handle();
+  Function& function = Function::Handle(zone);
   if (receiver.IsType()) {
-    Class& cls = Class::Handle(Type::Cast(receiver).type_class());
+    const auto& cls = Class::Handle(zone, Type::Cast(receiver).type_class());
+    const auto& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+      UNREACHABLE();
+    }
     if (level == InvocationMirror::kConstructor) {
       function = cls.LookupConstructor(method_name);
       if (function.IsNull()) {
@@ -510,7 +516,7 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
   } else if (receiver.IsClosure()) {
     function = Closure::Cast(receiver).function();
   } else {
-    Class& cls = Class::Handle(receiver.clazz());
+    auto& cls = Class::Handle(zone, receiver.clazz());
     if (level == InvocationMirror::kSuper) {
       cls = cls.SuperClass();
     }

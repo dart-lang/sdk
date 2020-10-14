@@ -7,3 +7,10 @@ import "dart:_internal" as _in;
 
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ null -> InstanceConstant(const ExternalName{ExternalName.name: "dart-ext:here"})
+Evaluated: ConstructorInvocation @ null -> InstanceConstant(const ExternalName{ExternalName.name: "dart-ext:foo/../there"})
+Evaluated: ConstructorInvocation @ null -> InstanceConstant(const ExternalName{ExternalName.name: "dart-ext:/usr/local/somewhere"})
+Extra constant evaluation: evaluated: 3, effectively constant: 3

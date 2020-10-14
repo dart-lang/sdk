@@ -443,6 +443,7 @@ class Place : public ValueObject {
   static bool IsAllocation(Definition* defn) {
     return (defn != NULL) &&
            (defn->IsAllocateObject() || defn->IsCreateArray() ||
+            defn->IsAllocateTypedData() ||
             defn->IsAllocateUninitializedContext() ||
             (defn->IsStaticCall() &&
              defn->AsStaticCall()->IsRecognizedFactory()));

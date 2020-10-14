@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C<X extends self::C<self::C::X%, self::C::X%>? = self::C<dynamic, dynamic>?, Y extends self::C<self::C::Y%, self::C::Y%>? = self::C<dynamic, dynamic>?> extends core::Object {
+  generic-covariant-impl field self::C::X% x;
+  constructor •(self::C::X% x) → self::C<self::C::X%, self::C::Y%>
+    ;
+  method m(generic-covariant-impl self::C::X% x, generic-covariant-impl self::C::Y% y) → core::Object
+    ;
+}
+static field core::bool b;
+static method main() → dynamic
+  ;

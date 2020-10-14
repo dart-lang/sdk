@@ -80,16 +80,6 @@ testTreeShakingJsInteropTypes() async {
   Expect.isTrue(generated1.contains("UniqueLongNameForTesting_B"));
   Expect.isTrue(generated1.contains("UniqueLongNameForTesting_C"));
   Expect.isTrue(generated1.contains("UniqueLongNameForTesting_E"));
-
-  print(' - tree-shake when using flag -');
-  String generated2 = await compile(program,
-      trustJSInteropTypeAnnotations: true, returnAll: true);
-  Expect.isTrue(generated2.contains("UniqueLongNameForTesting_A"));
-  Expect.isTrue(generated2.contains("UniqueLongNameForTesting_D"));
-
-  Expect.isFalse(generated2.contains("UniqueLongNameForTesting_B"));
-  Expect.isFalse(generated2.contains("UniqueLongNameForTesting_C"));
-  Expect.isFalse(generated2.contains("UniqueLongNameForTesting_E"));
 }
 
 testTreeShakingNativeTypes() async {
@@ -121,14 +111,6 @@ testTreeShakingNativeTypes() async {
   Expect.isTrue(generated1.contains("UniqueLongNameForTesting_B"));
   // but we exclude other native types like HTMLAudioElement
   Expect.isFalse(generated1.contains("HTMLAudioElement"));
-
-  print(' - allocation effect of dynamic excludes native types [flag] -');
-  // Trusting types doesn't make a difference.
-  String generated2 = await compile(program,
-      trustJSInteropTypeAnnotations: true, returnAll: true);
-  Expect.isTrue(generated2.contains("UniqueLongNameForTesting_A"));
-  Expect.isTrue(generated2.contains("UniqueLongNameForTesting_B"));
-  Expect.isFalse(generated2.contains("HTMLAudioElement"));
 
   print(' - declared native types are included in allocation effect -');
   String program2 = """

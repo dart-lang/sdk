@@ -137,6 +137,12 @@ class PackageBuildWorkspace extends Workspace {
   /// package:build does it.
   static const String _pubspecName = 'pubspec.yaml';
 
+  static const List<String> _generatedPathParts = [
+    '.dart_tool',
+    'build',
+    'generated'
+  ];
+
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
@@ -286,7 +292,7 @@ class PackageBuildWorkspace extends Workspace {
           final yaml = loadYaml(pubspec.readAsStringSync());
           final packageName = yaml['name'] as String;
           final generatedRootPath = provider.pathContext
-              .join(folder.path, '.dart_tool', 'build', 'generated');
+              .joinAll([folder.path, ..._generatedPathParts]);
           final generatedThisPath =
               provider.pathContext.join(generatedRootPath, packageName);
           return PackageBuildWorkspace._(provider, packageMap, folder.path,
@@ -334,4 +340,26 @@ class PackageBuildWorkspacePackage extends WorkspacePackage {
   @override
   Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
       workspace._packageMap;
+
+  @override
+  bool sourceIsInPublicApi(Source source) {
+    var filePath = filePathFromSource(source);
+    if (filePath == null) return false;
+    var libFolder = workspace.provider.pathContext.join(root, 'lib');
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      // A file in "$root/lib" is public iff it is not in "$root/lib/src".
+      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+
+    libFolder = workspace.provider.pathContext.joinAll(
+        [root, ...PackageBuildWorkspace._generatedPathParts, 'test', 'lib']);
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      // A file in "$generated/lib" is public iff it is not in
+      // "$generated/lib/src".
+      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+    return false;
+  }
 }

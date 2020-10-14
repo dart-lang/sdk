@@ -108,12 +108,8 @@ class ObjectPointerVisitor;
   V(Double, "double")                                                          \
   V(Dynamic, "dynamic")                                                        \
   V(DynamicCall, "dyn:call")                                                   \
+  V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
   V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
-  V(DynamicCallHasNamedVar, ":dyn_call_has_named")                             \
-  V(DynamicCallMaxParamsVar, ":dyn_call_max_params")                           \
-  V(DynamicCallNumFixedVar, ":dyn_call_num_fixed")                             \
-  V(DynamicCallNumOptVar, ":dyn_call_num_opt")                                 \
-  V(DynamicCallParameterNamesVar, ":dyn_call_parameter_names")                 \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \
@@ -658,9 +654,6 @@ class Symbols : public AllStatic {
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
 
-  // Treat the symbol table as weak and collect garbage.
-  static void Compact();
-
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).
@@ -682,11 +675,6 @@ class Symbols : public AllStatic {
   // Creates a new Symbol from an array of UTF-16 encoded characters.
   static StringPtr FromUTF16(Thread* thread,
                              const uint16_t* utf16_array,
-                             intptr_t len);
-
-  // Creates a new Symbol from an array of UTF-32 encoded characters.
-  static StringPtr FromUTF32(Thread* thread,
-                             const int32_t* utf32_array,
                              intptr_t len);
 
   static StringPtr New(Thread* thread, const String& str);
@@ -716,7 +704,7 @@ class Symbols : public AllStatic {
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);
 
-  static StringPtr FromCharCode(Thread* thread, int32_t char_code);
+  static StringPtr FromCharCode(Thread* thread, uint16_t char_code);
 
   static StringPtr* PredefinedAddress() {
     return reinterpret_cast<StringPtr*>(&predefined_);

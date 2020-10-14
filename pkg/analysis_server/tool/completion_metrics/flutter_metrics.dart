@@ -172,7 +172,7 @@ class FlutterMetricsComputer {
   FlutterMetricsComputer();
 
   /// Compute the metrics for the file(s) in the [rootPath].
-  void compute(String rootPath) async {
+  Future<void> compute(String rootPath) async {
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,

@@ -32,7 +32,7 @@ class ConvertDocumentationIntoLine extends CorrectionProducer {
       return null;
     }
     var text = token.lexeme;
-    var lines = text.split('\n');
+    var lines = text.split(eol);
     var prefix = utils.getNodePrefix(comment);
     var newLines = <String>[];
     var firstLine = true;

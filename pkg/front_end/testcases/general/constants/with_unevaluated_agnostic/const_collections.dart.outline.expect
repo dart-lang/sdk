@@ -1,0 +1,46 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_collections.dart:27:7: Error: Expected 2 type arguments.
+// const Map<bool> MapWithUnevaluated = {
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::bool> listWithUnevaluated = const <core::bool>[const core::bool::fromEnvironment("foo"), const core::bool::fromEnvironment("bar"), true];
+static const field core::List<core::bool> listWithUnevaluatedSpread = const <core::bool>[true] + self::listWithUnevaluated + const <core::bool>[false];
+static const field core::Set<core::bool> setWithUnevaluated = const <core::bool>{const core::bool::fromEnvironment("foo"), const core::bool::fromEnvironment("bar"), true};
+static const field core::Set<core::bool> setWithUnevaluatedSpread = const <core::bool>{true} + self::setWithUnevaluated + const <core::bool>{false};
+static const field core::List<core::int> a = const <core::int>[];
+static const field core::List<core::int?> b = const <core::int?>[];
+static const field core::Set<core::List<core::int?>> setNotAgnosticOK = const <core::List<core::int?>>{self::a, self::b};
+static const field invalid-type MapWithUnevaluated = const <core::bool, core::bool>{const core::bool::fromEnvironment("foo"): const core::bool::fromEnvironment("bar")};
+static const field core::Map<core::List<core::int?>, core::int> mapNotAgnosticOK = const <core::List<core::int?>, core::int>{self::a: 0, self::b: 1};
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated with empty environment: ListLiteral @ org-dartlang-testcase:///const_collections.dart:5:40 -> ListConstant(const <bool>[false, false, true])
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections.dart:6:8 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections.dart:7:8 -> BoolConstant(false)
+Evaluated with empty environment: ListConcatenation @ org-dartlang-testcase:///const_collections.dart:10:46 -> ListConstant(const <bool>[true, false, false, true, false])
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:10:46 -> ListConstant(const <bool>[true])
+Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///const_collections.dart:12:6 -> ListConstant(const <bool>[false, false, true])
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:10:46 -> ListConstant(const <bool>[false])
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections.dart:17:8 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections.dart:18:8 -> BoolConstant(false)
+Evaluated: SetLiteral @ org-dartlang-testcase:///const_collections.dart:21:44 -> SetConstant(const <bool>{true})
+Evaluated: SetLiteral @ org-dartlang-testcase:///const_collections.dart:21:44 -> SetConstant(const <bool>{false})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:23:16 -> ListConstant(const <int>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:24:17 -> ListConstant(const <int?>[])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:25:27 -> ListConstant(const <int>[])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:25:30 -> ListConstant(const <int?>[])
+Evaluated with empty environment: MapLiteral @ org-dartlang-testcase:///const_collections.dart:27:38 -> MapConstant(const <bool, bool>{false: false})
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections.dart:28:8 -> BoolConstant(false)
+Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///const_collections.dart:28:37 -> BoolConstant(false)
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:31:27 -> ListConstant(const <int>[])
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:31:33 -> ListConstant(const <int?>[])
+Extra constant evaluation: evaluated: 25, effectively constant: 20

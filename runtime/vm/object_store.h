@@ -193,6 +193,20 @@ class ObjectPointerVisitor;
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
   RW(Code, allocate_array_stub)                                                \
+  RW(Code, allocate_int8_array_stub)                                           \
+  RW(Code, allocate_uint8_array_stub)                                          \
+  RW(Code, allocate_uint8_clamped_array_stub)                                  \
+  RW(Code, allocate_int16_array_stub)                                          \
+  RW(Code, allocate_uint16_array_stub)                                         \
+  RW(Code, allocate_int32_array_stub)                                          \
+  RW(Code, allocate_uint32_array_stub)                                         \
+  RW(Code, allocate_int64_array_stub)                                          \
+  RW(Code, allocate_uint64_array_stub)                                         \
+  RW(Code, allocate_float32_array_stub)                                        \
+  RW(Code, allocate_float64_array_stub)                                        \
+  RW(Code, allocate_float32x4_array_stub)                                      \
+  RW(Code, allocate_int32x4_array_stub)                                        \
+  RW(Code, allocate_float64x2_array_stub)                                      \
   RW(Code, allocate_context_stub)                                              \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
@@ -244,6 +258,20 @@ class ObjectPointerVisitor;
   DO(stack_overflow_stub_without_fpu_regs_stub,                                \
      StackOverflowSharedWithoutFPURegs)                                        \
   DO(allocate_array_stub, AllocateArray)                                       \
+  DO(allocate_int8_array_stub, AllocateInt8Array)                              \
+  DO(allocate_uint8_array_stub, AllocateUint8Array)                            \
+  DO(allocate_uint8_clamped_array_stub, AllocateUint8ClampedArray)             \
+  DO(allocate_int16_array_stub, AllocateInt16Array)                            \
+  DO(allocate_uint16_array_stub, AllocateUint16Array)                          \
+  DO(allocate_int32_array_stub, AllocateInt32Array)                            \
+  DO(allocate_uint32_array_stub, AllocateUint32Array)                          \
+  DO(allocate_int64_array_stub, AllocateInt64Array)                            \
+  DO(allocate_uint64_array_stub, AllocateUint64Array)                          \
+  DO(allocate_float32_array_stub, AllocateFloat32Array)                        \
+  DO(allocate_float64_array_stub, AllocateFloat64Array)                        \
+  DO(allocate_float32x4_array_stub, AllocateFloat32x4Array)                    \
+  DO(allocate_int32x4_array_stub, AllocateInt32x4Array)                        \
+  DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
   DO(allocate_context_stub, AllocateContext)                                   \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
@@ -451,6 +479,7 @@ class ObjectStore {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
+      case Snapshot::kFullCore:
         return reinterpret_cast<ObjectPtr*>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:

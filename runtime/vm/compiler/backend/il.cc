@@ -997,6 +997,26 @@ AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
   ASSERT(!CompilerState::Current().is_aot());
 }
 
+LocationSummary* AllocateTypedDataInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(kLengthPos, Location::RegisterLocation(
+                               AllocateTypedDataArrayABI::kLengthReg));
+  locs->set_out(
+      0, Location::RegisterLocation(AllocateTypedDataArrayABI::kResultReg));
+  return locs;
+}
+
+void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Code& stub = Code::ZoneHandle(
+      compiler->zone(), StubCode::GetAllocationStubForTypedData(class_id()));
+  compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
+                             locs());
+}
+
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
   return slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
@@ -2896,6 +2916,11 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       if (slot().kind() == Slot::Kind::kArray_length) {
         return create_array->num_elements()->definition();
       }
+    } else if (AllocateTypedDataInstr* alloc_typed_data =
+                   array->AsAllocateTypedData()) {
+      if (slot().kind() == Slot::Kind::kTypedDataBase_length) {
+        return alloc_typed_data->num_elements()->definition();
+      }
     } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
       // For arrays with guarded lengths, replace the length load
       // with a constant.
@@ -3085,7 +3110,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     if (new_dst_type.IsTypeRef()) {
       new_dst_type = TypeRef::Cast(new_dst_type).type();
     }
-    new_dst_type = new_dst_type.Canonicalize();
+    new_dst_type = new_dst_type.Canonicalize(Thread::Current(), nullptr);
 
     // Successfully instantiated destination type: update the type attached
     // to this instruction and set type arguments to null because we no

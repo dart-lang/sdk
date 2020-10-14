@@ -119,7 +119,7 @@ String debugQualifiedClassName(Class node) {
 }
 
 String debugMemberName(Member node) {
-  return node.name?.name ?? globalDebuggingNames.nameMember(node);
+  return node.name?.text ?? globalDebuggingNames.nameMember(node);
 }
 
 String debugQualifiedMemberName(Member node) {
@@ -341,14 +341,14 @@ class Printer extends Visitor<Null> {
   static final Name emptyName = new Name(emptyNameString);
 
   Name getMemberName(Member node) {
-    if (node.name?.name == '') return emptyName;
+    if (node.name?.text == '') return emptyName;
     if (node.name != null) return node.name;
     return new Name(syntheticNames.nameMember(node));
   }
 
   String getMemberReference(Member node) {
     if (node == null) return '<No Member>';
-    String name = getMemberName(node).name;
+    String name = getMemberName(node).text;
     if (node.parent is Class) {
       String className = getClassReference(node.parent);
       return '$className::$name';
@@ -481,11 +481,11 @@ class Printer extends Visitor<Null> {
       } else if (node is Field) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name.name);
+        write(prefix + '::' + node.name.text);
       } else if (node is Procedure) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name.name);
+        write(prefix + '::' + node.name.text);
       } else if (node is Typedef) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
@@ -701,10 +701,10 @@ class Printer extends Visitor<Null> {
   }
 
   void writeName(Name name) {
-    if (name?.name == '') {
+    if (name?.text == '') {
       writeWord(emptyNameString);
     } else {
-      writeWord(name?.name ?? '<anonymous>'); // TODO: write library name
+      writeWord(name?.text ?? '<anonymous>'); // TODO: write library name
     }
   }
 
@@ -1345,14 +1345,6 @@ class Printer extends Visitor<Null> {
     writeNode(node.arguments);
   }
 
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.{=');
-    writeMemberReferenceFromReference(node.targetReference);
-    writeSymbol('}');
-    writeNode(node.arguments);
-  }
-
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeWord('super');
     writeSymbol('.');
@@ -1383,9 +1375,10 @@ class Printer extends Visitor<Null> {
   }
 
   visitLogicalExpression(LogicalExpression node) {
-    int precedence = Precedence.binaryPrecedence[node.operator];
+    int precedence = Precedence
+        .binaryPrecedence[logicalExpressionOperatorToString(node.operatorEnum)];
     writeExpression(node.left, precedence);
-    writeSpaced(node.operator);
+    writeSpaced(logicalExpressionOperatorToString(node.operatorEnum));
     writeExpression(node.right, precedence + 1);
   }
 
@@ -1458,7 +1451,7 @@ class Printer extends Visitor<Null> {
       if (!first) {
         writeComma();
       }
-      writeWord('${fieldRef.asField.name.name}');
+      writeWord('${fieldRef.asField.name.text}');
       writeSymbol(':');
       writeExpression(value);
       first = false;
@@ -1767,22 +1760,6 @@ class Printer extends Visitor<Null> {
     writeWord('super');
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
-    writeSpaced('=');
-    writeExpression(node.value);
-  }
-
-  visitDirectPropertyGet(DirectPropertyGet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.{=');
-    writeMemberReferenceFromReference(node.targetReference);
-    writeSymbol('}');
-  }
-
-  visitDirectPropertySet(DirectPropertySet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.{=');
-    writeMemberReferenceFromReference(node.targetReference);
-    writeSymbol('}');
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -2366,7 +2343,7 @@ class Printer extends Visitor<Null> {
     writeList(node.fieldValues.entries,
         (core.MapEntry<Reference, Constant> entry) {
       if (entry.key.node != null) {
-        writeWord('${entry.key.asField.name.name}');
+        writeWord('${entry.key.asField.name.text}');
       } else {
         writeWord('${entry.key.canonicalName.name}');
       }
@@ -2478,13 +2455,12 @@ class Precedence extends ExpressionVisitor<int> {
   int visitInvalidExpression(InvalidExpression node) => CALLEE;
   int visitMethodInvocation(MethodInvocation node) => CALLEE;
   int visitSuperMethodInvocation(SuperMethodInvocation node) => CALLEE;
-  int visitDirectMethodInvocation(DirectMethodInvocation node) => CALLEE;
   int visitStaticInvocation(StaticInvocation node) => CALLEE;
   int visitConstructorInvocation(ConstructorInvocation node) => CALLEE;
   int visitNot(Not node) => PREFIX;
   int visitNullCheck(NullCheck node) => PRIMARY;
   int visitLogicalExpression(LogicalExpression node) =>
-      binaryPrecedence[node.operator];
+      binaryPrecedence[logicalExpressionOperatorToString(node.operatorEnum)];
   int visitConditionalExpression(ConditionalExpression node) => CONDITIONAL;
   int visitStringConcatenation(StringConcatenation node) => PRIMARY;
   int visitIsExpression(IsExpression node) => RELATIONAL;
@@ -2510,8 +2486,6 @@ class Precedence extends ExpressionVisitor<int> {
   int visitPropertySet(PropertySet node) => EXPRESSION;
   int visitSuperPropertyGet(SuperPropertyGet node) => PRIMARY;
   int visitSuperPropertySet(SuperPropertySet node) => EXPRESSION;
-  int visitDirectPropertyGet(DirectPropertyGet node) => PRIMARY;
-  int visitDirectPropertySet(DirectPropertySet node) => EXPRESSION;
   int visitStaticGet(StaticGet node) => PRIMARY;
   int visitStaticSet(StaticSet node) => EXPRESSION;
   int visitLet(Let node) => EXPRESSION;

@@ -1,0 +1,161 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:collection';
+
+class ConstIterable extends IterableBase<int> {
+  const ConstIterable();
+
+  Iterator<int> get iterator => <int>[].iterator;
+}
+
+const int fortyTwo = 42;
+const dynamic fortyTwoAsDynamic = ((fortyTwo as dynamic) * 2) ~/ 2;
+
+const List<String> nullList = null;
+const List<String> foo = ["hello", "world"];
+List<String> get fooAsGetter => const ["hello", "world"];
+const List<String> bar = [...foo, "!"];
+var barAsVar = [...foo, "!"];
+List<String> get barAsGetter => const [...foo, "!"];
+const List<String> barWithNullSpread = [...foo, ...nullList];
+const List<String> barWithIntSpread = [...foo, ...fortyTwo];
+const List<String> barWithIntDynamicSpread = [...foo, ...fortyTwoAsDynamic];
+const List<String> barWithMapSpread = [...foo, ...quux];
+const List<String> barWithCustomIterableSpread1 = [
+  ...bar,
+  ...const CustomIterable()
+];
+const List<String> barWithCustomIterableSpread2 = [...bar, ...CustomIterable()];
+const customIterable = const CustomIterable();
+const List<String> barWithCustomIterableSpread3 = [...bar, ...customIterable];
+const List<String> listConcat = ["Hello"] + ["World"];
+
+const Set<String> nullSet = null;
+const Set<String> baz = {"hello", "world"};
+Set<String> get bazAsGetter => const {"hello", "world"};
+const Set<String> qux = {...baz, "!"};
+Set<String> get quxAsGetter => const {...baz, "!"};
+const Set<String> quxWithNullSpread = {...baz, ...nullSet};
+const Set<String> quxWithIntSpread = {...baz, ...fortyTwo};
+const Set<String> quxWithMapSpread = {...baz, ...quux};
+const Set<String> quxWithCustomIterableSpread1 = {
+  ...baz,
+  ...const CustomIterable()
+};
+const Set<String> quxWithCustomIterableSpread2 = {...baz, ...CustomIterable()};
+const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
+const Set<dynamic> setWithNonPrimitiveEquals = {const WithEquals(42)};
+const Set<dynamic> setWithDuplicates = {42, 42};
+
+const Map<String, String> nullMap = null;
+const Map<String, String> quux = {"hello": "world"};
+Map<String, String> get quuxAsGetter => const {"hello": "world"};
+const Map<String, String> quuz = {...quux, "!": "bye!"};
+Map<String, String> get quuzAsGetter => const {...quux, "!": "bye!"};
+const Map<String, String> quuzWithNullSpread = {...quux, ...nullMap};
+const Map<String, String> quuzWithIntSpread = {...quux, ...fortyTwo};
+const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
+const Map<String, String> mapWithSetSpread = {...baz};
+const Map<String, String> mapWithCustomMap1 = {...const CustomMap()};
+const Map<String, String> mapWithCustomMap2 = {...CustomMap()};
+const Map<String, String> customMap = const CustomMap();
+const Map<String, String> mapWithCustomMap3 = {...customMap};
+const Map<dynamic, int> mapWithNonPrimitiveEqualsKey = {
+  const WithEquals(42): 42
+};
+const Map<int, int> mapWithDuplicates = {42: 42, 42: 42};
+
+class WithEquals {
+  final int i;
+  const WithEquals(this.i);
+  operator ==(Object o) {
+    return o is WithEquals && (o as WithEquals).i == i;
+  }
+}
+
+class CustomIterable extends IterableBase<String> {
+  const CustomIterable();
+  Iterator<String> get iterator => <String>[].iterator;
+}
+
+class CustomMap implements Map<String, String> {
+  const CustomMap();
+
+  @override
+  Iterable<MapEntry<String, String>> get entries => [];
+
+  @override
+  String operator [](Object key) => throw new UnimplementedError();
+
+  @override
+  void operator []=(String key, String value) => throw new UnimplementedError();
+
+  @override
+  Map<RK, RV> cast<RK, RV>() => throw new UnimplementedError();
+
+  @override
+  void clear() => throw new UnimplementedError();
+
+  @override
+  bool containsKey(Object key) => throw new UnimplementedError();
+
+  @override
+  bool containsValue(Object value) => throw new UnimplementedError();
+
+  @override
+  bool get isEmpty => throw new UnimplementedError();
+
+  @override
+  bool get isNotEmpty => throw new UnimplementedError();
+
+  @override
+  Iterable<String> get keys => throw new UnimplementedError();
+
+  @override
+  int get length => throw new UnimplementedError();
+
+  @override
+  String remove(Object key) => throw new UnimplementedError();
+
+  @override
+  Iterable<String> get values => throw new UnimplementedError();
+
+  @override
+  void addAll(Map<String, String> other) => throw new UnimplementedError();
+
+  @override
+  void addEntries(Iterable<MapEntry<String, String>> newEntries) =>
+      throw new UnimplementedError();
+
+  @override
+  void forEach(void f(String key, String value)) =>
+      throw new UnimplementedError();
+
+  @override
+  String putIfAbsent(String key, String ifAbsent()) =>
+      throw new UnimplementedError();
+
+  @override
+  void updateAll(String update(String key, String value)) =>
+      throw new UnimplementedError();
+
+  @override
+  void removeWhere(bool predicate(String key, String value)) =>
+      throw new UnimplementedError();
+
+  String update(String key, String update(String value), {String ifAbsent()}) =>
+      throw new UnimplementedError();
+
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> f(String key, String value)) =>
+      throw new UnimplementedError();
+}
+
+main() {
+  print(bar);
+  print(qux);
+  print(quuz);
+  print({"hello"});
+  print(const {"hello"});
+}

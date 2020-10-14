@@ -122,7 +122,7 @@ class _Attribute {
 
   _Attribute._(this.name, this.form);
 
-  static _Attribute fromReader(Reader reader) {
+  static _Attribute? fromReader(Reader reader) {
     final nameInt = reader.readLEB128EncodedInteger();
     final formInt = reader.readLEB128EncodedInteger();
     if (nameInt == 0 && formInt == 0) return null;
@@ -132,7 +132,7 @@ class _Attribute {
     if (!_attributeForms.containsKey(formInt)) {
       throw FormatException("Unexpected DW_FORM value 0x${paddedHex(formInt)}");
     }
-    return _Attribute._(_attributeNames[nameInt], _attributeForms[formInt]);
+    return _Attribute._(_attributeNames[nameInt]!, _attributeForms[formInt]!);
   }
 
   Object read(Reader reader, CompilationUnitHeader header) {
@@ -148,25 +148,24 @@ class _Attribute {
       case _AttributeForm.reference4:
         return reader.readBytes(4);
     }
-    return null;
   }
 
-  String valueToString(Object value, [CompilationUnit unit]) {
+  String valueToString(Object value, [CompilationUnit? unit]) {
     switch (form) {
       case _AttributeForm.string:
         return value as String;
       case _AttributeForm.address:
-        return '0x' + paddedHex(value as int, unit?.header?.addressSize ?? 0);
+        return '0x' + paddedHex(value as int, unit?.header.addressSize ?? 0);
       case _AttributeForm.sectionOffset:
         return paddedHex(value as int, 4);
       case _AttributeForm.constant:
         return value.toString();
       case _AttributeForm.reference4:
-        final unresolvedValue = paddedHex(value as int, 4);
-        final name = unit?.nameOfOrigin(value as int) ?? "(unresolved)";
+        final intValue = value as int;
+        final unresolvedValue = paddedHex(intValue, 4);
+        final name = unit?.nameOfOrigin(intValue) ?? "<unresolved>";
         return '0x${unresolvedValue} (origin: ${name})';
     }
-    return "<unknown>";
   }
 }
 
@@ -182,14 +181,14 @@ class _Abbreviation {
   static const _DW_CHILDREN_no = 0x00;
   static const _DW_CHILDREN_yes = 0x01;
 
-  static _Abbreviation fromReader(Reader reader) {
+  static _Abbreviation? fromReader(Reader reader) {
     final code = reader.readLEB128EncodedInteger();
     if (code == 0) return null;
     final tagInt = reader.readLEB128EncodedInteger();
     if (!_tags.containsKey(tagInt)) {
       throw FormatException("Unexpected DW_TAG value 0x${paddedHex(tagInt)}");
     }
-    final tag = _tags[tagInt];
+    final tag = _tags[tagInt]!;
     final childrenByte = reader.readByte();
     if (childrenByte != _DW_CHILDREN_no && childrenByte != _DW_CHILDREN_yes) {
       throw FormatException("Expected DW_CHILDREN_no or DW_CHILDREN_yes: "
@@ -210,9 +209,9 @@ class _Abbreviation {
     for (final attribute in attributes) {
       buffer
         ..write('      ')
-        ..write(_attributeNameStrings[attribute.name])
+        ..write(_attributeNameStrings[attribute.name]!)
         ..write(': ')
-        ..writeln(_attributeFormStrings[attribute.form]);
+        ..writeln(_attributeFormStrings[attribute.form]!);
     }
   }
 
@@ -230,9 +229,9 @@ class _AbbreviationsTable {
   _AbbreviationsTable._(this._abbreviations);
 
   bool containsKey(int code) => _abbreviations.containsKey(code);
-  _Abbreviation operator [](int code) => _abbreviations[code];
+  _Abbreviation? operator [](int code) => _abbreviations[code];
 
-  static _AbbreviationsTable fromReader(Reader reader) {
+  static _AbbreviationsTable? fromReader(Reader reader) {
     final abbreviations = Map.fromEntries(reader
         .readRepeated(_Abbreviation.fromReader)
         .map((abbr) => MapEntry(abbr.code, abbr)));
@@ -241,14 +240,14 @@ class _AbbreviationsTable {
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer..writeln('Abbreviations table:')..writeln();
-    for (final key in _abbreviations.keys) {
+    _abbreviations.forEach((key, abbreviation) {
       buffer
         ..write('  ')
         ..write(key)
         ..writeln(':');
-      _abbreviations[key].writeToStringBuffer(buffer);
+      abbreviation.writeToStringBuffer(buffer);
       buffer..writeln();
-    }
+    });
   }
 
   @override
@@ -268,7 +267,7 @@ class DebugInformationEntry {
 
   DebugInformationEntry._(this.code, this.attributes, this.children);
 
-  static DebugInformationEntry fromReader(
+  static DebugInformationEntry? fromReader(
       Reader reader, CompilationUnitHeader header) {
     final code = reader.readLEB128EncodedInteger();
     // DIEs with an abbreviation table index of 0 are list end markers.
@@ -276,81 +275,83 @@ class DebugInformationEntry {
     if (!header.abbreviations.containsKey(code)) {
       throw FormatException("Unknown abbreviation code 0x${paddedHex(code)}");
     }
-    final abbreviation = header.abbreviations[code];
+    final abbreviation = header.abbreviations[code]!;
     final attributes = <_Attribute, Object>{};
     for (final attribute in abbreviation.attributes) {
       attributes[attribute] = attribute.read(reader, header);
     }
-    Map<int, DebugInformationEntry> children;
+    final children = <int, DebugInformationEntry>{};
     if (abbreviation.children) {
-      children = Map.fromEntries(reader.readRepeatedWithOffsets(
+      children.addEntries(reader.readRepeatedWithOffsets(
           (r) => DebugInformationEntry.fromReader(r, header),
           absolute: true));
     }
-    assert((children != null) == abbreviation.children);
     return DebugInformationEntry._(code, attributes, children);
   }
 
-  _Attribute _namedAttribute(_AttributeName name) => attributes.keys
-      .firstWhere((_Attribute k) => k.name == name, orElse: () => null);
+  _Attribute? _namedAttribute(_AttributeName name) {
+    for (final attribute in attributes.keys) {
+      if (attribute.name == name) {
+        return attribute;
+      }
+    }
+    return null;
+  }
 
   bool containsKey(_AttributeName name) => _namedAttribute(name) != null;
 
-  Object operator [](_AttributeName name) => attributes[_namedAttribute(name)];
+  Object? operator [](_AttributeName name) => attributes[_namedAttribute(name)];
 
-  int get abstractOrigin => this[_AttributeName.abstractOrigin] as int;
+  int? get sectionOffset => this[_AttributeName.statementList] as int?;
 
-  int get lowPC => this[_AttributeName.lowProgramCounter] as int;
+  int? get abstractOrigin => this[_AttributeName.abstractOrigin] as int?;
 
-  int get highPC => this[_AttributeName.highProgramCounter] as int;
+  int? get lowPC => this[_AttributeName.lowProgramCounter] as int?;
+
+  int? get highPC => this[_AttributeName.highProgramCounter] as int?;
 
   bool containsPC(int virtualAddress) =>
-      lowPC != null && lowPC <= virtualAddress && virtualAddress < highPC;
+      (lowPC ?? 0) <= virtualAddress && virtualAddress < (highPC ?? -1);
 
-  String get name => this[_AttributeName.name] as String;
+  String? get name => this[_AttributeName.name] as String?;
 
-  int get callFileIndex => this[_AttributeName.callFile] as int;
+  int? get callFileIndex => this[_AttributeName.callFile] as int?;
 
-  int get callLine => this[_AttributeName.callLine] as int;
+  int? get callLine => this[_AttributeName.callLine] as int?;
 
-  // We don't assume that call columns are present for backwards compatibility.
-  int get callColumn => containsKey(_AttributeName.callColumn)
-      ? this[_AttributeName.callColumn] as int
-      : 0;
+  int? get callColumn => this[_AttributeName.callColumn] as int?;
 
-  List<CallInfo> callInfo(
+  List<CallInfo>? callInfo(
       CompilationUnit unit, LineNumberProgram lineNumberProgram, int address) {
     String callFilename(int index) =>
-        lineNumberProgram.header.filesInfo[index].name;
+        lineNumberProgram.header.filesInfo[index]?.name ?? '<unknown file>';
     if (!containsPC(address)) return null;
 
-    final tag = unit.header.abbreviations[code].tag;
+    final tag = unit.header.abbreviations[code]!.tag;
     final inlined = tag == _Tag.inlinedSubroutine;
-    if (children != null) {
-      for (final child in children.values) {
-        final callInfo = child.callInfo(unit, lineNumberProgram, address);
-        if (callInfo == null) continue;
+    for (final child in children.values) {
+      final callInfo = child.callInfo(unit, lineNumberProgram, address);
+      if (callInfo == null) continue;
 
-        if (tag == _Tag.compileUnit) return callInfo;
+      if (tag == _Tag.compileUnit) return callInfo;
 
-        return callInfo
-          ..add(DartCallInfo(
-              function: unit.nameOfOrigin(abstractOrigin),
-              inlined: inlined,
-              filename: callFilename(child.callFileIndex),
-              line: child.callLine,
-              column: child.callColumn));
-      }
+      return callInfo
+        ..add(DartCallInfo(
+            function: unit.nameOfOrigin(abstractOrigin ?? -1),
+            inlined: inlined,
+            filename: callFilename(child.callFileIndex ?? -1),
+            line: child.callLine ?? 0,
+            column: child.callColumn ?? 0));
     }
 
     if (tag == _Tag.compileUnit) return null;
 
-    final filename = lineNumberProgram.filename(address);
-    final line = lineNumberProgram.lineNumber(address);
-    final column = lineNumberProgram.column(address);
+    final filename = lineNumberProgram.filename(address)!;
+    final line = lineNumberProgram.lineNumber(address)!;
+    final column = lineNumberProgram.column(address)!;
     return [
       DartCallInfo(
-          function: unit.nameOfOrigin(abstractOrigin),
+          function: unit.nameOfOrigin(abstractOrigin ?? -1),
           inlined: inlined,
           filename: filename,
           line: line,
@@ -359,21 +360,21 @@ class DebugInformationEntry {
   }
 
   void writeToStringBuffer(StringBuffer buffer,
-      {CompilationUnit unit, String indent = ''}) {
+      {CompilationUnit? unit, String indent = ''}) {
     buffer
       ..write(indent)
       ..write('Abbreviation code: ')
       ..write(code)
       ..writeln('):');
-    for (final attribute in attributes.keys) {
+    attributes.forEach((attribute, value) {
       buffer
         ..write(indent)
         ..write('  ')
-        ..write(_attributeNameStrings[attribute.name])
+        ..write(_attributeNameStrings[attribute.name]!)
         ..write(' => ')
-        ..writeln(attribute.valueToString(attributes[attribute], unit));
-    }
-    if (children != null) {
+        ..writeln(attribute.valueToString(value, unit));
+    });
+    if (children.isNotEmpty) {
       buffer
         ..write(indent)
         ..write('Children (')
@@ -413,7 +414,7 @@ class CompilationUnitHeader {
   CompilationUnitHeader._(this.size, this.version, this.abbreviationsOffset,
       this.addressSize, this.abbreviations);
 
-  static CompilationUnitHeader fromReader(
+  static CompilationUnitHeader? fromReader(
       Reader reader, Map<int, _AbbreviationsTable> abbreviationsTables) {
     final size = _initialLengthValue(reader);
     // An empty unit is an ending marker.
@@ -423,13 +424,14 @@ class CompilationUnitHeader {
       throw FormatException("Expected DWARF version 2, got $version");
     }
     final abbreviationsOffset = reader.readBytes(4);
-    if (!abbreviationsTables.containsKey(abbreviationsOffset)) {
+    final abbreviationsTable = abbreviationsTables[abbreviationsOffset];
+    if (abbreviationsTable == null) {
       throw FormatException("No abbreviation table found for offset "
           "0x${paddedHex(abbreviationsOffset, 4)}");
     }
     final addressSize = reader.readByte();
-    return CompilationUnitHeader._(size, version, abbreviationsOffset,
-        addressSize, abbreviationsTables[abbreviationsOffset]);
+    return CompilationUnitHeader._(
+        size, version, abbreviationsOffset, addressSize, abbreviationsTable);
   }
 
   void writeToStringBuffer(StringBuffer buffer) {
@@ -461,7 +463,7 @@ class CompilationUnit {
 
   CompilationUnit._(this.header, this.referenceTable);
 
-  static CompilationUnit fromReader(
+  static CompilationUnit? fromReader(
       Reader reader, Map<int, _AbbreviationsTable> abbreviationsTables) {
     final header =
         CompilationUnitHeader.fromReader(reader, abbreviationsTables);
@@ -477,25 +479,21 @@ class CompilationUnit {
   static void _addChildEntries(Map<int, DebugInformationEntry> table) {
     final workList = Queue<MapEntry<int, DebugInformationEntry>>();
     for (final die in table.values) {
-      if (die.children != null) {
-        workList.addAll(die.children.entries);
-      }
+      workList.addAll(die.children.entries);
     }
     while (workList.isNotEmpty) {
       final kv = workList.removeFirst();
       final offset = kv.key;
       final child = kv.value;
       table[offset] = child;
-      if (child.children != null) {
-        workList.addAll(child.children.entries);
-      }
+      workList.addAll(child.children.entries);
     }
   }
 
-  Iterable<CallInfo> callInfo(LineNumberInfo lineNumberInfo, int address) {
+  Iterable<CallInfo>? callInfo(LineNumberInfo lineNumberInfo, int address) {
     for (final die in referenceTable.values) {
-      final lineNumberProgram =
-          lineNumberInfo[die[_AttributeName.statementList]];
+      final lineNumberProgram = lineNumberInfo[die.sectionOffset ?? -1];
+      if (lineNumberProgram == null) continue;
       final callInfo = die.callInfo(this, lineNumberProgram, address);
       if (callInfo != null) return callInfo;
     }
@@ -503,26 +501,24 @@ class CompilationUnit {
   }
 
   String nameOfOrigin(int offset) {
-    if (!referenceTable.containsKey(offset)) {
+    final origin = referenceTable[offset];
+    if (origin == null) {
       throw ArgumentError(
           "${paddedHex(offset)} is not the offset of an abbreviated unit");
     }
-    final origin = referenceTable[offset];
-    assert(origin.containsKey(_AttributeName.name));
     return origin[_AttributeName.name] as String;
   }
 
   void writeToStringBuffer(StringBuffer buffer) {
     header.writeToStringBuffer(buffer);
-    for (final offset in referenceTable.keys) {
-      final die = referenceTable[offset];
+    referenceTable.forEach((offset, die) {
       buffer
         ..write('Debug information entry at offset 0x')
         ..write(paddedHex(offset))
         ..writeln(':');
       die.writeToStringBuffer(buffer, unit: this);
       buffer.writeln();
-    }
+    });
   }
 
   @override
@@ -548,7 +544,7 @@ class DebugInfo {
     return DebugInfo._(units);
   }
 
-  Iterable<CallInfo> callInfo(LineNumberInfo lineNumberInfo, int address) {
+  Iterable<CallInfo>? callInfo(LineNumberInfo lineNumberInfo, int address) {
     for (final unit in units) {
       final callInfo = unit.callInfo(lineNumberInfo, address);
       if (callInfo != null) return callInfo;
@@ -578,7 +574,7 @@ class FileEntry {
 
   FileEntry._(this.name, this.directoryIndex, this.lastModified, this.size);
 
-  static FileEntry fromReader(Reader reader) {
+  static FileEntry? fromReader(Reader reader) {
     final name = reader.readNullTerminatedString();
     // An empty null-terminated string marks the table end.
     if (name == "") return null;
@@ -611,7 +607,7 @@ class FileInfo {
   }
 
   bool containsKey(int index) => _files.containsKey(index);
-  FileEntry operator [](int index) => _files[index];
+  FileEntry? operator [](int index) => _files[index];
 
   void writeToStringBuffer(StringBuffer buffer) {
     if (_files.isEmpty) {
@@ -654,17 +650,17 @@ class FileInfo {
       ..writeln(nameHeader);
 
     for (final index in _files.keys) {
-      buffer..write(" ")..write(indexStrings[index].padRight(maxIndexLength));
+      buffer..write(" ")..write(indexStrings[index]!.padRight(maxIndexLength));
       buffer
         ..write(" ")
-        ..write(dirIndexStrings[index].padRight(maxDirIndexLength));
+        ..write(dirIndexStrings[index]!.padRight(maxDirIndexLength));
       buffer
         ..write(" ")
-        ..write(modifiedStrings[index].padRight(maxModifiedLength));
-      buffer..write(" ")..write(sizeStrings[index].padRight(maxSizeLength));
+        ..write(modifiedStrings[index]!.padRight(maxModifiedLength));
+      buffer..write(" ")..write(sizeStrings[index]!.padRight(maxSizeLength));
       buffer
         ..write(" ")
-        ..writeln(_files[index].name);
+        ..writeln(_files[index]!.name);
     }
   }
 
@@ -679,13 +675,13 @@ class FileInfo {
 class LineNumberState {
   final defaultIsStatement;
 
-  int address;
-  int fileIndex;
-  int line;
-  int column;
-  bool isStatement;
-  bool basicBlock;
-  bool endSequence;
+  late int address;
+  late int fileIndex;
+  late int line;
+  late int column;
+  late bool isStatement;
+  late bool basicBlock;
+  late bool endSequence;
 
   LineNumberState(this.defaultIsStatement) {
     reset();
@@ -749,7 +745,7 @@ class LineNumberProgramHeader {
       this.includeDirectories,
       this.filesInfo);
 
-  static LineNumberProgramHeader fromReader(Reader reader) {
+  static LineNumberProgramHeader? fromReader(Reader reader) {
     final size = _initialLengthValue(reader);
     if (size == 0) return null;
     final version = reader.readBytes(2);
@@ -861,7 +857,7 @@ class LineNumberProgram {
 
   LineNumberProgram._(this.header, this.calculatedMatrix) : cachedLookups = {};
 
-  static LineNumberProgram fromReader(Reader reader) {
+  static LineNumberProgram? fromReader(Reader reader) {
     final header = LineNumberProgramHeader.fromReader(reader);
     if (header == null) return null;
     final calculatedMatrix = _readOpcodes(reader, header).toList();
@@ -955,14 +951,14 @@ class LineNumberProgram {
         address < calculatedMatrix.last.address;
   }
 
-  LineNumberState operator [](int address) {
+  LineNumberState? operator [](int address) {
     if (cachedLookups.containsKey(address)) return cachedLookups[address];
 
     if (!containsKey(address)) return null;
 
     // Since the addresses are generated in increasing order, we can do a
     // binary search to find the right state.
-    assert(calculatedMatrix != null && calculatedMatrix.isNotEmpty);
+    assert(calculatedMatrix.isNotEmpty);
     var minIndex = 0;
     var maxIndex = calculatedMatrix.length - 1;
     while (true) {
@@ -983,12 +979,12 @@ class LineNumberProgram {
     }
   }
 
-  String filename(int address) =>
-      header.filesInfo[this[address]?.fileIndex]?.name;
+  String? filename(int address) =>
+      header.filesInfo[this[address]?.fileIndex ?? -1]?.name;
 
-  int lineNumber(int address) => this[address]?.line;
+  int? lineNumber(int address) => this[address]?.line;
 
-  int column(int address) => this[address]?.column;
+  int? column(int address) => this[address]?.column;
 
   void writeToStringBuffer(StringBuffer buffer) {
     header.writeToStringBuffer(buffer);
@@ -1019,15 +1015,15 @@ class LineNumberInfo {
   }
 
   bool containsKey(int address) => programs.containsKey(address);
-  LineNumberProgram operator [](int address) => programs[address];
+  LineNumberProgram? operator [](int address) => programs[address];
 
   void writeToStringBuffer(StringBuffer buffer) {
-    for (final offset in programs.keys) {
+    programs.forEach((offset, program) {
       buffer
         ..write('Line number program @ 0x')
         ..writeln(paddedHex(offset));
-      programs[offset].writeToStringBuffer(buffer);
-    }
+      program.writeToStringBuffer(buffer);
+    });
   }
 
   String toString() {
@@ -1068,10 +1064,10 @@ class DartCallInfo extends CallInfo {
 
   DartCallInfo(
       {this.inlined = false,
-      this.function,
-      this.filename,
-      this.line,
-      this.column});
+      required this.function,
+      required this.filename,
+      required this.line,
+      required this.column});
 
   @override
   bool get isInternal => false;
@@ -1122,7 +1118,7 @@ class StubCallInfo extends CallInfo {
   final String name;
   final int offset;
 
-  StubCallInfo({this.name, this.offset});
+  StubCallInfo({required this.name, required this.offset});
 
   @override
   int get hashCode => _hashFinish(
@@ -1156,9 +1152,11 @@ class PCOffset {
 
   /// The call information found for this [PCOffset] in [dwarf].
   ///
+  /// Returns null if the PCOffset is invalid for the given DWARF information.
+  ///
   /// If [includeInternalFrames] is false, then only information corresponding
   /// to user or library code is returned.
-  Iterable<CallInfo> callInfoFrom(Dwarf dwarf,
+  Iterable<CallInfo>? callInfoFrom(Dwarf dwarf,
           {bool includeInternalFrames = false}) =>
       dwarf.callInfoFor(dwarf.virtualAddressOf(this),
           includeInternalFrames: includeInternalFrames);
@@ -1180,7 +1178,7 @@ class PCOffset {
 /// The DWARF debugging information for a Dart snapshot.
 class Dwarf {
   final Elf _elf;
-  final Map<int, _AbbreviationsTable> _abbreviationTables;
+  final Map<int, _AbbreviationsTable> _abbreviationsTables;
   final DebugInfo _debugInfo;
   final LineNumberInfo _lineNumberInfo;
 
@@ -1192,13 +1190,13 @@ class Dwarf {
   /// DWARF information.
   final int isolateStartAddress;
 
-  Dwarf._(this._elf, this._abbreviationTables, this._debugInfo,
+  Dwarf._(this._elf, this._abbreviationsTables, this._debugInfo,
       this._lineNumberInfo, this.vmStartAddress, this.isolateStartAddress);
 
   /// Attempts to load the DWARF debugging information from the reader.
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
-  static Dwarf fromReader(Reader reader) {
+  static Dwarf? fromReader(Reader reader) {
     // Currently, the only DWARF-containing format we recognize is ELF.
     final elf = Elf.fromReader(reader);
     if (elf == null) return null;
@@ -1208,18 +1206,19 @@ class Dwarf {
   /// Attempts to load the DWARF debugging information from the given bytes.
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
-  static Dwarf fromBytes(Uint8List bytes) =>
+  static Dwarf? fromBytes(Uint8List bytes) =>
       Dwarf.fromReader(Reader.fromTypedData(bytes));
 
   /// Attempts to load the DWARF debugging information from the file at [path].
   ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
-  static Dwarf fromFile(String path) => Dwarf.fromReader(Reader.fromFile(path));
+  static Dwarf? fromFile(String path) =>
+      Dwarf.fromReader(Reader.fromFile(path));
 
   static Dwarf _loadSectionsFromElf(Reader reader, Elf elf) {
     final abbrevSection = elf.namedSections(".debug_abbrev").single;
     final abbrevReader = abbrevSection.refocusedCopy(reader);
-    final abbreviationTables = Map.fromEntries(
+    final abbreviationsTables = Map.fromEntries(
         abbrevReader.readRepeatedWithOffsets(_AbbreviationsTable.fromReader));
 
     final lineNumberSection = elf.namedSections(".debug_line").single;
@@ -1228,7 +1227,7 @@ class Dwarf {
 
     final infoSection = elf.namedSections(".debug_info").single;
     final debugInfo = DebugInfo.fromReader(
-        infoSection.refocusedCopy(reader), abbreviationTables);
+        infoSection.refocusedCopy(reader), abbreviationsTables);
 
     final vmStartSymbol = elf.dynamicSymbolFor(constants.vmSymbolName);
     if (vmStartSymbol == null) {
@@ -1245,29 +1244,33 @@ class Dwarf {
     }
     final isolateStartAddress = isolateStartSymbol.value;
 
-    return Dwarf._(elf, abbreviationTables, debugInfo, lineNumberInfo,
+    return Dwarf._(elf, abbreviationsTables, debugInfo, lineNumberInfo,
         vmStartAddress, isolateStartAddress);
   }
 
   /// The build ID for the debugging information.
   ///
   /// Returns null if there is no build ID information recorded.
-  String get buildId {
+  String? get buildId {
     final sections = _elf.namedSections(constants.buildIdSectionName);
     if (sections.isEmpty) return null;
-    final Note note = sections.single;
+    final note = sections.single as Note;
     if (note.type != constants.buildIdNoteType) return null;
     if (note.name != constants.buildIdNoteName) return null;
-    return note.description.map((i) => i.toRadixString(16)).join();
+    return note.description
+        .map((i) => i.toRadixString(16).padLeft(2, '0'))
+        .join();
   }
 
   /// The call information for the given virtual address. There may be
   /// multiple [CallInfo] objects returned for a single virtual address when
   /// code has been inlined.
   ///
+  /// Returns null if the given address is invalid for the DWARF information.
+  ///
   /// If [includeInternalFrames] is false, then only information corresponding
   /// to user or library code is returned.
-  Iterable<CallInfo> callInfoFor(int address,
+  Iterable<CallInfo>? callInfoFor(int address,
       {bool includeInternalFrames = false}) {
     var calls = _debugInfo.callInfo(_lineNumberInfo, address);
     if (calls == null) {
@@ -1304,10 +1307,10 @@ class Dwarf {
       ..writeln('         Abbreviation tables')
       ..writeln('----------------------------------------')
       ..writeln();
-    for (final offset in _abbreviationTables.keys) {
+    _abbreviationsTables.forEach((offset, table) {
       buffer..write('(Offset ')..write(paddedHex(offset, 4))..write(') ');
-      _abbreviationTables[offset].writeToStringBuffer(buffer);
-    }
+      table.writeToStringBuffer(buffer);
+    });
     buffer
       ..writeln('----------------------------------------')
       ..writeln('          Debug information')

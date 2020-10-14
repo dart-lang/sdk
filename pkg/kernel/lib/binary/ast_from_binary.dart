@@ -1324,7 +1324,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'field');
+      debugPath.add(node.name?.text ?? 'field');
       return true;
     }());
     var type = readDartType();
@@ -1364,7 +1364,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'constructor');
+      debugPath.add(node.name?.text ?? 'constructor');
       return true;
     }());
     var function = readFunctionNode();
@@ -1408,7 +1408,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'procedure');
+      debugPath.add(node.name?.text ?? 'procedure');
       return true;
     }());
     int functionNodeSize = endOffset - _byteOffset;
@@ -1469,7 +1469,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+      debugPath.add(node.name?.text ?? 'redirecting-factory-constructor');
       return true;
     }());
     var targetReference = readMemberReference();
@@ -1638,12 +1638,12 @@ class BinaryBuilder {
     return variableStack[index];
   }
 
-  String logicalOperatorToString(int index) {
+  LogicalExpressionOperator logicalOperatorToEnum(int index) {
     switch (index) {
       case 0:
-        return '&&';
+        return LogicalExpressionOperator.AND;
       case 1:
-        return '||';
+        return LogicalExpressionOperator.OR;
       default:
         throw fail('unexpected logical operator index: $index');
     }
@@ -1720,16 +1720,6 @@ class BinaryBuilder {
         return new SuperPropertySet.byReference(readName(), readExpression(),
             readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
-      case Tag.DirectPropertyGet:
-        int offset = readOffset();
-        return new DirectPropertyGet.byReference(
-            readExpression(), readInstanceMemberReference())
-          ..fileOffset = offset;
-      case Tag.DirectPropertySet:
-        int offset = readOffset();
-        return new DirectPropertySet.byReference(
-            readExpression(), readInstanceMemberReference(), readExpression())
-          ..fileOffset = offset;
       case Tag.StaticGet:
         int offset = readOffset();
         return new StaticGet.byReference(readMemberReference())
@@ -1749,11 +1739,6 @@ class BinaryBuilder {
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperMethodInvocation.byReference(readName(),
             readArguments(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
-      case Tag.DirectMethodInvocation:
-        int offset = readOffset();
-        return new DirectMethodInvocation.byReference(
-            readExpression(), readInstanceMemberReference(), readArguments())
           ..fileOffset = offset;
       case Tag.StaticInvocation:
         int offset = readOffset();
@@ -1786,7 +1771,7 @@ class BinaryBuilder {
         return new NullCheck(readExpression())..fileOffset = offset;
       case Tag.LogicalExpression:
         return new LogicalExpression(readExpression(),
-            logicalOperatorToString(readByte()), readExpression());
+            logicalOperatorToEnum(readByte()), readExpression());
       case Tag.ConditionalExpression:
         return new ConditionalExpression(readExpression(), readExpression(),
             readExpression(), readDartTypeOption());

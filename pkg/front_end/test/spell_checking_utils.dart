@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:io' show File, stdin, stdout;
+
+import "utils/io_utils.dart";
+
+final Uri repoDir = computeRepoDirUri();
 
 enum Dictionaries {
   common,
@@ -162,19 +166,18 @@ void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
 Uri dictionaryToUri(Dictionaries dictionaryType) {
   switch (dictionaryType) {
     case Dictionaries.common:
-      return Uri.base
+      return repoDir
           .resolve("pkg/front_end/test/spell_checking_list_common.txt");
     case Dictionaries.cfeMessages:
-      return Uri.base
+      return repoDir
           .resolve("pkg/front_end/test/spell_checking_list_messages.txt");
     case Dictionaries.cfeCode:
-      return Uri.base
-          .resolve("pkg/front_end/test/spell_checking_list_code.txt");
+      return repoDir.resolve("pkg/front_end/test/spell_checking_list_code.txt");
     case Dictionaries.cfeTests:
-      return Uri.base
+      return repoDir
           .resolve("pkg/front_end/test/spell_checking_list_tests.txt");
     case Dictionaries.denylist:
-      return Uri.base
+      return repoDir
           .resolve("pkg/front_end/test/spell_checking_list_denylist.txt");
   }
   throw "Unknown Dictionary";
@@ -341,4 +344,122 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
     }
   }
   return result;
+}
+
+void spellSummarizeAndInteractiveMode(
+    Set<String> reportedWords,
+    Set<String> reportedWordsDenylisted,
+    List<Dictionaries> dictionaries,
+    bool interactive,
+    String interactiveLaunchExample) {
+  if (reportedWordsDenylisted.isNotEmpty) {
+    print("\n\n\n");
+    print("================");
+    print("The following words was reported as used and denylisted:");
+    print("----------------");
+    for (String s in reportedWordsDenylisted) {
+      print("$s");
+    }
+    print("================");
+  }
+  if (reportedWords.isNotEmpty) {
+    print("\n\n\n");
+    print("================");
+    print("The following word(s) were reported as unknown:");
+    print("----------------");
+
+    Dictionaries dictionaryToUse;
+    if (dictionaries.contains(Dictionaries.cfeTests)) {
+      dictionaryToUse = Dictionaries.cfeTests;
+    } else if (dictionaries.contains(Dictionaries.cfeMessages)) {
+      dictionaryToUse = Dictionaries.cfeMessages;
+    } else if (dictionaries.contains(Dictionaries.cfeCode)) {
+      dictionaryToUse = Dictionaries.cfeCode;
+    } else {
+      for (Dictionaries dictionary in dictionaries) {
+        if (dictionaryToUse == null ||
+            dictionary.index < dictionaryToUse.index) {
+          dictionaryToUse = dictionary;
+        }
+      }
+    }
+
+    if (interactive && dictionaryToUse != null) {
+      List<String> addedWords = new List<String>();
+      for (String s in reportedWords) {
+        print("- $s");
+        String answer;
+        bool add;
+        while (true) {
+          stdout.write("Do you want to add the word to the dictionary "
+              "$dictionaryToUse (y/n)? ");
+          answer = stdin.readLineSync().trim().toLowerCase();
+          switch (answer) {
+            case "y":
+            case "yes":
+            case "true":
+              add = true;
+              break;
+            case "n":
+            case "no":
+            case "false":
+              add = false;
+              break;
+            default:
+              add = null;
+              print("'$answer' is not a valid answer. Please try again.");
+              break;
+          }
+          if (add != null) break;
+        }
+        if (add) {
+          addedWords.add(s);
+        }
+      }
+      if (addedWords.isNotEmpty) {
+        File dictionaryFile =
+            new File.fromUri(dictionaryToUri(dictionaryToUse));
+        List<String> lines = dictionaryFile.readAsLinesSync();
+        List<String> header = new List<String>();
+        List<String> sortThis = new List<String>();
+        for (String line in lines) {
+          if (line.startsWith("#")) {
+            header.add(line);
+          } else if (line.trim().isEmpty && sortThis.isEmpty) {
+            header.add(line);
+          } else if (line.trim().isNotEmpty) {
+            sortThis.add(line);
+          }
+        }
+        sortThis.addAll(addedWords);
+        sortThis.sort();
+        lines = new List<String>();
+        lines.addAll(header);
+        if (header.isEmpty || header.last.isNotEmpty) {
+          lines.add("");
+        }
+        lines.addAll(sortThis);
+        lines.add("");
+        dictionaryFile.writeAsStringSync(lines.join("\n"));
+      }
+    } else {
+      for (String s in reportedWords) {
+        print("$s");
+      }
+      if (dictionaries.isNotEmpty) {
+        print("----------------");
+        print("If the word(s) are correctly spelled please add it to one of "
+            "these files:");
+        for (Dictionaries dictionary in dictionaries) {
+          print(" - ${dictionaryToUri(dictionary)}");
+        }
+
+        print("");
+        print("To add words easily, try to run this script in interactive "
+            "mode via the command");
+        print(interactiveLaunchExample);
+      }
+    }
+    print("================");
+  }
 }

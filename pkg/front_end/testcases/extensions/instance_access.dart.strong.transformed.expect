@@ -145,3 +145,23 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Mismatch: expected=${expected}, actual=${actual}";
   }
 }
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:79:28 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:79:28 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:81:28 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:81:28 -> IntConstant(87)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:82:42 -> IntConstant(27)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:82:42 -> IntConstant(27)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:83:42 -> IntConstant(37)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:83:42 -> IntConstant(37)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:84:56 -> IntConstant(77)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:84:56 -> IntConstant(77)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:85:56 -> IntConstant(67)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:85:56 -> IntConstant(67)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:100:28 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:100:28 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:103:28 -> IntConstant(43)
+Evaluated: VariableGet @ org-dartlang-testcase:///instance_access.dart:103:28 -> IntConstant(43)
+Extra constant evaluation: evaluated: 325, effectively constant: 16

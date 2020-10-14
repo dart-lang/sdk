@@ -36,6 +36,43 @@ class A {
 ''');
   }
 
+  test_constructorInitializer_assert_superClass() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get f => 0;
+}
+
+class B extends A {
+  B() : assert(f != 0);
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 66, 1),
+    ]);
+  }
+
+  test_constructorInitializer_assert_thisClass() async {
+    await assertErrorsInCode(r'''
+class A {
+  A() : assert(f != 0);
+  int get f => 0;
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 25, 1),
+    ]);
+  }
+
+  test_constructorInitializer_field() async {
+    await assertErrorsInCode(r'''
+class A {
+  var v;
+  A() : v = f;
+  var f;
+}
+''', [
+      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 31, 1),
+    ]);
+  }
+
   test_constructorName() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -46,18 +83,6 @@ class B {
   B() : v = new A.named();
 }
 ''');
-  }
-
-  test_field() async {
-    await assertErrorsInCode(r'''
-class A {
-  var v;
-  A() : v = f;
-  var f;
-}
-''', [
-      error(CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER, 31, 1),
-    ]);
   }
 
   test_field2() async {

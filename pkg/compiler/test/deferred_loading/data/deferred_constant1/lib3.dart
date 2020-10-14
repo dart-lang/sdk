@@ -6,9 +6,12 @@
 
 library deferred_constants1_lib3;
 
-/*class: C:OutputUnit(main, {}), type=OutputUnit(main, {})*/
+/*class: C:
+ class_unit=main{},
+ type_unit=main{}
+*/
 class C {
-  /*member: C.value:OutputUnit(main, {})*/
+  /*member: C.value:member_unit=main{}*/
   final value;
 
   const C(this.value);

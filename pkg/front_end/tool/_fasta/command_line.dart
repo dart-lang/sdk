@@ -197,6 +197,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.target: const StringValue(),
   Flags.verbose: const BoolValue(false),
   Flags.verify: const BoolValue(false),
+  Flags.warnOnReachabilityCheck: const BoolValue(false),
   Flags.linkDependencies: const UriListValue(),
   Flags.noDeps: const BoolValue(false),
   "-D": const DefineValue(),
@@ -298,6 +299,8 @@ ProcessedOptions analyzeCommandLine(String programName,
       ? NnbdMode.Agnostic
       : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
 
+  final bool warnOnReachabilityCheck = options[Flags.warnOnReachabilityCheck];
+
   final List<Uri> linkDependencies = options[Flags.linkDependencies] ?? [];
 
   if (nnbdStrongMode && nnbdWeakMode) {
@@ -348,7 +351,8 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..environmentDefines = noDefines ? null : parsedArguments.defines
     ..nnbdMode = nnbdMode
     ..additionalDills = linkDependencies
-    ..emitDeps = !noDeps;
+    ..emitDeps = !noDeps
+    ..warnOnReachabilityCheck = warnOnReachabilityCheck;
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {

@@ -146,7 +146,6 @@ for command; do
       out/ReleaseIA32/vm_platform_strong.dill \
       out/ReleaseIA32/gen/kernel_service.dill \
       out/ReleaseIA32/dart-sdk \
-      tools/dart2js/angular2_testing_deps \
       out/ReleaseIA32/dart \
       out/ReleaseIA32/gen_snapshot \
       out/ReleaseIA32/gen_kernel_bytecode.dill \
@@ -159,8 +158,6 @@ for command; do
       .packages \
       .dart_tool/package_config.json \
       pkg \
-      runtime/bin \
-      runtime/lib \
       benchmarks \
       || (rm -f linux-ia32.tar.gz; exit 1)
   elif [ "$command" = linux-ia32-benchmark ]; then
@@ -310,8 +307,6 @@ EOF
       .packages \
       .dart_tool/package_config.json \
       pkg \
-      runtime/bin \
-      runtime/lib \
       benchmarks \
       || (rm -f linux-x64.tar.gz; exit 1)
   elif [ "$command" = linux-x64-benchmark ]; then

@@ -382,10 +382,15 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    assertTypeName(
-      findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
-      'int* Function(bool*)*',
+    var element = import_a.functionTypeAlias('F');
+
+    var typeName = findNode.typeName('F a');
+    assertTypeName(typeName, element, 'int* Function(bool*)*');
+
+    assertFunctionTypeTypedef(
+      typeName.type,
+      element: element,
+      typeArguments: [],
     );
   }
 
@@ -401,10 +406,15 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    assertTypeName(
-      findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
-      'dynamic Function(bool*)*',
+    var element = import_a.functionTypeAlias('F');
+
+    var typeName = findNode.typeName('F a');
+    assertTypeName(typeName, element, 'dynamic Function(bool*)*');
+
+    assertFunctionTypeTypedef(
+      typeName.type,
+      element: element,
+      typeArguments: ['dynamic'],
     );
   }
 
@@ -420,10 +430,15 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    assertTypeName(
-      findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
-      'num* Function(bool*)*',
+    var element = import_a.functionTypeAlias('F');
+
+    var typeName = findNode.typeName('F a');
+    assertTypeName(typeName, element, 'num* Function(bool*)*');
+
+    assertFunctionTypeTypedef(
+      typeName.type,
+      element: element,
+      typeArguments: ['num*'],
     );
   }
 
@@ -439,10 +454,15 @@ import 'a.dart';
 f(F<int> a) {}
 ''');
 
-    assertTypeName(
-      findNode.typeName('F<int> a'),
-      import_a.functionTypeAlias('F'),
-      'int* Function(bool*)*',
+    var element = import_a.functionTypeAlias('F');
+
+    var typeName = findNode.typeName('F<int> a');
+    assertTypeName(typeName, element, 'int* Function(bool*)*');
+
+    assertFunctionTypeTypedef(
+      typeName.type,
+      element: element,
+      typeArguments: ['int*'],
     );
   }
 

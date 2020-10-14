@@ -732,7 +732,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StaticCallInstr* list_factory = nullptr;
+  AllocateTypedDataInstr* alloc_typed_data = nullptr;
   UnboxedConstantInstr* double_one = nullptr;
   StoreIndexedInstr* first_store = nullptr;
   StoreIndexedInstr* second_store = nullptr;
@@ -742,7 +742,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch(
       {
-          {kMatchAndMoveStaticCall, &list_factory},
+          {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
           {kMatchAndMoveUnboxedConstant, &double_one},
           {kMatchAndMoveStoreIndexed, &first_store},
           {kMatchAndMoveStoreIndexed, &second_store},
@@ -752,8 +752,8 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
       },
       /*insert_before=*/kMoveGlob));
 
-  EXPECT(first_store->array()->definition() == list_factory);
-  EXPECT(second_store->array()->definition() == list_factory);
+  EXPECT(first_store->array()->definition() == alloc_typed_data);
+  EXPECT(second_store->array()->definition() == alloc_typed_data);
   EXPECT(boxed_result->value()->definition() != double_one);
   EXPECT(boxed_result->value()->definition() == final_load);
 }
@@ -855,7 +855,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StaticCallInstr* list_factory = nullptr;
+  AllocateTypedDataInstr* alloc_typed_data = nullptr;
   UnboxedConstantInstr* double_one = nullptr;
   StoreIndexedInstr* first_store = nullptr;
   StoreIndexedInstr* second_store = nullptr;
@@ -865,7 +865,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch(
       {
-          {kMatchAndMoveStaticCall, &list_factory},
+          {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
           kMatchAndMoveBranchTrue,
           kMatchAndMoveBranchTrue,
           kMatchAndMoveBranchFalse,
@@ -880,8 +880,8 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
       },
       /*insert_before=*/kMoveGlob));
 
-  EXPECT(first_store->array()->definition() == list_factory);
-  EXPECT(second_store->array()->definition() == list_factory);
+  EXPECT(first_store->array()->definition() == alloc_typed_data);
+  EXPECT(second_store->array()->definition() == alloc_typed_data);
   EXPECT(boxed_result->value()->definition() != double_one);
   EXPECT(boxed_result->value()->definition() == final_load);
 }

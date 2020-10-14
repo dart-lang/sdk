@@ -19,6 +19,7 @@ library;
 //          ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Expected an identifier, but got '1'.
+// Try inserting an identifier before '1'.
 //     for (1 in x) {
 //          ^
 //
@@ -69,6 +70,7 @@ library;
 //        ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Expected an identifier, but got '1'.
+// Try inserting an identifier before '1'.
 //   for (1 in arguments) {
 //        ^
 //
@@ -256,3 +258,11 @@ static method main(dynamic arguments) → dynamic {
     }
   }
 }
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:15:13 -> TypeLiteralConstant(Fisk*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:21:13 -> TypeLiteralConstant(void Function()*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:35:11 -> TypeLiteralConstant(Fisk*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///unresolved_for_in.dart:41:11 -> TypeLiteralConstant(void Function()*)
+Extra constant evaluation: evaluated: 85, effectively constant: 4

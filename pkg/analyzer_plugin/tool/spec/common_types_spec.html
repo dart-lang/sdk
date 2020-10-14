@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Common Types</h1>
-<version>1.2.0</version>
+<version>1.3.0</version>
 <p>
   This document contains a specification of the types that are common between
   the analysis server wire protocol and the analysis server plugin wire
@@ -1253,21 +1253,27 @@
     </p>
     <enum>
       <value>
-        <code>NAMED</code>
+        <code>OPTIONAL_NAMED</code>
         <p>
-          A named parameter.
+          An optional named parameter.
         </p>
       </value>
       <value>
-        <code>OPTIONAL</code>
+        <code>OPTIONAL_POSITIONAL</code>
         <p>
-          An optional parameter.
+          An optional positional parameter.
         </p>
       </value>
       <value>
-        <code>REQUIRED</code>
+        <code>REQUIRED_NAMED</code>
         <p>
-          A required parameter.
+          A required named parameter.
+        </p>
+      </value>
+      <value>
+        <code>REQUIRED_POSITIONAL</code>
+        <p>
+          A required positional parameter.
         </p>
       </value>
     </enum>

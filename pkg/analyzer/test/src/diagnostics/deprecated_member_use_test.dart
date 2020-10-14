@@ -833,11 +833,6 @@ class _PackageBuildWorkspaceBase extends PubPackageResolutionTest {
   }
 
   @override
-  void setUp() {
-    super.setUp();
-  }
-
-  @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
     assertPackageBuildWorkspaceFor(testFilePath);

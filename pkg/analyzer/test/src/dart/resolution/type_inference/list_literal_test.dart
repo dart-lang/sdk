@@ -273,7 +273,7 @@ var a = [...b, ...c];
     await assertNoErrorsInCode(r'''
 mixin L on List<int> {}
 
-main(L l1) {
+void f(L l1) {
   // ignore:unused_local_variable
   var l2 = [...l1];
 }

@@ -34,6 +34,8 @@ class C extends B {
     //   ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
     // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+    //     ^
+    // [cfe] Operand of null-aware operation '??=' has type 'int' which excludes null.
     //               ^
     // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
     super?.field;
@@ -47,17 +49,17 @@ class C extends B {
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
     // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     -super?.field;
+//   ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     //    ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
     // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-//   ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     ~super?.field;
+//   ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     //    ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
     // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-//   ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     !super?.field;
 //   ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_NEGATION_EXPRESSION

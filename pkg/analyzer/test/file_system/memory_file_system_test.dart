@@ -251,19 +251,37 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
     expect(newFile.readAsStringSync(), defaultFileContent);
   }
 
-  @failingTest
   @override
   test_resolveSymbolicLinksSync_links_existing() {
-    // TODO(brianwilkerson) Decide how to test this given that we cannot
-    // create a link in a MemoryResourceProvider.
-    fail('Not tested');
+    var a = provider.convertPath('/test/lib/a.dart');
+    var b = provider.convertPath('/test/lib/b.dart');
+
+    provider.newLink(b, a);
+    provider.newFile(a, 'aaa');
+
+    var resolved = provider.getFile(b).resolveSymbolicLinksSync();
+    expect(resolved.path, a);
+  }
+
+  @override
+  test_resolveSymbolicLinksSync_links_notExisting() {
+    var a = provider.convertPath('/test/lib/a.dart');
+    var b = provider.convertPath('/test/lib/b.dart');
+
+    provider.newLink(b, a);
+
+    expect(() {
+      provider.getFile(b).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
   }
 
   @override
   test_resolveSymbolicLinksSync_noLinks_notExisting() {
     File file = getFile(exists: false);
 
-    expect(file.resolveSymbolicLinksSync(), file);
+    expect(() {
+      file.resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
   }
 
   @override
@@ -286,7 +304,18 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
 }
 
 @reflectiveTest
-class MemoryFolderTest extends BaseTest with FolderTestMixin {}
+class MemoryFolderTest extends BaseTest with FolderTestMixin {
+  test_resolveSymbolicLinksSync() {
+    var lib = provider.convertPath('/test/lib');
+    var foo = provider.convertPath('/test/lib/foo');
+
+    provider.newLink(foo, lib);
+    provider.newFolder(lib);
+
+    var resolved = provider.getFolder(foo).resolveSymbolicLinksSync();
+    expect(resolved.path, lib);
+  }
+}
 
 @reflectiveTest
 class MemoryResourceProviderTest extends BaseTest
@@ -367,6 +396,36 @@ class MemoryResourceProviderTest extends BaseTest
 
   test_newFolder_notAbsolute() {
     expect(() => provider.newFolder('not/absolute'), throwsArgumentError);
+  }
+
+  test_newLink_folder() {
+    provider.newLink(
+      provider.convertPath('/test/lib/foo'),
+      provider.convertPath('/test/lib'),
+    );
+
+    provider.newFile(
+      provider.convertPath('/test/lib/a.dart'),
+      'aaa',
+    );
+
+    {
+      var path = '/test/lib/foo/a.dart';
+      var convertedPath = provider.convertPath(path);
+      var file = provider.getFile(convertedPath);
+      expect(file.exists, true);
+      expect(file.modificationStamp, isNonNegative);
+      expect(file.readAsStringSync(), 'aaa');
+    }
+
+    {
+      var path = '/test/lib/foo/foo/a.dart';
+      var convertedPath = provider.convertPath(path);
+      var file = provider.getFile(convertedPath);
+      expect(file.exists, true);
+      expect(file.modificationStamp, isNonNegative);
+      expect(file.readAsStringSync(), 'aaa');
+    }
   }
 
   @override

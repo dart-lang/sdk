@@ -60,3 +60,41 @@ static const field core::Set<core::int> setConcatenation = con::setLiteral;
 static const field core::Map<core::int, core::String> mapConcatenation = con::mapLiteral;
 static method id<T extends core::Object? = dynamic>(con::id::T% t) → con::id::T%
   ;
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///constants.dart:10:27 -> TypeLiteralConstant(Object)
+Evaluated: Instantiation @ org-dartlang-testcase:///constants.dart:11:52 -> PartialInstantiationConstant(id<int>)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constants.dart:12:24 -> InstanceConstant(const Class<int>{Class.field: 0})
+Evaluated: TypeLiteral @ org-dartlang-testcase:///constants.dart:13:29 -> TypeLiteralConstant(dynamic Function(dynamic))
+Evaluated: TypeLiteral @ org-dartlang-testcase:///constants.dart:14:36 -> TypeLiteralConstant(T% Function<T>(T%))
+Evaluated: ListLiteral @ org-dartlang-testcase:///constants.dart:15:26 -> ListConstant(const <int>[0])
+Evaluated: SetLiteral @ org-dartlang-testcase:///constants.dart:16:25 -> InstanceConstant(const _UnmodifiableSet<int>{_UnmodifiableSet._map: const _ImmutableMap<int, Null?>{_ImmutableMap._kvPairs: const <dynamic>[0, null]}})
+Evaluated: MapLiteral @ org-dartlang-testcase:///constants.dart:17:33 -> InstanceConstant(const _ImmutableMap<int, String>{_ImmutableMap._kvPairs: const <dynamic>[0, "foo"]})
+Evaluated: ListConcatenation @ org-dartlang-testcase:///constants.dart:18:32 -> ListConstant(const <int>[0])
+Evaluated: SetConcatenation @ org-dartlang-testcase:///constants.dart:19:31 -> InstanceConstant(const _UnmodifiableSet<int>{_UnmodifiableSet._map: const _ImmutableMap<int, Null?>{_ImmutableMap._kvPairs: const <dynamic>[0, null]}})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///constants.dart:20:7 -> InstanceConstant(const _ImmutableMap<int, String>{_ImmutableMap._kvPairs: const <dynamic>[0, "foo"]})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:23:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:25:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:26:27 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:28:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:30:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:31:30 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:32:29 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:33:29 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:35:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:37:5 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:39:5 -> BoolConstant(true)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///constants_lib.dart:16:27 -> TypeLiteralConstant(Object)
+Evaluated: StaticGet @ org-dartlang-testcase:///constants_lib.dart:17:12 -> TearOffConstant(identical)
+Evaluated: Instantiation @ org-dartlang-testcase:///constants_lib.dart:18:48 -> PartialInstantiationConstant(id<int>)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constants_lib.dart:19:24 -> InstanceConstant(const Class<int>{Class.field: 0})
+Evaluated: TypeLiteral @ org-dartlang-testcase:///constants_lib.dart:20:29 -> TypeLiteralConstant(dynamic Function(dynamic))
+Evaluated: TypeLiteral @ org-dartlang-testcase:///constants_lib.dart:21:36 -> TypeLiteralConstant(T% Function<T>(T%))
+Evaluated: ListLiteral @ org-dartlang-testcase:///constants_lib.dart:22:26 -> ListConstant(const <int>[0])
+Evaluated: SetLiteral @ org-dartlang-testcase:///constants_lib.dart:23:25 -> InstanceConstant(const _UnmodifiableSet<int>{_UnmodifiableSet._map: const _ImmutableMap<int, Null?>{_ImmutableMap._kvPairs: const <dynamic>[0, null]}})
+Evaluated: MapLiteral @ org-dartlang-testcase:///constants_lib.dart:24:33 -> InstanceConstant(const _ImmutableMap<int, String>{_ImmutableMap._kvPairs: const <dynamic>[0, "foo"]})
+Evaluated: ListConcatenation @ org-dartlang-testcase:///constants_lib.dart:25:32 -> ListConstant(const <int>[0])
+Evaluated: SetConcatenation @ org-dartlang-testcase:///constants_lib.dart:26:31 -> InstanceConstant(const _UnmodifiableSet<int>{_UnmodifiableSet._map: const _ImmutableMap<int, Null?>{_ImmutableMap._kvPairs: const <dynamic>[0, null]}})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///constants_lib.dart:27:7 -> InstanceConstant(const _ImmutableMap<int, String>{_ImmutableMap._kvPairs: const <dynamic>[0, "foo"]})
+Extra constant evaluation: evaluated: 35, effectively constant: 34

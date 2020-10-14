@@ -391,7 +391,7 @@ class ContentsPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var file = await server.resourceProvider.getFile(filePath);
+    var file = server.resourceProvider.getFile(filePath);
     if (!file.exists) {
       p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
       return;
@@ -497,16 +497,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln(writeOption(
         'Has pubspec.yaml file', folder.getChild('pubspec.yaml').exists));
     buf.writeln('</p>');
-
-    buf.writeln('</div>');
-
-    buf.writeln('<div class="column one-half">');
-    var sdk = driver?.sourceFactory?.dartSdk;
-    AnalysisOptionsImpl sdkOptions = sdk?.context?.analysisOptions;
-    if (sdkOptions != null) {
-      h3('SDK analysis options');
-      p(describe(sdkOptions), raw: true);
-    }
 
     buf.writeln('</div>');
 

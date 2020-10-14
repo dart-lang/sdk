@@ -1869,7 +1869,7 @@ class RelevanceMetricsComputer {
   /// Compute the metrics for the file(s) in the [rootPath].
   /// If [corpus] is true, treat rootPath as a container of packages, creating
   /// a new context collection for each subdirectory.
-  void compute(String rootPath, {@required bool verbose}) async {
+  Future<void> compute(String rootPath, {@required bool verbose}) async {
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -1929,7 +1929,8 @@ class RelevanceMetricsComputer {
   /// separate context collection to prevent accumulating memory. The metrics
   /// should be captured in the [collector]. Include additional details in the
   /// output if [verbose] is `true`.
-  void _computeInContext(ContextRoot root, RelevanceDataCollector collector,
+  Future<void> _computeInContext(
+      ContextRoot root, RelevanceDataCollector collector,
       {@required bool verbose}) async {
     // Create a new collection to avoid consuming large quantities of memory.
     final collection = AnalysisContextCollection(

@@ -212,3 +212,13 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
   } =>#t32;
 }
 static method main() → dynamic {}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:22:11 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:22:11 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:42:8 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:42:8 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:43:5 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:43:5 -> IntConstant(42)
+Extra constant evaluation: evaluated: 221, effectively constant: 6

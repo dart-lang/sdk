@@ -192,7 +192,8 @@ class AssistProcessor extends BaseProcessor {
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
 
-      var builder = ChangeBuilder(workspace: context.workspace);
+      var builder = ChangeBuilder(
+          workspace: context.workspace, eol: context.utils.endOfLine);
       await producer.compute(builder);
 
       _addAssistFromBuilder(builder, producer.assistKind,
@@ -246,7 +247,8 @@ class AssistProcessor extends BaseProcessor {
         var producer = generator();
         producer.configure(context);
 
-        var builder = ChangeBuilder(workspace: context.workspace);
+        var builder = ChangeBuilder(
+            workspace: context.workspace, eol: context.utils.endOfLine);
         await producer.compute(builder);
         _addAssistFromBuilder(builder, producer.assistKind,
             args: producer.assistArguments);
@@ -256,7 +258,8 @@ class AssistProcessor extends BaseProcessor {
       var multiProducer = multiGenerator();
       multiProducer.configure(context);
       for (var producer in multiProducer.producers) {
-        var builder = ChangeBuilder(workspace: context.workspace);
+        var builder = ChangeBuilder(
+            workspace: context.workspace, eol: context.utils.endOfLine);
         producer.configure(context);
         await producer.compute(builder);
         _addAssistFromBuilder(builder, producer.assistKind,

@@ -149,10 +149,17 @@ static set field3(FutureOr<dynamic>#t14) → void {
   self::_#field3#isSet = true;
   self::_#field3 = #t14;
 }
-static get field4() → FutureOr<core::int>
-  return let final FutureOr<core::int>? #t15 = self::_#field4 in #t15.==(null) ?{FutureOr<core::int>} self::_#field4 = self::method4() : #t15{FutureOr<core::int>};
-static set field4(FutureOr<core::int>#t16) → void
+static get field4() → FutureOr<core::int> {
+  if(!self::_#field4#isSet) {
+    self::_#field4 = self::method4();
+    self::_#field4#isSet = true;
+  }
+  return let final FutureOr<core::int>? #t15 = self::_#field4 in #t15{FutureOr<core::int>};
+}
+static set field4(FutureOr<core::int>#t16) → void {
+  self::_#field4#isSet = true;
   self::_#field4 = #t16;
+}
 static get field5() → FutureOr<core::int?> {
   if(!self::_#field5#isSet) {
     self::_#field5 = self::method5();

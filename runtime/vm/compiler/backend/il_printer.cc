@@ -688,13 +688,15 @@ void InstantiateTypeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void InstantiateTypeArgumentsInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  const String& type_args = String::Handle(type_arguments().Name());
-  f->Printf("%s,", type_args.ToCString());
-  f->AddString(" instantiator_type_args(");
+  type_arguments()->PrintTo(f);
+  f->AddString(", instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->AddString("), function_type_args(");
   function_type_arguments()->PrintTo(f);
-  f->Printf("), instantiator_class(%s)", instantiator_class().ToCString());
+  f->Printf(")");
+  if (!instantiator_class().IsNull()) {
+    f->Printf(", instantiator_class(%s)", instantiator_class().ToCString());
+  }
 }
 
 void AllocateContextInstr::PrintOperandsTo(BaseTextBuffer* f) const {

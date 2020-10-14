@@ -866,12 +866,12 @@ class CompletionDomainHandlerListTokenDetailsTest
     extends AbstractCompletionDomainTest {
   String testFileUri;
 
-  void expectTokens(String content, List<TokenDetails> expectedTokens) async {
+  Future<void> expectTokens(String content, List<TokenDetails> expected) async {
     newFile(testFile, content: content);
     var request = CompletionListTokenDetailsParams(testFile).toRequest('0');
     var response = await waitResponse(request);
     List<Map<String, dynamic>> tokens = response.result['tokens'];
-    _compareTokens(tokens, expectedTokens);
+    _compareTokens(tokens, expected);
   }
 
   @override

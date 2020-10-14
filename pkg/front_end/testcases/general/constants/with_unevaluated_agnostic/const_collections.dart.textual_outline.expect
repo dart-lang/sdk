@@ -1,0 +1,24 @@
+const List<bool> listWithUnevaluated = [
+  bool.fromEnvironment("foo"),
+  bool.fromEnvironment("bar"),
+  true,
+];
+const List<bool> listWithUnevaluatedSpread = [
+  true,
+  ...listWithUnevaluated,
+  false
+];
+const Set<bool> setWithUnevaluated = {
+  bool.fromEnvironment("foo"),
+  bool.fromEnvironment("bar"),
+  true,
+};
+const Set<bool> setWithUnevaluatedSpread = {true, ...setWithUnevaluated, false};
+const a = <int>[];
+const b = <int?>[];
+const setNotAgnosticOK = {a, b};
+const Map<bool> MapWithUnevaluated = {
+  bool.fromEnvironment("foo"): bool.fromEnvironment("bar"),
+};
+const mapNotAgnosticOK = {a: 0, b: 1};
+main() {}

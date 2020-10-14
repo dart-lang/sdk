@@ -171,7 +171,7 @@ void f() {
 
     // Deleting the file should result in an update to remove the diagnostics.
     final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await deleteFile(mainFilePath);
+    deleteFile(mainFilePath);
     final updatedDiagnostics = await secondDiagnosticsUpdate;
     expect(updatedDiagnostics, hasLength(0));
   }
@@ -248,6 +248,21 @@ void f() {
     // Ensure that as part of responding to getHover, diagnostics were not
     // transmitted.
     expect(diagnostics, isNull);
+  }
+
+  Future<void> test_fixDataFile() async {
+    var fixDataPath = join(projectFolderPath, 'lib', 'fix_data.yaml');
+    var fixDataUri = Uri.file(fixDataPath);
+    newFile(fixDataPath, content: '''
+version: latest
+''').path;
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(fixDataUri);
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Error);
+    expect(initialDiagnostics.first.code, 'invalid_value');
   }
 
   Future<void> test_fromPlugins_dartFile() async {

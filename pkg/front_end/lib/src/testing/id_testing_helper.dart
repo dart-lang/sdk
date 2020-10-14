@@ -375,7 +375,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       if (member.enclosingClass.isEnum) {
         if (member is Constructor ||
             member.isInstanceMember ||
-            member.name == 'values') {
+            member.name.text == 'values') {
           return;
         }
       }

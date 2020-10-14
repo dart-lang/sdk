@@ -16,6 +16,8 @@ var tests = <VMTest>[
     expect(result['type'], equals('Isolate'));
     expect(result['id'], startsWith('isolates/'));
     expect(result['number'], isA<String>());
+    expect(result['isolateFlags'], isA<List>());
+    expect(result['isolateFlags'].length, isPositive);
     expect(result['isSystemIsolate'], isFalse);
     expect(result['_originNumber'], equals(result['number']));
     expect(result['startTime'], isPositive);

@@ -136,7 +136,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(options, this);
+    _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this, options);
     _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
@@ -296,7 +296,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
       this._environment, ir.Component component, DataSource source) {
     _elementEnvironment = new JsElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(options, this);
+    _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this, options);
     _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);
@@ -820,7 +820,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     while (superclass != null) {
       JClassEnv env = classes.getEnv(superclass);
       MemberEntity superMember =
-          env.lookupMember(this, name.name, setter: setter);
+          env.lookupMember(this, name.text, setter: setter);
       if (superMember != null) {
         if (!superMember.isInstanceMember) return null;
         if (!superMember.isAbstract) {
@@ -1243,7 +1243,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   Name getName(ir.Name name) {
     return new Name(
-        name.name, name.isPrivate ? getLibrary(name.library) : null);
+        name.text, name.isPrivate ? getLibrary(name.library) : null);
   }
 
   @override
@@ -1261,9 +1261,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     // folks.
     if (node is ir.PropertyGet) {
       return getGetterSelector(node.name);
-    }
-    if (node is ir.DirectPropertyGet) {
-      return getGetterSelector(node.target.name);
     }
     if (node is ir.SuperPropertyGet) {
       return getGetterSelector(node.name);
@@ -1302,13 +1299,13 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   Selector getGetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.setter(name);
   }
 
@@ -2140,7 +2137,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         if (node.kind == ir.ProcedureKind.Factory) {
           parts.add(utils.reconstructConstructorName(getMember(node)));
         } else {
-          parts.add(utils.operatorNameToIdentifier(node.name.name));
+          parts.add(utils.operatorNameToIdentifier(node.name.text));
         }
       } else if (node is ir.Constructor) {
         parts.add(utils.reconstructConstructorName(getMember(node)));

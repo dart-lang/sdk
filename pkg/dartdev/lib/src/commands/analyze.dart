@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
+import '../analysis_server.dart';
 import '../core.dart';
 import '../events.dart';
 import '../sdk.dart';
 import '../utils.dart';
-import 'analyze_impl.dart';
 
 class AnalyzeCommand extends DartdevCommand<int> {
   static const String cmdName = 'analyze';
@@ -43,29 +43,21 @@ class AnalyzeCommand extends DartdevCommand<int> {
 
     // find directory from argResults.rest
     var dir = argResults.rest.isEmpty
-        ? Directory.current
-        : Directory(argResults.rest.single);
+        ? io.Directory.current
+        : io.Directory(argResults.rest.single);
     if (!dir.existsSync()) {
       usageException("Directory doesn't exist: ${dir.path}");
     }
 
-    final Completer<void> analysisCompleter = Completer<void>();
     final List<AnalysisError> errors = <AnalysisError>[];
 
     var progress = log.progress('Analyzing ${path.basename(dir.path)}');
 
     final AnalysisServer server = AnalysisServer(
-      Directory(sdk.sdkPath),
-      [dir],
+      io.Directory(sdk.sdkPath),
+      dir,
     );
 
-    StreamSubscription<bool> subscription;
-    subscription = server.onAnalyzing.listen((bool isAnalyzing) {
-      if (!isAnalyzing) {
-        analysisCompleter.complete();
-        subscription.cancel();
-      }
-    });
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
       // Record the issues found (but filter out to do comments).
       errors.addAll(fileErrors.errors
@@ -73,87 +65,92 @@ class AnalyzeCommand extends DartdevCommand<int> {
     });
 
     await server.start();
-    // Completing the future in the callback can't fail.
-    //ignore: unawaited_futures
+
+    bool analysisFinished = false;
+
+    // ignore: unawaited_futures
     server.onExit.then((int exitCode) {
-      if (!analysisCompleter.isCompleted) {
-        analysisCompleter.completeError('analysis server exited: $exitCode');
+      if (!analysisFinished) {
+        io.exitCode = exitCode;
       }
     });
 
-    await analysisCompleter.future;
-    await server.dispose();
+    await server.analysisFinished;
+    analysisFinished = true;
+
+    await server.shutdown(timeout: Duration(milliseconds: 100));
+
     progress.finish(showTiming: true);
 
     errors.sort();
 
-    if (errors.isNotEmpty) {
-      final bullet = log.ansi.bullet;
-
-      log.stdout('');
-
-      bool hasErrors = false;
-      bool hasWarnings = false;
-      bool hasInfos = false;
-
-      for (final AnalysisError error in errors) {
-        // error • Message ... at path.dart:line:col • (code)
-
-        var filePath = path.relative(error.file, from: dir.path);
-        var severity = error.severity.toLowerCase().padLeft(_severityWidth);
-        if (error.isError) {
-          severity = log.ansi.error(severity);
-        }
-
-        log.stdout(
-          '$severity $bullet '
-          '${log.ansi.emphasized(error.messageSentenceFragment)} '
-          'at $filePath:${error.startLine}:${error.startColumn} $bullet '
-          '(${error.code})',
-        );
-
-        if (verbose) {
-          var padding = ' ' * _bodyIndentWidth;
-          for (var message in error.contextMessages) {
-            log.stdout('$padding${message.message} '
-                'at ${message.filePath}:${message.line}:${message.column}');
-          }
-          if (error.correction != null) {
-            log.stdout('$padding${error.correction}');
-          }
-          if (error.url != null) {
-            log.stdout('$padding${error.url}');
-          }
-        }
-
-        hasErrors |= error.isError;
-        hasWarnings |= error.isWarning;
-        hasInfos |= error.isInfo;
-      }
-
-      log.stdout('');
-
-      final errorCount = errors.length;
-      log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
-
-      // Return an error code in the range [0-3] dependent on the severity of
-      // the issue(s) found.
-      if (hasErrors) {
-        return 3;
-      }
-
-      bool fatalWarnings = argResults['fatal-warnings'];
-      bool fatalInfos = argResults['fatal-infos'];
-
-      if (fatalWarnings && hasWarnings) {
-        return 2;
-      } else if (fatalInfos && hasInfos) {
-        return 1;
-      } else {
-        return 0;
-      }
-    } else {
+    if (errors.isEmpty) {
       log.stdout('No issues found!');
+      return 0;
+    }
+
+    final bullet = log.ansi.bullet;
+
+    log.stdout('');
+
+    bool hasErrors = false;
+    bool hasWarnings = false;
+    bool hasInfos = false;
+
+    for (final AnalysisError error in errors) {
+      // error • Message ... at path.dart:line:col • (code)
+
+      var filePath = path.relative(error.file, from: dir.path);
+      var severity = error.severity.toLowerCase().padLeft(_severityWidth);
+      if (error.isError) {
+        severity = log.ansi.error(severity);
+      }
+
+      log.stdout(
+        '$severity $bullet '
+        '${log.ansi.emphasized(error.messageSentenceFragment)} '
+        'at $filePath:${error.startLine}:${error.startColumn} $bullet '
+        '(${error.code})',
+      );
+
+      if (verbose) {
+        var padding = ' ' * _bodyIndentWidth;
+        for (var message in error.contextMessages) {
+          log.stdout('$padding${message.message} '
+              'at ${message.filePath}:${message.line}:${message.column}');
+        }
+        if (error.correction != null) {
+          log.stdout('$padding${error.correction}');
+        }
+        if (error.url != null) {
+          log.stdout('$padding${error.url}');
+        }
+      }
+
+      hasErrors |= error.isError;
+      hasWarnings |= error.isWarning;
+      hasInfos |= error.isInfo;
+    }
+
+    log.stdout('');
+
+    final errorCount = errors.length;
+    log.stdout('$errorCount ${pluralize('issue', errorCount)} found.');
+
+    // Return an error code in the range [0-3] dependent on the severity of
+    // the issue(s) found.
+    if (hasErrors) {
+      return 3;
+    }
+
+    bool fatalWarnings = argResults['fatal-warnings'];
+    bool fatalInfos = argResults['fatal-infos'];
+
+    if (fatalWarnings && hasWarnings) {
+      return 2;
+    } else if (fatalInfos && hasInfos) {
+      return 1;
+    } else {
       return 0;
     }
   }

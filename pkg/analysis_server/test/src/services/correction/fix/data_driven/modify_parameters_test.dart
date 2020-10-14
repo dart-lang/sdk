@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -21,6 +21,9 @@ void main() {
 
 @reflectiveTest
 class ModifyParametersOfMethodTest extends _ModifyParameters {
+  @override
+  String get _kind => 'method';
+
   Future<void> test_add_first_optionalNamed_deprecated() async {
     setPackageContent('''
 class C {
@@ -30,7 +33,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(0, 'a', false, false, null, null)],
+        ['C', 'm'], [AddParameter(0, 'a', false, false, null)],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -56,12 +59,9 @@ class C {
   void m2([int a, int b]) {}
 }
 ''');
-    setPackageData(_modify([
-      'C',
-      'm'
-    ], [
-      AddParameter(0, 'a', false, true, null, LiteralExtractor('0'))
-    ], newName: 'm2'));
+    setPackageData(_modify(
+        ['C', 'm'], [AddParameter(0, 'a', false, true, codeTemplate('0'))],
+        newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
 
@@ -86,12 +86,9 @@ class C {
   void m2({int a, int b}) {}
 }
 ''');
-    setPackageData(_modify([
-      'C',
-      'm'
-    ], [
-      AddParameter(0, 'a', true, false, null, LiteralExtractor('0'))
-    ], newName: 'm2'));
+    setPackageData(_modify(
+        ['C', 'm'], [AddParameter(0, 'a', true, false, codeTemplate('0'))],
+        newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
 
@@ -116,12 +113,9 @@ class C {
   void m2(int a, int b) {}
 }
 ''');
-    setPackageData(_modify([
-      'C',
-      'm'
-    ], [
-      AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))
-    ], newName: 'm2'));
+    setPackageData(_modify(
+        ['C', 'm'], [AddParameter(0, 'a', true, true, codeTemplate('0'))],
+        newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
 
@@ -147,7 +141,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(1, 'b', false, false, null, null)],
+        ['C', 'm'], [AddParameter(1, 'b', false, false, null)],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -173,12 +167,9 @@ class C {
   void m2(int a, [int b]) {}
 }
 ''');
-    setPackageData(_modify([
-      'C',
-      'm'
-    ], [
-      AddParameter(1, 'b', false, true, null, LiteralExtractor('1'))
-    ], newName: 'm2'));
+    setPackageData(_modify(
+        ['C', 'm'], [AddParameter(1, 'b', false, true, codeTemplate('1'))],
+        newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
 
@@ -203,12 +194,9 @@ class C {
   void m2(int a, {int b}) {}
 }
 ''');
-    setPackageData(_modify([
-      'C',
-      'm'
-    ], [
-      AddParameter(1, 'b', true, false, null, LiteralExtractor('1'))
-    ], newName: 'm2'));
+    setPackageData(_modify(
+        ['C', 'm'], [AddParameter(1, 'b', true, false, codeTemplate('1'))],
+        newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
 
@@ -233,12 +221,9 @@ class C {
   void m2(int a, int b) {}
 }
 ''');
-    setPackageData(_modify([
-      'C',
-      'm'
-    ], [
-      AddParameter(1, 'b', true, true, null, LiteralExtractor('1'))
-    ], newName: 'm2'));
+    setPackageData(_modify(
+        ['C', 'm'], [AddParameter(1, 'b', true, true, codeTemplate('1'))],
+        newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
 
@@ -267,9 +252,9 @@ class C {
       'C',
       'm'
     ], [
-      AddParameter(1, 'b', true, true, null, LiteralExtractor('1')),
-      AddParameter(2, 'c', true, true, null, LiteralExtractor('2')),
-      AddParameter(4, 'e', true, true, null, LiteralExtractor('4')),
+      AddParameter(1, 'b', true, true, codeTemplate('1')),
+      AddParameter(2, 'c', true, true, codeTemplate('2')),
+      AddParameter(4, 'e', true, true, codeTemplate('4')),
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -293,12 +278,9 @@ class C {
   void m2(int a, int b) {}
 }
 ''');
-    setPackageData(_modify([
-      'C',
-      'm'
-    ], [
-      AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))
-    ], newName: 'm2'));
+    setPackageData(_modify(
+        ['C', 'm'], [AddParameter(0, 'a', true, true, codeTemplate('0'))],
+        newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
 
@@ -321,8 +303,8 @@ class C {
   void m(int a, int b) {}
 }
 ''');
-    setPackageData(_modify(['C', 'm'],
-        [AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))]));
+    setPackageData(_modify(
+        ['C', 'm'], [AddParameter(0, 'a', true, true, codeTemplate('0'))]));
     await resolveTestUnit('''
 import '$importUri';
 
@@ -352,7 +334,7 @@ class C {
       'm'
     ], [
       RemoveParameter(PositionalParameterReference(0)),
-      AddParameter(2, 'c', true, true, null, LiteralExtractor('2'))
+      AddParameter(2, 'c', true, true, codeTemplate('2'))
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -383,7 +365,7 @@ class C {
       'm'
     ], [
       RemoveParameter(PositionalParameterReference(1)),
-      AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))
+      AddParameter(0, 'a', true, true, codeTemplate('0'))
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -415,7 +397,7 @@ class C {
     ], [
       RemoveParameter(PositionalParameterReference(0)),
       RemoveParameter(PositionalParameterReference(1)),
-      AddParameter(0, 'c', true, true, null, LiteralExtractor('2')),
+      AddParameter(0, 'c', true, true, codeTemplate('2')),
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -447,7 +429,7 @@ class C {
     ], [
       RemoveParameter(PositionalParameterReference(1)),
       RemoveParameter(PositionalParameterReference(2)),
-      AddParameter(1, 'd', true, true, null, LiteralExtractor('3')),
+      AddParameter(1, 'd', true, true, codeTemplate('3')),
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -477,10 +459,10 @@ class C {
       'C',
       'm1'
     ], [
-      AddParameter(0, 'a', true, true, null, LiteralExtractor('0')),
+      AddParameter(0, 'a', true, true, codeTemplate('0')),
       RemoveParameter(PositionalParameterReference(1)),
       RemoveParameter(PositionalParameterReference(3)),
-      AddParameter(2, 'd', true, true, null, LiteralExtractor('3')),
+      AddParameter(2, 'd', true, true, codeTemplate('3')),
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -839,6 +821,9 @@ void f(C c) {
 /// applied to top-level functions, but are not intended to be exhaustive.
 @reflectiveTest
 class ModifyParametersOfTopLevelFunctionTest extends _ModifyParameters {
+  @override
+  String get _kind => 'function';
+
   Future<void> test_add_first_requiredNamed_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -848,7 +833,7 @@ void g(int a, int b) {}
     setPackageData(_modify([
       'f'
     ], [
-      AddParameter(0, 'a', true, true, null, LiteralExtractor('0')),
+      AddParameter(0, 'a', true, true, codeTemplate('0')),
     ], newName: 'g'));
     await resolveTestUnit('''
 import '$importUri';
@@ -893,12 +878,17 @@ void h() {
 }
 
 abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
+  /// Return the kind of element whose parameters are being modified.
+  String get _kind;
+
   Transform _modify(List<String> originalComponents,
           List<ParameterModification> modifications, {String newName}) =>
       Transform(
           title: 'title',
           element: ElementDescriptor(
-              libraryUris: [importUri], components: originalComponents),
+              libraryUris: [Uri.parse(importUri)],
+              kind: ElementKindUtilities.fromName(_kind),
+              components: originalComponents),
           changes: [
             ModifyParameters(modifications: modifications),
             if (newName != null) Rename(newName: newName),

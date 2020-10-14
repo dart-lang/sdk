@@ -1,5 +1,6 @@
+library;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/mixin_constructors_with_default_values.dart:11:15: Error: Constant evaluation error:
 //   C({a: 0, b: T}) : trace = "a: $a, b: $b";
@@ -11,7 +12,6 @@
 //   C({a: 0, b: T}) : trace = "a: $a, b: $b";
 //            ^
 //
-library;
 import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;

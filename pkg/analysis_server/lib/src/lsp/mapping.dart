@@ -1073,27 +1073,31 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
   ///     String s = 'foo'
   String getParamLabel(server.ParameterInfo p) {
     final def = p.defaultValue != null ? ' = ${p.defaultValue}' : '';
-    return '${p.type} ${p.name}$def';
+    final prefix =
+        p.kind == server.ParameterKind.REQUIRED_NAMED ? 'required ' : '';
+    return '$prefix${p.type} ${p.name}$def';
   }
 
   /// Gets the full signature label in the form
   ///     foo(String s, int i, bool a = true)
   String getSignatureLabel(server.AnalysisGetSignatureResult resp) {
-    final req = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.REQUIRED)
+    final positionalRequired = signature.parameters
+        .where((p) => p.kind == server.ParameterKind.REQUIRED_POSITIONAL)
         .toList();
-    final opt = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.OPTIONAL)
+    final positionalOptional = signature.parameters
+        .where((p) => p.kind == server.ParameterKind.OPTIONAL_POSITIONAL)
         .toList();
     final named = signature.parameters
-        .where((p) => p.kind == server.ParameterKind.NAMED)
+        .where((p) =>
+            p.kind == server.ParameterKind.OPTIONAL_NAMED ||
+            p.kind == server.ParameterKind.REQUIRED_NAMED)
         .toList();
     final params = [];
-    if (req.isNotEmpty) {
-      params.add(req.map(getParamLabel).join(', '));
+    if (positionalRequired.isNotEmpty) {
+      params.add(positionalRequired.map(getParamLabel).join(', '));
     }
-    if (opt.isNotEmpty) {
-      params.add('[' + opt.map(getParamLabel).join(', ') + ']');
+    if (positionalOptional.isNotEmpty) {
+      params.add('[' + positionalOptional.map(getParamLabel).join(', ') + ']');
     }
     if (named.isNotEmpty) {
       params.add('{' + named.map(getParamLabel).join(', ') + '}');

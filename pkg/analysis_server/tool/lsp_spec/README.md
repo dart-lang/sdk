@@ -127,12 +127,16 @@ Returns: `Location | null`
 
 Returns the location of the super definition of the class or method at the provided position or `null` if there isn't one.
 
-### $/analyzerStatus Notification
+### $/analyzerStatus Notification (Deprecated)
 
 Direction: Server -> Client
 Params: `{ isAnalyzing: boolean }`
 
 Notifies the client when analysis starts/completes.
+
+This notification is not sent if the client capabilities include `window.workDoneProgress == true` because analyzing status events will be sent using `$/progress`.
+
+This notification may be removed in a future Dart SDK release and should not be depended on.
 
 ### dart/textDocument/publishClosingLabels Notification
 

@@ -68,6 +68,24 @@ void main() async {
       expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       expect(capturedArgs.single['link-platform'], equals(true));
     });
+
+    test('compile from command line with widget cache', () async {
+      final List<String> args = <String>[
+        'server.dart',
+        '--sdk-root',
+        'sdkroot',
+        '--flutter-widget-cache',
+      ];
+      await starter(args, compiler: compiler);
+      final List<dynamic> capturedArgs = verify(compiler.compile(
+        argThat(equals('server.dart')),
+        captureAny,
+        generator: anyNamed('generator'),
+      )).captured;
+      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
+      expect(capturedArgs.single['link-platform'], equals(true));
+      expect(capturedArgs.single['flutter-widget-cache'], equals(true));
+    });
   });
 
   group('interactive compile with mocked compiler', () {
@@ -223,6 +241,34 @@ void main() async {
       verifyInOrder(<void>[
         compiler.invalidate(Uri.base.resolve('file1.dart')),
         compiler.invalidate(Uri.base.resolve('file2.dart')),
+        await compiler.recompileDelta(entryPoint: null),
+      ]);
+      inputStreamController.add('quit\n'.codeUnits);
+      expect(await result, 0);
+      inputStreamController.close();
+    });
+
+    test('recompile one file with widget cache does not fail', () async {
+      // The component will not contain the flutter framework sources so
+      // this should no-op.
+      final StreamController<List<int>> inputStreamController =
+          StreamController<List<int>>();
+      final ReceivePort recompileCalled = ReceivePort();
+
+      when(compiler.recompileDelta(entryPoint: null))
+          .thenAnswer((Invocation invocation) async {
+        recompileCalled.sendPort.send(true);
+      });
+      Future<int> result = starter(
+        <String>[...args, '--flutter-widget-cache'],
+        compiler: compiler,
+        input: inputStreamController.stream,
+      );
+      inputStreamController.add('recompile abc\nfile1.dart\nabc\n'.codeUnits);
+      await recompileCalled.first;
+
+      verifyInOrder(<void>[
+        compiler.invalidate(Uri.base.resolve('file1.dart')),
         await compiler.recompileDelta(entryPoint: null),
       ]);
       inputStreamController.add('quit\n'.codeUnits);
@@ -836,7 +882,7 @@ true
 
           file.writeAsStringSync("import 'lib.dart'; main() => foo();\n");
           inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.path}\n'
+                  '${file.uri}\n'
                   'abc\n'
               .codeUnits);
 
@@ -906,7 +952,7 @@ true
           var file2 = File('${tempDir.path}/bar.dart')..createSync();
           file2.writeAsStringSync("main() {}\n");
           inputStreamController.add('recompile ${file2.path} abc\n'
-                  '${file2.path}\n'
+                  '${file2.uri}\n'
                   'abc\n'
               .codeUnits);
         } else {
@@ -916,6 +962,218 @@ true
           var dillIncFile = File('${dillFile.path}.incremental.dill');
           compiledResult.expectNoErrors(filename: dillIncFile.path);
           expect(dillIncFile.existsSync(), equals(true));
+          inputStreamController.add('quit\n'.codeUnits);
+        }
+      });
+      expect(await result, 0);
+      inputStreamController.close();
+    });
+
+    test(
+        'recompile request with flutter widget cache outputs change in class name',
+        () async {
+      var frameworkDirectory = Directory('${tempDir.path}/flutter');
+      var flutterFramework =
+          File('${frameworkDirectory.path}/lib/src/widgets/framework.dart')
+            ..createSync(recursive: true);
+      flutterFramework.writeAsStringSync('''
+abstract class Widget {}
+class StatelessWidget extends Widget {}
+class StatefulWidget extends Widget {}
+class State<T extends StatefulWidget> {}
+''');
+
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+class FooWidget extends StatelessWidget {}
+
+class FizzWidget extends StatefulWidget {}
+
+class BarState extends State<FizzWidget> {}
+""");
+      var config = File('${tempDir.path}/package_config.json')..createSync();
+      config.writeAsStringSync('''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "flutter",
+      "rootUri": "${frameworkDirectory.uri}",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
+    }
+  ]
+}
+''');
+
+      var dillFile = File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--flutter-widget-cache',
+        '--packages=${config.path}',
+      ];
+
+      final StreamController<List<int>> inputStreamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: inputStreamController.stream, output: ioSink);
+      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        if (count == 0) {
+          // First request is to 'compile', which results in full kernel file.
+          expect(dillFile.existsSync(), equals(true));
+          compiledResult.expectNoErrors(filename: dillFile.path);
+          count += 1;
+          inputStreamController.add('accept\n'.codeUnits);
+          file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+class FooWidget extends StatelessWidget {
+  // Added.
+}
+
+class FizzWidget extends StatefulWidget {}
+
+class BarState extends State<FizzWidget> {}
+""");
+          inputStreamController.add('recompile ${file.path} abc\n'
+                  '${file.uri}\n'
+                  'abc\n'
+              .codeUnits);
+        } else if (count == 1) {
+          expect(count, 1);
+          // Second request is to 'recompile', which results in incremental
+          // kernel file and invalidation of StatelessWidget.
+          var dillIncFile = File('${dillFile.path}.incremental.dill');
+          var widgetCacheFile =
+              File('${dillFile.path}.incremental.dill.widget_cache');
+          compiledResult.expectNoErrors(filename: dillIncFile.path);
+          expect(dillIncFile.existsSync(), equals(true));
+          expect(widgetCacheFile.existsSync(), equals(true));
+          expect(widgetCacheFile.readAsStringSync(), 'FooWidget');
+          count += 1;
+          inputStreamController.add('accept\n'.codeUnits);
+
+          file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+class FooWidget extends StatelessWidget {
+  // Added.
+}
+
+class FizzWidget extends StatefulWidget {
+  // Added.
+}
+
+class BarState extends State<FizzWidget> {}
+""");
+          inputStreamController.add('recompile ${file.path} abc\n'
+                  '${file.uri}\n'
+                  'abc\n'
+              .codeUnits);
+        } else if (count == 2) {
+          // Second request is to 'recompile', which results in incremental
+          // kernel file and invalidation of StatelessWidget.
+          var dillIncFile = File('${dillFile.path}.incremental.dill');
+          var widgetCacheFile =
+              File('${dillFile.path}.incremental.dill.widget_cache');
+          compiledResult.expectNoErrors(filename: dillIncFile.path);
+          expect(dillIncFile.existsSync(), equals(true));
+          expect(widgetCacheFile.existsSync(), equals(true));
+          expect(widgetCacheFile.readAsStringSync(), 'FizzWidget');
+          count += 1;
+          inputStreamController.add('accept\n'.codeUnits);
+
+          file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+class FooWidget extends StatelessWidget {
+  // Added.
+}
+
+class FizzWidget extends StatefulWidget {
+  // Added.
+}
+
+class BarState extends State<FizzWidget> {
+  // Added.
+}
+""");
+          inputStreamController.add('recompile ${file.path} abc\n'
+                  '${file.uri}\n'
+                  'abc\n'
+              .codeUnits);
+        } else if (count == 3) {
+          // Third request is to 'recompile', which results in incremental
+          // kernel file and invalidation of State class.
+          var dillIncFile = File('${dillFile.path}.incremental.dill');
+          var widgetCacheFile =
+              File('${dillFile.path}.incremental.dill.widget_cache');
+          compiledResult.expectNoErrors(filename: dillIncFile.path);
+          expect(dillIncFile.existsSync(), equals(true));
+          expect(widgetCacheFile.existsSync(), equals(true));
+          expect(widgetCacheFile.readAsStringSync(), 'FizzWidget');
+          count += 1;
+          inputStreamController.add('accept\n'.codeUnits);
+
+          file.writeAsStringSync("""
+import "package:flutter/src/widgets/framework.dart";
+
+void main() {}
+
+// Added
+
+class FooWidget extends StatelessWidget {
+  // Added.
+}
+
+class FizzWidget extends StatefulWidget {
+  // Added.
+}
+
+class BarState extends State<FizzWidget> {
+  // Added.
+}
+""");
+          inputStreamController.add('recompile ${file.path} abc\n'
+                  '${file.uri}\n'
+                  'abc\n'
+              .codeUnits);
+        } else if (count == 4) {
+          // Fourth request is to 'recompile', which results in incremental
+          // kernel file and no widget cache
+          var dillIncFile = File('${dillFile.path}.incremental.dill');
+          var widgetCacheFile =
+              File('${dillFile.path}.incremental.dill.widget_cache');
+          compiledResult.expectNoErrors(filename: dillIncFile.path);
+          expect(dillIncFile.existsSync(), equals(true));
+          expect(widgetCacheFile.existsSync(), equals(false));
           inputStreamController.add('quit\n'.codeUnits);
         }
       });
@@ -999,7 +1257,7 @@ true
             inputStreamController.add('reset\n'.codeUnits);
 
             inputStreamController.add('recompile ${fileB.path} abc\n'
-                    '${fileB.path}\n'
+                    '${fileB.uri}\n'
                     'abc\n'
                 .codeUnits);
             break;
@@ -1105,7 +1363,7 @@ true
             inputStreamController.add('reset\n'.codeUnits);
 
             inputStreamController.add('recompile ${fileB.path} abc\n'
-                    '${fileB.path}\n'
+                    '${fileB.uri}\n'
                     'abc\n'
                 .codeUnits);
             break;

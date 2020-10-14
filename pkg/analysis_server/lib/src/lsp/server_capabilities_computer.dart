@@ -201,6 +201,7 @@ class ServerCapabilitiesComputer {
             ),
       executeCommandProvider: ExecuteCommandOptions(
         commands: Commands.serverSupportedCommands,
+        workDoneProgress: true,
       ),
       workspaceSymbolProvider: true,
       workspace: ServerCapabilitiesWorkspace(
@@ -224,6 +225,8 @@ class ServerCapabilitiesComputer {
         language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
     final analysisOptionsFile = DocumentFilter(
         language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
+    final fixDataFile = DocumentFilter(
+        language: 'yaml', scheme: 'file', pattern: '**/lib/fix_data.yaml');
 
     final pluginTypes = _server.pluginManager.plugins
         .expand((plugin) => plugin.currentSession?.interestingFiles ?? const [])
@@ -243,6 +246,7 @@ class ServerCapabilitiesComputer {
       ...allTypes,
       pubspecFile,
       analysisOptionsFile,
+      fixDataFile,
     }.toList();
 
     final registrations = <Registration>[];

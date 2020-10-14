@@ -1,0 +1,22 @@
+import 'value_class_support_lib.dart';
+
+class Animal {
+  final int? numberOfLegs;
+  Animal({required this.numberOfLegs});
+}
+
+@valueClass
+class Cat extends Animal {
+  final int? numberOfWhiskers;
+}
+
+class Foo {
+  int? bar, bar2;
+  Foo({this.bar, this.bar2});
+  Foo copyWith({int bar, int bar2}) {}
+}
+
+@valueClass
+class A {}
+
+main() {}
