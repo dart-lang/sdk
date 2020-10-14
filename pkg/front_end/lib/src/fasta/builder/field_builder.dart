@@ -321,6 +321,9 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   Member get invokeTarget => readTarget;
 
   @override
+  Iterable<Member> get exportedMembers => _fieldEncoding.exportedMembers;
+
+  @override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     build(library);
@@ -539,6 +542,9 @@ abstract class FieldEncoding {
   /// Returns the member used to write to the field.
   Member get writeTarget;
 
+  /// Returns the generated members that are visible through exports.
+  Iterable<Member> get exportedMembers;
+
   /// Creates the members necessary for this field encoding.
   ///
   /// This method is called for both outline and full compilation so the created
@@ -674,6 +680,9 @@ class RegularFieldEncoding implements FieldEncoding {
   Member get writeTarget => _field;
 
   @override
+  Iterable<Member> get exportedMembers => [_field];
+
+  @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
       <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: false)];
 
@@ -707,7 +716,7 @@ class SourceFieldMember extends BuilderClassMember {
   @override
   Member getMember(ClassHierarchyBuilder hierarchy) {
     memberBuilder._ensureType(hierarchy);
-    return memberBuilder.member;
+    return memberBuilder.field;
   }
 
   @override
@@ -962,6 +971,14 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   Member get writeTarget => _lateSetter;
+
+  @override
+  Iterable<Member> get exportedMembers {
+    if (_lateSetter != null) {
+      return [_lateGetter, _lateSetter];
+    }
+    return [_lateGetter];
+  }
 
   @override
   void build(
@@ -1607,6 +1624,14 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
 
   @override
   Member get writeTarget => _setter;
+
+  @override
+  Iterable<Member> get exportedMembers {
+    if (_setter != null) {
+      return [_getter, _setter];
+    }
+    return [_getter];
+  }
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>

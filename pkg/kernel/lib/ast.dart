@@ -1568,6 +1568,12 @@ class ExtensionMemberDescriptor {
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
   }
+
+  @override
+  String toString() {
+    return 'ExtensionMemberDescriptor($name,$kind,'
+        '${member.toStringInternal()},isStatic=${isStatic})';
+  }
 }
 
 // ------------------------------------------------------------------------

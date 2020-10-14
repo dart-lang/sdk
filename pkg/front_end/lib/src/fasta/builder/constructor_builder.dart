@@ -160,6 +160,9 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   Member get invokeTarget => constructor;
 
   @override
+  Iterable<Member> get exportedMembers => [constructor];
+
+  @override
   ConstructorBuilder get origin => actualOrigin ?? this;
 
   @override
@@ -436,7 +439,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 }
 
-class SyntheticConstructorBuilder extends DillMemberBuilder {
+class SyntheticConstructorBuilder extends DillConstructorBuilder {
   MemberBuilderImpl _origin;
   ClonedFunctionNode _clonedFunctionNode;
 
