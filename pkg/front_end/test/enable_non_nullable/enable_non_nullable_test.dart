@@ -10,6 +10,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/language_version.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:kernel/ast.dart';
 
 /// The version used in this test as the experiment release version.
@@ -83,11 +84,18 @@ test(
       ExperimentalFlag.nonNullable: experimentEnabledVersion
     };
 
+  bool hadDiagnostic = false;
+  options.onDiagnostic = (DiagnosticMessage message) {
+    hadDiagnostic = true;
+  };
+
   Directory directory = new Directory.fromUri(
       Uri.base.resolve('pkg/front_end/test/enable_non_nullable/data/'));
   CompilerResult result = await kernelForProgramInternal(
       directory.uri.resolve('main.dart'), options,
       retainDataForTesting: true);
+  Expect.isFalse(
+      hadDiagnostic, "Compilation had diagnostics (errors, warnings)!");
   for (Library library in result.component.libraries) {
     if (library.importUri.scheme != 'dart') {
       bool usesLegacy =
@@ -112,7 +120,8 @@ test(
           " (package) uri=${versionAndPackageUri.packageUri}");
       Expect.isTrue(
           library.languageVersion < versionImpliesOptIn ||
-              library.isNonNullableByDefault,
+              library.isNonNullableByDefault ||
+              SourceLibraryBuilder.isOptOutTest(library.fileUri),
           "Expected library ${library.importUri} with version "
           "${library.languageVersion} to be opted in.");
       Expect.isTrue(
@@ -120,7 +129,8 @@ test(
               !versionAndPackageUri.packageUri.path
                   .startsWith('allowed_package') ||
               library.languageVersion < versionOptsInAllowed ||
-              library.isNonNullableByDefault,
+              library.isNonNullableByDefault ||
+              SourceLibraryBuilder.isOptOutTest(library.fileUri),
           "Expected allowed library ${library.importUri} with version "
           "${library.languageVersion} to be opted in.");
     }
