@@ -10,12 +10,12 @@ class A {
   A.internal();
 
   static A bad1() => // LINT
-  new A.internal();
+      new A.internal();
 
   static A get newA => // LINT
-  new A.internal();
+      new A.internal();
 
-  static A bad2(){ // LINT
+  static A bad2() { // LINT
     final a = new A.internal();
     return a;
   }
@@ -24,15 +24,31 @@ class A {
     return array[i];
   }
 
-  factory A.good2(){ // OK
+  factory A.good2() { // OK
     return new A.internal();
   }
 
-  factory A.good3(){ // OK
+  factory A.good3() { // OK
     return new A.internal();
   }
+
+  static A generic<T>() => // OK
+      A.internal();
+}
+
+class B<T> {
+  B.internal();
+
+  static B<T> good1<T>(T one) => // OK
+      B.internal();
+
+  static B good2() => // OK
+      B.internal();
+
+  static B<int> good3() => // OK
+      B<int>.internal();
 }
 
 extension E on A {
-  static A foo() => A(); // OK
+  static A foo() => A.internal(); // OK
 }
