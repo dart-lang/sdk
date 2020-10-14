@@ -1104,7 +1104,6 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
                     description, p, userLibraries, options, sourceTarget),
                 context.expectationSet["InstrumentationMismatch"],
                 instrumentation.problemsAsString,
-                null,
                 autoFixCommand: '${UPDATE_COMMENTS}=true');
           }
         }
@@ -1194,8 +1193,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
       return new Result<ComponentResult>(
           result,
           context.expectationSet["TransformVerificationError"],
-          errors.join('\n'),
-          null);
+          errors.join('\n'));
     }
     return pass(result);
   }
@@ -1236,8 +1234,8 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
       if (messages.isEmpty) {
         return pass(result);
       } else {
-        return new Result<ComponentResult>(null,
-            context.expectationSet["VerificationError"], "$messages", null);
+        return new Result<ComponentResult>(
+            null, context.expectationSet["VerificationError"], "$messages");
       }
     }, errorOnMissingInput: false);
   }
