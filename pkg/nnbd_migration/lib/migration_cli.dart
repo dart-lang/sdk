@@ -43,6 +43,51 @@ String _removePeriod(String value) {
   return value.endsWith('.') ? value.substring(0, value.length - 1) : value;
 }
 
+/// The result of a round of static analysis; primarily a list of
+/// [AnalysisError]s.
+class AnalysisResult {
+  final List<AnalysisError> errors;
+  final Map<String, LineInfo> lineInfo;
+  final Context pathContext;
+  final String rootDirectory;
+
+  AnalysisResult(
+      this.errors, this.lineInfo, this.pathContext, this.rootDirectory) {
+    errors.sort((AnalysisError one, AnalysisError two) {
+      if (one.source != two.source) {
+        return one.source.fullName.compareTo(two.source.fullName);
+      }
+      return one.offset - two.offset;
+    });
+  }
+
+  bool get hasErrors => errors.isNotEmpty;
+
+  /// Whether the errors include any which may be the result of not yet having
+  /// run "pub get".
+  bool get hasImportErrors => errors.any(
+      (error) => error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+
+  /// Converts the list of errors into JSON, for displaying in the web preview.
+  List<Map<String, dynamic>> toJson() {
+    var result = <Map<String, dynamic>>[];
+    // severity • Message ... at foo/bar.dart:6:1 • (error_code)
+    for (var error in errors) {
+      var lineInfoForThisFile = lineInfo[error.source.fullName];
+      var location = lineInfoForThisFile.getLocation(error.offset);
+      var path =
+          pathContext.relative(error.source.fullName, from: rootDirectory);
+      result.add({
+        'severity': error.severity.name,
+        'message': _removePeriod(error.message),
+        'location': '$path:${location.lineNumber}:${location.columnNumber}',
+        'code': error.errorCode.name.toLowerCase(),
+      });
+    }
+    return result;
+  }
+}
+
 /// Data structure recording command-line options for the migration tool that
 /// have been passed in by the client.
 class CommandLineOptions {
@@ -194,7 +239,12 @@ class MigrateCommand extends Command<dynamic> {
   }
 
   @override
-  String get name => cmdName;
+  ArgParser get argParser {
+    // We override this in order to configure the help text line wrapping.
+    return _argParser ??= ArgParser(
+      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : null,
+    );
+  }
 
   @override
   String get description => cmdDescription;
@@ -205,12 +255,7 @@ class MigrateCommand extends Command<dynamic> {
   }
 
   @override
-  ArgParser get argParser {
-    // We override this in order to configure the help text line wrapping.
-    return _argParser ??= ArgParser(
-      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : null,
-    );
-  }
+  String get name => cmdName;
 
   @override
   FutureOr<int> run() async {
@@ -759,42 +804,6 @@ When finished with the preview, hit ctrl-c to terminate this process.
     }
   }
 
-  void _logErrors(AnalysisResult analysisResult) {
-    logger.stdout('');
-
-    var issueCount = analysisResult.errors.length;
-    logger.stdout(
-        '$issueCount analysis ${_pluralize(issueCount, 'issue')} found:');
-
-    _IssueRenderer renderer =
-        _IssueRenderer(logger, options.directory, pathContext, lineInfo);
-    for (AnalysisError error in analysisResult.errors) {
-      renderer.render(error);
-    }
-
-    logger.stdout('');
-    logger.stdout('Note: analysis errors will result in erroneous migration '
-        'suggestions.');
-
-    _hasAnalysisErrors = true;
-    if (options.ignoreErrors) {
-      logger.stdout('Continuing with migration suggestions due to the use of '
-          '--${CommandLineOptions.ignoreErrorsFlag}.');
-    } else {
-      // Fail with how to continue.
-      logger.stdout('');
-      if (analysisResult.hasImportErrors) {
-        logger
-            .stdout('Unresolved URIs found.  Did you forget to run "pub get"?');
-        logger.stdout('');
-      }
-      logger.stdout(
-          'Please fix the analysis issues (or, force generation of migration '
-          'suggestions by re-running with '
-          '--${CommandLineOptions.ignoreErrorsFlag}).');
-    }
-  }
-
   void _displayChangeSummary(DartFixListener migrationResults) {
     Map<String, List<DartFixSuggestion>> fileSuggestions = {};
     for (DartFixSuggestion suggestion in migrationResults.suggestions) {
@@ -868,6 +877,42 @@ Exception details:
     }
   }
 
+  void _logErrors(AnalysisResult analysisResult) {
+    logger.stdout('');
+
+    var issueCount = analysisResult.errors.length;
+    logger.stdout(
+        '$issueCount analysis ${_pluralize(issueCount, 'issue')} found:');
+
+    _IssueRenderer renderer =
+        _IssueRenderer(logger, options.directory, pathContext, lineInfo);
+    for (AnalysisError error in analysisResult.errors) {
+      renderer.render(error);
+    }
+
+    logger.stdout('');
+    logger.stdout('Note: analysis errors will result in erroneous migration '
+        'suggestions.');
+
+    _hasAnalysisErrors = true;
+    if (options.ignoreErrors) {
+      logger.stdout('Continuing with migration suggestions due to the use of '
+          '--${CommandLineOptions.ignoreErrorsFlag}.');
+    } else {
+      // Fail with how to continue.
+      logger.stdout('');
+      if (analysisResult.hasImportErrors) {
+        logger
+            .stdout('Unresolved URIs found.  Did you forget to run "pub get"?');
+        logger.stdout('');
+      }
+      logger.stdout(
+          'Please fix the analysis issues (or, force generation of migration '
+          'suggestions by re-running with '
+          '--${CommandLineOptions.ignoreErrorsFlag}).');
+    }
+  }
+
   Future<MigrationState> _rerunFunction() async {
     logger.stdout(ansi.emphasized('Re-analyzing project...'));
 
@@ -903,51 +948,6 @@ Exception details:
       for (var edit in edits)
         edit.offset: [AtomicEdit.replace(edit.length, edit.replacement)]
     };
-  }
-}
-
-/// The result of a round of static analysis; primarily a list of
-/// [AnalysisError]s.
-class AnalysisResult {
-  final List<AnalysisError> errors;
-  final Map<String, LineInfo> lineInfo;
-  final Context pathContext;
-  final String rootDirectory;
-
-  AnalysisResult(
-      this.errors, this.lineInfo, this.pathContext, this.rootDirectory) {
-    errors.sort((AnalysisError one, AnalysisError two) {
-      if (one.source != two.source) {
-        return one.source.fullName.compareTo(two.source.fullName);
-      }
-      return one.offset - two.offset;
-    });
-  }
-
-  bool get hasErrors => errors.isNotEmpty;
-
-  /// Whether the errors include any which may be the result of not yet having
-  /// run "pub get".
-  bool get hasImportErrors => errors.any(
-      (error) => error.errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST);
-
-  /// Converts the list of errors into JSON, for displaying in the web preview.
-  List<Map<String, dynamic>> toJson() {
-    var result = <Map<String, dynamic>>[];
-    // severity • Message ... at foo/bar.dart:6:1 • (error_code)
-    for (var error in errors) {
-      var lineInfoForThisFile = lineInfo[error.source.fullName];
-      var location = lineInfoForThisFile.getLocation(error.offset);
-      var path =
-          pathContext.relative(error.source.fullName, from: rootDirectory);
-      result.add({
-        'severity': error.severity.name,
-        'message': _removePeriod(error.message),
-        'location': '$path:${location.lineNumber}:${location.columnNumber}',
-        'code': error.errorCode.name.toLowerCase(),
-      });
-    }
-    return result;
   }
 }
 
