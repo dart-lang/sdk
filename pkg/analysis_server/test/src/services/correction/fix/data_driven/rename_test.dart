@@ -790,7 +790,7 @@ D d = D(a: 2);
     await assertNoFix();
   }
 
-  Future<void> test_instance_reference_deprecated() async {
+  Future<void> test_instance_reference_direct_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -815,7 +815,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_instance_reference_removed() async {
+  Future<void> test_instance_reference_direct_removed() async {
     setPackageContent('''
 class C {
   int get new => 1;
@@ -834,6 +834,60 @@ import '$importUri';
 
 void f(C c) {
   c.new;
+}
+''');
+  }
+
+  Future<void> test_instance_reference_indirect_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  int get old => 0;
+  int get new => 1;
+}
+class D {
+  C c() => C();
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(D d) {
+  print(d.c().old);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(D d) {
+  print(d.c().new);
+}
+''');
+  }
+
+  Future<void> test_instance_reference_indirect_removed() async {
+    setPackageContent('''
+class C {
+  int get new => 1;
+}
+class D {
+  C c() => C();
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(D d) {
+  print(d.c().old);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(D d) {
+  print(d.c().new);
 }
 ''');
   }
