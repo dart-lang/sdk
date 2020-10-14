@@ -599,6 +599,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
+  /// Shows the user a prompt with some actions to select using ShowMessageRequest.
+  Future<MessageActionItem> showUserPrompt(
+      MessageType type, String message, List<MessageActionItem> actions) async {
+    final response = await sendRequest(
+      Method.window_showMessageRequest,
+      ShowMessageRequestParams(type: type, message: message, actions: actions),
+    );
+
+    return MessageActionItem.fromJson(response.result);
+  }
+
   Future<void> shutdown() {
     // Defer closing the channel so that the shutdown response can be sent and
     // logged.

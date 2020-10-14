@@ -52,6 +52,8 @@ const dartTypeFormattingCharacters = ['}', ';'];
 /// A [ProgressToken] used for reporting progress when the server is analyzing.
 final analyzingProgressToken = Either2<num, String>.t2('ANALYZING');
 
+final emptyWorkspaceEdit = WorkspaceEdit();
+
 /// Constants for command IDs that are exchanged between LSP client/server.
 abstract class Commands {
   /// A list of all commands IDs that can be sent to the client to inform which
@@ -126,4 +128,10 @@ abstract class ServerErrorCodes {
   ///   crashing server endlessly. VS Code for example doesn't restart a server
   ///   if it crashes 5 times in the last 180 seconds."
   static const ClientServerInconsistentState = ErrorCodes(-32099);
+}
+
+/// Strings used in user prompts (window/showMessageRequest).
+abstract class UserPromptActions {
+  static const String cancel = 'Cancel';
+  static const String renameAnyway = 'Rename Anyway';
 }
