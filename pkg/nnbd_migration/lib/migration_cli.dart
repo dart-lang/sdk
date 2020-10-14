@@ -15,6 +15,7 @@ import 'package:analyzer/file_system/file_system.dart'
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/sdk.dart';
@@ -223,9 +224,19 @@ class MigrateCommand extends Command<dynamic> {
   static const String cmdName = 'migrate';
 
   static const String cmdDescription =
-      'Perform a null safety migration on a project or package.'
-      '\n\nThe migration tool is in preview; see '
-      'https://dart.dev/go/null-safety-migration for a migration guide.';
+      'Perform a null safety migration on a project or package.';
+
+  static const String migrationGuideLink =
+      'See https://dart.dev/go/null-safety-migration for a migration guide.';
+
+  static const String preFlagFlipCaveat =
+      'Note: this tool is currently running on an SDK version where null '
+      'safety is not yet enabled by default. You may encounter issues in the '
+      'migration process - some aspects of the toolchain assume that they are '
+      'running on an SDK where null safety has been enabled by default.';
+
+  /// Return whether the SDK has null safety on by default.
+  static bool get nullSafetyOnByDefault => IsEnabledByDefault.non_nullable;
 
   final bool verbose;
 
@@ -247,7 +258,9 @@ class MigrateCommand extends Command<dynamic> {
   }
 
   @override
-  String get description => cmdDescription;
+  String get description => nullSafetyOnByDefault
+      ? '$cmdDescription\n\n$migrationGuideLink'
+      : '$cmdDescription\n\n$preFlagFlipCaveat\n\n$migrationGuideLink';
 
   @override
   String get invocation {
@@ -726,10 +739,17 @@ class MigrationCliRunner {
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
+    if (!MigrateCommand.nullSafetyOnByDefault) {
+      logger.stdout(MigrateCommand.preFlagFlipCaveat);
+      logger.stdout('');
+    }
+
+    logger.stdout(MigrateCommand.migrationGuideLink);
+    logger.stdout('');
+
     if (hasMultipleAnalysisContext) {
-      logger
-          .stdout('Note: more than one project found; migrating the top-level '
-              'project.');
+      logger.stdout('Note: more than one project found; migrating the '
+          'top-level project.');
       logger.stdout('');
     }
 

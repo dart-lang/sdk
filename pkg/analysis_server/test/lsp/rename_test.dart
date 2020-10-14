@@ -4,9 +4,11 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -130,6 +132,84 @@ class RenameTest extends AbstractLspAnalysisServerTest {
         content, 'MyNewClass', expectedContent);
   }
 
+  Future<void> test_rename_duplicateName_applyAfterDocumentChanges() async {
+    // Perform a refactor that results in a prompt to the user, but then modify
+    // the document before accepting/rejecting to make the rename invalid.
+    const content = '''
+    class MyOtherClass {}
+    class MyClass {}
+    final a = n^ew MyClass();
+    ''';
+    final result = await _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      action: UserPromptActions.renameAnyway,
+      beforeResponding: () => replaceFile(999, mainFileUri, 'Updated content'),
+    );
+    expect(result.result, isNull);
+    expect(result.error, isNotNull);
+    expect(result.error, isResponseError(ErrorCodes.ContentModified));
+  }
+
+  Future<void> test_rename_duplicateName_applyAnyway() async {
+    const content = '''
+    class MyOtherClass {}
+    class MyClass {}
+    final a = n^ew MyClass();
+    ''';
+    const expectedContent = '''
+    class MyOtherClass {}
+    class MyOtherClass {}
+    final a = new MyOtherClass();
+    ''';
+    final response = await _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      action: UserPromptActions.renameAnyway,
+    );
+
+    if (response.error != null) {
+      throw response.error;
+    }
+
+    final result = WorkspaceEdit.fromJson(response.result);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyDocumentChanges(
+      contents,
+      result.documentChanges,
+    );
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_rename_duplicateName_reject() async {
+    const content = '''
+    class MyOtherClass {}
+    class MyClass {}
+    final a = n^ew MyClass();
+    ''';
+    final response = await _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      action: UserPromptActions.cancel,
+    );
+    // Expect a successful empty response if cancelled.
+    expect(response.error, isNull);
+    expect(
+      WorkspaceEdit.fromJson(response.result),
+      equals(emptyWorkspaceEdit),
+    );
+  }
+
   Future<void> test_rename_importPrefix() {
     const content = '''
     import 'dart:async' as myPr^efix;
@@ -235,17 +315,6 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     final error = await _test_rename_failure(content, 'not a valid class name');
     expect(error.code, equals(ServerErrorCodes.RenameNotValid));
     expect(error.message, contains('name must not contain'));
-  }
-
-  Future<void> test_rename_rejectedForDuplicateName() async {
-    const content = '''
-    class MyOtherClass {}
-    class MyClass {}
-    final a = n^ew MyClass();
-    ''';
-    final error = await _test_rename_failure(content, 'MyOtherClass');
-    expect(error.code, equals(ServerErrorCodes.RenameNotValid));
-    expect(error.message, contains('already declares class with name'));
   }
 
   Future<void> test_rename_rejectedForSameName() async {
@@ -411,6 +480,55 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     expect(result.result, isNull);
     expect(result.error, isNotNull);
     return result.error;
+  }
+
+  /// Tests a rename that is expected to cause an error, which will trigger
+  /// a ShowMessageRequest from the server to the client to allow the refactor
+  /// to be continued or rejected.
+  Future<ResponseMessage> _test_rename_prompt(
+    String content,
+    String newName, {
+    @required String expectedMessage,
+    Future<void> Function() beforeResponding,
+    @required String action,
+    int openFileVersion = 222,
+    int renameRequestFileVersion = 222,
+  }) async {
+    await initialize(
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+    );
+    await openFile(mainFileUri, withoutMarkers(content),
+        version: openFileVersion);
+
+    // Expect the server to call us back with a ShowMessageRequest prompt about
+    // the errors for us to accept/reject.
+    return handleExpectedRequest(
+      Method.window_showMessageRequest,
+      ShowMessageRequestParams.fromJson,
+      () => renameRaw(
+        mainFileUri,
+        renameRequestFileVersion,
+        positionFromMarker(content),
+        newName,
+      ),
+      handler: (ShowMessageRequestParams params) async {
+        // Ensure the warning prompt is as expected.
+        expect(params.type, equals(MessageType.Warning));
+        expect(params.message, equals(expectedMessage));
+        expect(params.actions, hasLength(2));
+        expect(params.actions[0],
+            equals(MessageActionItem(title: UserPromptActions.renameAnyway)));
+        expect(params.actions[1],
+            equals(MessageActionItem(title: UserPromptActions.cancel)));
+
+        // Allow the test to run some code before we send the response.
+        await beforeResponding?.call();
+
+        // Respond to the request with the required action.
+        return MessageActionItem(title: action);
+      },
+    );
   }
 
   Future<void> _test_rename_withDocumentChanges(
