@@ -357,7 +357,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// a version that is too low for opting in to the experiment.
   bool get enableNonNullableInLibrary => _enableNonNullableInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
-          ExperimentalFlag.nonNullable, _packageUri ?? importUri);
+              ExperimentalFlag.nonNullable, _packageUri ?? importUri) &&
+          !isOptOutTest(library.importUri);
 
   Version get enableNonNullableVersionInLibrary =>
       _enableNonNullableVersionInLibrary ??= loader.target
@@ -458,8 +459,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   bool _computeIsNonNullableByDefault() =>
       enableNonNullableInLibrary &&
-      languageVersion.version >= enableNonNullableVersionInLibrary &&
-      !isOptOutTest(library.importUri);
+      languageVersion.version >= enableNonNullableVersionInLibrary;
 
   static bool isOptOutTest(Uri uri) {
     String path = uri.path;
