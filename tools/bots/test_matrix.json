@@ -2847,6 +2847,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--fatal-warnings",
+	    "--enable-experiment=non-nullable",
             "pkg/compiler"
           ]
         },

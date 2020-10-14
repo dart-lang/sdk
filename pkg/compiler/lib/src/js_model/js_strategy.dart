@@ -125,6 +125,7 @@ class JsBackendStrategy implements BackendStrategy {
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
   String getGeneratedCodeForTesting(MemberEntity element) {
+    if (generatedCode[element] == null) return null;
     return js.prettyPrint(generatedCode[element],
         enableMinification: _compiler.options.enableMinification);
   }
