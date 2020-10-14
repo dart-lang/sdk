@@ -207,6 +207,8 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
 
   final hasUsageText = contains('Usage: nnbd_migration');
 
+  final urlStartRegexp = RegExp('https?:');
+
   String assertDecodeArgsFailure(List<String> args) {
     var cli = _createCli();
     try {
@@ -276,7 +278,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Future assertPreviewServerResponsive(String url) async {
-    var response = await http.get(url);
+    var response = await httpGet(url);
     assertHttpSuccess(response);
   }
 
@@ -348,6 +350,19 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     return stderrText;
   }
 
+  /// Wraps a future containing an HTTP response so that when that response is
+  /// received, we will verify that it is reasonable.
+  Future<http.Response> checkHttpResponse(
+      Future<http.Response> futureResponse) async {
+    var response = await futureResponse;
+    // Check that all "http:" and "https:" URLs in the given HTTP response are
+    // absolute (guards against https://github.com/dart-lang/sdk/issues/43545).
+    for (var match in urlStartRegexp.allMatches(response.body)) {
+      expect(response.body.substring(match.end), startsWith('//'));
+    }
+    return response;
+  }
+
   String createProjectDir(Map<String, String> contents,
       {String posixPath = '/test_project'}) {
     for (var entry in contents.entries) {
@@ -366,6 +381,20 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
     return jsonDecode(response.body)['sourceCode'] as String;
   }
 
+  /// Performs an HTTP get, verifying that the response received (if any) is
+  /// reasonable.
+  Future<http.Response> httpGet(dynamic url, {Map<String, String> headers}) {
+    return checkHttpResponse(http.get(url, headers: headers));
+  }
+
+  /// Performs an HTTP post, verifying that the response received (if any) is
+  /// reasonable.
+  Future<http.Response> httpPost(dynamic url,
+      {Map<String, String> headers, dynamic body, Encoding encoding}) {
+    return checkHttpResponse(
+        http.post(url, headers: headers, body: body, encoding: encoding));
+  }
+
   Future<void> runWithPreviewServer(_MigrationCli cli, List<String> args,
       Future<void> Function(String) callback) async {
     String url;
@@ -378,7 +407,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
         await callback(url);
       });
       // Server should be stopped now
-      expect(http.get(url), throwsA(anything));
+      expect(httpGet(url), throwsA(anything));
       assertNormalExit(cliRunner);
     }
   }
@@ -848,7 +877,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var response = await http.post(
+      var response = await httpPost(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -884,7 +913,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var response = await http.post(
+      var response = await httpPost(
           uri.replace(
               path: PreviewSite.applyMigrationPath,
               queryParameters: {'authToken': authToken}),
@@ -915,7 +944,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       final uri = Uri.parse(url);
       final authToken = uri.queryParameters['authToken'];
-      final fileResponse = await http.get(
+      final fileResponse = await httpGet(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -928,7 +957,7 @@ void call_g() => g(null);
       final aLink = RegExp(r'<a href="([^"]+)" class="nav-link">');
       for (final match in aLink.allMatches(navigation)) {
         var href = match.group(1);
-        final contentsResponse = await http.get(
+        final contentsResponse = await httpGet(
             uri.replace(
                 path: Uri.parse(href).path,
                 queryParameters: {'inline': 'true', 'authToken': authToken}),
@@ -948,7 +977,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var treeResponse = await http.get(
+      var treeResponse = await httpGet(
           uri.replace(
               path: '/_preview/navigationTree.json',
               queryParameters: {'authToken': authToken}),
@@ -958,7 +987,7 @@ void call_g() => g(null);
         var navTree = NavigationTreeNode.fromJson(root);
         for (final file in navTree.subtree) {
           if (file.href != null) {
-            final contentsResponse = await http.get(
+            final contentsResponse = await httpGet(
                 uri
                     .resolve(file.href)
                     .replace(queryParameters: {'authToken': authToken}),
@@ -993,7 +1022,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var regionResponse = await http.get(
+      var regionResponse = await httpGet(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -1009,7 +1038,7 @@ void call_g() => g(null);
       final displayPath = regionJson.displayPath;
       final uriPath = regionJson.uriPath;
       // uriPath should be a working URI
-      final contentsResponse = await http.get(
+      final contentsResponse = await httpGet(
           uri.replace(
               path: uriPath,
               queryParameters: {'inline': 'true', 'authToken': authToken}),
@@ -1034,7 +1063,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       final uri = Uri.parse(url);
       final authToken = uri.queryParameters['authToken'];
-      final fileResponse = await http.get(
+      final fileResponse = await httpGet(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -1047,7 +1076,7 @@ void call_g() => g(null);
       final regionsPathRegex = RegExp(r'<table data-path="([^"]+)">');
       expect(regionsPathRegex.hasMatch(regions), true);
       final regionsPath = regionsPathRegex.matchAsPrefix(regions).group(1);
-      final contentsResponse = await http.get(
+      final contentsResponse = await httpGet(
           uri.replace(
               path: Uri.parse(regionsPath).path,
               queryParameters: {'inline': 'true', 'authToken': authToken}),
@@ -1071,7 +1100,7 @@ void call_g() => g(null);
       // We haven't rerun, so getting the file details from the server should
       // still yield the original source text
       expect(await getSourceFromServer(uri, testPath), origSourceText);
-      var response = await http.post(uri.replace(path: 'rerun-migration'),
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       // Now that we've rerun, the server should yield the new source text
@@ -1094,7 +1123,7 @@ void call_g() => g(null);
       // fail
       var response = await tryGetSourceFromServer(uri, test2Path);
       expect(response.statusCode, 404);
-      response = await http.post(uri.replace(path: 'rerun-migration'),
+      response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       // Now that we've rerun, the server should yield the new source text
@@ -1124,7 +1153,7 @@ void call_g() => g(null);
           contains('lib${separator}test.dart'));
       // Now delete the lib file and rerun
       resourceProvider.deleteFile(testPath);
-      var response = await http.post(uri.replace(path: 'rerun-migration'),
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       // lib/test.dart should no longer be readable from the server and
@@ -1153,7 +1182,7 @@ void call_g() => g(null);
       // We haven't rerun, so getting the file details from the server should
       // still yield the original source text, with informational space.
       expect(await getSourceFromServer(uri, testPath), 'void f(int  i) {}');
-      var response = await http.post(uri.replace(path: 'rerun-migration'),
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       var body = jsonDecode(response.body);
@@ -1214,7 +1243,7 @@ void call_g() => g(null);
       await assertPreviewServerResponsive(url);
       var uri = Uri.parse(url);
       var authToken = uri.queryParameters['authToken'];
-      var regionResponse = await http.get(
+      var regionResponse = await httpGet(
           uri.replace(
               path: resourceProvider.pathContext
                   .toUri(resourceProvider.pathContext
@@ -1227,7 +1256,7 @@ void call_g() => g(null);
               }),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var regionJson = jsonDecode(regionResponse.body);
-      var response = await http.post(
+      var response = await httpPost(
           uri.replace(
               path: 'apply-hint', queryParameters: {'authToken': authToken}),
           headers: {'Content-Type': 'application/json; charset=UTF-8'},
@@ -1259,13 +1288,13 @@ void call_g() => g(null);
             'offset': '3',
             'authToken': authToken
           });
-      var regionResponse = await http.get(regionUri,
+      var regionResponse = await httpGet(regionUri,
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       var regionJson = EditDetails.fromJson(jsonDecode(regionResponse.body));
       final traceEntry = regionJson.traces[0].entries[0];
       final uriPath = traceEntry.link.href;
       // uriPath should be a working URI
-      final contentsResponse = await http.get(
+      final contentsResponse = await httpGet(
           regionUri
               .resolve(uriPath)
               .replace(queryParameters: {'authToken': authToken}),
@@ -1367,7 +1396,7 @@ int f() => null;
       resourceProvider.getFile(testPath).writeAsStringSync(newSourceText);
       // Rerunning should create a new summary
       var uri = Uri.parse(url);
-      var response = await http.post(uri.replace(path: 'rerun-migration'),
+      var response = await httpPost(uri.replace(path: 'rerun-migration'),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
       assertHttpSuccess(response);
       summaryData =
@@ -1806,7 +1835,7 @@ name: test
 
   Future<http.Response> tryGetSourceFromServer(Uri uri, String path) async {
     var authToken = uri.queryParameters['authToken'];
-    return await http.get(
+    return await httpGet(
         uri.replace(
             path: resourceProvider.pathContext.toUri(path).path,
             queryParameters: {'inline': 'true', 'authToken': authToken}),

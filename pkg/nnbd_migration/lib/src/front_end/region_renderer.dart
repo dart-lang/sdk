@@ -49,14 +49,11 @@ class RegionRenderer {
 
     EditLink linkForEdit(EditDetail edit) => EditLink(
         description: edit.description,
-        href: Uri(
-            scheme: 'http',
-            path: pathContext.basename(unitInfo.path),
-            queryParameters: {
-              'offset': edit.offset.toString(),
-              'end': (edit.offset + edit.length).toString(),
-              'replacement': edit.replacement
-            }).toString());
+        href: Uri(path: pathContext.basename(unitInfo.path), queryParameters: {
+          'offset': edit.offset.toString(),
+          'end': (edit.offset + edit.length).toString(),
+          'replacement': edit.replacement
+        }).toString());
 
     var response = EditDetails(
       displayPath: unitInfo.path,
