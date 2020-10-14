@@ -7,5 +7,5 @@ part of models;
 abstract class SubtypeTestCacheRef extends ObjectRef {}
 
 abstract class SubtypeTestCache extends Object implements SubtypeTestCacheRef {
-  InstanceRef get cache;
+  InstanceRef? get cache;
 }

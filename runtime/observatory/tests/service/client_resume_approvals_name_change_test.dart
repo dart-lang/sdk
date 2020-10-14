@@ -16,9 +16,9 @@ void fooBar() {
   print(i);
 }
 
-WebSocketVM client1;
-WebSocketVM client2;
-WebSocketVM client3;
+late WebSocketVM client1;
+late WebSocketVM client2;
+late WebSocketVM client3;
 
 final nameChangeTest = <IsolateTest>[
   // Remove required approvals via name change.
@@ -26,15 +26,16 @@ final nameChangeTest = <IsolateTest>[
     final resumeFuture = waitForResume(isolate);
 
     // Create two clients with the same name.
-    client1 = await createClient(isolate.owner);
-    client2 = await createClient(isolate.owner);
+    client1 = await createClient(isolate.owner as WebSocketVM);
+    client2 = await createClient(isolate.owner as WebSocketVM);
     await setRequireApprovalForResume(
       client1,
       isolate,
       pauseOnStart: true,
       pauseOnExit: true,
     );
-    client3 = await createClient(isolate.owner, clientName: otherClientName);
+    client3 = await createClient(isolate.owner as WebSocketVM,
+        clientName: otherClientName);
 
     // Check that client3 can't resume the isolate on its own.
     expect(await isPausedAtStart(isolate), true);

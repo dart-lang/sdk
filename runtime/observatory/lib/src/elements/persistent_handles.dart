@@ -26,18 +26,18 @@ enum _SortingField { externalSize, peer, finalizerCallback }
 enum _SortingDirection { ascending, descending }
 
 class PersistentHandlesPageElement extends CustomElement implements Renderable {
-  RenderingScheduler<PersistentHandlesPageElement> _r;
+  late RenderingScheduler<PersistentHandlesPageElement> _r;
 
   Stream<RenderedEvent<PersistentHandlesPageElement>> get onRendered =>
       _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.PersistentHandlesRepository _repository;
-  M.ObjectRepository _objects;
-  M.PersistentHandles _handles;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.PersistentHandlesRepository _repository;
+  late M.ObjectRepository _objects;
+  M.PersistentHandles? _handles;
   _SortingField _sortingField = _SortingField.externalSize;
   _SortingDirection _sortingDirection = _SortingDirection.descending;
 
@@ -52,7 +52,7 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.PersistentHandlesRepository repository,
       M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -102,19 +102,19 @@ class PersistentHandlesPageElement extends CustomElement implements Renderable {
       ])
     ]
       ..addAll(_createHandlers('Persistent Handles',
-          _handles?.elements?.toList(), _createLine, _updateLine))
+          _handles?.elements.toList(), _createLine, _updateLine))
       ..add(new BRElement())
       ..addAll(_createHandlers(
           'Weak Persistent Handles',
           _handles == null
               ? null
-              : (_handles.weakElements.toList()..sort(_createSorter())),
+              : (_handles!.weakElements.toList()..sort(_createSorter())),
           _createWeakLine,
           _updateWeakLine,
           createHeader: _createWeakHeader));
   }
 
-  List<Element> _createHandlers(String name, List items, create, update,
+  List<Element> _createHandlers(String name, List? items, create, update,
       {createHeader}) {
     return [
       new DivElement()

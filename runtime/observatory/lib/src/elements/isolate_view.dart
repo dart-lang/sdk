@@ -31,23 +31,23 @@ import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class IsolateViewElement extends CustomElement implements Renderable {
-  RenderingScheduler<IsolateViewElement> _r;
+  late RenderingScheduler<IsolateViewElement> _r;
 
   Stream<RenderedEvent<IsolateViewElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.Isolate _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.IsolateRepository _isolates;
-  M.ScriptRepository _scripts;
-  M.FunctionRepository _functions;
-  M.LibraryRepository _libraries;
-  M.ObjectRepository _objects;
-  M.EvalRepository _eval;
-  M.ServiceFunction _function;
-  M.ScriptRef _rootScript;
-  StreamSubscription _subscription;
+  late M.VM _vm;
+  late M.Isolate _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.IsolateRepository _isolates;
+  late M.ScriptRepository _scripts;
+  late M.FunctionRepository _functions;
+  late M.LibraryRepository _libraries;
+  late M.ObjectRepository _objects;
+  late M.EvalRepository _eval;
+  M.ServiceFunction? _function;
+  M.ScriptRef? _rootScript;
+  late StreamSubscription _subscription;
 
   M.VMRef get vm => _vm;
   M.Isolate get isolate => _isolate;
@@ -64,7 +64,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
       M.LibraryRepository libraries,
       M.ObjectRepository objects,
       M.EvalRepository eval,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -114,9 +114,9 @@ class IsolateViewElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    final uptime = new DateTime.now().difference(_isolate.startTime);
-    final libraries = _isolate.libraries.toList();
-    final List<M.Thread> threads = _isolate.threads;
+    final uptime = new DateTime.now().difference(_isolate.startTime!);
+    final libraries = _isolate.libraries!.toList();
+    final List<M.Thread> threads = _isolate.threads!.toList();
     children = <Element>[
       navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue).element,
@@ -165,11 +165,11 @@ class IsolateViewElement extends CustomElement implements Renderable {
             ..children = _function != null
                 ? [
                     new BRElement(),
-                    (new SourceInsetElement(_isolate, _function.location,
+                    (new SourceInsetElement(_isolate, _function!.location!,
                             _scripts, _objects, _events,
                             currentPos: M
-                                .topFrame(isolate.pauseEvent)
-                                .location
+                                .topFrame(isolate.pauseEvent)!
+                                .location!
                                 .tokenPos,
                             queue: _r.queue)
                           ..classes = ['header_inset'])
@@ -215,7 +215,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
                       _isolate.rootLibrary == null
                           ? (new SpanElement()..text = 'loading...')
                           : new LibraryRefElement(
-                                  _isolate, _isolate.rootLibrary,
+                                  _isolate, _isolate.rootLibrary!,
                                   queue: _r.queue)
                               .element
                     ]
@@ -230,7 +230,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
                         new DivElement()
                           ..classes = ['memberValue']
                           ..children = <Element>[
-                            new FunctionRefElement(_isolate, _isolate.entry,
+                            new FunctionRefElement(_isolate, _isolate.entry!,
                                     queue: _r.queue)
                                 .element
                           ]
@@ -341,7 +341,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
                 ]
             ],
           new HRElement(),
-          new EvalBoxElement(_isolate, _isolate.rootLibrary, _objects, _eval,
+          new EvalBoxElement(_isolate, _isolate.rootLibrary!, _objects, _eval,
                   queue: _r.queue)
               .element,
           new DivElement()
@@ -349,7 +349,7 @@ class IsolateViewElement extends CustomElement implements Renderable {
                 ? [
                     new HRElement(),
                     new ScriptInsetElement(
-                            _isolate, _rootScript, _scripts, _objects, _events,
+                            _isolate, _rootScript!, _scripts, _objects, _events,
                             queue: _r.queue)
                         .element
                   ]
@@ -390,11 +390,11 @@ class IsolateViewElement extends CustomElement implements Renderable {
     _rootScript = null;
     final frame = M.topFrame(_isolate.pauseEvent);
     if (frame != null) {
-      _function = await _functions.get(_isolate, frame.function.id);
+      _function = await _functions.get(_isolate, frame.function!.id!);
     }
     if (_isolate.rootLibrary != null) {
       final rootLibrary =
-          await _libraries.get(_isolate, _isolate.rootLibrary.id);
+          await _libraries.get(_isolate, _isolate.rootLibrary!.id!);
       _rootScript = rootLibrary.rootScript;
     }
     _r.dirty();

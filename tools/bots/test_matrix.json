@@ -941,7 +941,8 @@
             "corelib",
             "ffi",
             "language",
-            "lib"
+            "lib",
+            "service"
           ]
         },
         {
@@ -1114,6 +1115,7 @@
             "language",
             "lib",
             "samples",
+            "service",
             "standalone",
             "utils",
             "vm"
@@ -1499,6 +1501,7 @@
             "language",
             "lib",
             "samples",
+            "service",
             "standalone",
             "utils",
             "vm"
@@ -2138,6 +2141,8 @@
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
             "--dart2js-batch",
+            "--enable-experiment=non-nullable",
+            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2210,6 +2215,8 @@
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
             "--reset-browser-configuration",
+            "--enable-experiment=non-nullable",
+            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2262,6 +2269,8 @@
           "arguments": [
             "-ndart2js-minified-linux-d8",
             "--dart2js-batch",
+            "--enable-experiment=non-nullable",
+            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2334,6 +2343,8 @@
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
             "--reset-browser-configuration",
+            "--enable-experiment=non-nullable",
+            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2732,6 +2743,7 @@
             "ffi",
             "language",
             "lib",
+            "service",
             "standalone"
           ]
         },
@@ -3012,7 +3024,7 @@
           "name": "analyze runtime/observatory",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "--fatal-warnings",
+            "--enable-experiment=non-nullable",
             "runtime/observatory"
           ]
         },

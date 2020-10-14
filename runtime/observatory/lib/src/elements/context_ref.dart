@@ -12,15 +12,15 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ContextRefElement extends CustomElement implements Renderable {
-  RenderingScheduler<ContextRefElement> _r;
+  late RenderingScheduler<ContextRefElement> _r;
 
   Stream<RenderedEvent<ContextRefElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.ContextRef _context;
-  M.ObjectRepository _objects;
-  M.Context _loadedContext;
-  bool _expandable;
+  late M.IsolateRef _isolate;
+  late M.ContextRef _context;
+  late M.ObjectRepository _objects;
+  M.Context? _loadedContext;
+  late bool _expandable;
   bool _expanded = false;
 
   M.IsolateRef get isolate => _isolate;
@@ -28,7 +28,7 @@ class ContextRefElement extends CustomElement implements Renderable {
 
   factory ContextRefElement(
       M.IsolateRef isolate, M.ContextRef context, M.ObjectRepository objects,
-      {RenderingQueue queue, bool expandable: true}) {
+      {RenderingQueue? queue, bool expandable: true}) {
     assert(isolate != null);
     assert(context != null);
     assert(objects != null);
@@ -57,7 +57,7 @@ class ContextRefElement extends CustomElement implements Renderable {
   }
 
   Future _refresh() async {
-    _loadedContext = await _objects.get(_isolate, _context.id);
+    _loadedContext = await _objects.get(_isolate, _context.id!) as M.Context;
     _r.dirty();
   }
 
@@ -99,7 +99,7 @@ class ContextRefElement extends CustomElement implements Renderable {
       return [new SpanElement()..text = 'Loading...'];
     }
     var members = <Element>[];
-    if (_loadedContext.parentContext != null) {
+    if (_loadedContext!.parentContext != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
         ..children = <Element>[
@@ -110,14 +110,14 @@ class ContextRefElement extends CustomElement implements Renderable {
             ..classes = ['memberName']
             ..children = <Element>[
               new ContextRefElement(
-                      _isolate, _loadedContext.parentContext, _objects,
+                      _isolate, _loadedContext!.parentContext!, _objects,
                       queue: _r.queue)
                   .element
             ]
         ]);
     }
-    if (_loadedContext.variables.isNotEmpty) {
-      var variables = _loadedContext.variables.toList();
+    if (_loadedContext!.variables!.isNotEmpty) {
+      var variables = _loadedContext!.variables!.toList();
       for (var index = 0; index < variables.length; index++) {
         var variable = variables[index];
         members.add(new DivElement()

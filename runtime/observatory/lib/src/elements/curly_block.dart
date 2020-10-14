@@ -16,15 +16,15 @@ class CurlyBlockToggleEvent {
 }
 
 class CurlyBlockElement extends CustomElement implements Renderable {
-  RenderingScheduler<CurlyBlockElement> _r;
+  late RenderingScheduler<CurlyBlockElement> _r;
 
   final StreamController<CurlyBlockToggleEvent> _onToggle =
       new StreamController<CurlyBlockToggleEvent>.broadcast();
   Stream<CurlyBlockToggleEvent> get onToggle => _onToggle.stream;
   Stream<RenderedEvent<CurlyBlockElement>> get onRendered => _r.onRendered;
 
-  bool _expanded;
-  bool _disabled;
+  late bool _expanded;
+  late bool _disabled;
   Iterable<Element> _content = const [];
 
   bool get expanded => _expanded;
@@ -43,7 +43,7 @@ class CurlyBlockElement extends CustomElement implements Renderable {
   }
 
   factory CurlyBlockElement(
-      {bool expanded: false, bool disabled: false, RenderingQueue queue}) {
+      {bool expanded: false, bool disabled: false, RenderingQueue? queue}) {
     assert(expanded != null);
     assert(disabled != null);
     CurlyBlockElement e = new CurlyBlockElement.created();

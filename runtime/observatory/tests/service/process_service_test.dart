@@ -24,19 +24,19 @@ Future setupProcesses() async {
     '--pause_isolates_on_start',
     io.Platform.script.toFilePath(),
   ];
-  io.Process process1;
-  io.Process process2;
-  io.Process process3;
+  io.Process? process1;
+  io.Process? process2;
+  io.Process? process3;
 
   void closeDown() {
     if (process1 != null) {
-      process1.kill();
+      process1!.kill();
     }
     if (process2 != null) {
-      process2.kill();
+      process2!.kill();
     }
     if (process3 != null) {
-      process3.kill();
+      process3!.kill();
     }
     dir.deleteSync(recursive: true);
   }
@@ -70,14 +70,14 @@ Future setupProcesses() async {
 
     final result = jsonEncode({
       'type': 'foobar',
-      'pids': [process1.pid, process2.pid, process3.pid]
+      'pids': [process1!.pid, process2!.pid, process3!.pid]
     });
     return Future.value(ServiceExtensionResponse.result(result));
   }
 
   Future<ServiceExtensionResponse> closeStdin(ignored_a, ignored_b) {
-    process3.stdin.close();
-    return process3.exitCode.then<ServiceExtensionResponse>((int exit) {
+    process3!.stdin.close();
+    return process3!.exitCode.then<ServiceExtensionResponse>((int exit) {
       final result = jsonEncode({'type': 'foobar'});
       return ServiceExtensionResponse.result(result);
     });

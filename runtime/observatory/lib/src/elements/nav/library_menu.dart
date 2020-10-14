@@ -11,17 +11,17 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class NavLibraryMenuElement extends CustomElement implements Renderable {
-  RenderingScheduler<NavLibraryMenuElement> _r;
+  late RenderingScheduler<NavLibraryMenuElement> _r;
 
   Stream<RenderedEvent<NavLibraryMenuElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.LibraryRef _library;
-  Iterable<Element> _content = const [];
+  late M.IsolateRef _isolate;
+  late M.LibraryRef _library;
+  List<Element> _content = const [];
 
   M.IsolateRef get isolate => _isolate;
   M.LibraryRef get library => _library;
-  Iterable<Element> get content => _content;
+  List<Element> get content => _content;
 
   set content(Iterable<Element> value) {
     _content = value.toList();
@@ -29,7 +29,7 @@ class NavLibraryMenuElement extends CustomElement implements Renderable {
   }
 
   factory NavLibraryMenuElement(M.IsolateRef isolate, M.LibraryRef library,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(library != null);
     NavLibraryMenuElement e = new NavLibraryMenuElement.created();
@@ -56,7 +56,7 @@ class NavLibraryMenuElement extends CustomElement implements Renderable {
 
   void render() {
     children = <Element>[
-      navMenu(library.name,
+      navMenu(library.name!,
           content: _content,
           link: Uris.inspect(isolate, object: library).toString())
     ];

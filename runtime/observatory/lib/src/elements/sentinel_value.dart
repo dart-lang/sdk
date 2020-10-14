@@ -9,15 +9,15 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class SentinelValueElement extends CustomElement implements Renderable {
-  RenderingScheduler<SentinelValueElement> _r;
+  late RenderingScheduler<SentinelValueElement> _r;
 
   Stream<RenderedEvent<SentinelValueElement>> get onRendered => _r.onRendered;
 
-  M.Sentinel _sentinel;
+  late M.Sentinel _sentinel;
 
   M.Sentinel get sentinel => _sentinel;
 
-  factory SentinelValueElement(M.Sentinel sentinel, {RenderingQueue queue}) {
+  factory SentinelValueElement(M.Sentinel sentinel, {RenderingQueue? queue}) {
     assert(sentinel != null);
     SentinelValueElement e = new SentinelValueElement.created();
     e._r = new RenderingScheduler<SentinelValueElement>(e, queue: queue);

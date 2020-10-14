@@ -443,7 +443,7 @@
       "name": "observatory",
       "rootUri": "../runtime/observatory",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.10"
     },
     {
       "name": "observatory_2",
@@ -454,7 +454,7 @@
     {
       "name": "observatory_test_package",
       "rootUri": "../runtime/observatory/tests/service/observatory_test_package",
-      "languageVersion": "2.7"
+      "languageVersion": "2.10"
     },
     {
       "name": "observatory_test_package_2",

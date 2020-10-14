@@ -13,7 +13,7 @@ void fooBar() {}
 
 Future<String> getClientName(Isolate isolate) async {
   final result = await isolate.vm.invokeRpcNoUpgrade('getClientName', {});
-  return result['name'];
+  return result['name'] as String;
 }
 
 Future<void> setClientName(Isolate isolate, String name) async =>

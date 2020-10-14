@@ -27,7 +27,7 @@ testMain() async {
   print('mmmmm'); // LINE_C.
   try {
     await helper(); // LINE_D.
-  } catch (e) {
+  } on dynamic catch (e) {
     // arrive here on error.
     print('error: $e'); // LINE_E.
   } finally {

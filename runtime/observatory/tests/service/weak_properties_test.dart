@@ -25,7 +25,7 @@ void script() {
   expando[key] = value;
 
   InstanceMirror expandoMirror = reflect(expando);
-  LibraryMirror libcore = expandoMirror.type.owner;
+  LibraryMirror libcore = expandoMirror.type.owner as LibraryMirror;
 
   var entries = expandoMirror
       .getField(MirrorSystem.getSymbol('_data', libcore))
@@ -36,31 +36,31 @@ void script() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load();
+    Library lib = await isolate.rootLibrary.load() as Library;
     Field keyField = lib.variables.singleWhere((v) => v.name == 'key');
     await keyField.load();
-    Instance key = keyField.staticValue;
+    Instance key = keyField.staticValue as Instance;
     Field valueField = lib.variables.singleWhere((v) => v.name == 'value');
     await valueField.load();
-    Instance value = valueField.staticValue;
+    Instance value = valueField.staticValue as Instance;
     Field propField =
         lib.variables.singleWhere((v) => v.name == 'weak_property');
     await propField.load();
-    Instance prop = propField.staticValue;
+    Instance prop = propField.staticValue as Instance;
 
     expect(key.isWeakProperty, isFalse);
     expect(value.isWeakProperty, isFalse);
     expect(prop.isWeakProperty, isTrue);
     expect(prop.key, isNull);
     expect(prop.value, isNull);
-    Instance loadedProp = await prop.load();
+    Instance loadedProp = await prop.load() as Instance;
     // Object ids are not canonicalized, so we rely on the key and value
     // being the sole instances of their classes to test we got the objects
     // we expect.
     expect(loadedProp.key, isNotNull);
-    expect(loadedProp.key.clazz, equals(key.clazz));
+    expect(loadedProp.key!.clazz, equals(key.clazz));
     expect(loadedProp.value, isNotNull);
-    expect(loadedProp.value.clazz, equals(value.clazz));
+    expect(loadedProp.value!.clazz, equals(value.clazz));
   },
 ];
 

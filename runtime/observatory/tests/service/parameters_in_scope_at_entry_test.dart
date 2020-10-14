@@ -43,7 +43,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     Frame top = stack['frames'][0];
     print(top);
-    expect(top.function.name, equals("foo"));
+    expect(top.function!.name, equals("foo"));
     print(top.variables);
     expect(top.variables.length, equals(1));
     var param = top.variables[0];
@@ -59,7 +59,7 @@ var tests = <IsolateTest>[
     var stack = await isolate.getStack();
     Frame top = stack['frames'][0];
     print(top);
-    expect(top.function.name, equals("theClosureFunction"));
+    expect(top.function!.name, equals("theClosureFunction"));
     print(top.variables);
     expect(top.variables.length, equals(1));
     var param = top.variables[0];

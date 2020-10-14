@@ -15,7 +15,7 @@ class SampleBufferControlChangedElement {
 }
 
 class SampleBufferControlElement extends CustomElement implements Renderable {
-  RenderingScheduler<SampleBufferControlElement> _r;
+  late RenderingScheduler<SampleBufferControlElement> _r;
 
   Stream<RenderedEvent<SampleBufferControlElement>> get onRendered =>
       _r.onRendered;
@@ -25,13 +25,13 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
   Stream<SampleBufferControlChangedElement> get onTagChange =>
       _onTagChange.stream;
 
-  M.VM _vm;
-  Stream<M.SampleProfileLoadingProgressEvent> _progressStream;
-  M.SampleProfileLoadingProgress _progress;
-  M.SampleProfileTag _tag;
+  late M.VM _vm;
+  late Stream<M.SampleProfileLoadingProgressEvent> _progressStream;
+  late M.SampleProfileLoadingProgress _progress;
+  late M.SampleProfileTag _tag;
   bool _showTag = false;
   bool _profileVM = false;
-  StreamSubscription _subscription;
+  late StreamSubscription _subscription;
 
   M.SampleProfileLoadingProgress get progress => _progress;
   M.SampleProfileTag get selectedTag => _tag;
@@ -49,7 +49,7 @@ class SampleBufferControlElement extends CustomElement implements Renderable {
       Stream<M.SampleProfileLoadingProgressEvent> progressStream,
       {M.SampleProfileTag selectedTag: M.SampleProfileTag.none,
       bool showTag: true,
-      RenderingQueue queue}) {
+      RenderingQueue? queue}) {
     assert(progress != null);
     assert(progressStream != null);
     assert(selectedTag != null);

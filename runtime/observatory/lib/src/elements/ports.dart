@@ -19,17 +19,17 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class PortsElement extends CustomElement implements Renderable {
-  RenderingScheduler<PortsElement> _r;
+  late RenderingScheduler<PortsElement> _r;
 
   Stream<RenderedEvent<PortsElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.PortsRepository _ports;
-  M.ObjectRepository _objects;
-  M.Ports _isolatePorts;
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.PortsRepository _ports;
+  late M.ObjectRepository _objects;
+  M.Ports? _isolatePorts;
 
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
@@ -43,7 +43,7 @@ class PortsElement extends CustomElement implements Renderable {
       M.NotificationRepository notifications,
       M.PortsRepository ports,
       M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -64,7 +64,7 @@ class PortsElement extends CustomElement implements Renderable {
   PortsElement.created() : super.created('ports-page');
 
   int get portCount {
-    return _isolatePorts == null ? 0 : _isolatePorts.elements.length;
+    return _isolatePorts == null ? 0 : _isolatePorts!.elements.length;
   }
 
   @override
@@ -110,7 +110,7 @@ class PortsElement extends CustomElement implements Renderable {
       return const [];
     }
     int i = 0;
-    return _isolatePorts.elements
+    return _isolatePorts!.elements
         .map<Element>((port) => new DivElement()
           ..classes = ['memberItem']
           ..children = <Element>[

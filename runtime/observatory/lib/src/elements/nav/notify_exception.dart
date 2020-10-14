@@ -11,13 +11,13 @@ import 'package:observatory/models.dart' show ConnectionException;
 
 class ExceptionDeleteEvent {
   final dynamic exception;
-  final StackTrace stacktrace;
+  final StackTrace? stacktrace;
 
   ExceptionDeleteEvent(this.exception, {this.stacktrace});
 }
 
 class NavNotifyExceptionElement extends CustomElement implements Renderable {
-  RenderingScheduler<NavNotifyExceptionElement> _r;
+  late RenderingScheduler<NavNotifyExceptionElement> _r;
 
   Stream<RenderedEvent<NavNotifyExceptionElement>> get onRendered =>
       _r.onRendered;
@@ -26,14 +26,14 @@ class NavNotifyExceptionElement extends CustomElement implements Renderable {
       new StreamController<ExceptionDeleteEvent>.broadcast();
   Stream<ExceptionDeleteEvent> get onDelete => _onDelete.stream;
 
-  dynamic _exception;
-  StackTrace _stacktrace;
+  late dynamic _exception;
+  StackTrace? _stacktrace;
 
   dynamic get exception => _exception;
-  StackTrace get stacktrace => _stacktrace;
+  StackTrace? get stacktrace => _stacktrace;
 
   factory NavNotifyExceptionElement(dynamic exception,
-      {StackTrace stacktrace: null, RenderingQueue queue}) {
+      {StackTrace? stacktrace: null, RenderingQueue? queue}) {
     assert(exception != null);
     NavNotifyExceptionElement e = new NavNotifyExceptionElement.created();
     e._r = new RenderingScheduler<NavNotifyExceptionElement>(e, queue: queue);

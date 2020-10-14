@@ -12,18 +12,18 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/counter_chart.dart';
 
 class IsolateSharedSummaryElement extends CustomElement implements Renderable {
-  RenderingScheduler<IsolateSharedSummaryElement> _r;
+  late RenderingScheduler<IsolateSharedSummaryElement> _r;
 
   Stream<RenderedEvent<IsolateSharedSummaryElement>> get onRendered =>
       _r.onRendered;
 
-  M.Isolate _isolate;
-  M.EventRepository _events;
-  StreamSubscription _isolateSubscription;
+  late M.Isolate _isolate;
+  late M.EventRepository _events;
+  late StreamSubscription _isolateSubscription;
 
   factory IsolateSharedSummaryElement(
       M.Isolate isolate, M.EventRepository events,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(events != null);
     IsolateSharedSummaryElement e = new IsolateSharedSummaryElement.created();
@@ -52,10 +52,10 @@ class IsolateSharedSummaryElement extends CustomElement implements Renderable {
   }
 
   void render() {
-    final newHeapUsed = Utils.formatSize(_isolate.newSpace.used);
-    final newHeapCapacity = Utils.formatSize(_isolate.newSpace.capacity);
-    final oldHeapUsed = Utils.formatSize(_isolate.oldSpace.used);
-    final oldHeapCapacity = Utils.formatSize(_isolate.oldSpace.capacity);
+    final newHeapUsed = Utils.formatSize(_isolate.newSpace!.used);
+    final newHeapCapacity = Utils.formatSize(_isolate.newSpace!.capacity);
+    final oldHeapUsed = Utils.formatSize(_isolate.oldSpace!.used);
+    final oldHeapCapacity = Utils.formatSize(_isolate.oldSpace!.capacity);
     final content = <Element>[
       new DivElement()
         ..classes = ['menu']
@@ -148,13 +148,14 @@ class IsolateSharedSummaryElement extends CustomElement implements Renderable {
               new AnchorElement(href: Uris.logging(_isolate))..text = 'logging'
             ]
         ],
-      new IsolateCounterChartElement(_isolate.counters, queue: _r.queue).element
+      new IsolateCounterChartElement(_isolate.counters!, queue: _r.queue)
+          .element
     ];
     if (_isolate.error != null) {
       children = <Element>[
         new PreElement()
           ..classes = ['errorBox']
-          ..text = _isolate.error.message,
+          ..text = _isolate.error!.message,
         new DivElement()
           ..classes = ['summary']
           ..children = content

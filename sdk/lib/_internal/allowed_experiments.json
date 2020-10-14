@@ -94,6 +94,12 @@
     "native_stack_traces": {
       "experimentSet": "nullSafety"
     },
+    "observatory": {
+      "experimentSet": "nullSafety"
+    },
+    "observatory_test_package": {
+      "experimentSet": "nullSafety"
+    },
     "path": {
       "experimentSet": "nullSafety"
     },

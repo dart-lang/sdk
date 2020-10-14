@@ -8,9 +8,9 @@ import 'test_helper.dart';
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library root = await isolate.rootLibrary.load();
+    Library root = await isolate.rootLibrary.load() as Library;
 
-    Class classLibrary = await root.clazz.load();
+    Class classLibrary = await root.clazz!.load() as Class;
     print(classLibrary);
     {
       bool caughtExceptions = false;
@@ -24,7 +24,7 @@ var tests = <IsolateTest>[
       expect(caughtExceptions, isTrue);
     }
 
-    Class classClass = await classLibrary.clazz.load();
+    Class classClass = await classLibrary.clazz!.load() as Class;
     print(classClass);
     {
       bool caughtExceptions = false;
@@ -38,10 +38,11 @@ var tests = <IsolateTest>[
       expect(caughtExceptions, isTrue);
     }
 
-    Instance someArray = await root.evaluate("new List(2)");
+    Instance someArray =
+        await root.evaluate("new List<dynamic>.filled(2, null)") as Instance;
     print(someArray);
     expect(someArray is Instance, isTrue);
-    Class classArray = await someArray.clazz.load();
+    Class classArray = await someArray.clazz!.load() as Class;
     print(classArray);
     dynamic result = await classArray.evaluate('3 + 4');
     print(result);

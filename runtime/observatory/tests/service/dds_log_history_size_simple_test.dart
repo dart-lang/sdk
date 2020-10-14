@@ -29,7 +29,7 @@ Future setLogHistorySize(Isolate isolate, int size) async {
 Future<int> getLogHistorySize(Isolate isolate) async {
   final result = await isolate.invokeRpcNoUpgrade('getLogHistorySize', {});
   expect(result['type'], 'Size');
-  return result['size'];
+  return result['size'] as int;
 }
 
 var tests = <IsolateTest>[
@@ -45,7 +45,7 @@ var tests = <IsolateTest>[
 
     int i = 1;
     await subscribeToStream(isolate.vm, 'Logging', (event) async {
-      expect(event.logRecord['message'].valueAsString, 'log$i');
+      expect(event.logRecord!['message'].valueAsString, 'log$i');
       i++;
 
       if (i == 10) {
@@ -69,11 +69,11 @@ var tests = <IsolateTest>[
 
     // Create a new client as we want to get log messages from the entire
     // history buffer.
-    final client = await createClient(isolate.vm);
+    final client = await createClient(isolate.vm as WebSocketVM);
 
     int i = 6;
     await subscribeToStream(client, 'Logging', (event) async {
-      expect(event.logRecord['message'].valueAsString, 'log$i');
+      expect(event.logRecord!['message'].valueAsString, 'log$i');
       i++;
 
       if (i == 11) {
@@ -84,7 +84,7 @@ var tests = <IsolateTest>[
       }
     });
     await completer.future;
-    await client.disconnect();
+    client.disconnect();
   },
 ];
 

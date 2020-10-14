@@ -7,18 +7,18 @@ part of models;
 abstract class IsolateGroupRef {
   /// The id which is passed to the getIsolateGroup RPC to reload this
   /// isolate group.
-  String get id;
+  String? get id;
 
   /// A numeric id for this isolate group, represented as a string. Unique.
-  int get number;
+  int? get number;
 
   /// A name identifying this isolate group. Not guaranteed to be unique.
-  String get name;
+  String? get name;
 
-  bool get isSystemIsolateGroup;
+  bool? get isSystemIsolateGroup;
 }
 
 abstract class IsolateGroup extends IsolateGroupRef {
   /// A list of all isolates in this isolate group.
-  Iterable<IsolateRef> get isolates;
+  Iterable<IsolateRef>? get isolates;
 }

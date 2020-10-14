@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 /// [ObservatoryApplication] which is passed declaratively to all child
 /// elements.
 class ObservatoryApplicationElement extends CustomElement {
-  ObservatoryApplication app;
+  late ObservatoryApplication app;
 
   ObservatoryApplicationElement.created()
       : super.created('observatory-application');

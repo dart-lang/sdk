@@ -202,6 +202,12 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "native_stack_traces": {
     ExperimentalFlag.nonNullable,
   },
+  "observatory": {
+    ExperimentalFlag.nonNullable,
+  },
+  "observatory_test_package": {
+    ExperimentalFlag.nonNullable,
+  },
   "path": {
     ExperimentalFlag.nonNullable,
   },

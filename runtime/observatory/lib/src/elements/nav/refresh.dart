@@ -13,7 +13,7 @@ class RefreshEvent {
 }
 
 class NavRefreshElement extends CustomElement implements Renderable {
-  RenderingScheduler<NavRefreshElement> _r;
+  late RenderingScheduler<NavRefreshElement> _r;
 
   Stream<RenderedEvent<NavRefreshElement>> get onRendered => _r.onRendered;
 
@@ -21,8 +21,8 @@ class NavRefreshElement extends CustomElement implements Renderable {
       new StreamController<RefreshEvent>.broadcast();
   Stream<RefreshEvent> get onRefresh => _onRefresh.stream;
 
-  bool _disabled;
-  String _label;
+  late bool _disabled;
+  late String _label;
 
   bool get disabled => _disabled;
   String get label => _label;
@@ -31,7 +31,7 @@ class NavRefreshElement extends CustomElement implements Renderable {
   set label(String value) => _label = _r.checkAndReact(_label, value);
 
   factory NavRefreshElement(
-      {String label: 'Refresh', bool disabled: false, RenderingQueue queue}) {
+      {String label: 'Refresh', bool disabled: false, RenderingQueue? queue}) {
     assert(label != null);
     assert(disabled != null);
     NavRefreshElement e = new NavRefreshElement.created();

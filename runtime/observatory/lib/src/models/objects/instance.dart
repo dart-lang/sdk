@@ -122,7 +122,10 @@ enum InstanceKind {
   typeRef,
 }
 
-bool isTypedData(InstanceKind kind) {
+bool isTypedData(InstanceKind? kind) {
+  if (kind == null) {
+    return false;
+  }
   switch (kind) {
     case InstanceKind.uint8ClampedList:
     case InstanceKind.uint8List:
@@ -144,7 +147,10 @@ bool isTypedData(InstanceKind kind) {
   }
 }
 
-bool isSimdValue(InstanceKind kind) {
+bool isSimdValue(InstanceKind? kind) {
+  if (kind == null) {
+    return false;
+  }
   switch (kind) {
     case InstanceKind.float32x4:
     case InstanceKind.float64x2:
@@ -155,7 +161,10 @@ bool isSimdValue(InstanceKind kind) {
   }
 }
 
-bool isAbstractType(InstanceKind kind) {
+bool isAbstractType(InstanceKind? kind) {
+  if (kind == null) {
+    return false;
+  }
   switch (kind) {
     case InstanceKind.type:
     case InstanceKind.typeRef:
@@ -168,10 +177,10 @@ bool isAbstractType(InstanceKind kind) {
 
 abstract class InstanceRef extends ObjectRef {
   /// What kind of instance is this?
-  InstanceKind get kind;
+  InstanceKind? get kind;
 
   /// Instance references always include their class.
-  ClassRef get clazz;
+  ClassRef? get clazz;
 
   /// [optional] The value of this instance as a string.
   ///
@@ -185,13 +194,13 @@ abstract class InstanceRef extends ObjectRef {
   ///   Float64x2
   ///   Int32x4
   ///   StackTrace
-  String get valueAsString;
+  String? get valueAsString;
 
   /// [optional] The valueAsString for String references may be truncated. If so,
   /// this property is added with the value 'true'.
   ///
   /// New code should use 'length' and 'count' instead.
-  bool get valueAsStringIsTruncated;
+  bool? get valueAsStringIsTruncated;
 
   /// [optional] The length of a List or the number of associations in a Map or
   /// the number of codeunits in a String.
@@ -214,25 +223,25 @@ abstract class InstanceRef extends ObjectRef {
   ///   Int32x4List
   ///   Float32x4List
   ///   Float64x2List
-  int get length;
+  int? get length;
 
   /// [optional] The name of a Type instance.
   ///
   /// Provided for instance kinds:
   ///   Type
-  String get name;
+  String? get name;
 
   /// [optional] The corresponding Class if this Type is canonical.
   ///
   /// Provided for instance kinds:
   ///   Type
-  ClassRef get typeClass;
+  ClassRef? get typeClass;
 
   /// [optional] The parameterized class of a type parameter:
   ///
   /// Provided for instance kinds:
   ///   TypeParameter
-  ClassRef get parameterizedClass;
+  ClassRef? get parameterizedClass;
 
   /// [optional] The pattern of a RegExp instance.
   ///
@@ -240,19 +249,19 @@ abstract class InstanceRef extends ObjectRef {
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  InstanceRef get pattern;
+  InstanceRef? get pattern;
 
   /// [optional] The function associated with a Closure instance.
   ///
   /// Provided for instance kinds:
   ///   Closure
-  FunctionRef get closureFunction;
+  FunctionRef? get closureFunction;
 
   /// [optional] The context associated with a Closure instance.
   ///
   /// Provided for instance kinds:
   ///   Closure
-  ContextRef get closureContext;
+  ContextRef? get closureContext;
 }
 
 abstract class Instance extends Object implements InstanceRef {
@@ -277,7 +286,7 @@ abstract class Instance extends Object implements InstanceRef {
   ///   Int32x4List
   ///   Float32x4List
   ///   Float64x2List
-  int get offset;
+  int? get offset;
 
   /// [optional] The number of elements or associations or codeunits returned.
   /// This is only provided when it is less than length.
@@ -300,7 +309,7 @@ abstract class Instance extends Object implements InstanceRef {
   ///   Int32x4List
   ///   Float32x4List
   ///   Float64x2List
-  int get count;
+  int? get count;
 
   /// [optional] The elements of a TypedData instance.
   ///
@@ -319,19 +328,19 @@ abstract class Instance extends Object implements InstanceRef {
   ///   Int32x4List
   ///   Float32x4List
   ///   Float64x2List
-  List<dynamic> get typedElements;
+  List<dynamic>? get typedElements;
 
   /// [optional] The native fields of this Instance.
-  Iterable<NativeField> get nativeFields;
+  Iterable<NativeField>? get nativeFields;
 
   /// [optional] The fields of this Instance.
-  Iterable<BoundField> get fields;
+  Iterable<BoundField>? get fields;
 
   /// [optional] The elements of a List instance.
   ///
   /// Provided for instance kinds:
   ///   List
-  Iterable<Guarded<ObjectRef>> get elements;
+  Iterable<Guarded<ObjectRef>>? get elements;
   // It should be:
   // Iterable<Guarded<InstanceRef>> get elements;
   // In some situations we obtain lists of non Instances
@@ -340,37 +349,37 @@ abstract class Instance extends Object implements InstanceRef {
   ///
   /// Provided for instance kinds:
   ///   Map
-  Iterable<MapAssociation> get associations;
+  Iterable<MapAssociation>? get associations;
 
   /// [optional] The key for a WeakProperty instance.
   ///
   /// Provided for instance kinds:
   ///   WeakProperty
-  InstanceRef get key;
+  InstanceRef? get key;
 
   /// [optional] The key for a WeakProperty instance.
   ///
   /// Provided for instance kinds:
   ///   WeakProperty
-  InstanceRef get value;
+  InstanceRef? get value;
 
   /// [optional] The referent of a MirrorReference instance.
   ///
   /// Provided for instance kinds:
   ///   MirrorReference
-  ObjectRef get referent;
+  ObjectRef? get referent;
 
   /// [optional] The type arguments for this type.
   ///
   /// Provided for instance kinds:
   ///   Type
-  TypeArgumentsRef get typeArguments;
+  TypeArgumentsRef? get typeArguments;
 
   /// [optional] The index of a TypeParameter instance.
   ///
   /// Provided for instance kinds:
   ///   TypeParameter
-  int get parameterIndex;
+  int? get parameterIndex;
 
   /// [optional] The referent of a TypeRef instance.
   ///
@@ -379,7 +388,7 @@ abstract class Instance extends Object implements InstanceRef {
   ///
   /// Provided for instance kinds:
   ///   TypeRef
-  InstanceRef get targetType;
+  InstanceRef? get targetType;
 
   /// [optional] The bound of a TypeParameter.
   ///
@@ -388,66 +397,66 @@ abstract class Instance extends Object implements InstanceRef {
   ///
   /// Provided for instance kinds:
   ///   TypeParameter
-  InstanceRef get bound;
+  InstanceRef? get bound;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   Closure
-  Breakpoint get activationBreakpoint;
+  Breakpoint? get activationBreakpoint;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  bool get isCaseSensitive;
+  bool? get isCaseSensitive;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  bool get isMultiLine;
+  bool? get isMultiLine;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  FunctionRef get oneByteFunction;
+  FunctionRef? get oneByteFunction;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  FunctionRef get twoByteFunction;
+  FunctionRef? get twoByteFunction;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  FunctionRef get externalOneByteFunction;
+  FunctionRef? get externalOneByteFunction;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  FunctionRef get externalTwoByteFunction;
+  FunctionRef? get externalTwoByteFunction;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  InstanceRef get oneByteBytecode;
+  InstanceRef? get oneByteBytecode;
 
   /// [optional]
   ///
   /// Provided for instance kinds:
   ///   RegExp
-  InstanceRef get twoByteBytecode;
+  InstanceRef? get twoByteBytecode;
 }
 
 abstract class BoundField {
-  FieldRef get decl;
-  Guarded<InstanceRef> get value;
+  FieldRef? get decl;
+  Guarded<InstanceRef>? get value;
 }
 
 abstract class NativeField {

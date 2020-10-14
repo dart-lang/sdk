@@ -182,9 +182,9 @@ bool hasCompletedEvents(List traceEvents) {
     final id = event['id'];
     events.putIfAbsent(id, () => 0);
     if (isStartEvent(event)) {
-      events[id]++;
+      events[id] = events[id]! + 1;
     } else if (isFinishEvent(event)) {
-      events[id]--;
+      events[id] = events[id]! - 1;
     }
   }
   bool valid = true;

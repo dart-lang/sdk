@@ -49,8 +49,8 @@ var tests = <IsolateTest>[
       'libraryId': dartCore.id,
       'isDebuggable': false,
     };
-    Map<String, dynamic> result = await isolate.invokeRpcNoUpgrade(
-        'setLibraryDebuggable', setDebugParams);
+    var result = await isolate.invokeRpcNoUpgrade(
+        'setLibraryDebuggable', setDebugParams) as Map<String, dynamic>;
     expect(result['type'], equals('Success'));
     await dartCore.reload();
     expect(dartCore.debuggable, equals(false));

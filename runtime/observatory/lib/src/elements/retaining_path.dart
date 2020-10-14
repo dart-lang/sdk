@@ -12,15 +12,15 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class RetainingPathElement extends CustomElement implements Renderable {
-  RenderingScheduler<RetainingPathElement> _r;
+  late RenderingScheduler<RetainingPathElement> _r;
 
   Stream<RenderedEvent<RetainingPathElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.ObjectRef _object;
-  M.RetainingPathRepository _retainingPaths;
-  M.ObjectRepository _objects;
-  M.RetainingPath _path;
+  late M.IsolateRef _isolate;
+  late M.ObjectRef _object;
+  late M.RetainingPathRepository _retainingPaths;
+  late M.ObjectRepository _objects;
+  M.RetainingPath? _path;
   bool _expanded = false;
 
   M.IsolateRef get isolate => _isolate;
@@ -28,7 +28,7 @@ class RetainingPathElement extends CustomElement implements Renderable {
 
   factory RetainingPathElement(M.IsolateRef isolate, M.ObjectRef object,
       M.RetainingPathRepository retainingPaths, M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(object != null);
     assert(retainingPaths != null);
@@ -75,7 +75,7 @@ class RetainingPathElement extends CustomElement implements Renderable {
 
   Future _refresh() async {
     _path = null;
-    _path = await _retainingPaths.get(_isolate, _object.id);
+    _path = await _retainingPaths.get(_isolate, _object.id!);
     _r.dirty();
   }
 
@@ -86,11 +86,11 @@ class RetainingPathElement extends CustomElement implements Renderable {
 
     var elements = <Element>[];
     bool first = true;
-    for (var item in _path.elements) {
+    for (var item in _path!.elements) {
       elements.add(_createItem(item, first));
       first = false;
     }
-    elements.add(_createGCRootItem(_path.gcRootType));
+    elements.add(_createGCRootItem(_path!.gcRootType));
     return elements;
   }
 

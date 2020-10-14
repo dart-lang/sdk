@@ -23,7 +23,7 @@ var tests = <VMTest>[
     expect(result['type'], equals('FileSystemList'));
     expect(result['fsNames'].toString(), equals('[alpha]'));
 
-    bool caughtException;
+    bool caughtException = false;
     try {
       await vm.invokeRpcNoUpgrade('_createDevFS', params);
       expect(false, isTrue, reason: 'Unreachable');
