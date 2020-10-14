@@ -43,8 +43,8 @@ class FixCommand extends DartdevCommand<int> {
       usageException("Directory doesn't exist: ${dir.path}");
     }
 
-    var progress =
-        log.progress('Computing fixes in ${path.basename(dir.path)}');
+    var progress = log.progress(
+        'Computing fixes in ${path.basename(path.canonicalize(dir.path))}');
 
     var server = AnalysisServer(
       io.Directory(sdk.sdkPath),
