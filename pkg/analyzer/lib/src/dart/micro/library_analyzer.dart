@@ -10,6 +10,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -789,7 +790,7 @@ class LibraryAnalyzer {
     }
     StringLiteral uriLiteral = directive.uri;
     CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-    if (_isGenerated(source)) {
+    if (isGeneratedSource(source)) {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
     _getErrorReporter(file)
@@ -804,30 +805,6 @@ class LibraryAnalyzer {
         _validateUriBasedDirective(file, directive);
       }
     }
-  }
-
-  /// Return `true` if the given [source] refers to a file that is assumed to be
-  /// generated.
-  static bool _isGenerated(Source source) {
-    if (source == null) {
-      return false;
-    }
-    // TODO(brianwilkerson) Generalize this mechanism.
-    const List<String> suffixes = <String>[
-      '.g.dart',
-      '.pb.dart',
-      '.pbenum.dart',
-      '.pbserver.dart',
-      '.pbjson.dart',
-      '.template.dart'
-    ];
-    String fullName = source.fullName;
-    for (String suffix in suffixes) {
-      if (fullName.endsWith(suffix)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

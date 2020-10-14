@@ -1435,6 +1435,14 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   String get identifier => '${source.uri}';
 
   @override
+  bool get isSynthetic {
+    if (linkedContext != null) {
+      return linkedContext.isSynthetic;
+    }
+    return super.isSynthetic;
+  }
+
+  @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
   @override
