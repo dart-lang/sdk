@@ -1061,10 +1061,10 @@ class FunctionTypeImplTest extends AbstractTypeTest {
   }
 
   void test_equality_recursive() {
-    var s = ElementFactory.genericTypeAliasElement('s');
-    var t = ElementFactory.genericTypeAliasElement('t');
-    var u = ElementFactory.genericTypeAliasElement('u');
-    var v = ElementFactory.genericTypeAliasElement('v');
+    var s = ElementFactory.functionTypeAliasElement('s');
+    var t = ElementFactory.functionTypeAliasElement('t');
+    var u = ElementFactory.functionTypeAliasElement('u');
+    var v = ElementFactory.functionTypeAliasElement('v');
     s.function.returnType = functionTypeAliasType(t);
     t.function.returnType = functionTypeAliasType(s);
     u.function.returnType = functionTypeAliasType(v);
@@ -1207,8 +1207,8 @@ class FunctionTypeImplTest extends AbstractTypeTest {
   }
 
   void test_toString_recursive() {
-    var t = ElementFactory.genericTypeAliasElement("t");
-    var s = ElementFactory.genericTypeAliasElement("s");
+    var t = ElementFactory.functionTypeAliasElement("t");
+    var s = ElementFactory.functionTypeAliasElement("s");
     t.function.returnType = functionTypeAliasType(s);
     s.function.returnType = functionTypeAliasType(t);
     assertType(
@@ -1218,7 +1218,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
   }
 
   void test_toString_recursive_via_interface_type() {
-    var f = ElementFactory.genericTypeAliasElement('f');
+    var f = ElementFactory.functionTypeAliasElement('f');
     ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
     f.function.returnType = c.instantiate(
       typeArguments: [functionTypeAliasType(f)],

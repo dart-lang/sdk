@@ -412,7 +412,8 @@ typedef int F<T>(String x);
 typedef F<T> = int Function(String x);
 ''');
     var unit = await resolveLibraryUnit(source);
-    engine.GenericTypeAliasElement engineElement = findElementInUnit(unit, 'F');
+    engine.FunctionTypeAliasElement engineElement =
+        findElementInUnit(unit, 'F');
     // create notification Element
     var element = convertElement(engineElement);
     expect(element.kind, ElementKind.FUNCTION_TYPE_ALIAS);

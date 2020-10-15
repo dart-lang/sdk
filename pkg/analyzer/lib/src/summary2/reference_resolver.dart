@@ -259,7 +259,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
-    var element = node.declaredElement as GenericTypeAliasElementImpl;
+    var element = node.declaredElement as FunctionTypeAliasElementImpl;
     reference = element.reference;
 
     _createTypeParameterElements(node.typeParameters);
@@ -340,7 +340,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
-    var element = node.declaredElement as GenericTypeAliasElementImpl;
+    var element = node.declaredElement as FunctionTypeAliasElementImpl;
     reference = element.reference;
 
     _createTypeParameterElements(node.typeParameters);

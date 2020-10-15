@@ -1188,7 +1188,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // Typedef(s) are represented as GenericFunctionTypeElement(s).
     if (element is GenericFunctionTypeElement &&
         element.typeParameters.isEmpty &&
-        element.enclosingElement is GenericTypeAliasElement) {
+        element.enclosingElement is FunctionTypeAliasElement) {
       element = element.enclosingElement;
     }
 

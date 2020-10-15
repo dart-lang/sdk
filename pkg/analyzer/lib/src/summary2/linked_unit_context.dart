@@ -973,7 +973,7 @@ class LinkedUnitContext {
         _typeParameters.remove(--_nextSyntheticTypeParameterId);
       }
 
-      GenericTypeAliasElement typedefElement;
+      FunctionTypeAliasElement typedefElement;
       List<DartType> typedefTypeArguments = const <DartType>[];
       if (linkedType.functionTypedef != 0) {
         typedefElement =

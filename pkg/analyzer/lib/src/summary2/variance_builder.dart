@@ -74,7 +74,7 @@ class VarianceBuilder {
           }
         }
         return result;
-      } else if (element is GenericTypeAliasElementImpl) {
+      } else if (element is FunctionTypeAliasElementImpl) {
         _functionTypeAliasElement(element);
 
         var result = Variance.unrelated;
@@ -178,7 +178,7 @@ class VarianceBuilder {
     }
   }
 
-  void _functionTypeAliasElement(GenericTypeAliasElementImpl element) {
+  void _functionTypeAliasElement(FunctionTypeAliasElementImpl element) {
     var node = element.linkedNode;
     if (node is GenericTypeAlias) {
       _genericTypeAlias(node);

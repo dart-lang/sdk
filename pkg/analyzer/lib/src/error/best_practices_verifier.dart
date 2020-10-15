@@ -1081,7 +1081,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         ];
         for (var type in signatureTypes) {
           var typeElement = type?.element?.enclosingElement;
-          if (typeElement is GenericTypeAliasElement &&
+          if (typeElement is FunctionTypeAliasElement &&
               typeElement.hasInternal) {
             _errorReporter.reportErrorForNode(
                 HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,

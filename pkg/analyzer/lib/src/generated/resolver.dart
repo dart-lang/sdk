@@ -1029,7 +1029,7 @@ class ResolverVisitor extends ScopedVisitor {
     // TODO(scheglov) Change corresponding visiting places to visit comments
     // with name scopes set for correct comments resolution.
     if (parent is GenericTypeAlias) {
-      var element = parent.declaredElement as GenericTypeAliasElement;
+      var element = parent.declaredElement as FunctionTypeAliasElement;
       var outerScope = nameScope;
       try {
         nameScope = TypeParameterScope(nameScope, element.typeParameters);
@@ -2851,7 +2851,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     Scope outerScope = nameScope;
     try {
-      GenericTypeAliasElement element = node.declaredElement;
+      FunctionTypeAliasElement element = node.declaredElement;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       super.visitGenericTypeAlias(node);
 

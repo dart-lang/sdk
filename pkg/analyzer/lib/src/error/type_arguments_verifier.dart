@@ -196,7 +196,7 @@ class TypeArgumentsVerifier {
     if (type is InterfaceType) {
       typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
-    } else if (element is GenericTypeAliasElement && type is FunctionType) {
+    } else if (element is FunctionTypeAliasElement && type is FunctionType) {
       typeParameters = element.typeParameters;
       typeArguments = type.typeArguments;
     } else {

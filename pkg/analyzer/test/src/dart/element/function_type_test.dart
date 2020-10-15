@@ -75,14 +75,14 @@ class FunctionTypeTest with ElementsTypesMixin {
     expect(f.typeFormals, typeFormals, reason: 'typeFormals');
   }
 
-  GenericTypeAliasElementImpl genericTypeAliasElement(
+  FunctionTypeAliasElementImpl functionTypeAliasElement(
     String name, {
     List<ParameterElement> parameters = const [],
     DartType returnType,
     List<TypeParameterElement> typeParameters = const [],
     List<TypeParameterElement> innerTypeParameters = const [],
   }) {
-    var aliasElement = GenericTypeAliasElementImpl(name, 0);
+    var aliasElement = FunctionTypeAliasElementImpl(name, 0);
     aliasElement.typeParameters = typeParameters;
 
     var functionElement = GenericFunctionTypeElementImpl.forOffset(0);

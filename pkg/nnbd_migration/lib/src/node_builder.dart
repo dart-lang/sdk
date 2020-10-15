@@ -418,7 +418,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       decoratedFunctionType = node.functionType.accept(this);
     });
     _variables.recordDecoratedElementType(
-        (node.declaredElement as GenericTypeAliasElement).function,
+        (node.declaredElement as FunctionTypeAliasElement).function,
         decoratedFunctionType);
     return null;
   }

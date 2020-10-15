@@ -7813,7 +7813,7 @@ class C {
     await resolveTestFile();
 
     FunctionTypeAlias alias = findNode.functionTypeAlias('F<T>');
-    GenericTypeAliasElement aliasElement = alias.declaredElement;
+    FunctionTypeAliasElement aliasElement = alias.declaredElement;
 
     FieldDeclaration fDeclaration = findNode.fieldDeclaration('F<int> f');
 

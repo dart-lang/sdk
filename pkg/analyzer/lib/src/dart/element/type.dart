@@ -139,7 +139,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionTypedElement get element {
     var element = super.element;
     // TODO(scheglov) Can we just construct it with the right element?
-    if (element is GenericTypeAliasElement) {
+    if (element is FunctionTypeAliasElement) {
       return element.function;
     }
     return element;

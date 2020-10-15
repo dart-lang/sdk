@@ -255,7 +255,7 @@ class DefaultTypesBuilder {
 
           if (declaration is ClassElement) {
             recurseParameters(declaration.typeParameters);
-          } else if (declaration is GenericTypeAliasElement) {
+          } else if (declaration is FunctionTypeAliasElement) {
             recurseParameters(declaration.typeParameters);
           }
           visited.remove(startType.element);

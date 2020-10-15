@@ -126,19 +126,19 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
-    _writeType(element.returnType);
-    _write(' Function');
-    _writeTypeParameters(element.typeParameters);
-    _writeFormalParameters(element.parameters, forElement: true);
-  }
-
-  void writeGenericTypeAliasElement(GenericTypeAliasElementImpl element) {
+  void writeFunctionTypeAliasElement(FunctionTypeAliasElementImpl element) {
     _write('typedef ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
     _write(' = ');
     element.function?.appendTo(this);
+  }
+
+  void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
+    _writeType(element.returnType);
+    _write(' Function');
+    _writeTypeParameters(element.typeParameters);
+    _writeFormalParameters(element.parameters, forElement: true);
   }
 
   void writeImportElement(ImportElementImpl element) {
