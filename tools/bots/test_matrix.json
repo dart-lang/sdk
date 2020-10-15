@@ -1441,8 +1441,7 @@
         "vm-kernel-win-debug-ia32",
         "vm-kernel-win-debug-x64",
         "vm-kernel-win-product-x64",
-        "vm-kernel-win-release-ia32",
-        "vm-kernel-win-release-x64"
+        "vm-kernel-win-release-ia32"
       ],
       "meta": {
         "description": "This configuration is for the kernel builder group."
@@ -1554,7 +1553,8 @@
         "vm-kernel-linux-debug-x64",
         "vm-kernel-mac-product-x64",
         "vm-kernel-mac-release-x64",
-        "vm-kernel-mac-debug-x64"
+        "vm-kernel-mac-debug-x64",
+        "vm-kernel-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the co19_2 kernel builder group."
