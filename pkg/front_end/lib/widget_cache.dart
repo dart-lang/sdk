@@ -14,7 +14,7 @@ class WidgetCache {
   WidgetCache(Component fullComponent) {
     Library frameworkLibrary;
     for (Library library in fullComponent.libraries) {
-      if (library?.importUri?.path == _frameworkLibrary) {
+      if (library?.importUri == _frameworkLibrary) {
         frameworkLibrary = library;
         break;
       }
@@ -36,7 +36,8 @@ class WidgetCache {
   Class _statefulWidget;
   bool _frameworkTypesLocated = false;
 
-  static const String _frameworkLibrary = 'flutter/src/widgets/framework.dart';
+  static final Uri _frameworkLibrary =
+      Uri.parse('package:flutter/src/widgets/framework.dart');
 
   /// Mark [uri] as invalidated.
   void invalidate(Uri uri) {
@@ -121,11 +122,9 @@ class WidgetCache {
     }
 
     // Update the class references to stateless, stateful, and state classes.
-    if (classHierarchy is ClosedWorldClassHierarchy) {
-      for (Library library in classHierarchy.knownLibraries) {
-        if (library?.importUri?.path == _frameworkLibrary) {
-          _locatedClassDeclarations(library);
-        }
+    for (Library library in classHierarchy.knownLibraries) {
+      if (library?.importUri == _frameworkLibrary) {
+        _locatedClassDeclarations(library);
       }
     }
 
