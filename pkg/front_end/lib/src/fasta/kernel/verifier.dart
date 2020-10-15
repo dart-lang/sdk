@@ -12,7 +12,10 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
-import 'package:kernel/verifier.dart' show VerifyingVisitor;
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import 'package:kernel/verifier.dart'
+    show VerifyGetStaticType, VerifyingVisitor;
 
 import '../compiler_context.dart' show CompilerContext;
 
@@ -402,5 +405,25 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     enterTreeNode(node);
     super.defaultTreeNode(node);
     exitTreeNode(node);
+  }
+}
+
+void verifyGetStaticType(TypeEnvironment env, Component component,
+    {bool skipPlatform: false}) {
+  component.accept(new FastaVerifyGetStaticType(env, skipPlatform));
+}
+
+class FastaVerifyGetStaticType extends VerifyGetStaticType {
+  final bool skipPlatform;
+
+  FastaVerifyGetStaticType(TypeEnvironment env, this.skipPlatform) : super(env);
+
+  @override
+  visitLibrary(Library node) {
+    if (skipPlatform && node.importUri.scheme == 'dart') {
+      return;
+    }
+
+    super.visitLibrary(node);
   }
 }

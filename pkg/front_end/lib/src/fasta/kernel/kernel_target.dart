@@ -53,7 +53,6 @@ import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
-import 'package:kernel/verifier.dart' show verifyGetStaticType;
 
 import 'package:kernel/transformations/value_class.dart' as valueClass;
 
@@ -130,7 +129,7 @@ import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
 import 'metadata_collector.dart' show MetadataCollector;
 
-import 'verifier.dart' show verifyComponent;
+import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
   /// The [FileSystem] which should be used to access files.
@@ -1221,14 +1220,16 @@ class KernelTarget extends TargetImplementation {
 
   void verify() {
     // TODO(ahe): How to handle errors.
-    verifyComponent(component);
+    verifyComponent(component,
+        skipPlatform: context.options.verifySkipPlatform);
     ClassHierarchy hierarchy =
         new ClassHierarchy(component, new CoreTypes(component),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
       // An error has already been reported.
     });
     verifyGetStaticType(
-        new TypeEnvironment(loader.coreTypes, hierarchy), component);
+        new TypeEnvironment(loader.coreTypes, hierarchy), component,
+        skipPlatform: context.options.verifySkipPlatform);
     ticker.logMs("Verified component");
   }
 
