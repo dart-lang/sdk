@@ -215,6 +215,16 @@ mixin ElementsTypesMixin {
     );
   }
 
+  FunctionTypeAliasElementImpl functionTypeAlias({
+    @required String name,
+    List<TypeParameterElement> typeParameters = const [],
+    @required GenericFunctionTypeElement function,
+  }) {
+    return FunctionTypeAliasElementImpl(name, 0)
+      ..typeParameters = typeParameters
+      ..function = function;
+  }
+
   FunctionType functionTypeAliasType(
     FunctionTypeAliasElement element, {
     List<DartType> typeArguments = const [],
@@ -322,16 +332,6 @@ mixin ElementsTypesMixin {
     result.parameters = parameters;
     result.returnType = returnType ?? typeProvider.voidType;
     return result;
-  }
-
-  GenericTypeAliasElementImpl genericTypeAlias({
-    @required String name,
-    List<TypeParameterElement> typeParameters = const [],
-    @required GenericFunctionTypeElement function,
-  }) {
-    return GenericTypeAliasElementImpl(name, 0)
-      ..typeParameters = typeParameters
-      ..function = function;
   }
 
   InterfaceType interfaceType(

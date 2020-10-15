@@ -4245,7 +4245,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     AstNode node,
     FunctionTypeAliasElement element,
   ) {
-    if ((element as GenericTypeAliasElementImpl).hasSelfReference) {
+    if ((element as FunctionTypeAliasElementImpl).hasSelfReference) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
         node,

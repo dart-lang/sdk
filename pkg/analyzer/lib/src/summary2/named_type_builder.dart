@@ -91,7 +91,7 @@ class NamedTypeBuilder extends TypeBuilder {
       );
       type = typeSystem.toLegacyType(type);
       _type = type;
-    } else if (element is GenericTypeAliasElement) {
+    } else if (element is FunctionTypeAliasElement) {
       var rawType = _getRawFunctionType(element);
       if (rawType is FunctionType) {
         var parameters = element.typeParameters;
@@ -255,7 +255,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  DartType _getRawFunctionType(GenericTypeAliasElementImpl element) {
+  DartType _getRawFunctionType(FunctionTypeAliasElementImpl element) {
     // If the element is not being linked, there is no reason (or a way,
     // because the linked node might be read only partially) to go through
     // its node - all its types have already been built.

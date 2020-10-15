@@ -537,27 +537,6 @@ class MigrationCli {
     }
   }
 
-  /// Adds a set of "core" command line options to [parser].  If [hide] is
-  /// `true`, then rarely-used options are hidden.
-  ///
-  /// This method will be removed soon; please use [options] instead, and filter
-  /// out the options you don't need.
-  @deprecated
-  static void addCoreOptions(ArgParser parser, bool hide) {
-    const nonCoreOptions = {
-      CommandLineOptions.skipPubOutdatedFlag,
-      CommandLineOptions.webPreviewFlag,
-      CommandLineOptions.summaryOption,
-      CommandLineOptions.sdkPathOption
-    };
-    for (var option in options) {
-      if (!option.isSeparator && nonCoreOptions.contains(option.name)) {
-        continue;
-      }
-      option.addToParser(parser, hide);
-    }
-  }
-
   static ArgParser createParser({bool hide = true}) {
     var parser = ArgParser();
     parser.addFlag(CommandLineOptions.helpFlag,

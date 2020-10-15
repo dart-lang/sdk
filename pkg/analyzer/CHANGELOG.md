@@ -1,3 +1,6 @@
+## 0.40.5-dev
+* Deprecated `GenericTypeAliasElement`. Use `FunctionTypeAliasElement`.
+
 ## 0.40.4
 * Deprecated `IndexExpression.auxiliaryElements` and
   `SimpleIdentifier.auxiliaryElements`. Use `CompoundAssignmentExpression`.

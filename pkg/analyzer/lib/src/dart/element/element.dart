@@ -1407,9 +1407,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         }
 
         var reference = containerRef.getChild(name);
-        var element = node.declaredElement as GenericTypeAliasElement;
+        var element = node.declaredElement as FunctionTypeAliasElement;
         element ??=
-            GenericTypeAliasElementImpl.forLinkedNode(this, reference, node);
+            FunctionTypeAliasElementImpl.forLinkedNode(this, reference, node);
         _typeAliases.add(element);
       }
     }
@@ -1586,7 +1586,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         return functionImpl;
       }
     }
-    for (GenericTypeAliasElementImpl typeAlias in functionTypeAliases) {
+    for (FunctionTypeAliasElementImpl typeAlias in functionTypeAliases) {
       if (typeAlias.identifier == identifier) {
         return typeAlias;
       }
@@ -3178,7 +3178,7 @@ abstract class ElementImpl implements Element {
   void _safelyVisitPossibleChild(DartType type, ElementVisitor visitor) {
     Element element = type?.element;
     if (element is GenericFunctionTypeElementImpl &&
-        element.enclosingElement is! GenericTypeAliasElement) {
+        element.enclosingElement is! FunctionTypeAliasElement) {
       element.accept(visitor);
     }
   }
@@ -4438,6 +4438,215 @@ class FunctionElementImpl extends ExecutableElementImpl
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
 }
 
+/// An element that represents [FunctionTypeAlias] or [GenericTypeAlias].
+///
+/// Clients may not extend, implement or mix-in this class.
+class FunctionTypeAliasElementImpl extends ElementImpl
+    with
+        TypeParameterizedElementMixin
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        GenericTypeAliasElement {
+  /// The element representing the generic function type.
+  GenericFunctionTypeElementImpl _function;
+
+  /// Initialize a newly created type alias element to have the given [name].
+  FunctionTypeAliasElementImpl(String name, int offset) : super(name, offset);
+
+  FunctionTypeAliasElementImpl.forLinkedNode(
+      CompilationUnitElementImpl enclosingUnit,
+      Reference reference,
+      AstNode linkedNode)
+      : super.forLinkedNode(enclosingUnit, reference, linkedNode) {
+    if (linkedNode is FunctionTypeAlias) {
+      linkedNode.name.staticElement = this;
+    } else {
+      (linkedNode as GenericTypeAlias).name.staticElement = this;
+    }
+  }
+
+  @override
+  int get codeLength {
+    if (linkedNode != null) {
+      return linkedContext.getCodeLength(linkedNode);
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (linkedNode != null) {
+      return linkedContext.getCodeOffset(linkedNode);
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  String get displayName => name;
+
+  @override
+  String get documentationComment {
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var comment = context.getDocumentationComment(linkedNode);
+      return getCommentNodeRawText(comment);
+    }
+    return super.documentationComment;
+  }
+
+  @override
+  CompilationUnitElement get enclosingElement =>
+      super.enclosingElement as CompilationUnitElement;
+
+  @override
+  CompilationUnitElementImpl get enclosingUnit =>
+      _enclosingElement as CompilationUnitElementImpl;
+
+  @override
+  GenericFunctionTypeElementImpl get function {
+    if (_function != null) return _function;
+
+    if (linkedNode != null) {
+      if (linkedNode is GenericTypeAlias) {
+        var context = enclosingUnit.linkedContext;
+        var function = context.getGeneticTypeAliasFunction(linkedNode);
+        if (function != null) {
+          var reference = context.getGenericFunctionTypeReference(function);
+          _function = reference.element;
+          encloseElement(_function);
+          return _function;
+        } else {
+          return _function = GenericFunctionTypeElementImpl.forOffset(-1)
+            ..typeParameters = const <TypeParameterElement>[]
+            ..parameters = const <ParameterElement>[]
+            ..returnType = DynamicTypeImpl.instance;
+        }
+      } else {
+        return _function = GenericFunctionTypeElementImpl.forLinkedNode(
+          this,
+          reference.getChild('@function'),
+          linkedNode,
+        );
+      }
+    }
+
+    return _function;
+  }
+
+  /// Set the function element representing the generic function type on the
+  /// right side of the equals to the given [function].
+  set function(GenericFunctionTypeElementImpl function) {
+    if (function != null) {
+      function.enclosingElement = this;
+    }
+    _function = function;
+  }
+
+  /// Return `true` if the element has direct or indirect reference to itself
+  /// from anywhere except a class element or type parameter bounds.
+  bool get hasSelfReference {
+    if (linkedNode != null) {
+      return linkedContext.getHasTypedefSelfReference(linkedNode);
+    }
+    return false;
+  }
+
+  @override
+  bool get isSimplyBounded {
+    if (linkedNode != null) {
+      return linkedContext.isSimplyBounded(linkedNode);
+    }
+    return super.isSimplyBounded;
+  }
+
+  @override
+  ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
+
+  @override
+  String get name {
+    if (linkedNode != null) {
+      return reference.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getNameOffset(linkedNode);
+    }
+
+    return super.nameOffset;
+  }
+
+  /// Set the type parameters defined for this type to the given
+  /// [typeParameters].
+  set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (TypeParameterElement typeParameter in typeParameters) {
+      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    _typeParameterElements = typeParameters;
+  }
+
+  @override
+  T accept<T>(ElementVisitor<T> visitor) =>
+      visitor.visitFunctionTypeAliasElement(this);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeFunctionTypeAliasElement(this);
+  }
+
+  @override
+  ElementImpl getChild(String identifier) {
+    for (TypeParameterElement typeParameter in typeParameters) {
+      TypeParameterElementImpl typeParameterImpl = typeParameter;
+      if (typeParameterImpl.identifier == identifier) {
+        return typeParameterImpl;
+      }
+    }
+    return null;
+  }
+
+  @override
+  FunctionType instantiate({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    if (function == null) {
+      return null;
+    }
+
+    if (typeArguments.length != typeParameters.length) {
+      throw ArgumentError("typeArguments.length (${typeArguments.length}) != "
+          "typeParameters.length (${typeParameters.length})");
+    }
+
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    var type = substitution.substituteType(function.type) as FunctionType;
+
+    var resultNullability = type.nullabilitySuffix == NullabilitySuffix.question
+        ? NullabilitySuffix.question
+        : nullabilitySuffix;
+
+    return FunctionTypeImpl(
+      typeFormals: type.typeFormals,
+      parameters: type.parameters,
+      returnType: type.returnType,
+      nullabilitySuffix: resultNullability,
+      element: this,
+      typeArguments: typeArguments,
+    );
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(typeParameters, visitor);
+    function?.accept(visitor);
+  }
+}
+
 /// Common internal interface shared by elements whose type is a function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -4603,213 +4812,6 @@ class GenericFunctionTypeElementImpl extends ElementImpl
     _safelyVisitPossibleChild(returnType, visitor);
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
-  }
-}
-
-/// A function type alias of the form
-///     `typedef` identifier typeParameters = genericFunctionType;
-///
-/// Clients may not extend, implement or mix-in this class.
-class GenericTypeAliasElementImpl extends ElementImpl
-    with TypeParameterizedElementMixin
-    implements GenericTypeAliasElement {
-  /// The element representing the generic function type.
-  GenericFunctionTypeElementImpl _function;
-
-  /// Initialize a newly created type alias element to have the given [name].
-  GenericTypeAliasElementImpl(String name, int offset) : super(name, offset);
-
-  GenericTypeAliasElementImpl.forLinkedNode(
-      CompilationUnitElementImpl enclosingUnit,
-      Reference reference,
-      AstNode linkedNode)
-      : super.forLinkedNode(enclosingUnit, reference, linkedNode) {
-    if (linkedNode is FunctionTypeAlias) {
-      linkedNode.name.staticElement = this;
-    } else {
-      (linkedNode as GenericTypeAlias).name.staticElement = this;
-    }
-  }
-
-  @override
-  int get codeLength {
-    if (linkedNode != null) {
-      return linkedContext.getCodeLength(linkedNode);
-    }
-    return super.codeLength;
-  }
-
-  @override
-  int get codeOffset {
-    if (linkedNode != null) {
-      return linkedContext.getCodeOffset(linkedNode);
-    }
-    return super.codeOffset;
-  }
-
-  @override
-  String get displayName => name;
-
-  @override
-  String get documentationComment {
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var comment = context.getDocumentationComment(linkedNode);
-      return getCommentNodeRawText(comment);
-    }
-    return super.documentationComment;
-  }
-
-  @override
-  CompilationUnitElement get enclosingElement =>
-      super.enclosingElement as CompilationUnitElement;
-
-  @override
-  CompilationUnitElementImpl get enclosingUnit =>
-      _enclosingElement as CompilationUnitElementImpl;
-
-  @override
-  GenericFunctionTypeElementImpl get function {
-    if (_function != null) return _function;
-
-    if (linkedNode != null) {
-      if (linkedNode is GenericTypeAlias) {
-        var context = enclosingUnit.linkedContext;
-        var function = context.getGeneticTypeAliasFunction(linkedNode);
-        if (function != null) {
-          var reference = context.getGenericFunctionTypeReference(function);
-          _function = reference.element;
-          encloseElement(_function);
-          return _function;
-        } else {
-          return _function = GenericFunctionTypeElementImpl.forOffset(-1)
-            ..typeParameters = const <TypeParameterElement>[]
-            ..parameters = const <ParameterElement>[]
-            ..returnType = DynamicTypeImpl.instance;
-        }
-      } else {
-        return _function = GenericFunctionTypeElementImpl.forLinkedNode(
-          this,
-          reference.getChild('@function'),
-          linkedNode,
-        );
-      }
-    }
-
-    return _function;
-  }
-
-  /// Set the function element representing the generic function type on the
-  /// right side of the equals to the given [function].
-  set function(GenericFunctionTypeElementImpl function) {
-    if (function != null) {
-      function.enclosingElement = this;
-    }
-    _function = function;
-  }
-
-  /// Return `true` if the element has direct or indirect reference to itself
-  /// from anywhere except a class element or type parameter bounds.
-  bool get hasSelfReference {
-    if (linkedNode != null) {
-      return linkedContext.getHasTypedefSelfReference(linkedNode);
-    }
-    return false;
-  }
-
-  @override
-  bool get isSimplyBounded {
-    if (linkedNode != null) {
-      return linkedContext.isSimplyBounded(linkedNode);
-    }
-    return super.isSimplyBounded;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
-
-  @override
-  String get name {
-    if (linkedNode != null) {
-      return reference.name;
-    }
-    return super.name;
-  }
-
-  @override
-  int get nameOffset {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext.getNameOffset(linkedNode);
-    }
-
-    return super.nameOffset;
-  }
-
-  /// Set the type parameters defined for this type to the given
-  /// [typeParameters].
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    _typeParameterElements = typeParameters;
-  }
-
-  @override
-  T accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitFunctionTypeAliasElement(this);
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeGenericTypeAliasElement(this);
-  }
-
-  @override
-  ElementImpl getChild(String identifier) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      TypeParameterElementImpl typeParameterImpl = typeParameter;
-      if (typeParameterImpl.identifier == identifier) {
-        return typeParameterImpl;
-      }
-    }
-    return null;
-  }
-
-  @override
-  FunctionType instantiate({
-    @required List<DartType> typeArguments,
-    @required NullabilitySuffix nullabilitySuffix,
-  }) {
-    if (function == null) {
-      return null;
-    }
-
-    if (typeArguments.length != typeParameters.length) {
-      throw ArgumentError("typeArguments.length (${typeArguments.length}) != "
-          "typeParameters.length (${typeParameters.length})");
-    }
-
-    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
-    var type = substitution.substituteType(function.type) as FunctionType;
-
-    var resultNullability = type.nullabilitySuffix == NullabilitySuffix.question
-        ? NullabilitySuffix.question
-        : nullabilitySuffix;
-
-    return FunctionTypeImpl(
-      typeFormals: type.typeFormals,
-      parameters: type.parameters,
-      returnType: type.returnType,
-      nullabilitySuffix: resultNullability,
-      element: this,
-      typeArguments: typeArguments,
-    );
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(typeParameters, visitor);
-    function?.accept(visitor);
   }
 }
 

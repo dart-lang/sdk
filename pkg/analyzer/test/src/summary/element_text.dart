@@ -418,7 +418,7 @@ class _ElementWriter {
     writeMetadata(e, '', '\n');
     writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
-    if (e is GenericTypeAliasElement) {
+    if (e is FunctionTypeAliasElement) {
       buffer.write('typedef ');
       writeName(e);
       writeCodeRange(e);

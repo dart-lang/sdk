@@ -299,7 +299,7 @@ class _ElementRequest {
 
     if (reference.name == '@function' && parent2.name == '@typeAlias') {
       var parent = reference.parent;
-      GenericTypeAliasElementImpl alias = elementOfReference(parent);
+      FunctionTypeAliasElementImpl alias = elementOfReference(parent);
       return alias.function;
     }
 
@@ -478,13 +478,13 @@ class _ElementRequest {
     return reference.element;
   }
 
-  GenericTypeAliasElementImpl _typeAlias(
+  FunctionTypeAliasElementImpl _typeAlias(
       CompilationUnitElementImpl unit, Reference reference) {
     if (reference.node == null) {
       _indexUnitElementDeclarations(unit);
       assert(reference.node != null, '$reference');
     }
-    GenericTypeAliasElementImpl.forLinkedNode(unit, reference, reference.node);
+    FunctionTypeAliasElementImpl.forLinkedNode(unit, reference, reference.node);
     return reference.element;
   }
 

@@ -1163,7 +1163,7 @@ abstract class FunctionTypeAliasElement
   /// the given [typeArguments] and [nullabilitySuffix].
   ///
   /// Note that this always instantiates the typedef itself, so for a
-  /// [GenericTypeAliasElement] the returned [FunctionType] might still be a
+  /// [FunctionTypeAliasElement] the returned [FunctionType] might still be a
   /// generic function, with type formals. For example, if the typedef is:
   ///     typedef F<T> = void Function<U>(T, U);
   /// then `F<int>` will produce `void Function<U>(int, U)`.
@@ -1200,6 +1200,7 @@ abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
 /// A synonym for [FunctionTypeAliasElement].
 ///
 /// Clients may not extend, implement, or mix-in this class.
+@Deprecated('Use FunctionTypeAliasElement instead')
 abstract class GenericTypeAliasElement implements FunctionTypeAliasElement {}
 
 /// A combinator that causes some of the names in a namespace to be hidden when

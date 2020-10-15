@@ -167,6 +167,13 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
   /// True if the given class is extended by another class using `extends`.
   bool isExtended(Class class_);
 
+  /// Returns the set of libraries for which this class hierarchy can be
+  /// queried.
+  ///
+  /// Classes outside the set of known libraries are not part of the internal
+  /// model and queries about such classes will fail.
+  Iterable<Library> get knownLibraries;
+
   /// Invokes [callback] for every member declared in or inherited by [class_]
   /// that overrides or implements a member in a supertype of [class_]
   /// (or in rare cases, overrides a member declared in [class_]).
