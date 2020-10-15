@@ -95,7 +95,7 @@ void nullableUninitializedWithType() {
 }
 
 void uninitializedUntyped() {
-  late x;
+  late var x;
   x = 0;
   x.expectStaticType<Exactly<dynamic>>();
   // Attempting to promote to `int?` should be ok, since `int?` is a subtype of
