@@ -33,7 +33,6 @@ import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 
 import '../loader.dart' show Loader;
 
@@ -2400,29 +2399,6 @@ class ClassHierarchyNodeBuilder {
       }
     }
     return result ?? supertypes;
-  }
-
-  List<TypeBuilder> computeDefaultTypeArguments(TypeBuilder type) {
-    TypeDeclarationBuilder decl = type.declaration;
-    List<TypeVariableBuilder> typeVariables;
-    LibraryBuilder library;
-    if (decl is TypeAliasBuilder) {
-      typeVariables = decl.typeVariables;
-      library = decl.library;
-    } else if (decl is ClassBuilder) {
-      typeVariables = decl.typeVariables;
-      library = decl.library;
-    } else {
-      return unhandled("${decl.runtimeType}", "$decl", classBuilder.charOffset,
-          classBuilder.fileUri);
-    }
-    List<TypeBuilder> result = new List<TypeBuilder>(typeVariables.length);
-    for (int i = 0; i < result.length; ++i) {
-      TypeVariableBuilder tv = typeVariables[i];
-      result[i] = tv.defaultType ??
-          library.loader.computeTypeBuilder(tv.parameter.defaultType);
-    }
-    return result;
   }
 
   void addInterface(List<Supertype> interfaces, List<Supertype> superclasses,
