@@ -458,7 +458,6 @@ main() {
     await resolveTestCode(code);
     assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v; // declare'));
-    assertType(findNode.simple('v = null;'), 'int');
     assertType(findNode.simple('v; // return'), 'int');
   }
 

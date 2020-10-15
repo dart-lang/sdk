@@ -1098,28 +1098,6 @@ f(var p) {
     verifyTestResolved();
   }
 
-  test_setter_fromMixins_property_access() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  set x(value) {}
-}
-class M2 {
-  set x(value) {}
-}
-class C extends B with M1, M2 {}
-void main() {
-  new C().x = 1;
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('x = ').staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-  }
-
   test_setter_static() async {
     await assertNoErrorsInCode(r'''
 set s(x) {

@@ -1513,7 +1513,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// Check the given node to see whether it was ambiguous because the name was
   /// imported from two or more imports.
   void _checkForAmbiguousImport(SimpleIdentifier node) {
-    Element element = node.staticElement;
+    Element element = node.writeOrReadElement;
     if (element is MultiplyDefinedElementImpl) {
       String name = element.displayName;
       List<Element> conflictingMembers = element.conflictingElements;
@@ -2802,7 +2802,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // prepare element
-    Element element = identifier.staticElement;
+    Element element = identifier.writeOrReadElement;
     if (!(element is MethodElement || element is PropertyAccessorElement)) {
       return;
     }
@@ -2895,7 +2895,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // prepare member Element
-    Element element = name.staticElement;
+    Element element = name.writeOrReadElement;
     if (element is ExecutableElement) {
       if (!element.isStatic) {
         // OK, instance member
@@ -4490,7 +4490,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// [CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
       SimpleIdentifier name) {
-    Element element = name.staticElement;
+    Element element = name.writeOrReadElement;
     if (element == null || element is TypeParameterElement) {
       return;
     }

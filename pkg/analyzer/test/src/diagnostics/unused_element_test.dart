@@ -686,6 +686,17 @@ void main() {
 ''');
   }
 
+  test_method_isUsed_privateExtension_indexEqOperator() async {
+    await assertNoErrorsInCode(r'''
+extension _A on bool {
+  operator []=(int index, int value) {}
+}
+void main() {
+  false[0] = 1;
+}
+''');
+  }
+
   test_method_isUsed_privateExtension_indexOperator() async {
     await assertNoErrorsInCode(r'''
 extension _A on bool {
@@ -809,6 +820,16 @@ extension _A on String {
 
   // Postfix operators can only be called, not defined. The "notUsed" sibling to
   // this test is the test on a binary operator.
+  test_method_notUsed_privateExtension_indexEqOperator() async {
+    await assertErrorsInCode(r'''
+extension _A on bool {
+  operator []=(int index, int value) {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 34, 3),
+    ]);
+  }
+
   test_method_notUsed_privateExtension_indexOperator() async {
     await assertErrorsInCode(r'''
 extension _A on bool {

@@ -941,7 +941,8 @@
             "corelib",
             "ffi",
             "language",
-            "lib"
+            "lib",
+            "service"
           ]
         },
         {
@@ -1114,6 +1115,7 @@
             "language",
             "lib",
             "samples",
+            "service",
             "standalone",
             "utils",
             "vm"
@@ -1439,8 +1441,7 @@
         "vm-kernel-win-debug-ia32",
         "vm-kernel-win-debug-x64",
         "vm-kernel-win-product-x64",
-        "vm-kernel-win-release-ia32",
-        "vm-kernel-win-release-x64"
+        "vm-kernel-win-release-ia32"
       ],
       "meta": {
         "description": "This configuration is for the kernel builder group."
@@ -1499,6 +1500,7 @@
             "language",
             "lib",
             "samples",
+            "service",
             "standalone",
             "utils",
             "vm"
@@ -1551,7 +1553,8 @@
         "vm-kernel-linux-debug-x64",
         "vm-kernel-mac-product-x64",
         "vm-kernel-mac-release-x64",
-        "vm-kernel-mac-debug-x64"
+        "vm-kernel-mac-debug-x64",
+        "vm-kernel-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is for the co19_2 kernel builder group."
@@ -2138,6 +2141,8 @@
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
             "--dart2js-batch",
+            "--enable-experiment=non-nullable",
+            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2210,6 +2215,8 @@
             "-ndart2js-${system}-${runtime}",
             "--dart2js-batch",
             "--reset-browser-configuration",
+            "--enable-experiment=non-nullable",
+            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2262,6 +2269,8 @@
           "arguments": [
             "-ndart2js-minified-linux-d8",
             "--dart2js-batch",
+            "--enable-experiment=non-nullable",
+            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2334,6 +2343,8 @@
             "-ndart2js-minified-csp-linux-chrome",
             "--dart2js-batch",
             "--reset-browser-configuration",
+            "--enable-experiment=non-nullable",
+            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2732,6 +2743,7 @@
             "ffi",
             "language",
             "lib",
+            "service",
             "standalone"
           ]
         },
@@ -2835,6 +2847,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--fatal-warnings",
+	    "--enable-experiment=non-nullable",
             "pkg/compiler"
           ]
         },
@@ -3012,7 +3025,7 @@
           "name": "analyze runtime/observatory",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "--fatal-warnings",
+            "--enable-experiment=non-nullable",
             "runtime/observatory"
           ]
         },

@@ -634,7 +634,7 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: matcherC,
@@ -666,7 +666,7 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.class_('C'),
@@ -715,7 +715,7 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
       readElement: findElement.getter('x'),
       writeElement: findElement.setter('x'),
@@ -748,7 +748,7 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
       readElement: null,
       writeElement: findElement.setter('x'),
@@ -783,7 +783,7 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
       readElement: null,
       writeElement: findElement.getter('x'),
@@ -816,7 +816,7 @@ void f() {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
       readElement: null,
       writeElement: findElement.setter('x'),
@@ -851,7 +851,7 @@ void f() {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
       readElement: null,
       writeElement: findElement.getter('x'),
@@ -893,7 +893,7 @@ void f() {
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
     assertImportPrefix(prefixed.prefix, importFind.prefix);
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       prefixed.identifier,
       readElement: importFind.topGet('x'),
       writeElement: importFind.topSet('x'),
@@ -973,7 +973,7 @@ void f(int a, int c) {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       findNode.simple('b +='),
       readElement: null,
       writeElement: null,
@@ -1015,7 +1015,7 @@ void f(A a) {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
       readElement: findElement.getter('x'),
       writeElement: findElement.setter('x'),
@@ -1026,35 +1026,31 @@ void f(A a) {
   }
 
   test_propertyAccess_forwardingStub() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
-  int f;
+  int x = 0;
 }
 abstract class I<T> {
-  T f;
+  T x = throw 0;
 }
 class B extends A implements I<int> {}
 main() {
-  new B().f = 1;
+  new B().x = 1;
 }
 ''');
-    var assignment = findNode.assignment('f = 1');
-    assertElementNull(assignment);
-    assertType(assignment, 'int');
 
-    PropertyAccess left = assignment.leftHandSide;
-    assertType(left, 'int');
+    var assignment = findNode.assignment('x = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('x', of: 'A'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
 
-    InstanceCreationExpression creation = left.target;
-    assertElement(creation, findElement.unnamedConstructor('B'));
-    assertType(creation, 'B');
-
-    var fRef = left.propertyName;
-    assertElement(fRef, findElement.setter('f', of: 'A'));
-    assertType(fRef, 'int');
-
-    var right = assignment.rightHandSide;
-    assertType(right, 'int');
+    assertType(assignment.rightHandSide, 'int');
   }
 
   test_propertyAccess_instance_compound() async {
@@ -1084,7 +1080,7 @@ void f(A a) {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
       readElement: findElement.getter('x'),
       writeElement: findElement.setter('x'),
@@ -1154,7 +1150,7 @@ void f(A a) {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
       readElement: null,
       writeElement: findElement.setter('x'),
@@ -1197,7 +1193,7 @@ class B extends A {
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
     assertSuperExpression(propertyAccess.target);
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
       readElement: findElement.getter('x', of: 'A'),
       writeElement: findElement.setter('x', of: 'A'),
@@ -1234,7 +1230,7 @@ class A {
     );
 
     var propertyAccess = assignment.leftHandSide as PropertyAccess;
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       propertyAccess.propertyName,
       readElement: findElement.getter('x'),
       writeElement: findElement.setter('x'),
@@ -1350,7 +1346,7 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.setter('x'),
@@ -1382,7 +1378,7 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.setter('x'),
@@ -1416,7 +1412,7 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.getter('x'),
@@ -1450,7 +1446,7 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.getter('x'),
@@ -1482,7 +1478,7 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.topGet('x'),
@@ -1521,7 +1517,7 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.prefix('x'),
@@ -1551,7 +1547,7 @@ main() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.prefix('x'),
@@ -1584,7 +1580,7 @@ void f() {
       type: 'num', // num + int = num
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: findElement.localVar('x'),
       writeElement: findElement.localVar('x'),
@@ -1707,7 +1703,7 @@ void f(num$question x) {
       type: 'num',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: findElement.parameter('x'),
       writeElement: findElement.parameter('x'),
@@ -1743,7 +1739,7 @@ void f(B$question x) {
       type: 'A',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: findElement.parameter('x'),
       writeElement: findElement.parameter('x'),
@@ -1775,7 +1771,7 @@ void f(double$question a, int b) {
       type: 'num',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: findElement.parameter('a'),
       writeElement: findElement.parameter('a'),
@@ -1979,7 +1975,7 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.getter('x', of: 'B'),
@@ -2016,7 +2012,7 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.method('x', of: 'B'),
@@ -2048,7 +2044,7 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.setter('x'),
@@ -2119,7 +2115,7 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.setter('x', of: 'A'),
@@ -2155,7 +2151,7 @@ class C {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: findElement.getter('x'),
       writeElement: findElement.setter('x'),
@@ -2198,7 +2194,7 @@ class C with M1, M2 {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: findElement.getter('x', of: 'M2'),
       writeElement: findElement.setter('x', of: 'M2'),
@@ -2237,7 +2233,7 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.topGet('x'),
@@ -2271,7 +2267,7 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: findElement.topGet('x'),
       writeElement: findElement.topSet('x'),
@@ -2309,7 +2305,7 @@ set x(B$question _) {}
       type: 'A',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: findElement.topGet('x'),
       writeElement: findElement.topSet('x'),
@@ -2345,7 +2341,7 @@ class A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: findElement.topGet('x'),
       writeElement: findElement.topSet('x'),
@@ -2375,7 +2371,7 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.topSet('x'),
@@ -2407,7 +2403,7 @@ void f() {
       type: 'bool',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.topSet('x'),
@@ -2439,7 +2435,7 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: findElement.topGet('x'),
@@ -2469,7 +2465,7 @@ void f() {
       type: 'dynamic',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: intElement,
@@ -2499,7 +2495,7 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: intElement,
@@ -2529,7 +2525,7 @@ void f() {
       type: 'dynamic',
     );
 
-    assertSimpleIdentifier(
+    assertSimpleIdentifierAssignmentTarget(
       assignment.leftHandSide,
       readElement: null,
       writeElement: null,

@@ -5,8 +5,8 @@
 part of models;
 
 abstract class AllocationProfile {
-  DateTime get lastServiceGC;
-  DateTime get lastAccumulatorReset;
+  DateTime? get lastServiceGC;
+  DateTime? get lastAccumulatorReset;
   HeapSpace get newSpace;
   HeapSpace get oldSpace;
   HeapSpace get totalSpace;
@@ -15,10 +15,10 @@ abstract class AllocationProfile {
 
 abstract class ClassHeapStats {
   /// [Optional] at least one between clazz and displayName should be non null
-  ClassRef get clazz;
+  ClassRef? get clazz;
 
   /// [Optional] at least one between clazz and displayName should be non null
-  String get displayName;
+  String? get displayName;
   Allocations get newSpace;
   Allocations get oldSpace;
 }

@@ -63,6 +63,7 @@ CantUsePrefixAsExpression/part_wrapped_script: Fail # Importing file in the (now
 CantUsePrefixWithNullAware/part_wrapped_script: Fail # Importing file in the (now) part.
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
+ClassInNullAwareReceiver/analyzerCode: Fail
 ColonInPlaceOfIn/example: Fail
 ConflictingModifiers/part_wrapped_script1: Fail
 ConflictingModifiers/script1: Fail
@@ -711,6 +712,7 @@ SwitchExpressionUserDefinedEquals/example: Fail
 SyntheticToken/example: Fail # Can't be tested, used to recover from other errors.
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail
+ThisInNullAwareReceiver/analyzerCode: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 ThrowingNotAssignableToObjectError/analyzerCode: Fail
 ThrowingNotAssignableToObjectError/example: Fail

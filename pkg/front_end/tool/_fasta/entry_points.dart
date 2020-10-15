@@ -13,6 +13,9 @@ import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show LocatedMessage, codeInternalProblemVerificationError;
+
 import 'package:kernel/kernel.dart'
     show CanonicalName, Library, Component, Source, loadComponentFromBytes;
 
@@ -136,6 +139,8 @@ class BatchCompiler {
 
   Component platformComponent;
 
+  bool hadVerifyError = false;
+
   BatchCompiler(this.lines);
 
   run() async {
@@ -176,12 +181,15 @@ class BatchCompiler {
     ProcessedOptions options = c.options;
     bool verbose = options.verbose;
     Ticker ticker = new Ticker(isVerbose: verbose);
-    if (platformComponent == null || platformUri != options.sdkSummary) {
+    if (platformComponent == null ||
+        platformUri != options.sdkSummary ||
+        hadVerifyError) {
       platformUri = options.sdkSummary;
       platformComponent = await options.loadSdkSummary(null);
       if (platformComponent == null) {
         throw "platformComponent is null";
       }
+      hadVerifyError = false;
     } else {
       options.sdkSummaryComponent = platformComponent;
     }
@@ -195,7 +203,13 @@ class BatchCompiler {
         root.adoptChild(name);
       }
     }
-    root.unbindAll();
+    for (Object error in c.errors) {
+      if (error is LocatedMessage) {
+        if (error.messageObject.code == codeInternalProblemVerificationError) {
+          hadVerifyError = true;
+        }
+      }
+    }
     return c.errors.isEmpty;
   }
 }
@@ -314,9 +328,9 @@ class CompileTask {
         dillTarget.loader.appendLibraries(additionalDill);
       }
     } else {
-      Uri platform = c.options.sdkSummary;
-      if (platform != null) {
-        _appendDillForUri(dillTarget, platform);
+      Component sdkSummary = await c.options.loadSdkSummary(null);
+      if (sdkSummary != null) {
+        dillTarget.loader.appendLibraries(sdkSummary);
       }
     }
 

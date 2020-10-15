@@ -8,7 +8,7 @@ class ExceptionNotification implements M.ExceptionNotification {
   final exception;
 
   /// [optional]
-  final StackTrace stacktrace;
+  final StackTrace? stacktrace;
   ExceptionNotification(this.exception, {this.stacktrace});
 }
 

@@ -32,7 +32,7 @@ var tests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     // Verify initial state of 'Foo'.
-    var fooClass = await getClassFromRootLib(isolate, 'Foo');
+    var fooClass = await getClassFromRootLib(isolate, 'Foo') as Class;
     expect(fooClass, isNotNull);
     expect(fooClass.name, equals('Foo'));
     print(fooClass.id);
@@ -51,7 +51,7 @@ var tests = <IsolateTest>[
 
   // Allocation profile.
   (Isolate isolate) async {
-    var fooClass = await getClassFromRootLib(isolate, 'Foo');
+    var fooClass = await getClassFromRootLib(isolate, 'Foo') as Class;
     await fooClass.reload();
     expect(fooClass.traceAllocations, isTrue);
     dynamic profileResponse = await fooClass.getAllocationSamples();
@@ -65,7 +65,7 @@ var tests = <IsolateTest>[
     cpuProfile.buildCodeCallerAndCallees();
     cpuProfile.buildFunctionCallerAndCallees();
     var tree = cpuProfile.loadCodeTree(M.ProfileTreeDirection.exclusive);
-    var node = tree.root;
+    CodeCallTreeNode? node = tree.root;
     var expected = [
       'Root',
       'DRT_AllocateObject',
@@ -75,7 +75,7 @@ var tests = <IsolateTest>[
       '_Closure.call'
     ];
     for (var i = 0; i < expected.length; i++) {
-      expect(node.profileCode.code.name, equals(expected[i]));
+      expect(node!.profileCode.code.name, equals(expected[i]));
       // Depth first traversal.
       if (node.children.length == 0) {
         node = null;

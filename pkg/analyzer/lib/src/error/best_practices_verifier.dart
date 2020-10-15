@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -902,7 +903,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         parent is HideCombinator) {
       return;
     }
-    _checkForDeprecatedMemberUse(identifier.staticElement, identifier);
+    _checkForDeprecatedMemberUse(identifier.writeOrReadElement, identifier);
   }
 
   /// Check for the passed binary expression for the
@@ -1848,7 +1849,7 @@ class _InvalidAccessVerifier {
 
     var element = grandparent is ConstructorName
         ? grandparent.staticElement
-        : identifier.staticElement;
+        : identifier.writeOrReadElement;
 
     if (element == null || _inCurrentLibrary(element)) {
       return;

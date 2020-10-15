@@ -48,9 +48,9 @@ var tests = <IsolateTest>[
 
     var params = {
       'reports': ['Coverage'],
-      'scriptId': func.location.script.id,
-      'tokenPos': func.location.tokenPos,
-      'endTokenPos': func.location.endTokenPos,
+      'scriptId': func.location!.script.id,
+      'tokenPos': func.location!.tokenPos,
+      'endTokenPos': func.location!.endTokenPos,
       'forceCompile': true
     };
     var report = await isolate.invokeRpcNoUpgrade('getSourceReport', params);

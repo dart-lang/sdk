@@ -11,20 +11,20 @@ import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class MegamorphicCacheRefElement extends CustomElement implements Renderable {
-  RenderingScheduler<MegamorphicCacheRefElement> _r;
+  late RenderingScheduler<MegamorphicCacheRefElement> _r;
 
   Stream<RenderedEvent<MegamorphicCacheRefElement>> get onRendered =>
       _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.MegamorphicCacheRef _cache;
+  late M.IsolateRef _isolate;
+  late M.MegamorphicCacheRef _cache;
 
   M.IsolateRef get isolate => _isolate;
   M.MegamorphicCacheRef get cache => _cache;
 
   factory MegamorphicCacheRefElement(
       M.IsolateRef isolate, M.MegamorphicCacheRef cache,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(cache != null);
     MegamorphicCacheRefElement e = new MegamorphicCacheRefElement.created();

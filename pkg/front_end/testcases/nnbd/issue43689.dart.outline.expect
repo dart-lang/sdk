@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43689.dart:6:17: Error: 'y' is already declared in this scope.
+// late final int? y;
+//                 ^
+// pkg/front_end/testcases/nnbd/issue43689.dart:5:16: Context: Previous declaration of 'y'.
+// late final int y;
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+late static final field core::int y;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

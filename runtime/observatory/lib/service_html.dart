@@ -15,7 +15,7 @@ import 'package:observatory/service_common.dart';
 export 'package:observatory/service_common.dart';
 
 class _HtmlWebSocket implements CommonWebSocket {
-  WebSocket _webSocket;
+  WebSocket? _webSocket;
 
   Future<void> connect(WebSocketVMTarget target, void onOpen(),
       void onMessage(dynamic data), void onError(), void onClose()) async {
@@ -43,20 +43,20 @@ class _HtmlWebSocket implements CommonWebSocket {
     target.networkAddress = response['result']['uri'];
     */
     _webSocket = new WebSocket(target.networkAddress);
-    _webSocket.onClose.listen((CloseEvent) => onClose());
-    _webSocket.onError.listen((Event) => onError());
-    _webSocket.onOpen.listen((Event) => onOpen());
-    _webSocket.onMessage.listen((MessageEvent event) => onMessage(event.data));
+    _webSocket!.onClose.listen((CloseEvent) => onClose());
+    _webSocket!.onError.listen((Event) => onError());
+    _webSocket!.onOpen.listen((Event) => onOpen());
+    _webSocket!.onMessage.listen((MessageEvent event) => onMessage(event.data));
   }
 
-  bool get isOpen => _webSocket.readyState == WebSocket.OPEN;
+  bool get isOpen => _webSocket!.readyState == WebSocket.OPEN;
 
   void send(dynamic data) {
-    _webSocket.send(data);
+    _webSocket!.send(data);
   }
 
   void close() {
-    _webSocket.close();
+    _webSocket!.close();
   }
 
   Future<ByteData> nonStringToByteData(dynamic data) {

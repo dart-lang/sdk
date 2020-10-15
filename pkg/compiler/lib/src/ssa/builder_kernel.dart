@@ -3977,7 +3977,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     js.Template code = js.js.parseForeignJS('new Array(#)');
     var behavior = new NativeBehavior();
 
-    var expectedType = _elementMap.getDartType(invocation.getStaticType(null));
+    DartType expectedType = _getStaticType(invocation).type;
     behavior.typesInstantiated.add(expectedType);
     behavior.typesReturned.add(expectedType);
 

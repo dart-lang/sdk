@@ -94,8 +94,8 @@ abstract class MatchContext implements ChainContext {
         }
         String diff = await runDiff(expectedFile.uri, actual);
         onMismatch ??= expectationFileMismatch;
-        return new Result<O>(output, onMismatch,
-            "$uri doesn't match ${expectedFile.uri}\n$diff", null,
+        return new Result<O>(
+            output, onMismatch, "$uri doesn't match ${expectedFile.uri}\n$diff",
             autoFixCommand: onMismatch == expectationFileMismatch
                 ? updateExpectationsOption
                 : null);
@@ -113,7 +113,6 @@ abstract class MatchContext implements ChainContext {
           """
 Please create file ${expectedFile.path} with this content:
 $actual""",
-          null,
           autoFixCommand: updateExpectationsOption);
     }
   }
@@ -179,8 +178,7 @@ class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
       return new Result<ComponentResult>(
           null,
           context.expectationSet["TypeCheckError"],
-          '${errorFormatter.numberOfFailures} type errors',
-          null);
+          '${errorFormatter.numberOfFailures} type errors');
     }
   }
 }
@@ -377,11 +375,8 @@ class KernelTextSerialization
       }
 
       if (failures.isNotEmpty) {
-        return new Result<ComponentResult>(
-            null,
-            context.expectationSet["TextSerializationFailure"],
-            "$messages",
-            null);
+        return new Result<ComponentResult>(null,
+            context.expectationSet["TextSerializationFailure"], "$messages");
       }
       return pass(result);
     });

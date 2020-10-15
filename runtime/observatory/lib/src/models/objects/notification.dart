@@ -10,7 +10,7 @@ abstract class ExceptionNotification implements Notification {
   get exception;
 
   /// [optional]
-  StackTrace get stacktrace;
+  StackTrace? get stacktrace;
 }
 
 abstract class EventNotification implements Notification {

@@ -38,15 +38,15 @@ var tests = <IsolateTest>[
     var futureBpt1 = await isolate.addBreakpoint(script, LINE_A);
     expect(futureBpt1.number, equals(1));
     expect(futureBpt1.resolved, isFalse);
-    expect(await futureBpt1.location.getLine(), equals(LINE_A));
-    expect(await futureBpt1.location.getColumn(), equals(null));
+    expect(await futureBpt1.location!.getLine(), equals(LINE_A));
+    expect(await futureBpt1.location!.getColumn(), equals(null));
 
     // Future breakpoint with specific column.
     var futureBpt2 = await isolate.addBreakpoint(script, LINE_A, 3);
     expect(futureBpt2.number, equals(2));
     expect(futureBpt2.resolved, isFalse);
-    expect(await futureBpt2.location.getLine(), equals(LINE_A));
-    expect(await futureBpt2.location.getColumn(), equals(3));
+    expect(await futureBpt2.location!.getLine(), equals(LINE_A));
+    expect(await futureBpt2.location!.getColumn(), equals(3));
 
     int resolvedCount =
         await resumeAndCountResolvedBreakpointsUntilPause(isolate);
@@ -54,21 +54,21 @@ var tests = <IsolateTest>[
     // After resolution the breakpoints have assigned line & column.
     expect(resolvedCount, equals(2));
     expect(futureBpt1.resolved, isTrue);
-    expect(await futureBpt1.location.getLine(), equals(LINE_A));
-    expect(await futureBpt1.location.getColumn(), equals(12));
+    expect(await futureBpt1.location!.getLine(), equals(LINE_A));
+    expect(await futureBpt1.location!.getColumn(), equals(12));
     expect(futureBpt2.resolved, isTrue);
-    expect(await futureBpt2.location.getLine(), equals(LINE_A));
-    expect(await futureBpt2.location.getColumn(), equals(3));
+    expect(await futureBpt2.location!.getLine(), equals(LINE_A));
+    expect(await futureBpt2.location!.getColumn(), equals(3));
 
     // The first breakpoint hits before value is modified.
-    Instance result = await rootLib.evaluate('value');
+    Instance result = await rootLib.evaluate('value') as Instance;
     expect(result.valueAsString, equals('0'));
 
     isolate.resume();
     await hasStoppedAtBreakpoint(isolate);
 
     // The second breakpoint hits after value has been modified once.
-    result = await rootLib.evaluate('value');
+    result = await rootLib.evaluate('value') as Instance;
     expect(result.valueAsString, equals('1'));
 
     // Remove the breakpoints.
@@ -85,8 +85,8 @@ var tests = <IsolateTest>[
     for (int col = 1; col <= 50; col++) {
       var bpt = await isolate.addBreakpoint(script, LINE_A, col);
       expect(bpt.resolved, isTrue);
-      int resolvedLine = await bpt.location.getLine();
-      int resolvedCol = await bpt.location.getColumn();
+      int resolvedLine = await bpt.location!.getLine() as int;
+      int resolvedCol = await bpt.location!.getColumn() as int;
       print('$LINE_A:${col} -> ${resolvedLine}:${resolvedCol}');
       if (col <= 12) {
         expect(resolvedLine, equals(LINE_A));

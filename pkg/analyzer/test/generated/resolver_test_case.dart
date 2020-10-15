@@ -130,6 +130,10 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     if (targetType == null || targetType.isDynamic) {
       return;
     }
+    AstNode parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return;
+    }
     _checkResolved(node, node.staticElement, (node) => node is MethodElement);
   }
 
@@ -199,6 +203,10 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     if (targetType == null || targetType.isDynamic) {
       return;
     }
+    AstNode parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return;
+    }
     node.propertyName.accept(this);
   }
 
@@ -213,6 +221,9 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     AstNode parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return;
+    }
     if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
       if (identical(invocation.methodName, node)) {

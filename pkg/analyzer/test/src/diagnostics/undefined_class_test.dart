@@ -36,6 +36,114 @@ dynamic x;
     ]);
   }
 
+  test_ignore_import_prefix() async {
+    await assertErrorsInCode(r'''
+import 'a.dart' as p;
+
+p.A a;
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
+    ]);
+  }
+
+  test_ignore_import_show_it() async {
+    await assertErrorsInCode(r'''
+import 'a.dart' show A;
+
+A a;
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
+    ]);
+  }
+
+  test_ignore_import_show_other() async {
+    await assertErrorsInCode(r'''
+import 'a.dart' show B;
+
+A a;
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 25, 1),
+    ]);
+  }
+
+  test_ignore_part_exists_uriGenerated_nameIgnorable() async {
+    newFile('$testPackageLibPath/a.g.dart', content: r'''
+part of 'test.dart';
+''');
+
+    await assertErrorsInCode(r'''
+part 'a.g.dart';
+
+_$A a;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 3),
+    ]);
+  }
+
+  test_ignore_part_notExist_uriGenerated2_nameIgnorable() async {
+    await assertErrorsInCode(r'''
+part 'a.template.dart';
+
+_$A a;
+''', [
+      error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 17),
+    ]);
+  }
+
+  test_ignore_part_notExist_uriGenerated_nameIgnorable() async {
+    await assertErrorsInCode(r'''
+part 'a.g.dart';
+
+_$A a;
+''', [
+      error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10),
+    ]);
+  }
+
+  test_ignore_part_notExist_uriGenerated_nameNotIgnorable() async {
+    await assertErrorsInCode(r'''
+part 'a.g.dart';
+
+A a;
+''', [
+      error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 1),
+    ]);
+  }
+
+  test_ignore_part_notExist_uriNotGenerated_nameIgnorable() async {
+    await assertErrorsInCode(r'''
+part 'a.dart';
+
+_$A a;
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 16, 3),
+    ]);
+  }
+
+  test_ignore_part_notExist_uriNotGenerated_nameNotIgnorable() async {
+    await assertErrorsInCode(r'''
+part 'a.dart';
+
+A a;
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 16, 1),
+    ]);
+  }
+
+  test_import_exists_prefixed() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' as p;
+
+p.A a;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 26, 3),
+    ]);
+  }
+
   test_instanceCreation() async {
     await assertErrorsInCode('''
 f() { new C(); }

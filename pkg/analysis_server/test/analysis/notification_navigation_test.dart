@@ -779,6 +779,34 @@ main() {
     assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
   }
 
+  Future<void> test_propertyAccess_propertyName_read() async {
+    addTestFile('''
+class A {
+  var f = 0;
+}
+
+void f(A a) {
+  a.f;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('f;', 'f = 0');
+  }
+
+  Future<void> test_propertyAccess_propertyName_write() async {
+    addTestFile('''
+class A {
+  var f = 0;
+}
+
+void f(A a) {
+  a.f = 1;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('f = 1', 'f = 0');
+  }
+
   Future<void> test_redirectingConstructorInvocation() async {
     addTestFile('''
 class A {

@@ -13,6 +13,30 @@ import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 
+/// Return `true` if the given [source] refers to a file that is assumed to be
+/// generated.
+bool isGeneratedSource(Source source) {
+  if (source == null) {
+    return false;
+  }
+  // TODO(brianwilkerson) Generalize this mechanism.
+  const List<String> suffixes = <String>[
+    '.g.dart',
+    '.pb.dart',
+    '.pbenum.dart',
+    '.pbserver.dart',
+    '.pbjson.dart',
+    '.template.dart'
+  ];
+  String fullName = source.fullName;
+  for (String suffix in suffixes) {
+    if (fullName.endsWith(suffix)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// Instances of the class `SourceFactory` resolve possibly relative URI's
 /// against an existing [Source].
 class SourceFactoryImpl implements SourceFactory {

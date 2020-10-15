@@ -116,11 +116,13 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPrefixedIdentifier(
+        prefixed,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
 
     assertSimpleIdentifier(
       prefixed.prefix,
@@ -129,12 +131,14 @@ void f(A a) {
       type: 'A',
     );
 
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      readElement: null,
-      writeElement: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefixed.identifier,
+        readElement: null,
+        writeElement: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
   }
 
   test_write() async {
@@ -160,11 +164,13 @@ void f(A a) {
     );
 
     var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertPrefixedIdentifier(
-      prefixed,
-      element: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertPrefixedIdentifier(
+        prefixed,
+        element: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
 
     assertSimpleIdentifier(
       prefixed.prefix,
@@ -173,12 +179,14 @@ void f(A a) {
       type: 'A',
     );
 
-    assertSimpleIdentifier(
-      prefixed.identifier,
-      readElement: null,
-      writeElement: findElement.setter('foo'),
-      type: 'int',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefixed.identifier,
+        readElement: null,
+        writeElement: findElement.setter('foo'),
+        type: 'int',
+      );
+    }
   }
 }
 

@@ -11,11 +11,11 @@ class LocationManager {
   /// application URL.
   final Map<String, String> internalArguments = new Map<String, String>();
 
-  Uri _uri;
+  Uri? _uri;
 
   /// [uri] is the application uri. Application uris consist of a path and
   /// the queryParameters map.
-  Uri get uri => _uri;
+  Uri get uri => _uri!;
 
   LocationManager(this._app) {
     window.onPopState.listen(_onBrowserNavigation);
@@ -90,13 +90,14 @@ class LocationManager {
 
   /// Notify the current page that something has changed.
   _visit() {
-    Chain.capture(() => _app._visit(_uri, internalArguments), onError: (e, st) {
+    Chain.capture(() => _app._visit(_uri!, internalArguments),
+        onError: (e, st) {
       if (e is IsolateNotFound) {
         var newPath = ((_app.vm == null || _app.vm.isDisconnected)
             ? '/vm-connect'
             : '/isolate-reconnect');
         var parameters = <String, dynamic>{};
-        parameters.addAll(_uri.queryParameters);
+        parameters.addAll(_uri!.queryParameters);
         parameters['originalUri'] = _uri.toString();
         parameters['isolateId'] = parameters['isolateId'];
         var generatedUri = new Uri(path: newPath, queryParameters: parameters);
@@ -126,7 +127,7 @@ class LocationManager {
   }
 
   makeLinkReplacingParameters(Map updatedParameters) {
-    var parameters = new Map.from(_uri.queryParameters);
+    var parameters = new Map<String, dynamic>.from(_uri!.queryParameters);
     updatedParameters.forEach((k, v) {
       parameters[k] = v;
     });
@@ -141,7 +142,7 @@ class LocationManager {
   }
 
   makeLinkForwardingParameters(String newPath) {
-    var parameters = _uri.queryParameters;
+    var parameters = _uri!.queryParameters;
     var generatedUri = new Uri(path: newPath, queryParameters: parameters);
     return makeLink(generatedUri.toString());
   }
@@ -161,7 +162,7 @@ class LocationManager {
     event.preventDefault();
     // 'currentTarget' is the dom element that would process the event.
     // If we use 'target' we might get an <em> element or somesuch.
-    Element target = event.currentTarget;
-    go(target.attributes['href']);
+    Element target = event.currentTarget as Element;
+    go(target.attributes['href']!);
   }
 }

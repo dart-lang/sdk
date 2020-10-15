@@ -9,17 +9,17 @@ import 'package:test/test.dart';
 
 class TestCommand extends Command {
   TestCommand(this.out, name, children) : super(name, children);
-  StringBuffer out;
+  StringBuffer? out;
 
   Future run(List<String> args) {
-    out.write('executing ${name}(${args})\n');
+    out!.write('executing ${name}(${args})\n');
     return new Future.value(null);
   }
 }
 
 class TestCompleteCommand extends Command {
   TestCompleteCommand(this.out, name, children) : super(name, children);
-  StringBuffer out;
+  StringBuffer? out;
 
   Future<List<String>> complete(List<String> args) {
     var possibles = ['one ', 'two ', 'three '];
@@ -28,7 +28,7 @@ class TestCompleteCommand extends Command {
   }
 
   Future run(List<String> args) {
-    out.write('executing ${name}(${args})\n');
+    out!.write('executing ${name}(${args})\n');
     return new Future.value(null);
   }
 }

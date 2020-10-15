@@ -1165,21 +1165,26 @@ class InferenceVisitor
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(nonNullableLhsType, rhsResult.inferredType,
             inferrer.library.library);
-    VariableDeclaration variable =
-        createVariable(lhsResult.expression, lhsResult.inferredType);
-    MethodInvocation equalsNull = createEqualsNull(
-        lhsResult.expression.fileOffset,
-        createVariableGet(variable),
-        equalsMember);
-    VariableGet variableGet = createVariableGet(variable);
-    if (inferrer.library.isNonNullableByDefault &&
-        !identical(nonNullableLhsType, originalLhsType)) {
-      variableGet.promotedType = nonNullableLhsType;
+    Expression replacement;
+    if (lhsResult.expression is ThisExpression) {
+      replacement = lhsResult.expression;
+    } else {
+      VariableDeclaration variable =
+          createVariable(lhsResult.expression, lhsResult.inferredType);
+      MethodInvocation equalsNull = createEqualsNull(
+          lhsResult.expression.fileOffset,
+          createVariableGet(variable),
+          equalsMember);
+      VariableGet variableGet = createVariableGet(variable);
+      if (inferrer.library.isNonNullableByDefault &&
+          !identical(nonNullableLhsType, originalLhsType)) {
+        variableGet.promotedType = nonNullableLhsType;
+      }
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull, rhsResult.expression, variableGet, inferredType);
+      replacement = new Let(variable, conditional)
+        ..fileOffset = node.fileOffset;
     }
-    ConditionalExpression conditional = new ConditionalExpression(
-        equalsNull, rhsResult.expression, variableGet, inferredType);
-    Expression replacement = new Let(variable, conditional)
-      ..fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
@@ -5704,15 +5709,15 @@ class InferenceVisitor
         node.isImplicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;
     ExpressionInferenceResult initializerResult;
-    inferrer.flowAnalysis.declare(node, node.initializer != null);
+    inferrer.flowAnalysis.declare(node, node.hasDeclaredInitializer);
     if (node.initializer != null) {
-      if (node.isLate) {
+      if (node.isLate && node.hasDeclaredInitializer) {
         inferrer.flowAnalysis.lateInitializer_begin(node);
       }
       initializerResult = inferrer.inferExpression(node.initializer,
           declaredType, !inferrer.isTopLevel || node.isImplicitlyTyped,
           isVoidAllowed: true);
-      if (node.isLate) {
+      if (node.isLate && node.hasDeclaredInitializer) {
         inferrer.flowAnalysis.lateInitializer_end();
       }
       inferredType = inferrer.inferDeclarationType(

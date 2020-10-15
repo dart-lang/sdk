@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  static get staticMember() → core::int
+    ;
+  static set staticMember(core::int value) → void
+    ;
+  static get staticMember2() → core::int?
+    ;
+  static set staticMember2(core::int? value) → void
+    ;
+  static method staticMethod() → void
+    ;
+  static get property() → core::List<core::int>
+    ;
+  static get property2() → core::Map<core::int, core::int?>
+    ;
+}
+static method main() → void
+  ;

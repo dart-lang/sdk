@@ -18,7 +18,7 @@ var tests = <IsolateTest>[
         "  var w = () async { return await k(); }; "
         "  return w(); "
         "}()";
-    Library lib = await isolate.rootLibrary.load();
+    Library lib = await isolate.rootLibrary.load() as Library;
 
     var result = await lib.evaluate(test);
     expect("$result", equals("Instance(a _Future)"));

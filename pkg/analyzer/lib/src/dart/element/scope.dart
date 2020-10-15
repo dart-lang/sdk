@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' as impl;
 import 'package:meta/meta.dart';
@@ -145,6 +146,15 @@ class LibraryScope extends EnclosedScope {
             if (combinator.shownNames.contains(name)) {
               return true;
             }
+          }
+        }
+      }
+
+      if (name.startsWith(r'_$')) {
+        for (var partElement in _element.parts) {
+          if (partElement.isSynthetic &&
+              isGeneratedSource(partElement.source)) {
+            return true;
           }
         }
       }

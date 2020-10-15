@@ -35,58 +35,14 @@ class DataDriven extends MultiCorrectionProducer {
         importedUris.add(Uri.parse(uri));
       }
     }
-    var matcher =
-        ElementMatcher(importedUris: importedUris, name: name, kinds: _kinds);
+    var matcher = ElementMatcher(
+        importedUris: importedUris, name: name, kinds: _kindsForNode(node));
     for (var set in _availableTransformSetsForLibrary(library)) {
       for (var transform
           in set.transformsFor(matcher, applyingBulkFixes: applyingBulkFixes)) {
         yield DataDrivenFix(transform);
       }
     }
-  }
-
-  List<ElementKind> get _kinds {
-    AstNode child;
-    var node = this.node;
-    while (node != null) {
-      if (node is ConstructorName) {
-        return const [ElementKind.constructorKind];
-      } else if (node is ExtensionOverride) {
-        return const [ElementKind.extensionKind];
-      } else if (node is InstanceCreationExpression) {
-        return const [ElementKind.constructorKind];
-      } else if (node is MethodInvocation) {
-        if (node.target == child) {
-          return const [
-            ElementKind.classKind,
-            ElementKind.enumKind,
-            ElementKind.mixinKind
-          ];
-        } else if (node.realTarget != null) {
-          return const [ElementKind.constructorKind, ElementKind.methodKind];
-        }
-        return const [
-          ElementKind.classKind,
-          ElementKind.extensionKind,
-          ElementKind.functionKind,
-          ElementKind.methodKind
-        ];
-      } else if (node is NamedType) {
-        var parent = node.parent;
-        if (parent is ConstructorName && parent.name == null) {
-          return const [ElementKind.classKind, ElementKind.constructorKind];
-        }
-        return const [
-          ElementKind.classKind,
-          ElementKind.enumKind,
-          ElementKind.mixinKind,
-          ElementKind.typedefKind
-        ];
-      }
-      child = node;
-      node = node.parent;
-    }
-    return null;
   }
 
   /// Return the name of the element that was changed.
@@ -136,6 +92,63 @@ class DataDriven extends MultiCorrectionProducer {
       return transformSetsForTests;
     }
     return TransformSetManager.instance.forLibrary(library);
+  }
+
+  List<ElementKind> _kindsForNode(AstNode node, {AstNode child}) {
+    if (node is ConstructorName) {
+      return const [ElementKind.constructorKind];
+    } else if (node is ExtensionOverride) {
+      return const [ElementKind.extensionKind];
+    } else if (node is InstanceCreationExpression) {
+      return const [ElementKind.constructorKind];
+    } else if (node is MethodInvocation) {
+      if (node.target == child) {
+        return const [
+          ElementKind.classKind,
+          ElementKind.enumKind,
+          ElementKind.mixinKind
+        ];
+      } else if (node.realTarget != null) {
+        return const [ElementKind.constructorKind, ElementKind.methodKind];
+      }
+      return const [
+        ElementKind.classKind,
+        ElementKind.extensionKind,
+        ElementKind.functionKind,
+        ElementKind.methodKind
+      ];
+    } else if (node is NamedType) {
+      var parent = node.parent;
+      if (parent is ConstructorName && parent.name == null) {
+        return const [ElementKind.classKind, ElementKind.constructorKind];
+      }
+      return const [
+        ElementKind.classKind,
+        ElementKind.enumKind,
+        ElementKind.mixinKind,
+        ElementKind.typedefKind
+      ];
+    } else if (node is PrefixedIdentifier) {
+      if (node.prefix == child) {
+        return const [
+          ElementKind.classKind,
+          ElementKind.enumKind,
+          ElementKind.extensionKind,
+          ElementKind.mixinKind,
+          ElementKind.typedefKind
+        ];
+      }
+      return const [
+        ElementKind.fieldKind,
+        ElementKind.getterKind,
+        ElementKind.setterKind
+      ];
+    } else if (node is PropertyAccess) {
+      return const [ElementKind.getterKind, ElementKind.setterKind];
+    } else if (node is SimpleIdentifier) {
+      return _kindsForNode(node.parent, child: node);
+    }
+    return null;
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

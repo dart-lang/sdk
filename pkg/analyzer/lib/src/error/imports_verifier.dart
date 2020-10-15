@@ -19,6 +19,12 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   GatherUsedImportedElementsVisitor(this.library);
 
   @override
+  visitAssignmentExpression(AssignmentExpression node) {
+    _recordAssignmentTarget(node, node.leftHandSide);
+    return super.visitAssignmentExpression(node);
+  }
+
+  @override
   void visitBinaryExpression(BinaryExpression node) {
     _recordIfExtensionMember(node.staticElement);
     return super.visitBinaryExpression(node);
@@ -52,7 +58,14 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitPostfixExpression(PostfixExpression node) {
+    _recordAssignmentTarget(node, node.operand);
+    return super.visitPostfixExpression(node);
+  }
+
+  @override
   void visitPrefixExpression(PrefixExpression node) {
+    _recordAssignmentTarget(node, node.operand);
     _recordIfExtensionMember(node.staticElement);
     return super.visitPrefixExpression(node);
   }
@@ -60,6 +73,22 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _visitIdentifier(node, node.staticElement);
+  }
+
+  void _recordAssignmentTarget(
+    CompoundAssignmentExpression node,
+    Expression target,
+  ) {
+    if (target is PrefixedIdentifier) {
+      _visitIdentifier(target.identifier, node.readElement);
+      _visitIdentifier(target.identifier, node.writeElement);
+    } else if (target is PropertyAccess) {
+      _visitIdentifier(target.propertyName, node.readElement);
+      _visitIdentifier(target.propertyName, node.writeElement);
+    } else if (target is SimpleIdentifier) {
+      _visitIdentifier(target, node.readElement);
+      _visitIdentifier(target, node.writeElement);
+    }
   }
 
   void _recordIfExtensionMember(Element element) {

@@ -691,31 +691,25 @@ class AssignmentExpressionImpl extends ExpressionImpl
   /// representing the parameter to which the value of the right operand will be
   /// bound. Otherwise, return `null`.
   ParameterElement get _staticParameterElementForRightHandSide {
-    ExecutableElement executableElement;
-    if (staticElement != null) {
+    Element executableElement;
+    if (operator.type != TokenType.EQ) {
       executableElement = staticElement;
     } else {
-      Expression left = _leftHandSide;
-      if (left is Identifier) {
-        Element leftElement = left.staticElement;
-        if (leftElement is ExecutableElement) {
-          executableElement = leftElement;
-        }
-      } else if (left is PropertyAccess) {
-        Element leftElement = left.propertyName.staticElement;
-        if (leftElement is ExecutableElement) {
-          executableElement = leftElement;
-        }
+      executableElement = writeElement;
+    }
+
+    if (executableElement is ExecutableElement) {
+      List<ParameterElement> parameters = executableElement.parameters;
+      if (parameters.isEmpty) {
+        return null;
       }
+      if (operator.type == TokenType.EQ && leftHandSide is IndexExpression) {
+        return parameters.length == 2 ? parameters[1] : null;
+      }
+      return parameters[0];
     }
-    if (executableElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters = executableElement.parameters;
-    if (parameters.isEmpty) {
-      return null;
-    }
-    return parameters[0];
+
+    return null;
   }
 
   @override
@@ -5926,14 +5920,22 @@ class IndexExpressionImpl extends ExpressionImpl
   /// representing the parameter to which the value of the index expression will
   /// be bound. Otherwise, return `null`.
   ParameterElement get _staticParameterElementForIndex {
-    if (staticElement == null) {
-      return null;
+    Element element = staticElement;
+
+    var parent = this.parent;
+    if (parent is CompoundAssignmentExpression) {
+      var assignment = parent as CompoundAssignmentExpression;
+      element = assignment.writeElement ?? assignment.readElement;
     }
-    List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.isEmpty) {
-      return null;
+
+    if (element is ExecutableElement) {
+      List<ParameterElement> parameters = element.parameters;
+      if (parameters.isEmpty) {
+        return null;
+      }
+      return parameters[0];
     }
-    return parameters[0];
+    return null;
   }
 
   @override

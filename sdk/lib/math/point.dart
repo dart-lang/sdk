@@ -23,7 +23,7 @@ class Point<T extends num> {
   bool operator ==(Object other) =>
       other is Point && x == other.x && y == other.y;
 
-  int get hashCode => _JenkinsSmiHash.hash2(x.hashCode, y.hashCode);
+  int get hashCode => SystemHash.hash2(x.hashCode, y.hashCode);
 
   /// Add [other] to `this`, as if both points were vectors.
   ///

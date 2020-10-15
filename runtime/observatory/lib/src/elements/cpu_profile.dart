@@ -22,21 +22,21 @@ import 'package:observatory/src/elements/sample_buffer_control.dart';
 import 'package:observatory/src/elements/stack_trace_tree_config.dart';
 
 class CpuProfileElement extends CustomElement implements Renderable {
-  RenderingScheduler<CpuProfileElement> _r;
+  late RenderingScheduler<CpuProfileElement> _r;
 
   Stream<RenderedEvent<CpuProfileElement>> get onRendered => _r.onRendered;
 
-  M.VM _vm;
-  M.IsolateRef _isolate;
-  M.EventRepository _events;
-  M.NotificationRepository _notifications;
-  M.IsolateSampleProfileRepository _profiles;
-  Stream<M.SampleProfileLoadingProgressEvent> _progressStream;
-  M.SampleProfileLoadingProgress _progress;
-  M.SampleProfileTag _tag = M.SampleProfileTag.none;
-  ProfileTreeMode _mode = ProfileTreeMode.function;
-  M.ProfileTreeDirection _direction = M.ProfileTreeDirection.exclusive;
-  String _filter = '';
+  late M.VM _vm;
+  late M.IsolateRef _isolate;
+  late M.EventRepository _events;
+  late M.NotificationRepository _notifications;
+  late M.IsolateSampleProfileRepository _profiles;
+  late Stream<M.SampleProfileLoadingProgressEvent> _progressStream;
+  M.SampleProfileLoadingProgress? _progress;
+  late M.SampleProfileTag _tag = M.SampleProfileTag.none;
+  late ProfileTreeMode _mode = ProfileTreeMode.function;
+  late M.ProfileTreeDirection _direction = M.ProfileTreeDirection.exclusive;
+  late String _filter = '';
 
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
@@ -49,7 +49,7 @@ class CpuProfileElement extends CustomElement implements Renderable {
       M.EventRepository events,
       M.NotificationRepository notifications,
       M.IsolateSampleProfileRepository profiles,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(vm != null);
     assert(isolate != null);
     assert(events != null);
@@ -100,15 +100,16 @@ class CpuProfileElement extends CustomElement implements Renderable {
       children = content;
       return;
     }
-    content.add((new SampleBufferControlElement(_vm, _progress, _progressStream,
+    content.add((new SampleBufferControlElement(
+            _vm, _progress!, _progressStream,
             selectedTag: _tag, queue: _r.queue)
           ..onTagChange.listen((e) {
             _tag = e.element.selectedTag;
             _request();
           }))
         .element);
-    if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
-      CpuProfileVirtualTreeElement tree;
+    if (_progress!.status == M.SampleProfileLoadingStatus.loaded) {
+      late CpuProfileVirtualTreeElement tree;
       content.addAll([
         new BRElement(),
         (new StackTraceTreeConfigElement(
@@ -134,7 +135,7 @@ class CpuProfileElement extends CustomElement implements Renderable {
               }))
             .element,
         new BRElement(),
-        (tree = new CpuProfileVirtualTreeElement(_isolate, _progress.profile,
+        (tree = new CpuProfileVirtualTreeElement(_isolate, _progress!.profile,
                 queue: _r.queue))
             .element
       ]);
@@ -149,7 +150,7 @@ class CpuProfileElement extends CustomElement implements Renderable {
     _r.dirty();
     _progress = (await _progressStream.first).progress;
     _r.dirty();
-    if (M.isSampleProcessRunning(_progress.status)) {
+    if (M.isSampleProcessRunning(_progress!.status)) {
       _progress = (await _progressStream.last).progress;
       _r.dirty();
     }

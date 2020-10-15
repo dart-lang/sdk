@@ -9,21 +9,21 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class MetricGraphElement extends CustomElement implements Renderable {
-  RenderingScheduler<MetricGraphElement> _r;
+  late RenderingScheduler<MetricGraphElement> _r;
 
   Stream<RenderedEvent<MetricGraphElement>> get onRendered => _r.onRendered;
 
-  M.IsolateRef _isolate;
-  M.Metric _metric;
-  M.MetricRepository _metrics;
-  Timer _timer;
+  late M.IsolateRef _isolate;
+  late M.Metric _metric;
+  late M.MetricRepository _metrics;
+  late Timer _timer;
 
   M.IsolateRef get isolate => _isolate;
   M.Metric get metric => _metric;
 
   factory MetricGraphElement(
       M.IsolateRef isolate, M.Metric metric, M.MetricRepository metrics,
-      {RenderingQueue queue}) {
+      {RenderingQueue? queue}) {
     assert(isolate != null);
     assert(metric != null);
     assert(metrics != null);
@@ -56,8 +56,8 @@ class MetricGraphElement extends CustomElement implements Renderable {
     final min = _metrics.getMinValue(_isolate, _metric);
     final max = _metrics.getMaxValue(_isolate, _metric);
     final rows = _metrics
-        .getSamples(_isolate, _metric)
-        .map((s) => [s.time.millisecondsSinceEpoch, s.value])
+        .getSamples(_isolate, _metric)!
+        .map((s) => [s.time!.millisecondsSinceEpoch, s.value])
         .toList();
     final current = rows.last.last;
 

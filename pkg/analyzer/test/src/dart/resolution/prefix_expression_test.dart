@@ -491,12 +491,14 @@ class B extends A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
-      prefix.operand,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefix.operand,
+        readElement: findElement.getter('x'),
+        writeElement: findElement.setter('x'),
+        type: 'num',
+      );
+    }
   }
 
   test_plusPlus_simpleIdentifier_thisGetter_thisSetter() async {
@@ -524,12 +526,14 @@ class A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
-      prefix.operand,
-      readElement: findElement.getter('x'),
-      writeElement: findElement.setter('x'),
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefix.operand,
+        readElement: findElement.getter('x'),
+        writeElement: findElement.setter('x'),
+        type: 'num',
+      );
+    }
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter() async {
@@ -557,12 +561,14 @@ void f() {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
-      prefix.operand,
-      readElement: findElement.topGet('x'),
-      writeElement: findElement.topSet('x'),
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefix.operand,
+        readElement: findElement.topGet('x'),
+        writeElement: findElement.topSet('x'),
+        type: 'num',
+      );
+    }
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter_fromClass() async {
@@ -592,12 +598,14 @@ class A {
       type: 'int',
     );
 
-    assertSimpleIdentifier(
-      prefix.operand,
-      readElement: findElement.topGet('x'),
-      writeElement: findElement.topSet('x'),
-      type: 'num',
-    );
+    if (hasAssignmentLeftResolution) {
+      assertSimpleIdentifier(
+        prefix.operand,
+        readElement: findElement.topGet('x'),
+        writeElement: findElement.topSet('x'),
+        type: 'num',
+      );
+    }
   }
 
   /// Verify that we get all necessary types when building the dependencies
@@ -721,7 +729,9 @@ void f(Object x) {
       type: 'Object',
     );
 
-    assertType(findNode.simple('x;'), 'A');
+    if (hasAssignmentLeftResolution) {
+      assertType(findNode.simple('x;'), 'A');
+    }
   }
 
   test_plusPlus_nullShorting() async {

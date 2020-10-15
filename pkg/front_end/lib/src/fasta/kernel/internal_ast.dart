@@ -1378,6 +1378,11 @@ class VariableDeclarationImpl extends VariableDeclaration {
   final bool isImplicitlyTyped;
 
   /// True if the initializer was specified by the programmer.
+  ///
+  /// Note that the variable might have a synthesized initializer expression,
+  /// so `hasDeclaredInitializer == false` doesn't imply `initializer == null`.
+  /// For instance, for duplicate variable names, an invalid expression is set
+  /// as the initializer of the second variable.
   final bool hasDeclaredInitializer;
 
   // TODO(ahe): Remove this field. We can get rid of it by recording closure

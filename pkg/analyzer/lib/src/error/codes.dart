@@ -80,16 +80,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * Enum proposal: It is also a compile-time error to explicitly instantiate an
-   * enum via 'new' or 'const' or to access its private fields.
-   */
-  static const CompileTimeErrorCode ACCESS_PRIVATE_ENUM_FIELD =
-      CompileTimeErrorCode(
-          'ACCESS_PRIVATE_ENUM_FIELD',
-          "The private fields of an enum can't be accessed, even within the "
-              "same library.");
-
-  /**
    * 14.2 Exports: It is a compile-time error if a name <i>N</i> is re-exported
    * by a library <i>L</i> and <i>N</i> is introduced into the export namespace
    * of <i>L</i> by more than one export, unless each all exports refer to same

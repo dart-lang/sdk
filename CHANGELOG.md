@@ -27,7 +27,7 @@ Updated the Linter to `0.1.121`, which includes:
 
 #### Pub
 
-* New commands `pub add` and `pub remove` that adds and remove new dependencies 
+* New commands `pub add` and `pub remove` that adds and remove new dependencies
   to your `pubspec.yaml`.
 * `pub publish` will check your pubspec keys for likely typos.
 * `pub get` will print a warning if the resolution is mixed mode.
@@ -48,7 +48,7 @@ Updated the Linter to `0.1.121`, which includes:
 * Fixed `unawaited_futures` to handle `Future` subtypes.
 * New lint: `avoid_type_to_string`.
 
-## 2.10.2 - 2020-10-13
+## 2.10.2 - 2020-10-15
 
 This is a patch release that fixes a DDC compiler crash (issue [#43589]).
 

@@ -52,9 +52,9 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
   @override
   DartType computeNodeValue(Id id, AstNode node) {
     if (node is SimpleIdentifier && node.inGetterContext()) {
-      var element = node.staticElement;
+      var element = _readElement(node);
       if (element is LocalVariableElement || element is ParameterElement) {
-        TypeImpl promotedType = node.staticType;
+        TypeImpl promotedType = _readType(node);
         TypeImpl declaredType = (element as VariableElement).type;
         var isPromoted = promotedType != declaredType;
         if (isPromoted) {
@@ -63,6 +63,32 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
       }
     }
     return null;
+  }
+
+  static Element _readElement(SimpleIdentifier node) {
+    var parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return parent.readElement;
+    } else if (parent is PostfixExpression) {
+      return parent.readElement;
+    } else if (parent is PrefixExpression) {
+      return parent.readElement;
+    } else {
+      return node.staticElement;
+    }
+  }
+
+  static DartType _readType(SimpleIdentifier node) {
+    var parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return parent.readType;
+    } else if (parent is PostfixExpression) {
+      return parent.readType;
+    } else if (parent is PrefixExpression) {
+      return parent.readType;
+    } else {
+      return node.staticType;
+    }
   }
 }
 

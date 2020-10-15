@@ -960,6 +960,29 @@ const MessageCode messageClassInClass = const MessageCode("ClassInClass",
     tip: r"""Try moving the class to the top-level.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateClassInNullAwareReceiver =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""The class '#name' cannot be null.""",
+        tipTemplate: r"""Try replacing '?.' with '.'""",
+        withArguments: _withArgumentsClassInNullAwareReceiver);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeClassInNullAwareReceiver =
+    const Code<Message Function(String name)>(
+        "ClassInNullAwareReceiver", templateClassInNullAwareReceiver,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsClassInNullAwareReceiver(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeClassInNullAwareReceiver,
+      message: """The class '${name}' cannot be null.""",
+      tip: """Try replacing '?.' with '.'""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeColonInPlaceOfIn = messageColonInPlaceOfIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8844,6 +8867,16 @@ const MessageCode messageThisAsIdentifier = const MessageCode(
     "ThisAsIdentifier",
     analyzerCodes: <String>["INVALID_REFERENCE_TO_THIS"],
     message: r"""Expected identifier, but got 'this'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeThisInNullAwareReceiver = messageThisInNullAwareReceiver;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageThisInNullAwareReceiver = const MessageCode(
+    "ThisInNullAwareReceiver",
+    severity: Severity.warning,
+    message: r"""The receiver 'this' cannot be null.""",
+    tip: r"""Try replacing '?.' with '.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>

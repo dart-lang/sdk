@@ -14,19 +14,19 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 
 class GeneralErrorElement extends CustomElement implements Renderable {
-  RenderingScheduler<GeneralErrorElement> _r;
+  late RenderingScheduler<GeneralErrorElement> _r;
 
   Stream<RenderedEvent<GeneralErrorElement>> get onRendered => _r.onRendered;
 
-  M.NotificationRepository _notifications;
-  String _message;
+  late M.NotificationRepository _notifications;
+  late String _message;
 
   String get message => _message;
 
   set message(String value) => _message = _r.checkAndReact(_message, value);
 
   factory GeneralErrorElement(M.NotificationRepository notifications,
-      {String message: '', RenderingQueue queue}) {
+      {String message: '', RenderingQueue? queue}) {
     assert(notifications != null);
     assert(message != null);
     GeneralErrorElement e = new GeneralErrorElement.created();
