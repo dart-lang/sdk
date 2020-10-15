@@ -5709,15 +5709,15 @@ class InferenceVisitor
         node.isImplicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;
     ExpressionInferenceResult initializerResult;
-    inferrer.flowAnalysis.declare(node, node.initializer != null);
+    inferrer.flowAnalysis.declare(node, node.hasDeclaredInitializer);
     if (node.initializer != null) {
-      if (node.isLate) {
+      if (node.isLate && node.hasDeclaredInitializer) {
         inferrer.flowAnalysis.lateInitializer_begin(node);
       }
       initializerResult = inferrer.inferExpression(node.initializer,
           declaredType, !inferrer.isTopLevel || node.isImplicitlyTyped,
           isVoidAllowed: true);
-      if (node.isLate) {
+      if (node.isLate && node.hasDeclaredInitializer) {
         inferrer.flowAnalysis.lateInitializer_end();
       }
       inferredType = inferrer.inferDeclarationType(
