@@ -40,6 +40,23 @@ void defineTests() {
       });
     });
 
+    group('unnecessary_string_escapes', () {
+      final currentOut = outSink;
+      final collectingOut = CollectingSink();
+      setUp(() => outSink = collectingOut);
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+      });
+      test('no_closing_quote', () async {
+        await cli.runLinter([
+          'test/_data/unnecessary_string_escapes/no_closing_quote.dart',
+          '--rules=unnecessary_string_escapes',
+        ], LinterOptions());
+        // No exception.
+      });
+    });
+
     group('exhaustive_cases', () {
       final currentOut = outSink;
       final collectingOut = CollectingSink();

@@ -105,7 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < lexeme.length; i++) {
       var current = lexeme[i];
       var escaped = false;
-      if (current == r'\') {
+      if (current == r'\' && i < lexeme.length - 1) {
         escaped = true;
         i += 1;
         current = lexeme[i];

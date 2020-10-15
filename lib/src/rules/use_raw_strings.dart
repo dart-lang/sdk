@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor {
         node.contentsOffset - node.literal.offset,
         node.contentsEnd - node.literal.offset);
     var hasEscape = false;
-    for (var i = 0; i < lexeme.length; i++) {
+    for (var i = 0; i < lexeme.length - 1; i++) {
       var current = lexeme[i];
       if (current == r'\') {
         hasEscape = true;
