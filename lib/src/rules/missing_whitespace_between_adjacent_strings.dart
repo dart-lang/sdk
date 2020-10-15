@@ -60,10 +60,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     // skip regexp
     if (node.parent is ArgumentList) {
       final parentParent = node.parent.parent;
-      if (parentParent is InstanceCreationExpression &&
-              parentParent
-                      .constructorName.staticElement.enclosingElement.name ==
-                  'RegExp' ||
+      if (_isRegExpInstanceCreation(parentParent) ||
           parentParent is MethodInvocation &&
               parentParent.realTarget == null &&
               const ['RegExp', 'matches']
@@ -104,6 +101,15 @@ class _Visitor extends RecursiveAstVisitor<void> {
   bool _endsWithWhitespace(String value) => _whitespaces.any(value.endsWith);
   bool _startsWithWhitespace(String value) =>
       _whitespaces.any(value.startsWith);
+
+  static bool _isRegExpInstanceCreation(AstNode node) {
+    if (node is InstanceCreationExpression) {
+      var constructorElement = node.constructorName.staticElement;
+      return constructorElement != null &&
+          constructorElement.enclosingElement.name == 'RegExp';
+    }
+    return false;
+  }
 }
 
 const _whitespaces = [' ', '\n', '\r', '\t'];
