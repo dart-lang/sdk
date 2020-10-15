@@ -14,7 +14,7 @@ class WidgetCache {
   WidgetCache(Component fullComponent) {
     Library frameworkLibrary;
     for (Library library in fullComponent.libraries) {
-      if (library?.importUri?.path == 'flutter/src/widgets/framework.dart') {
+      if (library?.importUri?.path == _frameworkLibrary) {
         frameworkLibrary = library;
         break;
       }
@@ -22,15 +22,7 @@ class WidgetCache {
     if (frameworkLibrary == null) {
       return;
     }
-    for (Class classDeclaration in frameworkLibrary.classes) {
-      if (classDeclaration.name == _statelessWidgetClassName) {
-        _statelessWidget = classDeclaration;
-      } else if (classDeclaration.name == _statefulWidgetClassName) {
-        _statefulWidget = classDeclaration;
-      } else if (classDeclaration.name == _stateClassName) {
-        _state = classDeclaration;
-      }
-    }
+    _locatedClassDeclarations(frameworkLibrary);
     _frameworkTypesLocated =
         _statefulWidget != null && _state != null && _statelessWidget != null;
   }
@@ -43,6 +35,8 @@ class WidgetCache {
   Class _state;
   Class _statefulWidget;
   bool _frameworkTypesLocated = false;
+
+  static const String _frameworkLibrary = 'flutter/src/widgets/framework.dart';
 
   /// Mark [uri] as invalidated.
   void invalidate(Uri uri) {
@@ -126,9 +120,19 @@ class WidgetCache {
       return null;
     }
 
+    // Update the class references to stateless, stateful, and state classes.
+    if (classHierarchy is ClosedWorldClassHierarchy) {
+      for (Library library in classHierarchy.knownLibraries) {
+        if (library?.importUri?.path == _frameworkLibrary) {
+          _locatedClassDeclarations(library);
+        }
+      }
+    }
+
     if (classHierarchy.isSubclassOf(newClass, _statelessWidget) ||
         classHierarchy.isSubclassOf(newClass, _statefulWidget)) {
-      if (_hasSubClasses(newClass, partialComponent, classHierarchy)) {
+      if (classHierarchy.isExtended(newClass) ||
+          classHierarchy.isUsedAsMixin(newClass)) {
         return null;
       }
       return newClass.name;
@@ -150,8 +154,8 @@ class WidgetCache {
         if (statefulWidgetType.name == _statefulWidgetClassName) {
           return null;
         }
-        if (_hasSubClasses(
-            statefulWidgetType, partialComponent, classHierarchy)) {
+        if (classHierarchy.isExtended(statefulWidgetType) ||
+            classHierarchy.isUsedAsMixin(statefulWidgetType)) {
           return null;
         }
         return statefulWidgetType.name;
@@ -159,22 +163,6 @@ class WidgetCache {
     }
 
     return null;
-  }
-
-  /// Checks whether the class [node] has any subclasses.
-  bool _hasSubClasses(
-      Class node, Component component, ClassHierarchy classHierarchy) {
-    for (Library library in component.libraries) {
-      for (Class otherClass in library.classes) {
-        if (identical(otherClass, node)) {
-          continue;
-        }
-        if (classHierarchy.isSubclassOf(otherClass, node)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   // Locate the that fully contains the edit range, or null.
@@ -187,5 +175,17 @@ class WidgetCache {
       }
     }
     return null;
+  }
+
+  void _locatedClassDeclarations(Library library) {
+    for (Class classDeclaration in library.classes) {
+      if (classDeclaration.name == _statelessWidgetClassName) {
+        _statelessWidget = classDeclaration;
+      } else if (classDeclaration.name == _statefulWidgetClassName) {
+        _statefulWidget = classDeclaration;
+      } else if (classDeclaration.name == _stateClassName) {
+        _state = classDeclaration;
+      }
+    }
   }
 }
