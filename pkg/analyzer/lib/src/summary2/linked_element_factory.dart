@@ -28,7 +28,7 @@ class LinkedElementFactory {
   ) {
     ArgumentError.checkNotNull(analysisContext, 'analysisContext');
     ArgumentError.checkNotNull(analysisSession, 'analysisSession');
-    declareDartCoreDynamicNever();
+    _declareDartCoreDynamicNever();
   }
 
   Reference get dynamicRef {
@@ -95,12 +95,6 @@ class LinkedElementFactory {
     }
   }
 
-  void declareDartCoreDynamicNever() {
-    var dartCoreRef = rootReference.getChild('dart:core');
-    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
-    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
-  }
-
   Element elementOfReference(Reference reference) {
     if (reference.element != null) {
       return reference.element;
@@ -147,19 +141,38 @@ class LinkedElementFactory {
   /// We have linked the bundle, and need to disconnect its libraries, so
   /// that the client can re-add the bundle, this time read from bytes.
   void removeBundle(LinkedBundleContext context) {
-    var uriStrList = context.libraryMap.keys.toList();
-    removeLibraries(uriStrList);
+    var uriStrSet = context.libraryMap.keys.toSet();
+    removeLibraries(uriStrSet);
+
+    // This is the bundle with dart:core and dart:async, based on full ASTs.
+    // To link them, the linker set the type provider. We are removing these
+    // libraries, and we should also remove the type provider.
+    if (uriStrSet.contains('dart:core')) {
+      if (!uriStrSet.contains('dart:async')) {
+        throw StateError(
+          'Expected to link dart:core and dart:async together: '
+          '${uriStrSet.toList()}',
+        );
+      }
+      if (libraryMap.isNotEmpty) {
+        throw StateError(
+          'Expected to link dart:core and dart:async first: '
+          '${libraryMap.keys.toList()}',
+        );
+      }
+      analysisContext.clearTypeProvider();
+      _declareDartCoreDynamicNever();
+    }
   }
 
   /// Remove libraries with the specified URIs from the reference tree, and
   /// any session level caches.
-  void removeLibraries(List<String> uriStrList) {
-    for (var uriStr in uriStrList) {
+  void removeLibraries(Set<String> uriStrSet) {
+    for (var uriStr in uriStrSet) {
       libraryMap.remove(uriStr);
       rootReference.removeChild(uriStr);
     }
 
-    var uriStrSet = uriStrList.toSet();
     analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
     analysisSession.inheritanceManager.removeOfLibraries(uriStrSet);
   }
@@ -179,6 +192,12 @@ class LinkedElementFactory {
         }
       }
     }
+  }
+
+  void _declareDartCoreDynamicNever() {
+    var dartCoreRef = rootReference.getChild('dart:core');
+    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
+    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
   }
 
   void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {

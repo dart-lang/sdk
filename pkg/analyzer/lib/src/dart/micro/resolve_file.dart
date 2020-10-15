@@ -271,6 +271,49 @@ class FileResolver {
     return file.libraryCycle.signatureStr;
   }
 
+  /// Ensure that libraries necessary for resolving [path] are linked.
+  ///
+  /// Libraries are linked in library cycles, from the bottom to top, so that
+  /// when we link a cycle, everything it transitively depends is ready. We
+  /// load newly linked libraries from bytes, and when we link a new library
+  /// cycle we partially resynthesize AST and elements from previously
+  /// loaded libraries.
+  ///
+  /// But when we are done linking libraries, and want to resolve just the
+  /// very top library that transitively depends on the whole dependency
+  /// tree, this library will not reference as many elements in the
+  /// dependencies as we needed for linking. Most probably it references
+  /// elements from directly imported libraries, and a couple of layers below.
+  /// So, keeping all previously resynthesized data is usually a waste.
+  ///
+  /// This method ensures that we discard the libraries context, with all its
+  /// partially resynthesized data, and so prepare for loading linked summaries
+  /// from bytes, which will be done by [getErrors]. It is OK for it to
+  /// spend some more time on this.
+  void linkLibraries({
+    @required String path,
+  }) {
+    _throwIfNotAbsoluteNormalizedPath(path);
+
+    var performance = OperationPerformanceImpl('<unused>');
+
+    _withLibraryContextReset(() {
+      var fileContext = getFileContext(
+        path: path,
+        performance: performance,
+      );
+      var file = fileContext.file;
+      var libraryFile = file.partOfLibrary ?? file;
+
+      libraryContext.load2(
+        targetLibrary: libraryFile,
+        performance: performance,
+      );
+    });
+
+    _resetContextObjects();
+  }
+
   /// The [completionLine] and [completionColumn] are zero based.
   ResolvedUnitResult resolve({
     int completionLine,
@@ -531,6 +574,13 @@ class FileResolver {
     }
   }
 
+  void _resetContextObjects() {
+    if (libraryContext != null) {
+      contextObjects = null;
+      libraryContext = null;
+    }
+  }
+
   void _throwIfNotAbsoluteNormalizedPath(String path) {
     var pathContext = resourceProvider.pathContext;
     if (pathContext.normalize(path) != path) {
@@ -691,14 +741,6 @@ class _LibraryContext {
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
       }
 
-      // We are about to load dart:core, but if we have just linked it, the
-      // linker might have set the type provider. So, clear it, and recreate
-      // the element factory - it is empty anyway.
-      if (!elementFactory.hasDartCore) {
-        contextObjects.analysisContext.clearTypeProvider();
-        elementFactory.declareDartCoreDynamicNever();
-      }
-
       var cBundle = CiderLinkedLibraryCycle.fromBuffer(bytes);
       inputBundles.add(cBundle.bundle);
       elementFactory.addBundle(
@@ -715,6 +757,9 @@ class _LibraryContext {
           );
         }
       }
+
+      // We might have just linked dart:core, ensure the type provider.
+      _createElementFactoryTypeProvider();
     }
 
     logger.run('Prepare linked bundles', () {
@@ -732,13 +777,23 @@ class _LibraryContext {
   /// If we need these libraries later, we will relink and reattach them.
   void remove(List<FileState> removed) {
     elementFactory.removeLibraries(
-      removed.map((e) => e.uriStr).toList(),
+      removed.map((e) => e.uriStr).toSet(),
     );
 
     var removedSet = removed.toSet();
     loadedBundles.removeWhere((cycle) {
       return cycle.libraries.any(removedSet.contains);
     });
+  }
+
+  /// Ensure that type provider is created.
+  void _createElementFactoryTypeProvider() {
+    var analysisContext = contextObjects.analysisContext;
+    if (analysisContext.typeProviderNonNullableByDefault == null) {
+      var dartCore = elementFactory.libraryOfUri('dart:core');
+      var dartAsync = elementFactory.libraryOfUri('dart:async');
+      elementFactory.createTypeProviders(dartCore, dartAsync);
+    }
   }
 
   static CiderLinkedLibraryCycleBuilder serializeBundle(
@@ -791,10 +846,7 @@ class _LibraryContextReset {
       if (resetTimeout != null) {
         _timer = Timer(resetTimeout, () {
           _timer = null;
-          if (fileResolver.libraryContext != null) {
-            fileResolver.contextObjects = null;
-            fileResolver.libraryContext = null;
-          }
+          fileResolver._resetContextObjects();
         });
       }
     }
