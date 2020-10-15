@@ -68,12 +68,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLintForToken(node.operator);
     }
   }
-
-  void reportIfNullable(PostfixExpression node, DartType type) {
-    if (type != null && context.typeSystem.isNullable(type)) {
-      rule.reportLintForToken(node.operator);
-    }
-  }
 }
 
 DartType getExpectedType(PostfixExpression node) {
@@ -88,7 +82,12 @@ DartType getExpectedType(PostfixExpression node) {
         .returnType;
   }
   // assignment
-  if (parent is AssignmentExpression) {
+  if (parent is AssignmentExpression &&
+      parent.operator.type == TokenType.EQ &&
+      (parent.leftHandSide is! Identifier ||
+          node.operand is! Identifier ||
+          (parent.leftHandSide as Identifier).name !=
+              (node.operand as Identifier).name)) {
     return parent.writeType;
   }
   // in variable declaration

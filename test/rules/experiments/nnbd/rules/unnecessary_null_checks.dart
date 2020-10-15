@@ -38,3 +38,19 @@ f3(int? i) {
   int? v;
   v = i!; // LINT
 }
+
+f4(int? p) {
+  int? v;
+  v ??= 1;
+  v += p!; // OK
+}
+
+autoPromote() {
+  int? v2;
+  v2 = v2!; // OK
+}
+
+f5(int? p) {
+  int? v1;
+  v1 ??= p!; // OK
+}
