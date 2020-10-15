@@ -1165,21 +1165,26 @@ class InferenceVisitor
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(nonNullableLhsType, rhsResult.inferredType,
             inferrer.library.library);
-    VariableDeclaration variable =
-        createVariable(lhsResult.expression, lhsResult.inferredType);
-    MethodInvocation equalsNull = createEqualsNull(
-        lhsResult.expression.fileOffset,
-        createVariableGet(variable),
-        equalsMember);
-    VariableGet variableGet = createVariableGet(variable);
-    if (inferrer.library.isNonNullableByDefault &&
-        !identical(nonNullableLhsType, originalLhsType)) {
-      variableGet.promotedType = nonNullableLhsType;
+    Expression replacement;
+    if (lhsResult.expression is ThisExpression) {
+      replacement = lhsResult.expression;
+    } else {
+      VariableDeclaration variable =
+          createVariable(lhsResult.expression, lhsResult.inferredType);
+      MethodInvocation equalsNull = createEqualsNull(
+          lhsResult.expression.fileOffset,
+          createVariableGet(variable),
+          equalsMember);
+      VariableGet variableGet = createVariableGet(variable);
+      if (inferrer.library.isNonNullableByDefault &&
+          !identical(nonNullableLhsType, originalLhsType)) {
+        variableGet.promotedType = nonNullableLhsType;
+      }
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull, rhsResult.expression, variableGet, inferredType);
+      replacement = new Let(variable, conditional)
+        ..fileOffset = node.fileOffset;
     }
-    ConditionalExpression conditional = new ConditionalExpression(
-        equalsNull, rhsResult.expression, variableGet, inferredType);
-    Expression replacement = new Let(variable, conditional)
-      ..fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 

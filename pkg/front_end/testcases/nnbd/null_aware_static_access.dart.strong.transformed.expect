@@ -1,0 +1,104 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:17:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.staticMember;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:18:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.staticMember;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:19:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.staticMember = 42;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:21:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.staticMember.isEven;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:22:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.staticMember.toString();
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:23:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.property[0];
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:24:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.property[0] = 0;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:25:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.property2[0] ??= 0;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:26:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.staticMember2 ??= 42;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:27:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.staticMember += 2;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:28:3: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   C?.staticMember++;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_static_access.dart:29:5: Warning: The class 'C' cannot be null.
+// Try replacing '?.' with '.'
+//   --C?.staticMember;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static get staticMember() → core::int
+    return 0;
+  static set staticMember(core::int value) → void {}
+  static get staticMember2() → core::int?
+    return 0;
+  static set staticMember2(core::int? value) → void {}
+  static method staticMethod() → void {}
+  static get property() → core::List<core::int>
+    return <core::int>[0];
+  static get property2() → core::Map<core::int, core::int?>
+    return <core::int, core::int?>{};
+}
+static method main() → void {
+  self::C::staticMember;
+  self::C::staticMember;
+  self::C::staticMember = 42;
+  self::C::staticMethod();
+  self::C::staticMember.{core::int::isEven};
+  self::C::staticMember.{core::int::toString}();
+  self::C::property.{core::List::[]}(0);
+  self::C::property.{core::List::[]=}(0, 0);
+  let final core::Map<core::int, core::int?> #t1 = self::C::property2 in let final core::int #t2 = 0 in #t1.{core::Map::[]}(#t2).{core::num::==}(null) ?{core::int} #t1.{core::Map::[]=}(#t2, 0) : null;
+  self::C::staticMember2.{core::num::==}(null) ?{core::int} self::C::staticMember2 = 42 : null;
+  self::C::staticMember = self::C::staticMember.{core::num::+}(2);
+  self::C::staticMember = self::C::staticMember.{core::num::+}(1);
+  self::C::staticMember = self::C::staticMember.{core::num::-}(1);
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///null_aware_static_access.dart:25:16 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///null_aware_static_access.dart:25:16 -> IntConstant(0)
+Extra constant evaluation: evaluated: 38, effectively constant: 2

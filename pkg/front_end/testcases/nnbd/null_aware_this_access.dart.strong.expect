@@ -1,0 +1,170 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:12:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.m1;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:13:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.m1 = 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:14:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.method();
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:15:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.property.m1;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:16:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.property.method();
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:17:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?[0];
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:18:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?[0] = 0;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:19:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?[0] ??= 0;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:20:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.property[0];
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:21:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.property[0] = 0;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:22:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.property[0] ??= 0;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:23:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.m1 ??= 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:24:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.m2 += 2;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:25:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.m2++;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:26:7: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     --this?.m2;
+//       ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:27:5: Warning: Operand of null-aware operation '??' has type 'C' which excludes null.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd/null_aware_this_access.dart'.
+//     this ?? new C();
+//     ^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:41:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?[0];
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:42:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?[0] = 0;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:43:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?[0] += 0;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:44:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.property[0];
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:45:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.property[0] = 0;
+//     ^^^^
+//
+// pkg/front_end/testcases/nnbd/null_aware_this_access.dart:46:5: Warning: The receiver 'this' cannot be null.
+// Try replacing '?.' with '.'
+//     this?.property[0] += 0;
+//     ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int? m1 = null;
+  field core::int m2 = 0;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  get property() → self::C
+    return this;
+  method test() → dynamic {
+    this.{self::C::m1};
+    this.{self::C::m1} = 42;
+    this.{self::C::method}();
+    this.{self::C::property}.{self::C::m1};
+    this.{self::C::property}.{self::C::method}();
+    this.{self::C::[]}(0);
+    this.{self::C::[]=}(0, 0);
+    let final core::int #t1 = 0 in this.{self::C::[]}(#t1).{core::num::==}(null) ?{core::int} this.{self::C::[]=}(#t1, 0) : null;
+    this.{self::C::property}.{self::C::[]}(0);
+    this.{self::C::property}.{self::C::[]=}(0, 0);
+    let final self::C #t2 = this.{self::C::property} in let final core::int #t3 = 0 in #t2.{self::C::[]}(#t3).{core::num::==}(null) ?{core::int} #t2.{self::C::[]=}(#t3, 0) : null;
+    this.{self::C::m1}.{core::num::==}(null) ?{core::int} this.{self::C::m1} = 42 : null;
+    this.{self::C::m2} = this.{self::C::m2}.{core::num::+}(2);
+    this.{self::C::m2} = this.{self::C::m2}.{core::num::+}(1);
+    this.{self::C::m2} = this.{self::C::m2}.{core::num::-}(1);
+    this;
+  }
+  operator [](core::int index) → core::int?
+    return 0;
+  operator []=(core::int index, core::int value) → void {}
+  method method() → dynamic {}
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  get property() → self::D
+    return this;
+  method test() → dynamic {
+    this.{self::D::[]}(0);
+    this.{self::D::[]=}(0, 0);
+    let final core::int #t4 = 0 in this.{self::D::[]=}(#t4, this.{self::D::[]}(#t4).{core::num::+}(0));
+    this.{self::D::property}.{self::D::[]}(0);
+    this.{self::D::property}.{self::D::[]=}(0, 0);
+    let final self::D #t5 = this.{self::D::property} in let final core::int #t6 = 0 in #t5.{self::D::[]=}(#t6, #t5.{self::D::[]}(#t6).{core::num::+}(0));
+  }
+  operator [](core::int index) → core::int
+    return 0;
+  operator []=(core::int index, core::int value) → void {}
+}
+static method main() → dynamic {
+  new self::C::•().{self::C::test}();
+  new self::D::•().{self::D::test}();
+}
