@@ -272,13 +272,11 @@ getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 getType(obj) {
   if (obj == null) return JS('!', '#', Object);
 
-  if (JS<bool>('!', '#.__proto__ == null', obj)) {
-    // Object.create(null) produces a js object without a prototype.
-    // In that case use the version from a js object literal.
-    return JS('!', '#.Object.prototype.constructor', global_);
-  }
-
-  return JS('!', '#.__proto__.constructor', obj);
+  // Object.create(null) produces a js object without a prototype.
+  // In that case use the native Object constructor.
+  var constructor = JS('!', '#.constructor', obj);
+  return JS('!', '# ? # : #.Object.prototype.constructor', constructor,
+      constructor, global_);
 }
 
 getLibraryUri(value) => JS('', '#[#]', value, _libraryUri);
