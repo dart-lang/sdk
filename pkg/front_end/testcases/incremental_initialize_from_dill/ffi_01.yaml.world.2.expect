@@ -4,9 +4,10 @@ library from "org-dartlang-test:///lib.dart" as lib {
   import "dart:ffi";
 
   @#C3
+  @#C8
   class Coordinate extends dart.ffi::Struct {
     @#C3
-    static final field dart.core::int* #sizeOf = (#C6).{dart.core::List::[]}(dart.ffi::_abi());
+    static final field dart.core::int* #sizeOf = (#C11).{dart.core::List::[]}(dart.ffi::_abi());
     @#C3
     constructor #fromPointer(dynamic #pointer) → dynamic
       : super dart.ffi::Struct::_fromPointer(#pointer)
@@ -14,7 +15,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     static factory allocate(dart.core::double* x, dart.core::double* y, dart.ffi::Pointer<lib::Coordinate*>* next) → lib::Coordinate* {
       return null;
     }
-    abstract member-signature get _addressOf() → dart.ffi::Pointer<dart.ffi::Struct*>*; -> dart.ffi::Struct::_addressOf
+    abstract member-signature get _addressOf() → dart.core::Object*; -> dart.ffi::Struct::_addressOf
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -26,17 +27,17 @@ library from "org-dartlang-test:///lib.dart" as lib {
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
     get x() → dart.core::double*
-      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()));
+      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C13).{dart.core::List::[]}(dart.ffi::_abi()));
     set x(dart.core::double* #v) → void
-      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C8).{dart.core::List::[]}(dart.ffi::_abi()), #v);
+      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C13).{dart.core::List::[]}(dart.ffi::_abi()), #v);
     get y() → dart.core::double*
-      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C10).{dart.core::List::[]}(dart.ffi::_abi()));
+      return dart.ffi::_loadDouble(this.{dart.ffi::Struct::_addressOf}, (#C15).{dart.core::List::[]}(dart.ffi::_abi()));
     set y(dart.core::double* #v) → void
-      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C10).{dart.core::List::[]}(dart.ffi::_abi()), #v);
+      return dart.ffi::_storeDouble(this.{dart.ffi::Struct::_addressOf}, (#C15).{dart.core::List::[]}(dart.ffi::_abi()), #v);
     get next() → dart.ffi::Pointer<lib::Coordinate*>*
-      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C12).{dart.core::List::[]}(dart.ffi::_abi())));
+      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C17).{dart.core::List::[]}(dart.ffi::_abi())));
     set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C12).{dart.core::List::[]}(dart.ffi::_abi()), #v.{dart.ffi::Pointer::address});
+      return dart.ffi::_storeIntPtr(this.{dart.ffi::Struct::_addressOf}, (#C17).{dart.core::List::[]}(dart.ffi::_abi()), #v.{dart.ffi::Pointer::address});
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
@@ -58,13 +59,18 @@ constants  {
   #C1 = "vm:entry-point"
   #C2 = null
   #C3 = dart.core::pragma {name:#C1, options:#C2}
-  #C4 = 24
-  #C5 = 20
-  #C6 = <dart.core::int*>[#C4, #C5, #C4]
-  #C7 = 0
-  #C8 = <dart.core::int*>[#C7, #C7, #C7]
-  #C9 = 8
-  #C10 = <dart.core::int*>[#C9, #C9, #C9]
-  #C11 = 16
-  #C12 = <dart.core::int*>[#C11, #C11, #C11]
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(dart.ffi::Double)
+  #C6 = TypeLiteralConstant(dart.ffi::Pointer<dart.ffi::NativeType>)
+  #C7 = <dart.core::Type>[#C5, #C5, #C6]
+  #C8 = dart.core::pragma {name:#C4, options:#C7}
+  #C9 = 24
+  #C10 = 20
+  #C11 = <dart.core::int*>[#C9, #C10, #C9]
+  #C12 = 0
+  #C13 = <dart.core::int*>[#C12, #C12, #C12]
+  #C14 = 8
+  #C15 = <dart.core::int*>[#C14, #C14, #C14]
+  #C16 = 16
+  #C17 = <dart.core::int*>[#C16, #C16, #C16]
 }
