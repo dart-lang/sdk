@@ -83,6 +83,11 @@ class FileResolver {
 
   _LibraryContext libraryContext;
 
+  /// List of ids for cache elements that are invalidated. Track elements that
+  /// are invalidated during [changeFile]. Used in [releaseAndClearRemovedIds] to
+  /// release the cache items and is then cleared.
+  final Set<int> removedCacheIds = {};
+
   FileResolver(
     PerformanceLog logger,
     ResourceProvider resourceProvider,
@@ -132,7 +137,8 @@ class FileResolver {
   /// Update the resolver to reflect the fact that the file with the given
   /// [path] was changed. We need to make sure that when this file, of any file
   /// that directly or indirectly referenced it, is resolved, we used the new
-  /// state of the file.
+  /// state of the file. Updates [removedCacheIds] with the ids of the invalidated
+  /// items, used in [releaseAndClearRemovedIds] to release the cache items.
   void changeFile(String path) {
     if (fsState == null) {
       return;
@@ -149,12 +155,13 @@ class FileResolver {
         path: removedFile.path,
         uri: removedFile.uri,
       );
+      removedCacheIds.add(removedFile.id);
     }
 
     // Remove libraries represented by removed files.
     // If we need these libraries later, we will relink and reattach them.
     if (libraryContext != null) {
-      libraryContext.remove(removedFiles);
+      libraryContext.remove(removedFiles, removedCacheIds);
     }
   }
 
@@ -184,7 +191,7 @@ class FileResolver {
         var errorsSignature = errorsSignatureBuilder.toByteList();
 
         var errorsKey = file.path + '.errors';
-        var bytes = byteStore.get(errorsKey, errorsSignature);
+        var bytes = byteStore.get(errorsKey, errorsSignature)?.bytes;
         List<AnalysisError> errors;
         if (bytes != null) {
           var data = CiderUnitErrors.fromBuffer(bytes);
@@ -204,7 +211,7 @@ class FileResolver {
             signature: errorsSignature,
             errors: errors.map(ErrorEncoding.encode).toList(),
           ).toBuffer();
-          byteStore.put(errorsKey, errorsSignature, bytes);
+          bytes = byteStore.putGet(errorsKey, errorsSignature, bytes).bytes;
         }
 
         return ErrorsResultImpl(
@@ -312,6 +319,12 @@ class FileResolver {
     });
 
     _resetContextObjects();
+  }
+
+  /// Update the cache with list of invalidated ids and clears [removedCacheIds].
+  void releaseAndClearRemovedIds() {
+    byteStore.release(removedCacheIds);
+    removedCacheIds.clear();
   }
 
   /// The [completionLine] and [completionColumn] are zero based.
@@ -680,7 +693,8 @@ class _LibraryContext {
       cycle.directDependencies.forEach(loadBundle);
 
       var key = cycle.cyclePathsHash;
-      var bytes = byteStore.get(key, cycle.signature);
+      var data = byteStore.get(key, cycle.signature);
+      var bytes = data?.bytes;
 
       if (bytes == null) {
         librariesLinkedTimer.start();
@@ -732,7 +746,8 @@ class _LibraryContext {
 
         bytes = serializeBundle(cycle.signature, linkResult).toBuffer();
 
-        byteStore.put(key, cycle.signature, bytes);
+        data = byteStore.putGet(key, cycle.signature, bytes);
+        bytes = data.bytes;
         performance.getDataInt('bytesPut').add(bytes.length);
 
         librariesLinkedTimer.stop();
@@ -740,6 +755,7 @@ class _LibraryContext {
         performance.getDataInt('bytesGet').add(bytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
       }
+      cycle.id = data.id;
 
       var cBundle = CiderLinkedLibraryCycle.fromBuffer(bytes);
       inputBundles.add(cBundle.bundle);
@@ -775,14 +791,18 @@ class _LibraryContext {
 
   /// Remove libraries represented by the [removed] files.
   /// If we need these libraries later, we will relink and reattach them.
-  void remove(List<FileState> removed) {
+  void remove(List<FileState> removed, Set<int> removedIds) {
     elementFactory.removeLibraries(
       removed.map((e) => e.uriStr).toSet(),
     );
 
     var removedSet = removed.toSet();
     loadedBundles.removeWhere((cycle) {
-      return cycle.libraries.any(removedSet.contains);
+      if (cycle.libraries.any(removedSet.contains)) {
+        removedIds.add(cycle.id);
+        return true;
+      }
+      return false;
     });
   }
 

@@ -10,6 +10,7 @@
 // dart --verbose_gc foo.dart 2> foo.gclog
 // dart verbose_gc_to_bmu.dart < foo.gclog > foo.bmu
 // gnuplot -p -e "set yr [0:1]; set logscale x; plot 'foo.bmu' with linespoints"
+// @dart=2.9
 
 import 'dart:io';
 import 'dart:math';
