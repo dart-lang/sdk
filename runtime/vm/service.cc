@@ -39,6 +39,7 @@
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/profiler_service.h"
+#include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
@@ -1725,7 +1726,9 @@ static ObjectPtr LookupClassMembers(Thread* thread,
   }
   if (strcmp(parts[2], "functions") == 0) {
     // Function ids look like: "classes/17/functions/name"
-    const auto& function = Function::Handle(klass.LookupFunction(id));
+
+    const auto& function =
+        Function::Handle(Resolver::ResolveFunction(zone, klass, id));
     if (function.IsNull()) {
       return Object::sentinel().raw();
     }

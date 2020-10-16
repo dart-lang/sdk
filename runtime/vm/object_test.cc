@@ -23,11 +23,14 @@
 #include "vm/malloc_hooks.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/simulator.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
+
+#define Z (thread->zone())
 
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
@@ -124,7 +127,7 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   cls.Finalize();
 
   function_name = String::New("Foo");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(function.IsNull());
   function = cls.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());
@@ -132,7 +135,7 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT_EQ(cls.raw(), function.Owner());
   EXPECT(function.is_static());
   function_name = String::New("baz");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(!function.IsNull());
   EXPECT(function_name.Equals(String::Handle(function.name())));
   EXPECT_EQ(cls.raw(), function.Owner());
@@ -141,13 +144,13 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT(function.IsNull());
 
   function_name = String::New("foo");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(!function.IsNull());
   EXPECT_EQ(0, function.num_fixed_parameters());
   EXPECT(!function.HasOptionalParameters());
 
   function_name = String::New("bar");
-  function = cls.LookupDynamicFunction(function_name);
+  function = Resolver::ResolveDynamicFunction(Z, cls, function_name);
   EXPECT(!function.IsNull());
   EXPECT_EQ(kNumFixedParameters, function.num_fixed_parameters());
   EXPECT_EQ(kNumOptionalParameters, function.NumOptionalParameters());
@@ -3717,10 +3720,11 @@ ISOLATE_UNIT_TEST_CASE(MirrorReference) {
 }
 
 static FunctionPtr GetFunction(const Class& cls, const char* name) {
-  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  Thread* thread = Thread::Current();
+  const auto& error = cls.EnsureIsFinalized(thread);
   EXPECT(error == Error::null());
-  const Function& result = Function::Handle(
-      cls.LookupDynamicFunction(String::Handle(String::New(name))));
+  const Function& result = Function::Handle(Resolver::ResolveDynamicFunction(
+      Z, cls, String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
@@ -4173,10 +4177,12 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   }
   // Function reference
   {
+    Thread* thread = Thread::Current();
     JSONStream js;
     Class& cls = Class::Handle(isolate->object_store()->bool_class());
     const String& func_name = String::Handle(String::New("toString"));
-    Function& func = Function::Handle(cls.LookupFunction(func_name));
+    Function& func =
+        Function::Handle(Resolver::ResolveFunction(Z, cls, func_name));
     ASSERT(!func.IsNull());
     func.PrintJSON(&js, true);
     ElideJSONSubstring("classes", js.ToCString(), buffer);

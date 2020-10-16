@@ -2258,7 +2258,7 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
       // need to try to find a dyn:get:foo first (see assertion below)
       if (function.IsNull()) {
         if (cls.EnsureIsFinalized(thread) == Error::null()) {
-          function = cls.LookupDynamicFunction(function_name);
+          function = Resolver::ResolveDynamicFunction(zone, cls, function_name);
         }
       }
       if (!function.IsNull()) {
@@ -2318,14 +2318,15 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
       // If there is a function with the target name but mismatched arguments
       // we need to call `receiver.noSuchMethod()`.
       if (cls.EnsureIsFinalized(thread) == Error::null()) {
-        function = cls.LookupDynamicFunction(target_name);
+        function = Resolver::ResolveDynamicFunction(zone, cls, target_name);
       }
       if (!function.IsNull()) {
         ASSERT(!function.AreValidArguments(args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
       if (is_dynamic_call) {
-        function = cls.LookupDynamicFunction(demangled_target_name);
+        function =
+            Resolver::ResolveDynamicFunction(zone, cls, demangled_target_name);
         if (!function.IsNull()) {
           ASSERT(!function.AreValidArguments(args_desc, NULL));
           break;  // mismatch, invoke noSuchMethod
@@ -2334,10 +2335,10 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
 
       // If there is a getter we need to call-through-getter.
       if (is_dynamic_call) {
-        function = cls.LookupDynamicFunction(dyn_getter_name);
+        function = Resolver::ResolveDynamicFunction(zone, cls, dyn_getter_name);
       }
       if (function.IsNull()) {
-        function = cls.LookupDynamicFunction(getter_name);
+        function = Resolver::ResolveDynamicFunction(zone, cls, getter_name);
       }
       if (!function.IsNull()) {
         const Array& getter_arguments = Array::Handle(Array::New(1));
@@ -2564,7 +2565,8 @@ static void HandleStackOverflowTestCases(Thread* thread) {
           Library::Handle(isolate->object_store()->_internal_library());
       const Class& cls = Class::Handle(
           lib.LookupClass(String::Handle(String::New("VMLibraryHooks"))));
-      const Function& func = Function::Handle(cls.LookupFunction(
+      const Function& func = Function::Handle(Resolver::ResolveFunction(
+          thread->zone(), cls,
           String::Handle(String::New("get:platformScript"))));
       Object& result = Object::Handle(
           DartEntry::InvokeFunction(func, Object::empty_array()));

@@ -198,7 +198,7 @@ void CallSiteResetter::RebindStaticTargets(const Bytecode& bytecode) {
         new_lib_ = new_cls_.library();
         new_function_ = new_lib_.LookupLocalFunction(name_);
       } else {
-        new_function_ = new_cls_.LookupFunction(name_);
+        new_function_ = Resolver::ResolveFunction(zone_, new_cls_, name_);
       }
       if (!new_function_.IsNull() &&
           (new_function_.is_static() == old_function.is_static()) &&
@@ -538,6 +538,7 @@ void Class::PatchFieldsAndFunctions() const {
 void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
                                           const Class& new_cls) const {
   const Array& funcs = Array::Handle(functions());
+  Thread* thread = Thread::Current();
   Function& old_func = Function::Handle();
   String& selector = String::Handle();
   Function& new_func = Function::Handle();
@@ -547,7 +548,7 @@ void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
     old_func ^= funcs.At(i);
     if (old_func.is_static() && old_func.HasImplicitClosureFunction()) {
       selector = old_func.name();
-      new_func = new_cls.LookupFunction(selector);
+      new_func = Resolver::ResolveFunction(thread->zone(), new_cls, selector);
       if (!new_func.IsNull() && new_func.is_static()) {
         old_func = old_func.ImplicitClosureFunction();
         old_closure = old_func.ImplicitStaticClosure();
@@ -982,7 +983,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
              old_target_.kind() == FunctionLayout::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
       new_cls_ = old_target_.Owner();
-      new_target_ = new_cls_.LookupFunction(name_);
+      new_target_ = Resolver::ResolveFunction(zone_, new_cls_, name_);
       if (new_target_.kind() != old_target_.kind()) {
         new_target_ = Function::null();
       }

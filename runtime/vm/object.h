@@ -1306,8 +1306,9 @@ class Class : public Object {
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
-  FunctionPtr LookupDynamicFunction(const String& name) const;
-  FunctionPtr LookupDynamicFunctionAllowAbstract(const String& name) const;
+  FunctionPtr LookupFunctionUnsafe(const String& name) const;
+  FunctionPtr LookupDynamicFunctionUnsafe(const String& name) const;
+
   FunctionPtr LookupDynamicFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupStaticFunction(const String& name) const;
   FunctionPtr LookupStaticFunctionAllowPrivate(const String& name) const;
@@ -1315,7 +1316,6 @@ class Class : public Object {
   FunctionPtr LookupConstructorAllowPrivate(const String& name) const;
   FunctionPtr LookupFactory(const String& name) const;
   FunctionPtr LookupFactoryAllowPrivate(const String& name) const;
-  FunctionPtr LookupFunction(const String& name) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupGetterFunction(const String& name) const;
   FunctionPtr LookupSetterFunction(const String& name) const;
@@ -1757,7 +1757,7 @@ class Class : public Object {
   void InitEmptyFields();
 
   static FunctionPtr CheckFunctionType(const Function& func, MemberKind kind);
-  FunctionPtr LookupFunction(const String& name, MemberKind kind) const;
+  FunctionPtr LookupFunctionUnsafe(const String& name, MemberKind kind) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name,
                                          MemberKind kind) const;
   FieldPtr LookupField(const String& name, MemberKind kind) const;

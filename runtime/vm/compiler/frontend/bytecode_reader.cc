@@ -20,6 +20,7 @@
 #include "vm/hash.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/reusable_handles.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame_kbc.h"
@@ -1444,17 +1445,16 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
         }
         FunctionPtr function = Function::null();
         if (cls.EnsureIsFinalized(thread_) == Error::null()) {
-          function = cls.LookupFunction(name);
+          function = Resolver::ResolveFunction(Z, cls, name);
         }
         if (function == Function::null()) {
           // When requesting a getter, also return method extractors.
           if (Field::IsGetterName(name)) {
             String& method_name =
                 String::Handle(Z, Field::NameFromGetter(name));
-            function = cls.LookupFunction(method_name);
+            function = Resolver::ResolveFunction(Z, cls, method_name);
             if (function != Function::null()) {
-              function =
-                  Function::Handle(Z, function).CreateMethodExtractor(name);
+              function = Function::Handle(Z, function).GetMethodExtractor(name);
               if (function != Function::null()) {
                 return function;
               }

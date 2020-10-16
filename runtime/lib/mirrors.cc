@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
+#include "vm/resolver.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -1442,8 +1443,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
     external_constructor_name = internal_constructor_name.raw();
   }
 
-  Function& lookup_constructor =
-      Function::Handle(klass.LookupFunction(internal_constructor_name));
+  Function& lookup_constructor = Function::Handle(
+      Resolver::ResolveFunction(zone, klass, internal_constructor_name));
 
   if (lookup_constructor.IsNull() ||
       (lookup_constructor.kind() != FunctionLayout::kConstructor) ||
