@@ -647,7 +647,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
  * these classes can have specialized implementations. Doing so will challenge
  * many assumptions in the JS backend.
  */
-class JSMutableArray<E> extends JSArray<E> {}
+class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable<E> {}
 
 class JSFixedArray<E> extends JSMutableArray<E> {}
 
