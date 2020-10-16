@@ -28,8 +28,7 @@ class WasmFunction {
   }
 
   String toString() {
-    return "${wasmerValKindName(_returnType)} $_name" +
-        "(${_argTypes.map(wasmerValKindName).join(", ")})";
+    return WasmRuntime.getSignatureString(_name, _argTypes, _returnType);
   }
 
   bool _fillArg(dynamic arg, int i) {

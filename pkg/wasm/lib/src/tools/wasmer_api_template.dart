@@ -86,6 +86,19 @@ class WasmerVal extends Struct {
   bool get isI64 => kind == WasmerValKindI64;
   bool get isF32 => kind == WasmerValKindF32;
   bool get isF64 => kind == WasmerValKindF64;
+
+  dynamic get toDynamic {
+    switch (kind) {
+      case WasmerValKindI32:
+        return i32;
+      case WasmerValKindI64:
+        return i64;
+      case WasmerValKindF32:
+        return f32;
+      case WasmerValKindF64:
+        return f64;
+    }
+  }
 }
 
 // wasmer_limits_t

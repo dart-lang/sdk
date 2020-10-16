@@ -20,7 +20,7 @@ void main() {
     0x7e, 0x0b,
   ]);
 
-  var inst = WasmModule(data).instantiate(WasmImports());
+  var inst = WasmModule(data).instantiate().build();
   var fn = inst.lookupFunction("square");
 
   Expect.throwsArgumentError(() => fn());

@@ -20,6 +20,18 @@ class WasmImportDescriptor {
   String name;
   Pointer<WasmerFunctype> funcType;
   WasmImportDescriptor(this.kind, this.moduleName, this.name, this.funcType);
+
+  String toString() {
+    var kindName = wasmerExternKindName(kind);
+    if (kind == WasmerExternKindFunction) {
+      var runtime = WasmRuntime();
+      var sig = WasmRuntime.getSignatureString("${moduleName}::${name}",
+          runtime.getArgTypes(funcType), runtime.getReturnType(funcType));
+      return "$kindName: $sig";
+    } else {
+      return "$kindName: ${moduleName}::${name}";
+    }
+  }
 }
 
 class WasmExportDescriptor {
@@ -27,6 +39,18 @@ class WasmExportDescriptor {
   String name;
   Pointer<WasmerFunctype> funcType;
   WasmExportDescriptor(this.kind, this.name, this.funcType);
+
+  String toString() {
+    var kindName = wasmerExternKindName(kind);
+    if (kind == WasmerExternKindFunction) {
+      var runtime = WasmRuntime();
+      var sig = WasmRuntime.getSignatureString(
+          name, runtime.getArgTypes(funcType), runtime.getReturnType(funcType));
+      return "$kindName: $sig";
+    } else {
+      return "$kindName: ${name}";
+    }
+  }
 }
 
 class WasmRuntime {
@@ -57,8 +81,10 @@ class WasmRuntime {
   late WasmerExterntypeAsFunctypeFn _externtype_as_functype;
   late WasmerExterntypeDeleteFn _externtype_delete;
   late WasmerExterntypeKindFn _externtype_kind;
+  late WasmerFuncAsExternFn _func_as_extern;
   late WasmerFuncCallFn _func_call;
   late WasmerFuncDeleteFn _func_delete;
+  late WasmerFuncNewWithEnvFn _func_new_with_env;
   late WasmerFunctypeDeleteFn _functype_delete;
   late WasmerFunctypeParamsFn _functype_params;
   late WasmerFunctypeResultsFn _functype_results;
@@ -72,6 +98,7 @@ class WasmRuntime {
   late WasmerInstanceDeleteFn _instance_delete;
   late WasmerInstanceExportsFn _instance_exports;
   late WasmerInstanceNewFn _instance_new;
+  late WasmerMemoryAsExternFn _memory_as_extern;
   late WasmerMemoryDataFn _memory_data;
   late WasmerMemoryDataSizeFn _memory_data_size;
   late WasmerMemoryDeleteFn _memory_delete;
@@ -199,11 +226,16 @@ class WasmRuntime {
         WasmerExterntypeDeleteFn>('wasm_externtype_delete');
     _externtype_kind = _lib.lookupFunction<NativeWasmerExterntypeKindFn,
         WasmerExterntypeKindFn>('wasm_externtype_kind');
+    _func_as_extern =
+        _lib.lookupFunction<NativeWasmerFuncAsExternFn, WasmerFuncAsExternFn>(
+            'wasm_func_as_extern');
     _func_call = _lib.lookupFunction<NativeWasmerFuncCallFn, WasmerFuncCallFn>(
         'wasm_func_call');
     _func_delete =
         _lib.lookupFunction<NativeWasmerFuncDeleteFn, WasmerFuncDeleteFn>(
             'wasm_func_delete');
+    _func_new_with_env = _lib.lookupFunction<NativeWasmerFuncNewWithEnvFn,
+        WasmerFuncNewWithEnvFn>('wasm_func_new_with_env');
     _functype_delete = _lib.lookupFunction<NativeWasmerFunctypeDeleteFn,
         WasmerFunctypeDeleteFn>('wasm_functype_delete');
     _functype_params = _lib.lookupFunction<NativeWasmerFunctypeParamsFn,
@@ -235,6 +267,8 @@ class WasmRuntime {
     _instance_new =
         _lib.lookupFunction<NativeWasmerInstanceNewFn, WasmerInstanceNewFn>(
             'wasm_instance_new');
+    _memory_as_extern = _lib.lookupFunction<NativeWasmerMemoryAsExternFn,
+        WasmerMemoryAsExternFn>('wasm_memory_as_extern');
     _memory_data =
         _lib.lookupFunction<NativeWasmerMemoryDataFn, WasmerMemoryDataFn>(
             'wasm_memory_data');
@@ -363,20 +397,8 @@ class WasmRuntime {
     return imps;
   }
 
-  Pointer<WasmerInstance> instantiate(
-      Pointer<WasmerStore> store,
-      Pointer<WasmerModule> module,
-      Pointer<Pointer<WasmerExtern>> imports,
-      int numImports) {
-    var importsVec = allocate<WasmerImporttypeVec>();
-    _module_imports(module, importsVec);
-    if (importsVec.ref.length != numImports) {
-      throw Exception(
-          "Wrong number of imports. Expected ${importsVec.ref.length} but " +
-              "found $numImports.");
-    }
-    free(importsVec);
-
+  Pointer<WasmerInstance> instantiate(Pointer<WasmerStore> store,
+      Pointer<WasmerModule> module, Pointer<Pointer<WasmerExtern>> imports) {
     var instancePtr = _instance_new(store, module, imports, nullptr);
     if (instancePtr == nullptr) {
       throw Exception("Wasm module instantiation failed");
@@ -397,6 +419,10 @@ class WasmRuntime {
 
   Pointer<WasmerFunc> externToFunction(Pointer<WasmerExtern> extern) {
     return _extern_as_func(extern);
+  }
+
+  Pointer<WasmerExtern> functionToExtern(Pointer<WasmerFunc> func) {
+    return _func_as_extern(func);
   }
 
   List<int> getArgTypes(Pointer<WasmerFunctype> funcType) {
@@ -427,6 +453,10 @@ class WasmRuntime {
     return _extern_as_memory(extern);
   }
 
+  Pointer<WasmerExtern> memoryToExtern(Pointer<WasmerMemory> memory) {
+    return _memory_as_extern(memory);
+  }
+
   Pointer<WasmerMemory> newMemory(
       Pointer<WasmerStore> store, int pages, int? maxPages) {
     var limPtr = allocate<WasmerLimits>();
@@ -455,5 +485,21 @@ class WasmRuntime {
 
   Uint8List memoryView(Pointer<WasmerMemory> memory) {
     return _memory_data(memory).asTypedList(_memory_data_size(memory));
+  }
+
+  Pointer<WasmerFunc> newFunc(
+      Pointer<WasmerStore> store,
+      Pointer<WasmerFunctype> funcType,
+      Pointer func,
+      Pointer env,
+      Pointer finalizer) {
+    return _func_new_with_env(
+        store, funcType, func.cast(), env.cast(), finalizer.cast());
+  }
+
+  static String getSignatureString(
+      String name, List<int> argTypes, int returnType) {
+    return "${wasmerValKindName(returnType)} $name" +
+        "(${argTypes.map(wasmerValKindName).join(", ")})";
   }
 }

@@ -29,7 +29,7 @@ void main() {
     0x01, 0x92, 0x0b,
   ]);
 
-  var inst = WasmModule(data).instantiate(WasmImports());
+  var inst = WasmModule(data).instantiate().build();
   var addI64 = inst.lookupFunction("addI64");
   var addI32 = inst.lookupFunction("addI32");
   var addF64 = inst.lookupFunction("addF64");

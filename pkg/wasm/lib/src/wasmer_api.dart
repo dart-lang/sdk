@@ -88,6 +88,19 @@ class WasmerVal extends Struct {
   bool get isI64 => kind == WasmerValKindI64;
   bool get isF32 => kind == WasmerValKindF32;
   bool get isF64 => kind == WasmerValKindF64;
+
+  dynamic get toDynamic {
+    switch (kind) {
+      case WasmerValKindI32:
+        return i32;
+      case WasmerValKindI64:
+        return i64;
+      case WasmerValKindF32:
+        return f32;
+      case WasmerValKindF64:
+        return f64;
+    }
+  }
 }
 
 // wasmer_limits_t
@@ -316,6 +329,12 @@ typedef NativeWasmerExterntypeKindFn = Uint8 Function(
     Pointer<WasmerExterntype>);
 typedef WasmerExterntypeKindFn = int Function(Pointer<WasmerExterntype>);
 
+// wasm_func_as_extern
+typedef NativeWasmerFuncAsExternFn = Pointer<WasmerExtern> Function(
+    Pointer<WasmerFunc>);
+typedef WasmerFuncAsExternFn = Pointer<WasmerExtern> Function(
+    Pointer<WasmerFunc>);
+
 // wasm_func_call
 typedef NativeWasmerFuncCallFn = Pointer<WasmerTrap> Function(
     Pointer<WasmerFunc>, Pointer<WasmerVal>, Pointer<WasmerVal>);
@@ -325,6 +344,20 @@ typedef WasmerFuncCallFn = Pointer<WasmerTrap> Function(
 // wasm_func_delete
 typedef NativeWasmerFuncDeleteFn = Void Function(Pointer<WasmerFunc>);
 typedef WasmerFuncDeleteFn = void Function(Pointer<WasmerFunc>);
+
+// wasm_func_new_with_env
+typedef NativeWasmerFuncNewWithEnvFn = Pointer<WasmerFunc> Function(
+    Pointer<WasmerStore>,
+    Pointer<WasmerFunctype>,
+    Pointer<Void>,
+    Pointer<Void>,
+    Pointer<Void>);
+typedef WasmerFuncNewWithEnvFn = Pointer<WasmerFunc> Function(
+    Pointer<WasmerStore>,
+    Pointer<WasmerFunctype>,
+    Pointer<Void>,
+    Pointer<Void>,
+    Pointer<Void>);
 
 // wasm_functype_delete
 typedef NativeWasmerFunctypeDeleteFn = Void Function(Pointer<WasmerFunctype>);
@@ -405,6 +438,12 @@ typedef WasmerInstanceNewFn = Pointer<WasmerInstance> Function(
     Pointer<WasmerModule>,
     Pointer<Pointer<WasmerExtern>>,
     Pointer<Pointer<WasmerTrap>>);
+
+// wasm_memory_as_extern
+typedef NativeWasmerMemoryAsExternFn = Pointer<WasmerExtern> Function(
+    Pointer<WasmerMemory>);
+typedef WasmerMemoryAsExternFn = Pointer<WasmerExtern> Function(
+    Pointer<WasmerMemory>);
 
 // wasm_memory_data
 typedef NativeWasmerMemoryDataFn = Pointer<Uint8> Function(

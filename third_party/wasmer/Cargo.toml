@@ -1,6 +1,6 @@
 [package]
 name = "wasmer"
-version = "1.0.0-alpha3"
+version = "1.0.0-alpha4"
 
 [lib]
 name = "wasmer"
@@ -8,6 +8,6 @@ crate-type = ["dylib"]
 path = "wasmer.rs"
 
 [dependencies.wasmer-c-api]
-version = "1.0.0-alpha3"
+version = "1.0.0-alpha4"
 default-features = false
 features = ["jit", "cranelift", "wasi"]
