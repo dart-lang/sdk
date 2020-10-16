@@ -82,7 +82,7 @@ bindCall(obj, name) {
 ///
 /// We need to apply the type arguments both to the function, as well as its
 /// associated function type.
-gbind(f, @rest List typeArgs) {
+gbind(f, @rest List<Object> typeArgs) {
   GenericFunctionType type = JS('!', '#[#]', f, _runtimeType);
   type.checkBounds(typeArgs);
   // Create a JS wrapper function that will also pass the type arguments, and
