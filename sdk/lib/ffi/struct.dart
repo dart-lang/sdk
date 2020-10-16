@@ -18,7 +18,7 @@ part of dart.ffi;
 /// by native memory. The may allocated via allocation or loaded from a
 /// [Pointer], but not by a generative constructor.
 abstract class Struct extends NativeType {
-  final Pointer<Struct> _addressOf;
+  final Object _addressOf;
 
   /// Construct a reference to the [nullptr].
   ///

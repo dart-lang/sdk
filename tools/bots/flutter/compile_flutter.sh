@@ -63,11 +63,11 @@ bin/flutter update-packages
 popd  # flutter
 
 # Directly in temp directory again.
-mkdir src
+git clone --single-branch --depth=1 -vv \
+    https://dart.googlesource.com/external/github.com/flutter/buildroot src
 pushd src
 git clone --single-branch --depth=1 -vv \
     https://dart.googlesource.com/external/github.com/flutter/engine flutter
-mkdir third_party
 pushd third_party
 ln -s $checkout dart
 popd  # third_party

@@ -192,6 +192,7 @@ class FfiTransformer extends Transformer {
   final Class intClass;
   final Class doubleClass;
   final Class listClass;
+  final Class typeClass;
   final Class pragmaClass;
   final Field pragmaName;
   final Field pragmaOptions;
@@ -233,6 +234,7 @@ class FfiTransformer extends Transformer {
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
         listClass = coreTypes.listClass,
+        typeClass = coreTypes.typeClass,
         pragmaClass = coreTypes.pragmaClass,
         pragmaName = coreTypes.pragmaName,
         pragmaOptions = coreTypes.pragmaOptions,
