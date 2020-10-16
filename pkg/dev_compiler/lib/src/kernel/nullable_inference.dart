@@ -221,7 +221,10 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool visitIsExpression(IsExpression node) => false;
 
   @override
-  bool visitAsExpression(AsExpression node) => isNullable(node.operand);
+  bool visitAsExpression(AsExpression node) =>
+      _staticallyNonNullable(node.getStaticType(_staticTypeContext))
+          ? false
+          : isNullable(node.operand);
 
   @override
   bool visitSymbolLiteral(SymbolLiteral node) => false;
