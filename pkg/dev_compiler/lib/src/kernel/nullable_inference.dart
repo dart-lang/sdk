@@ -248,7 +248,8 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool visitMapLiteral(MapLiteral node) => false;
 
   @override
-  bool visitAwaitExpression(AwaitExpression node) => true;
+  bool visitAwaitExpression(AwaitExpression node) =>
+      !_staticallyNonNullable(node.getStaticType(_staticTypeContext));
 
   @override
   bool visitFunctionExpression(FunctionExpression node) => false;
