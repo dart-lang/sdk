@@ -124,8 +124,8 @@ class NonNullableFix {
 
   /// Processes the non-source files of the package rooted at [pkgFolder].
   ///
-  /// This means updating the pubspec.yaml file and the package_config.json
-  /// file, if necessary.
+  /// This means updating the pubspec.yaml file, the package_config.json
+  /// file, and the analysis_options.yaml file, each only if necessary.
   void processPackage(Folder pkgFolder) {
     if (!_packageIsNNBD) {
       return;
@@ -133,13 +133,14 @@ class NonNullableFix {
 
     var pubspecFile = pkgFolder.getChildAssumingFile('pubspec.yaml');
     if (!pubspecFile.exists) {
-      // TODO(srawlins): Handle other package types, such as Bazel.
+      // If the pubspec file cannot be found, we do not attempt to change the
+      // Package Config file, nor the analysis options file.
       return;
     }
 
-    _Pubspec pubspec;
+    _YamlFile pubspec;
     try {
-      pubspec = _Pubspec.parseFrom(pubspecFile);
+      pubspec = _YamlFile._parseFrom(pubspecFile);
     } on FileSystemException catch (e) {
       _processPubspecException('read', pubspecFile.path, e);
       return;
@@ -149,10 +150,12 @@ class NonNullableFix {
     }
 
     var updated = _processPubspec(pubspec);
-
     if (updated) {
       _processConfigFile(pkgFolder, pubspec);
     }
+    // TODO(https://github.com/dart-lang/sdk/issues/43806): stop processing
+    // analysis options file when the experiment is no longer needed.
+    _processAnalysisOptionsFile(pkgFolder);
   }
 
   Future<void> processUnit(ResolvedUnitResult result) async {
@@ -209,15 +212,102 @@ class NonNullableFix {
     }
   }
 
+  void _processAnalysisOptionsException(
+      String action, String analysisOptionsPath, error) {
+    listener.addRecommendation('''Failed to $action analysis options file
+  $analysisOptionsPath
+  $error
+
+  Manually update this file to enable the Null Safety language feature in static
+  analysis by adding:
+
+    analyzer:
+      enable-experiment:
+        - non-nullable
+''');
+  }
+
+  void _processAnalysisOptionsFile(Folder pkgFolder) {
+    var analysisOptionsFile =
+        pkgFolder.getChildAssumingFile('analysis_options.yaml');
+    if (!analysisOptionsFile.exists) {
+      // A source file edit cannot be made for a file which doesn't exist.
+      // Instead of using the fix listener, just write the file directly.
+      analysisOptionsFile.writeAsStringSync('''
+analyzer:
+  enable-experiment:
+    - non-nullable
+
+''');
+      return;
+    }
+
+    _YamlFile analysisOptions;
+    try {
+      analysisOptions = _YamlFile._parseFrom(analysisOptionsFile);
+    } on FileSystemException catch (e) {
+      _processAnalysisOptionsException('read', analysisOptionsFile.path, e);
+      return;
+    } on FormatException catch (e) {
+      _processAnalysisOptionsException('parse', analysisOptionsFile.path, e);
+      return;
+    }
+
+    var analysisOptionsMap = analysisOptions.content;
+    YamlNode analyzerOptions;
+    if (analysisOptionsMap is YamlMap) {
+      analyzerOptions = analysisOptionsMap.nodes['analyzer'];
+    }
+    if (analyzerOptions == null) {
+      // There is no top-level "analyzer" section. We can write one in its
+      // entirety, and use a 2-space indentation. This is a valid indentation,
+      // even if the file contains another top-level section (perhaps "linter")
+      // which uses a different indentation.
+      var start = SourceLocation(0, line: 0, column: 0);
+      var content = '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+
+''';
+      analysisOptions._insertAfterParent(
+          SourceSpan(start, start, ''), content, listener);
+    } else if (analyzerOptions is YamlMap) {
+      var enableExperiment = analyzerOptions.nodes['enable-experiment'];
+      if (enableExperiment == null) {
+        var analyzerIndentation =
+            analysisOptions._getMapEntryIndentation(analyzerOptions);
+        var indent = ' ' * analyzerIndentation;
+        var content = '\n'
+            '${indent}enable-experiment:\n'
+            '$indent  - non-nullable';
+        analysisOptions._insertAfterParent(
+            analyzerOptions.span, content, listener);
+      } else if (enableExperiment is YamlList) {
+        var enableExperimentIndentation =
+            analysisOptions._getListIndentation(enableExperiment);
+        var indent = ' ' * enableExperimentIndentation;
+        var nonNullableIsEnabled = enableExperiment.value
+            .any((experiment) => experiment == 'non-nullable');
+        if (nonNullableIsEnabled) return;
+        var content = '\n' '$indent- non-nullable';
+        analysisOptions._insertAfterParent(
+            enableExperiment.span, content, listener);
+      }
+    }
+  }
+
   /// Updates the Package Config file to specify a minimum Dart SDK version
   /// which supports null safety.
-  void _processConfigFile(Folder pkgFolder, _Pubspec pubspec) {
+  void _processConfigFile(Folder pkgFolder, _YamlFile pubspec) {
     if (!_packageIsNNBD) {
       return;
     }
 
     var packageName = pubspec._getName();
-    if (packageName == null) {}
+    if (packageName == null) {
+      return;
+    }
 
     var packageConfigFile = pkgFolder
         .getChildAssumingFolder('.dart_tool')
@@ -295,41 +385,7 @@ class NonNullableFix {
 
   /// Updates the pubspec.yaml file to specify a minimum Dart SDK version which
   /// supports null safety.
-  bool _processPubspec(_Pubspec pubspec) {
-    /// Inserts [content] into [pubspecFile], immediately after [parentSpan].
-    void insertAfterParent(SourceSpan parentSpan, String content) {
-      var line = parentSpan.end.line;
-      var offset = parentSpan.end.offset;
-      // Walk [offset] and [line] back to the first non-whitespace character
-      // before [offset].
-      while (offset > 0) {
-        var ch = pubspec.textContent.codeUnitAt(offset - 1);
-        if (ch == $space || ch == $cr) {
-          --offset;
-        } else if (ch == $lf) {
-          --offset;
-          --line;
-        } else {
-          break;
-        }
-      }
-      var edit = SourceEdit(offset, 0, content);
-      listener.addSourceFileEdit(
-          'enable Null Safety language feature',
-          Location(pubspec.path, offset, content.length, line, 0),
-          SourceFileEdit(pubspec.path, 0, edits: [edit]));
-    }
-
-    void replaceSpan(SourceSpan span, String content) {
-      var line = span.start.line;
-      var offset = span.start.offset;
-      var edit = SourceEdit(offset, span.length, content);
-      listener.addSourceFileEdit(
-          'enable Null Safety language feature',
-          Location(pubspec.path, offset, content.length, line, 0),
-          SourceFileEdit(pubspec.path, 0, edits: [edit]));
-    }
-
+  bool _processPubspec(_YamlFile pubspec) {
     var pubspecMap = pubspec.content;
     YamlNode environmentOptions;
     if (pubspecMap is YamlMap) {
@@ -342,14 +398,15 @@ environment:
   sdk: '$_intendedSdkVersionConstraint'
 
 ''';
-      insertAfterParent(SourceSpan(start, start, ''), content);
+      pubspec._insertAfterParent(
+          SourceSpan(start, start, ''), content, listener);
     } else if (environmentOptions is YamlMap) {
       var sdk = environmentOptions.nodes['sdk'];
       if (sdk == null) {
         var content = """
 
   sdk: '$_intendedSdkVersionConstraint'""";
-        insertAfterParent(environmentOptions.span, content);
+        pubspec._insertAfterParent(environmentOptions.span, content, listener);
       } else if (sdk is YamlScalar) {
         VersionConstraint currentConstraint;
         if (sdk.value is String) {
@@ -363,7 +420,8 @@ environment:
             // TODO(srawlins): This overwrites the current maximum version. In
             // the uncommon situation that the maximum is not '<3.0.0', it
             // should not.
-            replaceSpan(sdk.span, "'$_intendedSdkVersionConstraint'");
+            pubspec._replaceSpan(
+                sdk.span, "'$_intendedSdkVersionConstraint'", listener);
           }
         } else {
           // Something is odd with the SDK constraint we've found in
@@ -457,22 +515,41 @@ $stackTrace''');
   }
 }
 
-class _Pubspec {
+class _YamlFile {
   final String path;
   final String textContent;
   final YamlNode content;
 
-  factory _Pubspec.parseFrom(File file) {
-    var textContent = file.readAsStringSync();
-    var content = loadYaml(textContent);
-    if (content is YamlNode) {
-      return _Pubspec._(file.path, textContent, content);
-    } else {
-      throw FormatException('pubspec.yaml is not a YAML map.');
-    }
+  _YamlFile._(this.path, this.textContent, this.content);
+
+  /// Returns the indentation of the entries in [node].
+  int _getListIndentation(YamlList node) {
+    return node.span.start.column;
   }
 
-  _Pubspec._(this.path, this.textContent, this.content);
+  static final _newlineCharacter = RegExp('[\r\n]');
+
+  /// Returns the indentation of the first (and presumably all) entry of [node].
+  int _getMapEntryIndentation(YamlMap node) {
+    if (node.isEmpty) return 2;
+
+    var value = node.nodes.values.first;
+    if (value is YamlScalar) {
+      // A YamlScalar value indicates that a "key: value" pair is on a single
+      // line. The span's start column is the start column of the value, not the
+      // key.
+      var offset = value.span.start.offset;
+      var firstSpaceIndex =
+          textContent.lastIndexOf(_newlineCharacter, offset) + 1;
+      var index = firstSpaceIndex;
+      while (textContent.codeUnitAt(index) == $space) {
+        index++;
+      }
+      return index - firstSpaceIndex;
+    } else {
+      return value.span.start.column;
+    }
+  }
 
   String _getName() {
     YamlNode packageNameNode;
@@ -487,6 +564,51 @@ class _Pubspec {
       return packageNameNode.value as String;
     } else {
       return null;
+    }
+  }
+
+  /// Inserts [content] into this file, immediately after [parentSpan].
+  void _insertAfterParent(
+      SourceSpan parentSpan, String content, DartFixListener listener) {
+    var line = parentSpan.end.line;
+    var offset = parentSpan.end.offset;
+    // Walk [offset] and [line] back to the first non-whitespace character
+    // before [offset].
+    while (offset > 0) {
+      var ch = textContent.codeUnitAt(offset - 1);
+      if (ch == $space || ch == $cr) {
+        --offset;
+      } else if (ch == $lf) {
+        --offset;
+        --line;
+      } else {
+        break;
+      }
+    }
+    var edit = SourceEdit(offset, 0, content);
+    listener.addSourceFileEdit(
+        'enable Null Safety language feature',
+        Location(path, offset, content.length, line, 0),
+        SourceFileEdit(path, 0, edits: [edit]));
+  }
+
+  void _replaceSpan(SourceSpan span, String content, DartFixListener listener) {
+    var line = span.start.line;
+    var offset = span.start.offset;
+    var edit = SourceEdit(offset, span.length, content);
+    listener.addSourceFileEdit(
+        'enable Null Safety language feature',
+        Location(path, offset, content.length, line, 0),
+        SourceFileEdit(path, 0, edits: [edit]));
+  }
+
+  static _YamlFile _parseFrom(File file) {
+    var textContent = file.readAsStringSync();
+    var content = loadYaml(textContent);
+    if (content is YamlNode) {
+      return _YamlFile._(file.path, textContent, content);
+    } else {
+      throw FormatException('pubspec.yaml is not a YAML map.');
     }
   }
 }

@@ -421,7 +421,8 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
       {bool migrated = false,
       String sourceText,
       String pubspecText,
-      String packageConfigText}) {
+      String packageConfigText,
+      String analysisOptionsText}) {
     return {
       'pubspec.yaml': pubspecText ??
           '''
@@ -446,12 +447,195 @@ environment:
       'lib/test.dart': sourceText ??
           '''
 int${migrated ? '?' : ''} f() => null;
-'''
+''',
+      if (analysisOptionsText != null)
+        'analysis_options.yaml': analysisOptionsText,
     };
   }
 
   void tearDown() {
     NonNullableFix.shutdownAllServers();
+  }
+
+  test_analysis_options_analyzer_is_missing_enable_experiment() async {
+    var projectContents = simpleProject(analysisOptionsText: '''
+analyzer:
+  foo: 1
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, analysisOptionsText: '''
+analyzer:
+  foo: 1
+  enable-experiment:
+    - non-nullable
+'''));
+  }
+
+  test_analysis_options_analyzer_is_missing_enable_experiment_big_indent() async {
+    var projectContents = simpleProject(analysisOptionsText: '''
+analyzer:
+      foo: 1
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, analysisOptionsText: '''
+analyzer:
+      foo: 1
+      enable-experiment:
+        - non-nullable
+'''));
+  }
+
+  test_analysis_options_analyzer_is_not_a_map() async {
+    var analysisOptionsText = '''
+analyzer: 1
+''';
+    var projectContents =
+        simpleProject(analysisOptionsText: analysisOptionsText);
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(
+            migrated: true, analysisOptionsText: analysisOptionsText));
+  }
+
+  test_analysis_options_does_not_exist() async {
+    var projectContents = simpleProject();
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, analysisOptionsText: '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+
+'''));
+  }
+
+  test_analysis_options_enable_experiment_contains_non_nullable() async {
+    var analysisOptionsText = '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+''';
+    var projectContents =
+        simpleProject(analysisOptionsText: analysisOptionsText);
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(
+            migrated: true, analysisOptionsText: analysisOptionsText));
+  }
+
+  test_analysis_options_enable_experiment_is_not_list() async {
+    var analysisOptionsText = '''
+analyzer:
+  enable-experiment: 1
+''';
+    var projectContents =
+        simpleProject(analysisOptionsText: analysisOptionsText);
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir,
+        simpleProject(
+            migrated: true, analysisOptionsText: analysisOptionsText));
+  }
+
+  test_analysis_options_enable_experiment_missing_non_nullable() async {
+    var analysisOptionsText = '''
+analyzer:
+  enable-experiment:
+    - foo
+''';
+    var projectContents =
+        simpleProject(analysisOptionsText: analysisOptionsText);
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, analysisOptionsText: '''
+analyzer:
+  enable-experiment:
+    - foo
+    - non-nullable
+'''));
+  }
+
+  test_analysis_options_enable_experiment_missing_non_nullable_big_indent() async {
+    var analysisOptionsText = '''
+analyzer:
+  enable-experiment:
+        - foo
+''';
+    var projectContents =
+        simpleProject(analysisOptionsText: analysisOptionsText);
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, analysisOptionsText: '''
+analyzer:
+  enable-experiment:
+        - foo
+        - non-nullable
+'''));
+  }
+
+  test_analysis_options_is_missing_analyzer() async {
+    var projectContents = simpleProject(analysisOptionsText: '''
+name: test
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, analysisOptionsText:
+            // This is strange-looking, but valid.
+            '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+
+name: test
+'''));
+  }
+
+  test_analysis_options_is_not_a_map() async {
+    var projectContents = simpleProject(analysisOptionsText: 'not-a-map');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    expect(() async => await cliRunner.run(), throwsUnsupportedError);
   }
 
   test_default_logger() {
@@ -569,14 +753,14 @@ int${migrated ? '?' : ''} f() => null;
     expect(assertParseArgsSuccess([]).skipPubOutdated, isTrue);
   }
 
-  test_flag_skip_pub_outdated_negated() async {
-    expect(assertParseArgsSuccess(['--no-skip-pub-outdated']).skipPubOutdated,
-        isFalse);
-  }
-
   test_flag_skip_pub_outdated_enable() {
     expect(assertParseArgsSuccess(['--skip-pub-outdated']).skipPubOutdated,
         isTrue);
+  }
+
+  test_flag_skip_pub_outdated_negated() async {
+    expect(assertParseArgsSuccess(['--no-skip-pub-outdated']).skipPubOutdated,
+        isFalse);
   }
 
   test_flag_web_preview_default() {
