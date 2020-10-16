@@ -180,6 +180,19 @@ static Definition* PrepareIndexedOp(FlowGraph* flow_graph,
   return safe_index;
 }
 
+static Definition* CreateBoxedParameterIfNeeded(BlockBuilder* builder,
+                                                Definition* value,
+                                                Representation representation,
+                                                intptr_t arg_index) {
+  const auto& function = builder->function();
+  if (function.is_unboxed_parameter_at(arg_index)) {
+    return builder->AddDefinition(
+        BoxInstr::Create(representation, new Value(value)));
+  } else {
+    return value;
+  }
+}
+
 static Definition* CreateBoxedResultIfNeeded(BlockBuilder* builder,
                                              Definition* value,
                                              Representation representation) {
@@ -212,6 +225,7 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   Definition* array = builder.AddParameter(0, /*with_frame=*/false);
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
 
+  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GetLengthFieldForArrayCid(array_cid));
 
@@ -314,6 +328,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
   Definition* value = builder.AddParameter(2, /*with_frame=*/false);
 
+  index = CreateBoxedParameterIfNeeded(&builder, index, kUnboxedInt64, 1);
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GetLengthFieldForArrayCid(array_cid));
 

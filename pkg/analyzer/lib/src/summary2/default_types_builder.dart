@@ -235,7 +235,7 @@ class DefaultTypesBuilder {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (TypeParameterElementImpl parameter in parameters) {
               TypeParameter parameterNode = parameter.linkedNode;
-              var bound = parameterNode.bound;
+              var bound = parameterNode?.bound;
               if (bound != null) {
                 var tails = _findRawTypePathsToDeclaration(
                   parameterNode,

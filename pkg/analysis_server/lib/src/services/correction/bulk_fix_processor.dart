@@ -297,6 +297,9 @@ class BulkFixProcessor {
     CompileTimeErrorCode.UNDEFINED_METHOD: [
       DataDriven.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
     ],

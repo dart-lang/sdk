@@ -101,7 +101,11 @@ class DataDriven extends MultiCorrectionProducer {
       return const [ElementKind.extensionKind];
     } else if (node is InstanceCreationExpression) {
       return const [ElementKind.constructorKind];
+    } else if (node is Label) {
+      var argumentList = node.parent.parent;
+      return _kindsForNode(argumentList.parent, child: argumentList);
     } else if (node is MethodInvocation) {
+      assert(child != null);
       if (node.target == child) {
         return const [
           ElementKind.classKind,

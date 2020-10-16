@@ -38,7 +38,7 @@ Future checkTimeline(VM vm) async {
   }
 
   List events = result['traceEvents'];
-  expect(events.length, greaterThan(10), reason: "Should have many samples");
+  expect(events.length, greaterThan(0), reason: "Should have samples");
   for (Map event in events) {
     expect(event['ph'], equals('P'));
     expect(event['pid'], isInt);

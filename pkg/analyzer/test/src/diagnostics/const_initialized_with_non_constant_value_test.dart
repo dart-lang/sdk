@@ -16,6 +16,20 @@ main() {
 @reflectiveTest
 class ConstInitializedWithNonConstantValueTest
     extends PubPackageResolutionTest {
+  test_cascade() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  void foo() {}
+}
+
+const a = const A()..foo();
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 52,
+          16),
+    ]);
+  }
+
   test_dynamic() async {
     await assertErrorsInCode(r'''
 f(p) {

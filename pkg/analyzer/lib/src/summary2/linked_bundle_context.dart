@@ -93,7 +93,7 @@ class LinkedBundleContext {
   }
 
   T elementOfIndex<T extends Element>(int index) {
-    var reference = referenceOfIndex(index);
+    var reference = referenceOfIndex(index >> 1);
     return elementFactory.elementOfReference(reference);
   }
 

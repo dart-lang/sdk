@@ -591,6 +591,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       ChangeArgumentName.newInstance,
+      DataDriven.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
