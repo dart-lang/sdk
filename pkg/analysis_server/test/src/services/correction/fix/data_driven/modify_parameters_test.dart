@@ -642,6 +642,31 @@ void f(C c) {
 ''');
   }
 
+  Future<void>
+      test_remove_middle_optionalNamed_withArg_notRenamed_deprecated() async {
+    setPackageContent('''
+class C {
+  void m({int a, @deprecated int b, int c}) {}
+}
+''');
+    setPackageData(
+        _modify(['C', 'm'], [RemoveParameter(NamedParameterReference('b'))]));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m(a: 0, b: 1, c: 2);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m(a: 0, c: 2);
+}
+''');
+  }
+
   Future<void> test_remove_multiple_deprecated() async {
     setPackageContent('''
 class C {

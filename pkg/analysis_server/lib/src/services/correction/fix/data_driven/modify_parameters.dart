@@ -226,6 +226,11 @@ class ModifyParameters extends Change<_Data> {
     if (parent is InvocationExpression) {
       var argumentList = parent.argumentList;
       return _Data(argumentList);
+    } else if (parent is Label) {
+      var argumentList = parent.parent.parent;
+      if (argumentList is ArgumentList) {
+        return _Data(argumentList);
+      }
     }
     return null;
   }
