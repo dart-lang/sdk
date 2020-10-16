@@ -166,7 +166,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Arrays) {
           c = C();
         }
         array[0] = c;
-        return c;
+        return array;
       }
 
       main() { foo(10); }

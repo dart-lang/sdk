@@ -163,6 +163,12 @@ class Value : public ZoneAllocated {
   // Assert if BindsToConstant() is false, otherwise returns the constant value.
   const Object& BoundConstant() const;
 
+  // Return true if the value represents Smi constant.
+  bool BindsToSmiConstant() const;
+
+  // Return value of represented Smi constant.
+  intptr_t BoundSmiConstant() const;
+
   // Return true if storing the value into a heap object requires applying the
   // write barrier. Can change the reaching type of the Value or other Values
   // in the same chain of redefinitions.
@@ -505,6 +511,7 @@ struct InstrAttrs {
 
 #define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
   M(Allocation, _)                                                             \
+  M(ArrayAllocation, _)                                                        \
   M(BinaryIntegerOp, _)                                                        \
   M(BlockEntry, _)                                                             \
   M(BoxInteger, _)                                                             \
@@ -5954,8 +5961,16 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 // either reside in new space or be in the store buffer.
 class AllocationInstr : public Definition {
  public:
-  explicit AllocationInstr(intptr_t deopt_id = DeoptId::kNone)
-      : Definition(deopt_id) {}
+  explicit AllocationInstr(TokenPosition token_pos,
+                           intptr_t deopt_id = DeoptId::kNone)
+      : Definition(deopt_id),
+        token_pos_(token_pos),
+        identity_(AliasIdentity::Unknown()) {}
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
   // TODO(sjindel): Update these conditions when the incremental write barrier
   // is added.
@@ -5964,14 +5979,18 @@ class AllocationInstr : public Definition {
   DEFINE_INSTRUCTION_TYPE_CHECK(Allocation);
 
  private:
+  const TokenPosition token_pos_;
+  AliasIdentity identity_;
+
   DISALLOW_COPY_AND_ASSIGN(AllocationInstr);
 };
 
 template <intptr_t N, typename ThrowsTrait>
 class TemplateAllocation : public AllocationInstr {
  public:
-  explicit TemplateAllocation(intptr_t deopt_id = DeoptId::kNone)
-      : AllocationInstr(deopt_id), inputs_() {}
+  explicit TemplateAllocation(TokenPosition token_pos,
+                              intptr_t deopt_id = DeoptId::kNone)
+      : AllocationInstr(token_pos, deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
@@ -5993,10 +6012,9 @@ class AllocateObjectInstr : public AllocationInstr {
   AllocateObjectInstr(TokenPosition token_pos,
                       const Class& cls,
                       Value* type_arguments = nullptr)
-      : token_pos_(token_pos),
+      : AllocationInstr(token_pos),
         cls_(cls),
         type_arguments_(type_arguments),
-        identity_(AliasIdentity::Unknown()),
         closure_function_(Function::ZoneHandle()) {
     ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
     if (type_arguments != nullptr) {
@@ -6008,7 +6026,6 @@ class AllocateObjectInstr : public AllocationInstr {
   virtual CompileType ComputeType() const;
 
   const Class& cls() const { return cls_; }
-  virtual TokenPosition token_pos() const { return token_pos_; }
   Value* type_arguments() const { return type_arguments_; }
 
   const Function& closure_function() const { return closure_function_; }
@@ -6030,9 +6047,6 @@ class AllocateObjectInstr : public AllocationInstr {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual AliasIdentity Identity() const { return identity_; }
-  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
-
   virtual bool WillAllocateNewOrRemembered() const {
     return WillAllocateNewOrRemembered(cls());
   }
@@ -6052,10 +6066,8 @@ class AllocateObjectInstr : public AllocationInstr {
     type_arguments_ = value;
   }
 
-  const TokenPosition token_pos_;
   const Class& cls_;
   Value* type_arguments_;
-  AliasIdentity identity_;
   Function& closure_function_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
@@ -6070,7 +6082,6 @@ class AllocateUninitializedContextInstr
   DECLARE_INSTRUCTION(AllocateUninitializedContext)
   virtual CompileType ComputeType() const;
 
-  virtual TokenPosition token_pos() const { return token_pos_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -6082,15 +6093,10 @@ class AllocateUninitializedContextInstr
         num_context_variables_);
   }
 
-  virtual AliasIdentity Identity() const { return identity_; }
-  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
-
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const TokenPosition token_pos_;
   const intptr_t num_context_variables_;
-  AliasIdentity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateUninitializedContextInstr);
 };
@@ -6100,15 +6106,17 @@ class AllocateUninitializedContextInstr
 // It does not produce any real code only deoptimization information.
 class MaterializeObjectInstr : public Definition {
  public:
-  MaterializeObjectInstr(AllocateObjectInstr* allocation,
+  MaterializeObjectInstr(AllocationInstr* allocation,
+                         const Class& cls,
+                         intptr_t num_elements,
                          const ZoneGrowableArray<const Slot*>& slots,
                          ZoneGrowableArray<Value*>* values)
       : allocation_(allocation),
-        cls_(allocation->cls()),
-        num_variables_(-1),
+        cls_(cls),
+        num_elements_(num_elements),
         slots_(slots),
         values_(values),
-        locations_(NULL),
+        locations_(nullptr),
         visited_for_liveness_(false),
         registers_remapped_(false) {
     ASSERT(slots_.length() == values_->length());
@@ -6118,28 +6126,10 @@ class MaterializeObjectInstr : public Definition {
     }
   }
 
-  MaterializeObjectInstr(AllocateUninitializedContextInstr* allocation,
-                         const ZoneGrowableArray<const Slot*>& slots,
-                         ZoneGrowableArray<Value*>* values)
-      : allocation_(allocation),
-        cls_(Class::ZoneHandle(Object::context_class())),
-        num_variables_(allocation->num_context_variables()),
-        slots_(slots),
-        values_(values),
-        locations_(NULL),
-        visited_for_liveness_(false),
-        registers_remapped_(false) {
-    ASSERT(slots_.length() == values_->length());
-    for (intptr_t i = 0; i < InputCount(); i++) {
-      InputAt(i)->set_instruction(this);
-      InputAt(i)->set_use_index(i);
-    }
-  }
-
-  Definition* allocation() const { return allocation_; }
+  AllocationInstr* allocation() const { return allocation_; }
   const Class& cls() const { return cls_; }
 
-  intptr_t num_variables() const { return num_variables_; }
+  intptr_t num_elements() const { return num_elements_; }
 
   intptr_t FieldOffsetAt(intptr_t i) const {
     return slots_[i]->offset_in_bytes();
@@ -6183,9 +6173,9 @@ class MaterializeObjectInstr : public Definition {
     (*values_)[i] = value;
   }
 
-  Definition* allocation_;
+  AllocationInstr* allocation_;
   const Class& cls_;
-  intptr_t num_variables_;
+  intptr_t num_elements_;
   const ZoneGrowableArray<const Slot*>& slots_;
   ZoneGrowableArray<Value*>* values_;
   Location* locations_;
@@ -6196,15 +6186,51 @@ class MaterializeObjectInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(MaterializeObjectInstr);
 };
 
-class CreateArrayInstr : public TemplateAllocation<2, Throws> {
+class ArrayAllocationInstr : public AllocationInstr {
+ public:
+  explicit ArrayAllocationInstr(TokenPosition token_pos, intptr_t deopt_id)
+      : AllocationInstr(token_pos, deopt_id) {}
+
+  virtual Value* num_elements() const = 0;
+
+  bool HasConstantNumElements() const {
+    return num_elements()->BindsToSmiConstant();
+  }
+  intptr_t GetConstantNumElements() const {
+    return num_elements()->BoundSmiConstant();
+  }
+
+  DEFINE_INSTRUCTION_TYPE_CHECK(ArrayAllocation);
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(ArrayAllocationInstr);
+};
+
+template <intptr_t N, typename ThrowsTrait>
+class TemplateArrayAllocation : public ArrayAllocationInstr {
+ public:
+  explicit TemplateArrayAllocation(TokenPosition token_pos, intptr_t deopt_id)
+      : ArrayAllocationInstr(token_pos, deopt_id), inputs_() {}
+
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
+
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+};
+
+class CreateArrayInstr : public TemplateArrayAllocation<2, Throws> {
  public:
   CreateArrayInstr(TokenPosition token_pos,
                    Value* element_type,
                    Value* num_elements,
                    intptr_t deopt_id)
-      : TemplateAllocation(deopt_id),
-        token_pos_(token_pos),
-        identity_(AliasIdentity::Unknown()) {
+      : TemplateArrayAllocation(token_pos, deopt_id) {
     SetInputAt(kElementTypePos, element_type);
     SetInputAt(kLengthPos, num_elements);
   }
@@ -6214,9 +6240,8 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
   DECLARE_INSTRUCTION(CreateArray)
   virtual CompileType ComputeType() const;
 
-  virtual TokenPosition token_pos() const { return token_pos_; }
   Value* element_type() const { return inputs_[kElementTypePos]; }
-  Value* num_elements() const { return inputs_[kLengthPos]; }
+  virtual Value* num_elements() const { return inputs_[kLengthPos]; }
 
   // Throw needs environment, which is created only if instruction can
   // deoptimize.
@@ -6226,35 +6251,24 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual AliasIdentity Identity() const { return identity_; }
-  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
-
   virtual bool WillAllocateNewOrRemembered() const {
     // Large arrays will use cards instead; cannot skip write barrier.
-    if (!num_elements()->BindsToConstant()) return false;
-    const Object& length = num_elements()->BoundConstant();
-    if (!length.IsSmi()) return false;
+    if (!HasConstantNumElements()) return false;
     return compiler::target::WillAllocateNewOrRememberedArray(
-        Smi::Cast(length).Value());
+        GetConstantNumElements());
   }
 
  private:
-  const TokenPosition token_pos_;
-  AliasIdentity identity_;
-
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
 
-class AllocateTypedDataInstr : public TemplateAllocation<1, Throws> {
+class AllocateTypedDataInstr : public TemplateArrayAllocation<1, Throws> {
  public:
   AllocateTypedDataInstr(TokenPosition token_pos,
                          classid_t class_id,
                          Value* num_elements,
                          intptr_t deopt_id)
-      : TemplateAllocation(deopt_id),
-        token_pos_(token_pos),
-        class_id_(class_id),
-        identity_(AliasIdentity::Unknown()) {
+      : TemplateArrayAllocation(token_pos, deopt_id), class_id_(class_id) {
     SetInputAt(kLengthPos, num_elements);
   }
 
@@ -6263,9 +6277,8 @@ class AllocateTypedDataInstr : public TemplateAllocation<1, Throws> {
   DECLARE_INSTRUCTION(AllocateTypedData)
   virtual CompileType ComputeType() const;
 
-  virtual TokenPosition token_pos() const { return token_pos_; }
   classid_t class_id() const { return class_id_; }
-  Value* num_elements() const { return inputs_[kLengthPos]; }
+  virtual Value* num_elements() const { return inputs_[kLengthPos]; }
 
   // Throw needs environment, which is created only if instruction can
   // deoptimize.
@@ -6275,18 +6288,13 @@ class AllocateTypedDataInstr : public TemplateAllocation<1, Throws> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual AliasIdentity Identity() const { return identity_; }
-  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
-
   virtual bool WillAllocateNewOrRemembered() const {
     // No write barriers are generated for typed data accesses.
     return false;
   }
 
  private:
-  const TokenPosition token_pos_;
-  classid_t class_id_;
-  AliasIdentity identity_;
+  const classid_t class_id_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateTypedDataInstr);
 };
@@ -6460,7 +6468,15 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
-  virtual bool HasUnknownSideEffects() const { return calls_initializer(); }
+
+  virtual bool HasUnknownSideEffects() const {
+    if (calls_initializer()) {
+      const Field& field = slot().field();
+      return field.needs_load_guard() || field.has_initializer();
+    }
+    return false;
+  }
+
   virtual bool CanTriggerGC() const { return calls_initializer(); }
   virtual bool MayThrow() const { return calls_initializer(); }
 
@@ -6625,12 +6641,11 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
  public:
   AllocateContextInstr(TokenPosition token_pos,
                        const ZoneGrowableArray<const Slot*>& context_slots)
-      : token_pos_(token_pos), context_slots_(context_slots) {}
+      : TemplateAllocation(token_pos), context_slots_(context_slots) {}
 
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
 
-  virtual TokenPosition token_pos() const { return token_pos_; }
   const ZoneGrowableArray<const Slot*>& context_slots() const {
     return context_slots_;
   }
@@ -6649,7 +6664,6 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const TokenPosition token_pos_;
   const ZoneGrowableArray<const Slot*>& context_slots_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);

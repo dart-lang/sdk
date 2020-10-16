@@ -2189,6 +2189,9 @@ bool FlowGraphDeserializer::ParseSlot(SExpList* list, const Slot** out) {
     case Slot::Kind::kTypeArgumentsIndex:
       *out = &Slot::GetTypeArgumentsIndexSlot(thread(), offset);
       break;
+    case Slot::Kind::kArrayElement:
+      *out = &Slot::GetArrayElementSlot(thread(), offset);
+      break;
     case Slot::Kind::kCapturedVariable:
       StoreError(kind_sexp, "unhandled Slot kind");
       return false;

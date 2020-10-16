@@ -2730,6 +2730,11 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       UNREACHABLE();
       break;
 
+    case Slot::Kind::kArrayElement:
+      // Should not be used in LoadField instructions.
+      UNREACHABLE();
+      break;
+
     case Slot::Kind::kFunction_packed_fields:
       *range = Range::Full(RepresentationToRangeSize(slot().representation()));
       break;

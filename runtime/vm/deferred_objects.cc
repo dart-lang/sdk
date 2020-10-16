@@ -224,23 +224,50 @@ void DeferredObject::Create() {
   Class& cls = Class::Handle();
   cls ^= GetClass();
 
-  if (cls.raw() == Object::context_class()) {
-    intptr_t num_variables = Smi::Cast(Object::Handle(GetLength())).Value();
-    if (FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("materializing context of length %" Pd " (%" Px ", %" Pd
-                   " vars)\n",
-                   num_variables, reinterpret_cast<uword>(args_), field_count_);
-    }
-    object_ = &Context::ZoneHandle(Context::New(num_variables));
+  switch (cls.id()) {
+    case kContextCid: {
+      const intptr_t num_variables =
+          Smi::Cast(Object::Handle(GetLength())).Value();
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr(
+            "materializing context of length %" Pd " (%" Px ", %" Pd " vars)\n",
+            num_variables, reinterpret_cast<uword>(args_), field_count_);
+      }
+      object_ = &Context::ZoneHandle(Context::New(num_variables));
+    } break;
+    case kArrayCid: {
+      const intptr_t num_elements =
+          Smi::Cast(Object::Handle(GetLength())).Value();
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::PrintErr("materializing array of length %" Pd " (%" Px ", %" Pd
+                     " elements)\n",
+                     num_elements, reinterpret_cast<uword>(args_),
+                     field_count_);
+      }
+      object_ = &Array::ZoneHandle(Array::New(num_elements));
+    } break;
+    default:
+      if (IsTypedDataClassId(cls.id())) {
+        const intptr_t num_elements =
+            Smi::Cast(Object::Handle(GetLength())).Value();
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("materializing typed data cid %" Pd " of length %" Pd
+                       " (%" Px ", %" Pd " elements)\n",
+                       cls.id(), num_elements, reinterpret_cast<uword>(args_),
+                       field_count_);
+        }
+        object_ =
+            &TypedData::ZoneHandle(TypedData::New(cls.id(), num_elements));
 
-  } else {
-    if (FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr("materializing instance of %s (%" Px ", %" Pd " fields)\n",
-                   cls.ToCString(), reinterpret_cast<uword>(args_),
-                   field_count_);
-    }
+      } else {
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr(
+              "materializing instance of %s (%" Px ", %" Pd " fields)\n",
+              cls.ToCString(), reinterpret_cast<uword>(args_), field_count_);
+        }
 
-    object_ = &Instance::ZoneHandle(Instance::New(cls));
+        object_ = &Instance::ZoneHandle(Instance::New(cls));
+      }
   }
 }
 
@@ -256,65 +283,178 @@ void DeferredObject::Fill() {
   Class& cls = Class::Handle();
   cls ^= GetClass();
 
-  if (cls.raw() == Object::context_class()) {
-    const Context& context = Context::Cast(*object_);
+  switch (cls.id()) {
+    case kContextCid: {
+      const Context& context = Context::Cast(*object_);
 
-    Smi& offset = Smi::Handle();
-    Object& value = Object::Handle();
+      Smi& offset = Smi::Handle();
+      Object& value = Object::Handle();
 
-    for (intptr_t i = 0; i < field_count_; i++) {
-      offset ^= GetFieldOffset(i);
-      if (offset.Value() == Context::parent_offset()) {
-        // Copy parent.
-        Context& parent = Context::Handle();
-        parent ^= GetValue(i);
-        context.set_parent(parent);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    ctx@parent (offset %" Pd ") <- %s\n",
-                       offset.Value(), value.ToCString());
-        }
-      } else {
-        intptr_t context_index = ToContextIndex(offset.Value());
-        value = GetValue(i);
-        context.SetAt(context_index, value);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    ctx@%" Pd " (offset %" Pd ") <- %s\n",
-                       context_index, offset.Value(), value.ToCString());
-        }
-      }
-    }
-  } else {
-    const Instance& obj = Instance::Cast(*object_);
-
-    Smi& offset = Smi::Handle();
-    Field& field = Field::Handle();
-    Object& value = Object::Handle();
-    const Array& offset_map = Array::Handle(cls.OffsetToFieldMap());
-
-    for (intptr_t i = 0; i < field_count_; i++) {
-      offset ^= GetFieldOffset(i);
-      field ^= offset_map.At(offset.Value() / kWordSize);
-      value = GetValue(i);
-      if (!field.IsNull()) {
-        obj.SetField(field, value);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    %s <- %s\n",
-                       String::Handle(field.name()).ToCString(),
-                       value.ToCString());
-        }
-      } else {
-        // In addition to the type arguments vector we can also have lazy
-        // materialization of e.g. _ByteDataView objects which don't have
-        // explicit fields in Dart (all accesses to the fields are done via
-        // recognized native methods).
-        ASSERT(offset.Value() < cls.host_instance_size());
-        obj.SetFieldAtOffset(offset.Value(), value);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
-                       offset.Value(), value.ToCString());
+      for (intptr_t i = 0; i < field_count_; i++) {
+        offset ^= GetFieldOffset(i);
+        if (offset.Value() == Context::parent_offset()) {
+          // Copy parent.
+          Context& parent = Context::Handle();
+          parent ^= GetValue(i);
+          context.set_parent(parent);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    ctx@parent (offset %" Pd ") <- %s\n",
+                         offset.Value(), value.ToCString());
+          }
+        } else {
+          intptr_t context_index = ToContextIndex(offset.Value());
+          value = GetValue(i);
+          context.SetAt(context_index, value);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    ctx@%" Pd " (offset %" Pd ") <- %s\n",
+                         context_index, offset.Value(), value.ToCString());
+          }
         }
       }
-    }
+    } break;
+    case kArrayCid: {
+      const Array& array = Array::Cast(*object_);
+
+      Smi& offset = Smi::Handle();
+      Object& value = Object::Handle();
+
+      for (intptr_t i = 0; i < field_count_; i++) {
+        offset ^= GetFieldOffset(i);
+        if (offset.Value() == Array::type_arguments_offset()) {
+          TypeArguments& type_args = TypeArguments::Handle();
+          type_args ^= GetValue(i);
+          array.SetTypeArguments(type_args);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    array@type_args (offset %" Pd ") <- %s\n",
+                         offset.Value(), value.ToCString());
+          }
+        } else {
+          const intptr_t index = Array::index_at_offset(offset.Value());
+          value = GetValue(i);
+          array.SetAt(index, value);
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    array@%" Pd " (offset %" Pd ") <- %s\n", index,
+                         offset.Value(), value.ToCString());
+          }
+        }
+      }
+    } break;
+    default:
+      if (IsTypedDataClassId(cls.id())) {
+        const TypedData& typed_data = TypedData::Cast(*object_);
+
+        Smi& offset = Smi::Handle();
+        Object& value = Object::Handle();
+        const auto cid = cls.id();
+
+        for (intptr_t i = 0; i < field_count_; i++) {
+          offset ^= GetFieldOffset(i);
+          const intptr_t element_offset = offset.Value();
+          value = GetValue(i);
+          switch (cid) {
+            case kTypedDataInt8ArrayCid:
+              typed_data.SetInt8(
+                  element_offset,
+                  static_cast<int8_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataUint8ArrayCid:
+            case kTypedDataUint8ClampedArrayCid:
+              typed_data.SetUint8(
+                  element_offset,
+                  static_cast<uint8_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataInt16ArrayCid:
+              typed_data.SetInt16(
+                  element_offset,
+                  static_cast<int16_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataUint16ArrayCid:
+              typed_data.SetUint16(
+                  element_offset,
+                  static_cast<uint16_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataInt32ArrayCid:
+              typed_data.SetInt32(
+                  element_offset,
+                  static_cast<int32_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataUint32ArrayCid:
+              typed_data.SetUint32(
+                  element_offset,
+                  static_cast<uint32_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataInt64ArrayCid:
+              typed_data.SetInt64(element_offset,
+                                  Integer::Cast(value).AsInt64Value());
+              break;
+            case kTypedDataUint64ArrayCid:
+              typed_data.SetUint64(
+                  element_offset,
+                  static_cast<uint64_t>(Integer::Cast(value).AsInt64Value()));
+              break;
+            case kTypedDataFloat32ArrayCid:
+              typed_data.SetFloat32(
+                  element_offset,
+                  static_cast<float>(Double::Cast(value).value()));
+              break;
+            case kTypedDataFloat64ArrayCid:
+              typed_data.SetFloat64(element_offset,
+                                    Double::Cast(value).value());
+              break;
+            case kTypedDataFloat32x4ArrayCid:
+              typed_data.SetFloat32x4(element_offset,
+                                      Float32x4::Cast(value).value());
+              break;
+            case kTypedDataInt32x4ArrayCid:
+              typed_data.SetInt32x4(element_offset,
+                                    Int32x4::Cast(value).value());
+              break;
+            case kTypedDataFloat64x2ArrayCid:
+              typed_data.SetFloat64x2(element_offset,
+                                      Float64x2::Cast(value).value());
+              break;
+            default:
+              UNREACHABLE();
+          }
+          if (FLAG_trace_deoptimization_verbose) {
+            OS::PrintErr("    typed_data (offset %" Pd ") <- %s\n",
+                         element_offset, value.ToCString());
+          }
+        }
+      } else {
+        const Instance& obj = Instance::Cast(*object_);
+
+        Smi& offset = Smi::Handle();
+        Field& field = Field::Handle();
+        Object& value = Object::Handle();
+        const Array& offset_map = Array::Handle(cls.OffsetToFieldMap());
+
+        for (intptr_t i = 0; i < field_count_; i++) {
+          offset ^= GetFieldOffset(i);
+          field ^= offset_map.At(offset.Value() / kWordSize);
+          value = GetValue(i);
+          if (!field.IsNull()) {
+            obj.SetField(field, value);
+            if (FLAG_trace_deoptimization_verbose) {
+              OS::PrintErr("    %s <- %s\n",
+                           String::Handle(field.name()).ToCString(),
+                           value.ToCString());
+            }
+          } else {
+            // In addition to the type arguments vector we can also have lazy
+            // materialization of e.g. _ByteDataView objects which don't have
+            // explicit fields in Dart (all accesses to the fields are done via
+            // recognized native methods).
+            ASSERT(offset.Value() < cls.host_instance_size());
+            obj.SetFieldAtOffset(offset.Value(), value);
+            if (FLAG_trace_deoptimization_verbose) {
+              OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
+                           offset.Value(), value.ToCString());
+            }
+          }
+        }
+      }
+      break;
   }
 }
 

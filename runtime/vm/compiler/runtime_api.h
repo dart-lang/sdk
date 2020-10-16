@@ -553,6 +553,7 @@ class Array : public AllStatic {
   static word type_arguments_offset();
   static word length_offset();
   static word element_offset(intptr_t index);
+  static intptr_t index_at_offset(intptr_t offset_in_bytes);
   static word InstanceSize();
   static word NextFieldOffset();
 

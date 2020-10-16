@@ -882,6 +882,11 @@ word Array::NextFieldOffset() {
   return -kWordSize;
 }
 
+intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
+  return dart::Array::index_at_offset(
+      TranslateOffsetInWordsToHost(offset_in_bytes));
+}
+
 word GrowableObjectArray::NextFieldOffset() {
   return -kWordSize;
 }

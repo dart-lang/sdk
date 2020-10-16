@@ -9725,6 +9725,11 @@ class Array : public Instance {
   static intptr_t element_offset(intptr_t index) {
     return OFFSET_OF_RETURNED_VALUE(ArrayLayout, data) + kWordSize * index;
   }
+  static intptr_t index_at_offset(intptr_t offset_in_bytes) {
+    intptr_t index = (offset_in_bytes - data_offset()) / kWordSize;
+    ASSERT(index >= 0);
+    return index;
+  }
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return Array::data_offset(); }
