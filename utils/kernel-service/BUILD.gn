@@ -125,7 +125,3 @@ template("kernel_service_dill") {
 kernel_service_dill("") {
   extra_args = []
 }
-
-kernel_service_dill("_bytecode") {
-  extra_args = [ "--gen-bytecode" ]
-}
