@@ -153,8 +153,11 @@ class InstanceMemberInferrer {
         name: setterName,
       );
       if (combinedSetter != null) {
-        var type = combinedSetter.parameters[0].type;
-        return typeSystem.nonNullifyLegacy(type);
+        var parameters = combinedSetter.parameters;
+        if (parameters.isNotEmpty) {
+          var type = parameters[0].type;
+          return typeSystem.nonNullifyLegacy(type);
+        }
       }
       return DynamicTypeImpl.instance;
     }
