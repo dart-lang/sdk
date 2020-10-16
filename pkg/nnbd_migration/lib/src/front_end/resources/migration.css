@@ -229,6 +229,7 @@ footer .sdk-version {
 
 .nav-inner li {
   list-style-type: none;
+  white-space: nowrap;
 }
 
 .nav-inner li:not(.dir) {
