@@ -464,6 +464,24 @@ import 'dart:math';
     ]);
   }
 
+  test_linkLibraries_getErrors() {
+    addTestFile(r'''
+var a = b;
+var foo = 0;
+''');
+
+    var path = convertPath('/workspace/dart/test/lib/test.dart');
+    fileResolver.linkLibraries(path: path);
+
+    var result = getTestErrors();
+    expect(result.path, path);
+    expect(result.uri.toString(), 'package:dart.test/test.dart');
+    assertErrorsInList(result.errors, [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
+    ]);
+    expect(result.lineInfo.lineStarts, [0, 11, 24]);
+  }
+
   test_nullSafety_enabled() async {
     typeToStringWithNullability = true;
 
