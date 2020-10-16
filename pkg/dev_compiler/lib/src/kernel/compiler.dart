@@ -4472,7 +4472,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   bool _isDynamicOrFunction(DartType t) =>
-      t == _coreTypes.functionLegacyRawType || t == const DynamicType();
+      DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
+          .areEqual(t, _coreTypes.functionNonNullableRawType) ||
+      t == const DynamicType();
 
   js_ast.Expression _emitUnaryOperator(
       Expression expr, Member target, InvocationExpression node) {
