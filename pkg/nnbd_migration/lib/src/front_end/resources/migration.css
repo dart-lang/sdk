@@ -250,7 +250,7 @@ footer .sdk-version {
 }
 
 .nav-inner ul {
-  max-height: 2000px;
+  /* a max-height is added to each element at runtime. */
   transition: max-height 0.5s ease-out;
 }
 
