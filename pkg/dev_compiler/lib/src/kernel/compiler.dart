@@ -250,7 +250,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       types,
       hierarchy,
       jsTypeRep,
-      NullableInference(jsTypeRep, staticTypeContext),
+      NullableInference(jsTypeRep, staticTypeContext, options: options),
       staticTypeContext,
       options,
       importToSummary,
@@ -4271,9 +4271,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (_reifyTearoff(member)) {
       return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
-    } else if (isJsMember(member) &&
-        member is Procedure &&
-        !member.isAccessor) {
+    } else if (member is Procedure &&
+        !member.isAccessor &&
+        isJsMember(member)) {
       return runtimeCall(
           'tearoffInterop(#)', [js_ast.PropertyAccess(jsReceiver, jsName)]);
     } else {

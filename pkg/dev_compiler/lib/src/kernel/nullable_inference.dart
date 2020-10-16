@@ -5,9 +5,12 @@
 // @dart = 2.9
 
 import 'dart:collection';
+
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
+
+import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import 'js_typerep.dart';
 import 'kernel_helpers.dart';
 
@@ -40,8 +43,12 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   final _variableInference = _NullableVariableInference();
 
-  NullableInference(this.jsTypeRep, this._staticTypeContext)
-      : coreTypes = jsTypeRep.coreTypes {
+  final bool _soundNullSafety;
+
+  NullableInference(this.jsTypeRep, this._staticTypeContext,
+      {SharedCompilerOptions options})
+      : coreTypes = jsTypeRep.coreTypes,
+        _soundNullSafety = options?.soundNullSafety ?? false {
     _variableInference._nullInference = this;
   }
 
@@ -336,7 +343,8 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
   @override
   void visitFunctionNode(FunctionNode node) {
     _functions.add(node);
-    if (_nullInference.allowNotNullDeclarations) {
+    if (_nullInference.allowNotNullDeclarations ||
+        _nullInference._soundNullSafety) {
       visitList(node.positionalParameters, this);
       visitList(node.namedParameters, this);
     }
@@ -362,9 +370,14 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
       }
     }
     var initializer = node.initializer;
-    // A Variable declaration with a FunctionNode as a parent is a function
-    // parameter so we can't trust the initializer as a nullable check.
-    if (node.parent is! FunctionNode) {
+    if (_nullInference._soundNullSafety &&
+        node.type.nullability == Nullability.nonNullable) {
+      // Avoid null checks for variables when the type system guarantees they
+      // can never be null.
+      _notNullLocals.add(node);
+    } else if (node.parent is! FunctionNode) {
+      // A variable declaration with a FunctionNode as a parent is a function
+      // parameter so we can't trust the initializer as a nullable check.
       if (initializer != null) {
         var savedVariable = _variableAssignedTo;
         _variableAssignedTo = node;
