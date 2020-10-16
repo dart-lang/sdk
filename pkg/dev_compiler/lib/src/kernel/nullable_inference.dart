@@ -92,38 +92,42 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   @override
   bool visitPropertyGet(PropertyGet node) =>
-      _getterIsNullable(node.interfaceTarget);
+      _getterIsNullable(node.interfaceTarget, node);
 
   @override
   bool visitPropertySet(PropertySet node) => isNullable(node.value);
 
   @override
   bool visitSuperPropertyGet(SuperPropertyGet node) =>
-      _getterIsNullable(node.interfaceTarget);
+      _getterIsNullable(node.interfaceTarget, node);
 
   @override
   bool visitSuperPropertySet(SuperPropertySet node) => isNullable(node.value);
 
   @override
-  bool visitStaticGet(StaticGet node) => _getterIsNullable(node.target);
+  bool visitStaticGet(StaticGet node) => _getterIsNullable(node.target, node);
 
   @override
   bool visitStaticSet(StaticSet node) => isNullable(node.value);
 
   @override
   bool visitMethodInvocation(MethodInvocation node) => _invocationIsNullable(
-      node.interfaceTarget, node.name.text, node.receiver);
+      node.interfaceTarget, node.name.text, node, node.receiver);
 
   @override
   bool visitSuperMethodInvocation(SuperMethodInvocation node) =>
-      _invocationIsNullable(node.interfaceTarget, node.name.text);
+      _invocationIsNullable(node.interfaceTarget, node.name.text, node);
 
-  bool _invocationIsNullable(Member target, String name,
+  bool _invocationIsNullable(
+      Member target, String name, InvocationExpression node,
       [Expression receiver]) {
     // TODO(jmesserly): this is not a valid assumption for user-defined equality
     // but it is added to match the behavior of the Analyzer backend.
     // https://github.com/dart-lang/sdk/issues/31854
     if (name == '==') return false;
+    if (_staticallyNonNullable(node.getStaticType(_staticTypeContext))) {
+      return false;
+    }
     if (target == null) return true; // dynamic call
     if (target.name.text == 'toString' &&
         receiver != null &&
@@ -131,19 +135,27 @@ class NullableInference extends ExpressionVisitor<bool> {
             coreTypes.stringLegacyRawType) {
       // TODO(jmesserly): `class String` in dart:core does not explicitly
       // declare `toString`, which results in a target of `Object.toString` even
-      // when the reciever type is known to be `String`. So we work around it.
+      // when the receiver type is known to be `String`. So we work around it.
       // (The Analyzer backend of DDC probably has the same issue.)
       return false;
     }
     return _returnValueIsNullable(target);
   }
 
-  bool _getterIsNullable(Member target) {
+  bool _getterIsNullable(Member target, Expression node) {
+    if (_staticallyNonNullable(node.getStaticType(_staticTypeContext))) {
+      return false;
+    }
     if (target == null) return true;
     // tear-offs are not null
     if (target is Procedure && !target.isAccessor) return false;
     return _returnValueIsNullable(target);
   }
+
+  bool _staticallyNonNullable(DartType type) =>
+      _soundNullSafety &&
+      type != null &&
+      type.nullability == Nullability.nonNullable;
 
   bool _returnValueIsNullable(Member target) {
     var targetClass = target.enclosingClass;
@@ -186,7 +198,7 @@ class NullableInference extends ExpressionVisitor<bool> {
             typeString.split('|').contains('Null');
       }
     }
-    return _invocationIsNullable(target, node.name.text);
+    return _invocationIsNullable(target, node.name.text, node);
   }
 
   @override
