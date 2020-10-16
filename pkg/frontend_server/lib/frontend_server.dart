@@ -180,7 +180,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: 'amd')
   ..addFlag('flutter-widget-cache',
       help: 'Enable the widget cache to track changes to Widget subtypes',
-      defaultsTo: false);
+      defaultsTo: false)
+  ..addFlag('print-incremental-dependencies',
+      help: 'Print list of sources added and removed from compilation',
+      defaultsTo: true);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -339,6 +342,7 @@ class FrontendCompiler implements CompilerInterface {
   bool incrementalSerialization;
   bool useDebuggerModuleNames;
   bool emitDebugMetadata;
+  bool _printIncrementalDependencies;
 
   CompilerOptions _compilerOptions;
   BytecodeOptions _bytecodeOptions;
@@ -406,6 +410,7 @@ class FrontendCompiler implements CompilerInterface {
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
     _initializeFromDill =
         _options['initialize-from-dill'] ?? _kernelBinaryFilenameFull;
+    _printIncrementalDependencies = _options['print-incremental-dependencies'];
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
@@ -609,6 +614,9 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   void _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
+    if (!_printIncrementalDependencies) {
+      return;
+    }
     Set<Uri> uris = Set<Uri>();
     for (Uri uri in compiledSources) {
       // Skip empty or corelib dependencies.
