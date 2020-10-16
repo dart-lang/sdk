@@ -61,7 +61,7 @@ class AssignmentCheckerTest extends Object
   final AssignmentCheckerForTesting checker;
 
   factory AssignmentCheckerTest() {
-    var typeProvider = TestTypeProvider();
+    var typeProvider = TestTypeProvider().asLegacy;
     _setCoreLibrariesTypeSystem(typeProvider);
 
     var graph = NullabilityGraphForTesting();
@@ -489,7 +489,7 @@ class AssignmentCheckerTest extends Object
     _myLibrary.definingCompilationUnit = definingUnit;
   }
 
-  static void _setCoreLibrariesTypeSystem(TestTypeProvider typeProvider) {
+  static void _setCoreLibrariesTypeSystem(TypeProviderImpl typeProvider) {
     var typeSystem = TypeSystemImpl(
       isNonNullableByDefault: false,
       implicitCasts: true,
