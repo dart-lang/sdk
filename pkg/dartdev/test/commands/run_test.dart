@@ -154,6 +154,7 @@ void run() {
       '--no-pause-isolates-on-start',
       '--no-pause-isolates-on-exit',
       '--no-pause-isolates-on-unhandled-exceptions',
+      '-Dfoo=bar',
       p.relativeFilePath,
     ]);
     expect(
@@ -173,6 +174,7 @@ void run() {
       '--no-pause-isolates-on-exit',
       '--no-pause-isolates-on-unhandled-exceptions',
       '--disable-service-auth-codes',
+      '-Dfoo=bar',
       p.relativeFilePath,
     ]);
 
