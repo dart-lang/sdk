@@ -253,34 +253,19 @@ import 'package:a/a.dart';
 class B extends A {}
 ''');
 
-      // We don't invoke anything on class `B`, so don't ask its supertype.
-      // So, no dependency on "a".
+      // When we get resolved class `B`, we apply its full resolution.
+      // So, we ask for `A`, so dependency on "a".
       await _assertDependencies('c', [a, b], '''
 import 'package:b/b.dart';
 B x;
-''', [b]);
+''', [a, b]);
 
-      // We infer the type of `x` to `B`.
-      // But we don't ask `B` for its supertype.
-      // So, no dependency on "a".
+      // When we get resolved class `B`, we apply its full resolution.
+      // So, we ask for `A`, so dependency on "a".
       await _assertDependencies('c', [a, b], '''
 import 'package:b/b.dart';
 var x = B();
-''', [b]);
-
-      // We perform full analysis, and check that `new B()` is assignable
-      // to `B x`. This is trivially true, we don't need the supertype of `B`.
-      // So, no dependency on "a".
-      await _assertDependencies(
-        'c',
-        [a, b],
-        '''
-import 'package:b/b.dart';
-var x = B();
-''',
-        [b],
-        summaryOnly: false,
-      );
+''', [a, b]);
     });
   }
 

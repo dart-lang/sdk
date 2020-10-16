@@ -557,7 +557,9 @@ class DependencyTracker {
 
   Iterable<String> get dependencies => _dependencies;
 
-  void record(String path) => _dependencies.add(path);
+  void record(String path) {
+    _dependencies.add(path);
+  }
 }
 
 /// [PackageBundleProvider] that always reads from the [ResourceProvider].

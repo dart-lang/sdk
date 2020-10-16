@@ -242,7 +242,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
       for (var entry in member._substitution.map.entries) {
         map[entry.key] = substitution.substituteType(entry.value);
       }
-      map.addAll(substitution.map);
       combined = Substitution.fromMap(map);
     } else {
       typeProvider = element.library.typeProvider;
