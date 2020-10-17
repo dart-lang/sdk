@@ -2418,8 +2418,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// visible for testing.
   static const String _VISIBLE_FOR_TESTING_VARIABLE_NAME = "visibleForTesting";
 
-  /// The element representing the field, variable, or constructor being used as
-  /// an annotation.
   @override
   Element element;
 
