@@ -3731,7 +3731,7 @@ abstract class ExecutableElementImpl extends ElementImpl
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@parameter');
       var formalParameters = context.getFormalParameters(linkedNode);
-      _parameters = ParameterElementImpl.forLinkedNodeList(
+      return _parameters = ParameterElementImpl.forLinkedNodeList(
         this,
         context,
         containerRef,
@@ -4537,11 +4537,11 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   GenericFunctionTypeElementImpl get function {
     if (_function != null) return _function;
 
-    if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
-      if (linkedNode is GenericTypeAlias) {
-        var context = enclosingUnit.linkedContext;
-        var function = context.getGeneticTypeAliasFunction(linkedNode);
+    var node = linkedNode;
+    if (node != null) {
+      LazyAst.applyResolution(node);
+      if (node is GenericTypeAlias) {
+        var function = node.functionType;
         if (function != null) {
           return _function = GenericFunctionTypeElementImpl.forLinkedNode(
             this,
@@ -4742,17 +4742,20 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    if (_parameters == null) {
-      if (linkedNode != null) {
-        var context = enclosingUnit.linkedContext;
-        return _parameters = ParameterElementImpl.forLinkedNodeList(
-          this,
-          context,
-          reference.getChild('@parameter'),
-          context.getFormalParameters(linkedNode),
-        );
-      }
+    if (_parameters != null) return _parameters;
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var containerRef = reference.getChild('@parameter');
+      var formalParameters = context.getFormalParameters(linkedNode);
+      return _parameters = ParameterElementImpl.forLinkedNodeList(
+        this,
+        context,
+        containerRef,
+        formalParameters,
+      );
     }
+
     return _parameters ?? const <ParameterElement>[];
   }
 
@@ -6569,18 +6572,14 @@ class ParameterElementImpl extends VariableElementImpl
 
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
+      var containerRef = reference.getChild('@parameter');
       var formalParameters = context.getFormalParameters(linkedNode);
-      if (formalParameters != null) {
-        var containerRef = reference.getChild('@parameter');
-        return _parameters = ParameterElementImpl.forLinkedNodeList(
-          this,
-          context,
-          containerRef,
-          formalParameters,
-        );
-      } else {
-        return _parameters ??= const <ParameterElement>[];
-      }
+      return _parameters = ParameterElementImpl.forLinkedNodeList(
+        this,
+        context,
+        containerRef,
+        formalParameters,
+      );
     }
 
     return _parameters ??= const <ParameterElement>[];
@@ -6614,7 +6613,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (_typeParameters != null) return _typeParameters;
 
     if (linkedNode != null) {
-      var typeParameters = linkedContext.getTypeParameters2(linkedNode);
+      var typeParameters = linkedContext.getTypeParameters(linkedNode);
       if (typeParameters == null) {
         return _typeParameters = const [];
       }
@@ -7429,8 +7428,8 @@ class TypeParameterElementImpl extends ElementImpl
     if (_bound != null) return _bound;
 
     if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      return _bound = context.getTypeParameterBound(linkedNode)?.type;
+      var node = linkedNode as TypeParameter;
+      return _bound = node.bound?.type;
     }
 
     return _bound;
@@ -7565,7 +7564,7 @@ mixin TypeParameterizedElementMixin
 
     if (linkedNode != null) {
       LazyAst.applyResolution(linkedNode);
-      var typeParameters = linkedContext.getTypeParameters2(linkedNode);
+      var typeParameters = linkedContext.getTypeParameters(linkedNode);
       if (typeParameters == null) {
         return _typeParameterElements = const [];
       }
