@@ -113,9 +113,9 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
         return false;
       }
     } else {
-      // If the field is boxed, then the getter cannot return an unboxed value
-      // either (if it could, we would know the field itself can be unboxed).
-      RELEASE_ASSERT(!function.HasUnboxedReturnValue());
+      // If the field is boxed, then we can either return the box directly or
+      // unbox it and return unboxed representation.
+      return true;
     }
   } else {
     ASSERT(is_setter);
