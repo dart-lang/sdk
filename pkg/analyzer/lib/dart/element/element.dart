@@ -697,8 +697,14 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   @Deprecated('Use computeConstantValue() instead')
   DartObject get constantValue;
 
-  /// Return the element representing the field, variable, or const constructor
-  /// being used as an annotation.
+  /// Return the element referenced by this annotation.
+  ///
+  /// In valid code this element can be a [PropertyAccessorElement] getter
+  /// of a constant top-level variable, or a constant static field of a
+  /// class; or a constant [ConstructorElement].
+  ///
+  /// In invalid code this element can be `null`, or a reference to any
+  /// other element.
   Element get element;
 
   /// Return `true` if this annotation marks the associated function as always
