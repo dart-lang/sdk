@@ -116,7 +116,7 @@ vars = {
   "linter_tag": "0.1.121",
   "logging_rev": "1590ba0b648a51e7eb3895c612e4b72f72623b6f",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_rev": "dbeafd47759e7dd0a167602153bb9c49fb5e5fe7",
+  "markdown_rev": "6f89681d59541ddb1cf3a58efbdaa2304ffc3f51",
   "matcher_rev": "9cae8faa7868bf3a88a7ba45eb0bd128e66ac515",
   "mime_tag": "0.9.7",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",

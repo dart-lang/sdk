@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-10-09T10:15:45.502457",
+  "generated": "2020-10-15T16:28:43.685252",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -454,7 +454,7 @@
     {
       "name": "observatory_test_package",
       "rootUri": "../runtime/observatory/tests/service/observatory_test_package",
-      "languageVersion": "2.10"
+      "languageVersion": "2.9"
     },
     {
       "name": "observatory_test_package_2",
@@ -466,6 +466,11 @@
       "rootUri": "../third_party/pkg_tested/package_config",
       "packageUri": "lib/",
       "languageVersion": "2.7"
+    },
+    {
+      "name": "package_deps",
+      "rootUri": "../tools/package_deps",
+      "languageVersion": "2.8"
     },
     {
       "name": "path",
@@ -495,7 +500,7 @@
       "name": "pub",
       "rootUri": "../third_party/pkg/pub",
       "packageUri": "lib/",
-      "languageVersion": "2.9"
+      "languageVersion": "2.11"
     },
     {
       "name": "pub_semver",
