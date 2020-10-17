@@ -4012,6 +4012,74 @@ void repro(){
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_late_final_hint_instance_field_without_constructor() async {
+    var content = '''
+class C {
+  /*late final*/ int x;
+  f() {
+    x = 1;
+  }
+  int g() => x;
+}
+''';
+    var expected = '''
+class C {
+  late final int x;
+  f() {
+    x = 1;
+  }
+  int g() => x;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_late_final_hint_local_variable() async {
+    var content = '''
+int f(bool b1, bool b2) {
+  /*late final*/ int x;
+  if (b1) {
+    x = 1;
+  }
+  if (b2) {
+    return x;
+  }
+  return 0;
+}
+''';
+    var expected = '''
+int f(bool b1, bool b2) {
+  late final int x;
+  if (b1) {
+    x = 1;
+  }
+  if (b2) {
+    return x;
+  }
+  return 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_late_final_hint_top_level_var() async {
+    var content = '''
+/*late final*/ int x;
+f() {
+  x = 1;
+}
+int g() => x;
+''';
+    var expected = '''
+late final int x;
+f() {
+  x = 1;
+}
+int g() => x;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_late_hint_followed_by_underscore() async {
     var content = '''
 class _C {}
@@ -4070,28 +4138,6 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_late_final_hint_instance_field_without_constructor() async {
-    var content = '''
-class C {
-  /*late final*/ int x;
-  f() {
-    x = 1;
-  }
-  int g() => x;
-}
-''';
-    var expected = '''
-class C {
-  late final int x;
-  f() {
-    x = 1;
-  }
-  int g() => x;
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   Future<void> test_late_hint_local_variable() async {
     var content = '''
 int f(bool b1, bool b2) {
@@ -4108,34 +4154,6 @@ int f(bool b1, bool b2) {
     var expected = '''
 int f(bool b1, bool b2) {
   late int x;
-  if (b1) {
-    x = 1;
-  }
-  if (b2) {
-    return x;
-  }
-  return 0;
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
-  Future<void> test_late_final_hint_local_variable() async {
-    var content = '''
-int f(bool b1, bool b2) {
-  /*late final*/ int x;
-  if (b1) {
-    x = 1;
-  }
-  if (b2) {
-    return x;
-  }
-  return 0;
-}
-''';
-    var expected = '''
-int f(bool b1, bool b2) {
-  late final int x;
   if (b1) {
     x = 1;
   }
@@ -4180,24 +4198,6 @@ int g() => x;
 ''';
     var expected = '''
 late int x;
-f() {
-  x = 1;
-}
-int g() => x;
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
-  Future<void> test_late_final_hint_top_level_var() async {
-    var content = '''
-/*late final*/ int x;
-f() {
-  x = 1;
-}
-int g() => x;
-''';
-    var expected = '''
-late final int x;
 f() {
   x = 1;
 }
