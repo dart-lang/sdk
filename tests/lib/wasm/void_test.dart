@@ -25,7 +25,7 @@ void main() {
     0x80, 0x08, 0x0b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   ]);
 
-  var inst = WasmModule(data).instantiate(WasmImports());
+  var inst = WasmModule(data).instantiate().build();
   var setFn = inst.lookupFunction("set");
   var getFn = inst.lookupFunction("get");
   Expect.isNull(setFn(123, 456));

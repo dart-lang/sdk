@@ -201,7 +201,12 @@ class DeferredObject {
  private:
   enum {
     kClassIndex = 0,
-    kLengthIndex,  // Number of context variables for contexts, -1 otherwise.
+
+    // Number of context variables for contexts,
+    // number of elements for arrays and typed data objects,
+    // -1 otherwise.
+    kLengthIndex,
+
     kFieldsStartIndex
   };
 

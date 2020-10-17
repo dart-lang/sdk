@@ -7,6 +7,7 @@
 #include "vm/debugger.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
@@ -260,7 +261,8 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   }
   // Regular functions known to their owner use their name (percent-encoded).
   String& name = String::Handle(f.name());
-  if (cls.LookupFunction(name) == f.raw()) {
+  Thread* thread = Thread::Current();
+  if (Resolver::ResolveFunction(thread->zone(), cls, name) == f.raw()) {
     const char* encoded_name = String::EncodeIRI(name);
     if (cls.IsTopLevel()) {
       const auto& library = Library::Handle(cls.library());

@@ -11,6 +11,7 @@
 #include "vm/compiler/runtime_api.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 
 namespace dart {
 namespace kernel {
@@ -1108,7 +1109,7 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
     const auto& func_name = String::Handle(Z, parent.name());
     const auto& owner = Class::Handle(Z, parent.Owner());
     if (owner.EnsureIsFinalized(thread_) == Error::null()) {
-      function = owner.LookupFunction(func_name);
+      function = Resolver::ResolveFunction(Z, owner, func_name);
     }
   }
 

@@ -1632,10 +1632,9 @@ Function& StreamingFlowGraphBuilder::FindMatchingFunction(
   ArgumentsDescriptor args_desc(
       Array::Handle(Z, ArgumentsDescriptor::NewBoxed(
                            type_args_len, argument_count, argument_names)));
-  Function& function =
-      Function::Handle(Z, Resolver::ResolveDynamicForReceiverClassAllowPrivate(
+  return Function::Handle(Z,
+                          Resolver::ResolveDynamicForReceiverClassAllowPrivate(
                               klass, name, args_desc, /*allow_add=*/false));
-  return function;
 }
 
 bool StreamingFlowGraphBuilder::NeedsDebugStepCheck(const Function& function,
@@ -2453,16 +2452,17 @@ static Function& GetNoSuchMethodOrDie(Thread* thread,
                                       const Class& klass) {
   Function& nsm_function = Function::Handle(zone);
   Class& iterate_klass = Class::Handle(zone, klass.raw());
-  while (!iterate_klass.IsNull()) {
-    if (iterate_klass.EnsureIsFinalized(thread) == Error::null()) {
-      nsm_function =
-          iterate_klass.LookupDynamicFunction(Symbols::NoSuchMethod());
+  if (!iterate_klass.IsNull() &&
+      iterate_klass.EnsureIsFinalized(thread) == Error::null()) {
+    while (!iterate_klass.IsNull()) {
+      nsm_function = Resolver::ResolveDynamicFunction(zone, iterate_klass,
+                                                      Symbols::NoSuchMethod());
+      if (!nsm_function.IsNull() && nsm_function.NumParameters() == 2 &&
+          nsm_function.NumTypeParameters() == 0) {
+        break;
+      }
+      iterate_klass = iterate_klass.SuperClass();
     }
-    if (!nsm_function.IsNull() && nsm_function.NumParameters() == 2 &&
-        nsm_function.NumTypeParameters() == 0) {
-      break;
-    }
-    iterate_klass = iterate_klass.SuperClass();
   }
   // We are guaranteed to find noSuchMethod of class Object.
   ASSERT(!nsm_function.IsNull());
@@ -2544,9 +2544,9 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
   // Search the superclass chain for the selector looking for either getter or
   // method.
   Function& function = Function::Handle(Z);
-  while (!klass.IsNull()) {
-    if (klass.EnsureIsFinalized(thread()) == Error::null()) {
-      function = klass.LookupDynamicFunction(method_name);
+  if (!klass.IsNull() && klass.EnsureIsFinalized(thread()) == Error::null()) {
+    while (!klass.IsNull()) {
+      function = Resolver::ResolveDynamicFunction(Z, klass, method_name);
       if (!function.IsNull()) {
         Function& target =
             Function::ZoneHandle(Z, function.ImplicitClosureFunction());
@@ -2555,10 +2555,10 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
         // which captures `this`.
         return BuildImplicitClosureCreation(target);
       }
-      function = klass.LookupDynamicFunction(getter_name);
+      function = Resolver::ResolveDynamicFunction(Z, klass, getter_name);
       if (!function.IsNull()) break;
+      klass = klass.SuperClass();
     }
-    klass = klass.SuperClass();
   }
 
   Fragment instructions;
@@ -2608,7 +2608,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
 
   Function& function = Function::Handle(Z);
   if (klass.EnsureIsFinalized(thread()) == Error::null()) {
-    function = H.LookupDynamicFunction(klass, setter_name);
+    function = Resolver::ResolveDynamicFunction(Z, klass, setter_name);
   }
 
   Fragment instructions(MakeTemp());
@@ -3874,8 +3874,8 @@ Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
   ASSERT(!future.IsNull());
   const auto& error = future.EnsureIsFinalized(thread());
   ASSERT(error == Error::null());
-  const Function& constructor =
-      Function::ZoneHandle(Z, future.LookupFunction(Symbols::FutureValue()));
+  Function& constructor = Function::ZoneHandle(
+      Z, Resolver::ResolveFunction(Z, future, Symbols::FutureValue()));
   ASSERT(!constructor.IsNull());
 
   Fragment instructions;

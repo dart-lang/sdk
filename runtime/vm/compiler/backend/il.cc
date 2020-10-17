@@ -993,9 +993,8 @@ Representation LoadFieldInstr::representation() const {
 AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
     TokenPosition token_pos,
     intptr_t num_context_variables)
-    : token_pos_(token_pos),
-      num_context_variables_(num_context_variables),
-      identity_(AliasIdentity::Unknown()) {
+    : TemplateAllocation(token_pos),
+      num_context_variables_(num_context_variables) {
   // This instruction is not used in AOT for code size reasons.
   ASSERT(!CompilerState::Current().is_aot());
 }
@@ -1242,6 +1241,15 @@ const Object& Value::BoundConstant() const {
   ConstantInstr* constant = definition()->AsConstant();
   ASSERT(constant != NULL);
   return constant->value();
+}
+
+bool Value::BindsToSmiConstant() const {
+  return BindsToConstant() && BoundConstant().IsSmi();
+}
+
+intptr_t Value::BoundSmiConstant() const {
+  ASSERT(BindsToSmiConstant());
+  return Smi::Cast(BoundConstant()).Value();
 }
 
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
@@ -2745,6 +2753,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
+    case Slot::Kind::kArrayElement:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:
       return false;
@@ -5658,14 +5667,10 @@ bool TestCidsInstr::AttributesEqual(Instruction* other) const {
   return true;
 }
 
-static bool BindsToSmiConstant(Value* value) {
-  return value->BindsToConstant() && value->BoundConstant().IsSmi();
-}
-
 bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
                                Value* v1,
                                Value* v2) {
-  bool is_smi_result = BindsToSmiConstant(v1) && BindsToSmiConstant(v2);
+  bool is_smi_result = v1->BindsToSmiConstant() && v2->BindsToSmiConstant();
   if (comparison->IsStrictCompare()) {
     // Strict comparison with number checks calls a stub and is not supported
     // by if-conversion.

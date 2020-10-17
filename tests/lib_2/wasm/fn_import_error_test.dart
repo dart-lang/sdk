@@ -5,7 +5,7 @@
 // Test errors thrown by function imports.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
@@ -25,36 +25,27 @@ void main() {
   ]);
 
   var mod = WasmModule(data);
-  var imp = WasmImports()
-    ..addFunction<Int64 Function(Int32, Int64, Float, Double)>(
-        "env", "someFn", (num a, num b, num c, num d) => 123);
-  mod.instantiate(imp);
 
-  imp = WasmImports();
-  Expect.throwsArgumentError(() => mod.instantiate(imp));
+  // Valid instantiation.
+  var inst = mod.instantiate()
+    .addFunction(
+        "env", "someFn", (int a, int b, num c, double d) => 123).build();
 
-  imp = WasmImports()
-    ..addFunction<Int64 Function(Int32)>("env", "someFn", (num a) => 123);
-  Expect.throwsArgumentError(() => mod.instantiate(imp));
+  // Missing imports.
+  Expect.throws(() => mod.instantiate().build(), (Exception e) => "$e".contains("Missing import"));
 
-  imp = WasmImports()
-    ..addFunction<Double Function(Int32, Int64, Float, Double)>(
-        "env", "someFn", (num a, num b, num c, num d) => 123);
-  Expect.throwsArgumentError(() => mod.instantiate(imp));
+  // Wrong kind of import.
+  Expect.throws(() => mod.instantiate().addMemory("env", "someFn", mod.createMemory(10)), (Exception e) => "$e".contains("Import is not a memory"));
 
-  imp = WasmImports()
-    ..addFunction<Int64 Function(Int32, Int64, Float, Float)>(
-        "env", "someFn", (num a, num b, num c, num d) => 123);
-  Expect.throwsArgumentError(() => mod.instantiate(imp));
+  // Wrong namespace.
+  Expect.throws(() => mod.instantiate().addFunction("foo", "someFn", (int a, int b, num c, double d) => 123).build(), (Exception e) => "$e".contains("Import not found"));
 
-  Expect.throwsArgumentError(() => WasmImports()
-    ..addFunction<dynamic Function(Int32, Int64, Float, Double)>(
-        "env", "someFn", (num a, num b, num c, num d) => 123));
+  // Wrong name.
+  Expect.throws(() => mod.instantiate().addFunction("env", "otherFn", (int a, int b, num c, double d) => 123).build(), (Exception e) => "$e".contains("Import not found"));
 
-  Expect.throwsArgumentError(() => WasmImports()
-    ..addFunction<Int64 Function(Int32, Int64, dynamic, Double)>(
-        "env", "someFn", (num a, num b, num c, num d) => 123));
-
-  imp = WasmImports()..addGlobal<Int64>("env", "someFn", 123, false);
-  Expect.throwsArgumentError(() => mod.instantiate(imp));
+  // Already filled.
+  Expect.throws(() => mod.instantiate()
+    .addFunction("env", "someFn", (int a, int b, num c, double d) => 123)
+    .addFunction("env", "someFn", (int a, int b, num c, double d) => 456)
+    .build(), (Exception e) => "$e".contains("Import already filled"));
 }

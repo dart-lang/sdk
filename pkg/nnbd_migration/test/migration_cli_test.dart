@@ -495,6 +495,29 @@ analyzer:
 '''));
   }
 
+  test_analysis_options_analyzer_is_missing_enable_experiment_nested_map() async {
+    var projectContents = simpleProject(analysisOptionsText: '''
+analyzer:
+  exclude:
+    foo:
+      bar: 1
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli().decodeCommandLineArgs(
+        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, analysisOptionsText: '''
+analyzer:
+  exclude:
+    foo:
+      bar: 1
+  enable-experiment:
+    - non-nullable
+'''));
+  }
+
   test_analysis_options_analyzer_is_not_a_map() async {
     var analysisOptionsText = '''
 analyzer: 1

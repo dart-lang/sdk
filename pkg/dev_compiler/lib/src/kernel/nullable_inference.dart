@@ -5,9 +5,12 @@
 // @dart = 2.9
 
 import 'dart:collection';
+
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
+
+import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import 'js_typerep.dart';
 import 'kernel_helpers.dart';
 
@@ -40,8 +43,12 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   final _variableInference = _NullableVariableInference();
 
-  NullableInference(this.jsTypeRep, this._staticTypeContext)
-      : coreTypes = jsTypeRep.coreTypes {
+  final bool _soundNullSafety;
+
+  NullableInference(this.jsTypeRep, this._staticTypeContext,
+      {SharedCompilerOptions options})
+      : coreTypes = jsTypeRep.coreTypes,
+        _soundNullSafety = options?.soundNullSafety ?? false {
     _variableInference._nullInference = this;
   }
 
@@ -85,38 +92,42 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   @override
   bool visitPropertyGet(PropertyGet node) =>
-      _getterIsNullable(node.interfaceTarget);
+      _getterIsNullable(node.interfaceTarget, node);
 
   @override
   bool visitPropertySet(PropertySet node) => isNullable(node.value);
 
   @override
   bool visitSuperPropertyGet(SuperPropertyGet node) =>
-      _getterIsNullable(node.interfaceTarget);
+      _getterIsNullable(node.interfaceTarget, node);
 
   @override
   bool visitSuperPropertySet(SuperPropertySet node) => isNullable(node.value);
 
   @override
-  bool visitStaticGet(StaticGet node) => _getterIsNullable(node.target);
+  bool visitStaticGet(StaticGet node) => _getterIsNullable(node.target, node);
 
   @override
   bool visitStaticSet(StaticSet node) => isNullable(node.value);
 
   @override
   bool visitMethodInvocation(MethodInvocation node) => _invocationIsNullable(
-      node.interfaceTarget, node.name.text, node.receiver);
+      node.interfaceTarget, node.name.text, node, node.receiver);
 
   @override
   bool visitSuperMethodInvocation(SuperMethodInvocation node) =>
-      _invocationIsNullable(node.interfaceTarget, node.name.text);
+      _invocationIsNullable(node.interfaceTarget, node.name.text, node);
 
-  bool _invocationIsNullable(Member target, String name,
+  bool _invocationIsNullable(
+      Member target, String name, InvocationExpression node,
       [Expression receiver]) {
     // TODO(jmesserly): this is not a valid assumption for user-defined equality
     // but it is added to match the behavior of the Analyzer backend.
     // https://github.com/dart-lang/sdk/issues/31854
     if (name == '==') return false;
+    if (_staticallyNonNullable(node.getStaticType(_staticTypeContext))) {
+      return false;
+    }
     if (target == null) return true; // dynamic call
     if (target.name.text == 'toString' &&
         receiver != null &&
@@ -124,19 +135,27 @@ class NullableInference extends ExpressionVisitor<bool> {
             coreTypes.stringLegacyRawType) {
       // TODO(jmesserly): `class String` in dart:core does not explicitly
       // declare `toString`, which results in a target of `Object.toString` even
-      // when the reciever type is known to be `String`. So we work around it.
+      // when the receiver type is known to be `String`. So we work around it.
       // (The Analyzer backend of DDC probably has the same issue.)
       return false;
     }
     return _returnValueIsNullable(target);
   }
 
-  bool _getterIsNullable(Member target) {
+  bool _getterIsNullable(Member target, Expression node) {
+    if (_staticallyNonNullable(node.getStaticType(_staticTypeContext))) {
+      return false;
+    }
     if (target == null) return true;
     // tear-offs are not null
     if (target is Procedure && !target.isAccessor) return false;
     return _returnValueIsNullable(target);
   }
+
+  bool _staticallyNonNullable(DartType type) =>
+      _soundNullSafety &&
+      type != null &&
+      type.nullability == Nullability.nonNullable;
 
   bool _returnValueIsNullable(Member target) {
     var targetClass = target.enclosingClass;
@@ -179,7 +198,7 @@ class NullableInference extends ExpressionVisitor<bool> {
             typeString.split('|').contains('Null');
       }
     }
-    return _invocationIsNullable(target, node.name.text);
+    return _invocationIsNullable(target, node.name.text, node);
   }
 
   @override
@@ -202,7 +221,10 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool visitIsExpression(IsExpression node) => false;
 
   @override
-  bool visitAsExpression(AsExpression node) => isNullable(node.operand);
+  bool visitAsExpression(AsExpression node) =>
+      _staticallyNonNullable(node.getStaticType(_staticTypeContext))
+          ? false
+          : isNullable(node.operand);
 
   @override
   bool visitSymbolLiteral(SymbolLiteral node) => false;
@@ -226,7 +248,8 @@ class NullableInference extends ExpressionVisitor<bool> {
   bool visitMapLiteral(MapLiteral node) => false;
 
   @override
-  bool visitAwaitExpression(AwaitExpression node) => true;
+  bool visitAwaitExpression(AwaitExpression node) =>
+      !_staticallyNonNullable(node.getStaticType(_staticTypeContext));
 
   @override
   bool visitFunctionExpression(FunctionExpression node) => false;
@@ -336,7 +359,8 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
   @override
   void visitFunctionNode(FunctionNode node) {
     _functions.add(node);
-    if (_nullInference.allowNotNullDeclarations) {
+    if (_nullInference.allowNotNullDeclarations ||
+        _nullInference._soundNullSafety) {
       visitList(node.positionalParameters, this);
       visitList(node.namedParameters, this);
     }
@@ -362,9 +386,14 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
       }
     }
     var initializer = node.initializer;
-    // A Variable declaration with a FunctionNode as a parent is a function
-    // parameter so we can't trust the initializer as a nullable check.
-    if (node.parent is! FunctionNode) {
+    if (_nullInference._soundNullSafety &&
+        node.type.nullability == Nullability.nonNullable) {
+      // Avoid null checks for variables when the type system guarantees they
+      // can never be null.
+      _notNullLocals.add(node);
+    } else if (node.parent is! FunctionNode) {
+      // A variable declaration with a FunctionNode as a parent is a function
+      // parameter so we can't trust the initializer as a nullable check.
       if (initializer != null) {
         var savedVariable = _variableAssignedTo;
         _variableAssignedTo = node;

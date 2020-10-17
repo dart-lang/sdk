@@ -3619,7 +3619,8 @@ FunctionPtr Function::GetMethodExtractor(const String& getter_name) const {
   if (owner.EnsureIsFinalized(Thread::Current()) != Error::null()) {
     return Function::null();
   }
-  Function& result = Function::Handle(owner.LookupDynamicFunction(getter_name));
+  Function& result =
+      Function::Handle(owner.LookupDynamicFunctionUnsafe(getter_name));
   if (result.IsNull()) {
     result = CreateMethodExtractor(getter_name);
   }
@@ -5264,13 +5265,8 @@ bool Class::IsPrivate() const {
   return Library::IsPrivate(String::Handle(Name()));
 }
 
-FunctionPtr Class::LookupDynamicFunction(const String& name) const {
-  return LookupFunction(name, kInstance);
-}
-
-FunctionPtr Class::LookupDynamicFunctionAllowAbstract(
-    const String& name) const {
-  return LookupFunction(name, kInstanceAllowAbstract);
+FunctionPtr Class::LookupDynamicFunctionUnsafe(const String& name) const {
+  return LookupFunctionUnsafe(name, kInstance);
 }
 
 FunctionPtr Class::LookupDynamicFunctionAllowPrivate(const String& name) const {
@@ -5278,7 +5274,7 @@ FunctionPtr Class::LookupDynamicFunctionAllowPrivate(const String& name) const {
 }
 
 FunctionPtr Class::LookupStaticFunction(const String& name) const {
-  return LookupFunction(name, kStatic);
+  return LookupFunctionUnsafe(name, kStatic);
 }
 
 FunctionPtr Class::LookupStaticFunctionAllowPrivate(const String& name) const {
@@ -5286,7 +5282,7 @@ FunctionPtr Class::LookupStaticFunctionAllowPrivate(const String& name) const {
 }
 
 FunctionPtr Class::LookupConstructor(const String& name) const {
-  return LookupFunction(name, kConstructor);
+  return LookupFunctionUnsafe(name, kConstructor);
 }
 
 FunctionPtr Class::LookupConstructorAllowPrivate(const String& name) const {
@@ -5294,19 +5290,19 @@ FunctionPtr Class::LookupConstructorAllowPrivate(const String& name) const {
 }
 
 FunctionPtr Class::LookupFactory(const String& name) const {
-  return LookupFunction(name, kFactory);
+  return LookupFunctionUnsafe(name, kFactory);
 }
 
 FunctionPtr Class::LookupFactoryAllowPrivate(const String& name) const {
   return LookupFunctionAllowPrivate(name, kFactory);
 }
 
-FunctionPtr Class::LookupFunction(const String& name) const {
-  return LookupFunction(name, kAny);
-}
-
 FunctionPtr Class::LookupFunctionAllowPrivate(const String& name) const {
   return LookupFunctionAllowPrivate(name, kAny);
+}
+
+FunctionPtr Class::LookupFunctionUnsafe(const String& name) const {
+  return LookupFunctionUnsafe(name, kAny);
 }
 
 // Returns true if 'prefix' and 'accessor_name' match 'name'.
@@ -5358,7 +5354,8 @@ FunctionPtr Class::CheckFunctionType(const Function& func, MemberKind kind) {
   return Function::null();
 }
 
-FunctionPtr Class::LookupFunction(const String& name, MemberKind kind) const {
+FunctionPtr Class::LookupFunctionUnsafe(const String& name,
+                                        MemberKind kind) const {
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   RELEASE_ASSERT(is_finalized());
@@ -9066,9 +9063,11 @@ FunctionPtr Function::ImplicitClosureTarget(Zone* zone) const {
   const auto& parent = Function::Handle(zone, parent_function());
   const auto& func_name = String::Handle(zone, parent.name());
   const auto& owner = Class::Handle(zone, parent.Owner());
-  const auto& error = owner.EnsureIsFinalized(Thread::Current());
+  Thread* thread = Thread::Current();
+  const auto& error = owner.EnsureIsFinalized(thread);
   ASSERT(error == Error::null());
-  auto& target = Function::Handle(zone, owner.LookupFunction(func_name));
+  auto& target =
+      Function::Handle(zone, Resolver::ResolveFunction(zone, owner, func_name));
 
   if (!target.IsNull() && (target.raw() != parent.raw())) {
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
@@ -11434,7 +11433,6 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 StringPtr Script::GetLine(intptr_t line_number, Heap::Space space) const {
   const String& src = String::Handle(Source());
   if (src.IsNull()) {
-    ASSERT(Dart::vm_snapshot_kind() == Snapshot::kFullAOT);
     return Symbols::OptimizedOut().raw();
   }
   intptr_t relative_line_number = line_number - line_offset();

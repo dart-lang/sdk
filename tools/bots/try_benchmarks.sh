@@ -148,7 +148,6 @@ for command; do
       out/ReleaseIA32/dart-sdk \
       out/ReleaseIA32/dart \
       out/ReleaseIA32/gen_snapshot \
-      out/ReleaseIA32/gen_kernel_bytecode.dill \
       out/ReleaseIA32/kernel-service.dart.snapshot \
       out/ReleaseIA32/run_vm_tests \
       sdk \
@@ -178,8 +177,6 @@ EOF
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot InitialRSS
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable InitialRSS
-    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot GenKernelKernelLoadKernel
-    out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot KernelServiceCompileAll
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable KernelServiceCompileAll
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot UseDartApi
@@ -290,7 +287,6 @@ EOF
       out/ReleaseX64/dart-sdk \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
-      out/ReleaseX64/gen_kernel_bytecode.dill \
       out/ReleaseX64/kernel-service.dart.snapshot \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64 \
@@ -355,8 +351,6 @@ EOF
     out/ReleaseX64/dart --packages=.packages pkg/kernel/test/binary_bench.dart --golem AstFromBinaryLazy out/ReleaseX64/vm_platform_strong.dill
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot InitialRSS
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable InitialRSS
-    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot GenKernelKernelLoadKernel
-    out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable GenKernelKernelLoadKernel
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot KernelServiceCompileAll
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot --sound-null-safety --enable-experiment=non-nullable KernelServiceCompileAll
     out/ReleaseX64/run_vm_tests --dfe=out/ReleaseX64/kernel-service.dart.snapshot UseDartApi

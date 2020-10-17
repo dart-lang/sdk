@@ -508,11 +508,15 @@ class List<E> {
     // runtime check.
     if (elements is Iterable<E>) {
       for (var e in elements) {
-        list.add(e);
+        // Unsafe add here to avoid extra casts and growable checks enforced by
+        // the exposed add method.
+        JS('', '#.push(#)', list, e);
       }
     } else {
       for (var e in elements) {
-        list.add(e as E);
+        // Unsafe add here to avoid extra casts and growable checks enforced by
+        // the exposed add method.
+        JS('', '#.push(#)', list, e as E);
       }
     }
     if (!growable) JSArray.markFixedList(list);
@@ -521,8 +525,14 @@ class List<E> {
 
   @patch
   factory List.of(Iterable<E> elements, {bool growable = true}) {
-    // TODO(32937): Specialize to benefit from known element type.
-    return List.from(elements, growable: growable);
+    var list = JSArray<E>.of(JS('', '[]'));
+    for (var e in elements) {
+      // Unsafe add here to avoid extra casts and growable checks enforced by
+      // the exposed add method.
+      JS('', '#.push(#)', list, e);
+    }
+    if (!growable) JSArray.markFixedList(list);
+    return list;
   }
 
   @patch
@@ -531,7 +541,9 @@ class List<E> {
     final result = JSArray<E>.of(JS('', 'new Array(#)', length));
     if (!growable) JSArray.markFixedList(result);
     for (int i = 0; i < length; i++) {
-      result[i] = generator(i);
+      // Unsafe assignment here to avoid extra casts enforced by the exposed
+      // []= operator.
+      JS('', '#[#] = #', result, i, generator(i));
     }
     return result;
   }

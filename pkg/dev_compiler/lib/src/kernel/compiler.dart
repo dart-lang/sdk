@@ -250,7 +250,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       types,
       hierarchy,
       jsTypeRep,
-      NullableInference(jsTypeRep, staticTypeContext),
+      NullableInference(jsTypeRep, staticTypeContext, options: options),
       staticTypeContext,
       options,
       importToSummary,
@@ -4271,9 +4271,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (_reifyTearoff(member)) {
       return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
-    } else if (isJsMember(member) &&
-        member is Procedure &&
-        !member.isAccessor) {
+    } else if (member is Procedure &&
+        !member.isAccessor &&
+        isJsMember(member)) {
       return runtimeCall(
           'tearoffInterop(#)', [js_ast.PropertyAccess(jsReceiver, jsName)]);
     } else {
@@ -4472,7 +4472,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   bool _isDynamicOrFunction(DartType t) =>
-      t == _coreTypes.functionLegacyRawType || t == const DynamicType();
+      DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
+          .areEqual(t, _coreTypes.functionNonNullableRawType) ||
+      t == const DynamicType();
 
   js_ast.Expression _emitUnaryOperator(
       Expression expr, Member target, InvocationExpression node) {
@@ -5329,8 +5331,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (jsExpr is js_ast.LiteralString && jsExpr.valueWithoutQuotes.isEmpty) {
         continue;
       }
-      parts.add(e.getStaticType(_staticTypeContext) ==
-                  _types.coreTypes.stringLegacyRawType &&
+      var type = e.getStaticType(_staticTypeContext);
+      parts.add(DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
+                  .areEqual(type, _coreTypes.stringNonNullableRawType) &&
               !isNullable(e)
           ? jsExpr
           : runtimeCall('str(#)', [jsExpr]));

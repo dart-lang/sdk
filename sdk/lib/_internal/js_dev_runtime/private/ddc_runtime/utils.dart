@@ -8,7 +8,7 @@ part of dart._runtime;
 /// by the Dart runtime.
 // TODO(ochafik): Rewrite some of these in Dart when possible.
 
-final Function(Object, Object, Object) defineProperty =
+final Function(dynamic, dynamic, dynamic) defineProperty =
     JS('', 'Object.defineProperty');
 
 defineValue(obj, name, value) {
@@ -16,23 +16,23 @@ defineValue(obj, name, value) {
   return value;
 }
 
-final Function(Object, Object,
-    {Object? get,
-    Object? set,
-    Object? value,
+final Function(dynamic, dynamic,
+    {dynamic get,
+    dynamic set,
+    dynamic value,
     bool? configurable,
     bool? writable}) defineAccessor = JS('', 'Object.defineProperty');
 
-final dynamic Function(Object, Object) getOwnPropertyDescriptor =
+final dynamic Function(dynamic, dynamic) getOwnPropertyDescriptor =
     JS('', 'Object.getOwnPropertyDescriptor');
 
-final List Function(Object) getOwnPropertyNames =
+final List Function(dynamic) getOwnPropertyNames =
     JS('', 'Object.getOwnPropertyNames');
 
-final List Function(Object) getOwnPropertySymbols =
+final List Function(dynamic) getOwnPropertySymbols =
     JS('', 'Object.getOwnPropertySymbols');
 
-final Function(Object) getPrototypeOf = JS('', 'Object.getPrototypeOf');
+final Function(dynamic) getPrototypeOf = JS('', 'Object.getPrototypeOf');
 
 /// This error indicates a strong mode specific failure, other than a type
 /// assertion failure (TypeError) or CastError.

@@ -516,8 +516,10 @@ $stackTrace''');
 }
 
 class _YamlFile {
+  static final _newlineCharacter = RegExp('[\r\n]');
   final String path;
   final String textContent;
+
   final YamlNode content;
 
   _YamlFile._(this.path, this.textContent, this.content);
@@ -526,8 +528,6 @@ class _YamlFile {
   int _getListIndentation(YamlList node) {
     return node.span.start.column;
   }
-
-  static final _newlineCharacter = RegExp('[\r\n]');
 
   /// Returns the indentation of the first (and presumably all) entry of [node].
   int _getMapEntryIndentation(YamlMap node) {
@@ -546,7 +546,14 @@ class _YamlFile {
         index++;
       }
       return index - firstSpaceIndex;
+    } else if (value is YamlMap) {
+      // If the first entry of [node] is a YamlMap, then the span for [node]
+      // indicates the start of the first entry.
+      return node.span.start.column;
     } else {
+      assert(value is YamlList);
+      // If the first entry of [node] is a YamlList, then the span for [value]
+      // indicates the start of the first list entry.
       return value.span.start.column;
     }
   }

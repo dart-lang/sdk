@@ -1657,10 +1657,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   Set<TargetKind> _targetKindsFor(ElementAnnotation annotation) {
     var element = annotation.element;
     ClassElement classElement;
-    if (element is VariableElement) {
-      var type = element.type;
-      if (type is InterfaceType) {
-        classElement = type.element;
+    if (element is PropertyAccessorElement) {
+      if (element.isGetter) {
+        var type = element.returnType;
+        if (type is InterfaceType) {
+          classElement = type.element;
+        }
       }
     } else if (element is ConstructorElement) {
       classElement = element.enclosingElement;

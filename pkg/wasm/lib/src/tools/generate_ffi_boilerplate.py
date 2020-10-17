@@ -283,9 +283,12 @@ WASM_API_EXTERN wasm_memory_pages_t wasm_memory_size(const wasm_memory_t*);
 WASM_API_EXTERN bool wasm_memory_grow(wasm_memory_t*, wasm_memory_pages_t delta);
 WASM_API_EXTERN wasm_externkind_t wasm_extern_kind(const wasm_extern_t*);
 WASM_API_EXTERN wasm_func_t* wasm_extern_as_func(wasm_extern_t*);
+WASM_API_EXTERN wasm_extern_t* wasm_func_as_extern(wasm_func_t*);
 WASM_API_EXTERN wasm_memory_t* wasm_extern_as_memory(wasm_extern_t*);
+WASM_API_EXTERN wasm_extern_t* wasm_memory_as_extern(wasm_memory_t*);
 WASM_API_EXTERN const wasm_valtype_vec_t* wasm_functype_params(const wasm_functype_t*);
 WASM_API_EXTERN const wasm_valtype_vec_t* wasm_functype_results(const wasm_functype_t*);
+WASM_API_EXTERN own wasm_func_t* wasm_func_new_with_env( wasm_store_t*, const wasm_functype_t* type, void* fn, void* env, void *finalizer);
 WASM_API_EXTERN own wasm_trap_t* wasm_func_call(const wasm_func_t*, const wasm_val_t args[], wasm_val_t results[]);
 WASM_API_EXTERN wasm_valkind_t wasm_valtype_kind(const wasm_valtype_t*);
 '''

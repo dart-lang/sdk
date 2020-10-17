@@ -149,7 +149,7 @@ bool CHA::HasOverride(const Class& cls,
       continue;
     }
 
-    if (direct_subclass.LookupDynamicFunction(function_name) !=
+    if (direct_subclass.LookupDynamicFunctionUnsafe(function_name) !=
         Function::null()) {
       return true;
     }

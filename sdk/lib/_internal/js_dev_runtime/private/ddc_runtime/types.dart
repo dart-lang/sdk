@@ -932,11 +932,11 @@ class GenericFunctionType extends AbstractFunctionType {
   List<TypeVariable> get typeFormals => _typeFormals;
 
   /// `true` if there are bounds on any of the generic type parameters.
-  get hasTypeBounds => _instantiateTypeBounds != null;
+  bool get hasTypeBounds => _instantiateTypeBounds != null;
 
   /// Checks that [typeArgs] satisfies the upper bounds of the [typeFormals],
   /// and throws a [TypeError] if they do not.
-  void checkBounds(List typeArgs) {
+  void checkBounds(List<Object> typeArgs) {
     // If we don't have explicit type parameter bounds, the bounds default to
     // a top type, so there's nothing to check here.
     if (!hasTypeBounds) return;
@@ -1290,7 +1290,7 @@ _isFunctionSubtype(ft1, ft2, @notNull bool strictMode) => JS('', '''(() => {
 
 /// Returns true if [t1] <: [t2].
 @notNull
-bool isSubtypeOf(@notNull Object t1, @notNull Object t2) {
+bool isSubtypeOf(@notNull t1, @notNull t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
   var map = JS<Object>('!', '#[#]', t1, _subtypeCache);

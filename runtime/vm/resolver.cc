@@ -136,7 +136,7 @@ FunctionPtr Resolver::ResolveDynamicForReceiverClass(
     bool allow_add) {
   return ResolveDynamicForReceiverClassWithCustomLookup(
       receiver_class, function_name, args_desc, allow_add,
-      std::mem_fn(&Class::LookupDynamicFunction));
+      std::mem_fn(&Class::LookupDynamicFunctionUnsafe));
 }
 
 FunctionPtr Resolver::ResolveDynamicForReceiverClassAllowPrivate(
@@ -149,13 +149,31 @@ FunctionPtr Resolver::ResolveDynamicForReceiverClassAllowPrivate(
       std::mem_fn(&Class::LookupDynamicFunctionAllowPrivate));
 }
 
+FunctionPtr Resolver::ResolveFunction(Zone* zone,
+                                      const Class& receiver_class,
+                                      const String& function_name) {
+  return ResolveDynamicAnyArgsWithCustomLookup(
+      zone, receiver_class, function_name, /*allow_add=*/false,
+      std::mem_fn(static_cast<FunctionPtr (Class::*)(const String&) const>(
+          &Class::LookupFunctionUnsafe)));
+}
+
+FunctionPtr Resolver::ResolveDynamicFunction(Zone* zone,
+                                             const Class& receiver_class,
+                                             const String& function_name) {
+  return ResolveDynamicAnyArgsWithCustomLookup(
+      zone, receiver_class, function_name, /*allow_add=*/false,
+      std::mem_fn(static_cast<FunctionPtr (Class::*)(const String&) const>(
+          &Class::LookupDynamicFunctionUnsafe)));
+}
+
 FunctionPtr Resolver::ResolveDynamicAnyArgs(Zone* zone,
                                             const Class& receiver_class,
                                             const String& function_name,
                                             bool allow_add) {
   return ResolveDynamicAnyArgsWithCustomLookup(
       zone, receiver_class, function_name, allow_add,
-      std::mem_fn(&Class::LookupDynamicFunctionAllowPrivate));
+      std::mem_fn(&Class::LookupDynamicFunctionUnsafe));
 }
 
 FunctionPtr Resolver::ResolveDynamicAnyArgsAllowPrivate(

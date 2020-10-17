@@ -148,6 +148,10 @@ class Slot : public ZoneAllocated {
     // A slot at a specific [index] in a [RawTypeArgument] vector.
     kTypeArgumentsIndex,
 
+    // A slot corresponding to an array element at given offset.
+    // Only used during allocation sinking and in MaterializeObjectInstr.
+    kArrayElement,
+
     // A slot within a Context object that contains a value of a captured
     // local variable.
     kCapturedVariable,
@@ -176,6 +180,10 @@ class Slot : public ZoneAllocated {
   // Returns a slot at a specific [index] in a [RawTypeArgument] vector.
   static const Slot& GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index);
 
+  // Returns a slot corresponding to an array element at [offset_in_bytes].
+  static const Slot& GetArrayElementSlot(Thread* thread,
+                                         intptr_t offset_in_bytes);
+
   // Returns a slot that represents the given captured local variable.
   static const Slot& GetContextVariableSlotFor(Thread* thread,
                                                const LocalVariable& var);
@@ -198,6 +206,7 @@ class Slot : public ZoneAllocated {
   bool IsLocalVariable() const { return kind() == Kind::kCapturedVariable; }
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
   bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
+  bool IsArrayElement() const { return kind() == Kind::kArrayElement; }
 
   const char* Name() const;
 

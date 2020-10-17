@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
-import '../../../generated/test_analysis_context.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -28,7 +24,7 @@ main() {
 }
 
 @reflectiveTest
-class IsNonNullableTest extends _NullableBase {
+class IsNonNullableTest extends AbstractTypeSystemNullSafetyTest {
   void isNonNullable(DartType type) {
     expect(typeSystem.isNonNullable(type), isTrue);
   }
@@ -193,7 +189,7 @@ class IsNonNullableTest extends _NullableBase {
 }
 
 @reflectiveTest
-class IsNullableTest extends _NullableBase {
+class IsNullableTest extends AbstractTypeSystemNullSafetyTest {
   void isNotNullable(DartType type) {
     expect(typeSystem.isNullable(type), isFalse);
   }
@@ -358,7 +354,7 @@ class IsNullableTest extends _NullableBase {
 }
 
 @reflectiveTest
-class IsPotentiallyNonNullableTest extends _NullableBase {
+class IsPotentiallyNonNullableTest extends AbstractTypeSystemNullSafetyTest {
   void isNotPotentiallyNonNullable(DartType type) {
     expect(typeSystem.isPotentiallyNonNullable(type), isFalse);
   }
@@ -405,7 +401,7 @@ class IsPotentiallyNonNullableTest extends _NullableBase {
 }
 
 @reflectiveTest
-class IsPotentiallyNullableTest extends _NullableBase {
+class IsPotentiallyNullableTest extends AbstractTypeSystemNullSafetyTest {
   void isNotPotentiallyNullable(DartType type) {
     expect(typeSystem.isPotentiallyNullable(type), isFalse);
   }
@@ -452,7 +448,7 @@ class IsPotentiallyNullableTest extends _NullableBase {
 }
 
 @reflectiveTest
-class IsStrictlyNonNullableTest extends _NullableBase {
+class IsStrictlyNonNullableTest extends AbstractTypeSystemNullSafetyTest {
   void isNotStrictlyNonNullable(DartType type) {
     expect(typeSystem.isStrictlyNonNullable(type), isFalse);
   }
@@ -599,7 +595,7 @@ class IsStrictlyNonNullableTest extends _NullableBase {
 }
 
 @reflectiveTest
-class PromoteToNonNullTest extends _NullableBase {
+class PromoteToNonNullTest extends AbstractTypeSystemNullSafetyTest {
   test_dynamic() {
     _check(dynamicType, dynamicType);
   }
@@ -795,24 +791,5 @@ class PromoteToNonNullTest extends _NullableBase {
     expect(actual.element, same(element));
     expect(actual.promotedBound, promotedBound);
     expect(actual.nullabilitySuffix, NullabilitySuffix.none);
-  }
-}
-
-abstract class _NullableBase with ElementsTypesMixin {
-  @override
-  TypeProvider typeProvider;
-
-  TypeSystemImpl typeSystem;
-
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting();
-  }
-
-  void setUp() {
-    var analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
-    typeProvider = analysisContext.typeProviderLegacy;
-    typeSystem = analysisContext.typeSystemLegacy;
   }
 }

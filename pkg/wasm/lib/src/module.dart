@@ -19,9 +19,10 @@ class WasmModule {
     _module = WasmRuntime().compile(_store, data);
   }
 
-  /// Instantiate the module with the given imports.
-  WasmInstance instantiate(WasmImports imports) {
-    return WasmInstance(_store, _module, imports);
+  /// Returns a WasmInstanceBuilder that is used to add all the imports that the
+  /// module needs, and then instantiate it.
+  WasmInstanceBuilder instantiate() {
+    return WasmInstanceBuilder(this);
   }
 
   /// Create a new memory with the given number of initial pages, and optional
@@ -37,47 +38,166 @@ class WasmModule {
     var runtime = WasmRuntime();
     var imports = runtime.importDescriptors(_module);
     for (var imp in imports) {
-      var kind = wasmerExternKindName(imp.kind);
-      description.write('import $kind: ${imp.moduleName}::${imp.name}\n');
+      description.write("import $imp\n");
     }
     var exports = runtime.exportDescriptors(_module);
     for (var exp in exports) {
-      var kind = wasmerExternKindName(exp.kind);
-      description.write('export $kind: ${exp.name}\n');
+      description.write("export $exp\n");
     }
     return description.toString();
   }
 }
 
-/// WasmImports holds all the imports for a WasmInstance.
-class WasmImports {
-  Pointer<Pointer<WasmerExtern>> _imports;
-  int _capacity;
-  int _length;
+Pointer<WasmerTrap> _wasmFnImportTrampoline(Pointer<_WasmFnImport> imp,
+    Pointer<WasmerVal> args, Pointer<WasmerVal> results) {
+  try {
+    _WasmFnImport._call(imp, args, results);
+  } catch (e) {
+    // TODO: Use WasmerTrap to handle this case. For now just print the
+    // exception (if we ignore it, FFI will silently return a default result).
+    print(e);
+  }
+  return nullptr;
+}
 
-  /// Create an imports object.
-  WasmImports([this._capacity = 4])
-      : _imports = allocate<Pointer<WasmerExtern>>(count: _capacity),
-        _length = 0 {}
+void _wasmFnImportFinalizer(Pointer<_WasmFnImport> imp) {
+  _wasmFnImportToFn.remove(imp.address);
+  free(imp);
+}
 
-  /// Returns the number of imports.
-  int get length => _length;
+final _wasmFnImportTrampolineNative = Pointer.fromFunction<
+    Pointer<WasmerTrap> Function(Pointer<_WasmFnImport>, Pointer<WasmerVal>,
+        Pointer<WasmerVal>)>(_wasmFnImportTrampoline);
+final _wasmFnImportToFn = <int, Function>{};
+final _wasmFnImportFinalizerNative =
+    Pointer.fromFunction<Void Function(Pointer<_WasmFnImport>)>(
+        _wasmFnImportFinalizer);
+
+class _WasmFnImport extends Struct {
+  @Int32()
+  external int numArgs;
+
+  @Int32()
+  external int returnType;
+
+  static void _call(Pointer<_WasmFnImport> imp, Pointer<WasmerVal> rawArgs,
+      Pointer<WasmerVal> rawResult) {
+    Function fn = _wasmFnImportToFn[imp.address] as Function;
+    var args = [];
+    for (var i = 0; i < imp.ref.numArgs; ++i) {
+      args.add(rawArgs[i].toDynamic);
+    }
+    var result = Function.apply(fn, args);
+    switch (imp.ref.returnType) {
+      case WasmerValKindI32:
+        rawResult.ref.i32 = result;
+        break;
+      case WasmerValKindI64:
+        rawResult.ref.i64 = result;
+        break;
+      case WasmerValKindF32:
+        rawResult.ref.f32 = result;
+        break;
+      case WasmerValKindF64:
+        rawResult.ref.f64 = result;
+        break;
+      case WasmerValKindVoid:
+      // Do nothing.
+    }
+  }
+}
+
+/// WasmInstanceBuilder is used collect all the imports that a WasmModule
+/// requires before it is instantiated.
+class WasmInstanceBuilder {
+  WasmModule _module;
+  late List<WasmImportDescriptor> _importDescs;
+  Map<String, int> _importIndex;
+  late Pointer<Pointer<WasmerExtern>> _imports;
+
+  WasmInstanceBuilder(this._module) : _importIndex = {} {
+    _importDescs = WasmRuntime().importDescriptors(_module._module);
+    _imports = allocate<Pointer<WasmerExtern>>(count: _importDescs.length);
+    for (var i = 0; i < _importDescs.length; ++i) {
+      var imp = _importDescs[i];
+      _importIndex["${imp.moduleName}::${imp.name}"] = i;
+      _imports[i] = nullptr;
+    }
+  }
+
+  int _getIndex(String moduleName, String name) {
+    var index = _importIndex["${moduleName}::${name}"];
+    if (index == null) {
+      throw Exception("Import not found: ${moduleName}::${name}");
+    } else if (_imports[index] != nullptr) {
+      throw Exception("Import already filled: ${moduleName}::${name}");
+    } else {
+      return index;
+    }
+  }
+
+  /// Add a WasmMemory to the imports.
+  WasmInstanceBuilder addMemory(
+      String moduleName, String name, WasmMemory memory) {
+    var index = _getIndex(moduleName, name);
+    var imp = _importDescs[index];
+    if (imp.kind != WasmerExternKindMemory) {
+      throw Exception("Import is not a memory: $imp");
+    }
+    _imports[index] = WasmRuntime().memoryToExtern(memory._mem);
+    return this;
+  }
+
+  /// Add a function to the imports.
+  WasmInstanceBuilder addFunction(String moduleName, String name, Function fn) {
+    var index = _getIndex(moduleName, name);
+    var imp = _importDescs[index];
+    var runtime = WasmRuntime();
+
+    if (imp.kind != WasmerExternKindFunction) {
+      throw Exception("Import is not a function: $imp");
+    }
+
+    var argTypes = runtime.getArgTypes(imp.funcType);
+    var returnType = runtime.getReturnType(imp.funcType);
+    var wasmFnImport = allocate<_WasmFnImport>();
+    wasmFnImport.ref.numArgs = argTypes.length;
+    wasmFnImport.ref.returnType = returnType;
+    _wasmFnImportToFn[wasmFnImport.address] = fn;
+    var fnImp = runtime.newFunc(
+        _module._store,
+        imp.funcType,
+        _wasmFnImportTrampolineNative,
+        wasmFnImport,
+        _wasmFnImportFinalizerNative);
+    _imports[index] = runtime.functionToExtern(fnImp);
+    return this;
+  }
+
+  /// Build the module instance.
+  WasmInstance build() {
+    for (var i = 0; i < _importDescs.length; ++i) {
+      if (_imports[i] == nullptr) {
+        throw Exception("Missing import: ${_importDescs[i]}");
+      }
+    }
+    return WasmInstance(_module, _imports);
+  }
 }
 
 /// WasmInstance is an instantiated WasmModule.
 class WasmInstance {
-  Pointer<WasmerStore> _store;
-  Pointer<WasmerModule> _module;
+  WasmModule _module;
   Pointer<WasmerInstance> _instance;
   Pointer<WasmerMemory>? _exportedMemory;
   Map<String, WasmFunction> _functions = {};
 
-  WasmInstance(this._store, this._module, WasmImports imports)
+  WasmInstance(this._module, Pointer<Pointer<WasmerExtern>> imports)
       : _instance = WasmRuntime()
-            .instantiate(_store, _module, imports._imports, imports.length) {
+            .instantiate(_module._store, _module._module, imports) {
     var runtime = WasmRuntime();
     var exports = runtime.exports(_instance);
-    var exportDescs = runtime.exportDescriptors(_module);
+    var exportDescs = runtime.exportDescriptors(_module._module);
     assert(exports.ref.length == exportDescs.length);
     for (var i = 0; i < exports.ref.length; ++i) {
       var e = exports.ref.data[i];
