@@ -339,6 +339,18 @@ class HintCode extends AnalyzerErrorCode {
               "members.");
 
   /**
+   * Parameters:
+   * 0: the name of the diagnostic being ignored
+   */
+  static const HintCode DUPLICATE_IGNORE = HintCode(
+      'DUPLICATE_IGNORE',
+      "The diagnostic '{0}' does not need to be ignored here because it is "
+          "already being ignored.",
+      correction:
+          "Try removing the name from the list, or removing the whole comment "
+          "if this is the only name in the list.");
+
+  /**
    * Duplicate imports.
    *
    * No parameters.
@@ -2350,6 +2362,16 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
+   * Parameters:
+   * 0: the name of the non-diagnostic being ignored
+   */
+  static const HintCode UNIGNORABLE_IGNORE = HintCode(
+      'UNIGNORABLE_IGNORE', "The diagnostic '{0}' can't be ignored.",
+      correction:
+          "Try removing the name from the list, or removing the whole comment "
+          "if this is the only name in the list.");
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -2384,6 +2406,18 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode UNNECESSARY_CAST = HintCode(
       'UNNECESSARY_CAST', "Unnecessary cast.",
       correction: "Try removing the cast.", hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the diagnostic being ignored
+   */
+  static const HintCode UNNECESSARY_IGNORE = HintCode(
+      'UNNECESSARY_IGNORE',
+      "The diagnostic '{0}' isn't produced at this location so it doesn't "
+          "need to be ignored.",
+      correction:
+          "Try removing the name from the list, or removing the whole comment "
+          "if this is the only name in the list.");
 
   /**
    * Unnecessary `noSuchMethod` declaration.
