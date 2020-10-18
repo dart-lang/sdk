@@ -267,11 +267,11 @@ class BazelWorkspace extends Workspace
     // Handle files which are given with their location in "bazel-bin", etc.
     // This does not typically happen during usual analysis, but it still could,
     // and it can come up in tests.
-    if ([genfiles, ...binPaths]
-        .any((binPath) => context.isWithin(binPath, folder.path))) {
-      var relative = context.relative(filePath, from: root);
-      return findPackageFor(
-          context.joinAll([root, ...context.split(relative).skip(1)]));
+    for (var binPath in [genfiles, ...binPaths]) {
+      if (context.isWithin(binPath, folder.path)) {
+        return findPackageFor(
+            context.join(root, context.relative(filePath, from: binPath)));
+      }
     }
 
     while (true) {
