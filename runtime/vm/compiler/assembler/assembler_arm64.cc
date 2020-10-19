@@ -987,8 +987,10 @@ void Assembler::StoreIntoObject(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
-  ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
@@ -1049,8 +1051,10 @@ void Assembler::StoreIntoArray(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
-  ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::ObjectLayout::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
@@ -1077,7 +1081,8 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
+      kUnsignedByte);
   tsti(TMP, Immediate(1 << target::ObjectLayout::kOldAndNotRememberedBit));
   b(&done, ZERO);
 
