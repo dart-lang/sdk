@@ -1407,7 +1407,7 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register str = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   __ LoadFieldFromOffset(result, str, String::length_offset());
-  __ ldr(TMP, compiler::FieldAddress(str, OneByteString::data_offset()),
+  __ ldr(TMP, compiler::FieldAddress(str, OneByteString::data_offset(), kByte),
          kUnsignedByte);
   __ CompareImmediate(result, Smi::RawValue(1));
   __ LoadImmediate(result, -1);
@@ -4123,7 +4123,8 @@ void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   compiler::Label done;
   __ SmiUntag(result, value);
   __ BranchIfSmi(value, &done);
-  __ ldr(result, compiler::FieldAddress(value, Mint::value_offset()), kWord);
+  __ ldr(result, compiler::FieldAddress(value, Mint::value_offset(), kWord),
+         kWord);
   __ LoadFieldFromOffset(result, value, Mint::value_offset());
   __ Bind(&done);
 }

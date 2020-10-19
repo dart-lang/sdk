@@ -1812,7 +1812,7 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
     Label slow_case;
 
     // Load num. variable (int32) in the existing context.
-    __ ldr(R1, FieldAddress(R5, target::Context::num_variables_offset()),
+    __ ldr(R1, FieldAddress(R5, target::Context::num_variables_offset(), kWord),
            kWord);
 
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
@@ -3461,10 +3461,10 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is instantiated/uninstantiated.
-  __ ldr(
-      kTmp,
-      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::type_state_offset()),
-      kByte);
+  __ ldr(kTmp,
+         FieldAddress(TypeTestABI::kDstTypeReg,
+                      target::Type::type_state_offset(), kByte),
+         kByte);
   __ cmp(kTmp,
          Operand(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
   __ BranchIf(NOT_EQUAL, &is_complex_case);
@@ -3923,9 +3923,13 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   Label miss;
   __ LoadClassIdMayBeSmi(R1, R0);
-  __ ldr(R2, FieldAddress(R5, target::SingleTargetCache::lower_limit_offset()),
+  __ ldr(R2,
+         FieldAddress(R5, target::SingleTargetCache::lower_limit_offset(),
+                      kHalfword),
          kUnsignedHalfword);
-  __ ldr(R3, FieldAddress(R5, target::SingleTargetCache::upper_limit_offset()),
+  __ ldr(R3,
+         FieldAddress(R5, target::SingleTargetCache::upper_limit_offset(),
+                      kHalfword),
          kUnsignedHalfword);
 
   __ cmp(R1, Operand(R2));
