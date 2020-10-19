@@ -51,6 +51,16 @@ class ArgumentExpression extends ValueGenerator {
       return node.argumentList;
     } else if (node is InstanceCreationExpression) {
       return node.argumentList;
+    } else if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is ConstructorName) {
+        var grandparent = parent.parent;
+        if (grandparent is InstanceCreationExpression) {
+          return grandparent.argumentList;
+        }
+      } else if (parent is MethodInvocation && parent.methodName == node) {
+        return parent.argumentList;
+      }
     } else if (node is TypeArgumentList) {
       var parent = node.parent;
       if (parent is InvocationExpression) {
