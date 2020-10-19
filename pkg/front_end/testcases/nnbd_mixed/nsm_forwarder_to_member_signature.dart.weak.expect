@@ -1,0 +1,63 @@
+library;
+import self as self;
+import "nsm_forwarder_to_member_signature_lib.dart" as nsm;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///nsm_forwarder_to_member_signature_lib.dart";
+
+class B extends nsm::A {
+  synthetic constructor •() → self::B*
+    : super nsm::A::•()
+    ;
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature method /* from org-dartlang-testcase:///nsm_forwarder_to_member_signature_lib.dart */ method() → core::int*; -> nsm::A::method
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends core::Object implements self::B {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation* _) → dynamic
+    return 42;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder method /* from org-dartlang-testcase:///nsm_forwarder_to_member_signature_lib.dart */ method() → core::int*
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::int*;
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as nsm;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → nsm::A
+    : super core::Object::•()
+    ;
+  method method() → core::int
+    return 0;
+}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = #method
+  #C3 = <core::Type*>[]
+  #C4 = <dynamic>[]
+  #C5 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C4}
+}

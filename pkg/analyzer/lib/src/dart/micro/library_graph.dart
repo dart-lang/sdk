@@ -521,6 +521,19 @@ class FileSystemState {
     return featureSetProvider.getFeatureSet(path, uri);
   }
 
+  Version contextLanguageVersion(
+    String path,
+    Uri uri,
+    WorkspacePackage workspacePackage,
+  ) {
+    var workspaceLanguageVersion = workspacePackage?.languageVersion;
+    if (workspaceLanguageVersion != null) {
+      return workspaceLanguageVersion;
+    }
+
+    return featureSetProvider.getLanguageVersion(path, uri);
+  }
+
   FileState getFileForPath({
     @required String path,
     @required OperationPerformanceImpl performance,
@@ -536,7 +549,7 @@ class FileSystemState {
       var workspacePackage = _workspace?.findPackageFor(path);
       var featureSet = contextFeatureSet(path, uri, workspacePackage);
       var packageLanguageVersion =
-          featureSetProvider.getLanguageVersion(path, uri);
+          contextLanguageVersion(path, uri, workspacePackage);
       file = FileState._(this, path, uri, source, workspacePackage, featureSet,
           packageLanguageVersion);
 
@@ -567,7 +580,7 @@ class FileSystemState {
       var workspacePackage = _workspace?.findPackageFor(path);
       var featureSet = contextFeatureSet(path, uri, workspacePackage);
       var packageLanguageVersion =
-          featureSetProvider.getLanguageVersion(path, uri);
+          contextLanguageVersion(path, uri, workspacePackage);
 
       file = FileState._(this, path, uri, source, workspacePackage, featureSet,
           packageLanguageVersion);

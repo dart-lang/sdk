@@ -23,6 +23,7 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 /// Finds an [Element] with the given [name].
@@ -98,7 +99,26 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
           ResourceUriResolver(resourceProvider)
         ]),
         createAnalysisOptions(),
-        packages: Packages.empty,
+        packages: Packages({
+          'test': Package(
+            name: 'test',
+            rootFolder: getFolder(testProject),
+            libFolder: getFolder('$testProject/lib'),
+            languageVersion: Version.parse('2.9.0'),
+          ),
+          'aaa': Package(
+            name: 'aaa',
+            rootFolder: getFolder('/aaa'),
+            libFolder: getFolder('/aaa/lib'),
+            languageVersion: Version.parse('2.9.0'),
+          ),
+          'bbb': Package(
+            name: 'bbb',
+            rootFolder: getFolder('/bbb'),
+            libFolder: getFolder('/bbb/lib'),
+            languageVersion: Version.parse('2.9.0'),
+          ),
+        }),
         enableIndex: true,
         externalSummaries: externalSummaries);
   }

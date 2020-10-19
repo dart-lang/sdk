@@ -131,7 +131,7 @@ vars = {
   "pub_rev": "f0c7771b38155d3829a60d60b5dba2784b100811",
   "pub_semver_tag": "v1.4.4",
   "quiver-dart_tag": "246e754fe45cecb6aa5f3f13b4ed61037ff0d784",
-  "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
+  "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "7e5ec82c99677a2e5b95ce296c4d68b0d3378ed8",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_static_rev": "v0.2.8",

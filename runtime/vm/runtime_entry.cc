@@ -2285,24 +2285,8 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
       // Special case: closures are implemented with a call getter instead of a
       // call method and with lazy dispatchers the field-invocation-dispatcher
       // would perform the closure call.
-      auto& result = Object::Handle(
-          zone,
-          DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
-      if (result.IsError()) {
-        return result.raw();
-      }
-      function ^= result.raw();
-      if (is_dynamic_call && !function.IsNull() &&
-          !function.CanReceiveDynamicInvocation()) {
-        ArgumentsDescriptor args_desc(orig_arguments_desc);
-        result = function.DoArgumentTypesMatch(orig_arguments, args_desc);
-        if (result.IsError()) {
-          return result.raw();
-        }
-      }
-      result = DartEntry::InvokeCallable(function, orig_arguments,
-                                         orig_arguments_desc);
-      return result.raw();
+      return DartEntry::InvokeClosure(thread, orig_arguments,
+                                      orig_arguments_desc);
     }
 
     // Dynamic call sites have to use the dynamic getter as well (if it was
@@ -2351,31 +2335,17 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
         orig_arguments.SetAt(args_desc.FirstArgIndex(), getter_result);
-        auto& result = Object::Handle(
-            zone,
-            DartEntry::ResolveCallable(orig_arguments, orig_arguments_desc));
-        if (result.IsError()) {
-          return result.raw();
-        }
-        function ^= result.raw();
-        if (is_dynamic_call && !function.IsNull() &&
-            !function.CanReceiveDynamicInvocation()) {
-          result = function.DoArgumentTypesMatch(orig_arguments, args_desc);
-          if (result.IsError()) {
-            return result.raw();
-          }
-        }
-        result = DartEntry::InvokeCallable(function, orig_arguments,
-                                           orig_arguments_desc);
-        return result.raw();
+        return DartEntry::InvokeClosure(thread, orig_arguments,
+                                        orig_arguments_desc);
       }
       cls = cls.SuperClass();
     }
   }
 
   const Object& result = Object::Handle(
-      zone, DartEntry::InvokeNoSuchMethod(receiver, demangled_target_name,
-                                          orig_arguments, orig_arguments_desc));
+      zone,
+      DartEntry::InvokeNoSuchMethod(thread, receiver, demangled_target_name,
+                                    orig_arguments, orig_arguments_desc));
   return result.raw();
 }
 
@@ -2431,7 +2401,7 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
   }
 
   const Object& result = Object::Handle(
-      zone, DartEntry::InvokeNoSuchMethod(receiver, orig_function_name,
+      zone, DartEntry::InvokeNoSuchMethod(thread, receiver, orig_function_name,
                                           orig_arguments, orig_arguments_desc));
   ThrowIfError(result);
   arguments.SetReturn(result);
@@ -2460,8 +2430,9 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethod, 4) {
         thread, zone, receiver, original_function_name, orig_arguments,
         orig_arguments_desc);
   } else {
-    result = DartEntry::InvokeNoSuchMethod(receiver, original_function_name,
-                                           orig_arguments, orig_arguments_desc);
+    result =
+        DartEntry::InvokeNoSuchMethod(thread, receiver, original_function_name,
+                                      orig_arguments, orig_arguments_desc);
   }
   ThrowIfError(result);
   arguments.SetReturn(result);

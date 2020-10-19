@@ -781,9 +781,20 @@ main() {
   }
 
   test_binaryExpression_gtGtGt() async {
+    var latestLanguageVersionStr = '${ExperimentStatus.currentVersion.major}.'
+        '${ExperimentStatus.currentVersion.minor}';
+
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: latestLanguageVersionStr,
+    );
+
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
-        experiments: [EnableString.triple_shift],
+        experiments: [
+          EnableString.non_nullable,
+          EnableString.triple_shift,
+        ],
       ),
     );
 

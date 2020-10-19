@@ -7686,6 +7686,9 @@ class TypeArguments : public Instance {
   // Hash value for a type argument vector consisting solely of dynamic types.
   static const intptr_t kAllDynamicHash = 1;
 
+  // Returns whether this TypeArguments vector can be used in a context that
+  // expects a vector of length [count]. Always true for the null vector.
+  bool HasCount(intptr_t count) const;
   static intptr_t length_offset() {
     return OFFSET_OF(TypeArgumentsLayout, length_);
   }

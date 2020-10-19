@@ -1,0 +1,212 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/mix_in_string.dart:7:7: Error: 'String' is restricted and can't be extended or implemented.
+// class C = A with String;
+//       ^
+//
+// pkg/front_end/testcases/general/mix_in_string.dart:7:7: Error: The non-abstract class 'C' is missing implementations for these members:
+//  - Pattern.allMatches
+//  - Pattern.matchAsPrefix
+//  - String.*
+//  - String.+
+//  - String.[]
+//  - String.codeUnitAt
+//  - String.codeUnits
+//  - String.compareTo
+//  - String.contains
+//  - String.endsWith
+//  - String.indexOf
+//  - String.isEmpty
+//  - String.isNotEmpty
+//  - String.lastIndexOf
+//  - String.length
+//  - String.padLeft
+//  - String.padRight
+//  - String.replaceAll
+//  - String.replaceAllMapped
+//  - String.replaceFirst
+//  - String.replaceFirstMapped
+//  - String.replaceRange
+//  - String.runes
+//  - String.split
+//  - String.splitMapJoin
+//  - String.startsWith
+//  - String.substring
+//  - String.toLowerCase
+//  - String.toUpperCase
+//  - String.trim
+//  - String.trimLeft
+//  - String.trimRight
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class C = A with String;
+//       ^
+// sdk/lib/core/pattern.dart:28:19: Context: 'Pattern.allMatches' is defined here.
+//   Iterable<Match> allMatches(String string, [int start = 0]);
+//                   ^^^^^^^^^^
+// sdk/lib/core/pattern.dart:39:10: Context: 'Pattern.matchAsPrefix' is defined here.
+//   Match? matchAsPrefix(String string, [int start = 0]);
+//          ^^^^^^^^^^^^^
+// sdk/lib/core/string.dart:399:19: Context: 'String.*' is defined here.
+//   String operator *(int times);
+//                   ^
+// sdk/lib/core/string.dart:325:19: Context: 'String.+' is defined here.
+//   String operator +(String other);
+//                   ^
+// sdk/lib/core/string.dart:181:19: Context: 'String.[]' is defined here.
+//   String operator [](int index);
+//                   ^^
+// sdk/lib/core/string.dart:186:7: Context: 'String.codeUnitAt' is defined here.
+//   int codeUnitAt(int index);
+//       ^^^^^^^^^^
+// sdk/lib/core/string.dart:601:17: Context: 'String.codeUnits' is defined here.
+//   List<int> get codeUnits;
+//                 ^^^^^^^^^
+// sdk/lib/core/string.dart:244:7: Context: 'String.compareTo' is defined here.
+//   int compareTo(String other);
+//       ^^^^^^^^^
+// sdk/lib/core/string.dart:452:8: Context: 'String.contains' is defined here.
+//   bool contains(Pattern other, [int startIndex = 0]);
+//        ^^^^^^^^
+// sdk/lib/core/string.dart:251:8: Context: 'String.endsWith' is defined here.
+//   bool endsWith(String other);
+//        ^^^^^^^^
+// sdk/lib/core/string.dart:291:7: Context: 'String.indexOf' is defined here.
+//   int indexOf(Pattern pattern, [int start = 0]);
+//       ^^^^^^^
+// sdk/lib/core/string.dart:313:12: Context: 'String.isEmpty' is defined here.
+//   bool get isEmpty;
+//            ^^^^^^^
+// sdk/lib/core/string.dart:318:12: Context: 'String.isNotEmpty' is defined here.
+//   bool get isNotEmpty;
+//            ^^^^^^^^^^
+// sdk/lib/core/string.dart:308:7: Context: 'String.lastIndexOf' is defined here.
+//   int lastIndexOf(Pattern pattern, [int? start]);
+//       ^^^^^^^^^^^
+// sdk/lib/core/string.dart:202:11: Context: 'String.length' is defined here.
+//   int get length;
+//           ^^^^^^
+// sdk/lib/core/string.dart:417:10: Context: 'String.padLeft' is defined here.
+//   String padLeft(int width, [String padding = ' ']);
+//          ^^^^^^^
+// sdk/lib/core/string.dart:435:10: Context: 'String.padRight' is defined here.
+//   String padRight(int width, [String padding = ' ']);
+//          ^^^^^^^^
+// sdk/lib/core/string.dart:489:10: Context: 'String.replaceAll' is defined here.
+//   String replaceAll(Pattern from, String replace);
+//          ^^^^^^^^^^
+// sdk/lib/core/string.dart:514:10: Context: 'String.replaceAllMapped' is defined here.
+//   String replaceAllMapped(Pattern from, String Function(Match match) replace);
+//          ^^^^^^^^^^^^^^^^
+// sdk/lib/core/string.dart:461:10: Context: 'String.replaceFirst' is defined here.
+//   String replaceFirst(Pattern from, String to, [int startIndex = 0]);
+//          ^^^^^^^^^^^^
+// sdk/lib/core/string.dart:473:10: Context: 'String.replaceFirstMapped' is defined here.
+//   String replaceFirstMapped(Pattern from, String replace(Match match),
+//          ^^^^^^^^^^^^^^^^^^
+// sdk/lib/core/string.dart:527:10: Context: 'String.replaceRange' is defined here.
+//   String replaceRange(int start, int? end, String replacement);
+//          ^^^^^^^^^^^^
+// sdk/lib/core/string.dart:610:13: Context: 'String.runes' is defined here.
+//   Runes get runes;
+//             ^^^^^
+// sdk/lib/core/string.dart:575:16: Context: 'String.split' is defined here.
+//   List<String> split(Pattern pattern);
+//                ^^^^^
+// sdk/lib/core/string.dart:595:10: Context: 'String.splitMapJoin' is defined here.
+//   String splitMapJoin(Pattern pattern,
+//          ^^^^^^^^^^^^
+// sdk/lib/core/string.dart:275:8: Context: 'String.startsWith' is defined here.
+//   bool startsWith(Pattern pattern, [int index = 0]);
+//        ^^^^^^^^^^
+// sdk/lib/core/string.dart:335:10: Context: 'String.substring' is defined here.
+//   String substring(int startIndex, [int? endIndex]);
+//          ^^^^^^^^^
+// sdk/lib/core/string.dart:623:10: Context: 'String.toLowerCase' is defined here.
+//   String toLowerCase();
+//          ^^^^^^^^^^^
+// sdk/lib/core/string.dart:636:10: Context: 'String.toUpperCase' is defined here.
+//   String toUpperCase();
+//          ^^^^^^^^^^^
+// sdk/lib/core/string.dart:374:10: Context: 'String.trim' is defined here.
+//   String trim();
+//          ^^^^
+// sdk/lib/core/string.dart:381:10: Context: 'String.trimLeft' is defined here.
+//   String trimLeft();
+//          ^^^^^^^^
+// sdk/lib/core/string.dart:388:10: Context: 'String.trimRight' is defined here.
+//   String trimRight();
+//          ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends self::A implements core::String /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::C*
+    : super self::A::•()
+    ;
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/pattern.dart */ allMatches(core::String* string, [core::int* start = #C1]) → core::Iterable<core::Match*>*; -> core::Pattern::allMatches
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/pattern.dart */ matchAsPrefix(core::String* string, [core::int* start = #C1]) → core::Match*; -> core::Pattern::matchAsPrefix
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _isOneByte() → core::bool;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _substringUnchecked(core::int startIndex, core::int endIndex) → core::String;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ [](core::int index) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ codeUnitAt(core::int index) → core::int;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ length() → core::int;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ hashCode() → core::int;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ ==(core::Object other) → core::bool;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ compareTo(generic-covariant-impl core::String other) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ endsWith(core::String other) → core::bool;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ startsWith(core::Pattern pattern, [core::int index = #C1]) → core::bool;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ indexOf(core::Pattern pattern, [core::int start = #C1]) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ lastIndexOf(core::Pattern pattern, [core::int? start = #C2]) → core::int;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ isEmpty() → core::bool;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ isNotEmpty() → core::bool;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ +(core::String other) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ substring(core::int startIndex, [core::int? endIndex = #C2]) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ trim() → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ trimLeft() → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ trimRight() → core::String;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ *(core::int times) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ padLeft(core::int width, [core::String padding = #C3]) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ padRight(core::int width, [core::String padding = #C3]) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ contains(core::Pattern other, [core::int startIndex = #C1]) → core::bool;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ replaceFirst(core::Pattern from, core::String to, [core::int startIndex = #C1]) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ replaceFirstMapped(core::Pattern from, (core::Match) → core::String replace, [core::int startIndex = #C1]) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ replaceAll(core::Pattern from, core::String replace) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ replaceAllMapped(core::Pattern from, (core::Match) → core::String replace) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ replaceRange(core::int start, core::int? end, core::String replacement) → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ split(core::Pattern pattern) → core::List<core::String>;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ splitMapJoin(core::Pattern pattern, {(core::Match) →? core::String onMatch = #C2, (core::String) →? core::String onNonMatch = #C2}) → core::String;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ codeUnits() → core::List<core::int>;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ runes() → core::Runes;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ toLowerCase() → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/string.dart */ toUpperCase() → core::String;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = null
+  #C3 = " "
+}

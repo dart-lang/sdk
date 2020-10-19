@@ -776,7 +776,7 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   void test_find_hasBlazeBinFolderInOutFolder() {
     _addResources([
       '/workspace/blaze-out/host/bin/',
-      '/workspace/my/module/',
+      '/workspace/my/module/BUILD',
     ]);
     BazelWorkspace workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'));
@@ -785,6 +785,12 @@ class BazelWorkspaceTest with ResourceProviderMixin {
     expect(workspace.binPaths.single,
         convertPath('/workspace/blaze-out/host/bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
+    expect(
+        workspace
+            .findPackageFor(convertPath(
+                '/workspace/blaze-out/host/bin/my/module/lib/foo.dart'))
+            .root,
+        convertPath('/workspace/my/module'));
   }
 
   void test_find_hasBlazeOutFolder_missingBinFolder() {

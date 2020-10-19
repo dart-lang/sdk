@@ -2937,7 +2937,7 @@ var A = B;
 
     newFile(a, content: '');
     newFile(b, content: r'''
-import 'package:aaa/a.dart'; // ignore: unused_import
+import 'package:aaa/a.dart';
 A a;
 ''');
 
@@ -2949,7 +2949,7 @@ A a;
     await waitForIdleWithoutExceptions();
     expect(allResults, hasLength(1));
     expect(allResults[0].path, b);
-    expect(allResults[0].errors, hasLength(1));
+    expect(allResults[0].errors, hasLength(2));
 
     // Create generated file for `package:aaa/a.dart`.
     var aUri = Uri.parse('package:aaa/a.dart');

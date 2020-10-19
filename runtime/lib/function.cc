@@ -23,7 +23,7 @@ DEFINE_NATIVE_ENTRY(Function_apply, 0, 2) {
       zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, fun_arguments.Length(),
                                           fun_arg_names));
   const Object& result = Object::Handle(
-      zone, DartEntry::InvokeClosure(fun_arguments, fun_args_desc));
+      zone, DartEntry::InvokeClosure(thread, fun_arguments, fun_args_desc));
   if (result.IsError()) {
     Exceptions::PropagateError(Error::Cast(result));
   }

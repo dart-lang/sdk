@@ -1,0 +1,6 @@
+import 'mix_in_private_lib.dart';
+
+class A {}
+
+class C = A with Private;
+main() {}

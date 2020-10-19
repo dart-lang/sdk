@@ -128,6 +128,7 @@ import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
 import 'duplicate_definition_test.dart' as duplicate_definition;
 import 'duplicate_hidden_name_test.dart' as duplicate_hidden_name;
+import 'duplicate_ignore_test.dart' as duplicate_ignore;
 import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
@@ -613,7 +614,9 @@ import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
+import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
+import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
@@ -739,6 +742,7 @@ main() {
     division_optimization.main();
     duplicate_definition.main();
     duplicate_hidden_name.main();
+    duplicate_ignore.main();
     duplicate_import.main();
     duplicate_named_argument.main();
     duplicate_part.main();
@@ -1062,7 +1066,9 @@ main() {
     undefined_prefixed_name.main();
     undefined_setter.main();
     undefined_shown_name.main();
+    unignorable_ignore.main();
     unnecessary_cast.main();
+    unnecessary_ignore.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
     unnecessary_null_comparison.main();

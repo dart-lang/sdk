@@ -4167,31 +4167,6 @@ static ArrayPtr CreateCallableArgumentsFromStatic(
   return callable_args.raw();
 }
 
-// Return the result of invoking the callable contained in the arguments.
-// Performs non-covariant type checks when the callable function does not
-// expect to be called dynamically.
-static ObjectPtr InvokeCallableWithChecks(Zone* zone,
-                                          const Array& args,
-                                          const Array& args_descriptor_array) {
-  auto& result = Object::Handle(
-      zone, DartEntry::ResolveCallable(args, args_descriptor_array));
-  if (result.IsError()) {
-    return result.raw();
-  }
-  const auto& function =
-      Function::Handle(zone, Function::RawCast(result.raw()));
-  if (!function.IsNull() && !function.CanReceiveDynamicInvocation()) {
-    // Let DoArgumentTypesMatch extract the appropriate instantiator
-    // and function tavs from the arguments (including the callable).
-    ArgumentsDescriptor call_args_descriptor(args_descriptor_array);
-    result = function.DoArgumentTypesMatch(args, call_args_descriptor);
-    if (result.IsError()) {
-      return result.raw();
-    }
-  }
-  return DartEntry::InvokeCallable(function, args, args_descriptor_array);
-}
-
 ObjectPtr Class::Invoke(const String& function_name,
                         const Array& args,
                         const Array& arg_names,
@@ -4233,7 +4208,7 @@ ObjectPtr Class::Invoke(const String& function_name,
           zone,
           CreateCallableArgumentsFromStatic(zone, Instance::Cast(getter_result),
                                             args, arg_names, args_descriptor));
-      return InvokeCallableWithChecks(zone, call_args,
+      return DartEntry::InvokeClosure(thread, call_args,
                                       call_args_descriptor_array);
     }
   }
@@ -5913,7 +5888,13 @@ TypeArgumentsPtr TypeArguments::Prepend(Zone* zone,
                                         const TypeArguments& other,
                                         intptr_t other_length,
                                         intptr_t total_length) const {
-  if (IsNull() && other.IsNull()) {
+  if (other_length == 0) {
+    ASSERT(IsCanonical());
+    return raw();
+  } else if (other_length == total_length) {
+    ASSERT(other.IsCanonical());
+    return other.raw();
+  } else if (IsNull() && other.IsNull()) {
     return TypeArguments::null();
   }
   const TypeArguments& result =
@@ -6094,6 +6075,13 @@ void TypeArguments::set_instantiations(const Array& value) const {
   ASSERT(!value.IsNull());
   StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->instantiations_,
                                                     value.raw());
+}
+
+bool TypeArguments::HasCount(intptr_t count) const {
+  if (IsNull()) {
+    return true;
+  }
+  return Length() == count;
 }
 
 intptr_t TypeArguments::Length() const {
@@ -7914,9 +7902,8 @@ static ObjectPtr TypeArgumentsAreBoundSubtypes(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments) {
   ASSERT(!type_parameters.IsNull());
-  ASSERT(!function_type_arguments.IsNull());
-  const intptr_t kNumTypeArgs = function_type_arguments.Length();
-  ASSERT_EQUAL(num_parent_type_args + type_parameters.Length(), kNumTypeArgs);
+  const intptr_t kNumTypeArgs = type_parameters.Length() + num_parent_type_args;
+  ASSERT(function_type_arguments.HasCount(kNumTypeArgs));
 
   // Don't bother allocating handles, there's nothing to check.
   if (kNumTypeArgs - num_parent_type_args == 0) return Error::null();
@@ -7950,13 +7937,14 @@ static ObjectPtr TypeArgumentsAreBoundSubtypes(
 // references are replaced with the corresponding bound if that bound can be
 // fully instantiated without local function type parameters, otherwise dynamic.
 static TypeArgumentsPtr InstantiateTypeParametersToBounds(
-    Zone* zone,
+    Thread* thread,
     const TokenPosition& token_pos,
     const TypeArguments& type_parameters,
     const TypeArguments& instantiator_type_args,
     intptr_t num_parent_type_args,
     const TypeArguments& parent_type_args) {
   ASSERT(!type_parameters.IsNull());
+  auto const zone = thread->zone();
   const intptr_t kNumCurrentTypeArgs = type_parameters.Length();
   const intptr_t kNumTypeArgs = kNumCurrentTypeArgs + num_parent_type_args;
   auto& function_type_args = TypeArguments::Handle(zone);
@@ -8024,7 +8012,7 @@ static TypeArgumentsPtr InstantiateTypeParametersToBounds(
     function_type_args.SetTypeAt(i, bound);
   }
 
-  return function_type_args.raw();
+  return function_type_args.Canonicalize(thread);
 }
 
 // Retrieves the function type arguments, if any. This could be explicitly
@@ -8056,7 +8044,7 @@ static TypeArgumentsPtr RetrieveFunctionTypeArguments(
       function.IsClosureFunction()
           ? TypeArguments::Handle(
                 zone, Closure::Cast(receiver).function_type_arguments())
-          : Object::null_type_arguments();
+          : Object::empty_type_arguments();
   // We don't try to instantiate the parent type parameters to their bounds
   // if not provided or check any closed-over type arguments against the parent
   // type parameter bounds (since they have been type checked already).
@@ -8086,16 +8074,12 @@ static TypeArgumentsPtr RetrieveFunctionTypeArguments(
     // We have no explicitly provided function type arguments, so generate
     // some by instantiating the parameters to bounds.
     return InstantiateTypeParametersToBounds(
-        zone, function.token_pos(), type_params, instantiator_type_args,
+        thread, function.token_pos(), type_params, instantiator_type_args,
         kNumParentTypeArgs, parent_type_args);
   }
 
-  if (kNumParentTypeArgs > 0) {
-    function_type_args = function_type_args.Prepend(
-        zone, parent_type_args, kNumParentTypeArgs, kNumTypeArgs);
-  }
-
-  return function_type_args.raw();
+  return function_type_args.Prepend(zone, parent_type_args, kNumParentTypeArgs,
+                                    kNumTypeArgs);
 }
 
 // Retrieves the instantiator type arguments, if any, from the receiver.
@@ -8159,10 +8143,6 @@ ObjectPtr Function::DoArgumentTypesMatch(
     const ArgumentsDescriptor& args_desc,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments) const {
-  // We need a concrete (possibly empty) type arguments vector, not the
-  // implicitly filled with dynamic one.
-  ASSERT(!function_type_arguments.IsNull());
-
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -8171,8 +8151,8 @@ ObjectPtr Function::DoArgumentTypesMatch(
   const intptr_t kNumLocalTypeArgs = NumTypeParameters(thread);
   if (kNumLocalTypeArgs > 0) {
     const intptr_t kNumParentTypeArgs = NumParentTypeParameters();
-    ASSERT_EQUAL(kNumLocalTypeArgs + kNumParentTypeArgs,
-                 function_type_arguments.Length());
+    ASSERT(function_type_arguments.HasCount(kNumLocalTypeArgs +
+                                            kNumParentTypeArgs));
     const auto& params = TypeArguments::Handle(zone, type_parameters());
     const auto& result = Object::Handle(
         zone, TypeArgumentsAreBoundSubtypes(
@@ -8182,7 +8162,7 @@ ObjectPtr Function::DoArgumentTypesMatch(
       return result.raw();
     }
   } else {
-    ASSERT_EQUAL(NumParentTypeParameters(), function_type_arguments.Length());
+    ASSERT(function_type_arguments.HasCount(NumParentTypeParameters()));
   }
 
   AbstractType& type = AbstractType::Handle(zone);
@@ -12846,6 +12826,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 
 // Invoke the function, or noSuchMethod if it is null.
 static ObjectPtr InvokeInstanceFunction(
+    Thread* thread,
     const Instance& receiver,
     const Function& function,
     const String& target_name,
@@ -12859,7 +12840,7 @@ static ObjectPtr InvokeInstanceFunction(
   if (function.IsNull() ||
       !function.AreValidArguments(args_descriptor, nullptr) ||
       (respect_reflectable && !function.is_reflectable())) {
-    return DartEntry::InvokeNoSuchMethod(receiver, target_name, args,
+    return DartEntry::InvokeNoSuchMethod(thread, receiver, target_name, args,
                                          args_descriptor_array);
   }
   if (!function.CanReceiveDynamicInvocation()) {
@@ -13048,7 +13029,7 @@ ObjectPtr Library::Invoke(const String& function_name,
           zone,
           CreateCallableArgumentsFromStatic(zone, Instance::Cast(getter_result),
                                             args, arg_names, args_descriptor));
-      return InvokeCallableWithChecks(zone, call_args,
+      return DartEntry::InvokeClosure(thread, call_args,
                                       call_args_descriptor_array);
     }
   }
@@ -18237,8 +18218,8 @@ ObjectPtr Instance::InvokeGetter(const String& getter_name,
       zone,
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(), Heap::kNew));
 
-  return InvokeInstanceFunction(*this, function, internal_getter_name, args,
-                                args_descriptor, respect_reflectable,
+  return InvokeInstanceFunction(thread, *this, function, internal_getter_name,
+                                args, args_descriptor, respect_reflectable,
                                 inst_type_args);
 }
 
@@ -18284,8 +18265,8 @@ ObjectPtr Instance::InvokeSetter(const String& setter_name,
       zone,
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, args.Length(), Heap::kNew));
 
-  return InvokeInstanceFunction(*this, setter, internal_setter_name, args,
-                                args_descriptor, respect_reflectable,
+  return InvokeInstanceFunction(thread, *this, setter, internal_setter_name,
+                                args, args_descriptor, respect_reflectable,
                                 inst_type_args);
 }
 
@@ -18336,7 +18317,7 @@ ObjectPtr Instance::Invoke(const String& function_name,
           zone, ArgumentsDescriptor::NewBoxed(
                     kTypeArgsLen, getter_args.Length(), Heap::kNew));
       const Object& getter_result = Object::Handle(
-          zone, InvokeInstanceFunction(*this, function, getter_name,
+          zone, InvokeInstanceFunction(thread, *this, function, getter_name,
                                        getter_args, getter_args_descriptor,
                                        respect_reflectable, inst_type_args));
       if (getter_result.IsError()) {
@@ -18344,12 +18325,12 @@ ObjectPtr Instance::Invoke(const String& function_name,
       }
       // Replace the closure as the receiver in the arguments list.
       args.SetAt(0, getter_result);
-      return InvokeCallableWithChecks(zone, args, args_descriptor);
+      return DartEntry::InvokeClosure(thread, args, args_descriptor);
     }
   }
 
   // Found an ordinary method.
-  return InvokeInstanceFunction(*this, function, function_name, args,
+  return InvokeInstanceFunction(thread, *this, function, function_name, args,
                                 args_descriptor, respect_reflectable,
                                 inst_type_args);
 }

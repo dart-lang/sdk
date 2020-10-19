@@ -208,40 +208,55 @@ class DartEntry : public AllStatic {
       const Array& arguments_descriptor,
       uword current_sp = OSThread::GetCurrentStackPointer());
 
-  // Resolves the first argument to a callable compatible with the arguments.
+  // Invokes the first argument in the provided arguments array as a callable
+  // object, performing any needed dynamic checks if the callable cannot receive
+  // dynamic invocation.
+  //
+  // On success, returns a RawInstance.  On failure, a RawError.
+  //
+  // Used when an ArgumentsDescriptor is not required, that is, when there
+  // are no type arguments or named arguments.
+  static ObjectPtr InvokeClosure(Thread* thread, const Array& arguments);
+
+  // Invokes the first argument in the provided arguments array as a callable
+  // object, performing any needed dynamic checks if the callable cannot receive
+  // dynamic invocation.
+  //
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static ObjectPtr InvokeClosure(Thread* thread,
+                                 const Array& arguments,
+                                 const Array& arguments_descriptor);
+
+  // Invokes the noSuchMethod instance function on the receiver.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static ObjectPtr InvokeNoSuchMethod(Thread* thread,
+                                      const Instance& receiver,
+                                      const String& target_name,
+                                      const Array& arguments,
+                                      const Array& arguments_descriptor);
+
+ private:
+  // Resolves the first argument in the provided arguments array to a callable
+  // compatible with the arguments. Helper method used within InvokeClosure.
   //
   // If no errors occur, the first argument is changed to be either the resolved
   // callable or, if Function::null() is returned, an appropriate target for
   // invoking noSuchMethod.
   //
   // On success, returns a RawFunction. On failure, a RawError.
-  static ObjectPtr ResolveCallable(const Array& arguments,
+  static ObjectPtr ResolveCallable(Thread* thread,
+                                   const Array& arguments,
                                    const Array& arguments_descriptor);
 
-  // Invokes the function returned by ResolveCallable.
+  // Invokes a function returned by ResolveCallable, performing any dynamic
+  // checks needed if the function cannot receive dynamic invocation. Helper
+  // method used within InvokeClosure.
   //
   // On success, returns a RawInstance. On failure, a RawError.
-  static ObjectPtr InvokeCallable(const Function& callable_function,
+  static ObjectPtr InvokeCallable(Thread* thread,
+                                  const Function& callable_function,
                                   const Array& arguments,
                                   const Array& arguments_descriptor);
-
-  // Invokes the closure object given as the first argument.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  // This is used when there is no type argument vector and
-  // no named arguments in the call.
-  static ObjectPtr InvokeClosure(const Array& arguments);
-
-  // Invokes the closure object given as the first argument.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  static ObjectPtr InvokeClosure(const Array& arguments,
-                                 const Array& arguments_descriptor);
-
-  // Invokes the noSuchMethod instance function on the receiver.
-  // On success, returns a RawInstance.  On failure, a RawError.
-  static ObjectPtr InvokeNoSuchMethod(const Instance& receiver,
-                                      const String& target_name,
-                                      const Array& arguments,
-                                      const Array& arguments_descriptor);
 };
 
 // Utility functions to call from VM into Dart bootstrap libraries.

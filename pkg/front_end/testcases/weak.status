@@ -38,8 +38,6 @@ general_nnbd_opt_out/issue38938: RuntimeError # no main and compile time errors.
 general_nnbd_opt_out/issue38944: RuntimeError # no main and compile time errors.
 general_nnbd_opt_out/issue38961: RuntimeError # no main and compile time errors.
 general_nnbd_opt_out/micro: RuntimeError
-general_nnbd_opt_out/mixin_application_override: ExpectationFileMismatch # Too many errors.
-general_nnbd_opt_out/mixin_application_override: TypeCheckError
 general_nnbd_opt_out/mixin_constructors_with_default_values: RuntimeError # Expected
 general_nnbd_opt_out/operator_method_not_found: RuntimeError # Expected
 general_nnbd_opt_out/optional: TypeCheckError

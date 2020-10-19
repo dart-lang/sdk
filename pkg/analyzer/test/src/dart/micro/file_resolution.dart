@@ -83,6 +83,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     sdk = MockSdk(resourceProvider: resourceProvider);
 
     newFile('/workspace/WORKSPACE', content: '');
+    newFile('/workspace/dart/test/BUILD', content: '');
     createFileResolver();
   }
 

@@ -55,13 +55,25 @@ class C {
   void f4({@m covariant p1, @m covariant int? p2}) {}
 
   @m
+  static void f1s(@m p1, @m int p2, [@m p3, @m int? p4]) {}
+
+  @m
+  static void f2s({@m p1, @m int? p2}) {}
+
+  @m
   int get prop => 0;
 
   @m
-  set prop(int _) {}
+  set prop(@m int _) {}
 
   @m
-  bool operator ==(other) => true;
+  static int get staticProp => 0;
+
+  @m
+  static set staticProp(@m int _) {}
+
+  @m
+  bool operator ==(@m other) => true;
 }
 
 @m
@@ -81,6 +93,27 @@ mixin M {
 
   @m
   void f4({@m covariant p1, @m covariant int p2 = 0}) {}
+
+  @m
+  static void f1s(@m p1, @m int p2, [@m p3, @m int? p4]) {}
+
+  @m
+  static void f2s({@m p1, @m int? p2}) {}
+
+  @m
+  int get prop => 0;
+
+  @m
+  set prop(@m int _) {}
+
+  @m
+  static int get staticProp => 0;
+
+  @m
+  static set staticProp(@m int _) {}
+
+  @m
+  bool operator ==(@m other) => true;
 }
 
 @m
@@ -90,6 +123,24 @@ extension Extension on int {
 
   @m
   void f2({@m p1, @m int p2 = 0}) {}
+
+  @m
+  static void f1s(@m p1, @m int p2, [@m p3, @m int? p4]) {}
+
+  @m
+  static void f2s({@m p1, @m int? p2}) {}
+
+  @m
+  int get prop => 0;
+
+  @m
+  set prop(@m int _) {}
+
+  @m
+  static int get staticProp => 0;
+
+  @m
+  static set staticProp(@m int _) {}
 }
 
 @m
@@ -105,8 +156,12 @@ void f<@m X>() {}
 class D<@m X> {}
 
 @m
-typedef void F<@m X>();
+typedef void F1<@m X>();
 
+@m
+typedef F2<@m X>= void Function();
+
+@m
 void main() {
   @m
   var x;

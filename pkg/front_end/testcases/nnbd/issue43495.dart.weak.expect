@@ -198,528 +198,534 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
         ^": null}, <core::int, core::int>{invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:12:19: Error: Unexpected type 'List<int>?' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
     <int, int>{...a}, // Error.
-                  ^": null}, let final core::Set<core::int> #t10 = col::LinkedHashSet::•<core::int>() in let final dynamic #t11 = #t10.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:13:14: Error: Unexpected type 'Map<int, int>?' of a spread.  Expected 'dynamic' or an Iterable.
+                  ^": null}, block {
+    final core::Set<core::int> #t10 = col::LinkedHashSet::•<core::int>();
+    #t10.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:13:14: Error: Unexpected type 'Map<int, int>?' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
     <int>{...d}, // Error.
-             ^") in #t10, block {
-    final core::Set<core::int> #t12 = col::LinkedHashSet::•<core::int>();
+             ^");
+  } =>#t10, block {
+    final core::Set<core::int> #t11 = col::LinkedHashSet::•<core::int>();
     if(condition)
-      for (final dynamic #t13 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:14:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t12 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:14:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...a}, // Error.
                        ^") {
-        final core::int #t14 = #t13 as{TypeError,ForNonNullableByDefault} core::int;
-        #t12.{core::Set::add}(#t14);
+        final core::int #t13 = #t12 as{TypeError,ForNonNullableByDefault} core::int;
+        #t11.{core::Set::add}(#t13);
       }
-  } =>#t12, block {
-    final core::Set<core::int> #t15 = col::LinkedHashSet::•<core::int>();
+  } =>#t11, block {
+    final core::Set<core::int> #t14 = col::LinkedHashSet::•<core::int>();
     if(condition)
-      for (final dynamic #t16 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:15:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t15 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:15:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...b}, // Error.
                        ^") {
-        final core::int #t17 = #t16 as{TypeError,ForNonNullableByDefault} core::int;
-        #t15.{core::Set::add}(#t17);
+        final core::int #t16 = #t15 as{TypeError,ForNonNullableByDefault} core::int;
+        #t14.{core::Set::add}(#t16);
       }
-  } =>#t15, block {
-    final core::Set<core::int> #t18 = col::LinkedHashSet::•<core::int>();
+  } =>#t14, block {
+    final core::Set<core::int> #t17 = col::LinkedHashSet::•<core::int>();
     if(condition)
-      for (final dynamic #t19 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:16:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t18 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:16:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...c}, // Error.
                        ^") {
-        final core::int #t20 = #t19 as{TypeError,ForNonNullableByDefault} core::int;
-        #t18.{core::Set::add}(#t20);
+        final core::int #t19 = #t18 as{TypeError,ForNonNullableByDefault} core::int;
+        #t17.{core::Set::add}(#t19);
       }
-  } =>#t18, block {
-    final core::Map<core::int, core::int> #t21 = <core::int, core::int>{};
+  } =>#t17, block {
+    final core::Map<core::int, core::int> #t20 = <core::int, core::int>{};
     if(condition)
-      #t21.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:17:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      #t20.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:17:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...d}, // Error.
                        ^", null);
-  } =>#t21, block {
-    final core::Set<core::int> #t22 = col::LinkedHashSet::•<core::int>();
+  } =>#t20, block {
+    final core::Set<core::int> #t21 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable)
-      for (final dynamic #t23 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:18:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t22 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:18:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...a}, // Error.
                                     ^") {
-        final core::int #t24 = #t23 as{TypeError,ForNonNullableByDefault} core::int;
-        #t22.{core::Set::add}(#t24);
+        final core::int #t23 = #t22 as{TypeError,ForNonNullableByDefault} core::int;
+        #t21.{core::Set::add}(#t23);
       }
-  } =>#t22, block {
-    final core::Set<core::int> #t25 = col::LinkedHashSet::•<core::int>();
+  } =>#t21, block {
+    final core::Set<core::int> #t24 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable)
-      for (final dynamic #t26 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:19:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t25 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:19:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...b}, // Error.
                                     ^") {
-        final core::int #t27 = #t26 as{TypeError,ForNonNullableByDefault} core::int;
-        #t25.{core::Set::add}(#t27);
+        final core::int #t26 = #t25 as{TypeError,ForNonNullableByDefault} core::int;
+        #t24.{core::Set::add}(#t26);
       }
-  } =>#t25, block {
-    final core::Set<core::int> #t28 = col::LinkedHashSet::•<core::int>();
+  } =>#t24, block {
+    final core::Set<core::int> #t27 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable)
-      for (final dynamic #t29 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:20:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t28 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:20:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...c}, // Error.
                                     ^") {
-        final core::int #t30 = #t29 as{TypeError,ForNonNullableByDefault} core::int;
-        #t28.{core::Set::add}(#t30);
+        final core::int #t29 = #t28 as{TypeError,ForNonNullableByDefault} core::int;
+        #t27.{core::Set::add}(#t29);
       }
-  } =>#t28, block {
-    final core::Map<core::int, core::int> #t31 = <core::int, core::int>{};
+  } =>#t27, block {
+    final core::Map<core::int, core::int> #t30 = <core::int, core::int>{};
     for (dynamic e in iterable)
-      #t31.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:21:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      #t30.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:21:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...d}, // Error.
                                     ^", null);
-  } =>#t31, block {
-    final core::Set<core::int> #t32 = col::LinkedHashSet::•<core::int>();
+  } =>#t30, block {
+    final core::Set<core::int> #t31 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
-      for (final dynamic #t33 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:22:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t32 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:22:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...a}, // Error.
                                      ^") {
-        final core::int #t34 = #t33 as{TypeError,ForNonNullableByDefault} core::int;
-        #t32.{core::Set::add}(#t34);
+        final core::int #t33 = #t32 as{TypeError,ForNonNullableByDefault} core::int;
+        #t31.{core::Set::add}(#t33);
       }
-  } =>#t32, block {
-    final core::Set<core::int> #t35 = col::LinkedHashSet::•<core::int>();
+  } =>#t31, block {
+    final core::Set<core::int> #t34 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
-      for (final dynamic #t36 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:23:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t35 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:23:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...b}, // Error.
                                      ^") {
-        final core::int #t37 = #t36 as{TypeError,ForNonNullableByDefault} core::int;
-        #t35.{core::Set::add}(#t37);
+        final core::int #t36 = #t35 as{TypeError,ForNonNullableByDefault} core::int;
+        #t34.{core::Set::add}(#t36);
       }
-  } =>#t35, block {
-    final core::Set<core::int> #t38 = col::LinkedHashSet::•<core::int>();
+  } =>#t34, block {
+    final core::Set<core::int> #t37 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
-      for (final dynamic #t39 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:24:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t38 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:24:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...c}, // Error.
                                      ^") {
-        final core::int #t40 = #t39 as{TypeError,ForNonNullableByDefault} core::int;
-        #t38.{core::Set::add}(#t40);
+        final core::int #t39 = #t38 as{TypeError,ForNonNullableByDefault} core::int;
+        #t37.{core::Set::add}(#t39);
       }
-  } =>#t38, block {
-    final core::Map<core::int, core::int> #t41 = <core::int, core::int>{};
+  } =>#t37, block {
+    final core::Map<core::int, core::int> #t40 = <core::int, core::int>{};
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
-      #t41.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:25:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      #t40.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:25:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...d}, // Error.
                                      ^", null);
+  } =>#t40, block {
+    final core::Set<core::int> #t41 = col::LinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t42 = a;
+    if(!#t42.{core::Object::==}(null))
+      for (final dynamic #t43 in #t42{core::Iterable<dynamic>}) {
+        final core::int #t44 = #t43 as{TypeError,ForNonNullableByDefault} core::int;
+        #t41.{core::Set::add}(#t44);
+      }
   } =>#t41, block {
-    final core::Set<core::int> #t42 = col::LinkedHashSet::•<core::int>();
-    final core::Iterable<dynamic>? #t43 = a;
-    if(!#t43.{core::Object::==}(null))
-      for (final dynamic #t44 in #t43{core::Iterable<dynamic>}) {
-        final core::int #t45 = #t44 as{TypeError,ForNonNullableByDefault} core::int;
-        #t42.{core::Set::add}(#t45);
+    final core::Set<core::int> #t45 = col::LinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t46 = b;
+    if(!#t46.{core::Object::==}(null))
+      for (final dynamic #t47 in #t46{core::Iterable<dynamic>}) {
+        final core::int #t48 = #t47 as{TypeError,ForNonNullableByDefault} core::int;
+        #t45.{core::Set::add}(#t48);
       }
-  } =>#t42, block {
-    final core::Set<core::int> #t46 = col::LinkedHashSet::•<core::int>();
-    final core::Iterable<dynamic>? #t47 = b;
-    if(!#t47.{core::Object::==}(null))
-      for (final dynamic #t48 in #t47{core::Iterable<dynamic>}) {
-        final core::int #t49 = #t48 as{TypeError,ForNonNullableByDefault} core::int;
-        #t46.{core::Set::add}(#t49);
+  } =>#t45, block {
+    final core::Set<core::int> #t49 = col::LinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t50 = c;
+    if(!#t50.{core::Object::==}(null))
+      for (final dynamic #t51 in #t50{core::Iterable<dynamic>}) {
+        final core::int #t52 = #t51 as{TypeError,ForNonNullableByDefault} core::int;
+        #t49.{core::Set::add}(#t52);
       }
-  } =>#t46, block {
-    final core::Set<core::int> #t50 = col::LinkedHashSet::•<core::int>();
-    final core::Iterable<dynamic>? #t51 = c;
-    if(!#t51.{core::Object::==}(null))
-      for (final dynamic #t52 in #t51{core::Iterable<dynamic>}) {
-        final core::int #t53 = #t52 as{TypeError,ForNonNullableByDefault} core::int;
-        #t50.{core::Set::add}(#t53);
-      }
-  } =>#t50, block {
-    final core::Map<core::int, core::int> #t54 = <core::int, core::int>{};
-    final core::Map<core::int, core::int>? #t55 = d;
-    if(!#t55.{core::Object::==}(null))
-      for (final core::MapEntry<core::int, core::int> #t56 in #t55{core::Map<core::int, core::int>}.{core::Map::entries})
-        #t54.{core::Map::[]=}(#t56.{core::MapEntry::key}, #t56.{core::MapEntry::value});
-  } =>#t54, block {
-    final core::Set<core::int> #t57 = col::LinkedHashSet::•<core::int>();
+  } =>#t49, block {
+    final core::Map<core::int, core::int> #t53 = <core::int, core::int>{};
+    final core::Map<core::int, core::int>? #t54 = d;
+    if(!#t54.{core::Object::==}(null))
+      for (final core::MapEntry<core::int, core::int> #t55 in #t54{core::Map<core::int, core::int>}.{core::Map::entries})
+        #t53.{core::Map::[]=}(#t55.{core::MapEntry::key}, #t55.{core::MapEntry::value});
+  } =>#t53, block {
+    final core::Set<core::int> #t56 = col::LinkedHashSet::•<core::int>();
     if(condition) {
-      final core::Iterable<dynamic>? #t58 = a;
-      if(!#t58.{core::Object::==}(null))
-        for (final dynamic #t59 in #t58{core::Iterable<dynamic>}) {
-          final core::int #t60 = #t59 as{TypeError,ForNonNullableByDefault} core::int;
-          #t57.{core::Set::add}(#t60);
+      final core::Iterable<dynamic>? #t57 = a;
+      if(!#t57.{core::Object::==}(null))
+        for (final dynamic #t58 in #t57{core::Iterable<dynamic>}) {
+          final core::int #t59 = #t58 as{TypeError,ForNonNullableByDefault} core::int;
+          #t56.{core::Set::add}(#t59);
         }
     }
-  } =>#t57, block {
-    final core::Set<core::int> #t61 = col::LinkedHashSet::•<core::int>();
+  } =>#t56, block {
+    final core::Set<core::int> #t60 = col::LinkedHashSet::•<core::int>();
     if(condition) {
-      final core::Iterable<dynamic>? #t62 = b;
-      if(!#t62.{core::Object::==}(null))
-        for (final dynamic #t63 in #t62{core::Iterable<dynamic>}) {
-          final core::int #t64 = #t63 as{TypeError,ForNonNullableByDefault} core::int;
-          #t61.{core::Set::add}(#t64);
+      final core::Iterable<dynamic>? #t61 = b;
+      if(!#t61.{core::Object::==}(null))
+        for (final dynamic #t62 in #t61{core::Iterable<dynamic>}) {
+          final core::int #t63 = #t62 as{TypeError,ForNonNullableByDefault} core::int;
+          #t60.{core::Set::add}(#t63);
         }
     }
-  } =>#t61, block {
-    final core::Set<core::int> #t65 = col::LinkedHashSet::•<core::int>();
+  } =>#t60, block {
+    final core::Set<core::int> #t64 = col::LinkedHashSet::•<core::int>();
     if(condition) {
-      final core::Iterable<dynamic>? #t66 = c;
-      if(!#t66.{core::Object::==}(null))
-        for (final dynamic #t67 in #t66{core::Iterable<dynamic>}) {
-          final core::int #t68 = #t67 as{TypeError,ForNonNullableByDefault} core::int;
-          #t65.{core::Set::add}(#t68);
+      final core::Iterable<dynamic>? #t65 = c;
+      if(!#t65.{core::Object::==}(null))
+        for (final dynamic #t66 in #t65{core::Iterable<dynamic>}) {
+          final core::int #t67 = #t66 as{TypeError,ForNonNullableByDefault} core::int;
+          #t64.{core::Set::add}(#t67);
         }
     }
-  } =>#t65, block {
-    final core::Map<core::int, core::int> #t69 = <core::int, core::int>{};
+  } =>#t64, block {
+    final core::Map<core::int, core::int> #t68 = <core::int, core::int>{};
     if(condition) {
-      final core::Map<core::int, core::int>? #t70 = d;
-      if(!#t70.{core::Object::==}(null))
-        for (final core::MapEntry<core::int, core::int> #t71 in #t70{core::Map<core::int, core::int>}.{core::Map::entries})
-          #t69.{core::Map::[]=}(#t71.{core::MapEntry::key}, #t71.{core::MapEntry::value});
+      final core::Map<core::int, core::int>? #t69 = d;
+      if(!#t69.{core::Object::==}(null))
+        for (final core::MapEntry<core::int, core::int> #t70 in #t69{core::Map<core::int, core::int>}.{core::Map::entries})
+          #t68.{core::Map::[]=}(#t70.{core::MapEntry::key}, #t70.{core::MapEntry::value});
     }
-  } =>#t69, block {
-    final core::Set<core::int> #t72 = col::LinkedHashSet::•<core::int>();
+  } =>#t68, block {
+    final core::Set<core::int> #t71 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable) {
-      final core::Iterable<dynamic>? #t73 = a;
-      if(!#t73.{core::Object::==}(null))
-        for (final dynamic #t74 in #t73{core::Iterable<dynamic>}) {
-          final core::int #t75 = #t74 as{TypeError,ForNonNullableByDefault} core::int;
-          #t72.{core::Set::add}(#t75);
+      final core::Iterable<dynamic>? #t72 = a;
+      if(!#t72.{core::Object::==}(null))
+        for (final dynamic #t73 in #t72{core::Iterable<dynamic>}) {
+          final core::int #t74 = #t73 as{TypeError,ForNonNullableByDefault} core::int;
+          #t71.{core::Set::add}(#t74);
         }
     }
-  } =>#t72, block {
-    final core::Set<core::int> #t76 = col::LinkedHashSet::•<core::int>();
+  } =>#t71, block {
+    final core::Set<core::int> #t75 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable) {
-      final core::Iterable<dynamic>? #t77 = b;
-      if(!#t77.{core::Object::==}(null))
-        for (final dynamic #t78 in #t77{core::Iterable<dynamic>}) {
-          final core::int #t79 = #t78 as{TypeError,ForNonNullableByDefault} core::int;
-          #t76.{core::Set::add}(#t79);
+      final core::Iterable<dynamic>? #t76 = b;
+      if(!#t76.{core::Object::==}(null))
+        for (final dynamic #t77 in #t76{core::Iterable<dynamic>}) {
+          final core::int #t78 = #t77 as{TypeError,ForNonNullableByDefault} core::int;
+          #t75.{core::Set::add}(#t78);
         }
     }
-  } =>#t76, block {
-    final core::Set<core::int> #t80 = col::LinkedHashSet::•<core::int>();
+  } =>#t75, block {
+    final core::Set<core::int> #t79 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable) {
-      final core::Iterable<dynamic>? #t81 = c;
-      if(!#t81.{core::Object::==}(null))
-        for (final dynamic #t82 in #t81{core::Iterable<dynamic>}) {
-          final core::int #t83 = #t82 as{TypeError,ForNonNullableByDefault} core::int;
-          #t80.{core::Set::add}(#t83);
+      final core::Iterable<dynamic>? #t80 = c;
+      if(!#t80.{core::Object::==}(null))
+        for (final dynamic #t81 in #t80{core::Iterable<dynamic>}) {
+          final core::int #t82 = #t81 as{TypeError,ForNonNullableByDefault} core::int;
+          #t79.{core::Set::add}(#t82);
         }
     }
-  } =>#t80, block {
-    final core::Map<core::int, core::int> #t84 = <core::int, core::int>{};
+  } =>#t79, block {
+    final core::Map<core::int, core::int> #t83 = <core::int, core::int>{};
     for (dynamic e in iterable) {
-      final core::Map<core::int, core::int>? #t85 = d;
-      if(!#t85.{core::Object::==}(null))
-        for (final core::MapEntry<core::int, core::int> #t86 in #t85{core::Map<core::int, core::int>}.{core::Map::entries})
-          #t84.{core::Map::[]=}(#t86.{core::MapEntry::key}, #t86.{core::MapEntry::value});
+      final core::Map<core::int, core::int>? #t84 = d;
+      if(!#t84.{core::Object::==}(null))
+        for (final core::MapEntry<core::int, core::int> #t85 in #t84{core::Map<core::int, core::int>}.{core::Map::entries})
+          #t83.{core::Map::[]=}(#t85.{core::MapEntry::key}, #t85.{core::MapEntry::value});
     }
-  } =>#t84, block {
-    final core::Set<core::int> #t87 = col::LinkedHashSet::•<core::int>();
+  } =>#t83, block {
+    final core::Set<core::int> #t86 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
-      final core::Iterable<dynamic>? #t88 = a;
-      if(!#t88.{core::Object::==}(null))
-        for (final dynamic #t89 in #t88{core::Iterable<dynamic>}) {
-          final core::int #t90 = #t89 as{TypeError,ForNonNullableByDefault} core::int;
-          #t87.{core::Set::add}(#t90);
+      final core::Iterable<dynamic>? #t87 = a;
+      if(!#t87.{core::Object::==}(null))
+        for (final dynamic #t88 in #t87{core::Iterable<dynamic>}) {
+          final core::int #t89 = #t88 as{TypeError,ForNonNullableByDefault} core::int;
+          #t86.{core::Set::add}(#t89);
         }
     }
-  } =>#t87, block {
-    final core::Set<core::int> #t91 = col::LinkedHashSet::•<core::int>();
+  } =>#t86, block {
+    final core::Set<core::int> #t90 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
-      final core::Iterable<dynamic>? #t92 = b;
-      if(!#t92.{core::Object::==}(null))
-        for (final dynamic #t93 in #t92{core::Iterable<dynamic>}) {
-          final core::int #t94 = #t93 as{TypeError,ForNonNullableByDefault} core::int;
-          #t91.{core::Set::add}(#t94);
+      final core::Iterable<dynamic>? #t91 = b;
+      if(!#t91.{core::Object::==}(null))
+        for (final dynamic #t92 in #t91{core::Iterable<dynamic>}) {
+          final core::int #t93 = #t92 as{TypeError,ForNonNullableByDefault} core::int;
+          #t90.{core::Set::add}(#t93);
         }
     }
-  } =>#t91, block {
-    final core::Set<core::int> #t95 = col::LinkedHashSet::•<core::int>();
+  } =>#t90, block {
+    final core::Set<core::int> #t94 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
-      final core::Iterable<dynamic>? #t96 = c;
-      if(!#t96.{core::Object::==}(null))
-        for (final dynamic #t97 in #t96{core::Iterable<dynamic>}) {
-          final core::int #t98 = #t97 as{TypeError,ForNonNullableByDefault} core::int;
-          #t95.{core::Set::add}(#t98);
+      final core::Iterable<dynamic>? #t95 = c;
+      if(!#t95.{core::Object::==}(null))
+        for (final dynamic #t96 in #t95{core::Iterable<dynamic>}) {
+          final core::int #t97 = #t96 as{TypeError,ForNonNullableByDefault} core::int;
+          #t94.{core::Set::add}(#t97);
         }
     }
-  } =>#t95, block {
-    final core::Map<core::int, core::int> #t99 = <core::int, core::int>{};
+  } =>#t94, block {
+    final core::Map<core::int, core::int> #t98 = <core::int, core::int>{};
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
-      final core::Map<core::int, core::int>? #t100 = d;
-      if(!#t100.{core::Object::==}(null))
-        for (final core::MapEntry<core::int, core::int> #t101 in #t100{core::Map<core::int, core::int>}.{core::Map::entries})
-          #t99.{core::Map::[]=}(#t101.{core::MapEntry::key}, #t101.{core::MapEntry::value});
+      final core::Map<core::int, core::int>? #t99 = d;
+      if(!#t99.{core::Object::==}(null))
+        for (final core::MapEntry<core::int, core::int> #t100 in #t99{core::Map<core::int, core::int>}.{core::Map::entries})
+          #t98.{core::Map::[]=}(#t100.{core::MapEntry::key}, #t100.{core::MapEntry::value});
     }
-  } =>#t99];
+  } =>#t98];
 }
 static method bar<X extends core::List<core::int>? = core::List<core::int>?, Y extends core::Set<core::int>? = core::Set<core::int>?, Z extends core::Iterable<core::int>? = core::Iterable<core::int>?, W extends core::Map<core::int, core::int>? = core::Map<core::int, core::int>?>(core::bool condition, core::Iterable<dynamic> iterable, self::bar::X% x, self::bar::Y% y, self::bar::Z% z, self::bar::W% w) → dynamic {
   return <core::Object>[ block {
-    final core::Set<core::int> #t102 = col::LinkedHashSet::•<core::int>();
-    for (final dynamic #t103 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:50:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    final core::Set<core::int> #t101 = col::LinkedHashSet::•<core::int>();
+    for (final dynamic #t102 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:50:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {...x}, // Error.
         ^") {
-      final core::int #t104 = #t103 as{TypeError,ForNonNullableByDefault} core::int;
-      #t102.{core::Set::add}(#t104);
+      final core::int #t103 = #t102 as{TypeError,ForNonNullableByDefault} core::int;
+      #t101.{core::Set::add}(#t103);
     }
-  } =>#t102, block {
-    final core::Set<core::int> #t105 = col::LinkedHashSet::•<core::int>();
-    for (final dynamic #t106 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:51:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  } =>#t101, block {
+    final core::Set<core::int> #t104 = col::LinkedHashSet::•<core::int>();
+    for (final dynamic #t105 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:51:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {...y}, // Error.
         ^") {
-      final core::int #t107 = #t106 as{TypeError,ForNonNullableByDefault} core::int;
-      #t105.{core::Set::add}(#t107);
+      final core::int #t106 = #t105 as{TypeError,ForNonNullableByDefault} core::int;
+      #t104.{core::Set::add}(#t106);
     }
-  } =>#t105, block {
-    final core::Set<core::int> #t108 = col::LinkedHashSet::•<core::int>();
-    for (final dynamic #t109 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:52:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  } =>#t104, block {
+    final core::Set<core::int> #t107 = col::LinkedHashSet::•<core::int>();
+    for (final dynamic #t108 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:52:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {...z}, // Error.
         ^") {
-      final core::int #t110 = #t109 as{TypeError,ForNonNullableByDefault} core::int;
-      #t108.{core::Set::add}(#t110);
+      final core::int #t109 = #t108 as{TypeError,ForNonNullableByDefault} core::int;
+      #t107.{core::Set::add}(#t109);
     }
-  } =>#t108, <core::int, core::int>{invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:53:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  } =>#t107, <core::int, core::int>{invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:53:9: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {...w}, // Error.
         ^": null}, <core::int, core::int>{invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:54:19: Error: Unexpected type 'X' of a map spread entry.  Expected 'dynamic' or a Map.
     <int, int>{...x}, // Error.
-                  ^": null}, let final core::Set<core::int> #t111 = col::LinkedHashSet::•<core::int>() in let final dynamic #t112 = #t111.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:55:14: Error: Unexpected type 'W' of a spread.  Expected 'dynamic' or an Iterable.
+                  ^": null}, block {
+    final core::Set<core::int> #t110 = col::LinkedHashSet::•<core::int>();
+    #t110.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:55:14: Error: Unexpected type 'W' of a spread.  Expected 'dynamic' or an Iterable.
     <int>{...w}, // Error.
-             ^") in #t111, block {
-    final core::Set<core::int> #t113 = col::LinkedHashSet::•<core::int>();
+             ^");
+  } =>#t110, block {
+    final core::Set<core::int> #t111 = col::LinkedHashSet::•<core::int>();
     if(condition)
-      for (final dynamic #t114 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:56:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t112 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:56:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...x}, // Error.
                        ^") {
-        final core::int #t115 = #t114 as{TypeError,ForNonNullableByDefault} core::int;
-        #t113.{core::Set::add}(#t115);
+        final core::int #t113 = #t112 as{TypeError,ForNonNullableByDefault} core::int;
+        #t111.{core::Set::add}(#t113);
       }
-  } =>#t113, block {
-    final core::Set<core::int> #t116 = col::LinkedHashSet::•<core::int>();
+  } =>#t111, block {
+    final core::Set<core::int> #t114 = col::LinkedHashSet::•<core::int>();
     if(condition)
-      for (final dynamic #t117 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:57:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t115 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:57:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...y}, // Error.
                        ^") {
-        final core::int #t118 = #t117 as{TypeError,ForNonNullableByDefault} core::int;
-        #t116.{core::Set::add}(#t118);
+        final core::int #t116 = #t115 as{TypeError,ForNonNullableByDefault} core::int;
+        #t114.{core::Set::add}(#t116);
       }
-  } =>#t116, block {
-    final core::Set<core::int> #t119 = col::LinkedHashSet::•<core::int>();
+  } =>#t114, block {
+    final core::Set<core::int> #t117 = col::LinkedHashSet::•<core::int>();
     if(condition)
-      for (final dynamic #t120 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:58:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t118 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:58:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...z}, // Error.
                        ^") {
-        final core::int #t121 = #t120 as{TypeError,ForNonNullableByDefault} core::int;
-        #t119.{core::Set::add}(#t121);
+        final core::int #t119 = #t118 as{TypeError,ForNonNullableByDefault} core::int;
+        #t117.{core::Set::add}(#t119);
       }
-  } =>#t119, block {
-    final core::Map<core::int, core::int> #t122 = <core::int, core::int>{};
+  } =>#t117, block {
+    final core::Map<core::int, core::int> #t120 = <core::int, core::int>{};
     if(condition)
-      #t122.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:59:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      #t120.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:59:24: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {if (condition) ...w}, // Error.
                        ^", null);
-  } =>#t122, block {
-    final core::Set<core::int> #t123 = col::LinkedHashSet::•<core::int>();
+  } =>#t120, block {
+    final core::Set<core::int> #t121 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable)
-      for (final dynamic #t124 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:60:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t122 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:60:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...x}, // Error.
                                     ^") {
-        final core::int #t125 = #t124 as{TypeError,ForNonNullableByDefault} core::int;
-        #t123.{core::Set::add}(#t125);
+        final core::int #t123 = #t122 as{TypeError,ForNonNullableByDefault} core::int;
+        #t121.{core::Set::add}(#t123);
       }
-  } =>#t123, block {
-    final core::Set<core::int> #t126 = col::LinkedHashSet::•<core::int>();
+  } =>#t121, block {
+    final core::Set<core::int> #t124 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable)
-      for (final dynamic #t127 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:61:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t125 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:61:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...y}, // Error.
                                     ^") {
-        final core::int #t128 = #t127 as{TypeError,ForNonNullableByDefault} core::int;
-        #t126.{core::Set::add}(#t128);
+        final core::int #t126 = #t125 as{TypeError,ForNonNullableByDefault} core::int;
+        #t124.{core::Set::add}(#t126);
       }
-  } =>#t126, block {
-    final core::Set<core::int> #t129 = col::LinkedHashSet::•<core::int>();
+  } =>#t124, block {
+    final core::Set<core::int> #t127 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable)
-      for (final dynamic #t130 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:62:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t128 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:62:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...z}, // Error.
                                     ^") {
-        final core::int #t131 = #t130 as{TypeError,ForNonNullableByDefault} core::int;
-        #t129.{core::Set::add}(#t131);
+        final core::int #t129 = #t128 as{TypeError,ForNonNullableByDefault} core::int;
+        #t127.{core::Set::add}(#t129);
       }
-  } =>#t129, block {
-    final core::Map<core::int, core::int> #t132 = <core::int, core::int>{};
+  } =>#t127, block {
+    final core::Map<core::int, core::int> #t130 = <core::int, core::int>{};
     for (dynamic e in iterable)
-      #t132.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:63:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      #t130.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:63:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...w}, // Error.
                                     ^", null);
-  } =>#t132, block {
-    final core::Set<core::int> #t133 = col::LinkedHashSet::•<core::int>();
+  } =>#t130, block {
+    final core::Set<core::int> #t131 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
-      for (final dynamic #t134 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:64:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t132 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:64:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...x}, // Error.
                                      ^") {
-        final core::int #t135 = #t134 as{TypeError,ForNonNullableByDefault} core::int;
-        #t133.{core::Set::add}(#t135);
+        final core::int #t133 = #t132 as{TypeError,ForNonNullableByDefault} core::int;
+        #t131.{core::Set::add}(#t133);
       }
-  } =>#t133, block {
-    final core::Set<core::int> #t136 = col::LinkedHashSet::•<core::int>();
+  } =>#t131, block {
+    final core::Set<core::int> #t134 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
-      for (final dynamic #t137 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:65:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t135 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:65:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...y}, // Error.
                                      ^") {
-        final core::int #t138 = #t137 as{TypeError,ForNonNullableByDefault} core::int;
-        #t136.{core::Set::add}(#t138);
+        final core::int #t136 = #t135 as{TypeError,ForNonNullableByDefault} core::int;
+        #t134.{core::Set::add}(#t136);
       }
-  } =>#t136, block {
-    final core::Set<core::int> #t139 = col::LinkedHashSet::•<core::int>();
+  } =>#t134, block {
+    final core::Set<core::int> #t137 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
-      for (final dynamic #t140 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:66:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      for (final dynamic #t138 in invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:66:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...z}, // Error.
                                      ^") {
-        final core::int #t141 = #t140 as{TypeError,ForNonNullableByDefault} core::int;
-        #t139.{core::Set::add}(#t141);
+        final core::int #t139 = #t138 as{TypeError,ForNonNullableByDefault} core::int;
+        #t137.{core::Set::add}(#t139);
       }
-  } =>#t139, block {
-    final core::Map<core::int, core::int> #t142 = <core::int, core::int>{};
+  } =>#t137, block {
+    final core::Map<core::int, core::int> #t140 = <core::int, core::int>{};
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1))
-      #t142.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:67:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+      #t140.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:67:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...w}, // Error.
                                      ^", null);
-  } =>#t142, block {
-    final core::Set<core::int> #t143 = col::LinkedHashSet::•<core::int>();
-    final core::Iterable<dynamic>? #t144 = x;
-    if(!#t144.{core::Object::==}(null))
-      for (final dynamic #t145 in #t144{core::Iterable<dynamic>}) {
-        final core::int #t146 = #t145 as{TypeError,ForNonNullableByDefault} core::int;
-        #t143.{core::Set::add}(#t146);
+  } =>#t140, block {
+    final core::Set<core::int> #t141 = col::LinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t142 = x;
+    if(!#t142.{core::Object::==}(null))
+      for (final dynamic #t143 in #t142{core::Iterable<dynamic>}) {
+        final core::int #t144 = #t143 as{TypeError,ForNonNullableByDefault} core::int;
+        #t141.{core::Set::add}(#t144);
       }
-  } =>#t143, block {
-    final core::Set<core::int> #t147 = col::LinkedHashSet::•<core::int>();
-    final core::Iterable<dynamic>? #t148 = y;
-    if(!#t148.{core::Object::==}(null))
-      for (final dynamic #t149 in #t148{core::Iterable<dynamic>}) {
-        final core::int #t150 = #t149 as{TypeError,ForNonNullableByDefault} core::int;
-        #t147.{core::Set::add}(#t150);
+  } =>#t141, block {
+    final core::Set<core::int> #t145 = col::LinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t146 = y;
+    if(!#t146.{core::Object::==}(null))
+      for (final dynamic #t147 in #t146{core::Iterable<dynamic>}) {
+        final core::int #t148 = #t147 as{TypeError,ForNonNullableByDefault} core::int;
+        #t145.{core::Set::add}(#t148);
       }
-  } =>#t147, block {
-    final core::Set<core::int> #t151 = col::LinkedHashSet::•<core::int>();
-    final core::Iterable<dynamic>? #t152 = z;
-    if(!#t152.{core::Object::==}(null))
-      for (final dynamic #t153 in #t152{core::Iterable<dynamic>}) {
-        final core::int #t154 = #t153 as{TypeError,ForNonNullableByDefault} core::int;
-        #t151.{core::Set::add}(#t154);
+  } =>#t145, block {
+    final core::Set<core::int> #t149 = col::LinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t150 = z;
+    if(!#t150.{core::Object::==}(null))
+      for (final dynamic #t151 in #t150{core::Iterable<dynamic>}) {
+        final core::int #t152 = #t151 as{TypeError,ForNonNullableByDefault} core::int;
+        #t149.{core::Set::add}(#t152);
       }
-  } =>#t151, block {
-    final core::Map<core::int, core::int> #t155 = <core::int, core::int>{};
-    final core::Map<core::int, core::int>? #t156 = w;
-    if(!#t156.{core::Object::==}(null))
-      for (final core::MapEntry<core::int, core::int> #t157 in #t156{core::Map<core::int, core::int>}.{core::Map::entries})
-        #t155.{core::Map::[]=}(#t157.{core::MapEntry::key}, #t157.{core::MapEntry::value});
-  } =>#t155, block {
-    final core::Set<core::int> #t158 = col::LinkedHashSet::•<core::int>();
+  } =>#t149, block {
+    final core::Map<core::int, core::int> #t153 = <core::int, core::int>{};
+    final core::Map<core::int, core::int>? #t154 = w;
+    if(!#t154.{core::Object::==}(null))
+      for (final core::MapEntry<core::int, core::int> #t155 in #t154{core::Map<core::int, core::int>}.{core::Map::entries})
+        #t153.{core::Map::[]=}(#t155.{core::MapEntry::key}, #t155.{core::MapEntry::value});
+  } =>#t153, block {
+    final core::Set<core::int> #t156 = col::LinkedHashSet::•<core::int>();
     if(condition) {
-      final core::Iterable<dynamic>? #t159 = x;
-      if(!#t159.{core::Object::==}(null))
-        for (final dynamic #t160 in #t159{core::Iterable<dynamic>}) {
-          final core::int #t161 = #t160 as{TypeError,ForNonNullableByDefault} core::int;
-          #t158.{core::Set::add}(#t161);
+      final core::Iterable<dynamic>? #t157 = x;
+      if(!#t157.{core::Object::==}(null))
+        for (final dynamic #t158 in #t157{core::Iterable<dynamic>}) {
+          final core::int #t159 = #t158 as{TypeError,ForNonNullableByDefault} core::int;
+          #t156.{core::Set::add}(#t159);
         }
     }
-  } =>#t158, block {
-    final core::Set<core::int> #t162 = col::LinkedHashSet::•<core::int>();
+  } =>#t156, block {
+    final core::Set<core::int> #t160 = col::LinkedHashSet::•<core::int>();
     if(condition) {
-      final core::Iterable<dynamic>? #t163 = y;
-      if(!#t163.{core::Object::==}(null))
-        for (final dynamic #t164 in #t163{core::Iterable<dynamic>}) {
-          final core::int #t165 = #t164 as{TypeError,ForNonNullableByDefault} core::int;
-          #t162.{core::Set::add}(#t165);
+      final core::Iterable<dynamic>? #t161 = y;
+      if(!#t161.{core::Object::==}(null))
+        for (final dynamic #t162 in #t161{core::Iterable<dynamic>}) {
+          final core::int #t163 = #t162 as{TypeError,ForNonNullableByDefault} core::int;
+          #t160.{core::Set::add}(#t163);
         }
     }
-  } =>#t162, block {
-    final core::Set<core::int> #t166 = col::LinkedHashSet::•<core::int>();
+  } =>#t160, block {
+    final core::Set<core::int> #t164 = col::LinkedHashSet::•<core::int>();
     if(condition) {
-      final core::Iterable<dynamic>? #t167 = z;
-      if(!#t167.{core::Object::==}(null))
-        for (final dynamic #t168 in #t167{core::Iterable<dynamic>}) {
-          final core::int #t169 = #t168 as{TypeError,ForNonNullableByDefault} core::int;
-          #t166.{core::Set::add}(#t169);
+      final core::Iterable<dynamic>? #t165 = z;
+      if(!#t165.{core::Object::==}(null))
+        for (final dynamic #t166 in #t165{core::Iterable<dynamic>}) {
+          final core::int #t167 = #t166 as{TypeError,ForNonNullableByDefault} core::int;
+          #t164.{core::Set::add}(#t167);
         }
     }
-  } =>#t166, block {
-    final core::Map<core::int, core::int> #t170 = <core::int, core::int>{};
+  } =>#t164, block {
+    final core::Map<core::int, core::int> #t168 = <core::int, core::int>{};
     if(condition) {
-      final core::Map<core::int, core::int>? #t171 = w;
-      if(!#t171.{core::Object::==}(null))
-        for (final core::MapEntry<core::int, core::int> #t172 in #t171{core::Map<core::int, core::int>}.{core::Map::entries})
-          #t170.{core::Map::[]=}(#t172.{core::MapEntry::key}, #t172.{core::MapEntry::value});
+      final core::Map<core::int, core::int>? #t169 = w;
+      if(!#t169.{core::Object::==}(null))
+        for (final core::MapEntry<core::int, core::int> #t170 in #t169{core::Map<core::int, core::int>}.{core::Map::entries})
+          #t168.{core::Map::[]=}(#t170.{core::MapEntry::key}, #t170.{core::MapEntry::value});
     }
-  } =>#t170, block {
-    final core::Set<core::int> #t173 = col::LinkedHashSet::•<core::int>();
+  } =>#t168, block {
+    final core::Set<core::int> #t171 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable) {
-      final core::Iterable<dynamic>? #t174 = x;
-      if(!#t174.{core::Object::==}(null))
-        for (final dynamic #t175 in #t174{core::Iterable<dynamic>}) {
-          final core::int #t176 = #t175 as{TypeError,ForNonNullableByDefault} core::int;
-          #t173.{core::Set::add}(#t176);
+      final core::Iterable<dynamic>? #t172 = x;
+      if(!#t172.{core::Object::==}(null))
+        for (final dynamic #t173 in #t172{core::Iterable<dynamic>}) {
+          final core::int #t174 = #t173 as{TypeError,ForNonNullableByDefault} core::int;
+          #t171.{core::Set::add}(#t174);
         }
     }
-  } =>#t173, block {
-    final core::Set<core::int> #t177 = col::LinkedHashSet::•<core::int>();
+  } =>#t171, block {
+    final core::Set<core::int> #t175 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable) {
-      final core::Iterable<dynamic>? #t178 = y;
-      if(!#t178.{core::Object::==}(null))
-        for (final dynamic #t179 in #t178{core::Iterable<dynamic>}) {
-          final core::int #t180 = #t179 as{TypeError,ForNonNullableByDefault} core::int;
-          #t177.{core::Set::add}(#t180);
+      final core::Iterable<dynamic>? #t176 = y;
+      if(!#t176.{core::Object::==}(null))
+        for (final dynamic #t177 in #t176{core::Iterable<dynamic>}) {
+          final core::int #t178 = #t177 as{TypeError,ForNonNullableByDefault} core::int;
+          #t175.{core::Set::add}(#t178);
         }
     }
-  } =>#t177, block {
-    final core::Set<core::int> #t181 = col::LinkedHashSet::•<core::int>();
+  } =>#t175, block {
+    final core::Set<core::int> #t179 = col::LinkedHashSet::•<core::int>();
     for (dynamic e in iterable) {
-      final core::Iterable<dynamic>? #t182 = z;
-      if(!#t182.{core::Object::==}(null))
-        for (final dynamic #t183 in #t182{core::Iterable<dynamic>}) {
-          final core::int #t184 = #t183 as{TypeError,ForNonNullableByDefault} core::int;
-          #t181.{core::Set::add}(#t184);
+      final core::Iterable<dynamic>? #t180 = z;
+      if(!#t180.{core::Object::==}(null))
+        for (final dynamic #t181 in #t180{core::Iterable<dynamic>}) {
+          final core::int #t182 = #t181 as{TypeError,ForNonNullableByDefault} core::int;
+          #t179.{core::Set::add}(#t182);
         }
     }
-  } =>#t181, block {
-    final core::Map<core::int, core::int> #t185 = <core::int, core::int>{};
+  } =>#t179, block {
+    final core::Map<core::int, core::int> #t183 = <core::int, core::int>{};
     for (dynamic e in iterable) {
-      final core::Map<core::int, core::int>? #t186 = w;
-      if(!#t186.{core::Object::==}(null))
-        for (final core::MapEntry<core::int, core::int> #t187 in #t186{core::Map<core::int, core::int>}.{core::Map::entries})
-          #t185.{core::Map::[]=}(#t187.{core::MapEntry::key}, #t187.{core::MapEntry::value});
+      final core::Map<core::int, core::int>? #t184 = w;
+      if(!#t184.{core::Object::==}(null))
+        for (final core::MapEntry<core::int, core::int> #t185 in #t184{core::Map<core::int, core::int>}.{core::Map::entries})
+          #t183.{core::Map::[]=}(#t185.{core::MapEntry::key}, #t185.{core::MapEntry::value});
     }
-  } =>#t185, block {
-    final core::Set<core::int> #t188 = col::LinkedHashSet::•<core::int>();
+  } =>#t183, block {
+    final core::Set<core::int> #t186 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
-      final core::Iterable<dynamic>? #t189 = x;
-      if(!#t189.{core::Object::==}(null))
-        for (final dynamic #t190 in #t189{core::Iterable<dynamic>}) {
-          final core::int #t191 = #t190 as{TypeError,ForNonNullableByDefault} core::int;
-          #t188.{core::Set::add}(#t191);
+      final core::Iterable<dynamic>? #t187 = x;
+      if(!#t187.{core::Object::==}(null))
+        for (final dynamic #t188 in #t187{core::Iterable<dynamic>}) {
+          final core::int #t189 = #t188 as{TypeError,ForNonNullableByDefault} core::int;
+          #t186.{core::Set::add}(#t189);
         }
     }
-  } =>#t188, block {
-    final core::Set<core::int> #t192 = col::LinkedHashSet::•<core::int>();
+  } =>#t186, block {
+    final core::Set<core::int> #t190 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
-      final core::Iterable<dynamic>? #t193 = y;
-      if(!#t193.{core::Object::==}(null))
-        for (final dynamic #t194 in #t193{core::Iterable<dynamic>}) {
-          final core::int #t195 = #t194 as{TypeError,ForNonNullableByDefault} core::int;
-          #t192.{core::Set::add}(#t195);
+      final core::Iterable<dynamic>? #t191 = y;
+      if(!#t191.{core::Object::==}(null))
+        for (final dynamic #t192 in #t191{core::Iterable<dynamic>}) {
+          final core::int #t193 = #t192 as{TypeError,ForNonNullableByDefault} core::int;
+          #t190.{core::Set::add}(#t193);
         }
     }
-  } =>#t192, block {
-    final core::Set<core::int> #t196 = col::LinkedHashSet::•<core::int>();
+  } =>#t190, block {
+    final core::Set<core::int> #t194 = col::LinkedHashSet::•<core::int>();
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
-      final core::Iterable<dynamic>? #t197 = z;
-      if(!#t197.{core::Object::==}(null))
-        for (final dynamic #t198 in #t197{core::Iterable<dynamic>}) {
-          final core::int #t199 = #t198 as{TypeError,ForNonNullableByDefault} core::int;
-          #t196.{core::Set::add}(#t199);
+      final core::Iterable<dynamic>? #t195 = z;
+      if(!#t195.{core::Object::==}(null))
+        for (final dynamic #t196 in #t195{core::Iterable<dynamic>}) {
+          final core::int #t197 = #t196 as{TypeError,ForNonNullableByDefault} core::int;
+          #t194.{core::Set::add}(#t197);
         }
     }
-  } =>#t196, block {
-    final core::Map<core::int, core::int> #t200 = <core::int, core::int>{};
+  } =>#t194, block {
+    final core::Map<core::int, core::int> #t198 = <core::int, core::int>{};
     for (core::int i = 0; i.{core::num::<}(42); i = i.{core::num::+}(1)) {
-      final core::Map<core::int, core::int>? #t201 = w;
-      if(!#t201.{core::Object::==}(null))
-        for (final core::MapEntry<core::int, core::int> #t202 in #t201{core::Map<core::int, core::int>}.{core::Map::entries})
-          #t200.{core::Map::[]=}(#t202.{core::MapEntry::key}, #t202.{core::MapEntry::value});
+      final core::Map<core::int, core::int>? #t199 = w;
+      if(!#t199.{core::Object::==}(null))
+        for (final core::MapEntry<core::int, core::int> #t200 in #t199{core::Map<core::int, core::int>}.{core::Map::entries})
+          #t198.{core::Map::[]=}(#t200.{core::MapEntry::key}, #t200.{core::MapEntry::value});
     }
-  } =>#t200];
+  } =>#t198];
 }
 static method main() → dynamic {}

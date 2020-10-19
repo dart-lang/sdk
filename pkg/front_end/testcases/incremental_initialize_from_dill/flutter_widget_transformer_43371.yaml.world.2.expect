@@ -47,12 +47,12 @@ library from "org-dartlang-test:///foo.dart" as foo {
     const constructor •([dart.core::Object* key = #C1]) → foo::Foo*
       : super fra::StatelessWidget::•(key: key)
       ;
-    abstract member-signature get key() → dart.core::Object*; -> fra::Widget::key
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    abstract member-signature get /* from org-dartlang-test:///flutter/lib/src/widgets/framework.dart */ key() → dart.core::Object*; -> fra::Widget::key
+    abstract member-signature operator /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
 }
 library from "org-dartlang-test:///main.dart" as main {

@@ -1,0 +1,5 @@
+class A {}
+
+class C = A with E;
+enum E { a, b }
+main() {}

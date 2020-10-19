@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
+import 'package:analyzer/src/error/ignore_validator.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
@@ -244,6 +245,16 @@ class LibraryAnalyzer {
           _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
         }
       });
+    }
+
+    // This must happen after all other diagnostics have been computed but
+    // before the list of diagnostics has been filtered.
+    for (var file in _library.libraryFiles) {
+      if (file.source != null) {
+        IgnoreValidator(_getErrorReporter(file), _getErrorListener(file).errors,
+                _fileToIgnoreInfo[file], _fileToLineInfo[file])
+            .reportErrors();
+      }
     }
   }
 

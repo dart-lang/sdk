@@ -23,7 +23,7 @@ class InvalidUseOfNullValueTest extends PubPackageResolutionTest
     await assertNoErrorsInCode(r'''
 m() {
   Null x;
-  x as int; // ignore: unnecessary_cast
+  x as int;
 }
 ''');
   }

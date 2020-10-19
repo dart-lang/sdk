@@ -9,14 +9,17 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        Block,
+        BlockExpression,
         Expression,
+        ExpressionStatement,
         InterfaceType,
-        Let,
         Library,
         MethodInvocation,
         Name,
         Procedure,
         SetLiteral,
+        Statement,
         StaticInvocation,
         TreeNode,
         VariableDeclaration,
@@ -60,26 +63,31 @@ class SetLiteralTransformer extends Transformer {
   TreeNode visitSetLiteral(SetLiteral node) {
     if (node.isConst) return node;
 
-    // Outermost declaration of let chain: Set<E> setVar = new Set<E>();
+    // Create the set: Set<E> setVar = new Set<E>();
     VariableDeclaration setVar = new VariableDeclaration.forValue(
         new StaticInvocation(
             setFactory, new Arguments([], types: [node.typeArgument])),
         type: new InterfaceType(coreTypes.setClass, _currentLibrary.nonNullable,
             [node.typeArgument]));
-    // Innermost body of let chain: setVar
-    Expression setExp = new VariableGet(setVar);
-    for (int i = node.expressions.length - 1; i >= 0; i--) {
-      // let _ = setVar.add(expression) in rest
+
+    // Now create a list of all statements needed.
+    List<Statement> statements = [setVar];
+    for (int i = 0; i < node.expressions.length; i++) {
       Expression entry = node.expressions[i].accept<TreeNode>(this);
-      setExp = new Let(
-          new VariableDeclaration.forValue(new MethodInvocation(
-              new VariableGet(setVar),
-              new Name("add"),
-              new Arguments([entry]),
-              addMethod)),
-          setExp);
+      MethodInvocation methodInvocation = new MethodInvocation(
+          new VariableGet(setVar),
+          new Name("add"),
+          new Arguments([entry]),
+          addMethod)
+        ..fileOffset = entry.fileOffset;
+      statements.add(new ExpressionStatement(methodInvocation)
+        ..fileOffset = methodInvocation.fileOffset);
     }
-    return new Let(setVar, setExp);
+
+    // Finally, return a BlockExpression with the statements, having the value
+    // of the (now created) set.
+    return new BlockExpression(new Block(statements), new VariableGet(setVar))
+      ..fileOffset = node.fileOffset;
   }
 
   void enterLibrary(Library library) {

@@ -6,14 +6,11 @@ library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/clone.dart' show CloneProcedureWithoutBody;
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart' show Substitution;
-import 'package:kernel/type_algebra.dart' as type_algebra
-    show getSubstitutionMap;
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
@@ -38,6 +35,8 @@ import '../dill/dill_member_builder.dart';
 
 import '../fasta_codes.dart';
 
+import '../kernel/combined_member_signature.dart'
+    show CombinedMemberSignatureBuilder;
 import '../kernel/kernel_builder.dart' show compareProcedures;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
@@ -634,103 +633,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     return charOffset.compareTo(other.charOffset);
   }
 
-  void addNoSuchMethodForwarderForProcedure(Member noSuchMethod,
-      KernelTarget target, Procedure procedure, ClassHierarchy hierarchy) {
-    Procedure referenceFrom;
-    if (referencesFromIndexed != null) {
-      if (procedure.isSetter) {
-        referenceFrom =
-            referencesFromIndexed.lookupProcedureSetter(procedure.name.text);
-      } else {
-        referenceFrom =
-            referencesFromIndexed.lookupProcedureNotSetter(procedure.name.text);
-      }
-    }
-
-    CloneProcedureWithoutBody cloner = new CloneProcedureWithoutBody(
-        typeSubstitution: type_algebra.getSubstitutionMap(
-            hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)),
-        cloneAnnotations: false);
-    Procedure cloned = cloner.cloneProcedure(procedure, referenceFrom)
-      ..isExternal = false;
-    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, cloned);
-    cls.procedures.add(cloned);
-    cloned.parent = cls;
-
-    library.forwardersOrigins.add(cloned);
-    library.forwardersOrigins.add(procedure);
-  }
-
-  void addNoSuchMethodForwarderGetterForField(
-      Field field, Member noSuchMethod, KernelTarget target) {
-    ClassHierarchy hierarchy = target.loader.hierarchy;
-    Substitution substitution = Substitution.fromSupertype(
-        hierarchy.getClassAsInstanceOf(cls, field.enclosingClass));
-
-    Procedure referenceFrom;
-    if (referencesFromIndexed != null) {
-      referenceFrom =
-          referencesFromIndexed.lookupProcedureNotSetter(field.name.text);
-    }
-    Procedure getter = new Procedure(
-        field.name,
-        ProcedureKind.Getter,
-        new FunctionNode(null,
-            typeParameters: <TypeParameter>[],
-            positionalParameters: <VariableDeclaration>[],
-            namedParameters: <VariableDeclaration>[],
-            requiredParameterCount: 0,
-            returnType: substitution.substituteType(field.type)),
-        fileUri: field.fileUri,
-        reference: referenceFrom?.reference)
-      ..fileOffset = field.fileOffset
-      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
-    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, getter);
-    cls.procedures.add(getter);
-    getter.parent = cls;
-  }
-
-  void addNoSuchMethodForwarderSetterForField(
-      Field field, Member noSuchMethod, KernelTarget target) {
-    ClassHierarchy hierarchy = target.loader.hierarchy;
-    Substitution substitution = Substitution.fromSupertype(
-        hierarchy.getClassAsInstanceOf(cls, field.enclosingClass));
-
-    Procedure referenceFrom;
-    if (referencesFromIndexed != null) {
-      referenceFrom =
-          referencesFromIndexed.lookupProcedureSetter(field.name.text);
-    }
-
-    Procedure setter = new Procedure(
-        field.name,
-        ProcedureKind.Setter,
-        new FunctionNode(null,
-            typeParameters: <TypeParameter>[],
-            positionalParameters: <VariableDeclaration>[
-              new VariableDeclaration("value",
-                  type: substitution.substituteType(field.type))
-            ],
-            namedParameters: <VariableDeclaration>[],
-            requiredParameterCount: 1,
-            returnType: const VoidType()),
-        fileUri: field.fileUri,
-        reference: referenceFrom?.reference)
-      ..fileOffset = field.fileOffset
-      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
-    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, setter);
-    cls.procedures.add(setter);
-    setter.parent = cls;
-  }
-
   bool _addMissingNoSuchMethodForwarders(
       KernelTarget target, Set<Member> existingForwarders,
       {bool forSetters}) {
     assert(forSetters != null);
 
     ClassHierarchy hierarchy = target.loader.hierarchy;
-    TypeEnvironment typeEnvironment =
-        target.loader.typeInferenceEngine.typeSchemaEnvironment;
 
     List<Member> allMembers =
         hierarchy.getInterfaceMembers(cls, setters: forSetters);
@@ -756,99 +664,47 @@ class SourceClassBuilder extends ClassBuilderImpl
       (sameNameMembers[member.name] ??= []).add(member);
     }
     for (Name name in sameNameMembers.keys) {
-      List<Member> members = sameNameMembers[name];
-      assert(members.isNotEmpty);
-      List<DartType> memberTypes = [];
-
-      // The most specific member has the type that is subtype of the types of
-      // all other members.
-      Member bestSoFar = members.first;
-      DartType bestSoFarType =
-          forSetters ? bestSoFar.setterType : bestSoFar.getterType;
-      Supertype supertype =
-          hierarchy.getClassAsInstanceOf(cls, bestSoFar.enclosingClass);
-      assert(
-          supertype != null,
-          "No supertype of enclosing class ${bestSoFar.enclosingClass} for "
-          "$bestSoFar found for $cls.");
-      bestSoFarType =
-          Substitution.fromSupertype(supertype).substituteType(bestSoFarType);
-      for (int i = 1; i < members.length; ++i) {
-        Member candidate = members[i];
-        DartType candidateType =
-            forSetters ? candidate.setterType : candidate.getterType;
-        Supertype supertype =
-            hierarchy.getClassAsInstanceOf(cls, candidate.enclosingClass);
-        assert(
-            supertype != null,
-            "No supertype of enclosing class ${candidate.enclosingClass} for "
-            "$candidate found for $cls.");
-        Substitution substitution = Substitution.fromSupertype(supertype);
-        candidateType = substitution.substituteType(candidateType);
-        memberTypes.add(candidateType);
-        bool isMoreSpecific = forSetters
-            ? typeEnvironment.isSubtypeOf(bestSoFarType, candidateType,
-                SubtypeCheckMode.withNullabilities)
-            : typeEnvironment.isSubtypeOf(candidateType, bestSoFarType,
-                SubtypeCheckMode.withNullabilities);
-        if (isMoreSpecific) {
-          bestSoFar = candidate;
-          bestSoFarType = candidateType;
-        }
-      }
-      // Since isSubtypeOf isn't a linear order on types, we need to check once
-      // again that the found member is indeed the most specific one.
-      bool isActuallyBestSoFar = true;
-      for (DartType memberType in memberTypes) {
-        bool isMoreSpecific = forSetters
-            ? typeEnvironment.isSubtypeOf(
-                memberType, bestSoFarType, SubtypeCheckMode.withNullabilities)
-            : typeEnvironment.isSubtypeOf(
-                bestSoFarType, memberType, SubtypeCheckMode.withNullabilities);
-        if (!isMoreSpecific) {
-          isActuallyBestSoFar = false;
-          break;
-        }
-      }
-      if (!isActuallyBestSoFar) {
-        // It's a member conflict that is reported elsewhere.
-      } else {
-        Member member = bestSoFar;
-
+      Member declaredMember =
+          ClassHierarchy.findMemberByName(declaredMembers, name);
+      if (declaredMember != null && declaredMember.enclosingClass == cls) {
+        // If there is a member in this class then it already has the
+        // defining type; either because it was declared in this class or
+        // because it was synthesized to have the combined signature type.
         if (_isForwarderRequired(
-                clsHasUserDefinedNoSuchMethod, member, cls, concreteMembers,
+                clsHasUserDefinedNoSuchMethod, name, cls, concreteMembers,
+                isPatch: declaredMember.fileUri !=
+                    declaredMember.enclosingClass.fileUri) &&
+            !existingForwarders.contains(declaredMember)) {
+          // If there is a member declared in this class, then it's
+          // abstract and can be transformed into a noSuchMethod forwarder.
+          _transformProcedureToNoSuchMethodForwarder(
+              noSuchMethod, target, declaredMember);
+          changed = true;
+        }
+      } else {
+        List<Member> members = sameNameMembers[name];
+        assert(members.isNotEmpty);
+        CombinedMemberSignatureBuilder combinedMemberSignatureBuilder =
+            new CombinedMemberSignatureBuilder(hierarchy, this, members,
+                forSetter: forSetters);
+        Member member = combinedMemberSignatureBuilder.canonicalMember;
+        if (member != null &&
+            _isForwarderRequired(
+                clsHasUserDefinedNoSuchMethod, name, cls, concreteMembers,
                 isPatch: member.fileUri != member.enclosingClass.fileUri) &&
             !existingForwarders.contains(member)) {
+          Procedure memberSignature =
+              combinedMemberSignatureBuilder.createMemberFromSignature();
+          _transformProcedureToNoSuchMethodForwarder(
+              noSuchMethod, target, memberSignature);
+          cls.procedures.add(memberSignature);
+          memberSignature.parent = cls;
+
           if (member is Procedure) {
-            // If there's a declared member with such name, then it's abstract
-            // -- transform it into a noSuchMethod forwarder.
-            if (ClassHierarchy.findMemberByName(declaredMembers, member.name) !=
-                null) {
-              transformProcedureToNoSuchMethodForwarder(
-                  noSuchMethod, target, member);
-            } else {
-              addNoSuchMethodForwarderForProcedure(
-                  noSuchMethod, target, member, hierarchy);
-            }
-            changed = true;
-          } else if (member is Field) {
-            // Current class isn't abstract, so it can't have an abstract field
-            // with the same name -- just insert the forwarder.
-            if (forSetters) {
-              addNoSuchMethodForwarderSetterForField(
-                  member, noSuchMethod, target);
-            } else {
-              addNoSuchMethodForwarderGetterForField(
-                  member, noSuchMethod, target);
-            }
-            changed = true;
-          } else {
-            return unhandled(
-                "${member.runtimeType}",
-                "addNoSuchMethodForwarders",
-                cls.fileOffset,
-                cls.enclosingLibrary.fileUri);
+            library.forwardersOrigins.add(memberSignature);
+            library.forwardersOrigins.add(member);
           }
+          changed = true;
         }
       }
     }
@@ -881,8 +737,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               hierarchy.getDispatchTargets(nearestConcreteSuperclass);
           for (Member member
               in hierarchy.getInterfaceMembers(nearestConcreteSuperclass)) {
-            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
-                nearestConcreteSuperclass, concrete,
+            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod,
+                member.name, nearestConcreteSuperclass, concrete,
                 isPatch: member.fileUri != member.enclosingClass.fileUri)) {
               existingForwarders.add(member);
             }
@@ -894,8 +750,9 @@ class SourceClassBuilder extends ClassBuilderImpl
               .getDispatchTargets(nearestConcreteSuperclass, setters: true);
           for (Member member in hierarchy
               .getInterfaceMembers(nearestConcreteSuperclass, setters: true)) {
-            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
-                nearestConcreteSuperclass, concreteSetters)) {
+            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod,
+                member.name, nearestConcreteSuperclass, concreteSetters,
+                isPatch: member.fileUri != member.enclosingClass.fileUri)) {
               existingSetterForwarders.add(member);
             }
           }
@@ -920,8 +777,11 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   /// Tells if a noSuchMethod forwarder is required for [member] in [cls].
-  bool _isForwarderRequired(bool hasUserDefinedNoSuchMethod, Member member,
+  bool _isForwarderRequired(bool hasUserDefinedNoSuchMethod, Name name,
       Class cls, List<Member> concreteMembers,
+      // TODO(johnniwinther): This is ill-defined. Either we should only allow
+      // injected members to be private or we need a flag on members that should
+      // be propagated through member signatures.
       {bool isPatch = false}) {
     // A noSuchMethod forwarder is allowed for an abstract member if the class
     // has a user-defined noSuchMethod or if the member is private and is
@@ -929,17 +789,57 @@ class SourceClassBuilder extends ClassBuilderImpl
     // to be visible only to patches, so they are treated as if they were from
     // another library.
     bool isForwarderAllowed = hasUserDefinedNoSuchMethod ||
-        (member.name.isPrivate &&
-            cls.enclosingLibrary.compareTo(member.enclosingLibrary) != 0) ||
-        (member.name.isPrivate && isPatch);
+        (name.isPrivate && (name.library != cls.enclosingLibrary || isPatch));
     // A noSuchMethod forwarder is required if it's allowed and if there's no
     // concrete implementation or a forwarder already.
     bool isForwarderRequired = isForwarderAllowed &&
-        ClassHierarchy.findMemberByName(concreteMembers, member.name) == null;
+        ClassHierarchy.findMemberByName(concreteMembers, name) == null;
     return isForwarderRequired;
   }
 
-  void addRedirectingConstructor(ProcedureBuilder constructorBuilder,
+  void _transformProcedureToNoSuchMethodForwarder(
+      Member noSuchMethodInterface, KernelTarget target, Procedure procedure) {
+    String prefix = procedure.isGetter
+        ? 'get:'
+        : procedure.isSetter
+            ? 'set:'
+            : '';
+    String invocationName = prefix + procedure.name.text;
+    if (procedure.isSetter) invocationName += '=';
+    Expression invocation = target.backendTarget.instantiateInvocation(
+        target.loader.coreTypes,
+        new ThisExpression(),
+        invocationName,
+        new Arguments.forwarded(procedure.function, library.library),
+        procedure.fileOffset,
+        /*isSuper=*/ false);
+    Expression result = new MethodInvocation(new ThisExpression(),
+        noSuchMethodName, new Arguments([invocation]), noSuchMethodInterface)
+      ..fileOffset = procedure.fileOffset;
+    if (procedure.function.returnType is! VoidType) {
+      result = new AsExpression(result, procedure.function.returnType)
+        ..isTypeError = true
+        ..isForDynamic = true
+        ..isForNonNullableByDefault = library.isNonNullableByDefault
+        ..fileOffset = procedure.fileOffset;
+    }
+    procedure.function.body = new ReturnStatement(result)
+      ..fileOffset = procedure.fileOffset;
+    procedure.function.body.parent = procedure.function;
+    procedure.function.asyncMarker = AsyncMarker.Sync;
+    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
+
+    procedure.isAbstract = false;
+    procedure.isNoSuchMethodForwarder = true;
+    procedure.isMemberSignature = false;
+    procedure.isForwardingStub = false;
+    procedure.isForwardingSemiStub = false;
+    procedure.memberSignatureOrigin = null;
+    procedure.forwardingStubInterfaceTarget = null;
+    procedure.forwardingStubSuperTarget = null;
+  }
+
+  void _addRedirectingConstructor(ProcedureBuilder constructorBuilder,
       SourceLibraryBuilder library, Field referenceFrom) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
@@ -1006,7 +906,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 // only legal to do to things in the kernel tree.
                 Field referenceFrom =
                     referencesFromIndexed?.lookupField("_redirecting#");
-                addRedirectingConstructor(declaration, library, referenceFrom);
+                _addRedirectingConstructor(declaration, library, referenceFrom);
               }
               if (targetBuilder is FunctionBuilder) {
                 List<DartType> typeArguments = declaration.typeArguments ??
@@ -1844,4 +1744,18 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
   }
+}
+
+/// Returns `true` if override problems should be overlooked.
+///
+/// This is needed for the current encoding of some JavaScript implementation
+/// classes that are not valid Dart. For instance `JSInt` in
+/// 'dart:_interceptors' that implements both `int` and `double`, and `JsArray`
+/// in `dart:js` that implement both `ListMixin` and `JsObject`.
+bool shouldOverrideProblemBeOverlooked(SourceClassBuilder classBuilder) {
+  String uri = '${classBuilder.library.importUri}';
+  return uri == 'dart:js' &&
+          classBuilder.fileUri.pathSegments.last == 'js.dart' ||
+      uri == 'dart:_interceptors' &&
+          classBuilder.fileUri.pathSegments.last == 'js_number.dart';
 }

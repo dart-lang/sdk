@@ -638,7 +638,7 @@ num b1;
   }
 
   test_initializer_extractProperty_explicitlyTyped_differentLibraryCycle() async {
-    newFile('/a.dart', content: r'''
+    newFile('/test/lib/a.dart', content: r'''
 class C {
   int f = 0;
 }
@@ -648,7 +648,7 @@ import 'a.dart';
 var x = new C().f;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
+import 'package:test/a.dart';
 int x;
 ''');
   }
@@ -669,7 +669,7 @@ int x;
   }
 
   test_initializer_extractProperty_explicitlyTyped_sameLibraryCycle() async {
-    newFile('/a.dart', content: r'''
+    newFile('/test/lib/a.dart', content: r'''
 import 'test.dart'; // just do make it part of the library cycle
 class C {
   int f = 0;
@@ -680,13 +680,13 @@ import 'a.dart';
 var x = new C().f;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
+import 'package:test/a.dart';
 int x;
 ''');
   }
 
   test_initializer_extractProperty_implicitlyTyped_differentLibraryCycle() async {
-    newFile('/a.dart', content: r'''
+    newFile('/test/lib/a.dart', content: r'''
 class C {
   var f = 0;
 }
@@ -696,7 +696,7 @@ import 'a.dart';
 var x = new C().f;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
+import 'package:test/a.dart';
 int x;
 ''');
   }
@@ -717,7 +717,7 @@ dynamic x;
   }
 
   test_initializer_extractProperty_implicitlyTyped_sameLibraryCycle() async {
-    newFile('/a.dart', content: r'''
+    newFile('/test/lib/a.dart', content: r'''
 import 'test.dart'; // just do make it part of the library cycle
 class C {
   var f = 0;
@@ -728,7 +728,7 @@ import 'a.dart';
 var x = new C().f;
 ''');
     checkElementText(library, r'''
-import 'a.dart';
+import 'package:test/a.dart';
 dynamic x;
 ''');
   }
@@ -2590,7 +2590,7 @@ class C implements B<int, String> {
   }
 
   test_method_OK_single_private_linkThroughOtherLibraryOfCycle() async {
-    newFile('/other.dart', content: r'''
+    newFile('/test/lib/other.dart', content: r'''
 import 'test.dart';
 class B extends A2 {}
 ''');
@@ -2604,7 +2604,7 @@ class A2 extends A1 {
 }
 ''');
     checkElementText(library, r'''
-import 'other.dart';
+import 'package:test/other.dart';
 class A1 {
   int _foo() {}
 }
@@ -2685,7 +2685,7 @@ class C extends A implements B {
   }
 
   Future<LibraryElement> _encodeDecodeLibrary(String text) async {
-    String path = convertPath('/test.dart');
+    String path = convertPath('/test/lib/test.dart');
     newFile(path, content: text);
     UnitElementResult result = await driver.getUnitElement(path);
     return result.element.library;

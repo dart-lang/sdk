@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -27,7 +26,6 @@ import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -590,7 +588,11 @@ $content
 ''');
     }
 
-    _setLanguageVersion(unit, scanner.languageVersion, errorListener);
+    var unitImpl = unit as CompilationUnitImpl;
+    unitImpl.languageVersion = LibraryLanguageVersion(
+      package: packageLanguageVersion,
+      override: scanner.overrideVersion,
+    );
 
     // StringToken uses a static instance of StringCanonicalizer, so we need
     // to clear it explicitly once we are done using it for this file.
@@ -611,38 +613,6 @@ $content
       }
     }
     return directive.uri;
-  }
-
-  /// Set the language version for the file, from the [versionToken], or from
-  /// the package language version.
-  void _setLanguageVersion(
-    CompilationUnit unit,
-    LanguageVersionToken versionToken,
-    AnalysisErrorListener errorListener,
-  ) {
-    Version overrideVersion;
-    if (versionToken != null) {
-      overrideVersion = Version(versionToken.major, versionToken.minor, 0);
-      var latestVersion = ExperimentStatus.currentVersion;
-      if (overrideVersion > latestVersion) {
-        errorListener.onError(
-          AnalysisError(
-            source,
-            versionToken.offset,
-            versionToken.length,
-            HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
-            [latestVersion.major, latestVersion.minor],
-          ),
-        );
-        overrideVersion = null;
-      }
-    }
-
-    var unitImpl = unit as CompilationUnitImpl;
-    unitImpl.languageVersion = LibraryLanguageVersion(
-      package: packageLanguageVersion,
-      override: overrideVersion,
-    );
   }
 
   static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {
@@ -847,6 +817,19 @@ class FileSystemState {
     return featureSetProvider.getFeatureSet(path, uri);
   }
 
+  Version contextLanguageVersion(
+    String path,
+    Uri uri,
+    WorkspacePackage workspacePackage,
+  ) {
+    var workspaceLanguageVersion = workspacePackage?.languageVersion;
+    if (workspaceLanguageVersion != null) {
+      return workspaceLanguageVersion;
+    }
+
+    return featureSetProvider.getLanguageVersion(path, uri);
+  }
+
   /// Return the canonical [FileState] for the given absolute [path]. The
   /// returned file has the last known state since if was last refreshed.
   ///
@@ -870,7 +853,7 @@ class FileSystemState {
       WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
       FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
-          featureSetProvider.getLanguageVersion(path, uri);
+          contextLanguageVersion(path, uri, workspacePackage);
       file = FileState._(this, path, uri, uriSource, workspacePackage,
           featureSet, packageLanguageVersion);
       _uriToFile[uri] = file;
@@ -914,7 +897,7 @@ class FileSystemState {
       WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
       FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
-          featureSetProvider.getLanguageVersion(path, uri);
+          contextLanguageVersion(path, uri, workspacePackage);
       file = FileState._(this, path, uri, source, workspacePackage, featureSet,
           packageLanguageVersion);
       _uriToFile[uri] = file;

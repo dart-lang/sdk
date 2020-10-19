@@ -1,0 +1,12 @@
+abstract class I {
+  foo(var x);
+}
+
+class C extends S implements I {}
+
+class S {
+  foo() {}
+}
+
+main() {}
+test() {}

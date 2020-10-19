@@ -287,6 +287,25 @@ void main() {
     ]);
   }
 
+  test_topLevelVariable() async {
+    newFile('$testPackageRootPath/lib1.dart', content: r'''
+import 'package:meta/meta.dart';
+@visibleForTesting
+int a = 7;
+''');
+    newFile('$testPackageRootPath/lib2.dart', content: r'''
+import 'lib1.dart';
+void main() {
+  a;
+}
+''');
+
+    await _resolveFile('$testPackageRootPath/lib1.dart');
+    await _resolveFile('$testPackageRootPath/lib2.dart', [
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 36, 1),
+    ]);
+  }
+
   test_unnamedConstructor() async {
     newFile('$testPackageRootPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
