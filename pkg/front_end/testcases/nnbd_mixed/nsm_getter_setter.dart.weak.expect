@@ -14,8 +14,8 @@ class B extends core::Object implements nsm::A {
     return null;
   no-such-method-forwarder get field() → core::int*
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::int*;
-  no-such-method-forwarder set field(core::int* _) → void
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+  no-such-method-forwarder set field(core::int* value) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
   no-such-method-forwarder get property() → core::int*
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::int*;
   no-such-method-forwarder set property(core::int* i) → void

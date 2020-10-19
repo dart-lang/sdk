@@ -80,6 +80,10 @@ abstract class CombinedMemberSignatureBase<T> {
   /// If the combined member signature type is undefined this is set to `null`.
   DartType _combinedMemberSignatureType;
 
+  /// Accumulated result for [neededLegacyErasure]. This is fully computed when
+  /// [combinedMemberSignatureType] has been computed.
+  bool _neededLegacyErasure = false;
+
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
   /// defined.
   CombinedMemberSignatureBase.internal(
@@ -185,6 +189,16 @@ abstract class CombinedMemberSignatureBase<T> {
 
   Types get _types;
 
+  /// Returns `true` if legacy erasure was needed to compute the combined
+  /// member signature type.
+  ///
+  /// Legacy erasure is considered need of if the used of it resulted in a
+  /// different type.
+  bool get neededLegacyErasure {
+    _ensureCombinedMemberSignatureType();
+    return _neededLegacyErasure;
+  }
+
   /// The this type of [classBuilder].
   DartType get thisType {
     return _thisType ??= _coreTypes.thisInterfaceType(
@@ -202,15 +216,18 @@ abstract class CombinedMemberSignatureBase<T> {
           "No member computed for index ${index} in ${members}");
       candidateType = _computeMemberType(thisType, target);
       if (!classBuilder.library.isNonNullableByDefault) {
-        candidateType = legacyErasure(_coreTypes, candidateType);
+        DartType legacyErasure = rawLegacyErasure(_coreTypes, candidateType);
+        if (legacyErasure != null) {
+          _neededLegacyErasure = true;
+          candidateType = legacyErasure;
+        }
       }
       _memberTypes[index] = candidateType;
     }
     return candidateType;
   }
 
-  /// Returns the type of the combined member signature, if defined.
-  DartType get combinedMemberSignatureType {
+  void _ensureCombinedMemberSignatureType() {
     if (!_isCombinedMemberSignatureTypeComputed) {
       _isCombinedMemberSignatureTypeComputed = true;
       if (_canonicalMemberIndex == null) {
@@ -231,10 +248,14 @@ abstract class CombinedMemberSignatureBase<T> {
           }
         }
       } else {
-        _combinedMemberSignatureType =
-            legacyErasure(_coreTypes, getMemberType(_canonicalMemberIndex));
+        _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex);
       }
     }
+  }
+
+  /// Returns the type of the combined member signature, if defined.
+  DartType get combinedMemberSignatureType {
+    _ensureCombinedMemberSignatureType();
     return _combinedMemberSignatureType;
   }
 
@@ -285,7 +306,7 @@ abstract class CombinedMemberSignatureBase<T> {
 
   /// Create a member signature with the [combinedMemberSignatureType] using the
   /// [canonicalMember] as member signature origin.
-  Procedure createMemberFromSignature() {
+  Procedure createMemberFromSignature({bool copyLocation: true}) {
     if (canonicalMemberIndex == null) {
       return null;
     }
@@ -294,7 +315,8 @@ abstract class CombinedMemberSignatureBase<T> {
       switch (member.kind) {
         case ProcedureKind.Getter:
           return _createGetterMemberSignature(
-              member, combinedMemberSignatureType);
+              member, combinedMemberSignatureType,
+              copyLocation: copyLocation);
         case ProcedureKind.Setter:
           VariableDeclaration parameter =
               member.function.positionalParameters.first;
@@ -302,10 +324,12 @@ abstract class CombinedMemberSignatureBase<T> {
               member, combinedMemberSignatureType,
               isGenericCovariantImpl: parameter.isGenericCovariantImpl,
               isCovariant: parameter.isCovariant,
-              parameterName: parameter.name);
+              parameterName: parameter.name,
+              copyLocation: copyLocation);
         case ProcedureKind.Method:
         case ProcedureKind.Operator:
-          return _createMethodSignature(member, combinedMemberSignatureType);
+          return _createMethodSignature(member, combinedMemberSignatureType,
+              copyLocation: copyLocation);
         case ProcedureKind.Factory:
         default:
           throw new UnsupportedError(
@@ -315,10 +339,11 @@ abstract class CombinedMemberSignatureBase<T> {
       if (forSetter) {
         return _createSetterMemberSignature(member, combinedMemberSignatureType,
             isGenericCovariantImpl: member.isGenericCovariantImpl,
-            isCovariant: member.isCovariant);
+            isCovariant: member.isCovariant,
+            copyLocation: copyLocation);
       } else {
-        return _createGetterMemberSignature(
-            member, combinedMemberSignatureType);
+        return _createGetterMemberSignature(member, combinedMemberSignatureType,
+            copyLocation: copyLocation);
       }
     } else {
       throw new UnsupportedError(
@@ -328,23 +353,36 @@ abstract class CombinedMemberSignatureBase<T> {
 
   /// Creates a getter member signature for [member] with the given
   /// [type].
-  Member _createGetterMemberSignature(Member member, DartType type) {
+  Member _createGetterMemberSignature(Member member, DartType type,
+      {bool copyLocation}) {
+    assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
     Procedure referenceFrom;
     if (classBuilder.referencesFromIndexed != null) {
       referenceFrom = classBuilder.referencesFromIndexed
           .lookupProcedureNotSetter(member.name.text);
     }
+    Uri fileUri;
+    int startFileOffset;
+    int fileOffset;
+    if (copyLocation) {
+      fileUri = member.fileUri;
+      startFileOffset =
+          member is Procedure ? member.startFileOffset : member.fileOffset;
+      fileOffset = member.fileOffset;
+    } else {
+      fileUri = enclosingClass.fileUri;
+      startFileOffset = fileOffset = enclosingClass.fileOffset;
+    }
     return new Procedure(member.name, ProcedureKind.Getter,
         new FunctionNode(null, returnType: type),
         isAbstract: true,
         isMemberSignature: true,
-        fileUri: member.fileUri,
+        fileUri: fileUri,
         memberSignatureOrigin: member.memberSignatureOrigin ?? member,
         reference: referenceFrom?.reference)
-      ..startFileOffset =
-          member is Procedure ? member.startFileOffset : member.fileOffset
-      ..fileOffset = member.fileOffset
+      ..startFileOffset = startFileOffset
+      ..fileOffset = fileOffset
       ..parent = enclosingClass;
   }
 
@@ -352,14 +390,30 @@ abstract class CombinedMemberSignatureBase<T> {
   /// [type]. The flags of parameter is set according to [isCovariant] and
   /// [isGenericCovariantImpl] and the [parameterName] is used, if provided.
   Member _createSetterMemberSignature(Member member, DartType type,
-      {bool isCovariant, bool isGenericCovariantImpl, String parameterName}) {
+      {bool isCovariant,
+      bool isGenericCovariantImpl,
+      String parameterName,
+      bool copyLocation}) {
     assert(isCovariant != null);
     assert(isGenericCovariantImpl != null);
+    assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
     Procedure referenceFrom;
     if (classBuilder.referencesFromIndexed != null) {
       referenceFrom = classBuilder.referencesFromIndexed
           .lookupProcedureSetter(member.name.text);
+    }
+    Uri fileUri;
+    int startFileOffset;
+    int fileOffset;
+    if (copyLocation) {
+      fileUri = member.fileUri;
+      startFileOffset =
+          member is Procedure ? member.startFileOffset : member.fileOffset;
+      fileOffset = member.fileOffset;
+    } else {
+      fileUri = enclosingClass.fileUri;
+      startFileOffset = fileOffset = enclosingClass.fileOffset;
     }
     return new Procedure(
         member.name,
@@ -373,22 +427,33 @@ abstract class CombinedMemberSignatureBase<T> {
             ]),
         isAbstract: true,
         isMemberSignature: true,
-        fileUri: member.fileUri,
+        fileUri: fileUri,
         memberSignatureOrigin: member.memberSignatureOrigin ?? member,
         reference: referenceFrom?.reference)
-      ..startFileOffset =
-          member is Procedure ? member.startFileOffset : member.fileOffset
-      ..fileOffset = member.fileOffset
+      ..startFileOffset = startFileOffset
+      ..fileOffset = fileOffset
       ..parent = enclosingClass;
   }
 
-  Member _createMethodSignature(
-      Procedure procedure, FunctionType functionType) {
+  Member _createMethodSignature(Procedure procedure, FunctionType functionType,
+      {bool copyLocation}) {
+    assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
     Procedure referenceFrom;
     if (classBuilder.referencesFromIndexed != null) {
       referenceFrom = classBuilder.referencesFromIndexed
           .lookupProcedureNotSetter(procedure.name.text);
+    }
+    Uri fileUri;
+    int startFileOffset;
+    int fileOffset;
+    if (copyLocation) {
+      fileUri = procedure.fileUri;
+      startFileOffset = procedure.startFileOffset;
+      fileOffset = procedure.fileOffset;
+    } else {
+      fileUri = enclosingClass.fileUri;
+      startFileOffset = fileOffset = enclosingClass.fileOffset;
     }
     FunctionNode function = procedure.function;
     List<VariableDeclaration> positionalParameters = [];
@@ -436,11 +501,11 @@ abstract class CombinedMemberSignatureBase<T> {
             requiredParameterCount: function.requiredParameterCount),
         isAbstract: true,
         isMemberSignature: true,
-        fileUri: procedure.fileUri,
+        fileUri: fileUri,
         memberSignatureOrigin: procedure.memberSignatureOrigin ?? procedure,
         reference: referenceFrom?.reference)
-      ..startFileOffset = procedure.startFileOffset
-      ..fileOffset = procedure.fileOffset
+      ..startFileOffset = startFileOffset
+      ..fileOffset = fileOffset
       ..parent = enclosingClass;
   }
 
@@ -453,13 +518,16 @@ abstract class CombinedMemberSignatureBase<T> {
         type = member.setterType;
       } else {
         type = member.function
-            .computeFunctionType(member.enclosingLibrary.nonNullable);
+            .computeFunctionType(classBuilder.cls.enclosingLibrary.nonNullable);
       }
     } else if (member is Field) {
       type = member.type;
     } else {
       unhandled("${member.runtimeType}", "$member", classBuilder.charOffset,
           classBuilder.fileUri);
+    }
+    if (member.enclosingClass.typeParameters.isEmpty) {
+      return type;
     }
     InterfaceType instance = hierarchy.getTypeAsInstanceOf(
         thisType,
