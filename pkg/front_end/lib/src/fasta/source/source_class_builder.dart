@@ -634,7 +634,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     return charOffset.compareTo(other.charOffset);
   }
 
-  void addNoSuchMethodForwarderForProcedure(Member noSuchMethod,
+  void _addNoSuchMethodForwarderForProcedure(Member noSuchMethod,
       KernelTarget target, Procedure procedure, ClassHierarchy hierarchy) {
     Procedure referenceFrom;
     if (referencesFromIndexed != null) {
@@ -653,7 +653,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         cloneAnnotations: false);
     Procedure cloned = cloner.cloneProcedure(procedure, referenceFrom)
       ..isExternal = false;
-    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, cloned);
+    _transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, cloned);
     cls.procedures.add(cloned);
     cloned.parent = cls;
 
@@ -661,7 +661,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     library.forwardersOrigins.add(procedure);
   }
 
-  void addNoSuchMethodForwarderGetterForField(
+  void _addNoSuchMethodForwarderGetterForField(
       Field field, Member noSuchMethod, KernelTarget target) {
     ClassHierarchy hierarchy = target.loader.hierarchy;
     Substitution substitution = Substitution.fromSupertype(
@@ -685,12 +685,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         reference: referenceFrom?.reference)
       ..fileOffset = field.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
-    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, getter);
+    _transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, getter);
     cls.procedures.add(getter);
     getter.parent = cls;
   }
 
-  void addNoSuchMethodForwarderSetterForField(
+  void _addNoSuchMethodForwarderSetterForField(
       Field field, Member noSuchMethod, KernelTarget target) {
     ClassHierarchy hierarchy = target.loader.hierarchy;
     Substitution substitution = Substitution.fromSupertype(
@@ -718,7 +718,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         reference: referenceFrom?.reference)
       ..fileOffset = field.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
-    transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, setter);
+    _transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, setter);
     cls.procedures.add(setter);
     setter.parent = cls;
   }
@@ -756,78 +756,87 @@ class SourceClassBuilder extends ClassBuilderImpl
       (sameNameMembers[member.name] ??= []).add(member);
     }
     for (Name name in sameNameMembers.keys) {
-      List<Member> members = sameNameMembers[name];
-      assert(members.isNotEmpty);
-      List<DartType> memberTypes = [];
+      Member member;
+      Member declaredMember =
+          ClassHierarchy.findMemberByName(declaredMembers, name);
+      if (declaredMember != null && declaredMember.enclosingClass == cls) {
+        member = declaredMember;
+      } else {
+        List<Member> members = sameNameMembers[name];
+        assert(members.isNotEmpty);
+        List<DartType> memberTypes = [];
 
-      // The most specific member has the type that is subtype of the types of
-      // all other members.
-      Member bestSoFar = members.first;
-      DartType bestSoFarType =
-          forSetters ? bestSoFar.setterType : bestSoFar.getterType;
-      Supertype supertype =
-          hierarchy.getClassAsInstanceOf(cls, bestSoFar.enclosingClass);
-      assert(
-          supertype != null,
-          "No supertype of enclosing class ${bestSoFar.enclosingClass} for "
-          "$bestSoFar found for $cls.");
-      bestSoFarType =
-          Substitution.fromSupertype(supertype).substituteType(bestSoFarType);
-      for (int i = 1; i < members.length; ++i) {
-        Member candidate = members[i];
-        DartType candidateType =
-            forSetters ? candidate.setterType : candidate.getterType;
+        // The most specific member has the type that is subtype of the types of
+        // all other members.
+        Member bestSoFar = members.first;
+        DartType bestSoFarType =
+            forSetters ? bestSoFar.setterType : bestSoFar.getterType;
         Supertype supertype =
-            hierarchy.getClassAsInstanceOf(cls, candidate.enclosingClass);
+            hierarchy.getClassAsInstanceOf(cls, bestSoFar.enclosingClass);
         assert(
             supertype != null,
-            "No supertype of enclosing class ${candidate.enclosingClass} for "
-            "$candidate found for $cls.");
-        Substitution substitution = Substitution.fromSupertype(supertype);
-        candidateType = substitution.substituteType(candidateType);
-        memberTypes.add(candidateType);
-        bool isMoreSpecific = forSetters
-            ? typeEnvironment.isSubtypeOf(bestSoFarType, candidateType,
-                SubtypeCheckMode.withNullabilities)
-            : typeEnvironment.isSubtypeOf(candidateType, bestSoFarType,
-                SubtypeCheckMode.withNullabilities);
-        if (isMoreSpecific) {
-          bestSoFar = candidate;
-          bestSoFarType = candidateType;
+            "No supertype of enclosing class ${bestSoFar.enclosingClass} for "
+            "$bestSoFar found for $cls.");
+        bestSoFarType =
+            Substitution.fromSupertype(supertype).substituteType(bestSoFarType);
+        for (int i = 1; i < members.length; ++i) {
+          Member candidate = members[i];
+          DartType candidateType =
+              forSetters ? candidate.setterType : candidate.getterType;
+          Supertype supertype =
+              hierarchy.getClassAsInstanceOf(cls, candidate.enclosingClass);
+          assert(
+              supertype != null,
+              "No supertype of enclosing class ${candidate.enclosingClass} for "
+              "$candidate found for $cls.");
+          Substitution substitution = Substitution.fromSupertype(supertype);
+          candidateType = substitution.substituteType(candidateType);
+          memberTypes.add(candidateType);
+          bool isMoreSpecific = forSetters
+              ? typeEnvironment.isSubtypeOf(bestSoFarType, candidateType,
+                  SubtypeCheckMode.withNullabilities)
+              : typeEnvironment.isSubtypeOf(candidateType, bestSoFarType,
+                  SubtypeCheckMode.withNullabilities);
+          if (isMoreSpecific) {
+            bestSoFar = candidate;
+            bestSoFarType = candidateType;
+          }
+        }
+        // Since isSubtypeOf isn't a linear order on types, we need to check
+        // once again that the found member is indeed the most specific one.
+        bool isActuallyBestSoFar = true;
+        for (DartType memberType in memberTypes) {
+          bool isMoreSpecific = forSetters
+              ? typeEnvironment.isSubtypeOf(
+                  memberType, bestSoFarType, SubtypeCheckMode.withNullabilities)
+              : typeEnvironment.isSubtypeOf(bestSoFarType, memberType,
+                  SubtypeCheckMode.withNullabilities);
+          if (!isMoreSpecific) {
+            isActuallyBestSoFar = false;
+            break;
+          }
+        }
+        if (!isActuallyBestSoFar) {
+          // It's a member conflict that is reported elsewhere.
+        } else {
+          member = bestSoFar;
         }
       }
-      // Since isSubtypeOf isn't a linear order on types, we need to check once
-      // again that the found member is indeed the most specific one.
-      bool isActuallyBestSoFar = true;
-      for (DartType memberType in memberTypes) {
-        bool isMoreSpecific = forSetters
-            ? typeEnvironment.isSubtypeOf(
-                memberType, bestSoFarType, SubtypeCheckMode.withNullabilities)
-            : typeEnvironment.isSubtypeOf(
-                bestSoFarType, memberType, SubtypeCheckMode.withNullabilities);
-        if (!isMoreSpecific) {
-          isActuallyBestSoFar = false;
-          break;
-        }
-      }
-      if (!isActuallyBestSoFar) {
-        // It's a member conflict that is reported elsewhere.
-      } else {
-        Member member = bestSoFar;
-
+      if (member != null) {
         if (_isForwarderRequired(
                 clsHasUserDefinedNoSuchMethod, member, cls, concreteMembers,
                 isPatch: member.fileUri != member.enclosingClass.fileUri) &&
             !existingForwarders.contains(member)) {
           if (member is Procedure) {
-            // If there's a declared member with such name, then it's abstract
-            // -- transform it into a noSuchMethod forwarder.
-            if (ClassHierarchy.findMemberByName(declaredMembers, member.name) !=
-                null) {
-              transformProcedureToNoSuchMethodForwarder(
+            if (member.enclosingClass == cls) {
+              // If there is a member declared in this class, then it's
+              // abstract and can be transformed into a noSuchMethod forwarder.
+              _transformProcedureToNoSuchMethodForwarder(
                   noSuchMethod, target, member);
             } else {
-              addNoSuchMethodForwarderForProcedure(
+              // The [member] is declared in another class, add a forwarder
+              // into this class.
+              _addNoSuchMethodForwarderForProcedure(
                   noSuchMethod, target, member, hierarchy);
             }
             changed = true;
@@ -835,10 +844,10 @@ class SourceClassBuilder extends ClassBuilderImpl
             // Current class isn't abstract, so it can't have an abstract field
             // with the same name -- just insert the forwarder.
             if (forSetters) {
-              addNoSuchMethodForwarderSetterForField(
+              _addNoSuchMethodForwarderSetterForField(
                   member, noSuchMethod, target);
             } else {
-              addNoSuchMethodForwarderGetterForField(
+              _addNoSuchMethodForwarderGetterForField(
                   member, noSuchMethod, target);
             }
             changed = true;
@@ -895,7 +904,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           for (Member member in hierarchy
               .getInterfaceMembers(nearestConcreteSuperclass, setters: true)) {
             if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
-                nearestConcreteSuperclass, concreteSetters)) {
+                nearestConcreteSuperclass, concreteSetters,
+                isPatch: member.fileUri != member.enclosingClass.fileUri)) {
               existingSetterForwarders.add(member);
             }
           }
@@ -930,8 +940,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // another library.
     bool isForwarderAllowed = hasUserDefinedNoSuchMethod ||
         (member.name.isPrivate &&
-            cls.enclosingLibrary.compareTo(member.enclosingLibrary) != 0) ||
-        (member.name.isPrivate && isPatch);
+            (member.name.library != cls.enclosingLibrary || isPatch));
     // A noSuchMethod forwarder is required if it's allowed and if there's no
     // concrete implementation or a forwarder already.
     bool isForwarderRequired = isForwarderAllowed &&
@@ -939,7 +948,49 @@ class SourceClassBuilder extends ClassBuilderImpl
     return isForwarderRequired;
   }
 
-  void addRedirectingConstructor(ProcedureBuilder constructorBuilder,
+  void _transformProcedureToNoSuchMethodForwarder(
+      Member noSuchMethodInterface, KernelTarget target, Procedure procedure) {
+    String prefix = procedure.isGetter
+        ? 'get:'
+        : procedure.isSetter
+            ? 'set:'
+            : '';
+    String invocationName = prefix + procedure.name.text;
+    if (procedure.isSetter) invocationName += '=';
+    Expression invocation = target.backendTarget.instantiateInvocation(
+        target.loader.coreTypes,
+        new ThisExpression(),
+        invocationName,
+        new Arguments.forwarded(procedure.function, library.library),
+        procedure.fileOffset,
+        /*isSuper=*/ false);
+    Expression result = new MethodInvocation(new ThisExpression(),
+        noSuchMethodName, new Arguments([invocation]), noSuchMethodInterface)
+      ..fileOffset = procedure.fileOffset;
+    if (procedure.function.returnType is! VoidType) {
+      result = new AsExpression(result, procedure.function.returnType)
+        ..isTypeError = true
+        ..isForDynamic = true
+        ..isForNonNullableByDefault = library.isNonNullableByDefault
+        ..fileOffset = procedure.fileOffset;
+    }
+    procedure.function.body = new ReturnStatement(result)
+      ..fileOffset = procedure.fileOffset;
+    procedure.function.body.parent = procedure.function;
+    procedure.function.asyncMarker = AsyncMarker.Sync;
+    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
+
+    procedure.isAbstract = false;
+    procedure.isNoSuchMethodForwarder = true;
+    procedure.isMemberSignature = false;
+    procedure.isForwardingStub = false;
+    procedure.isForwardingSemiStub = false;
+    procedure.memberSignatureOrigin = null;
+    procedure.forwardingStubInterfaceTarget = null;
+    procedure.forwardingStubSuperTarget = null;
+  }
+
+  void _addRedirectingConstructor(ProcedureBuilder constructorBuilder,
       SourceLibraryBuilder library, Field referenceFrom) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
@@ -1006,7 +1057,7 @@ class SourceClassBuilder extends ClassBuilderImpl
                 // only legal to do to things in the kernel tree.
                 Field referenceFrom =
                     referencesFromIndexed?.lookupField("_redirecting#");
-                addRedirectingConstructor(declaration, library, referenceFrom);
+                _addRedirectingConstructor(declaration, library, referenceFrom);
               }
               if (targetBuilder is FunctionBuilder) {
                 List<DartType> typeArguments = declaration.typeArguments ??

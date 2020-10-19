@@ -72,11 +72,7 @@ general/issue37776: RuntimeError
 general/issue38938: RuntimeError # no main and compile time errors.
 general/issue38944: RuntimeError # no main and compile time errors.
 general/issue38961: RuntimeError # no main and compile time errors.
-general/issue41210a: TypeCheckError
-general/issue41210b/issue41210: TypeCheckError
 general/micro: RuntimeError
-general/mixin_application_override: ExpectationFileMismatch # Too many errors.
-general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError # Expected
 general/operator_method_not_found: RuntimeError # Expected
 general/optional: TypeCheckError
@@ -252,9 +248,8 @@ regress/issue_39091_1: RuntimeError
 regress/issue_39091_2: RuntimeError
 regress/utf_16_le_content.crash: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
-runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
+runtime_checks_new/mixin_forwarding_stub_field: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
-runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected

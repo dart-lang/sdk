@@ -6,28 +6,19 @@ library fasta.class_builder;
 
 import 'package:kernel/ast.dart'
     show
-        Arguments,
-        AsExpression,
-        AsyncMarker,
         Class,
         Constructor,
         DartType,
         DynamicType,
-        Expression,
         FunctionNode,
         FunctionType,
         FutureOrType,
         InterfaceType,
         Member,
-        MethodInvocation,
         Name,
         Nullability,
-        Procedure,
-        ReturnStatement,
         Supertype,
-        ThisExpression,
         TypeParameter,
-        VoidType,
         getAsTypeArguments;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -48,8 +39,6 @@ import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 
 import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
-
-import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../loader.dart';
 
@@ -771,48 +760,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       Class klass, ClassHierarchy hierarchy, Class objectClass) {
     Member noSuchMethod = hierarchy.getDispatchTarget(klass, noSuchMethodName);
     return noSuchMethod != null && noSuchMethod.enclosingClass != objectClass;
-  }
-
-  void transformProcedureToNoSuchMethodForwarder(
-      Member noSuchMethodInterface, KernelTarget target, Procedure procedure) {
-    String prefix = procedure.isGetter
-        ? 'get:'
-        : procedure.isSetter
-            ? 'set:'
-            : '';
-    String invocationName = prefix + procedure.name.text;
-    if (procedure.isSetter) invocationName += '=';
-    Expression invocation = target.backendTarget.instantiateInvocation(
-        target.loader.coreTypes,
-        new ThisExpression(),
-        invocationName,
-        new Arguments.forwarded(procedure.function, library.library),
-        procedure.fileOffset,
-        /*isSuper=*/ false);
-    Expression result = new MethodInvocation(new ThisExpression(),
-        noSuchMethodName, new Arguments([invocation]), noSuchMethodInterface)
-      ..fileOffset = procedure.fileOffset;
-    if (procedure.function.returnType is! VoidType) {
-      result = new AsExpression(result, procedure.function.returnType)
-        ..isTypeError = true
-        ..isForDynamic = true
-        ..isForNonNullableByDefault = library.isNonNullableByDefault
-        ..fileOffset = procedure.fileOffset;
-    }
-    procedure.function.body = new ReturnStatement(result)
-      ..fileOffset = procedure.fileOffset;
-    procedure.function.body.parent = procedure.function;
-    procedure.function.asyncMarker = AsyncMarker.Sync;
-    procedure.function.dartAsyncMarker = AsyncMarker.Sync;
-
-    procedure.isAbstract = false;
-    procedure.isNoSuchMethodForwarder = true;
-    procedure.isMemberSignature = false;
-    procedure.isForwardingStub = false;
-    procedure.isForwardingSemiStub = false;
-    procedure.memberSignatureOrigin = null;
-    procedure.forwardingStubInterfaceTarget = null;
-    procedure.forwardingStubSuperTarget = null;
   }
 
   @override

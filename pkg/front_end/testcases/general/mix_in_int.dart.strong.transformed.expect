@@ -1,0 +1,629 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/mix_in_int.dart:7:7: Error: 'int' is restricted and can't be extended or implemented.
+// class C = A with int;
+//       ^
+//
+// pkg/front_end/testcases/general/mix_in_int.dart:7:7: Error: The non-abstract class 'C' is missing implementations for these members:
+//  - int.&
+//  - int.<<
+//  - int.>>
+//  - int.^
+//  - int.abs
+//  - int.bitLength
+//  - int.ceil
+//  - int.ceilToDouble
+//  - int.floor
+//  - int.floorToDouble
+//  - int.gcd
+//  - int.isEven
+//  - int.isOdd
+//  - int.modInverse
+//  - int.modPow
+//  - int.round
+//  - int.roundToDouble
+//  - int.sign
+//  - int.toRadixString
+//  - int.toSigned
+//  - int.toUnsigned
+//  - int.truncate
+//  - int.truncateToDouble
+//  - int.unary-
+//  - int.|
+//  - int.~
+//  - num.%
+//  - num.*
+//  - num.+
+//  - num.-
+//  - num./
+//  - num.<
+//  - num.<=
+//  - num.>
+//  - num.>=
+//  - num.clamp
+//  - num.compareTo
+//  - num.isFinite
+//  - num.isInfinite
+//  - num.isNaN
+//  - num.isNegative
+//  - num.remainder
+//  - num.toDouble
+//  - num.toInt
+//  - num.toStringAsExponential
+//  - num.toStringAsFixed
+//  - num.toStringAsPrecision
+//  - num.~/
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class C = A with int;
+//       ^
+// sdk/lib/core/int.dart:58:16: Context: '' is defined here.
+//   int operator &(int other);
+//                ^
+// sdk/lib/core/int.dart:106:16: Context: 'int.<<' is defined here.
+//   int operator <<(int shiftAmount);
+//                ^^
+// sdk/lib/core/int.dart:117:16: Context: 'int.>>' is defined here.
+//   int operator >>(int shiftAmount);
+//                ^^
+// sdk/lib/core/int.dart:82:16: Context: 'int.^' is defined here.
+//   int operator ^(int other);
+//                ^
+// sdk/lib/core/int.dart:247:7: Context: 'int.abs' is defined here.
+//   int abs();
+//       ^^^
+// sdk/lib/core/int.dart:180:11: Context: 'int.bitLength' is defined here.
+//   int get bitLength;
+//           ^^^^^^^^^
+// sdk/lib/core/int.dart:264:7: Context: 'int.ceil' is defined here.
+//   int ceil();
+//       ^^^^
+// sdk/lib/core/int.dart:276:10: Context: 'int.ceilToDouble' is defined here.
+//   double ceilToDouble();
+//          ^^^^^^^^^^^^
+// sdk/lib/core/int.dart:261:7: Context: 'int.floor' is defined here.
+//   int floor();
+//       ^^^^^
+// sdk/lib/core/int.dart:273:10: Context: 'int.floorToDouble' is defined here.
+//   double floorToDouble();
+//          ^^^^^^^^^^^^^
+// sdk/lib/core/int.dart:150:7: Context: 'int.gcd' is defined here.
+//   int gcd(int other);
+//       ^^^
+// sdk/lib/core/int.dart:153:12: Context: 'int.isEven' is defined here.
+//   bool get isEven;
+//            ^^^^^^
+// sdk/lib/core/int.dart:156:12: Context: 'int.isOdd' is defined here.
+//   bool get isOdd;
+//            ^^^^^
+// sdk/lib/core/int.dart:135:7: Context: 'int.modInverse' is defined here.
+//   int modInverse(int modulus);
+//       ^^^^^^^^^^
+// sdk/lib/core/int.dart:125:7: Context: 'int.modPow' is defined here.
+//   int modPow(int exponent, int modulus);
+//       ^^^^^^
+// sdk/lib/core/int.dart:258:7: Context: 'int.round' is defined here.
+//   int round();
+//       ^^^^^
+// sdk/lib/core/int.dart:270:10: Context: 'int.roundToDouble' is defined here.
+//   double roundToDouble();
+//          ^^^^^^^^^^^^^
+// sdk/lib/core/int.dart:255:11: Context: 'int.sign' is defined here.
+//   int get sign;
+//           ^^^^
+// sdk/lib/core/int.dart:298:10: Context: 'int.toRadixString' is defined here.
+//   String toRadixString(int radix);
+//          ^^^^^^^^^^^^^
+// sdk/lib/core/int.dart:232:7: Context: 'int.toSigned' is defined here.
+//   int toSigned(int width);
+//       ^^^^^^^^
+// sdk/lib/core/int.dart:203:7: Context: 'int.toUnsigned' is defined here.
+//   int toUnsigned(int width);
+//       ^^^^^^^^^^
+// sdk/lib/core/int.dart:267:7: Context: 'int.truncate' is defined here.
+//   int truncate();
+//       ^^^^^^^^
+// sdk/lib/core/int.dart:279:10: Context: 'int.truncateToDouble' is defined here.
+//   double truncateToDouble();
+//          ^^^^^^^^^^^^^^^^
+// sdk/lib/core/int.dart:240:16: Context: 'int.unary-' is defined here.
+//   int operator -();
+//                ^^^^^...
+// sdk/lib/core/int.dart:70:16: Context: 'int.|' is defined here.
+//   int operator |(int other);
+//                ^
+// sdk/lib/core/int.dart:92:16: Context: 'int.~' is defined here.
+//   int operator ~();
+//                ^
+// sdk/lib/core/num.dart:131:16: Context: 'num.%' is defined here.
+//   num operator %(num other);
+//                ^
+// sdk/lib/core/num.dart:114:16: Context: 'num.*' is defined here.
+//   num operator *(num other);
+//                ^
+// sdk/lib/core/num.dart:108:16: Context: 'num.+' is defined here.
+//   num operator +(num other);
+//                ^
+// sdk/lib/core/num.dart:111:16: Context: 'num.-' is defined here.
+//   num operator -(num other);
+//                ^
+// sdk/lib/core/num.dart:134:19: Context: 'num./' is defined here.
+//   double operator /(num other);
+//                   ^
+// sdk/lib/core/num.dart:160:17: Context: 'num.<' is defined here.
+//   bool operator <(num other);
+//                 ^
+// sdk/lib/core/num.dart:163:17: Context: 'num.<=' is defined here.
+//   bool operator <=(num other);
+//                 ^^
+// sdk/lib/core/num.dart:166:17: Context: 'num.>' is defined here.
+//   bool operator >(num other);
+//                 ^
+// sdk/lib/core/num.dart:169:17: Context: 'num.>=' is defined here.
+//   bool operator >=(num other);
+//                 ^^
+// sdk/lib/core/num.dart:328:7: Context: 'num.clamp' is defined here.
+//   num clamp(num lowerLimit, num upperLimit);
+//       ^^^^^
+// sdk/lib/core/num.dart:105:7: Context: 'num.compareTo' is defined here.
+//   int compareTo(num other);
+//       ^^^^^^^^^
+// sdk/lib/core/num.dart:193:12: Context: 'num.isFinite' is defined here.
+//   bool get isFinite;
+//            ^^^^^^^^
+// sdk/lib/core/num.dart:185:12: Context: 'num.isInfinite' is defined here.
+//   bool get isInfinite;
+//            ^^^^^^^^^^
+// sdk/lib/core/num.dart:172:12: Context: 'num.isNaN' is defined here.
+//   bool get isNaN;
+//            ^^^^^
+// sdk/lib/core/num.dart:179:12: Context: 'num.isNegative' is defined here.
+//   bool get isNegative;
+//            ^^^^^^^^^^
+// sdk/lib/core/num.dart:157:7: Context: 'num.remainder' is defined here.
+//   num remainder(num other);
+//       ^^^^^^^^^
+// sdk/lib/core/num.dart:340:10: Context: 'num.toDouble' is defined here.
+//   double toDouble();
+//          ^^^^^^^^
+// sdk/lib/core/num.dart:331:7: Context: 'num.toInt' is defined here.
+//   int toInt();
+//       ^^^^^
+// sdk/lib/core/num.dart:388:10: Context: 'num.toStringAsExponential' is defined here.
+//   String toStringAsExponential([int? fractionDigits]);
+//          ^^^^^^^^^^^^^^^^^^^^^
+// sdk/lib/core/num.dart:366:10: Context: 'num.toStringAsFixed' is defined here.
+//   String toStringAsFixed(int fractionDigits);
+//          ^^^^^^^^^^^^^^^
+// sdk/lib/core/num.dart:408:10: Context: 'num.toStringAsPrecision' is defined here.
+//   String toStringAsPrecision(int precision);
+//          ^^^^^^^^^^^^^^^^^^^
+// sdk/lib/core/num.dart:145:16: Context: 'num.~/' is defined here.
+//   int operator ~/(num other);
+//                ^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+import "dart:typed_data" as typ;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends self::A implements core::int /*isEliminatedMixin*/  {
+  static const field core::List<core::int> _PARSE_LIMITS = #C82 /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */;
+  static const field core::int _maxInt64 = #C83 /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */;
+  static const field core::int _minInt64 = #C84 /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */;
+  static const field core::List<core::int> _int64UnsignedOverflowLimits = #C86 /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */;
+  static const field core::List<core::int> _int64UnsignedSmiOverflowLimits = #C89 /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */;
+  static final field typ::Int64List _int64OverflowLimits = typ::Int64List::•((#C82).{core::List::length}.{core::num::*}(2))/*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */;
+  synthetic constructor •() → self::C*
+    : super self::A::•()
+    ;
+  no-such-method-forwarder method _addFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C90, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
+  no-such-method-forwarder method _subFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C94, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
+  no-such-method-forwarder method _mulFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C95, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
+  no-such-method-forwarder method _truncDivFromInteger(core::int* other) → core::int*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C96, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder method _moduloFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C97, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
+  no-such-method-forwarder method _remainderFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C98, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
+  no-such-method-forwarder method _greaterThanFromInteger(core::int* other) → core::bool*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C99, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::bool*;
+  no-such-method-forwarder method _equalToInteger(core::int* other) → core::bool*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C100, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::bool*;
+  abstract member-signature method compareTo(generic-covariant-impl core::num* other) → core::int*; -> core::num::compareTo
+  abstract member-signature operator +(core::num* other) → core::num*; -> core::num::+
+  abstract member-signature operator -(core::num* other) → core::num*; -> core::num::-
+  abstract member-signature operator *(core::num* other) → core::num*; -> core::num::*
+  abstract member-signature operator %(core::num* other) → core::num*; -> core::num::%
+  abstract member-signature operator /(core::num* other) → core::double*; -> core::num::/
+  abstract member-signature operator ~/(core::num* other) → core::int*; -> core::num::~/
+  abstract member-signature method remainder(core::num* other) → core::num*; -> core::num::remainder
+  abstract member-signature operator <(core::num* other) → core::bool*; -> core::num::<
+  abstract member-signature operator <=(core::num* other) → core::bool*; -> core::num::<=
+  abstract member-signature operator >(core::num* other) → core::bool*; -> core::num::>
+  abstract member-signature operator >=(core::num* other) → core::bool*; -> core::num::>=
+  abstract member-signature get isNaN() → core::bool*; -> core::num::isNaN
+  abstract member-signature get isNegative() → core::bool*; -> core::num::isNegative
+  abstract member-signature get isInfinite() → core::bool*; -> core::num::isInfinite
+  abstract member-signature get isFinite() → core::bool*; -> core::num::isFinite
+  abstract member-signature method clamp(core::num* lowerLimit, core::num* upperLimit) → core::num*; -> core::num::clamp
+  abstract member-signature method toInt() → core::int*; -> core::num::toInt
+  abstract member-signature method toDouble() → core::double*; -> core::num::toDouble
+  abstract member-signature method toStringAsFixed(core::int* fractionDigits) → core::String*; -> core::num::toStringAsFixed
+  abstract member-signature method toStringAsExponential([core::int* fractionDigits = #C101]) → core::String*; -> core::num::toStringAsExponential
+  abstract member-signature method toStringAsPrecision(core::int* precision) → core::String*; -> core::num::toStringAsPrecision
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _shrFromInteger(core::int other) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _bitAndFromSmi(core::_Smi other) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _shlFromInteger(core::int other) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _bitAndFromInteger(core::int other) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _bitOrFromInteger(core::int other) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _bitXorFromInteger(core::int other) → core::int;
+  static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _tryParseSmi(core::String str, core::int first, core::int last) → core::int? {
+    assert(first.{core::num::<=}(last));
+    core::int ix = first;
+    core::int sign = 1;
+    core::int c = str.{core::String::codeUnitAt}(ix);
+    if(c.{core::num::==}(43) || c.{core::num::==}(45)) {
+      ix = ix.{core::num::+}(1);
+      sign = 44.{core::num::-}(c);
+      if(ix.{core::num::>}(last)) {
+        return null;
+      }
+    }
+    core::int smiLimit = _in::is64Bit ?{core::int} 18 : 9;
+    if(last.{core::num::-}(ix).{core::num::>=}(smiLimit)) {
+      return null;
+    }
+    core::int result = 0;
+    for (core::int i = ix; i.{core::num::<=}(last); i = i.{core::num::+}(1)) {
+      core::int c = 48.{core::int::^}(str.{core::String::codeUnitAt}(i));
+      if(9.{core::num::<}(c)) {
+        return null;
+      }
+      result = 10.{core::num::*}(result).{core::num::+}(c);
+    }
+    return sign.{core::num::*}(result);
+  }
+  static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _parse(core::_StringBase source, core::int? radix, dynamic onError) → core::int {
+    core::int end = source.{core::_StringBase::_lastNonWhitespace}().{core::num::+}(1);
+    if(end.{core::num::==}(0)) {
+      return core::int::_throwFormatException(onError, source, source.{core::_StringBase::length}, radix, null);
+    }
+    core::int start = source.{core::_StringBase::_firstNonWhitespace}();
+    core::int first = source.{core::_StringBase::codeUnitAt}(start);
+    core::int sign = 1;
+    if(first.{core::num::==}(43) || first.{core::num::==}(45)) {
+      sign = 44.{core::num::-}(first);
+      start = start.{core::num::+}(1);
+      if(start.{core::num::==}(end)) {
+        return core::int::_throwFormatException(onError, source, end, radix, null);
+      }
+      first = source.{core::_StringBase::codeUnitAt}(start);
+    }
+    if(radix.{core::num::==}(null)) {
+      core::int index = start;
+      if(first.{core::num::==}(48)) {
+        index = index.{core::num::+}(1);
+        if(index.{core::num::==}(end))
+          return 0;
+        first = source.{core::_StringBase::codeUnitAt}(index);
+        if(first.{core::int::|}(32).{core::num::==}(120)) {
+          index = index.{core::num::+}(1);
+          if(index.{core::num::==}(end)) {
+            return core::int::_throwFormatException(onError, source, index, null, null);
+          }
+          return core::int::_parseRadix(source, 16, index, end, sign, sign.{core::num::>}(0), onError);
+        }
+      }
+      radix = 10;
+    }
+    return core::int::_parseRadix(source, radix{core::int}, start, end, sign, false, onError);
+  }
+  static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _kNull(dynamic _) → core::Null?
+    return null;
+  static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _throwFormatException(dynamic onError, dynamic source, dynamic index, dynamic radix, dynamic message) → core::int {
+    if(!onError.{core::Object::==}(null))
+      return onError.call(source) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    if(!message.{core::Object::==}(null)) {
+      throw new core::FormatException::•(message as{TypeError,ForDynamic,ForNonNullableByDefault} core::String, source, index as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?);
+    }
+    if(radix.{core::Object::==}(null)) {
+      throw new core::FormatException::•("Invalid number", source, index as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?);
+    }
+    throw new core::FormatException::•("Invalid radix-${radix} number", source, index as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?);
+  }
+  static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _parseRadix(core::String source, core::int radix, core::int start, core::int end, core::int sign, core::bool allowU64, dynamic onError) → core::int {
+    core::int tableIndex = radix.{core::num::-}(2).{core::num::*}(4).{core::num::+}(_in::is64Bit ?{core::int} 2 : 0);
+    core::int blockSize = (#C82).{core::List::[]}(tableIndex);
+    core::int length = end.{core::num::-}(start);
+    if(length.{core::num::<=}(blockSize)) {
+      core::int? smi = core::int::_parseBlock(source, radix, start, end);
+      if(smi.{core::num::==}(null)) {
+        return core::int::_throwFormatException(onError, source, start, radix, null);
+      }
+      return sign.{core::num::*}(smi{core::int});
+    }
+    core::int smallBlockSize = length;
+    while (smallBlockSize.{core::num::>=}(blockSize))
+      smallBlockSize = smallBlockSize.{core::num::-}(blockSize);
+    core::int result = 0;
+    if(smallBlockSize.{core::num::>}(0)) {
+      core::int blockEnd = start.{core::num::+}(smallBlockSize);
+      core::int? smi = core::int::_parseBlock(source, radix, start, blockEnd);
+      if(smi.{core::num::==}(null)) {
+        return core::int::_throwFormatException(onError, source, start, radix, null);
+      }
+      result = sign.{core::num::*}(smi{core::int});
+      start = blockEnd;
+    }
+    core::int multiplier = (#C82).{core::List::[]}(tableIndex.{core::num::+}(1));
+    core::int positiveOverflowLimit = 0;
+    core::int negativeOverflowLimit = 0;
+    tableIndex = tableIndex.{core::int::<<}(1);
+    positiveOverflowLimit = core::int::_int64OverflowLimits.{core::List::[]}(tableIndex);
+    if(positiveOverflowLimit.{core::num::==}(0)) {
+      positiveOverflowLimit = core::int::_initInt64OverflowLimits(tableIndex, multiplier);
+    }
+    negativeOverflowLimit = core::int::_int64OverflowLimits.{core::List::[]}(tableIndex.{core::num::+}(1));
+    core::int blockEnd = start.{core::num::+}(blockSize);
+    do {
+      core::int? smi = core::int::_parseBlock(source, radix, start, blockEnd);
+      if(smi.{core::num::==}(null)) {
+        return core::int::_throwFormatException(onError, source, start, radix, null);
+      }
+      if(result.{core::num::>=}(positiveOverflowLimit)) {
+        if(result.{core::num::>}(positiveOverflowLimit) || smi{core::int}.{core::num::>}(core::int::_int64OverflowLimits.{core::List::[]}(tableIndex.{core::num::+}(2)))) {
+          core::int X = _in::is64Bit ?{core::int} 1 : 0;
+          if(allowU64 && !(result.{core::num::>=}((#C86).{core::List::[]}(X)) && (result.{core::num::>}((#C86).{core::List::[]}(X)) || smi{core::int}.{core::num::>}((#C89).{core::List::[]}(X)))) && blockEnd.{core::num::+}(blockSize).{core::num::>}(end)) {
+            return result.{core::num::*}(multiplier).{core::num::+}(smi{core::int});
+          }
+          return core::int::_throwFormatException(onError, source, null, radix, "Positive input exceeds the limit of integer");
+        }
+      }
+      else
+        if(result.{core::num::<=}(negativeOverflowLimit)) {
+          if(result.{core::num::<}(negativeOverflowLimit) || smi{core::int}.{core::num::>}(core::int::_int64OverflowLimits.{core::List::[]}(tableIndex.{core::num::+}(3)))) {
+            return core::int::_throwFormatException(onError, source, null, radix, "Negative input exceeds the limit of integer");
+          }
+        }
+      result = result.{core::num::*}(multiplier).{core::num::+}(sign.{core::num::*}(smi{core::int}));
+      start = blockEnd;
+      blockEnd = start.{core::num::+}(blockSize);
+    }
+    while (blockEnd.{core::num::<=}(end))
+    return result;
+  }
+  static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _parseBlock(core::String source, core::int radix, core::int start, core::int end) → core::_Smi? {
+    core::_Smi result = _in::unsafeCast<core::_Smi>(0);
+    if(radix.{core::num::<=}(10)) {
+      for (core::int i = start; i.{core::num::<}(end); i = i.{core::num::+}(1)) {
+        core::int digit = source.{core::String::codeUnitAt}(i).{core::int::^}(48);
+        if(digit.{core::num::>=}(radix))
+          return null;
+        result = radix.{core::num::*}(result).{core::num::+}(digit) as{ForNonNullableByDefault} core::_Smi;
+      }
+    }
+    else {
+      for (core::int i = start; i.{core::num::<}(end); i = i.{core::num::+}(1)) {
+        core::int char = source.{core::String::codeUnitAt}(i);
+        core::int digit = char.{core::int::^}(48);
+        if(digit.{core::num::>}(9)) {
+          digit = char.{core::int::|}(32).{core::num::-}(97.{core::num::-}(10));
+          if(digit.{core::num::<}(10) || digit.{core::num::>=}(radix))
+            return null;
+        }
+        result = radix.{core::num::*}(result).{core::num::+}(digit) as{ForNonNullableByDefault} core::_Smi;
+      }
+    }
+    return result;
+  }
+  static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _initInt64OverflowLimits(core::int tableIndex, core::int multiplier) → core::int {
+    core::int::_int64OverflowLimits.{core::List::[]=}(tableIndex, (#C83).{core::num::~/}(multiplier));
+    core::int::_int64OverflowLimits.{core::List::[]=}(tableIndex.{core::num::+}(1), (#C84).{core::num::~/}(multiplier));
+    core::int::_int64OverflowLimits.{core::List::[]=}(tableIndex.{core::num::+}(2), _in::unsafeCast<core::int>((#C83).{core::num::remainder}(multiplier)));
+    core::int::_int64OverflowLimits.{core::List::[]=}(tableIndex.{core::num::+}(3), _in::unsafeCast<core::int>((#C84).{core::num::remainder}(multiplier)).{core::int::unary-}());
+    return core::int::_int64OverflowLimits.{core::List::[]}(tableIndex);
+  }
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ &(core::int other) → core::int;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ |(core::int other) → core::int;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ ^(core::int other) → core::int;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ ~() → core::int;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ <<(core::int shiftAmount) → core::int;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ >>(core::int shiftAmount) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ modPow(core::int exponent, core::int modulus) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ modInverse(core::int modulus) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ gcd(core::int other) → core::int;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ isEven() → core::bool;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ isOdd() → core::bool;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ bitLength() → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ toUnsigned(core::int width) → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ toSigned(core::int width) → core::int;
+  abstract operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ unary-() → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ abs() → core::int;
+  abstract get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ sign() → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ round() → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ floor() → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ ceil() → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ truncate() → core::int;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ roundToDouble() → core::double;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ floorToDouble() → core::double;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ ceilToDouble() → core::double;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ truncateToDouble() → core::double;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ toString() → core::String;
+  abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/core/int.dart */ toRadixString(core::int radix) → core::String;
+  @#C102
+  static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ parse(core::String source, {core::int? radix = #C101, (core::String) →? core::int onError = #C101}) → core::int {
+    if(source.{core::String::==}(null))
+      throw new core::ArgumentError::•("The source must not be null");
+    if(source.{core::String::isEmpty}) {
+      return core::int::_throwFormatException(onError, source, 0, radix, null);
+    }
+    if(radix.{core::num::==}(null) || radix{core::int}.{core::num::==}(10)) {
+      core::int? result = core::int::_tryParseSmi(source, 0, source.{core::String::length}.{core::num::-}(1));
+      if(!result.{core::num::==}(null))
+        return result{core::int};
+    }
+    else
+      if(radix{core::int}.{core::num::<}(2) || radix{core::int}.{core::num::>}(36)) {
+        throw new core::RangeError::•("Radix ${radix{core::int}} not in range 2..36");
+      }
+    return core::int::_parse(_in::unsafeCast<core::_StringBase>(source), radix, onError);
+  }
+  @#C102
+  static method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ tryParse(core::String source, {core::int? radix = #C101}) → core::int? {
+    if(source.{core::String::==}(null))
+      throw new core::ArgumentError::•("The source must not be null");
+    if(source.{core::String::isEmpty})
+      return null;
+    if(radix.{core::num::==}(null) || radix{core::int}.{core::num::==}(10)) {
+      core::int? result = core::int::_tryParseSmi(source, 0, source.{core::String::length}.{core::num::-}(1));
+      if(!result.{core::num::==}(null))
+        return result{core::int};
+    }
+    else
+      if(radix{core::int}.{core::num::<}(2) || radix{core::int}.{core::num::>}(36)) {
+        throw new core::RangeError::•("Radix ${radix{core::int}} not in range 2..36");
+      }
+    try {
+      return core::int::_parse(_in::unsafeCast<core::_StringBase>(source), radix, #C103);
+    }
+    on core::Object catch(final core::Object e) {
+      return null;
+    }
+  }
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 30
+  #C2 = 1073741824
+  #C3 = 62
+  #C4 = 4611686018427387904
+  #C5 = 18
+  #C6 = 387420489
+  #C7 = 39
+  #C8 = 4052555153018976267
+  #C9 = 15
+  #C10 = 1152921504606846976
+  #C11 = 12
+  #C12 = 244140625
+  #C13 = 26
+  #C14 = 1490116119384765625
+  #C15 = 11
+  #C16 = 362797056
+  #C17 = 23
+  #C18 = 789730223053602816
+  #C19 = 10
+  #C20 = 282475249
+  #C21 = 22
+  #C22 = 3909821048582988049
+  #C23 = 20
+  #C24 = 9
+  #C25 = 19
+  #C26 = 1350851717672992089
+  #C27 = 1000000000
+  #C28 = 1000000000000000000
+  #C29 = 8
+  #C30 = 214358881
+  #C31 = 17
+  #C32 = 505447028499293771
+  #C33 = 429981696
+  #C34 = 2218611106740436992
+  #C35 = 815730721
+  #C36 = 16
+  #C37 = 665416609183179841
+  #C38 = 7
+  #C39 = 105413504
+  #C40 = 2177953337809371136
+  #C41 = 170859375
+  #C42 = 437893890380859375
+  #C43 = 268435456
+  #C44 = 410338673
+  #C45 = 2862423051509815793
+  #C46 = 612220032
+  #C47 = 14
+  #C48 = 374813367582081024
+  #C49 = 893871739
+  #C50 = 799006685782884121
+  #C51 = 6
+  #C52 = 64000000
+  #C53 = 1638400000000000000
+  #C54 = 85766121
+  #C55 = 3243919932521508681
+  #C56 = 113379904
+  #C57 = 13
+  #C58 = 282810057883082752
+  #C59 = 148035889
+  #C60 = 504036361936467383
+  #C61 = 191102976
+  #C62 = 876488338465357824
+  #C63 = 308915776
+  #C64 = 2481152873203736576
+  #C65 = 481890304
+  #C66 = 232218265089212416
+  #C67 = 594823321
+  #C68 = 353814783205469041
+  #C69 = 729000000
+  #C70 = 531441000000000000
+  #C71 = 887503681
+  #C72 = 787662783788549761
+  #C73 = 5
+  #C74 = 39135393
+  #C75 = 1667889514952984961
+  #C76 = 45435424
+  #C77 = 2386420683693101056
+  #C78 = 52521875
+  #C79 = 3379220508056640625
+  #C80 = 60466176
+  #C81 = 131621703842267136
+  #C82 = <core::int>[#C1, #C2, #C3, #C4, #C5, #C6, #C7, #C8, #C9, #C2, #C1, #C10, #C11, #C12, #C13, #C14, #C15, #C16, #C17, #C18, #C19, #C20, #C21, #C22, #C19, #C2, #C23, #C10, #C24, #C6, #C25, #C26, #C24, #C27, #C5, #C28, #C29, #C30, #C31, #C32, #C29, #C33, #C31, #C34, #C29, #C35, #C36, #C37, #C38, #C39, #C36, #C40, #C38, #C41, #C9, #C42, #C38, #C43, #C9, #C10, #C38, #C44, #C9, #C45, #C38, #C46, #C47, #C48, #C38, #C49, #C47, #C50, #C51, #C52, #C47, #C53, #C51, #C54, #C47, #C55, #C51, #C56, #C57, #C58, #C51, #C59, #C57, #C60, #C51, #C61, #C57, #C62, #C51, #C12, #C57, #C14, #C51, #C63, #C57, #C64, #C51, #C6, #C57, #C8, #C51, #C65, #C11, #C66, #C51, #C67, #C11, #C68, #C51, #C69, #C11, #C70, #C51, #C71, #C11, #C72, #C51, #C2, #C11, #C10, #C73, #C74, #C11, #C75, #C73, #C76, #C11, #C77, #C73, #C78, #C11, #C79, #C73, #C80, #C15, #C81]
+  #C83 = 9223372036854775807
+  #C84 = -9223372036854775808
+  #C85 = 68719476735
+  #C86 = <core::int>[#C85, #C9]
+  #C87 = 268435455
+  #C88 = 1152921504606846975
+  #C89 = <core::int>[#C87, #C88]
+  #C90 = #org-dartlang-testcase:///mix_in_int.dart::_addFromInteger
+  #C91 = <core::Type*>[]
+  #C92 = <dynamic>[]
+  #C93 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C92}
+  #C94 = #org-dartlang-testcase:///mix_in_int.dart::_subFromInteger
+  #C95 = #org-dartlang-testcase:///mix_in_int.dart::_mulFromInteger
+  #C96 = #org-dartlang-testcase:///mix_in_int.dart::_truncDivFromInteger
+  #C97 = #org-dartlang-testcase:///mix_in_int.dart::_moduloFromInteger
+  #C98 = #org-dartlang-testcase:///mix_in_int.dart::_remainderFromInteger
+  #C99 = #org-dartlang-testcase:///mix_in_int.dart::_greaterThanFromInteger
+  #C100 = #org-dartlang-testcase:///mix_in_int.dart::_equalToInteger
+  #C101 = null
+  #C102 = _in::_Patch {}
+  #C103 = tearoff core::int::_kNull
+}
+
+Extra constant evaluation status:
+Evaluated: MethodInvocation @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart:222:41 -> IntConstant(87)
+Extra constant evaluation: evaluated: 565, effectively constant: 1
