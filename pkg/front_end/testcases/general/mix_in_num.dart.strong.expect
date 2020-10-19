@@ -170,22 +170,22 @@ class C = self::A with core::num {
   synthetic constructor •() → self::C*
     : super self::A::•()
     ;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _equalToInteger(core::int other) → core::bool
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::bool;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _mulFromInteger(core::int other) → core::num
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _moduloFromInteger(core::int other) → core::num
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _subFromInteger(core::int other) → core::num
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _addFromInteger(core::int other) → core::num
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _truncDivFromInteger(core::int other) → core::int
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _greaterThanFromInteger(core::int other) → core::bool
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::bool;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _remainderFromInteger(core::int other) → core::num
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _equalToInteger(core::int* other) → core::bool*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::bool*;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _mulFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num*;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _moduloFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num*;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _subFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num*;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _addFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num*;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _truncDivFromInteger(core::int* other) → core::int*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _greaterThanFromInteger(core::int* other) → core::bool*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::bool*;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _remainderFromInteger(core::int* other) → core::num*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::num*;
 }
 static method main() → dynamic {}
 

@@ -54,6 +54,7 @@ artifacts
 artificial
 asgerf
 askesc
+aspect
 aspx
 assigning
 assigns
@@ -506,6 +507,7 @@ idn
 ids
 iff
 il
+ill
 imitate
 immutability
 impl
@@ -828,6 +830,7 @@ product
 progresses
 proof
 prop
+propagated
 propose
 proposed
 proto

@@ -1163,17 +1163,3 @@ class ConstructorRedirection {
 
   ConstructorRedirection(this.target) : cycleReported = false;
 }
-
-/// Returns `true` if override problems should be overlooked.
-///
-/// This is needed for the current encoding of some JavaScript implementation
-/// classes that are not valid Dart. For instance `JSInt` in
-/// 'dart:_interceptors' that implements both `int` and `double`, and `JsArray`
-/// in `dart:js` that implement both `ListMixin` and `JsObject`.
-bool shouldOverrideProblemBeOverlooked(ClassBuilder classBuilder) {
-  String uri = '${classBuilder.library.importUri}';
-  return uri == 'dart:js' &&
-          classBuilder.fileUri.pathSegments.last == 'js.dart' ||
-      uri == 'dart:_interceptors' &&
-          classBuilder.fileUri.pathSegments.last == 'js_number.dart';
-}

@@ -1,0 +1,83 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int* field;
+  synthetic constructor •() → self::A*
+    ;
+  get getter() → core::int*
+    ;
+  set setter(core::int* i) → void
+    ;
+  get property() → core::int*
+    ;
+  set property(core::int* i) → void
+    ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B*
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder get getter() → core::int*
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#getter, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder get field() → core::int*
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#field, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder get property() → core::int*
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#property, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder set setter(core::int* i) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#setter=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+  no-such-method-forwarder set field(core::int* value) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#field=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+  no-such-method-forwarder set property(core::int* i) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#property=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///nsm_getter_setter.dart:14:4 -> InstanceConstant(const _Override{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:6:11 -> SymbolConstant(#getter)
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:6:11 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:6:11 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:6:11 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:8:7 -> SymbolConstant(#field)
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:8:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:8:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:8:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:9:11 -> SymbolConstant(#property)
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:9:11 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:9:11 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:9:11 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:7:12 -> SymbolConstant(#setter=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:7:12 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:7:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:8:7 -> SymbolConstant(#field=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:8:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:8:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:10:12 -> SymbolConstant(#property=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:10:12 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///nsm_getter_setter.dart:10:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Extra constant evaluation: evaluated: 58, effectively constant: 22

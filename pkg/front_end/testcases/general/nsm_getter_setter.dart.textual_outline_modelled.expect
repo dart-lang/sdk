@@ -1,0 +1,14 @@
+class A {
+  int field;
+  int get getter => 42;
+  int get property => 42;
+  void set property(int i) {}
+  void set setter(int i) {}
+}
+
+class B implements A {
+  @override
+  noSuchMethod(Invocation invocation) => null;
+}
+
+main() {}

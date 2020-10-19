@@ -168,10 +168,10 @@ class C = self::A with core::String {
     ;
   abstract member-signature method allMatches(core::String* string, [core::int* start = #C1]) → core::Iterable<core::Match*>*; -> core::Pattern::allMatches
   abstract member-signature method matchAsPrefix(core::String* string, [core::int* start = #C1]) → core::Match*; -> core::Pattern::matchAsPrefix
-  no-such-method-forwarder get /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _isOneByte() → core::bool
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::bool;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _substringUnchecked(core::int startIndex, core::int endIndex) → core::String
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[startIndex, endIndex]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::String;
+  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _isOneByte() → core::bool*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::bool*;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _substringUnchecked(core::int* startIndex, core::int* endIndex) → core::String*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[startIndex, endIndex]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::String*;
 }
 static method main() → dynamic {}
 

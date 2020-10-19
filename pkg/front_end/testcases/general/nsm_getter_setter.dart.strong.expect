@@ -2,11 +2,17 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class A<X extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field core::List<self::A::X*>* foo = null;
-  synthetic constructor •() → self::A<self::A::X*>*
+class A extends core::Object {
+  field core::int* field = null;
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
+  get getter() → core::int*
+    return 42;
+  set setter(core::int* i) → void {}
+  get property() → core::int*
+    return 42;
+  set property(core::int* i) → void {}
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -18,12 +24,13 @@ abstract class A<X extends core::Object* = dynamic> extends core::Object {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class B extends core::Object implements self::A<core::int*> {
+class B extends core::Object implements self::A {
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-  method noSuchMethod(core::Invocation* i) → dynamic
-    return <dynamic>[];
+  @#C1
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    return null;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -33,29 +40,30 @@ class B extends core::Object implements self::A<core::int*> {
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  no-such-method-forwarder get foo() → core::List<core::int*>*
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::List<core::int*>*;
-  no-such-method-forwarder set foo(generic-covariant-impl core::List<core::int*>* value) → void
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder get getter() → core::int*
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder get field() → core::int*
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder get property() → core::int*
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder set setter(core::int* i) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+  no-such-method-forwarder set field(core::int* value) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
+  no-such-method-forwarder set property(core::int* i) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5)));
 }
-static method expectTypeError(() →* dynamic callback) → void {
-  try {
-    callback.call();
-    throw "Expected TypeError, did not occur";
-  }
-  on core::TypeError* catch(no-exception-var) {
-  }
-}
-static method main() → dynamic {
-  self::B* b = new self::B::•();
-  self::expectTypeError(() → core::List<core::int*>* => b.{self::A::foo});
-  self::expectTypeError(() → core::List<dynamic>* => (b as dynamic).foo = <dynamic>[]);
-}
+static method main() → dynamic {}
 
 constants  {
-  #C1 = #foo
-  #C2 = <core::Type*>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
-  #C5 = #foo=
+  #C1 = core::_Override {}
+  #C2 = #getter
+  #C3 = <core::Type*>[]
+  #C4 = <dynamic>[]
+  #C5 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C4}
+  #C6 = #field
+  #C7 = #property
+  #C8 = #setter=
+  #C9 = #field=
+  #C10 = #property=
 }

@@ -1,13 +1,16 @@
 library;
 import self as self;
+import "nsm_forwarder_to_member_signature_lib.dart" as nsm;
 import "dart:core" as core;
 
-abstract class A<X extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field core::List<self::A::X*>* foo = null;
-  synthetic constructor •() → self::A<self::A::X*>*
-    : super core::Object::•()
+import "org-dartlang-testcase:///nsm_forwarder_to_member_signature_lib.dart";
+
+class B extends nsm::A {
+  synthetic constructor •() → self::B*
+    : super nsm::A::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature method method() → core::int*; -> nsm::A::method
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -18,12 +21,13 @@ abstract class A<X extends core::Object* = dynamic> extends core::Object {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class B extends core::Object implements self::A<core::int*> {
-  synthetic constructor •() → self::B*
+class C extends core::Object implements self::B {
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  method noSuchMethod(core::Invocation* i) → dynamic
-    return <dynamic>[];
+  @#C1
+  method noSuchMethod(core::Invocation* _) → dynamic
+    return 42;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -33,29 +37,27 @@ class B extends core::Object implements self::A<core::int*> {
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  no-such-method-forwarder get foo() → core::List<core::int*>*
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::List<core::int*>*;
-  no-such-method-forwarder set foo(generic-covariant-impl core::List<core::int*>* value) → void
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder method method() → core::int*
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))) as{TypeError,ForDynamic} core::int*;
 }
-static method expectTypeError(() →* dynamic callback) → void {
-  try {
-    callback.call();
-    throw "Expected TypeError, did not occur";
-  }
-  on core::TypeError* catch(no-exception-var) {
-  }
-}
-static method main() → dynamic {
-  self::B* b = new self::B::•();
-  self::expectTypeError(() → core::List<core::int*>* => b.{self::A::foo});
-  self::expectTypeError(() → core::List<dynamic>* => (b as dynamic).foo = <dynamic>[]);
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as nsm;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → nsm::A
+    : super core::Object::•()
+    ;
+  method method() → core::int
+    return 0;
 }
 
 constants  {
-  #C1 = #foo
-  #C2 = <core::Type*>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
-  #C5 = #foo=
+  #C1 = core::_Override {}
+  #C2 = #method
+  #C3 = <core::Type*>[]
+  #C4 = <dynamic>[]
+  #C5 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C4}
 }

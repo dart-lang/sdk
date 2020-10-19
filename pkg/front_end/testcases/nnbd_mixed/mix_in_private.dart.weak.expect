@@ -24,7 +24,7 @@ class C = self::A with mix::Private {
   synthetic constructor •() → self::C*
     : super self::A::•()
     ;
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-testcase:///mix_in_private_lib.dart */ _privateAbstractMethod(core::int? i) → void
+  no-such-method-forwarder method /* from org-dartlang-testcase:///mix_in_private_lib.dart */ _privateAbstractMethod(core::int* i) → void
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[i]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 static method main() → dynamic {}
