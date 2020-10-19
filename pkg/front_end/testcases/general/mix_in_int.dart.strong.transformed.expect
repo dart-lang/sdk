@@ -217,16 +217,16 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C extends self::A implements core::int /*isEliminatedMixin*/  {
   static const field core::List<core::int> _PARSE_LIMITS = #C82 /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */;
@@ -238,44 +238,44 @@ class C extends self::A implements core::int /*isEliminatedMixin*/  {
   synthetic constructor •() → self::C*
     : super self::A::•()
     ;
-  no-such-method-forwarder method _addFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _addFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C90, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _subFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _subFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C94, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _mulFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _mulFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C95, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _truncDivFromInteger(core::int* other) → core::int*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _truncDivFromInteger(core::int* other) → core::int*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C96, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::int*;
-  no-such-method-forwarder method _moduloFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _moduloFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C97, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _remainderFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _remainderFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C98, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _greaterThanFromInteger(core::int* other) → core::bool*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _greaterThanFromInteger(core::int* other) → core::bool*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C99, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::bool*;
-  no-such-method-forwarder method _equalToInteger(core::int* other) → core::bool*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _equalToInteger(core::int* other) → core::bool*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C100, 0, #C91, core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C93))) as{TypeError,ForDynamic} core::bool*;
-  abstract member-signature method compareTo(generic-covariant-impl core::num* other) → core::int*; -> core::num::compareTo
-  abstract member-signature operator +(core::num* other) → core::num*; -> core::num::+
-  abstract member-signature operator -(core::num* other) → core::num*; -> core::num::-
-  abstract member-signature operator *(core::num* other) → core::num*; -> core::num::*
-  abstract member-signature operator %(core::num* other) → core::num*; -> core::num::%
-  abstract member-signature operator /(core::num* other) → core::double*; -> core::num::/
-  abstract member-signature operator ~/(core::num* other) → core::int*; -> core::num::~/
-  abstract member-signature method remainder(core::num* other) → core::num*; -> core::num::remainder
-  abstract member-signature operator <(core::num* other) → core::bool*; -> core::num::<
-  abstract member-signature operator <=(core::num* other) → core::bool*; -> core::num::<=
-  abstract member-signature operator >(core::num* other) → core::bool*; -> core::num::>
-  abstract member-signature operator >=(core::num* other) → core::bool*; -> core::num::>=
-  abstract member-signature get isNaN() → core::bool*; -> core::num::isNaN
-  abstract member-signature get isNegative() → core::bool*; -> core::num::isNegative
-  abstract member-signature get isInfinite() → core::bool*; -> core::num::isInfinite
-  abstract member-signature get isFinite() → core::bool*; -> core::num::isFinite
-  abstract member-signature method clamp(core::num* lowerLimit, core::num* upperLimit) → core::num*; -> core::num::clamp
-  abstract member-signature method toInt() → core::int*; -> core::num::toInt
-  abstract member-signature method toDouble() → core::double*; -> core::num::toDouble
-  abstract member-signature method toStringAsFixed(core::int* fractionDigits) → core::String*; -> core::num::toStringAsFixed
-  abstract member-signature method toStringAsExponential([core::int* fractionDigits = #C101]) → core::String*; -> core::num::toStringAsExponential
-  abstract member-signature method toStringAsPrecision(core::int* precision) → core::String*; -> core::num::toStringAsPrecision
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ compareTo(generic-covariant-impl core::num* other) → core::int*; -> core::num::compareTo
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ +(core::num* other) → core::num*; -> core::num::+
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ -(core::num* other) → core::num*; -> core::num::-
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ *(core::num* other) → core::num*; -> core::num::*
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ %(core::num* other) → core::num*; -> core::num::%
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ /(core::num* other) → core::double*; -> core::num::/
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ ~/(core::num* other) → core::int*; -> core::num::~/
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ remainder(core::num* other) → core::num*; -> core::num::remainder
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ <(core::num* other) → core::bool*; -> core::num::<
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ <=(core::num* other) → core::bool*; -> core::num::<=
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ >(core::num* other) → core::bool*; -> core::num::>
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ >=(core::num* other) → core::bool*; -> core::num::>=
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ isNaN() → core::bool*; -> core::num::isNaN
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ isNegative() → core::bool*; -> core::num::isNegative
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ isInfinite() → core::bool*; -> core::num::isInfinite
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ isFinite() → core::bool*; -> core::num::isFinite
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ clamp(core::num* lowerLimit, core::num* upperLimit) → core::num*; -> core::num::clamp
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toInt() → core::int*; -> core::num::toInt
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toDouble() → core::double*; -> core::num::toDouble
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toStringAsFixed(core::int* fractionDigits) → core::String*; -> core::num::toStringAsFixed
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toStringAsExponential([core::int* fractionDigits = #C101]) → core::String*; -> core::num::toStringAsExponential
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toStringAsPrecision(core::int* precision) → core::String*; -> core::num::toStringAsPrecision
   abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _shrFromInteger(core::int other) → core::int;
   abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _bitAndFromSmi(core::_Smi other) → core::int;
   abstract method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _shlFromInteger(core::int other) → core::int;

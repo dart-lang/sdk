@@ -214,59 +214,59 @@ import "dart:core" as core;
 class A extends core::Object {
   synthetic constructor •() → self::A*
     ;
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C = self::A with core::int {
   synthetic constructor •() → self::C*
     : super self::A::•()
     ;
-  no-such-method-forwarder method _addFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _addFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#_addFromInteger, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _subFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _subFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#_subFromInteger, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _mulFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _mulFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#_mulFromInteger, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _truncDivFromInteger(core::int* other) → core::int*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _truncDivFromInteger(core::int* other) → core::int*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#_truncDivFromInteger, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
-  no-such-method-forwarder method _moduloFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _moduloFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#_moduloFromInteger, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _remainderFromInteger(core::int* other) → core::num*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _remainderFromInteger(core::int* other) → core::num*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#_remainderFromInteger, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::num*;
-  no-such-method-forwarder method _greaterThanFromInteger(core::int* other) → core::bool*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _greaterThanFromInteger(core::int* other) → core::bool*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#_greaterThanFromInteger, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::bool*;
-  no-such-method-forwarder method _equalToInteger(core::int* other) → core::bool*
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart */ _equalToInteger(core::int* other) → core::bool*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#_equalToInteger, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::bool*;
-  abstract member-signature method compareTo(generic-covariant-impl core::num* other) → core::int*; -> core::num::compareTo
-  abstract member-signature operator +(core::num* other) → core::num*; -> core::num::+
-  abstract member-signature operator -(core::num* other) → core::num*; -> core::num::-
-  abstract member-signature operator *(core::num* other) → core::num*; -> core::num::*
-  abstract member-signature operator %(core::num* other) → core::num*; -> core::num::%
-  abstract member-signature operator /(core::num* other) → core::double*; -> core::num::/
-  abstract member-signature operator ~/(core::num* other) → core::int*; -> core::num::~/
-  abstract member-signature method remainder(core::num* other) → core::num*; -> core::num::remainder
-  abstract member-signature operator <(core::num* other) → core::bool*; -> core::num::<
-  abstract member-signature operator <=(core::num* other) → core::bool*; -> core::num::<=
-  abstract member-signature operator >(core::num* other) → core::bool*; -> core::num::>
-  abstract member-signature operator >=(core::num* other) → core::bool*; -> core::num::>=
-  abstract member-signature get isNaN() → core::bool*; -> core::num::isNaN
-  abstract member-signature get isNegative() → core::bool*; -> core::num::isNegative
-  abstract member-signature get isInfinite() → core::bool*; -> core::num::isInfinite
-  abstract member-signature get isFinite() → core::bool*; -> core::num::isFinite
-  abstract member-signature method clamp(core::num* lowerLimit, core::num* upperLimit) → core::num*; -> core::num::clamp
-  abstract member-signature method toInt() → core::int*; -> core::num::toInt
-  abstract member-signature method toDouble() → core::double*; -> core::num::toDouble
-  abstract member-signature method toStringAsFixed(core::int* fractionDigits) → core::String*; -> core::num::toStringAsFixed
-  abstract member-signature method toStringAsExponential([core::int* fractionDigits]) → core::String*; -> core::num::toStringAsExponential
-  abstract member-signature method toStringAsPrecision(core::int* precision) → core::String*; -> core::num::toStringAsPrecision
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ compareTo(generic-covariant-impl core::num* other) → core::int*; -> core::num::compareTo
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ +(core::num* other) → core::num*; -> core::num::+
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ -(core::num* other) → core::num*; -> core::num::-
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ *(core::num* other) → core::num*; -> core::num::*
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ %(core::num* other) → core::num*; -> core::num::%
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ /(core::num* other) → core::double*; -> core::num::/
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ ~/(core::num* other) → core::int*; -> core::num::~/
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ remainder(core::num* other) → core::num*; -> core::num::remainder
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ <(core::num* other) → core::bool*; -> core::num::<
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ <=(core::num* other) → core::bool*; -> core::num::<=
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ >(core::num* other) → core::bool*; -> core::num::>
+  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ >=(core::num* other) → core::bool*; -> core::num::>=
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ isNaN() → core::bool*; -> core::num::isNaN
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ isNegative() → core::bool*; -> core::num::isNegative
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ isInfinite() → core::bool*; -> core::num::isInfinite
+  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ isFinite() → core::bool*; -> core::num::isFinite
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ clamp(core::num* lowerLimit, core::num* upperLimit) → core::num*; -> core::num::clamp
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toInt() → core::int*; -> core::num::toInt
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toDouble() → core::double*; -> core::num::toDouble
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toStringAsFixed(core::int* fractionDigits) → core::String*; -> core::num::toStringAsFixed
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toStringAsExponential([core::int* fractionDigits]) → core::String*; -> core::num::toStringAsExponential
+  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/core/num.dart */ toStringAsPrecision(core::int* precision) → core::String*; -> core::num::toStringAsPrecision
   no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _shrFromInteger(core::int* other) → core::int*
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#_shrFromInteger, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[other]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} core::int*;
   no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart */ _bitAndFromSmi(core::_Smi* other) → core::int*
@@ -285,30 +285,30 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> SymbolConstant(#_addFromInteger)
-Evaluated: ListLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> SymbolConstant(#_subFromInteger)
-Evaluated: ListLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> SymbolConstant(#_mulFromInteger)
-Evaluated: ListLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> SymbolConstant(#_truncDivFromInteger)
-Evaluated: ListLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> SymbolConstant(#_moduloFromInteger)
-Evaluated: ListLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> SymbolConstant(#_remainderFromInteger)
-Evaluated: ListLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> SymbolConstant(#_greaterThanFromInteger)
-Evaluated: ListLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> SymbolConstant(#_equalToInteger)
-Evaluated: ListLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///mix_in_int.dart:7:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:92:7 -> SymbolConstant(#_addFromInteger)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:92:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:92:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:93:7 -> SymbolConstant(#_subFromInteger)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:93:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:93:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:94:7 -> SymbolConstant(#_mulFromInteger)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:94:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:94:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:95:7 -> SymbolConstant(#_truncDivFromInteger)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:95:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:95:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:96:7 -> SymbolConstant(#_moduloFromInteger)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:96:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:96:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:97:7 -> SymbolConstant(#_remainderFromInteger)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:97:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:97:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:98:8 -> SymbolConstant(#_greaterThanFromInteger)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:98:8 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:98:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:99:8 -> SymbolConstant(#_equalToInteger)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:99:8 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/core_patch.dart:99:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
 Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart:18:7 -> SymbolConstant(#_shrFromInteger)
 Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart:18:7 -> ListConstant(const <Type*>[])
 Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/_internal/vm/lib/integers_patch.dart:18:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
