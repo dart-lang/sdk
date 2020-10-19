@@ -15,6 +15,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 /// Instances of the class `BazelFileUriResolver` resolve `file` URI's by first
 /// resolving file uri's in the expected way, and then by looking in the
@@ -502,39 +503,23 @@ class BazelWorkspacePackage extends WorkspacePackage {
   @override
   final BazelWorkspace workspace;
 
-  bool _enabledExperimentsReady = false;
+  bool _buildFileReady = false;
   List<String> _enabledExperiments;
+  Version _languageVersion;
 
   BazelWorkspacePackage(String packageName, this.root, this.workspace)
       : _uriPrefix = 'package:$packageName/';
 
   @override
   List<String> get enabledExperiments {
-    if (_enabledExperimentsReady) {
-      return _enabledExperiments;
-    }
-
-    try {
-      _enabledExperimentsReady = true;
-      var buildContent = workspace.provider
-          .getFolder(root)
-          .getChildAssumingFile('BUILD')
-          .readAsStringSync();
-      var hasNonNullableFlag = buildContent
-          .split('\n')
-          .map((e) => e.trim())
-          .where((e) => !e.startsWith('#'))
-          .map((e) => e.replaceAll(' ', ''))
-          .join()
-          .contains('dart_package(null_safety=True');
-      if (hasNonNullableFlag) {
-        _enabledExperiments = [EnableString.non_nullable];
-      }
-    } on FileSystemException {
-      // ignored
-    }
-
+    _readBuildFile();
     return _enabledExperiments;
+  }
+
+  @override
+  Version get languageVersion {
+    _readBuildFile();
+    return _languageVersion;
   }
 
   @override
@@ -598,5 +583,33 @@ class BazelWorkspacePackage extends WorkspacePackage {
     }
 
     return false;
+  }
+
+  void _readBuildFile() {
+    if (_buildFileReady) {
+      return;
+    }
+
+    try {
+      _buildFileReady = true;
+      var buildContent = workspace.provider
+          .getFolder(root)
+          .getChildAssumingFile('BUILD')
+          .readAsStringSync();
+      var hasNonNullableFlag = buildContent
+          .split('\n')
+          .map((e) => e.trim())
+          .where((e) => !e.startsWith('#'))
+          .map((e) => e.replaceAll(' ', ''))
+          .join()
+          .contains('dart_package(null_safety=True');
+      if (hasNonNullableFlag) {
+        _enabledExperiments = [EnableString.non_nullable];
+      } else {
+        _languageVersion = Version.parse('2.9.0');
+      }
+    } on FileSystemException {
+      // ignored
+    }
   }
 }

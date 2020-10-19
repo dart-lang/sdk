@@ -25,9 +25,15 @@ class InvalidUseOfInternalMemberTest extends PubPackageResolutionTest {
     super.setUp();
     writeTestPackagePubspecYamlFile(PubspecYamlFileConfig());
     writeTestPackageConfig(
-        PackageConfigFileBuilder()
-          ..add(name: 'foo', rootPath: fooPackageRootPath),
-        meta: true);
+      PackageConfigFileBuilder()
+        ..add(
+          name: 'foo',
+          rootPath: fooPackageRootPath,
+          languageVersion: '2.9',
+        ),
+      languageVersion: '2.9',
+      meta: true,
+    );
   }
 
   test_insidePackage() async {

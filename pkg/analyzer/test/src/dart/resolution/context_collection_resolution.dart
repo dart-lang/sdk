@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -332,6 +333,9 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   @override
   String get testFilePath => '$testPackageLibPath/test.dart';
 
+  /// The language version to use by default for `package:test`.
+  String get testPackageLanguageVersion => '2.9';
+
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   String get testPackageRootPath => '$workspaceRootPath/test';
@@ -368,7 +372,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     config.add(
       name: 'test',
       rootPath: testPackageRootPath,
-      languageVersion: languageVersion,
+      languageVersion: languageVersion ?? testPackageLanguageVersion,
     );
 
     if (js) {
@@ -422,8 +426,14 @@ class PubspecYamlFileConfig {
 
 mixin WithNullSafetyMixin on PubPackageResolutionTest {
   @override
+  String get testPackageLanguageVersion =>
+      Feature.non_nullable.isEnabledByDefault ? '2.12' : '2.11';
+
+  @override
   bool get typeToStringWithNullability => true;
 
+  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
+  /// Remove when Null Safety is enabled by default.
   @nonVirtual
   @override
   void setUp() {

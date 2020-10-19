@@ -540,6 +540,9 @@ void func() {
   }
 
   test_reuse_compatibleOptions() async {
+    newFile('/workspace/dart/aaa/BUILD', content: '');
+    newFile('/workspace/dart/bbb/BUILD', content: '');
+
     var aPath = '/workspace/dart/aaa/lib/a.dart';
     var aResult = await assertErrorsInFile(aPath, r'''
 num a = 0;
@@ -561,12 +564,14 @@ int b = a;
   }
 
   test_reuse_incompatibleOptions_implicitCasts() async {
+    newFile('/workspace/dart/aaa/BUILD', content: '');
     newFile('/workspace/dart/aaa/analysis_options.yaml', content: r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
+    newFile('/workspace/dart/bbb/BUILD', content: '');
     newFile('/workspace/dart/bbb/analysis_options.yaml', content: r'''
 analyzer:
   strong-mode:
