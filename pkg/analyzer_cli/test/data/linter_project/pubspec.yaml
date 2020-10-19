@@ -1,0 +1,5 @@
+name: linter_project
+
+dependencies:
+  test: any
+  async: any
