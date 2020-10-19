@@ -1776,23 +1776,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Fun _emitNativeFunctionBody(Procedure node) {
     var name = _annotationName(node, isJSAnnotation) ?? node.name.text;
     if (node.isGetter) {
-      var returnValue = js('this.#', [name]);
-      if (_isNullCheckableNative(node)) {
-        // Add a potential null-check on native getter if type is non-nullable.
-        returnValue = runtimeCall('checkNativeNonNull(#)', [returnValue]);
-      }
-      return js_ast.Fun([], js.block('{ return #; }', [returnValue]));
+      return js_ast.Fun([], js.block('{ return this.#; }', [name]));
     } else if (node.isSetter) {
       var params = _emitParameters(node.function);
       return js_ast.Fun(
           params, js.block('{ this.# = #; }', [name, params.last]));
     } else {
-      var returnValue = js('this.#.apply(this, args)', [name]);
-      if (_isNullCheckableNative(node)) {
-        // Add a potential null-check on return value if type is non-nullable.
-        returnValue = runtimeCall('checkNativeNonNull(#)', [returnValue]);
-      }
-      return js.fun('function (...args) { return #; }', [returnValue]);
+      return js.fun(
+          'function (...args) { return this.#.apply(this, args); }', name);
     }
   }
 
@@ -2279,9 +2270,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Fields on a native class are implicitly native.
       // Methods/getters/setters are marked external/native.
       if (member is Field || _isExternal(member)) {
-        // If the native member needs to be null-checked, we require symbolizing
-        // it in order to access the null-check at the member definition.
-        if (_isNullCheckableNative(member)) return true;
         var jsName = _annotationName(member, isJSName);
         return jsName != null && jsName != name;
       } else {
@@ -4227,8 +4215,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitPropertyGet(PropertyGet node) {
-    return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.text);
+    var propertyGet =
+        _emitPropertyGet(node.receiver, node.interfaceTarget, node.name.text);
+    if (_isCheckableNative(node.interfaceTarget)) {
+      // If target is a native getter with a non-nullable type, add a null check
+      // for soundness.
+      return runtimeCall('checkNativeNonNull(#)', [propertyGet]);
+    }
+    return propertyGet;
   }
 
   @override
@@ -4282,8 +4276,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Return whether [member] returns a native object whose type needs to be
-  /// null-checked. This is true for non-nullable native return types.
-  bool _isNullCheckableNative(Member member) =>
+  /// checked.
+  bool _isCheckableNative(Member member) =>
       member != null &&
       member.isExternal &&
       _extensionTypes.isNativeClass(member.enclosingClass) &&
@@ -4361,8 +4355,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitMethodInvocation(MethodInvocation node) {
-    return _emitMethodCall(
+    var methodCall = _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
+    if (_isCheckableNative(node.interfaceTarget)) {
+      // If target is a native method with a non-nullable type, add a null check
+      // for soundness.
+      return runtimeCall('checkNativeNonNull(#)', [methodCall]);
+    }
+    return methodCall;
   }
 
   js_ast.Expression _emitMethodCall(Expression receiver, Member target,
