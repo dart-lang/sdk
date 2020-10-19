@@ -480,7 +480,10 @@ static method main() → dynamic {
   core::print(#C10);
   core::print(#C17);
   core::print(#C22);
-  core::print(let final core::Set<core::String*>* #t3 = col::LinkedHashSet::•<core::String*>() in let final dynamic #t4 = #t3.{core::Set::add}("hello") in #t3);
+  core::print( block {
+    final core::Set<core::String*>* #t3 = col::LinkedHashSet::•<core::String*>();
+    #t3.{core::Set::add}("hello");
+  } =>#t3);
   core::print(#C26);
 }
 

@@ -67,14 +67,20 @@ static method main() → dynamic /* originally async */ {
       #L1:
       {
         core::Map<core::int*, core::bool*>* m = <core::int*, core::bool*>{};
-        core::Set<core::int*>* s = let final core::Set<core::int*>* #t1 = new col::_CompactLinkedHashSet::•<core::int*>() in #t1;
-        core::Iterable<core::int*>* i = let final core::Set<core::int*>* #t2 = new col::_CompactLinkedHashSet::•<core::int*>() in #t2;
+        core::Set<core::int*>* s = block {
+          final core::Set<core::int*>* #t1 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t1;
+        core::Iterable<core::int*>* i = block {
+          final core::Set<core::int*>* #t2 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t2;
         col::LinkedHashSet<core::int*>* lhs = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:13:28: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
  - 'Set' is from 'dart:core'.
  - 'LinkedHashSet' is from 'dart:collection'.
 Change the type of the set literal or the context in which it is used.
   LinkedHashSet<int> lhs = {};
-                           ^" in let final core::Set<dynamic>* #t4 = new col::_CompactLinkedHashSet::•<dynamic>() in #t4;
+                           ^" in block {
+          final core::Set<dynamic>* #t4 = new col::_CompactLinkedHashSet::•<dynamic>();
+        } =>#t4;
         col::LinkedHashMap<core::int*, core::bool*>* lhm = let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:14:34: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
  - 'Map' is from 'dart:core'.
  - 'LinkedHashMap' is from 'dart:collection'.
@@ -153,7 +159,9 @@ static method setfun() → asy::Future<core::Set<core::int*>*>* /* originally as
     try {
       #L3:
       {
-        :return_value = let final core::Set<core::int*>* #t16 = new col::_CompactLinkedHashSet::•<core::int*>() in #t16;
+        :return_value = block {
+          final core::Set<core::int*>* #t16 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t16;
         break #L3;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -180,7 +188,9 @@ static method iterablefun() → asy::Future<core::Iterable<core::int*>*>* /* ori
     try {
       #L4:
       {
-        :return_value = let final core::Set<core::int*>* #t17 = new col::_CompactLinkedHashSet::•<core::int*>() in #t17;
+        :return_value = block {
+          final core::Set<core::int*>* #t17 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t17;
         break #L4;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -213,7 +223,9 @@ static method lhsfun() → asy::Future<col::LinkedHashSet<core::int*>*>* /* orig
  - 'LinkedHashSet' is from 'dart:collection'.
 Change the type of the set literal or the context in which it is used.
 Future<LinkedHashSet<int>> lhsfun() async => {};
-                                             ^" in let final core::Set<dynamic>* #t19 = new col::_CompactLinkedHashSet::•<dynamic>() in #t19;
+                                             ^" in block {
+          final core::Set<dynamic>* #t19 = new col::_CompactLinkedHashSet::•<dynamic>();
+        } =>#t19;
         break #L5;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
@@ -264,15 +276,21 @@ Future<LinkedHashMap<int, bool>> lhmfun() async => {};
 static method mapfun2() → FutureOr<core::Map<core::int*, core::bool*>*>*
   return <core::int*, core::bool*>{};
 static method setfun2() → FutureOr<core::Set<core::int*>*>*
-  return let final core::Set<core::int*>* #t21 = new col::_CompactLinkedHashSet::•<core::int*>() in #t21;
+  return block {
+    final core::Set<core::int*>* #t21 = new col::_CompactLinkedHashSet::•<core::int*>();
+  } =>#t21;
 static method iterablefun2() → FutureOr<core::Iterable<core::int*>*>*
-  return let final core::Set<core::int*>* #t22 = new col::_CompactLinkedHashSet::•<core::int*>() in #t22;
+  return block {
+    final core::Set<core::int*>* #t22 = new col::_CompactLinkedHashSet::•<core::int*>();
+  } =>#t22;
 static method lhsfun2() → FutureOr<col::LinkedHashSet<core::int*>*>*
   return let final<BottomType> #t23 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:38:43: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashSet<int>>'.
  - 'Set' is from 'dart:core'.
  - 'LinkedHashSet' is from 'dart:collection'.
 FutureOr<LinkedHashSet<int>> lhsfun2() => {};
-                                          ^" in (let final core::Set<dynamic>* #t24 = new col::_CompactLinkedHashSet::•<dynamic>() in #t24) as{TypeError} FutureOr<col::LinkedHashSet<core::int*>*>*;
+                                          ^" in ( block {
+    final core::Set<dynamic>* #t24 = new col::_CompactLinkedHashSet::•<dynamic>();
+  } =>#t24) as{TypeError} FutureOr<col::LinkedHashSet<core::int*>*>*;
 static method lhmfun2() → FutureOr<col::LinkedHashMap<core::int*, core::bool*>*>*
   return let final<BottomType> #t25 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:39:49: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashMap<int, bool>>'.
  - 'Map' is from 'dart:core'.
