@@ -2010,7 +2010,6 @@ class _InvalidAccessVerifier {
       return true;
     }
     if (element is PropertyAccessorElement &&
-        element.enclosingElement is ClassElement &&
         element.variable.hasVisibleForTemplate) {
       return true;
     }
@@ -2025,7 +2024,6 @@ class _InvalidAccessVerifier {
       return true;
     }
     if (element is PropertyAccessorElement &&
-        element.enclosingElement is ClassElement &&
         element.variable.hasVisibleForTesting) {
       return true;
     }
