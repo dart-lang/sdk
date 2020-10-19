@@ -4822,7 +4822,7 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
     args.SetAt(i + 1, obj);
   }
   // Now try to invoke the closure.
-  return Api::NewHandle(T, DartEntry::InvokeClosure(args));
+  return Api::NewHandle(T, DartEntry::InvokeClosure(T, args));
 }
 
 DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {

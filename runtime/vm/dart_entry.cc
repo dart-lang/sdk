@@ -207,9 +207,9 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
 #endif
 }
 
-ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
+ObjectPtr DartEntry::ResolveCallable(Thread* thread,
+                                     const Array& arguments,
                                      const Array& arguments_descriptor) {
-  auto thread = Thread::Current();
   auto isolate = thread->isolate();
   auto zone = thread->zone();
 
@@ -277,80 +277,94 @@ ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
   return Function::null();
 }
 
-ObjectPtr DartEntry::InvokeCallable(const Function& callable_function,
+ObjectPtr DartEntry::InvokeCallable(Thread* thread,
+                                    const Function& callable_function,
                                     const Array& arguments,
                                     const Array& arguments_descriptor) {
-  if (!callable_function.IsNull()) {
-    return InvokeFunction(callable_function, arguments, arguments_descriptor);
+  auto const zone = thread->zone();
+  const ArgumentsDescriptor args_desc(arguments_descriptor);
+  if (callable_function.IsNull()) {
+    // No compatible callable was found, so invoke noSuchMethod.
+    auto& instance =
+        Instance::CheckedHandle(zone, arguments.At(args_desc.FirstArgIndex()));
+    // For closures, use the name of the closure, not 'call'.
+    const String* target_name = &Symbols::Call();
+    if (instance.IsClosure()) {
+      auto const& function =
+          Function::Handle(zone, Closure::Cast(instance).function());
+      target_name = &String::Handle(function.QualifiedUserVisibleName());
+    }
+    return InvokeNoSuchMethod(thread, instance, *target_name, arguments,
+                              arguments_descriptor);
   }
 
-  // No compatible callable was found, so invoke noSuchMethod.
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const ArgumentsDescriptor args_desc(arguments_descriptor);
-  auto& instance =
-      Instance::CheckedHandle(zone, arguments.At(args_desc.FirstArgIndex()));
-  auto& target_name = String::Handle(zone, Symbols::Call().raw());
-  if (instance.IsClosure()) {
-    const auto& closure = Closure::Cast(instance);
-    // For closures, use the name of the closure, not 'call'.
-    const auto& function = Function::Handle(zone, closure.function());
-    target_name = function.QualifiedUserVisibleName();
+  if (!callable_function.CanReceiveDynamicInvocation()) {
+    const auto& result = Object::Handle(
+        zone, callable_function.DoArgumentTypesMatch(arguments, args_desc));
+    if (result.IsError()) {
+      Exceptions::PropagateError(Error::Cast(result));
+    }
   }
-  return InvokeNoSuchMethod(instance, target_name, arguments,
-                            arguments_descriptor);
+
+  return InvokeFunction(callable_function, arguments, arguments_descriptor);
 }
 
-ObjectPtr DartEntry::InvokeClosure(const Array& arguments) {
+ObjectPtr DartEntry::InvokeClosure(Thread* thread, const Array& arguments) {
+  auto const zone = thread->zone();
   const int kTypeArgsLen = 0;  // No support to pass type args to generic func.
 
   // Closures always have boxed parameters
   const Array& arguments_descriptor = Array::Handle(
-      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, arguments.Length()));
-  return InvokeClosure(arguments, arguments_descriptor);
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, arguments.Length()));
+  return InvokeClosure(thread, arguments, arguments_descriptor);
 }
 
-ObjectPtr DartEntry::InvokeClosure(const Array& arguments,
+ObjectPtr DartEntry::InvokeClosure(Thread* thread,
+                                   const Array& arguments,
                                    const Array& arguments_descriptor) {
-  const Object& resolved_result =
-      Object::Handle(ResolveCallable(arguments, arguments_descriptor));
+  auto const zone = thread->zone();
+  const Object& resolved_result = Object::Handle(
+      zone, ResolveCallable(thread, arguments, arguments_descriptor));
   if (resolved_result.IsError()) {
     return resolved_result.raw();
   }
 
   const auto& function =
-      Function::Handle(Function::RawCast(resolved_result.raw()));
-  return InvokeCallable(function, arguments, arguments_descriptor);
+      Function::Handle(zone, Function::RawCast(resolved_result.raw()));
+  return InvokeCallable(thread, function, arguments, arguments_descriptor);
 }
 
-ObjectPtr DartEntry::InvokeNoSuchMethod(const Instance& receiver,
+ObjectPtr DartEntry::InvokeNoSuchMethod(Thread* thread,
+                                        const Instance& receiver,
                                         const String& target_name,
                                         const Array& arguments,
                                         const Array& arguments_descriptor) {
+  auto const zone = thread->zone();
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   ASSERT(receiver.raw() == arguments.At(args_desc.FirstArgIndex()));
   // Allocate an Invocation object.
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
 
-  Class& invocation_mirror_class = Class::Handle(core_lib.LookupClass(
-      String::Handle(core_lib.PrivateName(Symbols::InvocationMirror()))));
+  Class& invocation_mirror_class = Class::Handle(
+      zone, core_lib.LookupClass(String::Handle(
+                zone, core_lib.PrivateName(Symbols::InvocationMirror()))));
   ASSERT(!invocation_mirror_class.IsNull());
-  Thread* thread = Thread::Current();
   const auto& error = invocation_mirror_class.EnsureIsFinalized(thread);
   ASSERT(error == Error::null());
-  const String& function_name =
-      String::Handle(core_lib.PrivateName(Symbols::AllocateInvocationMirror()));
+  const String& function_name = String::Handle(
+      zone, core_lib.PrivateName(Symbols::AllocateInvocationMirror()));
   const Function& allocation_function = Function::Handle(
-      invocation_mirror_class.LookupStaticFunction(function_name));
+      zone, invocation_mirror_class.LookupStaticFunction(function_name));
   ASSERT(!allocation_function.IsNull());
   const int kNumAllocationArgs = 4;
-  const Array& allocation_args = Array::Handle(Array::New(kNumAllocationArgs));
+  const Array& allocation_args =
+      Array::Handle(zone, Array::New(kNumAllocationArgs));
   allocation_args.SetAt(0, target_name);
   allocation_args.SetAt(1, arguments_descriptor);
   allocation_args.SetAt(2, arguments);
   allocation_args.SetAt(3, Bool::False());  // Not a super invocation.
-  const Object& invocation_mirror =
-      Object::Handle(InvokeFunction(allocation_function, allocation_args));
+  const Object& invocation_mirror = Object::Handle(
+      zone, InvokeFunction(allocation_function, allocation_args));
   if (invocation_mirror.IsError()) {
     Exceptions::PropagateError(Error::Cast(invocation_mirror));
     UNREACHABLE();
@@ -359,20 +373,20 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   // Now use the invocation mirror object and invoke NoSuchMethod.
   const int kTypeArgsLen = 0;
   const int kNumArguments = 2;
-  ArgumentsDescriptor nsm_args_desc(Array::Handle(
-      ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
-  Function& function = Function::Handle(Resolver::ResolveDynamic(
-      receiver, Symbols::NoSuchMethod(), nsm_args_desc));
+  const ArgumentsDescriptor nsm_args_desc(Array::Handle(
+      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
+  Function& function = Function::Handle(
+      zone, Resolver::ResolveDynamic(receiver, Symbols::NoSuchMethod(),
+                                     nsm_args_desc));
   if (function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
     function = Resolver::ResolveDynamicForReceiverClass(
-        Class::Handle(thread->zone(),
-                      thread->isolate()->object_store()->object_class()),
+        Class::Handle(zone, thread->isolate()->object_store()->object_class()),
         Symbols::NoSuchMethod(), nsm_args_desc);
   }
   ASSERT(!function.IsNull());
-  const Array& args = Array::Handle(Array::New(kNumArguments));
+  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, receiver);
   args.SetAt(1, invocation_mirror);
   return InvokeFunction(function, args);
