@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-10-20T09:30:11.069083",
+  "generated": "2020-10-20T23:33:25.579167",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -254,7 +254,8 @@
     {
       "name": "ffi",
       "rootUri": "../third_party/pkg/ffi",
-      "packageUri": "lib/"
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
     },
     {
       "name": "fixnum",
@@ -519,6 +520,12 @@
       "rootUri": "../third_party/pkg/resource",
       "packageUri": "lib/",
       "languageVersion": "2.0"
+    },
+    {
+      "name": "scrape",
+      "rootUri": "../pkg/scrape",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
     },
     {
       "name": "sdk_library_metadata",
