@@ -64,6 +64,7 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
@@ -123,7 +124,9 @@ class BulkFixProcessor {
     LintNames.empty_statements: [
       RemoveEmptyStatement.newInstance,
     ],
-    LintNames.hash_and_equals: [CreateMethod.equalsOrHashCode],
+    LintNames.hash_and_equals: [
+      CreateMethod.equalsOrHashCode,
+    ],
     LintNames.no_duplicate_case_values: [
       RemoveDuplicateCase.newInstance,
     ],
@@ -412,28 +415,35 @@ class BulkFixProcessor {
     }
 
     var errorCode = diagnostic.errorCode;
-    if (errorCode is LintCode) {
-      var generators = lintProducerMap[errorCode.name];
-      if (generators != null) {
-        for (var generator in generators) {
+    try {
+      if (errorCode is LintCode) {
+        var generators = lintProducerMap[errorCode.name];
+        if (generators != null) {
+          for (var generator in generators) {
+            await compute(generator());
+          }
+        }
+      } else {
+        var generator = nonLintProducerMap[errorCode];
+        if (generator != null) {
           await compute(generator());
         }
-      }
-    } else {
-      var generator = nonLintProducerMap[errorCode];
-      if (generator != null) {
-        await compute(generator());
-      }
-      var multiGenerators = nonLintMultiProducerMap[errorCode];
-      if (multiGenerators != null) {
-        for (var multiGenerator in multiGenerators) {
-          var multiProducer = multiGenerator();
-          multiProducer.configure(context);
-          for (var producer in multiProducer.producers) {
-            await compute(producer);
+        var multiGenerators = nonLintMultiProducerMap[errorCode];
+        if (multiGenerators != null) {
+          for (var multiGenerator in multiGenerators) {
+            var multiProducer = multiGenerator();
+            multiProducer.configure(context);
+            for (var producer in multiProducer.producers) {
+              await compute(producer);
+            }
           }
         }
       }
+    } catch (e, s) {
+      throw CaughtException.withMessage(
+          'Exception generating fix for ${errorCode.name} in ${result.path}',
+          e,
+          s);
     }
   }
 }
