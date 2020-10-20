@@ -148,10 +148,6 @@ abstract class ClassHierarchy implements ClassHierarchyBase {
   /// Returns the list of members declared in [class_], including abstract
   /// members.
   ///
-  /// Note 'declared' here means declared or mixed into [class_]. This means
-  /// that the enclosing class of the returned members might not be [class_]
-  /// but the declaring mixin instead.
-  ///
   /// Members are sorted by name so that they may be efficiently compared across
   /// classes.
   List<Member> getDeclaredMembers(Class class_, {bool setters: false});
@@ -1192,54 +1188,46 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         setters ? info.lazyDeclaredSetters : info.lazyDeclaredGettersAndCalls;
     if (members != null) return members;
 
-    // We use a map here to handle mixed in members that are overridden in the
-    // mixin application. For instance in case of mixing an nnbd class into a
-    // legacy class we create a member signature for the legacy types in
-    // the mixin application which overrides the mixed in member.
-    //
-    // The mixed in members are added first and then the members declared
-    // in this class second, replacing the mixed in members in the cases where
-    // these are overridden.
-    Map<Name, Member> memberMap = {};
     if (classNode.mixedInType != null) {
       Class mixedInClassNode = classNode.mixedInType.classNode;
       _ClassInfo mixedInInfo = _infoMap[mixedInClassNode];
 
+      members = <Member>[];
       for (Member mixinMember in _buildDeclaredMembers(
           mixedInClassNode, mixedInInfo,
           setters: setters)) {
         if (mixinMember is! Procedure ||
             (mixinMember is Procedure &&
                 !mixinMember.isNoSuchMethodForwarder)) {
-          memberMap[mixinMember.name] = mixinMember;
+          members.add(mixinMember);
         }
       }
-    }
+    } else {
+      members = new List<Member>();
+      for (Procedure procedure in classNode.procedures) {
+        if (procedure.isStatic) continue;
+        if (procedure.kind == ProcedureKind.Setter) {
+          if (setters) {
+            members.add(procedure);
+          }
+        } else {
+          if (!setters) {
+            members.add(procedure);
+          }
+        }
+      }
+      for (Field field in classNode.fields) {
+        if (field.isStatic) continue;
+        if (!setters && field.hasImplicitGetter) {
+          members.add(field);
+        }
+        if (setters && field.hasImplicitSetter) {
+          members.add(field);
+        }
+      }
 
-    for (Procedure procedure in classNode.procedures) {
-      if (procedure.isStatic) continue;
-      if (procedure.kind == ProcedureKind.Setter) {
-        if (setters) {
-          memberMap[procedure.name] = procedure;
-        }
-      } else {
-        if (!setters) {
-          memberMap[procedure.name] = procedure;
-        }
-      }
+      members.sort(ClassHierarchy.compareMembers);
     }
-    for (Field field in classNode.fields) {
-      if (field.isStatic) continue;
-      if (!setters && field.hasImplicitGetter) {
-        memberMap[field.name] = field;
-      }
-      if (setters && field.hasImplicitSetter) {
-        memberMap[field.name] = field;
-      }
-    }
-
-    members = memberMap.values.toList();
-    members.sort(ClassHierarchy.compareMembers);
 
     if (setters) {
       info.lazyDeclaredSetters = members;

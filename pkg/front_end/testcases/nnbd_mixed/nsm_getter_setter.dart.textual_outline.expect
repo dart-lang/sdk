@@ -1,9 +1,0 @@
-// @dart = 2.8
-import 'nsm_getter_setter_lib.dart';
-
-class B implements A {
-  @override
-  noSuchMethod(Invocation invocation) => null;
-}
-
-main() {}

@@ -260,43 +260,43 @@ ConstantPool {
 }
 
 
-Function 'get:_identityHashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function '_instanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfTrue', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfFalse', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '==', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
     return-type dart:core::bool*
 
-Function 'get:hashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function 'toString', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'toString', abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::String*
 
-Function 'noSuchMethod', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'noSuchMethod', abstract, debuggable
     parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
-Function 'get:runtimeType', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::Type*
 Class '_NamespaceImpl', script = '#lib'
@@ -566,43 +566,43 @@ ConstantPool {
 }
 
 
-Function 'get:_identityHashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function '_instanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfTrue', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfFalse', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '==', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
     return-type dart:core::bool*
 
-Function 'get:hashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function 'toString', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'toString', abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::String*
 
-Function 'noSuchMethod', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'noSuchMethod', abstract, debuggable
     parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
-Function 'get:runtimeType', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::Type*
 Class 'VMLibraryHooks', script = '#lib'
@@ -706,43 +706,43 @@ ConstantPool {
 }
 
 
-Function 'get:_identityHashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function '_instanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfTrue', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfFalse', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '==', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
     return-type dart:core::bool*
 
-Function 'get:hashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function 'toString', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'toString', abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::String*
 
-Function 'noSuchMethod', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'noSuchMethod', abstract, debuggable
     parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
-Function 'get:runtimeType', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::Type*
 Class 'Stdin', script = '#lib'
@@ -768,43 +768,43 @@ ConstantPool {
 }
 
 
-Function 'get:_identityHashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function '_instanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfTrue', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfFalse', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '==', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
     return-type dart:core::bool*
 
-Function 'get:hashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function 'toString', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'toString', abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::String*
 
-Function 'noSuchMethod', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'noSuchMethod', abstract, debuggable
     parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
-Function 'get:runtimeType', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::Type*
 Class '_StdIOUtils', script = '#lib'
@@ -844,43 +844,43 @@ ConstantPool {
 }
 
 
-Function 'get:_identityHashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function '_instanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOf', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfTrue', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '_simpleInstanceOfFalse', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
     return-type dart:core::bool*
 
-Function '==', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
     return-type dart:core::bool*
 
-Function 'get:hashCode', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::int*
 
-Function 'toString', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'toString', abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::String*
 
-Function 'noSuchMethod', abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'noSuchMethod', abstract, debuggable
     parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
-Function 'get:runtimeType', getter, abstract, debuggable, custom-script = 'org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart'
+Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
     return-type dart:core::Type*
 
@@ -893,16 +893,16 @@ Function 'get:runtimeType', getter, abstract, debuggable, custom-script = 'org-d
     synthetic constructor •() → #lib::_ScheduleImmediate*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   class _NamespaceImpl extends dart.core::Object implements #lib::_Namespace {
     static field #lib::_NamespaceImpl* _cachedNamespace = null;
@@ -948,16 +948,16 @@ Function 'get:runtimeType', getter, abstract, debuggable, custom-script = 'org-d
       return #lib::_NamespaceImpl::_namespace;
     static get _namespacePointer() → dart.core::int*
       return #lib::_NamespaceImpl::_namespacePointer;
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   class VMLibraryHooks extends dart.core::Object {
     static field dynamic timerFactory = null;
@@ -984,31 +984,31 @@ Function 'get:runtimeType', getter, abstract, debuggable, custom-script = 'org-d
       }
       return #lib::VMLibraryHooks::_cachedScript;
     }
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   class Stdin extends dart.core::Object {
     synthetic constructor •() → #lib::Stdin*
       : super dart.core::Object::•()
       ;
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   class _StdIOUtils extends dart.core::Object {
     synthetic constructor •() → #lib::_StdIOUtils*
@@ -1016,16 +1016,16 @@ Function 'get:runtimeType', getter, abstract, debuggable, custom-script = 'org-d
       ;
     static method _getStdioInputStream(dart.core::int* fd) → #lib::Stdin*
       return null;
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   static field dart.core::int* _stdinFD = 0;
   static field dart.core::int* _stdoutFD = 1;
