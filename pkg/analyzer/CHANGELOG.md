@@ -2,6 +2,8 @@
 * Deprecated `GenericTypeAliasElement`. Use `FunctionTypeAliasElement`.
 * Read imports, exports, and parts on demand in `AnalysisDriver`.
   Specifically, `parseFileSync` will not read any referenced files.
+* Types are not set anymore for classes/constructors/getters of
+  identifiers in metadata (still set in arguments).
 
 ## 0.40.4
 * Deprecated `IndexExpression.auxiliaryElements` and

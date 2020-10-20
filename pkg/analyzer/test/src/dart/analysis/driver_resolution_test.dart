@@ -151,7 +151,7 @@ void topLevelFunction() {}
 
       SimpleIdentifier identifier_1 = annotation.name;
       expect(identifier_1.staticElement, same(myElement.getter));
-      expect(identifier_1.staticType, typeProvider.intType);
+      expect(identifier_1.staticType, isNull);
     }
 
     {
@@ -202,7 +202,7 @@ const a = 1;
 
     SimpleIdentifier aRef = annotation.name;
     assertElement(aRef, findElement.topGet('a'));
-    assertType(aRef, 'int');
+    assertTypeNull(aRef);
   }
 
   test_annotation_onDirective_import() async {
@@ -222,7 +222,7 @@ const a = 1;
 
     SimpleIdentifier aRef = annotation.name;
     assertElement(aRef, findElement.topGet('a'));
-    assertType(aRef, 'int');
+    assertTypeNull(aRef);
   }
 
   test_annotation_onDirective_library() async {
@@ -242,7 +242,7 @@ const a = 1;
 
     SimpleIdentifier aRef = annotation.name;
     assertElement(aRef, findElement.topGet('a'));
-    assertType(aRef, 'int');
+    assertTypeNull(aRef);
   }
 
   test_annotation_onDirective_part() async {
@@ -265,7 +265,7 @@ const a = 1;
 
     SimpleIdentifier aRef = annotation.name;
     assertElement(aRef, findElement.topGet('a'));
-    assertType(aRef, 'int');
+    assertTypeNull(aRef);
   }
 
   test_annotation_onDirective_partOf() async {
@@ -288,7 +288,7 @@ const a = 1;
 
     SimpleIdentifier aRef = annotation.name;
     assertElement(aRef, findElement.topGet('a'));
-    assertType(aRef, 'int');
+    assertTypeNull(aRef);
   }
 
   test_annotation_onFormalParameter_redirectingFactory() async {
@@ -310,7 +310,7 @@ const c = 2;
 
       SimpleIdentifier ref = annotation.name;
       assertElement(ref, getter);
-      assertType(ref, 'int');
+      assertTypeNull(ref);
     }
 
     {
@@ -386,7 +386,7 @@ class C {
 
     SimpleIdentifier identifier_1 = annotation.name;
     expect(identifier_1.staticElement, same(myElement.getter));
-    expect(identifier_1.staticType, typeProvider.intType);
+    assertTypeNull(identifier_1);
   }
 
   test_annotation_prefixed_classField() async {
@@ -570,7 +570,7 @@ class A {
     assertTypeNull(prefixed.prefix);
 
     expect(prefixed.identifier.staticElement, same(aGetter));
-    expect(prefixed.identifier.staticType, typeProvider.intType);
+    assertTypeNull(prefixed.identifier);
 
     expect(annotation.constructorName, isNull);
     expect(annotation.arguments, isNull);
@@ -630,7 +630,7 @@ class A {
     assertTypeNull(prefixed.prefix);
 
     expect(prefixed.identifier.staticElement, same(constructor));
-    assertType(prefixed.identifier, 'A Function(int, {int b})');
+    assertTypeNull(prefixed.identifier);
 
     expect(annotation.constructorName, isNull);
 
@@ -699,14 +699,14 @@ void main() {
 
     SimpleIdentifier identifier_1 = annotation_1.name;
     expect(identifier_1.staticElement, same(element_1.getter));
-    expect(identifier_1.staticType, typeProvider.intType);
+    assertTypeNull(identifier_1);
 
     Annotation annotation_2 = main.metadata[1];
     expect(annotation_2.element, same(element_2.getter));
 
     SimpleIdentifier identifier_2 = annotation_2.name;
     expect(identifier_2.staticElement, same(element_2.getter));
-    expect(identifier_2.staticType, typeProvider.intType);
+    assertTypeNull(identifier_2);
   }
 
   test_asExpression() async {

@@ -102,13 +102,14 @@ _testPackage:lib/
     File.fromUri(main)
       ..createSync(recursive: true)
       ..writeAsStringSync('''
+// @dart = 2.9
 import 'package:_testPackage/test_library.dart';
 
 var global = 0;
 
 void main() {
   var count = 0;
-  // line 7
+  // line 8
   print('Global is: \${++global}');
   print('Count is: \${++count}');
 
@@ -120,10 +121,11 @@ void main() {
     File.fromUri(testLibrary)
       ..createSync()
       ..writeAsStringSync('''
+// @dart = 2.9
 import 'package:_testPackage/test_library2.dart';
 
 int testLibraryFunction(int formal) {
-  return formal; // line 4
+  return formal; // line 5
 }
 
 int callLibraryFunction2(int formal) {
@@ -139,8 +141,9 @@ class B {
     File.fromUri(testLibrary2)
       ..createSync()
       ..writeAsStringSync('''
+// @dart = 2.9
 int testLibraryFunction2(int formal) {
-  return formal; // line 2
+  return formal; // line 3
 }
 
 class C {
@@ -259,7 +262,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'formal',
-        'line': 4,
+        'line': 5,
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
@@ -291,7 +294,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'count',
-        'line': 7,
+        'line': 8,
         'column': 1,
         'jsModules': {},
         'jsScope': {'count': 'count'},
@@ -324,7 +327,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'B().c().getNumber()',
-        'line': 7,
+        'line': 8,
         'column': 1,
         'jsModules': {},
         'jsScope': {},
@@ -445,7 +448,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'formal',
-        'line': 4,
+        'line': 5,
         'column': 1,
         'jsModules': {},
         'jsScope': {'formal': 'formal'},
@@ -477,7 +480,7 @@ void main() async {
       requestController.add({
         'command': 'CompileExpression',
         'expression': 'count',
-        'line': 7,
+        'line': 8,
         'column': 1,
         'jsModules': {},
         'jsScope': {'count': 'count'},
