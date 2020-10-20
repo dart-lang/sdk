@@ -33,13 +33,23 @@ def ptrWrap(t, n):
     return t
 
 
+def removePrefix(t):
+    assert (t.startswith('wasm_') or t.startswith('wasi_') or
+            t.startswith('wasmer_'))
+    return t[(5 if t.startswith('wasm_') else 0):]
+
+
+def addPrefix(t):
+    if t.startswith('wasi_') or t.startswith('wasmer_'):
+        return t
+    return 'wasm_' + t
+
+
 def getDartType(t, i):
     if t in predefTypes:
-        t = predefTypes[t][i]
-    else:
-        assert (t.startswith('wasm_') and t.endswith('_t'))
-        t = 'Wasmer' + camel(t[5:-2])
-    return t
+        return predefTypes[t][i]
+    assert (t.endswith('_t'))
+    return 'Wasmer' + camel(removePrefix(t[:-2]))
 
 
 def dartArgType(a, i):
@@ -54,13 +64,11 @@ def dartFnType(r, a, i):
 
 
 def dartFnTypeName(n):
-    assert (n.startswith('wasm_'))
-    return camel(n[5:])
+    return camel(removePrefix(n))
 
 
 def dartFnMembName(n):
-    assert (n.startswith('wasm_'))
-    return n[4:]
+    return '_' + removePrefix(n)
 
 
 def nativeTypeToFfi(n):
@@ -77,10 +85,10 @@ def getFns():
             yield name, retType, args
 
 
-opaqueTypeTemplate = '''// wasm_%s_t
+opaqueTypeTemplate = '''// %s_t
 class Wasmer%s extends Struct {}'''
 
-vecTypeTemplate = '''// wasm_%s_vec_t
+vecTypeTemplate = '''// %s_vec_t
 class Wasmer%sVec extends Struct {
   @Uint64()
   external int length;
@@ -103,12 +111,13 @@ typedef Wasmer%sFn = %s;'''
 
 def getWasmerApi():
     return ('\n\n'.join([
-        opaqueTypeTemplate % (t, camel(t)) for t in sorted(opaqueTypes)
+        opaqueTypeTemplate % (addPrefix(t), camel(t))
+        for t in sorted(opaqueTypes)
     ]) + '\n\n' + '\n\n'.join([
-        vecTypeTemplate %
-        (t, camel(t),
-         ('Pointer<%s>' if ptr else '%s') % nativeTypeToFfi('wasm_%s_t' % t),
-         (byteVecToStringTemplate if t == 'byte' else ''))
+        vecTypeTemplate % (addPrefix(t), camel(t),
+                           ('Pointer<%s>' if ptr else '%s') % nativeTypeToFfi(
+                               '%s_t' % addPrefix(t)),
+                           (byteVecToStringTemplate if t == 'byte' else ''))
         for t, ptr in sorted(vecTypes.items())
     ]) + '\n' + '\n'.join([
         fnApiTemplate %
@@ -189,38 +198,41 @@ def addFn(sig):
     retType = parseType(ret)
     args = [parseType(a) for a in argpack.split(',') if len(a.strip()) > 0]
     for _, t in args + [retType]:
-        if t not in predefTypes and t[5:-2] not in opaqueTypes and t[
-                5:-6] not in vecTypes:
+        if t not in predefTypes and removePrefix(
+                t[:-2]) not in opaqueTypes and removePrefix(
+                    t[:-6]) not in vecTypes:
             print('Missing type: ' + t)
     fns.append((name, retType, args))
 
 
 def declareOwn(name):
     opaqueTypes.add(name)
-    addFn('void wasm_%s_delete(wasm_%s_t*)' % (name, name))
+    n = addPrefix(name)
+    addFn('void %s_delete(%s_t*)' % (n, n))
 
 
 def declareVec(name, storePtr):
     vecTypes[name] = storePtr
-    addFn('void wasm_%s_vec_new_empty(wasm_%s_vec_t* out)' % (name, name))
-    addFn('void wasm_%s_vec_new_uninitialized(wasm_%s_vec_t* out, size_t)' %
-          (name, name))
-    addFn('void wasm_%s_vec_new(wasm_%s_vec_t* out, size_t, wasm_%s_t %s[])' %
-          (name, name, name, '*' if storePtr else ''))
-    addFn('void wasm_%s_vec_copy(wasm_%s_vec_t* out, const wasm_%s_vec_t*)' %
-          (name, name, name))
-    addFn('void wasm_%s_vec_delete(wasm_%s_vec_t*)' % (name, name))
+    n = addPrefix(name)
+    addFn('void %s_vec_new_empty(%s_vec_t* out)' % (n, n))
+    addFn('void %s_vec_new_uninitialized(%s_vec_t* out, size_t)' % (n, n))
+    addFn('void %s_vec_new(%s_vec_t* out, size_t, %s_t %s[])' %
+          (n, n, n, '*' if storePtr else ''))
+    addFn('void %s_vec_copy(%s_vec_t* out, const %s_vec_t*)' % (n, n, n))
+    addFn('void %s_vec_delete(%s_vec_t*)' % (n, n))
 
 
 def declareType(name, withCopy=True):
     declareOwn(name)
     declareVec(name, True)
     if withCopy:
-        addFn('wasm_%s_t* wasm_%s_copy(wasm_%s_t*)' % (name, name, name))
+        n = addPrefix(name)
+        addFn('%s_t* %s_copy(%s_t*)' % (n, n, n))
 
 
 predefinedType('void', 'Void', 'void')
 predefinedType('bool', 'Uint8', 'int')
+predefinedType('int', 'Int64', 'int')
 predefinedType('byte_t', 'Uint8', 'int')
 predefinedType('wasm_byte_t', 'Uint8', 'int')
 predefinedType('uint8_t', 'Uint8', 'int')
@@ -228,6 +240,8 @@ predefinedType('uint16_t', 'Uint16', 'int')
 predefinedType('uint32_t', 'Uint32', 'int')
 predefinedType('uint64_t', 'Uint64', 'int')
 predefinedType('size_t', 'Uint64', 'int')
+predefinedType('uintptr_t', 'Uint64', 'int')
+predefinedType('intptr_t', 'Int64', 'int')
 predefinedType('int8_t', 'Int8', 'int')
 predefinedType('int16_t', 'Int16', 'int')
 predefinedType('int32_t', 'Int32', 'int')
@@ -239,6 +253,8 @@ predefinedType('wasm_val_t', 'WasmerVal', 'WasmerVal')
 
 declareOwn('engine')
 declareOwn('store')
+declareOwn('wasi_config')
+declareOwn('wasi_env')
 declareVec('byte', False)
 declareVec('val', False)
 declareType('importtype')
@@ -291,6 +307,16 @@ WASM_API_EXTERN const wasm_valtype_vec_t* wasm_functype_results(const wasm_funct
 WASM_API_EXTERN own wasm_func_t* wasm_func_new_with_env( wasm_store_t*, const wasm_functype_t* type, void* fn, void* env, void *finalizer);
 WASM_API_EXTERN own wasm_trap_t* wasm_func_call(const wasm_func_t*, const wasm_val_t args[], wasm_val_t results[]);
 WASM_API_EXTERN wasm_valkind_t wasm_valtype_kind(const wasm_valtype_t*);
+wasi_config_t* wasi_config_new(const uint8_t* program_name);
+wasi_env_t* wasi_env_new(wasi_config_t* config);
+bool wasi_get_imports(const wasm_store_t* store, const wasm_module_t* module, const wasi_env_t* wasi_env, wasm_extern_t** imports);
+int wasmer_last_error_message(uint8_t* buffer, int length);
+int wasmer_last_error_length();
+void wasi_env_set_memory(wasi_env_t* env, const wasm_memory_t* memory);
+void wasi_config_inherit_stdout(wasi_config_t* config);
+void wasi_config_inherit_stderr(wasi_config_t* config);
+intptr_t wasi_env_read_stderr(wasi_env_t* env, uint8_t* buffer, uintptr_t buffer_len);
+intptr_t wasi_env_read_stdout(wasi_env_t* env, uint8_t* buffer, uintptr_t buffer_len);
 '''
 for f in rawFns.split('\n'):
     if len(f.strip()) > 0:
@@ -312,6 +338,7 @@ unusedFns = {
     'wasm_val_vec_new_uninitialized',
     'wasm_valtype_copy',
     'wasm_valtype_vec_copy',
+    'wasi_config_delete',
 }
 
 genDoc = '''// This file has been automatically generated. Please do not edit it manually.

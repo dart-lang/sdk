@@ -114,6 +114,7 @@ class WasmInstanceBuilder {
   late List<WasmImportDescriptor> _importDescs;
   Map<String, int> _importIndex;
   late Pointer<Pointer<WasmerExtern>> _imports;
+  Pointer<WasmerWasiEnv> _wasiEnv = nullptr;
 
   WasmInstanceBuilder(this._module) : _importIndex = {} {
     _importDescs = WasmRuntime().importDescriptors(_module._module);
@@ -174,6 +175,21 @@ class WasmInstanceBuilder {
     return this;
   }
 
+  /// Enable WASI and add the default WASI imports.
+  WasmInstanceBuilder enableWasi(
+      {bool captureStdout = false, bool captureStderr = false}) {
+    if (_wasiEnv != nullptr) {
+      throw Exception("WASI is already enabled.");
+    }
+    var runtime = WasmRuntime();
+    var config = runtime.newWasiConfig();
+    if (captureStdout) runtime.captureWasiStdout(config);
+    if (captureStderr) runtime.captureWasiStderr(config);
+    _wasiEnv = runtime.newWasiEnv(config);
+    runtime.getWasiImports(_module._store, _module._module, _wasiEnv, _imports);
+    return this;
+  }
+
   /// Build the module instance.
   WasmInstance build() {
     for (var i = 0; i < _importDescs.length; ++i) {
@@ -181,7 +197,7 @@ class WasmInstanceBuilder {
         throw Exception("Missing import: ${_importDescs[i]}");
       }
     }
-    return WasmInstance(_module, _imports);
+    return WasmInstance(_module, _imports, _wasiEnv);
   }
 }
 
@@ -190,9 +206,13 @@ class WasmInstance {
   WasmModule _module;
   Pointer<WasmerInstance> _instance;
   Pointer<WasmerMemory>? _exportedMemory;
+  Pointer<WasmerWasiEnv> _wasiEnv;
+  Stream<List<int>>? _stdout;
+  Stream<List<int>>? _stderr;
   Map<String, WasmFunction> _functions = {};
 
-  WasmInstance(this._module, Pointer<Pointer<WasmerExtern>> imports)
+  WasmInstance(
+      this._module, Pointer<Pointer<WasmerExtern>> imports, this._wasiEnv)
       : _instance = WasmRuntime()
             .instantiate(_module._store, _module._module, imports) {
     var runtime = WasmRuntime();
@@ -210,7 +230,11 @@ class WasmInstance {
             name, f, runtime.getArgTypes(ft), runtime.getReturnType(ft));
       } else if (kind == WasmerExternKindMemory) {
         // WASM currently allows only one memory per module.
-        _exportedMemory = runtime.externToMemory(e);
+        var mem = runtime.externToMemory(e);
+        _exportedMemory = mem;
+        if (_wasiEnv != nullptr) {
+          runtime.wasiEnvSetMemory(_wasiEnv as Pointer<WasmerWasiEnv>, mem);
+        }
       }
     }
   }
@@ -227,6 +251,24 @@ class WasmInstance {
       throw Exception("Wasm module did not export its memory.");
     }
     return WasmMemory._fromExport(_exportedMemory as Pointer<WasmerMemory>);
+  }
+
+  /// Returns a stream that reads from stdout. To use this, you must enable WASI
+  /// when instantiating the module, and set captureStdout to true.
+  Stream<List<int>> get stdout {
+    if (_wasiEnv == nullptr) {
+      throw Exception("Can't capture stdout without WASI enabled.");
+    }
+    return _stdout ??= WasmRuntime().getWasiStdoutStream(_wasiEnv);
+  }
+
+  /// Returns a stream that reads from stderr. To use this, you must enable WASI
+  /// when instantiating the module, and set captureStderr to true.
+  Stream<List<int>> get stderr {
+    if (_wasiEnv == nullptr) {
+      throw Exception("Can't capture stderr without WASI enabled.");
+    }
+    return _stderr ??= WasmRuntime().getWasiStderrStream(_wasiEnv);
   }
 }
 

@@ -4,6 +4,7 @@
 
 /* <GEN_DOC> */
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
@@ -59,9 +60,7 @@ class WasmRuntime {
 /* <RUNTIME_MEMB> */
 
   factory WasmRuntime() {
-    WasmRuntime inst = _inst ?? WasmRuntime._init();
-    _inst = inst;
-    return inst;
+    return _inst ??= WasmRuntime._init();
   }
 
   static String _getLibName() {
@@ -125,11 +124,7 @@ class WasmRuntime {
     free(dataPtr);
     free(dataVec);
 
-    if (modulePtr == nullptr) {
-      throw Exception("Wasm module compile failed");
-    }
-
-    return modulePtr;
+    return _checkNotEqual(modulePtr, nullptr, "Wasm module compile failed.");
   }
 
   List<WasmExportDescriptor> exportDescriptors(Pointer<WasmerModule> module) {
@@ -173,12 +168,8 @@ class WasmRuntime {
 
   Pointer<WasmerInstance> instantiate(Pointer<WasmerStore> store,
       Pointer<WasmerModule> module, Pointer<Pointer<WasmerExtern>> imports) {
-    var instancePtr = _instance_new(store, module, imports, nullptr);
-    if (instancePtr == nullptr) {
-      throw Exception("Wasm module instantiation failed");
-    }
-
-    return instancePtr;
+    return _checkNotEqual(_instance_new(store, module, imports, nullptr),
+        nullptr, "Wasm module instantiation failed.");
   }
 
   Pointer<WasmerExternVec> exports(Pointer<WasmerInstance> instancePtr) {
@@ -238,19 +229,13 @@ class WasmRuntime {
     limPtr.ref.max = maxPages ?? wasm_limits_max_default;
     var memType = _memorytype_new(limPtr);
     free(limPtr);
-    Pointer<WasmerMemory> memPtr = _memory_new(store, memType);
-
-    if (memPtr == nullptr) {
-      throw Exception("Failed to create memory");
-    }
-    return memPtr;
+    return _checkNotEqual(
+        _memory_new(store, memType), nullptr, "Failed to create memory.");
   }
 
   void growMemory(Pointer<WasmerMemory> memory, int deltaPages) {
-    var result = _memory_grow(memory, deltaPages);
-    if (result == 0) {
-      throw Exception("Failed to grow memory");
-    }
+    _checkNotEqual(
+        _memory_grow(memory, deltaPages), 0, "Failed to grow memory.");
   }
 
   int memoryLength(Pointer<WasmerMemory> memory) {
@@ -271,9 +256,89 @@ class WasmRuntime {
         store, funcType, func.cast(), env.cast(), finalizer.cast());
   }
 
+  Pointer<WasmerWasiConfig> newWasiConfig() {
+    var name = allocate<Uint8>();
+    name[0] = 0;
+    var config = _wasi_config_new(name);
+    free(name);
+    return _checkNotEqual(config, nullptr, "Failed to create WASI config.");
+  }
+
+  void captureWasiStdout(Pointer<WasmerWasiConfig> config) {
+    _wasi_config_inherit_stdout(config);
+  }
+
+  void captureWasiStderr(Pointer<WasmerWasiConfig> config) {
+    _wasi_config_inherit_stderr(config);
+  }
+
+  Pointer<WasmerWasiEnv> newWasiEnv(Pointer<WasmerWasiConfig> config) {
+    return _checkNotEqual(
+        _wasi_env_new(config), nullptr, "Failed to create WASI environment.");
+  }
+
+  void wasiEnvSetMemory(
+      Pointer<WasmerWasiEnv> env, Pointer<WasmerMemory> memory) {
+    _wasi_env_set_memory(env, memory);
+  }
+
+  void getWasiImports(Pointer<WasmerStore> store, Pointer<WasmerModule> mod,
+      Pointer<WasmerWasiEnv> env, Pointer<Pointer<WasmerExtern>> imports) {
+    _checkNotEqual(_wasi_get_imports(store, mod, env, imports), 0,
+        "Failed to fill WASI imports.");
+  }
+
+  Stream<List<int>> getWasiStdoutStream(Pointer<WasmerWasiEnv> env) {
+    return Stream.fromIterable(_WasiStreamIterable(env, _wasi_env_read_stdout));
+  }
+
+  Stream<List<int>> getWasiStderrStream(Pointer<WasmerWasiEnv> env) {
+    return Stream.fromIterable(_WasiStreamIterable(env, _wasi_env_read_stderr));
+  }
+
+  String _getLastError() {
+    var length = _wasmer_last_error_length();
+    var buf = allocate<Uint8>(count: length);
+    _wasmer_last_error_message(buf, length);
+    String message = utf8.decode(buf.asTypedList(length));
+    free(buf);
+    return message;
+  }
+
+  T _checkNotEqual<T>(T x, T y, String errorMessage) {
+    if (x == y) {
+      throw Exception("$errorMessage\n${_getLastError()}");
+    }
+    return x;
+  }
+
   static String getSignatureString(
       String name, List<int> argTypes, int returnType) {
     return "${wasmerValKindName(returnType)} $name" +
         "(${argTypes.map(wasmerValKindName).join(", ")})";
   }
+}
+
+class _WasiStreamIterator implements Iterator<List<int>> {
+  static final int _bufferLength = 1024;
+  Pointer<WasmerWasiEnv> _env;
+  Function _reader;
+  Pointer<Uint8> _buf = allocate<Uint8>(count: _bufferLength);
+  int _length = 0;
+  _WasiStreamIterator(this._env, this._reader) {}
+
+  bool moveNext() {
+    _length = _reader(_env, _buf, _bufferLength);
+    return true;
+  }
+
+  List<int> get current => _buf.asTypedList(_length);
+}
+
+class _WasiStreamIterable extends Iterable<List<int>> {
+  Pointer<WasmerWasiEnv> _env;
+  Function _reader;
+  _WasiStreamIterable(this._env, this._reader) {}
+  @override
+  Iterator<List<int>> get iterator => _WasiStreamIterator(_env, _reader);
 }
