@@ -993,7 +993,7 @@ void ScopeBuilder::VisitStatement() {
       intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
 
       EnterScope(offset);
-
+      helper_.ReadPosition();  // read block start offset.
       intptr_t list_length =
           helper_.ReadListLength();  // read number of statements.
       for (intptr_t i = 0; i < list_length; ++i) {

@@ -115,6 +115,14 @@ void main() {
 
   B b = new B();
 }
+
+extension NumberParsing on String {
+  int parseInt() {
+    var ret = int.parse(this);
+    // line 17
+    return ret;
+  }
+}
 ''');
 
     var testLibrary = root.resolve('lib/test_library.dart');
@@ -313,6 +321,40 @@ void main() async {
               'errors': isEmpty,
               'warnings': isEmpty,
               'compiledProcedure': contains('return count;'),
+            })
+          ]));
+    });
+
+    test(
+        'can load dependencies and compile expressions in main (extension method)',
+        () async {
+      requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': inputs,
+      });
+
+      requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'ret',
+        'line': 17,
+        'column': 1,
+        'jsModules': {},
+        'jsScope': {'ret': 'ret'},
+        'libraryUri': config.mainModule.libraryUri,
+        'moduleName': config.mainModule.moduleName,
+      });
+
+      expect(
+          responseController.stream,
+          emitsInOrder([
+            equals({
+              'succeeded': true,
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'compiledProcedure': contains('return ret;'),
             })
           ]));
     });

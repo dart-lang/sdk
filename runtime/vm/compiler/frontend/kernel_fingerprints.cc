@@ -583,6 +583,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kBlock:
+      ReadPosition();
       CalculateStatementListFingerprint();
       return;
     case kEmptyStatement:

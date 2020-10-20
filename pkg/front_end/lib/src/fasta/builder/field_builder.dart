@@ -737,6 +737,7 @@ class SourceFieldMember extends BuilderClassMember {
 abstract class AbstractLateFieldEncoding implements FieldEncoding {
   final String name;
   final int fileOffset;
+  final int fileEndOffset;
   DartType _type;
   Field _field;
   Field _lateIsSetField;
@@ -772,6 +773,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       bool isCovariant,
       late_lowering.IsSetStrategy isSetStrategy)
       : fileOffset = charOffset,
+        fileEndOffset = charEndOffset,
         _isSetStrategy = isSetStrategy,
         _forceIncludeIsSetField =
             isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {
@@ -796,9 +798,15 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         break;
     }
     _lateGetter = new Procedure(
-        null, ProcedureKind.Getter, new FunctionNode(null),
-        fileUri: fileUri, reference: getterReferenceFrom?.reference)
+        null,
+        ProcedureKind.Getter,
+        new FunctionNode(null)
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset,
+        fileUri: fileUri,
+        reference: getterReferenceFrom?.reference)
       ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = true;
     _lateSetter = _createSetter(name, fileUri, charOffset, setterReferenceFrom,
         isCovariant: isCovariant);
@@ -913,10 +921,13 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         null,
         ProcedureKind.Setter,
         new FunctionNode(null,
-            positionalParameters: [parameter], returnType: const VoidType()),
+            positionalParameters: [parameter], returnType: const VoidType())
+          ..fileOffset = charOffset
+          ..fileEndOffset = fileEndOffset,
         fileUri: fileUri,
         reference: referenceFrom?.reference)
       ..fileOffset = charOffset
+      ..fileEndOffset = fileEndOffset
       ..isNonNullableByDefault = true;
   }
 
@@ -1496,7 +1507,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           null,
           ProcedureKind.Setter,
           new FunctionNode(null,
-              positionalParameters: [parameter], returnType: const VoidType()),
+              positionalParameters: [parameter], returnType: const VoidType())
+            ..fileOffset = charOffset
+            ..fileEndOffset = charEndOffset,
           fileUri: fileUri,
           reference: setterReference?.reference)
         ..fileOffset = charOffset

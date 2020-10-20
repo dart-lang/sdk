@@ -7,6 +7,8 @@ library fasta.incremental_compiler;
 import 'dart:async' show Future;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -1668,10 +1670,27 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       userCode.loader.seenMessages.clear();
 
       for (TypeParameter typeParam in typeDefinitions) {
-        if (!isLegalIdentifier(typeParam.name)) return null;
+        if (!isLegalIdentifier(typeParam.name)) {
+          userCode.loader.addProblem(
+              templateIncrementalCompilerIllegalTypeParameter
+                  .withArguments('$typeParam'),
+              typeParam.fileOffset,
+              0,
+              libraryUri);
+          return null;
+        }
       }
       for (String name in definitions.keys) {
-        if (!isLegalIdentifier(name)) return null;
+        if (!isLegalIdentifier(name)) {
+          userCode.loader.addProblem(
+              templateIncrementalCompilerIllegalParameter.withArguments(name),
+              // TODO: pass variable declarations instead of
+              // parameter names for proper location detection.
+              -1,
+              -1,
+              libraryUri);
+          return null;
+        }
       }
 
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(

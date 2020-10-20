@@ -1807,6 +1807,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _variableIndexer ??= new VariableIndexer();
     _variableIndexer.pushScope();
     writeByte(Tag.Block);
+    writeOffset(node.fileOffset);
     writeNodeList(node.statements);
     _variableIndexer.popScope();
   }

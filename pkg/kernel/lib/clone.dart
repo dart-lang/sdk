@@ -330,7 +330,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitBlock(Block node) {
-    return new Block(node.statements.map(clone).toList());
+    return new Block(node.statements.map(clone).toList())
+      ..fileOffset = _cloneFileOffset(node.fileOffset);
   }
 
   visitAssertBlock(AssertBlock node) {

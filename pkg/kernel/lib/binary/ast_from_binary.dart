@@ -2124,9 +2124,10 @@ class BinaryBuilder {
 
   Block readBlock() {
     int stackHeight = variableStack.length;
+    var offset = readOffset();
     var body = readStatementList();
     variableStack.length = stackHeight;
-    return new Block(body);
+    return new Block(body)..fileOffset = offset;
   }
 
   AssertBlock readAssertBlock() {

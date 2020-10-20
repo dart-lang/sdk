@@ -222,13 +222,14 @@ class TestDriver {
         scope: scope,
         expression: expression);
 
-    if (expectedError != null) {
-      expect(result.isSuccess, isFalse);
-      expect(_normalize(result.result), matches(expectedError));
-    } else if (expectedResult != null) {
-      expect(result.isSuccess, isTrue);
-      expect(_normalize(result.result), _matches(expectedResult));
-    }
+    var success = expectedError == null;
+    var message = success ? expectedResult : expectedError;
+
+    expect(
+        result,
+        const TypeMatcher<TestCompilationResult>()
+            .having((r) => _normalize(r.result), 'result', _matches(message))
+            .having((r) => r.isSuccess, 'isSuccess', success));
   }
 
   String _normalize(String text) {
@@ -236,11 +237,8 @@ class TestDriver {
   }
 
   Matcher _matches(String text) {
-    var indent = text.indexOf(RegExp('[^ ]'));
-    var unindented =
-        text.split('\n').map((line) => line.substring(indent)).join('\n');
-
-    return matches(RegExp(RegExp.escape(unindented), multiLine: true));
+    var unindented = RegExp.escape(text).replaceAll(RegExp('[ ]+'), '[ ]*');
+    return matches(RegExp(unindented, multiLine: true));
   }
 
   int _getEvaluationLine(String source) {
@@ -290,7 +288,14 @@ void main() {
           expectedError: "Error: Getter not found: 'typo'");
     });
 
-    test('local', () async {
+    test('local (trimmed scope)', () async {
+      // Test that current expression evaluation works in extension methods.
+      //
+      // Note: the actual scope is {#this, ret}, but #this is effectively
+      // removed in the expression compilator because it does not exist
+      // in JavaScript code.
+      // See (full scope) tests for what will the evaluation will look like
+      // when the mapping from dart symbols to JavaScipt symbols is added.
       await driver.check(
           scope: <String, String>{'ret': '1234'},
           expression: 'ret',
@@ -298,16 +303,110 @@ void main() {
           (function(ret) {
             return ret;
           }(
-          1234
+            1234
           ))
           ''');
     });
 
-    test('this', () async {
+    test('local (full scope)', () async {
+      // Test evalution in extension methods in the future when the mapping
+      // from kernel symbols to dartdevc symbols is added.
+      //
+      // Note: this currently fails due to
+      // - incremental compiler not allowing #this as a parameter name
       await driver.check(
-          scope: <String, String>{'ret': '1234'},
+          scope: <String, String>{'ret': '1234', '#this': 'this'},
+          expression: 'ret',
+          expectedError:
+              "Illegal parameter name '#this' found during expression compilation.");
+    });
+
+    test('this (full scope)', () async {
+      // Test evalution in extension methods in the future when the mapping
+      // from kernel symbols to dartdevc symbols is added.
+      //
+      // Note: this currently fails due to
+      // - incremental compiler not allowing #this as a parameter name
+      // - incremental compiler not mapping 'this' from user input to '#this'
+      await driver.check(
+          scope: <String, String>{'ret': '1234', '#this': 'this'},
           expression: 'this',
-          expectedError: "Expected identifier, but got 'this'.");
+          expectedError:
+              "Illegal parameter name '#this' found during expression compilation.");
+    });
+  });
+
+  group('Expression compiler tests in static function:', () {
+    const source = '''
+      int foo(int x, {int y}) {
+        int z = 0;
+        /* evaluation placeholder */
+        return x + y + z;
+      }
+
+      main() => 0;
+      ''';
+
+    TestDriver driver;
+
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
+
+    tearDown(() {
+      driver.delete();
+    });
+
+    test('compilation error', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'y': '2', 'z': '3'},
+          expression: 'typo',
+          expectedError: "Getter not found: \'typo\'");
+    });
+
+    test('local', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'y': '2', 'z': '3'},
+          expression: 'x',
+          expectedResult: '''
+          (function(x, y, z) {
+            return x;
+          }(
+            1,
+            2,
+            3
+          ))
+          ''');
+    });
+
+    test('formal', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'y': '2', 'z': '3'},
+          expression: 'y',
+          expectedResult: '''
+          (function(x, y, z) {
+            return y;
+          }(
+            1,
+            2,
+            3
+          ))
+          ''');
+    });
+
+    test('named formal', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'y': '2', 'z': '3'},
+          expression: 'z',
+          expectedResult: '''
+          (function(x, y, z) {
+            return z;
+          }(
+            1,
+            2,
+            3
+          ))
+          ''');
     });
   });
 
@@ -369,7 +468,7 @@ void main() {
           (function(x) {
             return x;
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -382,7 +481,7 @@ void main() {
           (function(x) {
             return this;
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -395,7 +494,7 @@ void main() {
           (function(x) {
             return dart.notNull(x) + 1;
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -408,7 +507,7 @@ void main() {
           (function(x) {
             return dart.notNull(x) + dart.notNull(foo.C.staticField);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -423,7 +522,7 @@ void main() {
             let _staticField = dart.privateName(foo, "_staticField");
             return dart.notNull(x) + dart.notNull(foo.C._staticField);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -436,7 +535,7 @@ void main() {
           (function(x) {
             return dart.notNull(x) + dart.notNull(this.field);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -451,7 +550,7 @@ void main() {
             let _field = dart.privateName(foo, "_field");
             return dart.notNull(x) + dart.notNull(this[_field]);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -464,7 +563,7 @@ void main() {
           (function(x) {
             return dart.notNull(x) + dart.notNull(foo.global);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -477,7 +576,7 @@ void main() {
           (function(x) {
             return this.methodFieldAccess(2);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -490,7 +589,7 @@ void main() {
           (function(x) {
             return this.asyncMethod(2);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -500,12 +599,12 @@ void main() {
           scope: <String, String>{'x': '1'},
           expression: '"1234".parseInt()',
           expectedResult: '''
-        (function(x) {
-          return foo['NumberParsing|parseInt']("1234");
-        }.bind(this)(
-        1
-        ))
-        ''');
+          (function(x) {
+            return foo['NumberParsing|parseInt']("1234");
+          }.bind(this)(
+            1
+          ))
+          ''');
     });
 
     test('private field modification', () async {
@@ -513,14 +612,14 @@ void main() {
           scope: <String, String>{'x': '1'},
           expression: '_field = 2',
           expectedResult: '''
-        (function(x) {
-          let foo = require('foo.dart').foo;
-          let _field = dart.privateName(foo, "_field");
-          return this[_field] = 2;
-        }.bind(this)(
-        1
-        ))
-        ''');
+          (function(x) {
+            let foo = require('foo.dart').foo;
+            let _field = dart.privateName(foo, "_field");
+            return this[_field] = 2;
+          }.bind(this)(
+            1
+          ))
+          ''');
     });
 
     test('field modification', () async {
@@ -531,7 +630,7 @@ void main() {
           (function(x) {
             return this.field = 2;
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -546,7 +645,7 @@ void main() {
             let _staticField = dart.privateName(foo, "_staticField");
             return foo.C._staticField = 2;
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -559,7 +658,7 @@ void main() {
           (function(x) {
             return foo.C.staticField = 2;
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -622,7 +721,7 @@ void main() {
           (function(x) {
             return dart.notNull(x) + dart.notNull(foo.C.staticField);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -637,7 +736,7 @@ void main() {
             let _staticField = dart.privateName(foo, "_staticField");
             return dart.notNull(x) + dart.notNull(foo.C._staticField);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -650,7 +749,7 @@ void main() {
           (function(x) {
             return dart.notNull(x) + dart.notNull(this.field);
           }.bind(this)(
-          1
+            1
           ))
           ''');
     });
@@ -852,7 +951,8 @@ void main() {
           (function(x, c) {
             return x;
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -865,7 +965,8 @@ void main() {
           (function(x, c) {
             return c;
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -878,7 +979,8 @@ void main() {
             (function(x, c) {
               return new foo.C.new(1, 3);
             }(
-            1, null
+              1,
+              null
             ))
             ''');
     });
@@ -893,7 +995,8 @@ void main() {
             let _field = dart.privateName(foo, "_field");
             return new foo.C.new(1, 3)[_field];
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -906,7 +1009,8 @@ void main() {
           (function(x, c) {
             return foo.C.staticField;
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -926,7 +1030,8 @@ void main() {
           (function(x, c) {
             return c.field;
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -941,7 +1046,8 @@ void main() {
             let _field = dart.privateName(foo, "_field");
             return c[_field];
           }(
-          1, null
+              1,
+              null
           ))
           ''');
     });
@@ -954,7 +1060,8 @@ void main() {
           (function(x, c) {
             return c.methodFieldAccess(2);
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -967,7 +1074,8 @@ void main() {
           (function(x, c) {
             return c.asyncMethod(2);
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -977,12 +1085,13 @@ void main() {
           scope: <String, String>{'x': '1', 'c': 'null'},
           expression: '"1234".parseInt()',
           expectedResult: '''
-        (function(x, c) {
-          return foo['NumberParsing|parseInt']("1234");
-        }(
-        1, null
-        ))
-        ''');
+          (function(x, c) {
+            return foo['NumberParsing|parseInt']("1234");
+          }(
+            1,
+            null
+          ))
+          ''');
     });
 
     test('private field modification', () async {
@@ -995,7 +1104,8 @@ void main() {
             let _field = dart.privateName(foo, "_field");
             return c[_field] = 2;
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -1008,7 +1118,8 @@ void main() {
           (function(x, c) {
             return c.field = 2;
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -1028,7 +1139,8 @@ void main() {
           (function(x, c) {
             return foo.C.staticField = 2;
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -1041,7 +1153,8 @@ void main() {
           (function(x, c) {
             return core.print(x);
           }(
-          1, null
+            1,
+            null
           ))
           ''');
     });
@@ -1093,7 +1206,10 @@ void main() {
           (function(x, c, y, z) {
             return dart.str(x) + "+" + dart.str(y) + "+" + dart.str(z);
           }(
-          1, null, 3, 0
+            1,
+            null,
+            3,
+            0
           ))
           ''');
     });
@@ -1106,7 +1222,10 @@ void main() {
           (function(x, c, y, z) {
             return dart.str(y) + "+" + dart.str(z);
           }(
-          1, null, 3, 0
+            1,
+            null,
+            3,
+            0
           ))
           ''');
     });
@@ -1168,7 +1287,7 @@ void main() {
           (function(p) {
             return foo.bar(p);
           }(
-          1
+            1
           ))
           ''');
     });
@@ -1195,7 +1314,7 @@ void main() {
           (function(p) {
             return C0 || CT.C0;
           }(
-          1
+            1
           ))
           ''');
     });
@@ -1211,8 +1330,8 @@ void main() {
           ))
           ''');
     },
-        skip:
-            'Cannot compile constants optimized away by the frontend'); // https://github.com/dart-lang/sdk/issues/41999
+        skip: 'Cannot compile constants optimized away by the frontend. '
+            'Issue: https://github.com/dart-lang/sdk/issues/41999');
 
     test('evaluate factory constructor call', () async {
       await driver.check(
@@ -1222,7 +1341,7 @@ void main() {
           (function(p) {
             return new foo.ValueKey.new("t");
           }(
-          1
+            1
           ))
           ''');
     });
@@ -1235,9 +1354,476 @@ void main() {
           (function(p) {
             return C0 || CT.C0;
           }(
-          1
+            1
           ))
           ''');
+    });
+  });
+
+  group('Expression compiler tests in constructor:', () {
+    const source = '''
+      extension NumberParsing on String {
+        int parseInt() {
+          return int.parse(this);
+        }
+      }
+
+      int global = 42;
+
+      class C {
+        C(int this.field, int this._field) {
+          int x = 1;
+          /* evaluation placeholder */
+          print(this.field);
+        }
+
+        static int staticField = 0;
+        static int _staticField = 1;
+
+        int _field;
+        int field;
+
+        int methodFieldAccess(int t) {
+          return t + _field + _staticField;
+        }
+
+        Future<int> asyncMethod(int t) async {
+          return t;
+        }
+      }
+
+      main() => 0;
+      ''';
+
+    TestDriver driver;
+
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
+
+    tearDown(() {
+      driver.delete();
+    });
+
+    test('compilation error', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'typo',
+          expectedError: "The getter 'typo' isn't defined for the class 'C'");
+    });
+
+    test('local', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'x',
+          expectedResult: '''
+          (function(x) {
+            return x;
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('this', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'this',
+          expectedResult: '''
+          (function(x) {
+            return this;
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('expression using locals', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'x + 1',
+          expectedResult: '''
+          (function(x) {
+            return dart.notNull(x) + 1;
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('expression using static fields', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'x + staticField',
+          expectedResult: '''
+          (function(x) {
+            return dart.notNull(x) + dart.notNull(foo.C.staticField);
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('expression using private static fields', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'x + _staticField',
+          expectedResult: '''
+          (function(x) {
+            let foo = require('foo.dart').foo;
+            let _staticField = dart.privateName(foo, "_staticField");
+            return dart.notNull(x) + dart.notNull(foo.C._staticField);
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('expression using fields', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'x + field',
+          expectedResult: '''
+          (function(x) {
+            return dart.notNull(x) + dart.notNull(this.field);
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('expression using private fields', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'x + _field',
+          expectedResult: '''
+          (function(x) {
+            let foo = require('foo.dart').foo;
+            let _field = dart.privateName(foo, "_field");
+            return dart.notNull(x) + dart.notNull(this[_field]);
+          }.bind(this)(
+              1
+          ))
+          ''');
+    });
+
+    test('expression using globals', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'x + global',
+          expectedResult: '''
+          (function(x) {
+            return dart.notNull(x) + dart.notNull(foo.global);
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('method call', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'methodFieldAccess(2)',
+          expectedResult: '''
+          (function(x) {
+            return this.methodFieldAccess(2);
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('async method call', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'asyncMethod(2)',
+          expectedResult: '''
+          (function(x) {
+            return this.asyncMethod(2);
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('extension method call', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: '"1234".parseInt()',
+          expectedResult: '''
+        (function(x) {
+          return foo['NumberParsing|parseInt']("1234");
+        }.bind(this)(
+          1
+        ))
+        ''');
+    });
+
+    test('private field modification', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: '_field = 2',
+          expectedResult: '''
+        (function(x) {
+          let foo = require('foo.dart').foo;
+          let _field = dart.privateName(foo, "_field");
+          return this[_field] = 2;
+        }.bind(this)(
+          1
+        ))
+        ''');
+    });
+
+    test('field modification', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'field = 2',
+          expectedResult: '''
+          (function(x) {
+            return this.field = 2;
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('private static field modification', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: '_staticField = 2',
+          expectedResult: '''
+          (function(x) {
+            let foo = require('foo.dart').foo;
+            let _staticField = dart.privateName(foo, "_staticField");
+            return foo.C._staticField = 2;
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+
+    test('static field modification', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1'},
+          expression: 'staticField = 2',
+          expectedResult: '''
+          (function(x) {
+            return foo.C.staticField = 2;
+          }.bind(this)(
+            1
+          ))
+          ''');
+    });
+  });
+
+  group('Expression compiler tests in loops:', () {
+    const source = r'''
+      int globalFunction() {
+        int x = 15;
+        var c = C(1, 2);
+
+        for(int i = 0; i < 10; i++) {
+          /* evaluation placeholder */
+          print('$i+$x');
+        };
+        return 0;
+      }
+
+      main() => 0;
+      ''';
+
+    TestDriver driver;
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
+
+    tearDown(() {
+      driver.delete();
+    });
+
+    test('expression using local', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'c': 'null', 'i': '0'},
+          expression: 'x',
+          expectedResult: '''
+          (function(x, c, i) {
+            return x;
+          }(
+            1,
+            null,
+            0
+          ))
+          ''');
+    });
+
+    test('expression using loop variable', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'c': 'null', 'i': '0'},
+          expression: 'i',
+          expectedResult: '''
+          (function(x, c, i) {
+            return i;
+          }(
+            1,
+            null,
+            0
+          ))
+          ''');
+    });
+  });
+
+  group('Expression compiler tests in conditional (then):', () {
+    const source = r'''
+      int globalFunction() {
+        int x = 1;
+        var c = C(1, 2);
+
+        if (x == 14) {
+          int y = 3;
+          /* evaluation placeholder */
+          print('$y+$x');
+        } else {
+          int z = 3;
+          print('$z+$x');
+        }
+        return 0;
+      }
+
+      main() => 0;
+      ''';
+
+    TestDriver driver;
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
+
+    tearDown(() {
+      driver.delete();
+    });
+
+    test('expression using local', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'c': 'null', 'y': '3'},
+          expression: 'y',
+          expectedResult: '''
+          (function(x, c, y) {
+            return y;
+          }(
+            1,
+            null,
+            3
+          ))
+          ''');
+    });
+
+    test('expression using local out of scope', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'c': 'null', 'y': '3'},
+          expression: 'z',
+          expectedError: "Error: Getter not found: 'z'");
+    });
+  });
+
+  group('Expression compiler tests in conditional (else):', () {
+    const source = r'''
+      int globalFunction() {
+        int x = 1;
+        var c = C(1, 2);
+
+        if (x == 14) {
+          int y = 3;
+          print('$y+$x');
+        } else {
+          int z = 3;
+          /* evaluation placeholder */
+          print('$z+$x');
+        }
+        return 0;
+      }
+
+      main() => 0;
+      ''';
+
+    TestDriver driver;
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
+
+    tearDown(() {
+      driver.delete();
+    });
+
+    test('expression using local', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'c': 'null', 'z': '3'},
+          expression: 'z',
+          expectedResult: '''
+          (function(x, c, z) {
+            return z;
+          }(
+            1,
+            null,
+            3
+          ))
+          ''');
+    });
+
+    test('expression using local out of scope', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'c': 'null', 'z': '3'},
+          expression: 'y',
+          expectedError: "Error: Getter not found: 'y'");
+    });
+  });
+
+  group('Expression compiler tests after conditionals:', () {
+    const source = r'''
+      int globalFunction() {
+        int x = 1;
+        var c = C(1, 2);
+
+        if (x == 14) {
+          int y = 3;
+          print('$y+$x');
+        } else {
+          int z = 3;
+          print('$z+$x');
+        }
+        /* evaluation placeholder */
+        return 0;
+      }
+
+      main() => 0;
+      ''';
+
+    TestDriver driver;
+    setUp(() {
+      driver = TestDriver(options, source);
+    });
+
+    tearDown(() {
+      driver.delete();
+    });
+
+    test('expression using local', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'c': 'null'},
+          expression: 'x',
+          expectedResult: '''
+          (function(x, c) {
+            return x;
+          }(
+            1,
+            null
+          ))
+          ''');
+    });
+
+    test('expression using local out of scope', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'c': 'null'},
+          expression: 'z',
+          expectedError: "Error: Getter not found: 'z'");
     });
   });
 }
