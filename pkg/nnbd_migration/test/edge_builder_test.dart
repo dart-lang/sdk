@@ -3126,6 +3126,40 @@ class C {
         hard: true);
   }
 
+  Future<void> test_firstWhere_edges() async {
+    await analyze('''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''');
+
+    // Normally there would be an edge from the return type of `() => null` to
+    // a substitution node that pointed to the type argument to the type of `x`,
+    // and another substitution node would point from this to the return type of
+    // `firstEven`.  However, since we may replace `firstWhere` with
+    // `firstWhereOrNull` in order to avoid having to make `x`'s type argument
+    // nullable, we need a synthetic edge to ensure that the return type of
+    // `firstEven` is nullable.
+    var closureReturnType = decoratedExpressionType('() => null').returnType;
+    var firstWhereReturnType = variables
+        .decoratedExpressionType(findNode.methodInvocation('firstWhere'));
+    assertEdge(closureReturnType.node, firstWhereReturnType.node, hard: false);
+
+    // There should also be an edge from a substitution node to the return type
+    // of `firstWhere`, to account for the normal data flow (when the element is
+    // found).
+    var typeParameterType = decoratedTypeAnnotation('int>');
+    var firstWhereType = variables.decoratedElementType(findNode
+        .methodInvocation('firstWhere')
+        .methodName
+        .staticElement
+        .declaration);
+    assertEdge(
+        substitutionNode(
+            typeParameterType.node, firstWhereType.returnType.node),
+        firstWhereReturnType.node,
+        hard: false);
+  }
+
   Future<void> test_for_each_element_with_declaration() async {
     await analyze('''
 void f(List<int> l) {

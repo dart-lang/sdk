@@ -77,6 +77,16 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           'removeLanguageVersionComment',
           true);
 
+  static final isAddImportOfIterableExtension =
+      TypeMatcher<NodeChangeForCompilationUnit>()
+          .having((c) => c.addImports, 'addImports', {
+    'package:collection/collection.dart': {'IterableExtension'}
+  });
+
+  static final isAddShowOfIterableExtension =
+      TypeMatcher<NodeChangeForShowCombinator>().having((c) => c.addNames,
+          'addNames', unorderedEquals(['IterableExtension']));
+
   static final isRemoveNullAwareness =
       TypeMatcher<NodeChangeForPropertyAccess>()
           .having((c) => c.removeNullAwareness, 'removeNullAwareness', true);
@@ -106,10 +116,20 @@ class FixBuilderTest extends EdgeBuilderTestBase {
     return unit;
   }
 
+  TypeMatcher<NodeChangeForArgumentList> isDropArgument(
+          dynamic argumentsToDrop) =>
+      TypeMatcher<NodeChangeForArgumentList>()
+          .having((c) => c.argumentsToDrop, 'argumentsToDrop', argumentsToDrop);
+
   TypeMatcher<AtomicEditInfo> isInfo(description, fixReasons) =>
       TypeMatcher<AtomicEditInfo>()
           .having((i) => i.description, 'description', description)
           .having((i) => i.fixReasons, 'fixReasons', fixReasons);
+
+  TypeMatcher<NodeChangeForMethodName> isMethodNameChange(
+          dynamic replacement) =>
+      TypeMatcher<NodeChangeForMethodName>()
+          .having((c) => c.replacement, 'replacement', replacement);
 
   Map<AstNode, NodeChange> scopedChanges(
           FixBuilder fixBuilder, AstNode scope) =>
@@ -1342,6 +1362,24 @@ _f(int/*!*/ x, int/*?*/ y) {
         changes: {findNode.simple('y;'): isNullCheck});
   }
 
+  Future<void> test_firstWhere_transform() async {
+    await analyze('''
+_f(Iterable<int> x) => x.firstWhere((n) => n.isEven, orElse: () => null);
+''');
+    var methodInvocation = findNode.methodInvocation('firstWhere');
+    var functionExpression = findNode.functionExpression('() => null');
+    var fixBuilder = visitSubexpression(methodInvocation, 'int?', changes: {
+      methodInvocation.methodName: isMethodNameChange('firstWhereOrNull'),
+      methodInvocation.argumentList:
+          isDropArgument(unorderedEquals([functionExpression.parent])),
+      // Behavior of the function expression and its subexpression don't matter
+      // because they're being dropped.
+      functionExpression.parent: anything,
+      findNode.nullLiteral('null'): anything
+    });
+    expect(fixBuilder.needsIterableExtension, true);
+  }
+
   Future<void> test_functionExpressionInvocation_dynamic() async {
     await analyze('''
 _f(dynamic d) => d();
@@ -1541,6 +1579,75 @@ _f(int/*?*/ x) {
           isInfo(NullabilityFixDescription.downcastExpression,
               {FixReasonTarget.root: isEdge}))
     });
+  }
+
+  Future<void> test_import_IterableExtension_already_imported_add_show() async {
+    addPackageFile('collection', 'collection.dart', 'class PriorityQueue {}');
+    await analyze('''
+import 'package:collection/collection.dart' show PriorityQueue;
+
+main() {}
+''');
+    visitAll(injectNeedsIterableExtension: true, changes: {
+      findNode.import('package:collection').combinators[0]:
+          isAddShowOfIterableExtension
+    });
+  }
+
+  Future<void> test_import_IterableExtension_already_imported_all() async {
+    addPackageFile('collection', 'collection.dart', '');
+    await analyze('''
+import 'package:collection/collection.dart';
+
+main() {}
+''');
+    visitAll(injectNeedsIterableExtension: true, changes: {});
+  }
+
+  Future<void>
+      test_import_IterableExtension_already_imported_and_shown() async {
+    addPackageFile('collection', 'collection.dart',
+        'extension IterableExtension<T> on Iterable<T> {}');
+    await analyze('''
+import 'package:collection/collection.dart' show IterableExtension;
+
+main() {}
+''');
+    visitAll(injectNeedsIterableExtension: true, changes: {});
+  }
+
+  Future<void> test_import_IterableExtension_already_imported_prefixed() async {
+    addPackageFile('collection', 'collection.dart', '');
+    await analyze('''
+import 'package:collection/collection.dart' as c;
+
+main() {}
+''');
+    visitAll(
+        injectNeedsIterableExtension: true,
+        changes: {findNode.unit: isAddImportOfIterableExtension});
+  }
+
+  Future<void> test_import_IterableExtension_other_import() async {
+    addPackageFile(
+        'foo', 'foo.dart', 'extension IterableExtension<T> on Iterable<T> {}');
+    await analyze('''
+import 'package:foo/foo.dart' show IterableExtension;
+
+main() {}
+''');
+    visitAll(
+        injectNeedsIterableExtension: true,
+        changes: {findNode.unit: isAddImportOfIterableExtension});
+  }
+
+  Future<void> test_import_IterableExtension_simple() async {
+    await analyze('''
+main() {}
+''');
+    visitAll(
+        injectNeedsIterableExtension: true,
+        changes: {findNode.unit: isAddImportOfIterableExtension});
   }
 
   Future<void> test_indexExpression_dynamic() async {
@@ -3295,8 +3402,12 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
 
   void visitAll(
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
-      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
+      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
+      bool injectNeedsIterableExtension = false}) {
     var fixBuilder = _createFixBuilder(testUnit);
+    if (injectNeedsIterableExtension) {
+      fixBuilder.needsIterableExtension = true;
+    }
     fixBuilder.visitAll();
     expect(scopedChanges(fixBuilder, testUnit), changes);
     expect(scopedProblems(fixBuilder, testUnit), problems);
@@ -3330,7 +3441,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     expect(scopedProblems(fixBuilder, node), problems);
   }
 
-  void visitSubexpression(Expression node, String expectedType,
+  FixBuilder visitSubexpression(Expression node, String expectedType,
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
       bool warnOnWeakCode = false}) {
@@ -3340,6 +3451,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
+    return fixBuilder;
   }
 
   void visitTypeAnnotation(TypeAnnotation node, String expectedType,
@@ -3383,7 +3495,8 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         null,
         scope.thisOrAncestorOfType<CompilationUnit>(),
         warnOnWeakCode,
-        graph);
+        graph,
+        true);
   }
 
   bool _isInScope(AstNode node, AstNode scope) {

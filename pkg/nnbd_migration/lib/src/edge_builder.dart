@@ -32,6 +32,7 @@ import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/scoped_set.dart';
+import 'package:nnbd_migration/src/utilities/where_or_null_transformer.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 import 'decorated_type_operations.dart';
@@ -213,10 +214,29 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final Map<Token, HintComment> _nullCheckHints = {};
 
-  EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
-      this.source, this.listener, this._decoratedClassHierarchy,
+  /// Helper that assists us in transforming Iterable methods to their "OrNull"
+  /// equivalents, or `null` if we are not doing such transformations.
+  final WhereOrNullTransformer _whereOrNullTransformer;
+
+  /// Deferred processing that should be performed once we have finished
+  /// evaluating the decorated type of a method invocation.
+  final Map<MethodInvocation, DecoratedType Function(DecoratedType)>
+      _deferredMethodInvocationProcessing = {};
+
+  EdgeBuilder(
+      this.typeProvider,
+      this._typeSystem,
+      this._variables,
+      this._graph,
+      this.source,
+      this.listener,
+      this._decoratedClassHierarchy,
+      bool transformWhereOrNull,
       {this.instrumentation})
-      : _inheritanceManager = InheritanceManager3();
+      : _inheritanceManager = InheritanceManager3(),
+        _whereOrNullTransformer = transformWhereOrNull
+            ? WhereOrNullTransformer(typeProvider, _typeSystem)
+            : null;
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -880,6 +900,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _postDominatedLocals.doScoped(
           elements: node.declaredElement.parameters,
           action: () => _dispatch(node.body));
+      _variables.recordDecoratedExpressionType(node, _currentFunctionType);
       return _currentFunctionType;
     } finally {
       if (node.parent is! FunctionDeclaration) {
@@ -1228,11 +1249,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           calleeType,
           null,
           invokeType: node.staticInvokeType);
+      // Do any deferred processing for this method invocation.
+      var deferredProcessing = _deferredMethodInvocationProcessing.remove(node);
+      if (deferredProcessing != null) {
+        expressionType = deferredProcessing(expressionType);
+      }
       if (isNullAware) {
         expressionType = expressionType.withNode(
             NullabilityNode.forLUB(targetType.node, expressionType.node));
-        _variables.recordDecoratedExpressionType(node, expressionType);
       }
+      _variables.recordDecoratedExpressionType(node, expressionType);
     }
     _handleArgumentErrorCheckNotNull(node);
     _handleQuiverCheckNotNull(node);
@@ -2260,18 +2286,40 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           sourceType = _makeNullableDynamicType(compoundOperatorInfo);
         }
       } else {
-        var unwrappedExpression = expression.unParenthesized;
-        var hard = (questionAssignNode == null &&
-                _postDominatedLocals.isReferenceInScope(expression)) ||
-            // An edge from a cast should be hard, so that the cast type
-            // annotation is appropriately made nullable according to the
-            // destination type.
-            unwrappedExpression is AsExpression;
-        _checkAssignment(edgeOrigin, FixReasonTarget.root,
-            source: sourceType,
-            destination: destinationType,
-            hard: hard,
-            sourceIsFunctionLiteral: expression is FunctionExpression);
+        var transformationInfo =
+            _whereOrNullTransformer?.tryTransformOrElseArgument(expression);
+        if (transformationInfo != null) {
+          // Don't build any edges for this argument; if necessary we'll transform
+          // it rather than make things nullable.  But do save the nullability of
+          // the return value of the `orElse` method, so that we can later connect
+          // it to the nullability of the value returned from the method
+          // invocation.
+          var extraNullability = sourceType.returnType.node;
+          _deferredMethodInvocationProcessing[
+              transformationInfo.methodInvocation] = (methodInvocationType) {
+            var newNode = NullabilityNode.forInferredType(
+                NullabilityNodeTarget.text(
+                    'return value from ${transformationInfo.originalName}'));
+            var origin = IteratorMethodReturnOrigin(
+                source, transformationInfo.methodInvocation);
+            _graph.connect(methodInvocationType.node, newNode, origin);
+            _graph.connect(extraNullability, newNode, origin);
+            return methodInvocationType.withNode(newNode);
+          };
+        } else {
+          var unwrappedExpression = expression.unParenthesized;
+          var hard = (questionAssignNode == null &&
+                  _postDominatedLocals.isReferenceInScope(expression)) ||
+              // An edge from a cast should be hard, so that the cast type
+              // annotation is appropriately made nullable according to the
+              // destination type.
+              unwrappedExpression is AsExpression;
+          _checkAssignment(edgeOrigin, FixReasonTarget.root,
+              source: sourceType,
+              destination: destinationType,
+              hard: hard,
+              sourceIsFunctionLiteral: expression is FunctionExpression);
+        }
       }
       if (destinationLocalVariable != null) {
         _flowAnalysis.write(destinationLocalVariable, sourceType);

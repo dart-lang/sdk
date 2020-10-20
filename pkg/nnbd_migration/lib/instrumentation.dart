@@ -277,6 +277,7 @@ enum EdgeOriginKind {
   instantiateToBounds,
   isCheckComponentType,
   isCheckMainType,
+  iteratorMethodReturn,
   listLengthConstructor,
   literal,
   namedParameterNotSupplied,

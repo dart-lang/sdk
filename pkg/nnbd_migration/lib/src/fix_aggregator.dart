@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -278,6 +279,46 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
   }
 }
 
+/// Implementation of [NodeChange] specialized for operating on [ArgumentList]
+/// nodes.
+class NodeChangeForArgumentList extends NodeChange<ArgumentList> {
+  /// The set of arguments that should be dropped from this argument list, or
+  /// the empty set if no arguments should be dropped.
+  final Set<Expression> _argumentsToDrop = {};
+
+  NodeChangeForArgumentList() : super._();
+
+  /// Queries the set of arguments that should be dropped from this argument
+  /// list, or the empty set if no arguments should be dropped.
+  @visibleForTesting
+  Iterable<Expression> get argumentsToDrop => _argumentsToDrop;
+
+  @override
+  Iterable<String> get _toStringParts => [
+        if (_argumentsToDrop.isNotEmpty)
+          'argumentsToDrop: {${_argumentsToDrop.join(', ')}}'
+      ];
+
+  /// Updates `this` so that the given [argument] will be dropped.
+  void dropArgument(Expression argument) {
+    _argumentsToDrop.add(argument);
+  }
+
+  @override
+  EditPlan _apply(ArgumentList node, FixAggregator aggregator) {
+    assert(_argumentsToDrop.every((e) => identical(e.parent, node)));
+    List<EditPlan> innerPlans = [];
+    for (var argument in node.arguments) {
+      if (_argumentsToDrop.contains(argument)) {
+        innerPlans.add(aggregator.planner.removeNode(argument));
+      } else {
+        innerPlans.add(aggregator.planForNode(argument));
+      }
+    }
+    return aggregator.planner.passThrough(node, innerPlans: innerPlans);
+  }
+}
+
 /// Implementation of [NodeChange] specialized for operating on [AsExpression]
 /// nodes.
 class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
@@ -393,13 +434,35 @@ mixin NodeChangeForAssignmentLike<N extends Expression>
 /// Implementation of [NodeChange] specialized for operating on
 /// [CompilationUnit] nodes.
 class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
+  /// A map of the imports that should be added, or the empty map if no imports
+  /// should be added.
+  ///
+  /// Each import is expressed as a map entry whose key is the URI to import and
+  /// whose value is the set of symbols to show.
+  final Map<String, Set<String>> _addImports = {};
+
   bool removeLanguageVersionComment = false;
 
   NodeChangeForCompilationUnit() : super._();
 
+  /// Queries a map of the imports that should be added, or the empty map if no
+  /// imports should be added.
+  ///
+  /// Each import is expressed as a map entry whose key is the URI to import and
+  /// whose value is the set of symbols to show.
+  @visibleForTesting
+  Map<String, Set<String>> get addImports => _addImports;
+
   @override
-  Iterable<String> get _toStringParts =>
-      [if (removeLanguageVersionComment) 'removeLanguageVersionComment'];
+  Iterable<String> get _toStringParts => [
+        if (_addImports.isNotEmpty) 'addImports: $_addImports',
+        if (removeLanguageVersionComment) 'removeLanguageVersionComment'
+      ];
+
+  /// Updates `this` so that an import of [uri] will be added, showing [name].
+  void addImport(String uri, String name) {
+    (_addImports[uri] ??= {}).add(name);
+  }
 
   @override
   EditPlan _apply(CompilationUnit node, FixAggregator aggregator) {
@@ -412,8 +475,66 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
               NullabilityFixDescription.removeLanguageVersionComment,
               const {})));
     }
-    innerPlans.addAll(aggregator.innerPlansForNode(node));
+    _processDirectives(node, aggregator, innerPlans);
+    for (var declaration in node.declarations) {
+      innerPlans.add(aggregator.planForNode(declaration));
+    }
     return aggregator.planner.passThrough(node, innerPlans: innerPlans);
+  }
+
+  /// Adds the necessary inner plans to [innerPlans] for the directives part of
+  /// [node].  This solely involves adding imports.
+  void _processDirectives(CompilationUnit node, FixAggregator aggregator,
+      List<EditPlan> innerPlans) {
+    List<MapEntry<String, Set<String>>> importsToAdd =
+        _addImports.entries.toList();
+    importsToAdd.sort((x, y) => x.key.compareTo(y.key));
+
+    void insertImport(int offset, MapEntry<String, Set<String>> importToAdd,
+        {String prefix = '', String suffix = '\n'}) {
+      var shownNames = importToAdd.value.toList();
+      shownNames.sort();
+      innerPlans.add(aggregator.planner.insertText(node, offset, [
+        if (prefix.isNotEmpty) AtomicEdit.insert(prefix),
+        AtomicEdit.insert(
+            "import '${importToAdd.key}' show ${shownNames.join(', ')};"),
+        if (suffix.isNotEmpty) AtomicEdit.insert(suffix)
+      ]));
+    }
+
+    if (node.directives.every((d) => d is LibraryDirective)) {
+      while (importsToAdd.isNotEmpty) {
+        insertImport(
+            node.declarations.beginToken.offset, importsToAdd.removeAt(0),
+            suffix: importsToAdd.isEmpty ? '\n\n' : '\n');
+      }
+    } else {
+      for (var directive in node.directives) {
+        while (importsToAdd.isNotEmpty &&
+            _shouldImportGoBefore(importsToAdd.first.key, directive)) {
+          insertImport(directive.offset, importsToAdd.removeAt(0));
+        }
+        innerPlans.add(aggregator.planForNode(directive));
+      }
+      while (importsToAdd.isNotEmpty) {
+        insertImport(node.directives.last.end, importsToAdd.removeAt(0),
+            prefix: '\n', suffix: '');
+      }
+    }
+  }
+
+  /// Determines whether a new import of [newImportUri] should be sorted before
+  /// an existing [directive].
+  bool _shouldImportGoBefore(String newImportUri, Directive directive) {
+    if (directive is ImportDirective) {
+      return newImportUri.compareTo(directive.uriContent) < 0;
+    } else if (directive is LibraryDirective) {
+      // Library directives must come before imports.
+      return false;
+    } else {
+      // Everything else tends to come after imports.
+      return true;
+    }
   }
 }
 
@@ -749,6 +870,29 @@ class NodeChangeForMethodInvocation
   }
 }
 
+/// Implementation of [NodeChange] specialized for operating on
+/// [SimpleIdentifier] nodes that represent a method name.
+class NodeChangeForMethodName extends NodeChange<SimpleIdentifier> {
+  /// The name the method name should be changed to, or `null` if no change
+  /// should be made.
+  String replacement;
+
+  NodeChangeForMethodName() : super._();
+
+  @override
+  Iterable<String> get _toStringParts =>
+      [if (replacement != null) 'replacement: $replacement'];
+
+  @override
+  EditPlan _apply(SimpleIdentifier node, FixAggregator aggregator) {
+    if (replacement != null) {
+      return aggregator.planner.replace(node, [AtomicEdit.insert(replacement)]);
+    } else {
+      return aggregator.innerPlanForNode(node);
+    }
+  }
+}
+
 /// Common infrastructure used by [NodeChange] objects that operate on AST nodes
 /// with that can be null-aware (method invocations and propety accesses).
 mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
@@ -828,6 +972,60 @@ class NodeChangeForPropertyAccess
     ];
     return _applyExpression(aggregator,
         aggregator.planner.passThrough(node, innerPlans: innerPlans));
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on [ShowCombinator]
+/// nodes.
+class NodeChangeForShowCombinator extends NodeChange<ShowCombinator> {
+  /// A set of the names that should be added, or the empty set if no names
+  /// should be added.
+  final Set<String> _addNames = {};
+
+  NodeChangeForShowCombinator() : super._();
+
+  /// Queries the set of names that should be added, or the empty set if no
+  /// names should be added.
+  @visibleForTesting
+  Iterable<String> get addNames => _addNames;
+
+  @override
+  Iterable<String> get _toStringParts => [
+        if (_addNames.isNotEmpty) 'addNames: $_addNames',
+      ];
+
+  /// Updates `this` so that [name] will be added.
+  void addName(String name) {
+    _addNames.add(name);
+  }
+
+  @override
+  EditPlan _apply(ShowCombinator node, FixAggregator aggregator) {
+    List<EditPlan> innerPlans = [];
+    List<String> namesToAdd = _addNames.toList();
+    namesToAdd.sort();
+
+    void insertName(int offset, String nameToAdd,
+        {String prefix = '', String suffix = ', '}) {
+      innerPlans.add(aggregator.planner.insertText(node, offset, [
+        if (prefix.isNotEmpty) AtomicEdit.insert(prefix),
+        AtomicEdit.insert(nameToAdd),
+        if (suffix.isNotEmpty) AtomicEdit.insert(suffix)
+      ]));
+    }
+
+    for (var shownName in node.shownNames) {
+      while (namesToAdd.isNotEmpty &&
+          namesToAdd.first.compareTo(shownName.name) < 0) {
+        insertName(shownName.offset, namesToAdd.removeAt(0));
+      }
+      innerPlans.add(aggregator.planForNode(shownName));
+    }
+    while (namesToAdd.isNotEmpty) {
+      insertName(node.shownNames.last.end, namesToAdd.removeAt(0),
+          prefix: ', ', suffix: '');
+    }
+    return aggregator.planner.passThrough(node, innerPlans: innerPlans);
   }
 }
 
@@ -1036,6 +1234,10 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
   NodeChange visitAnnotation(Annotation node) => NodeChangeForAnnotation();
 
   @override
+  NodeChange visitArgumentList(ArgumentList node) =>
+      NodeChangeForArgumentList();
+
+  @override
   NodeChange visitAsExpression(AsExpression node) =>
       NodeChangeForAsExpression();
 
@@ -1098,8 +1300,22 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
       NodeChangeForPropertyAccess();
 
   @override
+  NodeChange visitShowCombinator(ShowCombinator node) =>
+      NodeChangeForShowCombinator();
+
+  @override
   NodeChange visitSimpleFormalParameter(SimpleFormalParameter node) =>
       NodeChangeForSimpleFormalParameter();
+
+  @override
+  NodeChange visitSimpleIdentifier(SimpleIdentifier node) {
+    var parent = node.parent;
+    if (parent is MethodInvocation && identical(node, parent.methodName)) {
+      return NodeChangeForMethodName();
+    } else {
+      return super.visitSimpleIdentifier(node);
+    }
+  }
 
   @override
   NodeChange visitTypeName(TypeName node) => NodeChangeForTypeAnnotation();
