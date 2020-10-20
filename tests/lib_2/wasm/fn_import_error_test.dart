@@ -27,25 +27,42 @@ void main() {
   var mod = WasmModule(data);
 
   // Valid instantiation.
-  var inst = mod.instantiate()
-    .addFunction(
-        "env", "someFn", (int a, int b, num c, double d) => 123).build();
+  var inst = mod
+      .instantiate()
+      .addFunction("env", "someFn", (int a, int b, num c, double d) => 123)
+      .build();
 
   // Missing imports.
-  Expect.throws(() => mod.instantiate().build(), (Exception e) => "$e".contains("Missing import"));
+  Expect.throws(() => mod.instantiate().build(),
+      (Exception e) => "$e".contains("Missing import"));
 
   // Wrong kind of import.
-  Expect.throws(() => mod.instantiate().addMemory("env", "someFn", mod.createMemory(10)), (Exception e) => "$e".contains("Import is not a memory"));
+  Expect.throws(
+      () => mod.instantiate().addMemory("env", "someFn", mod.createMemory(10)),
+      (Exception e) => "$e".contains("Import is not a memory"));
 
   // Wrong namespace.
-  Expect.throws(() => mod.instantiate().addFunction("foo", "someFn", (int a, int b, num c, double d) => 123).build(), (Exception e) => "$e".contains("Import not found"));
+  Expect.throws(
+      () => mod
+          .instantiate()
+          .addFunction("foo", "someFn", (int a, int b, num c, double d) => 123)
+          .build(),
+      (Exception e) => "$e".contains("Import not found"));
 
   // Wrong name.
-  Expect.throws(() => mod.instantiate().addFunction("env", "otherFn", (int a, int b, num c, double d) => 123).build(), (Exception e) => "$e".contains("Import not found"));
+  Expect.throws(
+      () => mod
+          .instantiate()
+          .addFunction("env", "otherFn", (int a, int b, num c, double d) => 123)
+          .build(),
+      (Exception e) => "$e".contains("Import not found"));
 
   // Already filled.
-  Expect.throws(() => mod.instantiate()
-    .addFunction("env", "someFn", (int a, int b, num c, double d) => 123)
-    .addFunction("env", "someFn", (int a, int b, num c, double d) => 456)
-    .build(), (Exception e) => "$e".contains("Import already filled"));
+  Expect.throws(
+      () => mod
+          .instantiate()
+          .addFunction("env", "someFn", (int a, int b, num c, double d) => 123)
+          .addFunction("env", "someFn", (int a, int b, num c, double d) => 456)
+          .build(),
+      (Exception e) => "$e".contains("Import already filled"));
 }

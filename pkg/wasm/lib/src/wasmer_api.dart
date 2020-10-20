@@ -157,6 +157,12 @@ class WasmerTrap extends Struct {}
 // wasm_valtype_t
 class WasmerValtype extends Struct {}
 
+// wasi_config_t
+class WasmerWasiConfig extends Struct {}
+
+// wasi_env_t
+class WasmerWasiEnv extends Struct {}
+
 // wasm_byte_vec_t
 class WasmerByteVec extends Struct {
   @Uint64()
@@ -207,6 +213,64 @@ class WasmerValtypeVec extends Struct {
 
   external Pointer<Pointer<WasmerValtype>> data;
 }
+
+// wasi_config_inherit_stderr
+typedef NativeWasmerWasiConfigInheritStderrFn = Void Function(
+    Pointer<WasmerWasiConfig>);
+typedef WasmerWasiConfigInheritStderrFn = void Function(
+    Pointer<WasmerWasiConfig>);
+
+// wasi_config_inherit_stdout
+typedef NativeWasmerWasiConfigInheritStdoutFn = Void Function(
+    Pointer<WasmerWasiConfig>);
+typedef WasmerWasiConfigInheritStdoutFn = void Function(
+    Pointer<WasmerWasiConfig>);
+
+// wasi_config_new
+typedef NativeWasmerWasiConfigNewFn = Pointer<WasmerWasiConfig> Function(
+    Pointer<Uint8>);
+typedef WasmerWasiConfigNewFn = Pointer<WasmerWasiConfig> Function(
+    Pointer<Uint8>);
+
+// wasi_env_delete
+typedef NativeWasmerWasiEnvDeleteFn = Void Function(Pointer<WasmerWasiEnv>);
+typedef WasmerWasiEnvDeleteFn = void Function(Pointer<WasmerWasiEnv>);
+
+// wasi_env_new
+typedef NativeWasmerWasiEnvNewFn = Pointer<WasmerWasiEnv> Function(
+    Pointer<WasmerWasiConfig>);
+typedef WasmerWasiEnvNewFn = Pointer<WasmerWasiEnv> Function(
+    Pointer<WasmerWasiConfig>);
+
+// wasi_env_read_stderr
+typedef NativeWasmerWasiEnvReadStderrFn = Int64 Function(
+    Pointer<WasmerWasiEnv>, Pointer<Uint8>, Uint64);
+typedef WasmerWasiEnvReadStderrFn = int Function(
+    Pointer<WasmerWasiEnv>, Pointer<Uint8>, int);
+
+// wasi_env_read_stdout
+typedef NativeWasmerWasiEnvReadStdoutFn = Int64 Function(
+    Pointer<WasmerWasiEnv>, Pointer<Uint8>, Uint64);
+typedef WasmerWasiEnvReadStdoutFn = int Function(
+    Pointer<WasmerWasiEnv>, Pointer<Uint8>, int);
+
+// wasi_env_set_memory
+typedef NativeWasmerWasiEnvSetMemoryFn = Void Function(
+    Pointer<WasmerWasiEnv>, Pointer<WasmerMemory>);
+typedef WasmerWasiEnvSetMemoryFn = void Function(
+    Pointer<WasmerWasiEnv>, Pointer<WasmerMemory>);
+
+// wasi_get_imports
+typedef NativeWasmerWasiGetImportsFn = Uint8 Function(
+    Pointer<WasmerStore>,
+    Pointer<WasmerModule>,
+    Pointer<WasmerWasiEnv>,
+    Pointer<Pointer<WasmerExtern>>);
+typedef WasmerWasiGetImportsFn = int Function(
+    Pointer<WasmerStore>,
+    Pointer<WasmerModule>,
+    Pointer<WasmerWasiEnv>,
+    Pointer<Pointer<WasmerExtern>>);
 
 // wasm_byte_vec_delete
 typedef NativeWasmerByteVecDeleteFn = Void Function(Pointer<WasmerByteVec>);
@@ -548,3 +612,12 @@ typedef NativeWasmerValtypeVecNewUninitializedFn = Void Function(
     Pointer<WasmerValtypeVec>, Uint64);
 typedef WasmerValtypeVecNewUninitializedFn = void Function(
     Pointer<WasmerValtypeVec>, int);
+
+// wasmer_last_error_length
+typedef NativeWasmerWasmerLastErrorLengthFn = Int64 Function();
+typedef WasmerWasmerLastErrorLengthFn = int Function();
+
+// wasmer_last_error_message
+typedef NativeWasmerWasmerLastErrorMessageFn = Int64 Function(
+    Pointer<Uint8>, Int64);
+typedef WasmerWasmerLastErrorMessageFn = int Function(Pointer<Uint8>, int);

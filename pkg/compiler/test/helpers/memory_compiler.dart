@@ -12,6 +12,7 @@ import 'package:compiler/compiler.dart' show DiagnosticHandler;
 import 'package:compiler/compiler_new.dart'
     show CompilationResult, CompilerDiagnostics, CompilerOutput, Diagnostic;
 import 'package:compiler/src/common.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show Message;
 import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 import 'package:compiler/src/options.dart' show CompilerOptions;
@@ -89,7 +90,8 @@ Future<CompilationResult> runCompiler(
     bool showDiagnostics: true,
     Uri librariesSpecificationUri,
     Uri packageConfig,
-    void beforeRun(CompilerImpl compiler)}) async {
+    void beforeRun(CompilerImpl compiler),
+    bool unsafeToTouchSourceFiles: false}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
   }
@@ -101,7 +103,8 @@ Future<CompilationResult> runCompiler(
       options: options,
       showDiagnostics: showDiagnostics,
       librariesSpecificationUri: librariesSpecificationUri,
-      packageConfig: packageConfig);
+      packageConfig: packageConfig,
+      unsafeToTouchSourceFiles: unsafeToTouchSourceFiles);
   if (beforeRun != null) {
     beforeRun(compiler);
   }
@@ -120,7 +123,8 @@ CompilerImpl compilerFor(
     List<String> options: const <String>[],
     bool showDiagnostics: true,
     Uri librariesSpecificationUri,
-    Uri packageConfig}) {
+    Uri packageConfig,
+    bool unsafeToTouchSourceFiles: false}) {
   retainDataForTesting = true;
   librariesSpecificationUri ??= sdkLibrariesSpecificationUri;
 
@@ -134,8 +138,27 @@ CompilerImpl compilerFor(
     }
   }
 
+  // Create a local in case we end up cloning memorySourceFiles.
+  Map<String, dynamic> sources = memorySourceFiles;
+
+  // If soundNullSafety is not requested, then we prepend the opt out string to
+  // the memory files.
+  if (!options.contains(Flags.soundNullSafety) && !unsafeToTouchSourceFiles) {
+    // Map may be immutable so copy.
+    sources = {};
+    memorySourceFiles.forEach((k, v) => sources[k] = v);
+    RegExp optOutStr = RegExp(r"\/\/\s*@dart\s*=\s*2\.\d+");
+    for (var key in sources.keys) {
+      if (sources[key] is String && key.endsWith('.dart')) {
+        if (!optOutStr.hasMatch(sources[key])) {
+          sources[key] = '// @dart=2.7\n' + sources[key];
+        }
+      }
+    }
+  }
+
   MemorySourceFileProvider provider;
-  provider = new MemorySourceFileProvider(memorySourceFiles);
+  provider = new MemorySourceFileProvider(sources);
   diagnosticHandler = createCompilerDiagnostics(diagnosticHandler, provider,
       showDiagnostics: showDiagnostics,
       verbose: options.contains('-v') || options.contains('--verbose'));
