@@ -262,6 +262,7 @@ void main() {
 
   group('Expression compiler tests in extension method:', () {
     const source = '''
+      // @dart = 2.9
       extension NumberParsing on String {
         int parseInt() {
           var ret = int.parse(this);
@@ -312,6 +313,7 @@ void main() {
 
   group('Expression compiler tests in method:', () {
     const source = '''
+      // @dart = 2.9
       extension NumberParsing on String {
         int parseInt() {
           return int.parse(this);
@@ -565,6 +567,7 @@ void main() {
 
   group('Expression compiler tests in method with no field access:', () {
     const source = '''
+      // @dart = 2.9
       extension NumberParsing on String {
         int parseInt() {
           return int.parse(this);
@@ -726,6 +729,7 @@ void main() {
 
   group('Expression compiler tests in async method:', () {
     const source = '''
+      // @dart = 2.9
       class C {
         C(int this.field, int this._field);
 
@@ -786,6 +790,7 @@ void main() {
 
   group('Expression compiler tests in global function:', () {
     const source = '''
+      // @dart = 2.9
       extension NumberParsing on String {
         int parseInt() {
           return int.parse(this);
@@ -1044,6 +1049,7 @@ void main() {
 
   group('Expression compiler tests in closures:', () {
     const source = r'''
+      // @dart = 2.9
       int globalFunction() {
       int x = 15;
       var c = C(1, 2);
@@ -1108,6 +1114,7 @@ void main() {
 
   group('Expression compiler tests in method with no type use', () {
     const source = '''
+      // @dart = 2.9
       abstract class Key {
         const factory Key(String value) = ValueKey;
         const Key.empty();
