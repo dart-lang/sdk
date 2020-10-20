@@ -47,6 +47,28 @@ class C {
 ''');
   }
 
+  /// See: https://github.com/dart-lang/sdk/issues/43867
+  Future<void> test_equals_fieldHashCode() async {
+    await resolveTestUnit('''
+class C {
+  @override
+  int hashCode = 13;
+}
+''');
+    await assertHasFix('''
+class C {
+  @override
+  int hashCode = 13;
+
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+}
+''');
+  }
+
   Future<void> test_hashCode() async {
     await resolveTestUnit('''
 class C {
