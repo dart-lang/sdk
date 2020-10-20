@@ -59,6 +59,10 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   final LineInfo Function(String) _getLineInfo;
 
+  /// Indicates whether we should transform iterable methods taking an "orElse"
+  /// parameter into their "OrNull" equivalents if possible.
+  final bool transformWhereOrNull;
+
   /// Prepares to perform nullability migration.
   ///
   /// If [permissive] is `true`, exception handling logic will try to proceed
@@ -72,12 +76,18 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// Optional parameter [warnOnWeakCode] indicates whether weak-only code
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
+  ///
+  /// Optional parameter [transformWhereOrNull] indicates whether Iterable
+  /// methods should be transformed to their "OrNull" equivalents when possible.
+  /// This feature is a work in progress, so by default they are not
+  /// transformed.
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
       LineInfo Function(String) getLineInfo,
       {bool permissive = false,
       NullabilityMigrationInstrumentation instrumentation,
       bool removeViaComments = false,
-      bool warnOnWeakCode = true})
+      bool warnOnWeakCode = true,
+      bool transformWhereOrNull = false})
       : this._(
             listener,
             NullabilityGraph(instrumentation: instrumentation),
@@ -85,7 +95,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
             instrumentation,
             removeViaComments,
             warnOnWeakCode,
-            getLineInfo);
+            getLineInfo,
+            transformWhereOrNull);
 
   NullabilityMigrationImpl._(
       this.listener,
@@ -94,7 +105,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       this._instrumentation,
       this.removeViaComments,
       this.warnOnWeakCode,
-      this._getLineInfo) {
+      this._getLineInfo,
+      this.transformWhereOrNull) {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
     _postmortemFileWriter?.graph = _graph;
   }
@@ -131,7 +143,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         _permissive ? listener : null,
         unit,
         warnOnWeakCode,
-        _graph);
+        _graph,
+        transformWhereOrNull);
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       fixBuilder.visitAll();
@@ -214,6 +227,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
           unit.declaredElement.source,
           _permissive ? listener : null,
           _decoratedClassHierarchy,
+          transformWhereOrNull,
           instrumentation: _instrumentation));
     } finally {
       DecoratedTypeParameterBounds.current = null;

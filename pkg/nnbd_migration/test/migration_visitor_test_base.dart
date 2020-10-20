@@ -149,7 +149,7 @@ class EdgeBuilderTestBase extends MigrationVisitorTestBase {
     var unit = await super.analyze(code);
     decoratedClassHierarchy = DecoratedClassHierarchy(variables, graph);
     unit.accept(EdgeBuilder(typeProvider, typeSystem, variables, graph,
-        testSource, null, decoratedClassHierarchy));
+        testSource, null, decoratedClassHierarchy, true));
     return unit;
   }
 }

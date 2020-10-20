@@ -108,8 +108,17 @@ g() {
     expect(entry.link, isNotNull);
     var sdkCoreLib = convertPath('/sdk/lib/core/core.dart');
     var sdkCoreLibUriPath = resourceProvider.pathContext.toUri(sdkCoreLib).path;
-    expect(entry.link.href,
-        equals('$sdkCoreLibUriPath?offset=3730&line=166&authToken=AUTH_TOKEN'));
+    var coreLibText = resourceProvider.getFile(sdkCoreLib).readAsStringSync();
+    var expectedOffset =
+        'List.from'.allMatches(coreLibText).single.start + 'List.'.length;
+    var expectedLine =
+        '\n'.allMatches(coreLibText.substring(0, expectedOffset)).length + 1;
+    expect(
+        entry.link.href,
+        equals('$sdkCoreLibUriPath?'
+            'offset=$expectedOffset&'
+            'line=$expectedLine&'
+            'authToken=AUTH_TOKEN'));
     // On Windows, the path will simply be the absolute path to the core
     // library, because there is no relative route from C:\ to D:\. On Posix,
     // the path is relative.

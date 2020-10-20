@@ -371,6 +371,19 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.isCheckMainType;
 }
 
+/// An edge origin used for the return type of an iterator method that might be
+/// changed into an extension method from package:collection.
+class IteratorMethodReturnOrigin extends EdgeOrigin {
+  IteratorMethodReturnOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description =>
+      'Call to iterator method with orElse that returns null';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.iteratorMethodReturn;
+}
+
 /// An edge origin used for the type argument of a list constructor that
 /// specified an initial length, because that type argument must be nullable.
 class ListLengthConstructorOrigin extends EdgeOrigin {

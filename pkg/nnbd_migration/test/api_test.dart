@@ -53,7 +53,8 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     var migration = NullabilityMigration(listener, getLineInfo,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,
-        warnOnWeakCode: warnOnWeakCode);
+        warnOnWeakCode: warnOnWeakCode,
+        transformWhereOrNull: true);
     for (var path in input.keys) {
       if (!(session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
@@ -2749,6 +2750,76 @@ g(String s) {}
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_firstWhere_non_nullable() async {
+    var content = '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_firstWhere_non_nullable_with_cast() async {
+    var content = '''
+int firstNonZero(Iterable<num> x)
+    => x.firstWhere((x) => x != 0, orElse: () => null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstNonZero(Iterable<num> x)
+    => x.firstWhereOrNull((x) => x != 0) as int?;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_firstWhere_non_nullable_with_non_null_assertion() async {
+    var content = '''
+int/*!*/ firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven)!;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_firstWhere_nullable() async {
+    var content = '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+f() => firstEven([null]);
+''';
+    var expected = '''
+int? firstEven(Iterable<int?> x)
+    => x.firstWhere((x) => x!.isEven, orElse: () => null);
+f() => firstEven([null]);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_firstWhere_nullable_with_cast() async {
+    var content = '''
+int firstNonZero(Iterable<num> x)
+    => x.firstWhere((x) => x != 0, orElse: () => null);
+f() => firstNonZero([null]);
+''';
+    var expected = '''
+int? firstNonZero(Iterable<num?> x)
+    => x.firstWhere((x) => x != 0, orElse: () => null) as int?;
+f() => firstNonZero([null]);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_flow_analysis_complex() async {
     var content = '''
 int f(int x) {
@@ -4008,6 +4079,34 @@ void repro(){
     final List<String> a = (e['query'] as String).split('&');
   }
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_lastWhere_non_nullable() async {
+    var content = '''
+int lastEven(Iterable<int> x)
+    => x.lastWhere((x) => x.isEven, orElse: () => null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? lastEven(Iterable<int> x)
+    => x.lastWhereOrNull((x) => x.isEven);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_lastWhere_nullable() async {
+    var content = '''
+int lastEven(Iterable<int> x)
+    => x.lastWhere((x) => x.isEven, orElse: () => null);
+f() => lastEven([null]);
+''';
+    var expected = '''
+int? lastEven(Iterable<int?> x)
+    => x.lastWhere((x) => x!.isEven, orElse: () => null);
+f() => lastEven([null]);
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -6009,6 +6108,34 @@ int f() => null;
 ''';
     var expected = '''
 int? f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_singleWhere_non_nullable() async {
+    var content = '''
+int singleEven(Iterable<int> x)
+    => x.singleWhere((x) => x.isEven, orElse: () => null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? singleEven(Iterable<int> x)
+    => x.singleWhereOrNull((x) => x.isEven);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_singleWhere_nullable() async {
+    var content = '''
+int singleEven(Iterable<int> x)
+    => x.singleWhere((x) => x.isEven, orElse: () => null);
+f() => singleEven([null]);
+''';
+    var expected = '''
+int? singleEven(Iterable<int?> x)
+    => x.singleWhere((x) => x!.isEven, orElse: () => null);
+f() => singleEven([null]);
 ''';
     await _checkSingleFileChanges(content, expected);
   }

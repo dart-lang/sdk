@@ -381,7 +381,11 @@ abstract class Iterable<E> {
 
   void forEach(void f(E element));
 
+  E lastWhere(bool test(E element), {E orElse()?});
+
   Iterable<R> map<R>(R f(E e));
+
+  E singleWhere(bool test(E element), {E orElse()?});
 
   List<E> toList({bool growable = true});
 
