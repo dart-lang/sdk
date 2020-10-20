@@ -135,7 +135,8 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
         compiler.stopAfterTypeInference =
             options.contains(stopAfterTypeInference);
       },
-      packageConfig: packageConfig);
+      packageConfig: packageConfig,
+      unsafeToTouchSourceFiles: true);
   if (!result.isSuccess) {
     if (skipFailedCompilations) return null;
     Expect.isTrue(

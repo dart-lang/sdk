@@ -26,6 +26,15 @@ export 'package:compiler/src/diagnostics/spannable.dart';
 export 'package:compiler/src/util/util.dart';
 export 'output_collector.dart';
 
+String _commonTestPath(bool soundNullSafety) {
+  // Pretend this is a dart2js_native test to allow use of 'native' keyword
+  // and import of private libraries. However, we have to choose the correct
+  // folder to enable / disable  implicit cfe opt out of null safety.
+  return soundNullSafety
+      ? 'sdk/tests/dart2js/native'
+      : 'sdk/tests/dart2js_2/native';
+}
+
 /// Compile [code] and returns either the code for [methodName] or, if
 /// [returnAll] is true, the code for the entire program.
 ///
@@ -63,16 +72,15 @@ Future<String> compile(String code,
   if (enableVariance) {
     options.add('${Flags.enableLanguageExperiments}=variance');
   }
+
   if (soundNullSafety) {
     options.add(Flags.soundNullSafety);
   } else {
     options.add(Flags.noSoundNullSafety);
   }
 
-  // Pretend this is a dart2js_native test to allow use of 'native' keyword
-  // and import of private libraries.
-  String commonTestPath = 'sdk/tests/compiler';
-  Uri entryPoint = Uri.parse('memory:$commonTestPath/dart2js_native/main.dart');
+  String commonTestPath = _commonTestPath(soundNullSafety);
+  Uri entryPoint = Uri.parse('memory:$commonTestPath/main.dart');
 
   Map<String, String> source;
   methodName ??= entry;
@@ -123,10 +131,8 @@ Future<String> compileAll(String code,
     options.add(Flags.noSoundNullSafety);
   }
 
-  // Pretend this is a dart2js_native test to allow use of 'native' keyword
-  // and import of private libraries.
-  String commonTestPath = 'sdk/tests/compiler';
-  Uri entryPoint = Uri.parse('memory:$commonTestPath/dart2js_native/main.dart');
+  String commonTestPath = _commonTestPath(soundNullSafety);
+  Uri entryPoint = Uri.parse('memory:$commonTestPath/main.dart');
 
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,

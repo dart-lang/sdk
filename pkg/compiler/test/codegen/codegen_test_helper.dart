@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -32,7 +33,7 @@ runTests(List<String> args, [int shardIndex]) {
       shards: 2,
       directory: 'data',
       skip: skip,
-      options: ['--enable-experiment=non-nullable']);
+      options: ['--enable-experiment=non-nullable', Flags.soundNullSafety]);
 }
 
 runTests2(List<String> args, [int shardIndex]) {

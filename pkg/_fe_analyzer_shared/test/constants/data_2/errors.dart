@@ -4,10 +4,12 @@
 
 // @dart = 2.7
 
-/*cfe.library: file=main.dart*/
+String method() => 'foo';
 
-/*cfe.member: main:main*/
+const String string0 =
+    /*cfe|dart2js.error: Method invocation is not a constant expression.*/
+    method();
+
 main() {
-  // ignore: undefined_function
-  /*error: Method not found: 'foo'.*/ foo();
+  print(string0);
 }
