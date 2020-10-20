@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-10-15T16:28:43.685252",
+  "generated": "2020-10-20T09:30:11.069083",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -295,7 +295,7 @@
       "name": "http",
       "rootUri": "../third_party/pkg/http",
       "packageUri": "lib/",
-      "languageVersion": "2.4"
+      "languageVersion": "2.10"
     },
     {
       "name": "http_io",
@@ -313,7 +313,7 @@
       "name": "http_parser",
       "rootUri": "../third_party/pkg/http_parser",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.11"
     },
     {
       "name": "http_retry",
@@ -377,7 +377,7 @@
       "name": "logging",
       "rootUri": "../third_party/pkg/logging",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "markdown",

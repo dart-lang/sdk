@@ -2510,6 +2510,7 @@ void KernelReaderHelper::SkipStatement() {
       SkipExpression();  // read expression.
       return;
     case kBlock:
+      ReadPosition();
       SkipStatementList();
       return;
     case kEmptyStatement:

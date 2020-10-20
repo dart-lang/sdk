@@ -4608,6 +4608,58 @@ const MessageCode messageIncorrectTypeArgumentVariable = const MessageCode(
     message: r"""This is the type variable whose bound isn't conformed to.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateIncrementalCompilerIllegalParameter = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""Illegal parameter name '#string' found during expression compilation.""",
+    withArguments: _withArgumentsIncrementalCompilerIllegalParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeIncrementalCompilerIllegalParameter =
+    const Code<Message Function(String string)>(
+  "IncrementalCompilerIllegalParameter",
+  templateIncrementalCompilerIllegalParameter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncrementalCompilerIllegalParameter(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeIncrementalCompilerIllegalParameter,
+      message:
+          """Illegal parameter name '${string}' found during expression compilation.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateIncrementalCompilerIllegalTypeParameter =
+    const Template<Message Function(String string)>(
+        messageTemplate:
+            r"""Illegal type parameter name '#string' found during expression compilation.""",
+        withArguments: _withArgumentsIncrementalCompilerIllegalTypeParameter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeIncrementalCompilerIllegalTypeParameter =
+    const Code<Message Function(String string)>(
+  "IncrementalCompilerIllegalTypeParameter",
+  templateIncrementalCompilerIllegalTypeParameter,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncrementalCompilerIllegalTypeParameter(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeIncrementalCompilerIllegalTypeParameter,
+      message:
+          """Illegal type parameter name '${string}' found during expression compilation.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateInferredPackageUri =
     const Template<Message Function(Uri uri_)>(
         messageTemplate: r"""Interpreting this as package URI, '#uri'.""",

@@ -1164,10 +1164,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     final ListConstantBuilder builder =
         new ListConstantBuilder(node, convertType(node.typeArgument), this);
+    // These expressions are at the same level, so one of them being
+    // unevaluated doesn't mean a sibling is or has an unevaluated child.
+    // We therefore reset it before each call, combine it and set it correctly
+    // at the end.
+    bool wasOrBecameUnevaluated = seenUnevaluatedChild;
     for (Expression element in node.expressions) {
+      seenUnevaluatedChild = false;
       AbortConstant error = builder.add(element);
+      wasOrBecameUnevaluated |= seenUnevaluatedChild;
       if (error != null) return error;
     }
+    seenUnevaluatedChild = wasOrBecameUnevaluated;
     return builder.build();
   }
 
@@ -1189,10 +1197,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     final SetConstantBuilder builder =
         new SetConstantBuilder(node, convertType(node.typeArgument), this);
+    // These expressions are at the same level, so one of them being
+    // unevaluated doesn't mean a sibling is or has an unevaluated child.
+    // We therefore reset it before each call, combine it and set it correctly
+    // at the end.
+    bool wasOrBecameUnevaluated = seenUnevaluatedChild;
     for (Expression element in node.expressions) {
+      seenUnevaluatedChild = false;
       AbortConstant error = builder.add(element);
+      wasOrBecameUnevaluated |= seenUnevaluatedChild;
       if (error != null) return error;
     }
+    seenUnevaluatedChild = wasOrBecameUnevaluated;
     return builder.build();
   }
 
@@ -1214,10 +1230,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     final MapConstantBuilder builder = new MapConstantBuilder(
         node, convertType(node.keyType), convertType(node.valueType), this);
+    // These expressions are at the same level, so one of them being
+    // unevaluated doesn't mean a sibling is or has an unevaluated child.
+    // We therefore reset it before each call, combine it and set it correctly
+    // at the end.
+    bool wasOrBecameUnevaluated = seenUnevaluatedChild;
     for (MapEntry element in node.entries) {
+      seenUnevaluatedChild = false;
       AbortConstant error = builder.add(element);
+      wasOrBecameUnevaluated |= seenUnevaluatedChild;
       if (error != null) return error;
     }
+    seenUnevaluatedChild = wasOrBecameUnevaluated;
     return builder.build();
   }
 

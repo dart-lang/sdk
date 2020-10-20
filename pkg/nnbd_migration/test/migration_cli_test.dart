@@ -999,7 +999,7 @@ int? f() => null
     assertNormalExit(cliRunner);
     // Check that a summary was printed
     var output = logger.stdoutBuffer.toString();
-    expect(output, contains('Summary'));
+    expect(output, contains('Diff of changes'));
     // And that it refers to test.dart and pubspec.yaml
     expect(output, contains('test.dart'));
     expect(output, contains('pubspec.yaml'));

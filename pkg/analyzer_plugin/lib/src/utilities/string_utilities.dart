@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:charcode/ascii.dart';
+import 'package:analyzer_plugin/src/utilities/charcodes.dart';
 
 /// Returns a list of the words from which the given camel case [string] is
 /// composed.

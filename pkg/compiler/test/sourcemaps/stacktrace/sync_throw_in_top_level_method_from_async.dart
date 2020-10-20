@@ -8,9 +8,8 @@ main() {
   /*1:main*/ test1();
 }
 
-// TODO(34942): Step 2 should point to the body block.
 @pragma('dart2js:noInline')
-test1 /*2:test1*/ () async {
+test1() async /*2:test1*/ {
   /*9:test1*/ test2();
 }
 

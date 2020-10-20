@@ -527,24 +527,29 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
           ..fileOffset = fileOffset)
       ..fileOffset = fileOffset;
 
-    FunctionExpression closure = new FunctionExpression(new FunctionNode(
-        closureBody,
-        typeParameters: closureTypeParameters,
-        positionalParameters: closurePositionalParameters,
-        namedParameters: closureNamedParameters,
-        requiredParameterCount: _procedure.function.requiredParameterCount - 1,
-        returnType: closureReturnType))
+    FunctionExpression closure = new FunctionExpression(
+        new FunctionNode(closureBody,
+            typeParameters: closureTypeParameters,
+            positionalParameters: closurePositionalParameters,
+            namedParameters: closureNamedParameters,
+            requiredParameterCount:
+                _procedure.function.requiredParameterCount - 1,
+            returnType: closureReturnType)
+          ..fileOffset = fileOffset
+          ..fileEndOffset = fileEndOffset)
       ..fileOffset = fileOffset;
 
     _extensionTearOff
       ..name = new Name(
           '${extensionBuilder.name}|get#${name}', libraryBuilder.library)
-      ..function = new FunctionNode(
+      ..function = (new FunctionNode(
           new ReturnStatement(closure)..fileOffset = fileOffset,
           typeParameters: tearOffTypeParameters,
           positionalParameters: [extensionThis],
           requiredParameterCount: 1,
           returnType: closure.function.computeFunctionType(library.nonNullable))
+        ..fileOffset = fileOffset
+        ..fileEndOffset = fileEndOffset)
       ..fileUri = fileUri
       ..fileOffset = fileOffset
       ..fileEndOffset = fileEndOffset;

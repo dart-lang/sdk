@@ -7086,7 +7086,7 @@ abstract class DartType extends Node {
 
   /// Checks if the type is potentially nullable.
   ///
-  /// A type is potentially nullable if it's nullable or if it's nullability is
+  /// A type is potentially nullable if it's nullable or if its nullability is
   /// undetermined at compile time.
   bool get isPotentiallyNullable {
     return nullability == Nullability.nullable ||
@@ -7095,8 +7095,8 @@ abstract class DartType extends Node {
 
   /// Checks if the type is potentially non-nullable.
   ///
-  /// A type is potentially non-nullable if it's nullable or if it's nullability
-  /// is undetermined at compile time.
+  /// A type is potentially non-nullable if it's non-nullable or if its
+  /// nullability is undetermined at compile time.
   bool get isPotentiallyNonNullable {
     return nullability == Nullability.nonNullable ||
         nullability == Nullability.undetermined;

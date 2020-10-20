@@ -20,7 +20,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const StaticTypeDataComputer(),
-          [defaultCfeConfig, cfeNonNullableConfig]),
+          [cfeNoNonNullableConfig, cfeNonNullableConfig]),
       skipMap: {
         defaultCfeConfig.marker: [
           // NNBD-only tests.

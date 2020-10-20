@@ -67,7 +67,7 @@ export '../fasta/compiler_context.dart' show CompilerContext;
 export '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
 export '../fasta/kernel/redirecting_factory_body.dart'
-    show RedirectingFactoryBody, isRedirectingFactoryField;
+    show RedirectingFactoryBody, isRedirectingFactoryField, redirectingName;
 
 export '../fasta/type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;

@@ -1892,6 +1892,12 @@ InternalProblemUnsupportedNullability:
   template: "Unsupported nullability value '#string' on type '#type'."
   severity: INTERNAL_PROBLEM
 
+IncrementalCompilerIllegalParameter:
+  template: "Illegal parameter name '#string' found during expression compilation."
+  
+IncrementalCompilerIllegalTypeParameter:
+  template: "Illegal type parameter name '#string' found during expression compilation."
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: IGNORED

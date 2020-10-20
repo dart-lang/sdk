@@ -394,6 +394,10 @@ IncorrectTypeArgumentInSupertypeWarning/example: Fail
 IncorrectTypeArgumentQualifiedInferredWarning/example: Fail
 IncorrectTypeArgumentQualifiedWarning/example: Fail
 IncorrectTypeArgumentWarning/example: Fail
+IncrementalCompilerIllegalParameter/analyzerCode: Fail
+IncrementalCompilerIllegalParameter/example: Fail
+IncrementalCompilerIllegalTypeParameter/analyzerCode: Fail
+IncrementalCompilerIllegalTypeParameter/example: Fail
 InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
