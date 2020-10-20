@@ -29,6 +29,12 @@ export '../fasta/messages.dart' show FormattedMessage;
 /// Test configuration used for testing CFE in its default state.
 const TestConfig defaultCfeConfig = const TestConfig(cfeMarker, 'cfe');
 
+/// Test configuration used for testing CFE without nnbd in addition to the
+/// default state.
+const TestConfig cfeNoNonNullableConfig = const TestConfig(
+    cfeMarker, 'cfe without nnbd',
+    experimentalFlags: const {ExperimentalFlag.nonNullable: false});
+
 /// Test configuration used for testing CFE with nnbd in addition to the
 /// default state.
 const TestConfig cfeNonNullableConfig = const TestConfig(

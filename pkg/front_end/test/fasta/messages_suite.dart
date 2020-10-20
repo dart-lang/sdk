@@ -79,6 +79,8 @@ class Configuration {
     if (nnbdMode != null) {
       options.experimentalFlags[ExperimentalFlag.nonNullable] = true;
       options.nnbdMode = nnbdMode;
+    } else {
+      options.experimentalFlags[ExperimentalFlag.nonNullable] = false;
     }
     return options;
   }

@@ -1,3 +1,4 @@
+--enable-experiment=no-non-nullable
 -Dbaz=42
 -DbazTrue=true
 -DbazFalse=false

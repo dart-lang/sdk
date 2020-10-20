@@ -29,6 +29,7 @@ main(List<String> args) async {
         new TestConfigWithLanguageVersion(
             cfeMarker, 'cfe with libraries specification',
             librariesSpecificationUri: createUriForFileName('libraries.json'),
+            experimentalFlags: {ExperimentalFlag.nonNullable: false},
             allowedExperimentalFlags: const AllowedExperimentalFlags()),
         new TestConfigWithLanguageVersion(cfeWithNnbdMarker,
             'cfe with libraries specification and non-nullable',

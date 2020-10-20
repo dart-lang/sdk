@@ -527,12 +527,19 @@ class NewWorldTest {
         }
         options.omitPlatform = omitPlatform != false;
         if (world["experiments"] != null) {
+          Map<String, bool> flagsFromOptions =
+              parseExperimentalArguments([world["experiments"]]);
+          // Ensure that we run with non-nullable turned off even when the
+          // flag is on by default.
+          // TODO(johnniwinther,jensj): Update tests to explicitly opt out.
+          flagsFromOptions['non-nullable'] ??= false;
           Map<ExperimentalFlag, bool> experimentalFlags =
-              parseExperimentalFlags(
-                  parseExperimentalArguments([world["experiments"]]),
+              parseExperimentalFlags(flagsFromOptions,
                   onError: (e) =>
                       throw "Error on parsing experiments flags: $e");
           options.experimentalFlags = experimentalFlags;
+        } else {
+          options.experimentalFlags = {ExperimentalFlag.nonNullable: false};
         }
         if (world["nnbdMode"] != null) {
           String nnbdMode = world["nnbdMode"];
