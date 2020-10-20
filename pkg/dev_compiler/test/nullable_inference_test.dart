@@ -497,6 +497,7 @@ void main() {
 /// to be produced in the set of expressions that cannot be null by DDC's null
 /// inference.
 Future expectNotNull(String code, String expectedNotNull) async {
+  code = '// @dart = 2.9\n$code';
   var result = await kernelCompile(code);
   var collector = NotNullCollector(result.librariesFromDill);
   result.component.accept(collector);
@@ -525,6 +526,7 @@ Future expectNotNull(String code, String expectedNotNull) async {
 
 /// Given the Dart [code], expects all the expressions inferred to be not-null.
 Future expectAllNotNull(String code) async {
+  code = '// @dart = 2.9\n$code';
   var result = (await kernelCompile(code));
   result.component.accept(ExpectAllNotNull(result.librariesFromDill));
 }
