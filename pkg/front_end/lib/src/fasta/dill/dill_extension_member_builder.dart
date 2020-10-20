@@ -58,6 +58,9 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
   Member get invokeTarget => field;
 
   @override
+  bool get isField => true;
+
+  @override
   bool get isAssignable => field.hasSetter;
 }
 
