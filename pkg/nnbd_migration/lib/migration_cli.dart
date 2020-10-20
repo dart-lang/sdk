@@ -808,9 +808,9 @@ When finished with the preview, hit ctrl-c to terminate this process.
       await blockUntilSignalInterrupt();
       nonNullableFix.shutdownServer();
     } else {
-      logger.stdout(ansi.emphasized('Summary of changes:'));
+      logger.stdout(ansi.emphasized('Diff of changes:'));
 
-      _displayChangeSummary(_dartFixListener);
+      _displayChangeDiff(_dartFixListener);
 
       logger.stdout('');
       logger.stdout('To apply these changes, re-run the tool with '
@@ -879,7 +879,7 @@ When finished with the preview, hit ctrl-c to terminate this process.
     }
   }
 
-  void _displayChangeSummary(DartFixListener migrationResults) {
+  void _displayChangeDiff(DartFixListener migrationResults) {
     Map<String, List<DartFixSuggestion>> fileSuggestions = {};
     for (DartFixSuggestion suggestion in migrationResults.suggestions) {
       String file = suggestion.location.file;
