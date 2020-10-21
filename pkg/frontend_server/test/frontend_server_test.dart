@@ -1003,8 +1003,7 @@ class BarState extends State<FizzWidget> {}
     {
       "name": "flutter",
       "rootUri": "${frameworkDirectory.uri}",
-      "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "packageUri": "lib/"
     }
   ]
 }
@@ -1188,9 +1187,6 @@ class BarState extends State<FizzWidget> {
       file.writeAsStringSync("pkgA() {}");
 
       // Package B.
-      file = File('${tempDir.path}/pkgB/.packages')
-        ..createSync(recursive: true);
-      file.writeAsStringSync("pkgA: ../pkgA");
       file = File('${tempDir.path}/pkgB/a.dart')..createSync(recursive: true);
       file.writeAsStringSync("pkgB_a() {}");
       file = File('${tempDir.path}/pkgB/b.dart')..createSync(recursive: true);
@@ -1198,10 +1194,25 @@ class BarState extends State<FizzWidget> {
           "pkgB_b() { pkgA(); }");
 
       // Application.
-      file = File('${tempDir.path}/app/.packages')..createSync(recursive: true);
-      file.writeAsStringSync("pkgA:../pkgA\n"
-          "pkgB:../pkgB");
-
+      File('${tempDir.path}/app/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "pkgA",
+        "rootUri": "${tempDir.path}/pkgA",
+        "packageUri": "./"
+      },
+      {
+        "name": "pkgB",
+        "rootUri": "${tempDir.path}/pkgB",
+        "packageUri": "./"
+      }
+    ]
+  }
+''');
       // Entry point A uses both package A and B.
       file = File('${tempDir.path}/app/a.dart')..createSync(recursive: true);
       file.writeAsStringSync("import 'package:pkgB/b.dart';"
@@ -1295,9 +1306,6 @@ class BarState extends State<FizzWidget> {
       file.writeAsStringSync("pkgA() {}");
 
       // Package B.
-      file = File('${tempDir.path}/pkgB/.packages')
-        ..createSync(recursive: true);
-      file.writeAsStringSync("pkgA: ../pkgA");
       file = File('${tempDir.path}/pkgB/a.dart')..createSync(recursive: true);
       file.writeAsStringSync("pkgB_a() {}");
       file = File('${tempDir.path}/pkgB/b.dart')..createSync(recursive: true);
@@ -1305,6 +1313,25 @@ class BarState extends State<FizzWidget> {
           "pkgB_b() { pkgA(); }");
 
       // Application.
+      File('${tempDir.path}/app/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "pkgA",
+        "rootUri": "${tempDir.path}/pkgA",
+        "packageUri": "./"
+      },
+      {
+        "name": "pkgB",
+        "rootUri": "${tempDir.path}/pkgB",
+        "packageUri": "./"
+      }
+    ]
+  }
+''');
       file = File('${tempDir.path}/app/.packages')..createSync(recursive: true);
       file.writeAsStringSync("pkgA:../pkgA\n"
           "pkgB:../pkgB");
@@ -1628,9 +1655,20 @@ class BarState extends State<FizzWidget> {
         var main = File('${tempDir.path}/foo.dart')..createSync();
         main.writeAsStringSync(
             "import 'package:foo/foo.dart'; main() {print(foo);}\n");
-        File('${tempDir.path}/.packages')
-          ..createSync()
-          ..writeAsStringSync("\nfoo:http://$host:$port/packages/foo");
+        File('${tempDir.path}/.dart_tool/package_config.json')
+          ..createSync(recursive: true)
+          ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "foo",
+        "rootUri": "http://$host:$port/packages/foo",
+        "packageUri": "./"
+      }
+    ]
+  }
+''');
         File('${tempDir.path}/packages/foo/foo.dart')
           ..createSync(recursive: true)
           ..writeAsStringSync("var foo = 'hello';");
