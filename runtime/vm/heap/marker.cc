@@ -436,8 +436,7 @@ void GCMarker::ProcessWeakTables(Thread* thread) {
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAtExclusive(i)) {
         ObjectPtr raw_obj = table->ObjectAtExclusive(i);
-        ASSERT(raw_obj->IsHeapObject());
-        if (!raw_obj->ptr()->IsMarked()) {
+        if (raw_obj->IsHeapObject() && !raw_obj->ptr()->IsMarked()) {
           table->InvalidateAtExclusive(i);
         }
       }

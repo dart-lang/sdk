@@ -148,31 +148,6 @@ class DeserializationRoots {
   virtual void PostLoad(Deserializer* deserializer, const Array& refs) = 0;
 };
 
-class SmiObjectIdPair {
- public:
-  SmiObjectIdPair() : smi_(nullptr), id_(0) {}
-  SmiPtr smi_;
-  intptr_t id_;
-
-  bool operator==(const SmiObjectIdPair& other) const {
-    return (smi_ == other.smi_) && (id_ == other.id_);
-  }
-};
-
-class SmiObjectIdPairTrait {
- public:
-  typedef SmiPtr Key;
-  typedef intptr_t Value;
-  typedef SmiObjectIdPair Pair;
-
-  static Key KeyOf(Pair kv) { return kv.smi_; }
-  static Value ValueOf(Pair kv) { return kv.id_; }
-  static inline intptr_t Hashcode(Key key) { return Smi::Value(key); }
-  static inline bool IsKeyEqual(Pair kv, Key key) { return kv.smi_ == key; }
-};
-
-typedef DirectChainedHashMap<SmiObjectIdPairTrait> SmiObjectIdMap;
-
 // Reference value for objects that either are not reachable from the roots or
 // should never have a reference in the snapshot (because they are dropped,
 // for example). Should be the default value for Heap::GetObjectId.
@@ -411,15 +386,9 @@ class Serializer : public ThreadStackResource {
   // been allocated a reference ID yet, so should be used only after all
   // WriteAlloc calls.
   intptr_t RefId(ObjectPtr object, bool permit_artificial_ref = false) {
-    if (!object->IsHeapObject()) {
-      SmiPtr smi = Smi::RawCast(object);
-      auto const id = smi_ids_.Lookup(smi)->id_;
-      if (IsAllocatedReference(id)) return id;
-      FATAL("Missing ref");
-    }
     // The object id weak table holds image offsets for Instructions instead
     // of ref indices.
-    ASSERT(!object->IsInstructions());
+    ASSERT(!object->IsHeapObject() || !object->IsInstructions());
     auto const id = heap_->GetObjectId(object);
     if (permit_artificial_ref && IsArtificialReference(id)) {
       return -id;
@@ -465,7 +434,6 @@ class Serializer : public ThreadStackResource {
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
   intptr_t previous_text_offset_;
-  SmiObjectIdMap smi_ids_;
   FieldTable* field_table_;
 
   intptr_t dispatch_table_size_ = 0;

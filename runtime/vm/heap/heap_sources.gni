@@ -40,4 +40,5 @@ heap_sources_tests = [
   "heap_test.cc",
   "pages_test.cc",
   "scavenger_test.cc",
+  "weak_table_test.cc",
 ]
