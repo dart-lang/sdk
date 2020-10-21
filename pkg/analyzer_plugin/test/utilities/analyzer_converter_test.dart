@@ -2,21 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart' as analyzer;
 import 'package:analyzer/dart/element/element.dart' as analyzer;
-import 'package:analyzer/dart/element/type.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
-import 'package:analyzer/exception/exception.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/src/error/codes.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' as analyzer;
-import 'package:analyzer/src/generated/utilities_dart.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
-import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
