@@ -98,7 +98,7 @@ vars = {
 
   "chromedriver_tag": "83.0.4103.39",
   "dartdoc_rev" : "8f5f30e58bbc0f11f104888ee87f11cbd6b82cc7",
-  "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
+  "ffi_rev": "a90bd424116fb6f416337db67425171f2dc4c98f",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
   "html_rev": "22f17e97fedeacaa1e945cf84d8016284eed33a6",
