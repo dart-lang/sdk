@@ -20,6 +20,9 @@ import 'core_test.dart' as core;
 import 'events_test.dart' as events;
 import 'experiments_test.dart' as experiments;
 import 'sdk_test.dart' as sdk;
+import 'smoke/implicit_smoke_test.dart' as implicit_smoke;
+import 'smoke/invalid_smoke_test.dart' as invalid_smoke;
+import 'smoke/smoke_test.dart' as smoke;
 import 'utils_test.dart' as utils;
 
 void main() {
@@ -33,6 +36,8 @@ void main() {
     flag.main();
     format.main();
     help.main();
+    implicit_smoke.main();
+    invalid_smoke.main();
     migrate.main();
     pub.main();
     run.main();
@@ -40,6 +45,7 @@ void main() {
     test.main();
     core.main();
     sdk.main();
+    smoke.main();
     utils.main();
   });
 }
