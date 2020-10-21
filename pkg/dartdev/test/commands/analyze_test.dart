@@ -164,7 +164,7 @@ void defineAnalyze() {
   });
 
   test('info implicit no --fatal-infos', () {
-    p = project(mainSrc: 'String foo() {}');
+    p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
     var result = p.runSync('analyze', [p.dirPath]);
 
     expect(result.exitCode, 0);
@@ -173,7 +173,7 @@ void defineAnalyze() {
   });
 
   test('info --fatal-infos', () {
-    p = project(mainSrc: 'String foo() {}');
+    p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
     var result = p.runSync('analyze', ['--fatal-infos', p.dirPath]);
 
     expect(result.exitCode, 1);
