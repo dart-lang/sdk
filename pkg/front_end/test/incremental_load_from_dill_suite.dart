@@ -353,7 +353,8 @@ Future<Map<String, List<int>>> createModules(Map module,
     if (wantedLibs.length != moduleSources.length) {
       throw "Module probably not setup right.";
     }
-    Component result = new Component(libraries: wantedLibs);
+    Component result = new Component(libraries: wantedLibs)
+      ..setMainMethodAndMode(null, false, c.mode);
     List<int> resultBytes = util.postProcess(result);
     moduleResult[moduleName] = resultBytes;
   }
@@ -1305,7 +1306,8 @@ Result<List<int>> checkIncrementalSerialization(
     IncrementalSerializer incrementalSerializer,
     YamlMap world) {
   if (incrementalSerialization == true) {
-    Component c = new Component(nameRoot: component.root);
+    Component c = new Component(nameRoot: component.root)
+      ..setMainMethodAndMode(null, false, component.mode);
     c.libraries.addAll(component.libraries);
     c.uriToSource.addAll(component.uriToSource);
     Map<String, Set<String>> originalContent = buildMapOfContent(c);

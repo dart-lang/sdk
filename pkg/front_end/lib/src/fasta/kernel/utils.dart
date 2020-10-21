@@ -120,7 +120,10 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
   }
 
   // TODO(vegorov) find a way to preserve metadata.
-  return new Component(libraries: [fakeLibrary]);
+  Component component = new Component(libraries: [fakeLibrary]);
+  component.setMainMethodAndMode(
+      null, false, fakeLibrary.nonNullableByDefaultCompiledMode);
+  return component;
 }
 
 List<int> serializeProcedure(Procedure procedure) {

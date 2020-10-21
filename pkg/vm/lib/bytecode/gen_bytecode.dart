@@ -4647,6 +4647,7 @@ class Annotations {
 
 ast.Component createFreshComponentWithBytecode(ast.Component component) {
   final newComponent = new ast.Component();
+  newComponent.setMainMethodAndMode(null, false, component.mode);
   final newRepository = new BytecodeMetadataRepository();
   newComponent.addMetadataRepository(newRepository);
 

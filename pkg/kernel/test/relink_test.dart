@@ -103,7 +103,8 @@ Component createComponent(int literal) {
       ProcedureKind.Method,
       new FunctionNode(mainProcedureBody, returnType: new DynamicType()));
   main.addMember(mainProcedure);
-  return new Component(libraries: [main, lib]);
+  return new Component(libraries: [main, lib])
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
 }
 
 /// A [Sink] that directly writes data into a byte builder.

@@ -349,7 +349,8 @@ Future<CompilerResult> _compile(List<String> args,
   var component = result.component;
   var librariesFromDill = result.computeLibrariesFromDill();
   var compiledLibraries =
-      Component(nameRoot: component.root, uriToSource: component.uriToSource);
+      Component(nameRoot: component.root, uriToSource: component.uriToSource)
+        ..setMainMethodAndMode(null, false, component.mode);
   for (var lib in component.libraries) {
     if (!librariesFromDill.contains(lib)) compiledLibraries.libraries.add(lib);
   }

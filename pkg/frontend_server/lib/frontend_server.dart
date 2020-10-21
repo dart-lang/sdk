@@ -1091,6 +1091,7 @@ class FrontendCompiler implements CompilerInterface {
           libraries: libraries,
           uriToSource: deltaProgram.uriToSource,
           nameRoot: deltaProgram.root);
+      singleLibrary.setMainMethodAndMode(null, false, deltaProgram.mode);
       ByteSink byteSink = ByteSink();
       final BinaryPrinter printer = printerFactory.newBinaryPrinter(byteSink);
       printer.writeComponentFile(singleLibrary);

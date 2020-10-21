@@ -302,6 +302,7 @@ class IncrementalSerializer {
         libraries: libraries,
         uriToSource: component.uriToSource,
         nameRoot: component.root);
+    singlePackageLibraries.setMainMethodAndMode(null, false, component.mode);
 
     ByteSink byteSink = new ByteSink();
     final BinaryPrinter printer = new BinaryPrinter(byteSink);

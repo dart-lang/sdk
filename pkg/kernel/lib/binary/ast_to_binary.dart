@@ -752,6 +752,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else {
       writeUInt32(main.index + 1);
     }
+    assert(component.modeRaw != null, "Component mode not set.");
     writeUInt32(component.mode.index);
 
     assert(libraryOffsets.length == libraries.length);

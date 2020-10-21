@@ -211,7 +211,8 @@ class MatchExpectation
 
       ByteSink sink = new ByteSink();
       Component writeMe = new Component(
-          libraries: component.libraries.where(result.isUserLibrary).toList());
+          libraries: component.libraries.where(result.isUserLibrary).toList())
+        ..setMainMethodAndMode(null, false, component.mode);
       writeMe.uriToSource.addAll(component.uriToSource);
       if (component.problemsAsJson != null) {
         writeMe.problemsAsJson =
