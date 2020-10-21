@@ -34,9 +34,6 @@ import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
-import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart'
-    as server;
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
 import 'package:meta/meta.dart';
 
 const diagnosticTagsForErrorCode = <server.ErrorCode, List<lsp.DiagnosticTag>>{

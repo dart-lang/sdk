@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart' as server;
-import 'package:analysis_server/src/protocol/protocol_internal.dart' as server;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 /// An object used to convert between similar objects defined by both the plugin
