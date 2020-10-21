@@ -117,18 +117,7 @@ Future _awaitHelper(var object, dynamic Function(dynamic) thenCallback,
   //
   // We can only do this for our internal futures (the default implementation of
   // all futures that are constructed by the `dart:async` library).
-  future._awaiter = awaiter;
   return future._thenAwait<dynamic>(thenCallback, errorCallback);
-}
-
-// Called as part of the 'await for (...)' construct. Registers the
-// awaiter on the stream.
-void _asyncStarListenHelper(var object, var awaiter) {
-  if (object is! _StreamImpl) {
-    return;
-  }
-  // `object` is a `_StreamImpl`.
-  object._awaiter = awaiter;
 }
 
 @pragma("vm:entry-point", "call")
@@ -291,16 +280,7 @@ class _AsyncStarStreamController<T> {
 void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
 
 @patch
-class _Future<T> {
-  /// The closure implementing the async[*]-body that is `await`ing this future.
-  Function? _awaiter;
-}
-
-@patch
 class _StreamImpl<T> {
-  /// The closure implementing the async[*]-body that is `await`ing this future.
-  Function? _awaiter;
-
   /// The closure implementing the async-generator body that is creating events
   /// for this stream.
   Function? _generator;

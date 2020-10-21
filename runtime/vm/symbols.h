@@ -312,7 +312,6 @@ class ObjectPointerVisitor;
   V(_AsyncAwaitCompleterConstructor, "_AsyncAwaitCompleter.")                  \
   V(_AsyncAwaitCompleterStart, "_AsyncAwaitCompleter.start")                   \
   V(_AsyncAwaitStart, "start")                                                 \
-  V(_AsyncStarListenHelper, "_asyncStarListenHelper")                          \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
   V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
   V(_AsyncStreamController, "_AsyncStreamController")                          \

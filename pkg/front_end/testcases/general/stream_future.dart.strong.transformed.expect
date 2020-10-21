@@ -188,7 +188,6 @@ static method main() → dynamic /* originally async */ {
       {
         {
           asy::Stream<FutureOr<self::Class*>*>* :stream = self::stream();
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<FutureOr<self::Class*>*>* :for-iterator = new asy::_StreamIterator::•<FutureOr<self::Class*>*>(:stream);
           try
             #L6:

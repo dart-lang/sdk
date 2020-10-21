@@ -101,7 +101,6 @@ static method main() → dynamic /* originally async */ {
         }
         {
           asy::Stream<dynamic>* :stream = (f_async_star.call() as dynamic) as{TypeError,ForDynamic} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L4:

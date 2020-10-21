@@ -14,8 +14,66 @@
 
 namespace dart {
 
+// Helper class for finding the closure of the caller.
+// This is done via the _AsyncAwaitCompleter which holds a
+// FutureResultOrListeners which in turn holds a callback.
+class CallerClosureFinder {
+ public:
+  explicit CallerClosureFinder(Zone* zone);
+
+  ClosurePtr GetCallerInFutureImpl(const Object& future_);
+
+  ClosurePtr FindCallerInAsyncClosure(const Context& receiver_context);
+
+  ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context);
+
+  ClosurePtr FindCaller(const Closure& receiver_closure);
+
+  bool IsRunningAsync(const Closure& receiver_closure);
+
+ private:
+  Context& receiver_context_;
+  Function& receiver_function_;
+  Function& parent_function_;
+
+  Object& context_entry_;
+  Object& is_sync;
+  Object& future_;
+  Object& listener_;
+  Object& callback_;
+  Object& controller_;
+  Object& state_;
+  Object& var_data_;
+  Object& callback_instance_;
+
+  Class& future_impl_class;
+  Class& async_await_completer_class;
+  Class& future_listener_class;
+  Class& async_start_stream_controller_class;
+  Class& stream_controller_class;
+  Class& async_stream_controller_class;
+  Class& controller_subscription_class;
+  Class& buffering_stream_subscription_class;
+  Class& stream_iterator_class;
+
+  Field& completer_is_sync_field;
+  Field& completer_future_field;
+  Field& future_result_or_listeners_field;
+  Field& callback_field;
+  Field& controller_controller_field;
+  Field& var_data_field;
+  Field& state_field;
+  Field& on_data_field;
+  Field& state_data_field;
+};
+
 class StackTraceUtils : public AllStatic {
  public:
+  // Find the async_op closure from the stack frame.
+  static ClosurePtr FindClosureInFrame(ObjectPtr* last_object_in_caller,
+                                       const Function& function,
+                                       bool is_interpreted);
+
   /// Collects all frames on the current stack until an async/async* frame is
   /// hit which has yielded before (i.e. is not in sync-async case).
   ///

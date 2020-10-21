@@ -30,7 +30,6 @@ static method test() → dynamic /* originally async */ {
         }
         {
           asy::Stream<dynamic>* :stream = o as{TypeError} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L2:
@@ -62,7 +61,6 @@ static method test() → dynamic /* originally async */ {
         }
         {
           asy::Stream<dynamic>* :stream = o as{TypeError} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L3:

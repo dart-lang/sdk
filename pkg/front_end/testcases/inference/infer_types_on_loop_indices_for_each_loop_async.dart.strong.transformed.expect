@@ -73,7 +73,6 @@ class Bar<T extends asy::Stream<core::String*>* = asy::Stream<core::String*>*> e
         {
           {
             self::Bar::T* :stream = t;
-            asy::_asyncStarListenHelper(:stream, :async_op);
             asy::_StreamIterator<core::String*>* :for-iterator = new asy::_StreamIterator::•<core::String*>(:stream);
             try
               #L2:
@@ -143,7 +142,6 @@ class Baz<T extends core::Object* = dynamic, E extends asy::Stream<self::Baz::T*
         {
           {
             self::Baz::S* :stream = t;
-            asy::_asyncStarListenHelper(:stream, :async_op);
             asy::_StreamIterator<self::Baz::T*>* :for-iterator = new asy::_StreamIterator::•<self::Baz::T*>(:stream);
             try
               #L4:
@@ -262,7 +260,6 @@ static method test() → dynamic /* originally async */ {
         self::MyStream<self::Foo*>* myStream = self::MyStream::•<self::Foo*>();
         {
           self::MyStream<self::Foo*>* :stream = myStream;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::Foo*>* :for-iterator = new asy::_StreamIterator::•<self::Foo*>(:stream);
           try
             #L6:
@@ -289,7 +286,6 @@ static method test() → dynamic /* originally async */ {
         }
         {
           self::MyStream<self::Foo*>* :stream = myStream;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L7:
@@ -313,7 +309,6 @@ static method test() → dynamic /* originally async */ {
         }
         {
           self::MyStream<self::Foo*>* :stream = myStream;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::Foo*>* :for-iterator = new asy::_StreamIterator::•<self::Foo*>(:stream);
           try
             #L8:
@@ -343,7 +338,6 @@ Try changing the type of the variable.
         dynamic z;
         {
           self::MyStream<self::Foo*>* :stream = myStream;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::Foo*>* :for-iterator = new asy::_StreamIterator::•<self::Foo*>(:stream);
           try
             #L9:
@@ -369,7 +363,6 @@ Try changing the type of the variable.
         asy::Stream<dynamic>* stream = myStream;
         {
           asy::Stream<dynamic>* :stream = stream;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L10:
@@ -395,7 +388,6 @@ Try changing the type of the variable.
         dynamic stream2 = myStream;
         {
           asy::Stream<dynamic>* :stream = stream2 as{TypeError,ForDynamic} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L11:
@@ -426,7 +418,6 @@ Try changing the type of the variable.
  - 'Stream' is from 'dart:async'.
   await for (var /*@ type=dynamic */ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
                                                                            ^" in map as{TypeError} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L12:

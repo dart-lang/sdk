@@ -75,7 +75,6 @@ static method test() → dynamic /* originally async */ {
         }
         {
           asy::Stream<self::A*>* :stream = stream;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A*>* :for-iterator = new asy::_StreamIterator::•<self::A*>(:stream);
           try
             #L2:
@@ -108,7 +107,6 @@ static method test() → dynamic /* originally async */ {
         }
         {
           asy::Stream<self::A*>* :stream = stream;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A*>* :for-iterator = new asy::_StreamIterator::•<self::A*>(:stream);
           try
             #L3:
@@ -145,7 +143,6 @@ Try changing the type of the variable.
         }
         {
           asy::Stream<self::A*>* :stream = stream;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A*>* :for-iterator = new asy::_StreamIterator::•<self::A*>(:stream);
           try
             #L4:
@@ -182,7 +179,6 @@ Try changing the type of the variable.
         }
         {
           asy::Stream<self::A*>* :stream = self::f<asy::Stream<self::A*>*>();
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A*>* :for-iterator = new asy::_StreamIterator::•<self::A*>(:stream);
           try
             #L5:

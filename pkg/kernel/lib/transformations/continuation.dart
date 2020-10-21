@@ -967,7 +967,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //
       //   {
       //     :stream = <stream-expression>;
-      //     _asyncStarListenHelper(:stream, :async_op);
       //     _StreamIterator<T> :for-iterator = new _StreamIterator<T>(:stream);
       //     try {
       //       while (await :for-iterator.moveNext()) {
@@ -984,7 +983,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //
       //   {
       //     :stream = <stream-expression>;
-      //     _asyncStarListenHelper(:stream, :async_op);
       //     _StreamIterator<T> :for-iterator = new _StreamIterator<T>(:stream);
       //     try {
       //       while (let _ = _asyncStarMoveNextHelper(:stream) in
@@ -1002,13 +1000,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var streamVariable = new VariableDeclaration(ContinuationVariables.stream,
           initializer: stmt.iterable,
           type: stmt.iterable.getStaticType(staticTypeContext));
-
-      var asyncStarListenHelper = new ExpressionStatement(new StaticInvocation(
-          helper.asyncStarListenHelper,
-          new Arguments([
-            new VariableGet(streamVariable),
-            new VariableGet(nestedClosureVariable)
-          ])));
 
       var forIteratorVariable = VariableDeclaration(
           ContinuationVariables.forIterator,
@@ -1073,12 +1064,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
       var tryFinally = new TryFinally(tryBody, tryFinalizer);
 
-      var block = new Block(<Statement>[
-        streamVariable,
-        asyncStarListenHelper,
-        forIteratorVariable,
-        tryFinally
-      ]);
+      var block = new Block(
+          <Statement>[streamVariable, forIteratorVariable, tryFinally]);
       block.accept<TreeNode>(this);
       return null;
     } else {
@@ -1395,7 +1382,6 @@ class HelperNodes {
   final Member asyncStarStreamControllerClose;
   final Constructor asyncStarStreamControllerConstructor;
   final Member asyncStarStreamControllerStream;
-  final Member asyncStarListenHelper;
   final Member asyncStarMoveNextHelper;
   final Procedure asyncThenWrapper;
   final Procedure awaitHelper;
@@ -1435,7 +1421,6 @@ class HelperNodes {
       this.asyncStarStreamControllerClose,
       this.asyncStarStreamControllerConstructor,
       this.asyncStarStreamControllerStream,
-      this.asyncStarListenHelper,
       this.asyncStarMoveNextHelper,
       this.asyncThenWrapper,
       this.awaitHelper,
@@ -1475,7 +1460,6 @@ class HelperNodes {
         coreTypes.asyncStarStreamControllerClose,
         coreTypes.asyncStarStreamControllerDefaultConstructor,
         coreTypes.asyncStarStreamControllerStream,
-        coreTypes.asyncStarListenHelper,
         coreTypes.asyncStarMoveNextHelper,
         coreTypes.asyncThenWrapperHelperProcedure,
         coreTypes.awaitHelperProcedure,

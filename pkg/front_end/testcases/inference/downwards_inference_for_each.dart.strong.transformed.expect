@@ -118,7 +118,6 @@ static method f() → asy::Future<dynamic>* /* originally async */ {
         }
         {
           asy::Stream<dynamic>* :stream = self::F<asy::Stream<dynamic>*>();
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L2:
@@ -140,7 +139,6 @@ static method f() → asy::Future<dynamic>* /* originally async */ {
         }
         {
           asy::Stream<dynamic>* :stream = self::F<asy::Stream<dynamic>*>();
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L3:
@@ -162,7 +160,6 @@ static method f() → asy::Future<dynamic>* /* originally async */ {
         }
         {
           asy::Stream<core::Object*>* :stream = self::F<asy::Stream<core::Object*>*>();
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::Object*>* :for-iterator = new asy::_StreamIterator::•<core::Object*>(:stream);
           try
             #L4:
@@ -184,7 +181,6 @@ static method f() → asy::Future<dynamic>* /* originally async */ {
         }
         {
           asy::Stream<dynamic>* :stream = self::F<asy::Stream<dynamic>*>();
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L5:
@@ -208,7 +204,6 @@ static method f() → asy::Future<dynamic>* /* originally async */ {
         }
         {
           asy::Stream<core::Object*>* :stream = self::F<asy::Stream<core::Object*>*>();
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::Object*>* :for-iterator = new asy::_StreamIterator::•<core::Object*>(:stream);
           try
             #L6:
@@ -282,7 +277,6 @@ static method main() → asy::Future<dynamic>* /* originally async */ {
         }
         {
           self::MyStream<core::int*>* :stream = self::MyStream::•<core::int*>();
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
           try
             #L8:
@@ -304,7 +298,6 @@ static method main() → asy::Future<dynamic>* /* originally async */ {
         }
         {
           self::MyStream<core::int*>* :stream = self::MyStream::•<core::int*>();
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
           try
             #L9:

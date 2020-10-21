@@ -2684,7 +2684,6 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
  - 'Stream' is from 'dart:async'.
   var list30 = [await for (var i in \"not stream\") i];
                                     ^" in "not stream" as{TypeError} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L2:
@@ -2711,7 +2710,6 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
  - 'Stream' is from 'dart:async'.
   var set30 = {await for (var i in \"not stream\") i, null};
                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L3:
@@ -2740,7 +2738,6 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
  - 'Stream' is from 'dart:async'.
   var map30 = {await for (var i in \"not stream\") \"bar\": i, \"baz\": null};
                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L4:
@@ -2770,7 +2767,6 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
                                                          ^" in "not" as{TypeError} core::int*, let final<BottomType> #t410 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:243:65: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var list40 = [await for (int i in Stream.fromIterable([\"not\", \"int\"])) i];
                                                                 ^" in "int" as{TypeError} core::int*]);
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
           try
             #L5:
@@ -2798,7 +2794,6 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
                                                         ^" in "not" as{TypeError} core::int*, let final<BottomType> #t416 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:244:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var set40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) i, null};
                                                                ^" in "int" as{TypeError} core::int*]);
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
           try
             #L6:
@@ -2828,7 +2823,6 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
                                                         ^" in "not" as{TypeError} core::int*, let final<BottomType> #t422 = invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:245:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   var map40 = {await for (int i in Stream.fromIterable([\"not\", \"int\"])) \"bar\": i, \"baz\": null};
                                                                ^" in "int" as{TypeError} core::int*]);
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
           try
             #L7:
