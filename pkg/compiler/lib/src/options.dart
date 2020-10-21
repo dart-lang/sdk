@@ -534,6 +534,7 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingExperiment) {
       // Set flags implied by '--benchmarking-x'.
       // TODO(sra): Use this for some NNBD variant.
+      useContentSecurityPolicy = true;
     }
 
     if (_noLegacyJavaScript) legacyJavaScript = false;
