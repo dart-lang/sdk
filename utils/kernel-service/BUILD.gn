@@ -26,9 +26,6 @@ kernel_application_snapshot("kernel-service_snapshot") {
     # Without the ', "/"' part, on Linux it would get four slashes.
     "file:///" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart", "/"),
   ]
-  if (dart_platform_bytecode) {
-    training_args += [ "--bytecode" ]
-  }
   output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
 
@@ -113,12 +110,6 @@ template("kernel_service_dill") {
           "--output=" + rebase_path(output),
         ]
     args += [ scheme + ":///pkg/vm/bin/kernel_service.dart" ]
-    if (dart_platform_bytecode) {
-      args += [
-        "--gen-bytecode",
-        "--drop-ast",
-      ]
-    }
   }
 }
 

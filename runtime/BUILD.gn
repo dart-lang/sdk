@@ -128,10 +128,6 @@ config("dart_config") {
     include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
   }
 
-  if (dart_platform_bytecode) {
-    defines += [ "DART_USE_BYTECODE" ]
-  }
-
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
       lib_dirs = [ root_out_dir + "/lib" ]
