@@ -1202,12 +1202,12 @@ class BarState extends State<FizzWidget> {
     "packages": [
       {
         "name": "pkgA",
-        "rootUri": "${tempDir.path}/pkgA",
+        "rootUri": "${tempDir.uri.resolve('pkgA')}",
         "packageUri": "./"
       },
       {
         "name": "pkgB",
-        "rootUri": "${tempDir.path}/pkgB",
+        "rootUri": "${tempDir.uri.resolve('pkgB')}",
         "packageUri": "./"
       }
     ]
@@ -1321,12 +1321,12 @@ class BarState extends State<FizzWidget> {
     "packages": [
       {
         "name": "pkgA",
-        "rootUri": "${tempDir.path}/pkgA",
+        "rootUri": "${tempDir.uri.resolve('pkgA')}",
         "packageUri": "./"
       },
       {
         "name": "pkgB",
-        "rootUri": "${tempDir.path}/pkgB",
+        "rootUri": "${tempDir.uri.resolve('pkgB')}",
         "packageUri": "./"
       }
     ]
