@@ -35,6 +35,7 @@ heap_sources = [
 ]
 
 heap_sources_tests = [
+  "become_test.cc",
   "freelist_test.cc",
   "heap_test.cc",
   "pages_test.cc",
