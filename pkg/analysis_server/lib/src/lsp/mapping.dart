@@ -17,6 +17,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart'
     show ErrorOr, Either2, Either4;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/lsp/source_edits.dart';
@@ -201,8 +202,9 @@ lsp.CompletionItem declarationToCompletionItem(
   server.LineInfo lineInfo,
   dec.Declaration declaration,
   int replacementOffset,
-  int replacementLength,
-) {
+  int replacementLength, {
+  @required bool includeCommitCharacters,
+}) {
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
   // either are missing then label will be used by the client.
@@ -269,6 +271,8 @@ lsp.CompletionItem declarationToCompletionItem(
               lsp.CompletionItemTag.Deprecated
           ]
         : null,
+    commitCharacters:
+        includeCommitCharacters ? lsp.dartCompletionCommitCharacters : null,
     detail: getDeclarationCompletionDetail(declaration, completionKind,
         supportsDeprecatedFlag || supportsDeprecatedTag),
     deprecated:
@@ -764,8 +768,9 @@ lsp.CompletionItem toCompletionItem(
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion,
   int replacementOffset,
-  int replacementLength,
-) {
+  int replacementLength, {
+  @required bool includeCommitCharacters,
+}) {
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
   // either are missing then label will be used by the client.
@@ -826,6 +831,8 @@ lsp.CompletionItem toCompletionItem(
               lsp.CompletionItemTag.Deprecated
           ]
         : null,
+    commitCharacters:
+        includeCommitCharacters ? dartCompletionCommitCharacters : null,
     detail: getCompletionDetail(suggestion, completionKind,
         supportsDeprecatedFlag || supportsDeprecatedTag),
     documentation:

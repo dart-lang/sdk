@@ -231,6 +231,14 @@ class CompletionHandler
                 item,
                 completionRequest.replacementOffset,
                 completionRequest.replacementLength,
+                // TODO(dantup): Including commit characters in every completion
+                // increases the payload size. The LSP spec is ambigious
+                // about how this should be handled (and VS Code requires it) but
+                // this should be removed (or made conditional based on a capability)
+                // depending on how the spec is updated.
+                // https://github.com/microsoft/vscode-languageserver-node/issues/673
+                includeCommitCharacters:
+                    server.clientConfiguration.previewCommitCharacters,
               ),
             )
             .toList();
@@ -315,6 +323,14 @@ class CompletionHandler
                     item,
                     completionRequest.replacementOffset,
                     completionRequest.replacementLength,
+                    // TODO(dantup): Including commit characters in every completion
+                    // increases the payload size. The LSP spec is ambigious
+                    // about how this should be handled (and VS Code requires it) but
+                    // this should be removed (or made conditional based on a capability)
+                    // depending on how the spec is updated.
+                    // https://github.com/microsoft/vscode-languageserver-node/issues/673
+                    includeCommitCharacters:
+                        server.clientConfiguration.previewCommitCharacters,
                   ));
           results.addAll(setResults);
         });
@@ -352,6 +368,10 @@ class CompletionHandler
           item,
           result.replacementOffset,
           result.replacementLength,
+          // Plugins cannot currently contribute commit characters and we should
+          // not assume that the Dart ones would be correct for all of their
+          // completions.
+          includeCommitCharacters: false,
         ),
       );
     });
