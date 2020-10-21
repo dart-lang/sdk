@@ -25,7 +25,10 @@ import 'experimental_flags.dart'
         parseExperimentalFlag;
 
 import 'experimental_flags.dart' as flags
-    show getExperimentEnabledVersionInLibrary, isExperimentEnabledInLibrary;
+    show
+        getExperimentEnabledVersionInLibrary,
+        isExperimentEnabled,
+        isExperimentEnabledInLibrary;
 
 import 'file_system.dart' show FileSystem;
 
@@ -254,6 +257,17 @@ class CompilerOptions {
   /// If `true`, a '.d' file with input dependencies is generated when
   /// compiling the platform dill.
   bool emitDeps = true;
+
+  bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
+    return flags.isExperimentEnabled(flag,
+        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
+  }
+
+  bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
+    return flags.isExperimentEnabled(flag,
+        experimentalFlags: experimentalFlags,
+        defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
+  }
 
   bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
     return flags.isExperimentEnabledInLibrary(flag, importUri,

@@ -3092,6 +3092,60 @@ const MessageCode messageExpectedUri =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String
+            string)> templateExperimentDisabled = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""This requires the '#string' language feature to be enabled.""",
+    tipTemplate:
+        r"""The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed.""",
+    withArguments: _withArgumentsExperimentDisabled);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeExperimentDisabled =
+    const Code<Message Function(String string)>(
+        "ExperimentDisabled", templateExperimentDisabled,
+        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentDisabled(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentDisabled,
+      message:
+          """This requires the '${string}' language feature to be enabled.""",
+      tip:
+          """The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-${string}' command line option is passed.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string2)>
+    templateExperimentDisabledInvalidLanguageVersion =
+    const Template<Message Function(String string2)>(
+        messageTemplate:
+            r"""This requires the null safety language feature, which requires language version of #string2 or higher.""",
+        withArguments: _withArgumentsExperimentDisabledInvalidLanguageVersion);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string2)>
+    codeExperimentDisabledInvalidLanguageVersion =
+    const Code<Message Function(String string2)>(
+        "ExperimentDisabledInvalidLanguageVersion",
+        templateExperimentDisabledInvalidLanguageVersion,
+        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExperimentDisabledInvalidLanguageVersion(String string2) {
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeExperimentDisabledInvalidLanguageVersion,
+      message:
+          """This requires the null safety language feature, which requires language version of ${string2} or higher.""",
+      arguments: {'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String string,
         String
             string2)> templateExperimentNotEnabled = const Template<

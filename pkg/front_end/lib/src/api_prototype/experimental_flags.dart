@@ -50,7 +50,8 @@ class AllowedExperimentalFlags {
 /// If [flag] is marked as expired in [expiredExperimentalFlags], the value from
 /// [defaultExperimentalFlags] is always returned.
 bool isExperimentEnabled(ExperimentalFlag flag,
-    {Map<ExperimentalFlag, bool> experimentalFlags}) {
+    {Map<ExperimentalFlag, bool> experimentalFlags,
+    Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
   assert(expiredExperimentalFlags.containsKey(flag),
@@ -61,6 +62,9 @@ bool isExperimentEnabled(ExperimentalFlag flag,
   bool enabled;
   if (experimentalFlags != null) {
     enabled = experimentalFlags[flag];
+  }
+  if (defaultExperimentFlagsForTesting != null) {
+    enabled ??= defaultExperimentFlagsForTesting[flag];
   }
   enabled ??= defaultExperimentalFlags[flag];
   return enabled;

@@ -110,6 +110,19 @@ abstract class StackListenerImpl extends StackListener {
             token.charOffset,
             token.charCount);
       }
+    } else if (libraryBuilder.loader.target
+        .isExperimentEnabledByDefault(ExperimentalFlag.nonNullable)) {
+      if (libraryBuilder.languageVersion.version <
+          libraryBuilder.enableNonNullableVersionInLibrary) {
+        addProblem(
+            templateExperimentDisabledInvalidLanguageVersion.withArguments(
+                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            token.offset,
+            noLength);
+      } else {
+        addProblem(templateExperimentDisabled.withArguments('non-nullable'),
+            token.offset, noLength);
+      }
     } else if (!libraryBuilder.loader.target
         .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
       if (libraryBuilder.languageVersion.version <

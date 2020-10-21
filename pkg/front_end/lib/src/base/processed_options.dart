@@ -342,9 +342,22 @@ class ProcessedOptions {
   /// This is `true` either if the [flag] is passed through an explicit
   /// `--enable-experiment` option or if the [flag] is expired and on by
   /// default.
+  bool isExperimentEnabledByDefault(flags.ExperimentalFlag flag) {
+    return flags.isExperimentEnabled(flag,
+        defaultExperimentFlagsForTesting:
+            _raw.defaultExperimentFlagsForTesting);
+  }
+
+  /// Returns `true` if the [flag] is enabled globally.
+  ///
+  /// This is `true` either if the [flag] is passed through an explicit
+  /// `--enable-experiment` option or if the [flag] is expired and on by
+  /// default.
   bool isExperimentEnabledGlobally(flags.ExperimentalFlag flag) {
     return flags.isExperimentEnabled(flag,
-        experimentalFlags: _raw.experimentalFlags);
+        experimentalFlags: _raw.experimentalFlags,
+        defaultExperimentFlagsForTesting:
+            _raw.defaultExperimentFlagsForTesting);
   }
 
   /// Returns `true` if the [flag] is enabled in the library with the given
