@@ -42,7 +42,6 @@ class VoidChecks extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addMethodInvocation(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addAssignmentExpression(this, visitor);
@@ -56,8 +55,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LinterContext context;
   final TypeSystem typeSystem;
 
-  InterfaceType _futureDynamicType;
-
   _Visitor(this.rule, this.context) : typeSystem = context.typeSystem;
 
   bool isTypeAcceptableWhenExpectingVoid(DartType type) {
@@ -65,10 +62,21 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type.isDartCoreNull) return true;
     if (type.isDartAsyncFuture &&
         type is InterfaceType &&
-        (type.typeArguments.first.isVoid ||
-            type.typeArguments.first.isDartCoreNull)) {
+        isTypeAcceptableWhenExpectingVoid(type.typeArguments.first)) {
       return true;
     }
+    return false;
+  }
+
+  bool isTypeAcceptableWhenExpectingFutureOrVoid(DartType type) {
+    if (type.isDynamic) return true;
+    if (isTypeAcceptableWhenExpectingVoid(type)) return true;
+    if (type.isDartAsyncFutureOr &&
+        type is InterfaceType &&
+        isTypeAcceptableWhenExpectingFutureOrVoid(type.typeArguments.first)) {
+      return true;
+    }
+
     return false;
   }
 
@@ -77,11 +85,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     final type = node.writeType;
     _check(type, node.rightHandSide?.staticType, node,
         checkedNode: node.rightHandSide);
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _futureDynamicType = context.typeProvider.futureDynamicType;
   }
 
   @override
@@ -131,11 +134,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     checkedNode ??= node;
     if (expectedType == null || type == null) {
       return;
-    } else if (expectedType.isVoid &&
-            !isTypeAcceptableWhenExpectingVoid(type) ||
-        expectedType.isDartAsyncFutureOr &&
-            (expectedType as InterfaceType).typeArguments.first.isVoid &&
-            !typeSystem.isAssignableTo(type, _futureDynamicType)) {
+    }
+    if (expectedType.isVoid && !isTypeAcceptableWhenExpectingVoid(type)) {
+      rule.reportLint(node);
+    } else if (expectedType.isDartAsyncFutureOr &&
+        (expectedType as InterfaceType).typeArguments.first.isVoid &&
+        !isTypeAcceptableWhenExpectingFutureOrVoid(type)) {
       rule.reportLint(node);
     } else if (checkedNode is FunctionExpression &&
         checkedNode.body is! ExpressionFunctionBody &&

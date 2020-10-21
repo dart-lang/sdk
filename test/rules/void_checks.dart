@@ -207,3 +207,7 @@ missing_parameter_for_argument() {
   void foo() {}
   foo(0);
 }
+
+void emptyFunctionExpressionReturningFutureOrVoid(FutureOr<void> Function() f) {
+  f = () {}; // OK
+}
