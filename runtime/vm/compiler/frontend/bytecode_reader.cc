@@ -616,8 +616,7 @@ TypePtr BytecodeReaderHelper::ReadFunctionSignature(
     // as not all TypeRef objects are filled up at this point.
     finalization = ClassFinalizer::kFinalize;
   }
-  type =
-      ClassFinalizer::FinalizeType(*(active_class_->klass), type, finalization);
+  type = ClassFinalizer::FinalizeType(type, finalization);
   return Type::Cast(type).raw();
 }
 

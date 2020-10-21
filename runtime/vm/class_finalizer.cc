@@ -329,8 +329,7 @@ void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
 // as an implementation restriction in the VM since they cause divergence.
 // A non-contractive type can be detected by looking at the queue of types
 // pending finalization that are mutually recursive with the checked type.
-void ClassFinalizer::CheckRecursiveType(const Class& cls,
-                                        const AbstractType& type,
+void ClassFinalizer::CheckRecursiveType(const AbstractType& type,
                                         PendingTypes* pending_types) {
   ASSERT(pending_types != NULL);
   Zone* zone = Thread::Current()->zone();
@@ -403,8 +402,7 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
                 instantiated_arguments, first_type_param, num_type_params,
                 TypeEquality::kInSubtypeTest)) {
           const String& type_name = String::Handle(zone, type.Name());
-          ReportError(cls, type.token_pos(), "illegal recursive type '%s'",
-                      type_name.ToCString());
+          ReportError("illegal recursive type '%s'", type_name.ToCString());
         }
       }
     }
@@ -414,7 +412,6 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
 // Expand the type arguments of the given type and finalize its full type
 // argument vector. Return the number of type arguments (0 for a raw type).
 intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
-    const Class& cls,
     const AbstractType& type,
     PendingTypes* pending_types) {
   Zone* zone = Thread::Current()->zone();
@@ -478,21 +475,7 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
         for (intptr_t i = 0; i < num_type_parameters; i++) {
           type_arg = full_arguments.TypeAt(offset + i);
           ASSERT(!type_arg.IsBeingFinalized());
-          type_arg = FinalizeType(cls, type_arg, kFinalize, pending_types);
-          if (type_arg.IsFunctionType()) {
-            const Function& signature_function =
-                Function::Handle(zone, Type::Cast(type_arg).signature());
-            if (signature_function.IsGeneric()) {
-              const String& type_arg_name =
-                  String::Handle(zone, type_arg.UserVisibleName());
-              const String& type_name =
-                  String::Handle(zone, type.UserVisibleName());
-              ReportError(cls, type_arg.token_pos(),
-                          "generic function type '%s' not allowed as type "
-                          "argument of type '%s'",
-                          type_arg_name.ToCString(), type_name.ToCString());
-            }
-          }
+          type_arg = FinalizeType(type_arg, kFinalize, pending_types);
           full_arguments.SetTypeAt(offset + i, type_arg);
         }
       }
@@ -565,7 +548,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
     const intptr_t num_super_type_params = super_class.NumTypeParameters();
     const intptr_t num_super_type_args = super_class.NumTypeArguments();
     if (!super_type.IsFinalized() && !super_type.IsBeingFinalized()) {
-      super_type = FinalizeType(cls, super_type, kFinalize, pending_types);
+      super_type = FinalizeType(super_type, kFinalize, pending_types);
       cls.set_super_type(super_type);
     }
     TypeArguments& super_type_args =
@@ -580,7 +563,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
         if (!super_type_arg.IsTypeRef()) {
           if (super_type_arg.IsBeingFinalized()) {
             ASSERT(super_type_arg.IsType());
-            CheckRecursiveType(cls, super_type_arg, pending_types);
+            CheckRecursiveType(super_type_arg, pending_types);
             if (FLAG_trace_type_finalization) {
               THR_Print("Creating TypeRef '%s': '%s'\n",
                         String::Handle(super_type_arg.Name()).ToCString(),
@@ -591,7 +574,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
           } else {
             if (!super_type_arg.IsFinalized()) {
               super_type_arg =
-                  FinalizeType(cls, super_type_arg, kFinalize, pending_types);
+                  FinalizeType(super_type_arg, kFinalize, pending_types);
               super_type_args.SetTypeAt(i, super_type_arg);
               // Note that super_type_arg may still not be finalized here, in
               // which case it is a TypeRef to a legal recursive type.
@@ -638,7 +621,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                         String::Handle(unfinalized_type.Name()).ToCString(),
                         unfinalized_type.ToCString());
             }
-            CheckRecursiveType(cls, unfinalized_type, pending_types);
+            CheckRecursiveType(unfinalized_type, pending_types);
             pending_types->Add(unfinalized_type);
             const Class& super_cls =
                 Class::Handle(unfinalized_type.type_class());
@@ -670,8 +653,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
   }
 }
 
-AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
-                                             const AbstractType& type,
+AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
                                              FinalizationKind finalization,
                                              PendingTypes* pending_types) {
   // Only the 'root' type of the graph can be canonicalized, after all depending
@@ -699,9 +681,8 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
   Zone* zone = Thread::Current()->zone();
 
   if (FLAG_trace_type_finalization) {
-    THR_Print("Finalizing type '%s' for class '%s'\n",
-              String::Handle(zone, type.Name()).ToCString(),
-              String::Handle(zone, cls.Name()).ToCString());
+    THR_Print("Finalizing type '%s'\n",
+              String::Handle(zone, type.Name()).ToCString());
   }
 
   if (type.IsTypeParameter()) {
@@ -751,7 +732,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
   }
 
   const intptr_t num_expanded_type_arguments =
-      ExpandAndFinalizeTypeArguments(cls, type, pending_types);
+      ExpandAndFinalizeTypeArguments(type, pending_types);
 
   // Self referencing types may get finalized indirectly.
   if (!type.IsFinalized()) {
@@ -768,7 +749,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
         Function& signature =
             Function::Handle(zone, scope_class.signature_function());
         if (!scope_class.is_type_finalized()) {
-          FinalizeSignature(scope_class, signature, finalization);
+          FinalizeSignature(signature, finalization);
         }
         // If the function type is a generic typedef, instantiate its signature
         // from its type arguments.
@@ -793,19 +774,18 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
           // parameters were substituted in the signature with typedef type
           // arguments). Note also that the function type parameters were not
           // modified.
-          FinalizeSignature(scope_class, signature, finalization);
+          FinalizeSignature(signature, finalization);
         }
         fun_type.set_signature(signature);
       } else {
-        FinalizeSignature(cls, Function::Handle(zone, fun_type.signature()),
+        FinalizeSignature(Function::Handle(zone, fun_type.signature()),
                           finalization);
       }
     }
 
     if (FLAG_trace_type_finalization) {
-      THR_Print("Marking type '%s' as finalized for class '%s'\n",
-                String::Handle(zone, type.Name()).ToCString(),
-                String::Handle(zone, cls.Name()).ToCString());
+      THR_Print("Marking type '%s' as finalized\n",
+                String::Handle(zone, type.Name()).ToCString());
     }
     // Mark the type as finalized.
     type.SetIsFinalized();
@@ -833,8 +813,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
   }
 }
 
-void ClassFinalizer::FinalizeSignature(const Class& cls,
-                                       const Function& function,
+void ClassFinalizer::FinalizeSignature(const Function& function,
                                        FinalizationKind finalization) {
   AbstractType& type = AbstractType::Handle();
   AbstractType& finalized_type = AbstractType::Handle();
@@ -858,7 +837,7 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       type = type_param.bound();
-      finalized_type = FinalizeType(cls, type, finalization);
+      finalized_type = FinalizeType(type, finalization);
       if (finalized_type.raw() != type.raw()) {
         type_param.set_bound(finalized_type);
       }
@@ -866,7 +845,7 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   }
   // Finalize result type.
   type = function.result_type();
-  finalized_type = FinalizeType(cls, type, finalization);
+  finalized_type = FinalizeType(type, finalization);
   if (finalized_type.raw() != type.raw()) {
     function.set_result_type(finalized_type);
   }
@@ -874,7 +853,7 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   const intptr_t num_parameters = function.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    finalized_type = FinalizeType(cls, type, finalization);
+    finalized_type = FinalizeType(type, finalization);
     if (type.raw() != finalized_type.raw()) {
       function.SetParameterTypeAt(i, finalized_type);
     }
@@ -894,24 +873,12 @@ void ClassFinalizer::FinalizeUpperBounds(const Class& cls,
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_param ^= type_params.TypeAt(i);
     bound = type_param.bound();
-    if (bound.IsFunctionType()) {
-      const Function& signature_function =
-          Function::Handle(Type::Cast(bound).signature());
-      if (signature_function.IsGeneric()) {
-        const String& bound_name = String::Handle(bound.UserVisibleName());
-        const String& type_param_name = String::Handle(type_param.name());
-        ReportError(cls, bound.token_pos(),
-                    "generic function type '%s' not allowed as bound of "
-                    "class type parameter '%s'",
-                    bound_name.ToCString(), type_param_name.ToCString());
-      }
-    }
     // Bound may be finalized, but not canonical yet.
     if (bound.IsCanonical() || bound.IsBeingFinalized()) {
       // A bound involved in F-bounded quantification may form a cycle.
       continue;
     }
-    bound = FinalizeType(cls, bound, finalization);
+    bound = FinalizeType(bound, finalization);
     type_param.set_bound(bound);
   }
 }
@@ -966,7 +933,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
-    type = FinalizeType(cls, type);
+    type = FinalizeType(type);
     field.SetFieldType(type);
     if (track_exactness && IsPotentialExactGeneric(type)) {
       field.set_static_type_exactness_state(
@@ -980,14 +947,14 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
   const intptr_t num_functions = array.Length();
   for (intptr_t i = 0; i < num_functions; i++) {
     function ^= array.At(i);
-    FinalizeSignature(cls, function);
+    FinalizeSignature(function);
     if (function.IsSetterFunction() || function.IsImplicitSetterFunction()) {
       continue;
     }
     if (function.is_static()) {
       if (function.IsRedirectingFactory()) {
         Type& type = Type::Handle(zone, function.RedirectionType());
-        type ^= FinalizeType(cls, type);
+        type ^= FinalizeType(type);
         function.SetRedirectionType(type);
       }
     }
@@ -1034,14 +1001,13 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     FinalizeTypesInClass(super_class);
   }
   // Finalize type parameters before finalizing the super type.
-  FinalizeTypeParameters(cls);  // May change super type while applying mixin.
-  super_class = cls.SuperClass();  // Get again possibly changed super class.
+  FinalizeTypeParameters(cls);
   ASSERT(super_class.IsNull() || super_class.is_type_finalized());
   FinalizeUpperBounds(cls);
   // Finalize super type.
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
-    super_type = FinalizeType(cls, super_type);
+    super_type = FinalizeType(super_type);
     cls.set_super_type(super_type);
   }
   if (cls.IsTypedefClass()) {
@@ -1054,11 +1020,11 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 
     // Finalize the result and parameter types of the signature
     // function of this typedef class.
-    FinalizeSignature(cls, signature);  // Does not modify signature type.
+    FinalizeSignature(signature);  // Does not modify signature type.
     ASSERT(signature.SignatureType() == type.raw());
 
     // Finalize the signature type of this typedef.
-    type ^= FinalizeType(cls, type);
+    type ^= FinalizeType(type);
     ASSERT(type.type_class() == cls.raw());
 
     // If a different canonical signature type is returned, update the signature
@@ -1079,7 +1045,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   AbstractType& interface_type = AbstractType::Handle();
   for (intptr_t i = 0; i < interface_types.Length(); i++) {
     interface_type ^= interface_types.At(i);
-    interface_type = FinalizeType(cls, interface_type);
+    interface_type = FinalizeType(interface_type);
     interface_types.SetAt(i, interface_type);
   }
   cls.set_is_type_finalized();
@@ -1353,28 +1319,12 @@ void ClassFinalizer::ReportError(const Error& error) {
   UNREACHABLE();
 }
 
-void ClassFinalizer::ReportErrors(const Error& prev_error,
-                                  const Class& cls,
-                                  TokenPosition token_pos,
-                                  const char* format,
-                                  ...) {
+void ClassFinalizer::ReportError(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  const Script& script = Script::Handle(cls.script());
-  Report::LongJumpV(prev_error, script, token_pos, format, args);
-  va_end(args);
-  UNREACHABLE();
-}
-
-void ClassFinalizer::ReportError(const Class& cls,
-                                 TokenPosition token_pos,
-                                 const char* format,
-                                 ...) {
-  va_list args;
-  va_start(args, format);
-  const Script& script = Script::Handle(cls.script());
-  Report::MessageV(Report::kError, script, token_pos, Report::AtLocation,
-                   format, args);
+  const Script& null_script = Script::Handle();
+  Report::MessageV(Report::kError, null_script, TokenPosition::kNoSource,
+                   Report::AtLocation, format, args);
   va_end(args);
   UNREACHABLE();
 }

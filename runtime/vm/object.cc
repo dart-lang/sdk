@@ -2838,7 +2838,7 @@ AbstractTypePtr Class::RareType() const {
   const Type& type = Type::Handle(
       Type::New(*this, Object::null_type_arguments(), TokenPosition::kNoSource,
                 Nullability::kNonNullable));
-  return ClassFinalizer::FinalizeType(*this, type);
+  return ClassFinalizer::FinalizeType(type);
 }
 
 template <class FakeObject, class TargetFakeObject>
@@ -5021,7 +5021,7 @@ TypePtr Class::DeclarationType() const {
   Type& type =
       Type::Handle(Type::New(*this, TypeArguments::Handle(type_parameters()),
                              token_pos(), Nullability::kNonNullable));
-  type ^= ClassFinalizer::FinalizeType(*this, type);
+  type ^= ClassFinalizer::FinalizeType(type);
   set_declaration_type(type);
   return type.raw();
 }
@@ -8922,7 +8922,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
-    ClassFinalizer::FinalizeType(Class::Handle(zone, Owner()), signature_type);
+    ClassFinalizer::FinalizeType(signature_type);
   }
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());

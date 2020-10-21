@@ -25,17 +25,14 @@ class ClassFinalizer : public AllStatic {
     kCanonicalize  // Finalize and canonicalize.
   };
 
-  // Finalize given type while parsing class cls.
-  // Also canonicalize and bound check type if applicable.
+  // Finalize given type.
   static AbstractTypePtr FinalizeType(
-      const Class& cls,
       const AbstractType& type,
       FinalizationKind finalization = kCanonicalize,
       PendingTypes* pending_types = NULL);
 
-  // Finalize the types in the functions's signature while parsing class cls.
-  static void FinalizeSignature(const Class& cls,
-                                const Function& function,
+  // Finalize the types in the functions's signature.
+  static void FinalizeSignature(const Function& function,
                                 FinalizationKind finalization = kCanonicalize);
 
   // Return false if we still have classes pending to be finalized.
@@ -83,16 +80,14 @@ class ClassFinalizer : public AllStatic {
  private:
   static void AllocateEnumValues(const Class& enum_cls);
   static void FinalizeTypeParameters(const Class& cls);
-  static intptr_t ExpandAndFinalizeTypeArguments(const Class& cls,
-                                                 const AbstractType& type,
+  static intptr_t ExpandAndFinalizeTypeArguments(const AbstractType& type,
                                                  PendingTypes* pending_types);
   static void FinalizeTypeArguments(const Class& cls,
                                     const TypeArguments& arguments,
                                     intptr_t num_uninitialized_arguments,
                                     PendingTypes* pending_types,
                                     TrailPtr trail);
-  static void CheckRecursiveType(const Class& cls,
-                                 const AbstractType& type,
+  static void CheckRecursiveType(const AbstractType& type,
                                  PendingTypes* pending_types);
   static void FinalizeUpperBounds(
       const Class& cls,
@@ -101,15 +96,7 @@ class ClassFinalizer : public AllStatic {
   static void PrintClassInformation(const Class& cls);
 
   static void ReportError(const Error& error);
-  static void ReportError(const Class& cls,
-                          TokenPosition token_pos,
-                          const char* format,
-                          ...) PRINTF_ATTRIBUTE(3, 4);
-  static void ReportErrors(const Error& prev_error,
-                           const Class& cls,
-                           TokenPosition token_pos,
-                           const char* format,
-                           ...) PRINTF_ATTRIBUTE(4, 5);
+  static void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
 
   // Verify implicit offsets recorded in the VM for direct access to fields of
   // Dart instances (e.g: _TypedListView, _ByteDataView).

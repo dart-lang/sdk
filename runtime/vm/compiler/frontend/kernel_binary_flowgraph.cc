@@ -3254,8 +3254,7 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
       Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).raw());
 
       // TODO(27590): Can we move this code into [ReceiverType]?
-      type ^= ClassFinalizer::FinalizeType(*active_class()->klass, type,
-                                           ClassFinalizer::kFinalize);
+      type ^= ClassFinalizer::FinalizeType(type, ClassFinalizer::kFinalize);
       TypeArguments& canonicalized_type_arguments =
           TypeArguments::ZoneHandle(Z, type.arguments());
       canonicalized_type_arguments =
@@ -5062,8 +5061,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
       // Finalize function type.
       Type& signature_type = Type::Handle(Z, function.SignatureType());
-      signature_type ^=
-          ClassFinalizer::FinalizeType(*active_class()->klass, signature_type);
+      signature_type ^= ClassFinalizer::FinalizeType(signature_type);
       function.SetSignatureType(signature_type);
 
       I->AddClosureFunction(function);

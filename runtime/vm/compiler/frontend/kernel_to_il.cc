@@ -2704,7 +2704,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       const Class& owner = Class::ZoneHandle(Z, parent.Owner());
       AbstractType& type = AbstractType::ZoneHandle(Z);
       type = Type::New(owner, TypeArguments::Handle(Z), owner.token_pos());
-      type = ClassFinalizer::FinalizeType(owner, type);
+      type = ClassFinalizer::FinalizeType(type);
       body += Constant(type);
     } else {
       body += LoadLocal(parsed_function_->current_context_var());

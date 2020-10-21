@@ -3009,7 +3009,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
-    result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+    result_ = ClassFinalizer::FinalizeType(result_);
   }
 }
 
@@ -3108,8 +3108,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       Type::ZoneHandle(Z, signature_function.SignatureType(nullability));
 
   if (finalize_) {
-    signature_type ^=
-        ClassFinalizer::FinalizeType(*active_class_->klass, signature_type);
+    signature_type ^= ClassFinalizer::FinalizeType(signature_type);
     // Do not refer to signature_function anymore, since it may have been
     // replaced during canonicalization.
     signature_function = Function::null();
@@ -3186,8 +3185,7 @@ void TypeTranslator::BuildTypeParameterType() {
         active_class_->RecordDerivedTypeParameter(Z, type_param,
                                                   TypeParameter::Cast(result_));
         if (finalize_) {
-          result_ =
-              ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+          result_ = ClassFinalizer::FinalizeType(result_);
         }
         return;
       }
@@ -3203,7 +3201,7 @@ void TypeTranslator::BuildTypeParameterType() {
       active_class_->RecordDerivedTypeParameter(Z, type_param,
                                                 TypeParameter::Cast(result_));
       if (finalize_) {
-        result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+        result_ = ClassFinalizer::FinalizeType(result_);
       }
       return;
     }
@@ -3267,7 +3265,7 @@ const TypeArguments& TypeTranslator::BuildInstantiatedTypeArguments(
   Type& type = Type::Handle(
       Z, Type::New(receiver_class, type_arguments, TokenPosition::kNoSource));
   if (finalize_) {
-    type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type);
+    type ^= ClassFinalizer::FinalizeType(type);
   }
 
   const TypeArguments& instantiated_type_arguments =
