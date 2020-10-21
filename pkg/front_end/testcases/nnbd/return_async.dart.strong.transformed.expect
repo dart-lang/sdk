@@ -139,7 +139,7 @@ static method customErrorZone() → asy::Future<void> /* originally async */ {
           :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
           :async_completer.{asy::_AsyncAwaitCompleter::start}(:async_op);
           return :async_completer.{asy::Completer::future};
-        }, (core::Object e, core::StackTrace s) → core::Null? {
+        }, (core::Object e, core::StackTrace s) → void {
           completer.{asy::Completer::completeError}(e, s);
         });
         :return_value = completer.{asy::Completer::future};

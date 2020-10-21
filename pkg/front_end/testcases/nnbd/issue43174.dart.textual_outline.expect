@@ -1,0 +1,6 @@
+import 'dart:async';
+
+method(void Function() f) {}
+method2(FutureOr<void> Function() f) {}
+test() {}
+main() {}

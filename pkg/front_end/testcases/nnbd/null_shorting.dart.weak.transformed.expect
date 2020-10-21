@@ -110,12 +110,12 @@ static method propertyAccess(self::Class1? n1) → void {
   let final self::Class1? #t11 = n1 in #t11.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t12 = #t11{self::Class1}.{self::Class1::nullable1} in #t12.{core::Object::==}(null) ?{self::Class1?} null : #t12{self::Class1}.{self::Class1::nullable1} = new self::Class1::•();
   let final self::Class1? #t13 = n1 in #t13.{core::Object::==}(null) ?{self::Class1?} null : let final self::Class1? #t14 = #t13{self::Class1}.{self::Class1::nonNullable1}.{self::Class1::nullable1} in #t14.{core::Object::==}(null) ?{self::Class1?} null : #t14{self::Class1}.{self::Class1::nullable1} = new self::Class1::•();
   let final self::Class1? #t15 = let final self::Class1? #t16 = n1 in #t16.{core::Object::==}(null) ?{self::Class1?} null : #t16{self::Class1}.{self::Class1::nullable1} in #t15.{core::Object::==}(null) ?{self::Class1?} null : #t15{self::Class1}.{self::Class1::nullable1};
-  self::throws(() → self::Class1? => let final<BottomType> #t17 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:87:47: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+  self::throws(() → void => let final<BottomType> #t17 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:87:47: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
 Try accessing using ?. instead.
   throws(() => (n1?.nullable1 = new Class1()).nullable1);
                                               ^^^^^^^^^" in (let final self::Class1? #t18 = n1 in #t18.{core::Object::==}(null) ?{self::Class1?} null : #t18{self::Class1}.{self::Class1::nullable1} = new self::Class1::•()).{self::Class1::nullable1});
-  self::throws(() → self::Class1? => let final<BottomType> #t19 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:88:43: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+  self::throws(() → void => let final<BottomType> #t19 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:88:43: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
 Try accessing using ?. instead.
   throws(() => (n1?.nonNullable1Method()).nullable1);
@@ -232,11 +232,11 @@ static method indexAccess(self::Class1? n1, self::Class2? n2, self::Class3? n3) 
 }
 static method operatorAccess(self::Class1? n1, self::Class2? n2) → void {
   self::Class2? nullable2 = n2;
-  self::throws(() → self::Class1? => let final<BottomType> #t241 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:220:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
+  self::throws(() → void => let final<BottomType> #t241 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:220:33: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
   throws(() => n1?.nonNullable1 + 0);
                                 ^" in (let final self::Class1? #t242 = n1 in #t242.{core::Object::==}(null) ?{self::Class1?} null : #t242{self::Class1}.{self::Class1::nonNullable1}).{self::Class1::+}(0));
-  self::throws(() → self::Class1? => let final<BottomType> #t243 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:221:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
+  self::throws(() → void => let final<BottomType> #t243 = invalid-expression "pkg/front_end/testcases/nnbd/null_shorting.dart:221:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
   throws(() => -n1?.nonNullable1);
                ^" in (let final self::Class1? #t244 = n1 in #t244.{core::Object::==}(null) ?{self::Class1?} null : #t244{self::Class1}.{self::Class1::nonNullable1}).{self::Class1::unary-}());

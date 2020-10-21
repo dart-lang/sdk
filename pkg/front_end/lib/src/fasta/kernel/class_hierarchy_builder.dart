@@ -3681,6 +3681,11 @@ class CombinedMemberSignature {
           }
         }
       }
+      if (_mutualSubtypes?.length == 1) {
+        /// If all mutual subtypes have the same type, the type should not
+        /// be normalized.
+        _mutualSubtypes = null;
+      }
       if (bestSoFar != null) {
         for (int candidateIndex = 0;
             candidateIndex < members.length;

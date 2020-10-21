@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43174.dart:17:12: Error: Can't return a value from a void function.
+//     return 42; // error
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method method(() → void f) → dynamic {
+  f.call();
+}
+static method method2(() → FutureOr<void>f) → dynamic {
+  f.call();
+}
+static method test() → dynamic {
+  self::method(() → void {
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue43174.dart:17:12: Error: Can't return a value from a void function.
+    return 42; // error
+           ^" in 42;
+  });
+  self::method2(() → core::int {
+    return 42;
+  });
+}
+static method main() → dynamic {}

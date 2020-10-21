@@ -191,7 +191,7 @@ namespace dart {
   V(Pointer, get:address, FfiGetAddress, 0x012b2b9f)                           \
   V(::, reachabilityFence, ReachabilityFence, 0xad39d0a6)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x78f44c3c)                          \
-  V(_Future, timeout, FutureTimeout, 0x010f8ad4)                               \
+  V(_Future, timeout, FutureTimeout, 0xdea67258)                               \
   V(Future, wait, FutureWait, 0x6c0c3295)                                      \
 
 // List of intrinsics:

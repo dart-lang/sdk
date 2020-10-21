@@ -294,15 +294,16 @@ class _SyncClosureContext implements ClosureContext {
       {bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
     assert(hasImplicitReturn != null);
-    DartType inferredType;
+    DartType actualReturnedType;
+    DartType inferredReturnType;
     if (inferrer.isNonNullableByDefault) {
       if (hasImplicitReturn) {
         // No explicit returns we have an implicit `return null`.
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
+        actualReturnedType = inferrer.typeSchemaEnvironment.nullType;
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
-        inferredType = new NeverType(inferrer.library.nonNullable);
+        actualReturnedType = new NeverType(inferrer.library.nonNullable);
       }
       // Use the types seen from the explicit return statements.
       for (int i = 0; i < _returnStatements.length; i++) {
@@ -315,12 +316,31 @@ class _SyncClosureContext implements ClosureContext {
             type = inferrer.computeGreatestClosure(_returnContext);
           }
         }
-        if (inferredType == null) {
-          inferredType = type;
+        if (actualReturnedType == null) {
+          actualReturnedType = type;
         } else {
-          inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-              inferredType, type, inferrer.library.library);
+          actualReturnedType = inferrer.typeSchemaEnvironment
+              .getStandardUpperBound(
+                  actualReturnedType, type, inferrer.library.library);
         }
+      }
+
+      // Let T be the actual returned type of a function literal as computed
+      // above. Let R be the greatest closure of the typing context K as
+      // computed above.
+      DartType returnContext =
+          inferrer.computeGreatestClosure2(_declaredReturnType);
+      if (returnContext is VoidType) {
+        // With null safety: if R is void, or the function literal is marked
+        // async and R is FutureOr<void>, let S be void.
+        inferredReturnType = const VoidType();
+      } else if (inferrer.typeSchemaEnvironment.isSubtypeOf(actualReturnedType,
+          returnContext, SubtypeCheckMode.withNullabilities)) {
+        // Otherwise, if T <: R then let S be T.
+        inferredReturnType = actualReturnedType;
+      } else {
+        // Otherwise, let S be R.
+        inferredReturnType = returnContext;
       }
     } else {
       if (_returnStatements.isNotEmpty) {
@@ -335,37 +355,41 @@ class _SyncClosureContext implements ClosureContext {
               type = inferrer.computeGreatestClosure(_returnContext);
             }
           }
-          if (inferredType == null) {
-            inferredType = type;
+          if (actualReturnedType == null) {
+            actualReturnedType = type;
           } else {
-            inferredType = inferrer.typeSchemaEnvironment.getStandardUpperBound(
-                inferredType, type, inferrer.library.library);
+            actualReturnedType = inferrer.typeSchemaEnvironment
+                .getStandardUpperBound(
+                    actualReturnedType, type, inferrer.library.library);
           }
         }
       } else if (hasImplicitReturn) {
         // No explicit returns we have an implicit `return null`.
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
+        actualReturnedType = inferrer.typeSchemaEnvironment.nullType;
       } else {
         // No explicit return and the function doesn't complete normally; that
         // is, it throws.
-        inferredType = inferrer.typeSchemaEnvironment.nullType;
+        actualReturnedType = inferrer.typeSchemaEnvironment.nullType;
+      }
+
+      if (!inferrer.typeSchemaEnvironment.isSubtypeOf(actualReturnedType,
+          _returnContext, SubtypeCheckMode.withNullabilities)) {
+        // If the inferred return type isn't a subtype of the context, we use
+        // the context.
+        inferredReturnType =
+            inferrer.computeGreatestClosure2(_declaredReturnType);
+      } else {
+        inferredReturnType = actualReturnedType;
       }
     }
 
-    if (!inferrer.typeSchemaEnvironment.isSubtypeOf(
-        inferredType, _returnContext, SubtypeCheckMode.withNullabilities)) {
-      // If the inferred return type isn't a subtype of the context, we use the
-      // context.
-      inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
-    }
-
     for (int i = 0; i < _returnStatements.length; ++i) {
-      _checkValidReturn(inferrer, inferredType, _returnStatements[i],
+      _checkValidReturn(inferrer, inferredReturnType, _returnStatements[i],
           _returnExpressionTypes[i]);
     }
 
     return _inferredReturnType =
-        demoteTypeInLibrary(inferredType, inferrer.library.library);
+        demoteTypeInLibrary(inferredReturnType, inferrer.library.library);
   }
 
   @override

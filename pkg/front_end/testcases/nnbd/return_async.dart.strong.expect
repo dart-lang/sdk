@@ -25,7 +25,7 @@ static method customErrorZone() → asy::Future<void> async {
   asy::runZonedGuarded<asy::Future<core::Null?>>(() → asy::Future<core::Null?> async {
     await self::allYield();
     completer.{asy::Completer::complete}(null);
-  }, (core::Object e, core::StackTrace s) → core::Null? {
+  }, (core::Object e, core::StackTrace s) → void {
     completer.{asy::Completer::completeError}(e, s);
   });
   return completer.{asy::Completer::future};

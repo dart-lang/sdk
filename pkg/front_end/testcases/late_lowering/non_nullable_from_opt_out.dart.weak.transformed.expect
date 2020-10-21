@@ -165,8 +165,8 @@ static method method<T extends core::Object = core::Object>(core::bool b, core::
     non::expect(t, #localTypeVariable#get.call());
     non::expect(t, #finalLocalTypeVariable#get.call());
   }
-  non::throws(() → core::int => #finalLocal#set.call(i));
-  non::throws(() → non::method::T => #finalLocalTypeVariable#set.call(t));
+  non::throws(() → void => #finalLocal#set.call(i));
+  non::throws(() → void => #finalLocalTypeVariable#set.call(t));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))
