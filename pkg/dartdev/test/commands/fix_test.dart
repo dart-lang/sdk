@@ -39,7 +39,7 @@ linter:
     var result = p.runSync('fix', [], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Fixed 1 files.'));
+    expect(result.stdout, contains('Fixed 1 file.'));
   });
 
   test('.', () {
@@ -56,7 +56,7 @@ linter:
     var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Fixed 1 files.'));
+    expect(result.stdout, contains('Fixed 1 file.'));
   });
 
   // todo (pq): add tests for analyzer excludes, ignores, etc.

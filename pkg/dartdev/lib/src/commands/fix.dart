@@ -13,6 +13,7 @@ import '../analysis_server.dart';
 import '../core.dart';
 import '../events.dart';
 import '../sdk.dart';
+import '../utils.dart';
 
 class FixCommand extends DartdevCommand<int> {
   static const String cmdName = 'fix';
@@ -76,7 +77,7 @@ class FixCommand extends DartdevCommand<int> {
       var fileCount = await _applyFixes(edits);
       progress.finish(showTiming: true);
       if (fileCount > 0) {
-        log.stdout('Fixed $fileCount files.');
+        log.stdout('Fixed $fileCount ${pluralize("file", fileCount)}.');
       }
     }
 
