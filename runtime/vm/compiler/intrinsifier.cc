@@ -292,6 +292,14 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     AsmIntrinsifier::enum_name(compiler->assembler(), &normal_ir_body);        \
     const auto size_after = compiler->assembler()->CodeSize();                 \
     if (size_before == size_after) return false;                               \
+    if (function.HasUnboxedParameters()) {                                     \
+      FATAL1("Unsupported unboxed parameters in asm intrinsic %s",             \
+             function.ToFullyQualifiedCString());                              \
+    }                                                                          \
+    if (function.HasUnboxedReturnValue()) {                                    \
+      FATAL1("Unsupported unboxed return value in asm intrinsic %s",           \
+             function.ToFullyQualifiedCString());                              \
+    }                                                                          \
     if (!normal_ir_body.IsBound()) {                                           \
       EMIT_BREAKPOINT();                                                       \
       return true;                                                             \

@@ -41,8 +41,6 @@ class AsmIntrinsifier : public AllStatic {
   // `runtime/lib/math_patch.dart:_Random._nextState()`
   static const int64_t kRandomAValue = 0xffffda61;
 
-  static bool CanIntrinsify(const Function& function);
-
 #define DECLARE_FUNCTION(class_name, function_name, enum_name, fp)             \
   static void enum_name(Assembler* assembler, Label* normal_ir_body);
   ALL_INTRINSICS_LIST(DECLARE_FUNCTION)
