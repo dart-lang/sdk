@@ -1807,6 +1807,7 @@ void Precompiler::DropFields() {
   AbstractType& type = AbstractType::Handle(Z);
   Function& initializer_function = Function::Handle(Z);
 
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);

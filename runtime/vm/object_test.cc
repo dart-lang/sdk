@@ -207,8 +207,8 @@ ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
       SafepointWriteRwLocker ml(thread,
                                 thread->isolate_group()->program_lock());
       cls.SetFunctions(Array::empty_array());
+      cls.SetFields(fields);
     }
-    cls.SetFields(fields);
     cls.Finalize();
 
     instance = Instance::New(cls);
@@ -332,7 +332,10 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
                  Object::dynamic_type(), TokenPosition::kMinSource,
                  TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
-  one_field_class.SetFields(one_fields);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    one_field_class.SetFields(one_fields);
+  }
   one_field_class.Finalize();
   intptr_t header_size = sizeof(ObjectLayout);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),

@@ -1115,10 +1115,10 @@ void Object::Init(Isolate* isolate) {
   // in the vm isolate. See special handling in Class::SuperClass().
   cls = type_arguments_class_;
   cls.set_interfaces(Object::empty_array());
-  cls.SetFields(Object::empty_array());
   {
     Thread* thread = Thread::Current();
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFields(Object::empty_array());
     cls.SetFunctions(Object::empty_array());
   }
 
@@ -4354,6 +4354,9 @@ ErrorPtr Class::EnsureIsAllocateFinalized(Thread* thread) const {
 void Class::SetFields(const Array& value) const {
   ASSERT(!value.IsNull());
 #if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
   // Verify that all the fields in the array have this class as owner.
   Field& field = Field::Handle();
   intptr_t len = value.Length();
@@ -4368,6 +4371,11 @@ void Class::SetFields(const Array& value) const {
 }
 
 void Class::AddField(const Field& field) const {
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+#endif
   const Array& arr = Array::Handle(fields());
   const Array& new_arr = Array::Handle(Array::Grow(arr, arr.Length() + 1));
   new_arr.SetAt(arr.Length(), field);
@@ -4375,6 +4383,11 @@ void Class::AddField(const Field& field) const {
 }
 
 void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+#endif
   const intptr_t num_new_fields = new_fields.length();
   if (num_new_fields == 0) return;
   const Array& arr = Array::Handle(fields());
