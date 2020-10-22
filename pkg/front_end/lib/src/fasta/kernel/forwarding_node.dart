@@ -48,6 +48,7 @@ import "../type_inference/type_inference_engine.dart"
 import "../type_inference/type_inferrer.dart" show getNamedFormal;
 
 import 'class_hierarchy_builder.dart';
+import 'combined_member_signature.dart';
 
 class ForwardingNode {
   ClassHierarchyBuilder get hierarchy => _combinedMemberSignature.hierarchy;
@@ -56,13 +57,13 @@ class ForwardingNode {
 
   // TODO(johnniwinther): Use [_combinedMemberSignature] more directly in
   // the forwarding node computation.
-  final CombinedMemberSignature _combinedMemberSignature;
+  final CombinedClassMemberSignature _combinedMemberSignature;
 
   ClassMember get combinedMemberSignatureResult =>
-      _combinedMemberSignature.canonicalClassMember;
+      _combinedMemberSignature.canonicalMember;
 
   /// The index of [combinedMemberSignatureResult] in [_candidates].
-  int get _combinedMemberIndex => _combinedMemberSignature.classMemberIndex;
+  int get _combinedMemberIndex => _combinedMemberSignature.canonicalMemberIndex;
 
   final ProcedureKind kind;
 

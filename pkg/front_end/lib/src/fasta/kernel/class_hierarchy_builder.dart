@@ -61,8 +61,6 @@ import '../messages.dart'
 
 import '../names.dart' show noSuchMethodName;
 
-import '../problems.dart' show unhandled;
-
 import '../scope.dart' show Scope;
 
 import '../source/source_class_builder.dart';
@@ -80,6 +78,8 @@ import '../type_inference/type_inferrer.dart' show MixinInferrer;
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import '../type_inference/type_schema_environment.dart' show TypeConstraint;
+
+import 'combined_member_signature.dart';
 
 import 'forwarding_node.dart' show ForwardingNode;
 
@@ -684,8 +684,8 @@ class ClassHierarchyNodeBuilder {
       Set<ClassMember> overriddenMemberSet =
           toSet(declaredMember.classBuilder, overriddenMembers);
       if (classBuilder.library.isNonNullableByDefault) {
-        CombinedMemberSignature combinedMemberSignature =
-            new CombinedMemberSignature(
+        CombinedClassMemberSignature combinedMemberSignature =
+            new CombinedClassMemberSignature(
                 hierarchy, classBuilder, overriddenMemberSet.toList(),
                 forSetter: false);
         FunctionType combinedMemberSignatureType = combinedMemberSignature
@@ -1101,8 +1101,8 @@ class ClassHierarchyNodeBuilder {
 
         void inferFrom(List<ClassMember> members, {bool forSetter}) {
           assert(forSetter != null);
-          CombinedMemberSignature combinedMemberSignature =
-              new CombinedMemberSignature(hierarchy, classBuilder, members,
+          CombinedClassMemberSignature combinedMemberSignature =
+              new CombinedClassMemberSignature(hierarchy, classBuilder, members,
                   forSetter: forSetter);
           DartType combinedMemberSignatureType =
               combinedMemberSignature.combinedMemberSignatureType;
@@ -1228,8 +1228,8 @@ class ClassHierarchyNodeBuilder {
 
         void inferFrom(List<ClassMember> members, {bool forSetter}) {
           assert(forSetter != null);
-          CombinedMemberSignature combinedMemberSignature =
-              new CombinedMemberSignature(hierarchy, classBuilder, members,
+          CombinedClassMemberSignature combinedMemberSignature =
+              new CombinedClassMemberSignature(hierarchy, classBuilder, members,
                   forSetter: forSetter);
           DartType combinedMemberSignatureType =
               combinedMemberSignature.combinedMemberSignatureType;
@@ -1392,8 +1392,8 @@ class ClassHierarchyNodeBuilder {
 
         DartType inferFrom(List<ClassMember> members, {bool forSetter}) {
           assert(forSetter != null);
-          CombinedMemberSignature combinedMemberSignature =
-              new CombinedMemberSignature(hierarchy, classBuilder, members,
+          CombinedClassMemberSignature combinedMemberSignature =
+              new CombinedClassMemberSignature(hierarchy, classBuilder, members,
                   forSetter: forSetter);
           return combinedMemberSignature.combinedMemberSignatureType;
         }
@@ -3181,11 +3181,11 @@ class InterfaceConflict extends DelayedMember {
           declarations.first.getMember(hierarchy);
     }
 
-    CombinedMemberSignature combinedMemberSignature =
-        new CombinedMemberSignature(hierarchy, classBuilder, declarations,
+    CombinedClassMemberSignature combinedMemberSignature =
+        new CombinedClassMemberSignature(hierarchy, classBuilder, declarations,
             forSetter: isSetter);
 
-    if (combinedMemberSignature.canonicalClassMember == null) {
+    if (combinedMemberSignature.canonicalMember == null) {
       String name = classBuilder.fullNameForErrors;
       int length = classBuilder.isAnonymousMixinApplication ? 1 : name.length;
       List<LocatedMessage> context = declarations.map((ClassMember d) {
@@ -3206,13 +3206,13 @@ class InterfaceConflict extends DelayedMember {
           declarations.first.getMember(hierarchy);
     }
     debug?.log("Combined Member Signature of ${fullNameForErrors}: "
-        "${combinedMemberSignature.canonicalClassMember.fullName}");
+        "${combinedMemberSignature.canonicalMember.fullName}");
 
     if (modifyKernel) {
       ProcedureKind kind = ProcedureKind.Method;
       Member bestMemberSoFar =
-          combinedMemberSignature.canonicalClassMember.getMember(hierarchy);
-      if (combinedMemberSignature.canonicalClassMember.isProperty) {
+          combinedMemberSignature.canonicalMember.getMember(hierarchy);
+      if (combinedMemberSignature.canonicalMember.isProperty) {
         kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
       } else if (bestMemberSoFar is Procedure &&
           bestMemberSoFar.kind == ProcedureKind.Operator) {
@@ -3221,7 +3221,7 @@ class InterfaceConflict extends DelayedMember {
 
       debug?.log("Combined Member Signature of ${fullNameForErrors}: new "
           "ForwardingNode($classBuilder, "
-          "${combinedMemberSignature.canonicalClassMember}, "
+          "${combinedMemberSignature.canonicalMember}, "
           "$declarations, $kind)");
       Member stub =
           new ForwardingNode(combinedMemberSignature, kind).finalize();
@@ -3229,7 +3229,7 @@ class InterfaceConflict extends DelayedMember {
         classBuilder.cls.addMember(stub);
         SourceLibraryBuilder library = classBuilder.library;
         Member bestMemberSoFar =
-            combinedMemberSignature.canonicalClassMember.getMember(hierarchy);
+            combinedMemberSignature.canonicalMember.getMember(hierarchy);
         if (bestMemberSoFar is Procedure) {
           library.forwardersOrigins..add(stub)..add(bestMemberSoFar);
         }
@@ -3242,7 +3242,7 @@ class InterfaceConflict extends DelayedMember {
     debug?.log(
         "Combined Member Signature of ${fullNameForErrors}: picked bestSoFar");
     return combinedMemberSignatureResult =
-        combinedMemberSignature.canonicalClassMember.getMember(hierarchy);
+        combinedMemberSignature.canonicalMember.getMember(hierarchy);
   }
 
   @override
@@ -3342,8 +3342,9 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
         // This call will add a body to the abstract method if needed for
         // isGenericCovariantImpl checks.
         new ForwardingNode(
-                new CombinedMemberSignature.internal(
-                    hierarchy, classBuilder, 1, declarations),
+                new CombinedClassMemberSignature.internal(
+                    hierarchy, classBuilder, 1, declarations,
+                    forSetter: isSetter),
                 kind)
             .finalize();
       }
@@ -3571,308 +3572,6 @@ void _toSet(ClassBuilder classBuilder, Iterable<ClassMember> members,
       _toSet(classBuilder, member.declarations, result);
     } else {
       result.add(member);
-    }
-  }
-}
-
-/// Class used for computing and inspecting the combined member signature for
-/// a set of overridden/inherited members.
-class CombinedMemberSignature {
-  /// The class hierarchy builder used for building this class.
-  final ClassHierarchyBuilder hierarchy;
-
-  /// The target class for the combined member signature.
-  ///
-  /// The [_memberTypes] are computed in terms of each member is inherited into
-  /// [classBuilder].
-  ///
-  /// [classBuilder] is also used for determining whether the combined member
-  /// signature should be computed using nnbd or legacy semantics.
-  final SourceClassBuilder classBuilder;
-
-  /// The list of the members inherited into or overridden in [classBuilder].
-  final List<ClassMember> members;
-
-  /// The index within [members] for the member whose type is the most specific
-  /// among [members]. If `null`, the combined member signature is not defined
-  /// for [members] in [classBuilder].
-  ///
-  /// For the legacy computation, the type of this member defines the combined
-  /// member signature.
-  ///
-  /// For the nnbd computation, this is one of the members whose type define
-  /// the combined member signature, and the indices of the remaining members
-  /// are stored in [_mutualSubtypes].
-  int _canonicalMemberIndex;
-
-  /// For the nnbd computation, this maps each distinct but most specific member
-  /// type to the index of one of the [members] with that type.
-  ///
-  /// If there is only one most specific member type, this is `null`.
-  Map<DartType, int> _mutualSubtypes;
-
-  /// Cache for the types of [members] as inherited into [classBuilder].
-  List<DartType> _memberTypes;
-
-  /// Cache for the this type of [classBuilder].
-  DartType _thisType;
-
-  /// If `true` the combined member signature type has been computed.
-  ///
-  /// Note that the combined member signature type might be undefined in which
-  /// case [_combinedMemberSignatureType] is `null`.
-  bool _isCombinedMemberSignatureTypeComputed = false;
-
-  /// Cache the computed combined member signature type.
-  ///
-  /// If the combined member signature type is undefined this is set to `null`.
-  DartType _combinedMemberSignatureType;
-
-  /// Creates a [CombinedMemberSignature] whose canonical member is already
-  /// defined.
-  CombinedMemberSignature.internal(this.hierarchy, this.classBuilder,
-      this._canonicalMemberIndex, this.members);
-
-  /// Creates a [CombinedMemberSignature] for [members] inherited into
-  /// [classBuilder].
-  ///
-  /// If [forSetter] is `true`, contravariance of the setter types is used to
-  /// compute the most specific member type. Otherwise covariance of the getter
-  /// types or function types is used.
-  CombinedMemberSignature(this.hierarchy, this.classBuilder, this.members,
-      {bool forSetter}) {
-    assert(forSetter != null);
-    ClassMember bestSoFar;
-    int bestSoFarIndex;
-    if (members.length == 1) {
-      bestSoFar = members.first;
-      bestSoFarIndex = 0;
-    } else {
-      bool isNonNullableByDefault = classBuilder.library.isNonNullableByDefault;
-
-      DartType bestTypeSoFar;
-      for (int candidateIndex = members.length - 1;
-          candidateIndex >= 0;
-          candidateIndex--) {
-        ClassMember candidate = members[candidateIndex];
-        DartType candidateType = getMemberType(candidateIndex);
-        if (bestSoFar == null) {
-          bestSoFar = candidate;
-          bestTypeSoFar = candidateType;
-          bestSoFarIndex = candidateIndex;
-        } else {
-          if (_isMoreSpecific(candidateType, bestTypeSoFar, forSetter)) {
-            if (isNonNullableByDefault &&
-                _isMoreSpecific(bestTypeSoFar, candidateType, forSetter)) {
-              if (_mutualSubtypes == null) {
-                _mutualSubtypes = {
-                  bestTypeSoFar: bestSoFarIndex,
-                  candidateType: candidateIndex
-                };
-              } else {
-                _mutualSubtypes[candidateType] = candidateIndex;
-              }
-            } else {
-              _mutualSubtypes = null;
-            }
-            bestSoFarIndex = candidateIndex;
-            bestSoFar = candidate;
-            bestTypeSoFar = candidateType;
-          }
-        }
-      }
-      if (_mutualSubtypes?.length == 1) {
-        /// If all mutual subtypes have the same type, the type should not
-        /// be normalized.
-        _mutualSubtypes = null;
-      }
-      if (bestSoFar != null) {
-        for (int candidateIndex = 0;
-            candidateIndex < members.length;
-            candidateIndex++) {
-          DartType candidateType = getMemberType(candidateIndex);
-          if (!_isMoreSpecific(bestTypeSoFar, candidateType, forSetter)) {
-            if (!shouldOverrideProblemBeOverlooked(classBuilder)) {
-              bestSoFar = null;
-              bestSoFarIndex = null;
-              bestTypeSoFar = null;
-              _mutualSubtypes = null;
-            }
-            break;
-          }
-        }
-      }
-    }
-
-    _canonicalMemberIndex = bestSoFarIndex;
-  }
-
-  /// The member within [members] type is the most specific among [members].
-  /// If `null`, the combined member signature is not defined for [members] in
-  /// [classBuilder].
-  ///
-  /// For the legacy computation, the type of this member defines the combined
-  /// member signature.
-  ///
-  /// For the nnbd computation, this is one of the members whose type define
-  /// the combined member signature, and the indices of the all members whose
-  /// type define the combined member signature are in [mutualSubtypeIndices].
-  ClassMember get canonicalClassMember =>
-      _canonicalMemberIndex != null ? members[_canonicalMemberIndex] : null;
-
-  /// The index within [members] for the member whose type is the most specific
-  /// among [members]. If `null`, the combined member signature is not defined
-  /// for [members] in [classBuilder].
-  ///
-  /// For the legacy computation, the type of this member defines the combined
-  /// member signature.
-  ///
-  /// For the nnbd computation, this is one of the members whose type define
-  /// the combined member signature, and the indices of the all members whose
-  /// type define the combined member signature are in [mutualSubtypeIndices].
-  int get classMemberIndex => _canonicalMemberIndex;
-
-  /// For the nnbd computation, the indices of the [members] with most specific
-  /// member type.
-  ///
-  /// If there is only one most specific member type, this is `null`.
-  Set<int> get mutualSubtypeIndices => _mutualSubtypes?.values?.toSet();
-
-  /// The this type of [classBuilder].
-  DartType get thisType {
-    return _thisType ??= hierarchy.coreTypes
-        .thisInterfaceType(classBuilder.cls, classBuilder.library.nonNullable);
-  }
-
-  /// Returns type of the [index]th member in [members] as inherited in
-  /// [classBuilder].
-  DartType getMemberType(int index) {
-    _memberTypes ??= new List<DartType>(members.length);
-    DartType candidateType = _memberTypes[index];
-    if (candidateType == null) {
-      ClassMember candidate = members[index];
-      Member target = candidate.getMember(hierarchy);
-      assert(target != null,
-          "No member computed for ${candidate} (${candidate.runtimeType})");
-      candidateType = _computeMemberType(thisType, target);
-      if (!classBuilder.library.isNonNullableByDefault) {
-        candidateType = legacyErasure(hierarchy.coreTypes, candidateType);
-      }
-      _memberTypes[index] = candidateType;
-    }
-    return candidateType;
-  }
-
-  /// Returns the type of the combined member signature, if defined.
-  DartType get combinedMemberSignatureType {
-    if (!_isCombinedMemberSignatureTypeComputed) {
-      _isCombinedMemberSignatureTypeComputed = true;
-      if (_canonicalMemberIndex == null) {
-        return null;
-      }
-      if (classBuilder.library.isNonNullableByDefault) {
-        _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex);
-        if (_mutualSubtypes != null) {
-          _combinedMemberSignatureType =
-              norm(hierarchy.coreTypes, _combinedMemberSignatureType);
-          for (int index in _mutualSubtypes.values) {
-            if (_canonicalMemberIndex != index) {
-              _combinedMemberSignatureType = nnbdTopMerge(
-                  hierarchy.coreTypes,
-                  _combinedMemberSignatureType,
-                  norm(hierarchy.coreTypes, getMemberType(index)));
-            }
-          }
-        }
-      } else {
-        _combinedMemberSignatureType = legacyErasure(
-            hierarchy.coreTypes, getMemberType(_canonicalMemberIndex));
-      }
-    }
-    return _combinedMemberSignatureType;
-  }
-
-  /// Returns the type of the combined member signature, if defined, with
-  /// all method type parameters substituted with [typeParameters].
-  ///
-  /// This is used for inferring types on a declared member from the type of the
-  /// combined member signature.
-  DartType getCombinedSignatureTypeInContext(
-      List<TypeParameter> typeParameters) {
-    DartType type = combinedMemberSignatureType;
-    if (type == null) {
-      return null;
-    }
-    int typeParameterCount = typeParameters.length;
-    if (type is FunctionType) {
-      List<TypeParameter> signatureTypeParameters = type.typeParameters;
-      if (typeParameterCount != signatureTypeParameters.length) {
-        return null;
-      }
-      if (typeParameterCount == 0) {
-        return type;
-      }
-      List<DartType> types = new List<DartType>(typeParameterCount);
-      for (int i = 0; i < typeParameterCount; i++) {
-        types[i] = new TypeParameterType.forAlphaRenaming(
-            signatureTypeParameters[i], typeParameters[i]);
-      }
-      Substitution substitution =
-          Substitution.fromPairs(signatureTypeParameters, types);
-      for (int i = 0; i < typeParameterCount; i++) {
-        DartType typeParameterBound = typeParameters[i].bound;
-        DartType signatureTypeParameterBound =
-            substitution.substituteType(signatureTypeParameters[i].bound);
-        if (!hierarchy.types
-            .performNullabilityAwareMutualSubtypesCheck(
-                typeParameterBound, signatureTypeParameterBound)
-            .isSubtypeWhenUsingNullabilities()) {
-          return null;
-        }
-      }
-      return substitution.substituteType(type.withoutTypeParameters);
-    } else if (typeParameterCount != 0) {
-      return null;
-    }
-    return type;
-  }
-
-  DartType _computeMemberType(DartType thisType, Member member) {
-    DartType type;
-    if (member is Procedure) {
-      if (member.isGetter) {
-        type = member.getterType;
-      } else if (member.isSetter) {
-        type = member.setterType;
-      } else {
-        type = member.function
-            .computeFunctionType(member.enclosingLibrary.nonNullable);
-      }
-    } else if (member is Field) {
-      type = member.type;
-    } else {
-      unhandled("${member.runtimeType}", "$member", classBuilder.charOffset,
-          classBuilder.fileUri);
-    }
-    InterfaceType instance = hierarchy.getTypeAsInstanceOf(
-        thisType,
-        member.enclosingClass,
-        classBuilder.library.library,
-        hierarchy.coreTypes);
-    assert(
-        instance != null,
-        "No instance of $thisType as ${member.enclosingClass} found for "
-        "$member.");
-    return Substitution.fromInterfaceType(instance).substituteType(type);
-  }
-
-  bool _isMoreSpecific(DartType a, DartType b, bool forSetter) {
-    if (forSetter) {
-      return hierarchy.types
-          .isSubtypeOf(b, a, SubtypeCheckMode.withNullabilities);
-    } else {
-      return hierarchy.types
-          .isSubtypeOf(a, b, SubtypeCheckMode.withNullabilities);
     }
   }
 }

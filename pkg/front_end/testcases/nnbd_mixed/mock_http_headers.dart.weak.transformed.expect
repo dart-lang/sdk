@@ -77,7 +77,7 @@ class MockHttpHeaders extends self::Mock implements _ht::HttpHeaders {
     return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C30, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
   no-such-method-forwarder method noFolding(core::String* name) → void
     return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C31, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[name]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
-  no-such-method-forwarder method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/_http/http.dart */ clear() → void
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/_http/http.dart */ clear() → void
     return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#C32, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 static method main() → dynamic {}
