@@ -1032,21 +1032,7 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
   ASSERT((index == 0) || (index == 1));
   if ((index == 1) && IsUnboxedStore()) {
     const Field& field = slot().field();
-    const intptr_t cid = field.UnboxedFieldCid();
-    switch (cid) {
-      case kDoubleCid:
-        return kUnboxedDouble;
-      case kFloat32x4Cid:
-        return kUnboxedFloat32x4;
-      case kFloat64x2Cid:
-        return kUnboxedFloat64x2;
-      default:
-        if (field.is_non_nullable_integer()) {
-          return kUnboxedInt64;
-        } else {
-          UNREACHABLE();
-        }
-    }
+    return FlowGraph::UnboxedFieldRepresentationOf(field);
   }
   return kTagged;
 }
