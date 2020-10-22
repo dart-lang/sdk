@@ -2830,6 +2830,47 @@ const List<P<dynamic>> values = /*typeArgs=P<dynamic>*/[/*typeArgs=dynamic*/
         withTypes: true);
   }
 
+  test_const_invalid_cascade_indexExpression() async {
+    var library = await checkLibrary(r'''
+class A {
+  int operator[](int _) => 0;
+}
+const b = A()..[0];
+''');
+
+    checkElementText(
+        library,
+        r'''
+class A {
+  int [](int _) {}
+}
+const A b;
+  constantInitializer
+    CascadeExpression
+      cascadeSections
+        IndexExpression
+          index: IntegerLiteral
+            literal: 0
+            staticType: int
+          period: ..
+          staticElement: self::@class::A::@method::[]
+          staticType: int
+      staticType: A
+      target: InstanceCreationExpression
+        argumentList: ArgumentList
+        constructorName: ConstructorName
+          staticElement: self::@class::A::@constructor::•
+          type: TypeName
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A
+            type: A
+        staticType: A
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_const_invalid_field_const() async {
     var library = await checkLibrary(r'''
 class C {
@@ -2859,6 +2900,41 @@ class C {
 }
 int foo() {}
 ''');
+  }
+
+  test_const_invalid_indexExpression() async {
+    var library = await checkLibrary(r'''
+const a = [0];
+const b = a[0];
+''');
+
+    checkElementText(
+        library,
+        r'''
+const List<int> a;
+  constantInitializer
+    ListLiteral
+      elements
+        IntegerLiteral
+          literal: 0
+          staticType: int
+      staticType: List<int>
+const int b;
+  constantInitializer
+    IndexExpression
+      index: IntegerLiteral
+        literal: 0
+        staticType: int
+      staticElement: MethodMember
+        base: dart:core::@class::List::@method::[]
+        substitution: {E: int}
+      staticType: int
+      target: SimpleIdentifier
+        staticElement: self::@getter::a
+        staticType: List<int>
+        token: a
+''',
+        withFullyResolvedAst: true);
   }
 
   test_const_invalid_intLiteral() async {

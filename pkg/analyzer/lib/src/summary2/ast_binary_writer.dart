@@ -915,11 +915,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitIndexExpression(IndexExpression node) {
     var builder = LinkedNodeBuilder.indexExpression(
-      indexExpression_index: node.index.accept(this),
       indexExpression_target: node.target?.accept(this),
-      expression_type: _writeType('staticType', node.staticType),
+      indexExpression_index: node.index.accept(this),
     );
     _componentsOfElement(node.staticElement);
+    _storeExpression(builder, node);
     builder.flags = AstBinaryFlags.encode(
       hasPeriod: node.period != null,
       hasQuestion: node.question != null,

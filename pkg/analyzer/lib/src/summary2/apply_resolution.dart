@@ -397,6 +397,14 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitIndexExpression(IndexExpression node) {
+    node.target?.accept(this);
+    node.index.accept(this);
+    node.staticElement = _nextElement();
+    _expression(node);
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.constructorName.accept(this);
     (node as InstanceCreationExpressionImpl).typeArguments?.accept(this);
