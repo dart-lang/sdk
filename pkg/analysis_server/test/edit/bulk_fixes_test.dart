@@ -42,6 +42,28 @@ class BulkFixesTest extends AbstractAnalysisTest {
     createProject();
   }
 
+  Future<void> test_annotateOverrides_excludedFile() async {
+    addAnalysisOptionsFile('''
+analyzer:
+  exclude:
+    - test/**
+linter:
+  rules:
+    - annotate_overrides
+''');
+
+    newFile('$projectPath/test/test.dart', content: '''
+class A {
+  void f() {}
+}
+class B extends A {
+  void f() {}
+}
+''');
+
+    await assertNoEdits();
+  }
+
   Future<void> test_annotateOverrides_excludedSubProject() async {
     // Root project.
     addAnalysisOptionsFile('''
