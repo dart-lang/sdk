@@ -721,8 +721,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               identifier, functionExpression.parameters);
         }
         _checkForNonVoidReturnTypeForSetter(returnType);
-        _checkForInvalidModifierOnBody(node.functionExpression.body,
-            CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
       }
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
@@ -916,8 +914,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         ).checkGetter(node.name, node.declaredElement);
       }
       if (node.isSetter) {
-        _checkForInvalidModifierOnBody(
-            node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
         _checkForNonVoidReturnTypeForSetter(returnType);
       } else if (node.isOperator) {

@@ -16,14 +16,11 @@ main() {
 @reflectiveTest
 class InvalidModifierOnSetterTest extends PubPackageResolutionTest {
   test_member_async() async {
-    // TODO(danrubel): Investigate why error message is duplicated when
-    // using fasta parser.
     await assertErrorsInCode(r'''
 class A {
   set x(v) async {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 21, 5),
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 21, 5),
     ]);
   }
@@ -35,7 +32,6 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 21, 5),
-      error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 21, 5),
     ]);
   }
 
@@ -46,7 +42,6 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 21, 4),
-      error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 21, 4),
     ]);
   }
 
@@ -54,7 +49,6 @@ class A {
     await assertErrorsInCode('''
 set x(v) async {}
 ''', [
-      error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 5),
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 5),
     ]);
   }
@@ -64,7 +58,6 @@ set x(v) async {}
 set x(v) async* {}
 ''', [
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 5),
-      error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 5),
     ]);
   }
 
@@ -72,7 +65,6 @@ set x(v) async* {}
     await assertErrorsInCode('''
 set x(v) sync* {}
 ''', [
-      error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 4),
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 4),
     ]);
   }
