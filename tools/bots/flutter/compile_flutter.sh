@@ -97,7 +97,7 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     --packages=$checkout/.packages \
     $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
     --enable-experiment=non-nullable \
-    --nnbd-weak \
+    --nnbd-agnostic \
     --target=flutter \
     dart:core \
     --single-root-scheme=org-dartlang-sdk \

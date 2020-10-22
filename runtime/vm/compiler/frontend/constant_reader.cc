@@ -190,8 +190,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       type_arguments.SetTypeAt(0, type);
       // Instantiate class.
       type = Type::New(list_class, type_arguments, TokenPosition::kNoSource);
-      type = ClassFinalizer::FinalizeType(*active_class_->klass, type,
-                                          ClassFinalizer::kCanonicalize);
+      type = ClassFinalizer::FinalizeType(type);
       type_arguments = type.arguments();
       // Fill array with constant elements.
       const intptr_t length = reader.ReadUInt();
@@ -237,8 +236,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
         // Instantiate class.
         auto& type = AbstractType::Handle(
             Z, Type::New(klass, type_arguments, TokenPosition::kNoSource));
-        type = ClassFinalizer::FinalizeType(*active_class_->klass, type,
-                                            ClassFinalizer::kCanonicalize);
+        type = ClassFinalizer::FinalizeType(type);
         type_arguments = type.arguments();
         instance.SetTypeArguments(type_arguments);
       } else {

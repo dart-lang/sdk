@@ -14,6 +14,8 @@
 #include "vm/scopes.h"
 #include "vm/service_event.h"
 #include "vm/simulator.h"
+#include "vm/stack_frame.h"
+#include "vm/stack_trace.h"
 
 DECLARE_FLAG(bool, verbose_debug);
 
@@ -288,6 +290,13 @@ class ActivationFrame : public ZoneAllocated {
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
   uword sp() const { return sp_; }
+
+  uword GetCallerSp() const {
+    return fp() +
+           ((IsInterpreted() ? kKBCCallerSpSlotFromFp : kCallerSpSlotFromFp) *
+            kWordSize);
+  }
+
   const Function& function() const {
     return function_;
   }
@@ -360,7 +369,9 @@ class ActivationFrame : public ZoneAllocated {
 
   void PrintToJSONObject(JSONObject* jsobj);
 
-  ObjectPtr GetAsyncAwaiter();
+  // Get Closure that await'ed this async frame.
+  ObjectPtr GetAsyncAwaiter(CallerClosureFinder* caller_closure_finder);
+
   ObjectPtr GetCausalStack();
 
   bool HandlesException(const Instance& exc_obj);
@@ -381,11 +392,11 @@ class ActivationFrame : public ZoneAllocated {
   void GetDescIndices();
 
   ObjectPtr GetAsyncContextVariable(const String& name);
-  ObjectPtr GetAsyncStreamControllerStreamAwaiter(const Object& stream);
-  ObjectPtr GetAsyncStreamControllerStream();
-  ObjectPtr GetAsyncCompleterAwaiter(const Object& completer);
-  ObjectPtr GetAsyncCompleter();
+
+  // Get the current continuation index in the :await_jump_var pulled from the
+  // context.
   intptr_t GetAwaitJumpVariable();
+
   void ExtractTokenPositionFromAsyncClosure();
 
   bool IsAsyncMachinery() const;
@@ -636,7 +647,7 @@ class Debugger {
   // Callback to the debugger to continue frame rewind, post-deoptimization.
   void RewindPostDeopt();
 
-  static DebuggerStackTrace* CollectAwaiterReturnStackTrace();
+  DebuggerStackTrace* CollectAwaiterReturnStackTrace();
 
  private:
   ErrorPtr PauseRequest(ServiceEvent::EventKind kind);

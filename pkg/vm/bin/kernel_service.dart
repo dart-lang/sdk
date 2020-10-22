@@ -118,7 +118,7 @@ CompilerOptions setupCompilerOptions(
     ..verbose = verbose
     ..omitPlatform = true
     ..bytecode = bytecode
-    ..experimentalFlags = parseExperimentalFlags(
+    ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(expFlags),
         onError: (msg) => errors.add(msg))
     ..environmentDefines = new EnvironmentMap()

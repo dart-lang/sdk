@@ -94,10 +94,10 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.3.7",  # Please see the note above before updating.
+  "dart_style_tag": "1.3.8",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "8f5f30e58bbc0f11f104888ee87f11cbd6b82cc7",
+  "dartdoc_rev" : "39cec16700839847876849fef4f0769f8689b6c8",
   "ffi_rev": "a90bd424116fb6f416337db67425171f2dc4c98f",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
@@ -106,7 +106,7 @@ vars = {
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
   "http_parser_rev": "5dd4d16693242049dfb43b5efa429fedbf932e98",
   "http_retry_tag": "0.1.1",
-  "http_rev": "20e3a594872ae1565249c7cfc8977f9a10ca9927",
+  "http_rev": "a8efbef05a58919dc7aa2dab42198334f2459ffb",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "79326efe26e5440f530963704c3c0ff965b3a4ac",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
@@ -128,7 +128,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "eedbd5fde84f9a1a8da643b475305a81841da599",
   "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
-  "pub_rev": "f0c7771b38155d3829a60d60b5dba2784b100811",
+  "pub_rev": "5b4df5a6f931c63622ac349602d6ef0367e8070f",
   "pub_semver_tag": "v1.4.4",
   "quiver-dart_tag": "246e754fe45cecb6aa5f3f13b4ed61037ff0d784",
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
@@ -146,7 +146,7 @@ vars = {
   "sse_tag": "e5cf68975e8e87171a3dc297577aa073454a91dc",
   "stack_trace_tag": "45319bfd2a6da228d8c32b06e1da02ad199373c7",
   "stagehand_tag": "v3.3.9",
-  "stream_channel_tag": "c446774fd077c9bdbd6235a7aadc661ef60a9727",
+  "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
   "sync_http_rev": "a85d7ec764ea485cbbc49f3f3e7f1b43f87a1c74",
   "test_descriptor_tag": "1.1.1",
@@ -158,7 +158,7 @@ vars = {
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
   "usage_tag": "3.4.0",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
-  "watcher_rev": "5df2e364b0c3ec12b9ed9cf2eedb71f9ddf8b7cd",
+  "watcher_rev": "64e254eba16f56d41f10d72c0b1cb24e130e1f8b",
   "webdriver_rev": "5a8d6805d9cf8a3cbb4fcd64849b538b7491e50e",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "490061ef0e22d3c8460ad2802f9948219365ad6b",

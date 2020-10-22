@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:async";
+
+static method method(() → void f) → dynamic
+  ;
+static method method2(() → FutureOr<void>f) → dynamic
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

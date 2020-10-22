@@ -90,8 +90,10 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
         ObjectPtr new_target = GetForwardedObject(old_target);
         if (visiting_object_ == nullptr) {
           *p = new_target;
+        } else if (visiting_object_->ptr()->IsCardRemembered()) {
+          visiting_object_->ptr()->StoreArrayPointer(p, new_target, thread_);
         } else {
-          visiting_object_->ptr()->StorePointer(p, new_target);
+          visiting_object_->ptr()->StorePointer(p, new_target, thread_);
         }
       }
     }

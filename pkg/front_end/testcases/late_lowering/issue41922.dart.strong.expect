@@ -29,7 +29,7 @@ static method init(core::String val) → core::String {
   return val;
 }
 static method main() → dynamic {
-  self::throws(() → core::Null? {
+  self::throws(() → void {
     self::C::s;
   });
   self::expect("lateValue", self::C::s);

@@ -18,10 +18,16 @@ import 'package:yaml/yaml.dart' show loadYaml;
 main(List<String> arguments) async {
   var port = new ReceivePort();
   Messages message = await generateMessagesFiles();
-  await new File.fromUri(await computeSharedGeneratedFile())
-      .writeAsString(message.sharedMessages, flush: true);
-  await new File.fromUri(await computeCfeGeneratedFile())
-      .writeAsString(message.cfeMessages, flush: true);
+  if (message.sharedMessages.trim().isEmpty ||
+      message.cfeMessages.trim().isEmpty) {
+    print("Bailing because of errors: "
+        "Refusing to overwrite with empty file!");
+  } else {
+    await new File.fromUri(await computeSharedGeneratedFile())
+        .writeAsString(message.sharedMessages, flush: true);
+    await new File.fromUri(await computeCfeGeneratedFile())
+        .writeAsString(message.cfeMessages, flush: true);
+  }
   port.close();
 }
 

@@ -77,10 +77,10 @@ class Configuration {
 
   CompilerOptions apply(CompilerOptions options) {
     if (nnbdMode != null) {
-      options.experimentalFlags[ExperimentalFlag.nonNullable] = true;
+      options.explicitExperimentalFlags[ExperimentalFlag.nonNullable] = true;
       options.nnbdMode = nnbdMode;
     } else {
-      options.experimentalFlags[ExperimentalFlag.nonNullable] = false;
+      options.explicitExperimentalFlags[ExperimentalFlag.nonNullable] = false;
     }
     return options;
   }

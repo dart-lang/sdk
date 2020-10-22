@@ -476,9 +476,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     expect(outerRoot.packagesFile, outerPackagesFile);
   }
 
-  @failingTest
   void test_locateRoots_options_withExclude() {
-    // https://github.com/dart-lang/sdk/issues/35519
     Folder rootFolder = newFolder('/test/outer');
     newFolder('/test/outer/test/data');
     File dataFile = newFile('/test/outer/test/data/test.dart');

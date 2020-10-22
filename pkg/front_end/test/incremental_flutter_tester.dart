@@ -78,8 +78,8 @@ main(List<String> args) async {
 
   Stopwatch stopwatch = new Stopwatch()..start();
   CompilerOptions options = getOptions(flutterPatchedSdk.uri);
-  options.experimentalFlags[ExperimentalFlag.alternativeInvalidationStrategy] =
-      useExperimentalInvalidation;
+  options.explicitExperimentalFlags[ExperimentalFlag
+      .alternativeInvalidationStrategy] = useExperimentalInvalidation;
   helper.TestIncrementalCompiler compiler =
       new helper.TestIncrementalCompiler(options, inputFile.uri);
   Component c = await compiler.computeDelta();

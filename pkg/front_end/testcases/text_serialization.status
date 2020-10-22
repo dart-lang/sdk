@@ -90,7 +90,6 @@ general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
-general/reject_generic_function_types_in_bounds: RuntimeError
 general/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
 general/type_parameter_type_named_int: RuntimeError
 general/type_variable_as_super: RuntimeError
@@ -137,7 +136,6 @@ general_nnbd_opt_out/override_check_after_inference: TypeCheckError # Issue #316
 general_nnbd_opt_out/override_check_basic: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
-general_nnbd_opt_out/reject_generic_function_types_in_bounds: RuntimeError
 general_nnbd_opt_out/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
 general_nnbd_opt_out/statements: Crash
 general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError
@@ -170,8 +168,6 @@ inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
-instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError
-instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError
 late_lowering/covariant_late_field: TypeCheckError
 late_lowering/initializer_rewrite_from_opt_out: RuntimeError # Test is inherently mixed mode
 late_lowering/non_nullable_from_opt_out: RuntimeError # Test is inherently mixed mode

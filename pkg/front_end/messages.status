@@ -222,6 +222,8 @@ ExpectedToken/example: Fail
 ExpectedType/example: Fail
 ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
+ExperimentDisabled/example: Fail
+ExperimentDisabledInvalidLanguageVersion/example: Fail
 ExperimentNotEnabled/example: Fail
 ExperimentNotEnabledNoFlag/example: Fail
 ExperimentNotEnabledNoFlagInvalidLanguageVersion/example: Fail

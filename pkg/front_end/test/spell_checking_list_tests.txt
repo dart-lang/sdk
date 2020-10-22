@@ -45,6 +45,7 @@ baba
 backed
 background
 bail
+bailing
 bailout
 bash
 bat
@@ -545,6 +546,7 @@ redirections
 reducer
 referring
 reflectee
+refusing
 regenerate
 regressions
 reify

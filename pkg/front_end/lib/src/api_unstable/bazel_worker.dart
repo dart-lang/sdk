@@ -94,7 +94,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       workerInputDigests,
       target,
       fileSystem: fileSystem,
-      experimentalFlags: experimentalFlags,
+      explicitExperimentalFlags: experimentalFlags,
       outlineOnly: outlineOnly,
       omitPlatform: true,
       trackNeededDillLibraries: trackNeededDillLibraries,
@@ -129,7 +129,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..target = target
     ..fileSystem = fileSystem
     ..environmentDefines = environmentDefines
-    ..experimentalFlags = parseExperimentalFlags(
+    ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experiments),
         onError: (e) => throw e)
     ..verbose = verbose

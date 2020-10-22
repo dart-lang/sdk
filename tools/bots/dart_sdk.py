@@ -49,8 +49,7 @@ def BuildDartdocAPIDocs(dirname):
     with bot.BuildStep('Build API docs by dartdoc'):
         bot_utils.run([
             dart_exe, dartdoc_dart, '--sdk-docs', '--output', dirname,
-            '--enable-experiment', 'non-nullable', '--footer-text',
-            footer_text_file, '--footer', footer_file,
+            '--footer-text', footer_text_file, '--footer', footer_file,
             '--rel-canonical-prefix=' + url
         ])
 

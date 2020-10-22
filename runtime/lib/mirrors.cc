@@ -901,7 +901,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 0, 2) {
 
   Type& instantiated_type =
       Type::Handle(Type::New(clz, type_args_obj, TokenPosition::kNoSource));
-  instantiated_type ^= ClassFinalizer::FinalizeType(clz, instantiated_type);
+  instantiated_type ^= ClassFinalizer::FinalizeType(instantiated_type);
   return instantiated_type.raw();
 }
 

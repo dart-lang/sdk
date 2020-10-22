@@ -248,7 +248,7 @@ Future<CompilerResult> _compile(List<String> args,
     fe.printDiagnosticMessage(message, print);
   }
 
-  var experiments = fe.parseExperimentalFlags(options.experiments,
+  var explicitExperimentalFlags = fe.parseExperimentalFlags(options.experiments,
       onError: stderr.writeln, onWarning: print);
 
   var trackWidgetCreation =
@@ -275,7 +275,7 @@ Future<CompilerResult> _compile(List<String> args,
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
-        experiments: experiments,
+        explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
         nnbdMode:
             options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
@@ -314,7 +314,7 @@ Future<CompilerResult> _compile(List<String> args,
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
-        experiments: experiments,
+        explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
         trackNeededDillLibraries: recordUsedInputs,
         nnbdMode:
@@ -349,7 +349,8 @@ Future<CompilerResult> _compile(List<String> args,
   var component = result.component;
   var librariesFromDill = result.computeLibrariesFromDill();
   var compiledLibraries =
-      Component(nameRoot: component.root, uriToSource: component.uriToSource);
+      Component(nameRoot: component.root, uriToSource: component.uriToSource)
+        ..setMainMethodAndMode(null, false, component.mode);
   for (var lib in component.libraries) {
     if (!librariesFromDill.contains(lib)) compiledLibraries.libraries.add(lib);
   }

@@ -816,7 +816,7 @@ main() {
         """);
 
       final CompilerOptions optionsModified = getFreshOptions();
-      optionsModified.experimentalFlags[
+      optionsModified.explicitExperimentalFlags[
           ExperimentalFlag.alternativeInvalidationStrategy] = true;
 
       final IncrementalCompiler compiler =

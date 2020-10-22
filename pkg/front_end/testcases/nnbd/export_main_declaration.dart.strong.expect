@@ -286,9 +286,8 @@ library /*isNonNullableByDefault*/;
 //                 ^^^^
 //
 import self as mai4;
-import "dart:core" as core;
 
-static field () → void main = () → core::Null? {};
+static field () → void main = () → void {};
 
 library /*isNonNullableByDefault*/;
 //
@@ -299,10 +298,9 @@ library /*isNonNullableByDefault*/;
 //                     ^^^^
 //
 import self as mai5;
-import "dart:core" as core;
 
 static get main() → () → void
-  return () → core::Null? {};
+  return () → void {};
 
 library /*isNonNullableByDefault*/;
 import self as mai6;

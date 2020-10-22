@@ -25,7 +25,8 @@ main() {
   library1.addMember(p1);
   library2.addMember(p2);
 
-  Component component = new Component(libraries: [library1, library2]);
+  Component component = new Component(libraries: [library1, library2])
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
   component.uriToSource[uri1] = new Source(
       [42, 2 * 42], const Utf8Encoder().convert("source #1"), uri1, uri1);
   component.uriToSource[uri2] = new Source(
@@ -33,6 +34,7 @@ main() {
   expectSource(serialize(component), true, true);
 
   Component cPartial1 = new Component(nameRoot: component.root)
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak)
     ..libraries.add(library1);
   cPartial1.uriToSource[uri1] = new Source(
       [42, 2 * 42], const Utf8Encoder().convert("source #1"), uri1, uri1);
@@ -42,6 +44,7 @@ main() {
   expectSource(partial1Serialized, true, false);
 
   Component cPartial2 = new Component(nameRoot: component.root)
+    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak)
     ..libraries.add(library2);
   cPartial2.uriToSource[uri1] =
       new Source([42, 2 * 42], const <int>[], uri1, uri1);

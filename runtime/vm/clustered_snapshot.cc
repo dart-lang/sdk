@@ -5491,25 +5491,12 @@ void Serializer::AddBaseObject(ObjectPtr base_object,
 
 intptr_t Serializer::AssignRef(ObjectPtr object) {
   ASSERT(IsAllocatedReference(next_ref_index_));
-  if (object->IsHeapObject()) {
-    // The object id weak table holds image offsets for Instructions instead
-    // of ref indices.
-    ASSERT(!object->IsInstructions());
-    heap_->SetObjectId(object, next_ref_index_);
-    ASSERT(heap_->GetObjectId(object) == next_ref_index_);
-  } else {
-    SmiPtr smi = Smi::RawCast(object);
-    SmiObjectIdPair* existing_pair = smi_ids_.Lookup(smi);
-    if (existing_pair != NULL) {
-      ASSERT(existing_pair->id_ == kUnallocatedReference);
-      existing_pair->id_ = next_ref_index_;
-    } else {
-      SmiObjectIdPair new_pair;
-      new_pair.smi_ = smi;
-      new_pair.id_ = next_ref_index_;
-      smi_ids_.Insert(new_pair);
-    }
-  }
+
+  // The object id weak table holds image offsets for Instructions instead
+  // of ref indices.
+  ASSERT(!object->IsHeapObject() || !object->IsInstructions());
+  heap_->SetObjectId(object, next_ref_index_);
+  ASSERT(heap_->GetObjectId(object) == next_ref_index_);
 
   objects_->Add(&Object::ZoneHandle(object));
 
@@ -5559,15 +5546,8 @@ void Serializer::TraceStartWritingObject(const char* type,
                                          const char* name) {
   if (profile_writer_ == nullptr) return;
 
-  intptr_t cid = -1;
-  intptr_t id = 0;
-  if (obj->IsHeapObject()) {
-    id = heap_->GetObjectId(obj);
-    cid = obj->GetClassId();
-  } else {
-    id = smi_ids_.Lookup(Smi::RawCast(obj))->id_;
-    cid = Smi::kClassId;
-  }
+  intptr_t id = heap_->GetObjectId(obj);
+  intptr_t cid = obj->GetClassIdMayBeSmi();
   if (IsArtificialReference(id)) {
     id = -id;
   }
@@ -5915,24 +5895,13 @@ intptr_t Serializer::GetDataSize() const {
 #endif
 
 void Serializer::Push(ObjectPtr object) {
-  if (!object->IsHeapObject()) {
-    SmiPtr smi = Smi::RawCast(object);
-    if (smi_ids_.Lookup(smi) == NULL) {
-      SmiObjectIdPair pair;
-      pair.smi_ = smi;
-      pair.id_ = kUnallocatedReference;
-      smi_ids_.Insert(pair);
-      stack_.Add(object);
-      num_written_objects_++;
-    }
-    return;
-  }
-
-  if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
+  if (object->IsHeapObject() && object->IsCode() &&
+      !Snapshot::IncludesCode(kind_)) {
     return;  // Do not trace, will write null.
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
+  if (object->IsHeapObject() && object->IsBytecode() &&
+      !Snapshot::IncludesBytecode(kind_)) {
     return;  // Do not trace, will write null.
   }
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -5943,7 +5912,7 @@ void Serializer::Push(ObjectPtr object) {
     // roots we do not trace references, e.g. inside [RawCode], to
     // [RawInstructions], since [RawInstructions] doesn't contain any references
     // and the serialization code uses an [ImageWriter] for those.
-    if (object->IsInstructions()) {
+    if (object->IsHeapObject() && object->IsInstructions()) {
       UnexpectedObject(object,
                        "Instructions should only be reachable from Code");
     }

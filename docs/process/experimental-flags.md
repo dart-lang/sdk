@@ -60,9 +60,9 @@ Multiple flags can be passed by using multiple flags, or by passing several
 comma-separated flags. Examples:
 
 ```
-dart --enable-experiment super-mixins
-dart --enable-experiment super-mixins,no-slow-checks,preview-dart3
-dart --enable-experiment super-mixins --enable-experiment no-slow-checks --enable-experiment preview-dart3
+dart --enable-experiment=super-mixins
+dart --enable-experiment=super-mixins,no-slow-checks,preview-dart3
+dart --enable-experiment=super-mixins --enable-experiment no-slow-checks --enable-experiment preview-dart3
 ```
 
 If the user passes a flag that is not recognized (for example, when the flag is

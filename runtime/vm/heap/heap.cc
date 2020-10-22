@@ -907,27 +907,27 @@ void Heap::ResetObjectIdTable() {
 }
 
 intptr_t Heap::GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const {
-  if (raw_obj->IsNewObject()) {
+  if (!raw_obj->IsSmiOrOldObject()) {
     return new_weak_tables_[sel]->GetValue(raw_obj);
   }
-  ASSERT(raw_obj->IsOldObject());
+  ASSERT(raw_obj->IsSmiOrOldObject());
   return old_weak_tables_[sel]->GetValue(raw_obj);
 }
 
 void Heap::SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val) {
-  if (raw_obj->IsNewObject()) {
+  if (!raw_obj->IsSmiOrOldObject()) {
     new_weak_tables_[sel]->SetValue(raw_obj, val);
   } else {
-    ASSERT(raw_obj->IsOldObject());
+    ASSERT(raw_obj->IsSmiOrOldObject());
     old_weak_tables_[sel]->SetValue(raw_obj, val);
   }
 }
 
 void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
   const auto before_space =
-      before_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+      !before_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;
   const auto after_space =
-      after_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+      !after_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;
 
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
     const auto selector = static_cast<Heap::WeakSelector>(sel);

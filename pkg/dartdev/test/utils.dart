@@ -12,6 +12,10 @@ import 'package:test/test.dart';
 /// invocation requires the VM to compile the entire dependency graph.
 const Timeout longTimeout = Timeout(Duration(minutes: 5));
 
+/// This version of dart is the last guaranteed pre-null safety language
+/// version:
+const String dartVersionFilePrefix2_9 = '// @dart = 2.9\n';
+
 TestProject project({String mainSrc, String analysisOptions}) =>
     TestProject(mainSrc: mainSrc, analysisOptions: analysisOptions);
 

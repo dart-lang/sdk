@@ -871,63 +871,27 @@ ObjectPtr ActivationFrame::GetAsyncContextVariable(const String& name) {
   return Object::null();
 }
 
-ObjectPtr ActivationFrame::GetAsyncCompleter() {
-  return GetAsyncContextVariable(Symbols::AsyncCompleter());
-}
+ObjectPtr ActivationFrame::GetAsyncAwaiter(
+    CallerClosureFinder* caller_closure_finder) {
+  if (!function_.IsNull() &&
+      (function_.IsAsyncClosure() || function_.IsAsyncGenClosure())) {
+    // This is only possible for frames that are active on the stack.
+    if (fp() == 0) {
+      return Object::null();
+    }
 
-ObjectPtr ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
-  DEBUG_ASSERT(Thread::Current()->TopErrorHandlerIsExitFrame());
+    // Look up caller's closure on the stack.
+    ObjectPtr* last_caller_obj = reinterpret_cast<ObjectPtr*>(GetCallerSp());
+    Closure& closure = Closure::Handle();
+    closure = StackTraceUtils::FindClosureInFrame(last_caller_obj, function_,
+                                                  IsInterpreted());
 
-  Object& future = Object::Handle();
-  const Class& completer_cls = Class::Handle(completer.clazz());
-  ASSERT(!completer_cls.IsNull());
-  const Function& future_getter = Function::Handle(
-      completer_cls.LookupGetterFunction(Symbols::CompleterFuture()));
-  ASSERT(!future_getter.IsNull());
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, Instance::Cast(completer));
-  future = DartEntry::InvokeFunction(future_getter, args);
-  if (future.IsError()) {
-    Exceptions::PropagateError(Error::Cast(future));
+    if (!closure.IsNull() && caller_closure_finder->IsRunningAsync(closure)) {
+      closure = caller_closure_finder->FindCaller(closure);
+      return closure.raw();
+    }
   }
-  if (future.IsNull()) {
-    // The completer object may not be fully initialized yet.
-    return Object::null();
-  }
-  const Class& future_cls = Class::Handle(future.clazz());
-  ASSERT(!future_cls.IsNull());
-  const Field& awaiter_field = Field::Handle(
-      future_cls.LookupInstanceFieldAllowPrivate(Symbols::_Awaiter()));
-  ASSERT(!awaiter_field.IsNull());
-  return Instance::Cast(future).GetField(awaiter_field);
-}
 
-ObjectPtr ActivationFrame::GetAsyncStreamControllerStream() {
-  return GetAsyncContextVariable(Symbols::ControllerStream());
-}
-
-ObjectPtr ActivationFrame::GetAsyncStreamControllerStreamAwaiter(
-    const Object& stream) {
-  const Class& stream_cls = Class::Handle(stream.clazz());
-  ASSERT(!stream_cls.IsNull());
-  const Class& stream_impl_cls = Class::Handle(stream_cls.SuperClass());
-  const Field& awaiter_field = Field::Handle(
-      stream_impl_cls.LookupInstanceFieldAllowPrivate(Symbols::_Awaiter()));
-  ASSERT(!awaiter_field.IsNull());
-  return Instance::Cast(stream).GetField(awaiter_field);
-}
-
-ObjectPtr ActivationFrame::GetAsyncAwaiter() {
-  const Object& async_stream_controller_stream =
-      Object::Handle(GetAsyncStreamControllerStream());
-  if (!async_stream_controller_stream.IsNull()) {
-    return GetAsyncStreamControllerStreamAwaiter(
-        async_stream_controller_stream);
-  }
-  const Object& completer = Object::Handle(GetAsyncCompleter());
-  if (!completer.IsNull()) {
-    return GetAsyncCompleterAwaiter(completer);
-  }
   return Object::null();
 }
 
@@ -2395,8 +2359,11 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   class StackTrace& async_stack_trace = StackTrace::Handle(zone);
   bool stack_has_async_function = false;
 
+  CallerClosureFinder caller_closure_finder(zone);
+
   // Number of frames we are trying to skip that form "sync async" entry.
   int skip_sync_async_frames_count = -1;
+
   String& function_name = String::Handle(zone);
   for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
@@ -2430,7 +2397,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           stack_trace->AddActivation(activation);
           stack_has_async_function = true;
           // Grab the awaiter.
-          async_activation ^= activation->GetAsyncAwaiter();
+          async_activation ^=
+              activation->GetAsyncAwaiter(&caller_closure_finder);
           async_stack_trace ^= activation->GetCausalStack();
           // Interpreted bytecode does not invoke _ClosureCall().
           // Skip _AsyncAwaitCompleterStart() only.
@@ -2489,7 +2457,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
               stack_trace->AddActivation(activation);
               stack_has_async_function = true;
               // Grab the awaiter.
-              async_activation ^= activation->GetAsyncAwaiter();
+              async_activation ^=
+                  activation->GetAsyncAwaiter(&caller_closure_finder);
               found_async_awaiter = true;
               // async function might have been called synchronously, in which
               // case we need to keep going down the stack.
@@ -2532,7 +2501,8 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
             stack_trace->AddActivation(activation);
             stack_has_async_function = true;
             // Grab the awaiter.
-            async_activation ^= activation->GetAsyncAwaiter();
+            async_activation ^=
+                activation->GetAsyncAwaiter(&caller_closure_finder);
             async_stack_trace ^= activation->GetCausalStack();
             // see comment regarding skipping frames of async functions called
             // synchronously above.
@@ -2548,12 +2518,21 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 
   // If the stack doesn't have any async functions on it, return NULL.
   if (!stack_has_async_function) {
-    return NULL;
+    return nullptr;
   }
 
   // Append the awaiter return call stack.
-  while (!async_activation.IsNull()) {
+  while (!async_activation.IsNull() &&
+         async_activation.context() != Object::null()) {
     ActivationFrame* activation = new (zone) ActivationFrame(async_activation);
+
+    if (!(activation->function().IsAsyncClosure() ||
+          activation->function().IsAsyncGenClosure())) {
+      // No more awaiters. Extract the causal stack trace (if it exists).
+      async_stack_trace ^= activation->GetCausalStack();
+      break;
+    }
+
     activation->ExtractTokenPositionFromAsyncClosure();
     stack_trace->AddActivation(activation);
     if (FLAG_trace_debugger_stacktrace) {
@@ -2562,7 +2541,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           "closures:\n\t%s\n",
           activation->function().ToFullyQualifiedCString());
     }
-    next_async_activation = activation->GetAsyncAwaiter();
+    next_async_activation = activation->GetAsyncAwaiter(&caller_closure_finder);
     if (next_async_activation.IsNull()) {
       // No more awaiters. Extract the causal stack trace (if it exists).
       async_stack_trace ^= activation->GetCausalStack();
@@ -3955,7 +3934,9 @@ void Debugger::RememberTopFrameAwaiter() {
     return;
   }
   if (stack_trace_->Length() > 0) {
-    top_frame_awaiter_ = stack_trace_->FrameAt(0)->GetAsyncAwaiter();
+    CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
+    top_frame_awaiter_ =
+        stack_trace_->FrameAt(0)->GetAsyncAwaiter(&caller_closure_finder);
   } else {
     top_frame_awaiter_ = Object::null();
   }
@@ -4014,9 +3995,10 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     if (FLAG_async_debugger) {
       if (stack_trace->FrameAt(0)->function().IsAsyncClosure() ||
           stack_trace->FrameAt(0)->function().IsAsyncGenClosure()) {
+        CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
         // Request to step out of an async/async* closure.
-        const Object& async_op =
-            Object::Handle(stack_trace->FrameAt(0)->GetAsyncAwaiter());
+        const Object& async_op = Object::Handle(
+            stack_trace->FrameAt(0)->GetAsyncAwaiter(&caller_closure_finder));
         if (!async_op.IsNull()) {
           // Step out to the awaiter.
           ASSERT(async_op.IsClosure());

@@ -30,7 +30,6 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
         AllowedExperimentalFlags,
         ExperimentalFlag,
         defaultAllowedExperimentalFlags,
-        defaultExperimentalFlags,
         isExperimentEnabled;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
@@ -206,7 +205,7 @@ const String noVerifyCmd = '--no-verify';
 /// This is used for instance for defining target, mode, and experiment specific
 /// test folders.
 class FolderOptions {
-  final Map<ExperimentalFlag, bool> _experimentalFlags;
+  final Map<ExperimentalFlag, bool> _explicitExperimentalFlags;
   final bool forceLateLowering;
   final bool forceLateLoweringSentinel;
   final bool forceStaticFieldLowering;
@@ -217,7 +216,7 @@ class FolderOptions {
   final String target;
   final String overwriteCurrentSdkVersion;
 
-  FolderOptions(this._experimentalFlags,
+  FolderOptions(this._explicitExperimentalFlags,
       {this.forceLateLowering: false,
       this.forceLateLoweringSentinel: false,
       this.forceStaticFieldLowering: false,
@@ -240,10 +239,10 @@ class FolderOptions {
         assert(noVerify != null),
         assert(target != null);
 
-  Map<ExperimentalFlag, bool> computeExperimentalFlags(
+  Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
-    Map<ExperimentalFlag, bool> flags = new Map.from(defaultExperimentalFlags);
-    flags.addAll(_experimentalFlags);
+    Map<ExperimentalFlag, bool> flags = {};
+    flags.addAll(_explicitExperimentalFlags);
     flags.addAll(forcedExperimentalFlags);
     return flags;
   }
@@ -275,7 +274,7 @@ class FastaContext extends ChainContext with MatchContext {
   final List<Step> steps;
   final Uri vm;
   final bool onlyCrashes;
-  final Map<ExperimentalFlag, bool> experimentalFlags;
+  final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
   final bool skipVm;
   final bool verify;
   final bool weak;
@@ -308,7 +307,7 @@ class FastaContext extends ChainContext with MatchContext {
       this.vm,
       this.platformBinaries,
       this.onlyCrashes,
-      this.experimentalFlags,
+      this.explicitExperimentalFlags,
       bool ignoreExpectations,
       this.updateExpectations,
       bool updateComments,
@@ -510,8 +509,8 @@ class FastaContext extends ChainContext with MatchContext {
         ..sdkRoot = sdk
         ..packagesFileUri = uriConfiguration.packageConfigUri ?? packages
         ..environmentDefines = folderOptions.defines
-        ..experimentalFlags =
-            folderOptions.computeExperimentalFlags(experimentalFlags)
+        ..explicitExperimentalFlags = folderOptions
+            .computeExplicitExperimentalFlags(explicitExperimentalFlags)
         ..nnbdMode = weak
             ? NnbdMode.Weak
             : (folderOptions.nnbdAgnosticMode
@@ -734,8 +733,8 @@ class Run extends Step<ComponentResult, int, FastaContext> {
   Future<Result<int>> run(ComponentResult result, FastaContext context) async {
     FolderOptions folderOptions =
         context.computeFolderOptions(result.description);
-    Map<ExperimentalFlag, bool> experimentalFlags =
-        folderOptions.computeExperimentalFlags(context.experimentalFlags);
+    Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+        .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
     switch (folderOptions.target) {
       case "vm":
         if (context.platformUri == null) {
@@ -965,11 +964,11 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         context.computeLibrariesSpecificationUri(description);
     TestOptions testOptions = context.computeTestOptions(description);
     FolderOptions folderOptions = context.computeFolderOptions(description);
-    Map<ExperimentalFlag, bool> experimentalFlags =
-        folderOptions.computeExperimentalFlags(context.experimentalFlags);
+    Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
+        .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
     NnbdMode nnbdMode = context.weak ||
             !isExperimentEnabled(ExperimentalFlag.nonNullable,
-                experimentalFlags: experimentalFlags)
+                explicitExperimentalFlags: experimentalFlags)
         ? NnbdMode.Weak
         : (folderOptions.nnbdAgnosticMode
             ? NnbdMode.Agnostic
@@ -986,7 +985,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           errors.add(message.plainTextFormatted);
         }
         ..environmentDefines = folderOptions.defines
-        ..experimentalFlags = experimentalFlags
+        ..explicitExperimentalFlags = experimentalFlags
         ..nnbdMode = nnbdMode
         ..librariesSpecificationUri = librariesSpecificationUri
         ..allowedExperimentalFlagsForTesting = allowedExperimentalFlags

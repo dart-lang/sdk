@@ -113,7 +113,7 @@ Future<InitializedCompilerState> initializeCompiler(
     List<Uri> additionalDills,
     Target target,
     {FileSystem fileSystem,
-    Map<ExperimentalFlag, bool> experiments,
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     Map<String, String> environmentDefines,
     NnbdMode nnbdMode}) async {
   assert(nnbdMode != null, "No NnbdMode provided.");
@@ -126,7 +126,8 @@ Future<InitializedCompilerState> initializeCompiler(
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
       oldState.options.nnbdMode == nnbdMode &&
       equalLists(oldState.options.additionalDills, additionalDills) &&
-      equalMaps(oldState.options.experimentalFlags, experiments) &&
+      equalMaps(oldState.options.explicitExperimentalFlags,
+          explicitExperimentalFlags) &&
       equalMaps(oldState.options.environmentDefines, environmentDefines)) {
     // Reuse old state.
     return oldState;
@@ -143,7 +144,9 @@ Future<InitializedCompilerState> initializeCompiler(
     ..fileSystem = fileSystem ?? StandardFileSystem.instance
     ..environmentDefines = environmentDefines
     ..nnbdMode = nnbdMode;
-  if (experiments != null) options.experimentalFlags = experiments;
+  if (explicitExperimentalFlags != null) {
+    options.explicitExperimentalFlags = explicitExperimentalFlags;
+  }
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
@@ -167,7 +170,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Map<Uri, List<int>> workerInputDigests,
     Target target,
     {FileSystem fileSystem,
-    Map<ExperimentalFlag, bool> experiments,
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     Map<String, String> environmentDefines,
     bool trackNeededDillLibraries: false,
     NnbdMode nnbdMode}) async {
@@ -184,7 +187,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       compileSdk: compileSdk,
       sdkRoot: sdkRoot,
       fileSystem: fileSystem ?? StandardFileSystem.instance,
-      experimentalFlags: experiments,
+      explicitExperimentalFlags: explicitExperimentalFlags,
       environmentDefines:
           environmentDefines ?? const <ExperimentalFlag, bool>{},
       outlineOnly: false,

@@ -1511,8 +1511,6 @@ class Function {}
 const String defaultDartAsyncSource = """
 _asyncErrorWrapperHelper(continuation) {}
 
-void _asyncStarListenHelper(var object, var awaiter) {}
-
 void _asyncStarMoveNextHelper(var stream) {}
 
 _asyncStackTraceHelper(async_op) {}

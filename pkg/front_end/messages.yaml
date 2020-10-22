@@ -265,6 +265,15 @@ ExperimentNotEnabledNoFlagInvalidLanguageVersion:
   tip: "You can enable the experiment using the '--enable-experiment=non-nullable' command line option."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
+ExperimentDisabled:
+  template: "This requires the '#string' language feature to be enabled."
+  tip: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
+ExperimentDisabledInvalidLanguageVersion:
+  template: "This requires the null safety language feature, which requires language version of #string2 or higher."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
 EmptyNamedParameterList:
   template: "Named parameter lists cannot be empty."
   tip: "Try adding a named parameter to the list."

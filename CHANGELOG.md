@@ -29,6 +29,8 @@ Updated the Linter to `0.1.121`, which includes:
 
 * New commands `pub add` and `pub remove` that adds and remove new dependencies
   to your `pubspec.yaml`.
+* New option `pub outdated mode=null-safety` that will analyze your dependencies
+  for null-safety.
 * `pub publish` will check your pubspec keys for likely typos.
 * `pub get` will print a warning if the resolution is mixed mode.
 

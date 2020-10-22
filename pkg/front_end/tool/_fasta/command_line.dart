@@ -18,7 +18,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
+    show ExperimentalFlag, isExperimentEnabled;
 
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 
@@ -238,10 +238,11 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final String targetName = options[Flags.target] ?? "vm";
 
-  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-      parseExperimentalArguments(options[Flags.enableExperiment]),
-      onError: throwCommandLineProblem,
-      onWarning: print);
+  Map<ExperimentalFlag, bool> explicitExperimentalFlags =
+      parseExperimentalFlags(
+          parseExperimentalArguments(options[Flags.enableExperiment]),
+          onError: throwCommandLineProblem,
+          onWarning: print);
 
   final TargetFlags flags = new TargetFlags(
       forceLateLoweringForTesting: options[Flags.forceLateLowering],
@@ -249,9 +250,8 @@ ProcessedOptions analyzeCommandLine(String programName,
           options[Flags.forceStaticFieldLowering],
       forceNoExplicitGetterCallsForTesting:
           options[Flags.forceNoExplicitGetterCalls],
-      enableNullSafety:
-          experimentalFlags.containsKey(ExperimentalFlag.nonNullable) &&
-              experimentalFlags[ExperimentalFlag.nonNullable]);
+      enableNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
+          explicitExperimentalFlags: explicitExperimentalFlags));
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -351,7 +351,7 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..verbose = verbose
     ..verify = verify
     ..verifySkipPlatform = verifySkipPlatform
-    ..experimentalFlags = experimentalFlags
+    ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
     ..nnbdMode = nnbdMode
     ..additionalDills = linkDependencies

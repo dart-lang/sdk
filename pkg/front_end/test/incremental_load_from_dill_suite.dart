@@ -353,7 +353,8 @@ Future<Map<String, List<int>>> createModules(Map module,
     if (wantedLibs.length != moduleSources.length) {
       throw "Module probably not setup right.";
     }
-    Component result = new Component(libraries: wantedLibs);
+    Component result = new Component(libraries: wantedLibs)
+      ..setMainMethodAndMode(null, false, c.mode);
     List<int> resultBytes = util.postProcess(result);
     moduleResult[moduleName] = resultBytes;
   }
@@ -533,13 +534,15 @@ class NewWorldTest {
           // flag is on by default.
           // TODO(johnniwinther,jensj): Update tests to explicitly opt out.
           flagsFromOptions['non-nullable'] ??= false;
-          Map<ExperimentalFlag, bool> experimentalFlags =
+          Map<ExperimentalFlag, bool> explicitExperimentalFlags =
               parseExperimentalFlags(flagsFromOptions,
                   onError: (e) =>
                       throw "Error on parsing experiments flags: $e");
-          options.experimentalFlags = experimentalFlags;
+          options.explicitExperimentalFlags = explicitExperimentalFlags;
         } else {
-          options.experimentalFlags = {ExperimentalFlag.nonNullable: false};
+          options.explicitExperimentalFlags = {
+            ExperimentalFlag.nonNullable: false
+          };
         }
         if (world["nnbdMode"] != null) {
           String nnbdMode = world["nnbdMode"];
@@ -839,7 +842,8 @@ class NewWorldTest {
             data,
             InitializedFromDillMismatch,
             "Expected that initializedFromDill would be "
-            "$expectInitializeFromDill but was ${compiler.initializedFromDill}");
+            "$expectInitializeFromDill but was "
+            "${compiler.initializedFromDill}");
       }
 
       if (incrementalSerialization == true && compiler.initializedFromDill) {
@@ -1305,7 +1309,8 @@ Result<List<int>> checkIncrementalSerialization(
     IncrementalSerializer incrementalSerializer,
     YamlMap world) {
   if (incrementalSerialization == true) {
-    Component c = new Component(nameRoot: component.root);
+    Component c = new Component(nameRoot: component.root)
+      ..setMainMethodAndMode(null, false, component.mode);
     c.libraries.addAll(component.libraries);
     c.uriToSource.addAll(component.uriToSource);
     Map<String, Set<String>> originalContent = buildMapOfContent(c);

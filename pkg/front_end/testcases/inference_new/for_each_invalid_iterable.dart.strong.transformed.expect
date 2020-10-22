@@ -61,7 +61,6 @@ static method test() → dynamic /* originally async */ {
  - 'Stream' is from 'dart:async'.
   await for (int x in s) {}
                       ^" in s as{TypeError} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L2:
@@ -101,7 +100,6 @@ static method test() → dynamic /* originally async */ {
  - 'Stream' is from 'dart:async'.
   await for (y in s) {}
                   ^" in s as{TypeError} asy::Stream<dynamic>*;
-          asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
             #L3:

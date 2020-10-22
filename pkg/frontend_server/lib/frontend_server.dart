@@ -426,7 +426,7 @@ class FrontendCompiler implements CompilerInterface {
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
       ..embedSourceText = options['embed-source-text']
-      ..experimentalFlags = parseExperimentalFlags(
+      ..explicitExperimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
       ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
@@ -480,7 +480,7 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     if (nullSafety == null &&
-        compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
+        compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }
 
@@ -1091,6 +1091,7 @@ class FrontendCompiler implements CompilerInterface {
           libraries: libraries,
           uriToSource: deltaProgram.uriToSource,
           nameRoot: deltaProgram.root);
+      singleLibrary.setMainMethodAndMode(null, false, deltaProgram.mode);
       ByteSink byteSink = ByteSink();
       final BinaryPrinter printer = printerFactory.newBinaryPrinter(byteSink);
       printer.writeComponentFile(singleLibrary);

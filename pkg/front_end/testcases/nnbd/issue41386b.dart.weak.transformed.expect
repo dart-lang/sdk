@@ -7,6 +7,6 @@ static method test() → void {
   map.{core::Map::[]}(0).foo;
   core::Iterable<core::String> elements = <core::String>[];
   core::List<dynamic> list = core::List::from<dynamic>(elements);
-  core::List::from<dynamic>(elements).{core::Iterable::forEach}((dynamic element) → dynamic => element.foo);
+  core::List::from<dynamic>(elements).{core::Iterable::forEach}((dynamic element) → void => element.foo);
 }
 static method main() → dynamic {}

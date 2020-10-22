@@ -102,7 +102,7 @@ export '../api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
 
 export '../api_prototype/experimental_flags.dart'
-    show defaultExperimentalFlags, ExperimentalFlag;
+    show defaultExperimentalFlags, ExperimentalFlag, isExperimentEnabled;
 
 export '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -138,7 +138,7 @@ InitializedCompilerState initializeCompiler(
     Uri librariesSpecificationUri,
     List<Uri> additionalDills,
     Uri packagesFileUri,
-    {Map<ExperimentalFlag, bool> experimentalFlags,
+    {Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     bool verify: false,
     NnbdMode nnbdMode}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
@@ -150,7 +150,8 @@ InitializedCompilerState initializeCompiler(
       oldState.options.packagesFileUri == packagesFileUri &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
       equalLists(oldState.options.additionalDills, additionalDills) &&
-      equalMaps(oldState.options.experimentalFlags, experimentalFlags) &&
+      equalMaps(oldState.options.explicitExperimentalFlags,
+          explicitExperimentalFlags) &&
       oldState.options.verify == verify &&
       oldState.options.nnbdMode == nnbdMode) {
     return oldState;
@@ -161,7 +162,7 @@ InitializedCompilerState initializeCompiler(
     ..additionalDills = additionalDills
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
-    ..experimentalFlags = experimentalFlags
+    ..explicitExperimentalFlags = explicitExperimentalFlags
     ..verify = verify;
   if (nnbdMode != null) options.nnbdMode = nnbdMode;
 

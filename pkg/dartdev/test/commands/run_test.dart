@@ -37,20 +37,6 @@ void run() {
     expect(result.exitCode, 0);
   });
 
-  test('--enable-experiment', () {
-    p = project();
-    p.file('main.dart', "void main() { int a; a = null; print('a is \$a.'); }");
-    var result =
-        p.runSync('--enable-experiment=non-nullable', ['run', 'main.dart']);
-
-    expect(result.exitCode, 254);
-    expect(result.stdout, isEmpty);
-    expect(
-        result.stderr,
-        contains("A value of type 'Null' can't be assigned to a variable of "
-            "type 'int'"));
-  });
-
   test('no such file', () {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     ProcessResult result =
@@ -88,7 +74,7 @@ void run() {
     p = project();
     p.file('main.dart', 'void main(args) { print(args); }');
     ProcessResult result = p.runSync('run', [
-      '--enable-experiment=non-nullable',
+      '--enable-experiment=triple-shift',
       'main.dart',
       'argument1',
       'argument2',
@@ -106,7 +92,7 @@ void run() {
     // Test with absolute path
     final name = path.join(p.dirPath, 'main.dart');
     final result = p.runSync('run', [
-      '--enable-experiment=non-nullable',
+      '--enable-experiment=triple-shift',
       name,
       '--argument1',
       'argument2',
@@ -124,7 +110,6 @@ void run() {
     // Test with File uri
     final name = path.join(p.dirPath, 'main.dart');
     final result = p.runSync('run', [
-      '--enable-experiment=non-nullable',
       Uri.file(name).toString(),
       '--argument1',
       'argument2',
@@ -160,7 +145,7 @@ void run() {
     expect(
       result.stdout,
       matches(
-          r'Observatory listening on http://127.0.0.1:8181/[a-zA-Z0-9]+=/\n.*'),
+          r'Observatory listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9]+=\/\n.*'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);

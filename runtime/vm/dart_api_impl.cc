@@ -5735,7 +5735,7 @@ static Dart_Handle GetTypeCommon(Dart_Handle library,
     type ^=
         Type::New(cls, type_args_obj, TokenPosition::kNoSource, nullability);
   }
-  type ^= ClassFinalizer::FinalizeType(cls, type);
+  type ^= ClassFinalizer::FinalizeType(type);
   return Api::NewHandle(T, type.raw());
 }
 

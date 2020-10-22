@@ -54,7 +54,7 @@ class TestConfigWithLanguageVersion extends TestConfig {
       AllowedExperimentalFlags allowedExperimentalFlags})
       : super(marker, name,
             librariesSpecificationUri: librariesSpecificationUri,
-            experimentalFlags: experimentalFlags,
+            explicitExperimentalFlags: experimentalFlags,
             allowedExperimentalFlags: allowedExperimentalFlags);
 
   @override

@@ -5,5 +5,5 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static final field asy::StreamTransformer<core::Object?, core::Object?> t = new asy::_StreamHandlerTransformer::•<core::Object?, core::Object?>(handleData: (core::Object? data, asy::EventSink<core::Object?> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::add}(data)), handleDone: (asy::EventSink<core::Object?> sink) → asy::Future<void> => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::close}()));
+static final field asy::StreamTransformer<core::Object?, core::Object?> t = new asy::_StreamHandlerTransformer::•<core::Object?, core::Object?>(handleData: (core::Object? data, asy::EventSink<core::Object?> sink) → void => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::add}(data)), handleDone: (asy::EventSink<core::Object?> sink) → void => asy::Future::microtask<void>(() → void => sink.{asy::EventSink::close}()));
 static method main() → void {}

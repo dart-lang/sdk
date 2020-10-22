@@ -66,6 +66,16 @@ abstract class TargetImplementation extends Target {
     return _options.getExperimentEnabledVersionInLibrary(flag, importUri);
   }
 
+  /// Returns `true` if the [flag] is enabled by default.
+  bool isExperimentEnabledByDefault(ExperimentalFlag flag) {
+    return _options.isExperimentEnabledByDefault(flag);
+  }
+
+  /// Returns `true` if the [flag] is enabled globally.
+  ///
+  /// This is `true` either if the [flag] is passed through an explicit
+  /// `--enable-experiment` option or if the [flag] is expired and on by
+  /// default.
   bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
     return _options.isExperimentEnabledGlobally(flag);
   }

@@ -169,8 +169,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     if gn_args['target_os'] in ['linux', 'win']:
         gn_args['dart_use_fallback_root_certificates'] = True
 
-    gn_args['dart_platform_bytecode'] = args.bytecode
-
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
                                     sanitizer == 'none')
@@ -384,17 +382,6 @@ def AddCommonGnOptionArgs(parser):
                         dest='verify_sdk_hash',
                         action='store_false')
     parser.set_defaults(verify_sdk_hash=True)
-
-    parser.add_argument('--bytecode',
-                        '-b',
-                        help='Use bytecode in Dart VM',
-                        dest='bytecode',
-                        action="store_true")
-    parser.add_argument('--no-bytecode',
-                        help='Disable bytecode in Dart VM',
-                        dest='bytecode',
-                        action="store_false")
-    parser.set_defaults(bytecode=False)
 
     parser.add_argument('--clang', help='Use Clang', action='store_true')
     parser.add_argument('--no-clang',

@@ -135,7 +135,7 @@ class ExpressionCompilerWorker {
       fileSystem = AssetFileSystem(
           fileSystem, assetServerAddress, assetServerPort ?? '8080');
     }
-    var experimentalFlags = parseExperimentalFlags(
+    var explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(
             parsedArgs['enable-experiment'] as List<String>),
         onError: (e) => throw e);
@@ -146,7 +146,7 @@ class ExpressionCompilerWorker {
       sdkSummary: _argToUri(parsedArgs['dart-sdk-summary'] as String),
       fileSystem: fileSystem,
       environmentDefines: environmentDefines,
-      experimentalFlags: experimentalFlags,
+      explicitExperimentalFlags: explicitExperimentalFlags,
       sdkRoot: _argToUri(parsedArgs['sdk-root'] as String),
       trackWidgetCreation: parsedArgs['track-widget-creation'] as bool,
       soundNullSafety: parsedArgs['sound-null-safety'] as bool,
@@ -166,7 +166,7 @@ class ExpressionCompilerWorker {
     @required FileSystem fileSystem,
     Uri packagesFile,
     Map<String, String> environmentDefines = const {},
-    Map<ExperimentalFlag, bool> experimentalFlags = const {},
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
     Uri sdkRoot,
     bool trackWidgetCreation = false,
     bool soundNullSafety = false,
@@ -186,7 +186,7 @@ class ExpressionCompilerWorker {
       ..fileSystem = fileSystem
       ..omitPlatform = true
       ..environmentDefines = environmentDefines
-      ..experimentalFlags = experimentalFlags
+      ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings)
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..verbose = verbose;

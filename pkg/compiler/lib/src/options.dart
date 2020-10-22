@@ -105,14 +105,22 @@ class CompilerOptions implements DiagnosticOptions {
   Map<String, String> environment = const <String, String>{};
 
   /// Flags enabling language experiments.
-  Map<fe.ExperimentalFlag, bool> languageExperiments = {};
+  Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags = {};
 
   /// `true` if variance is enabled.
-  bool get enableVariance => languageExperiments[fe.ExperimentalFlag.variance];
+  bool get enableVariance =>
+      fe.isExperimentEnabled(fe.ExperimentalFlag.variance,
+          explicitExperimentalFlags: explicitExperimentalFlags);
 
   /// Whether `--enable-experiment=non-nullable` is provided.
   bool get enableNonNullable =>
-      languageExperiments[fe.ExperimentalFlag.nonNullable];
+      fe.isExperimentEnabled(fe.ExperimentalFlag.nonNullable,
+          explicitExperimentalFlags: explicitExperimentalFlags);
+
+  /// Whether `--enable-experiment=triple-shift` is provided.
+  bool get enableTripleShift =>
+      fe.isExperimentEnabled(fe.ExperimentalFlag.tripleShift,
+          explicitExperimentalFlags: explicitExperimentalFlags);
 
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
@@ -399,7 +407,7 @@ class CompilerOptions implements DiagnosticOptions {
       Uri platformBinaries,
       void Function(String) onError,
       void Function(String) onWarning}) {
-    Map<fe.ExperimentalFlag, bool> languageExperiments =
+    Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags =
         _extractExperiments(options, onError: onError, onWarning: onWarning);
 
     // The null safety experiment can result in requiring different experiments
@@ -423,7 +431,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..suppressHints = _hasOption(options, Flags.suppressHints)
       ..shownPackageWarnings =
           _extractOptionalCsvOption(options, Flags.showPackageWarnings)
-      ..languageExperiments = languageExperiments
+      ..explicitExperimentalFlags = explicitExperimentalFlags
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
@@ -507,8 +515,11 @@ class CompilerOptions implements DiagnosticOptions {
       throw new ArgumentError(
           "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
+    Map<fe.ExperimentalFlag, bool> experimentalFlags =
+        new Map.from(fe.defaultExperimentalFlags);
+    experimentalFlags.addAll(explicitExperimentalFlags);
     if (platformBinaries == null &&
-        equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
+        equalMaps(experimentalFlags, fe.defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
     if (_legacyJavaScript && _noLegacyJavaScript) {
@@ -534,6 +545,7 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingExperiment) {
       // Set flags implied by '--benchmarking-x'.
       // TODO(sra): Use this for some NNBD variant.
+      useContentSecurityPolicy = true;
     }
 
     if (_noLegacyJavaScript) legacyJavaScript = false;
