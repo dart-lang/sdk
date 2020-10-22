@@ -21,7 +21,7 @@ abstract class _Class&Object&Mixin1<T extends core::Object* = dynamic> extends c
   abstract member-signature method /* from org-dartlang-testcase:///main_lib1.dart */ toString() → core::String*; -> core::Object::toString
   abstract member-signature method /* from org-dartlang-testcase:///main_lib1.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get /* from org-dartlang-testcase:///main_lib1.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract member-signature set /* from org-dartlang-testcase:///main_lib1.dart */ field((core::Object*) →* core::Type* _) → void; -> mai2::Interface::field
+  abstract member-signature set /* from org-dartlang-testcase:///main_lib1.dart */ field((core::Object*) →* core::Type* value) → void; -> mai2::Interface::field
   abstract member-signature get /* from org-dartlang-testcase:///main_lib1.dart */ field() → (core::Object*) →* core::Type*; -> mai2::Interface::field
   abstract member-signature method /* from org-dartlang-testcase:///main_lib1.dart */ method1() → (core::Object*) →* core::Type*; -> mai2::Interface::method1
   abstract member-signature method /* from org-dartlang-testcase:///main_lib1.dart */ method2((core::Object*) →* core::Type* t) → void; -> mai2::Interface::method2
@@ -69,7 +69,7 @@ abstract class Mixin1<T extends core::Object* = dynamic> extends core::Object im
   synthetic constructor •() → mai::Mixin1<mai::Mixin1::T*>*
     : super core::Object::•()
     ;
-  abstract member-signature set field((core::Object*) →* core::Type* _) → void; -> mai2::Interface::field
+  abstract member-signature set field((core::Object*) →* core::Type* value) → void; -> mai2::Interface::field
   abstract member-signature get field() → (core::Object*) →* core::Type*; -> mai2::Interface::field
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

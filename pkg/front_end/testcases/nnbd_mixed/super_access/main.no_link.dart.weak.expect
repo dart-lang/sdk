@@ -55,7 +55,7 @@ abstract class Mixin1<T extends core::Object* = dynamic> extends core::Object im
   synthetic constructor •() → mai::Mixin1<mai::Mixin1::T*>*
     : super core::Object::•()
     ;
-  abstract member-signature set field((core::Object*) →* core::Type* _) → void; -> mai2::Interface::field
+  abstract member-signature set field((core::Object*) →* core::Type* value) → void; -> mai2::Interface::field
   abstract member-signature get field() → (core::Object*) →* core::Type*; -> mai2::Interface::field
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
