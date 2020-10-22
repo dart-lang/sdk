@@ -66,7 +66,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.6.0",
-  "async_rev": "38ace5fa83697928d5f29911e346e6311dd00857",
+  "async_rev": "6d2de25f208b011d79d056115256d3840229723b",
   "bazel_worker_rev": "26680d5e249b249c7216ab2fed0ac8ed4ee285c5",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
@@ -76,7 +76,7 @@ vars = {
   "charcode_rev": "4a685faba42d86ebd9d661eadd1e79d0a1c34c43",
   "chrome_rev" : "19997",
   "cli_util_rev" : "335ed165887d0ec97c2a09173ebf22dcf56a6c4e",
-  "collection_rev": "7d44763d62f97698b15c08ee360d838dccb63c88",
+  "collection_rev": "60e6ee2228586980826b07ec1df633bd879f42ea",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
   "csslib_rev": "6f77b3dcee957d3e2d5083f666221a220e9ed1f1",
@@ -97,7 +97,7 @@ vars = {
   "dart_style_tag": "1.3.8",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "39cec16700839847876849fef4f0769f8689b6c8",
+  "dartdoc_rev" : "72c69f8659ce8823ce2dde9a4f758b0fa617ab5e",
   "ffi_rev": "a90bd424116fb6f416337db67425171f2dc4c98f",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",

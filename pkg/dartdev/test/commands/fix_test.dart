@@ -59,5 +59,41 @@ linter:
     expect(result.stdout, contains('Fixed 1 file.'));
   });
 
-  // todo (pq): add tests for analyzer excludes, ignores, etc.
+  test('excludes', () {
+    p = project(
+      mainSrc: '''
+var x = "";
+''',
+      analysisOptions: '''
+analyzer:
+  exclude:
+    - lib/**
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+    );
+    var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('Nothing to fix!'));
+  });
+
+  test('ignores', () {
+    p = project(
+      mainSrc: '''
+// ignore: prefer_single_quotes
+var x = "";
+''',
+      analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+    );
+    var result = p.runSync('fix', ['.'], workingDir: p.dirPath);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('Nothing to fix!'));
+  });
 }
