@@ -75,11 +75,6 @@ class AstBinaryFlags {
     TypeName,
   );
 
-  static final _hasType = _checkBit(
-    1,
-    SimpleIdentifier,
-  );
-
   static final _isAbstract = _checkBit(
     1,
     ClassDeclaration,
@@ -242,7 +237,6 @@ class AstBinaryFlags {
     bool hasSeparatorColon = false,
     bool hasSeparatorEquals = false,
     bool hasThis = false,
-    bool hasType = false,
     bool hasTypeArguments = false,
     bool isAbstract = false,
     bool isAsync = false,
@@ -303,9 +297,6 @@ class AstBinaryFlags {
     }
     if (hasThis) {
       result |= _hasThis;
-    }
-    if (hasType) {
-      result |= _hasType;
     }
     if (hasTypeArguments) {
       result |= _hasTypeArguments;
@@ -430,10 +421,6 @@ class AstBinaryFlags {
 
   static bool hasThis(int flags) {
     return (flags & _hasThis) != 0;
-  }
-
-  static bool hasType(int flags) {
-    return (flags & _hasType) != 0;
   }
 
   static bool hasTypeArguments(int flags) {

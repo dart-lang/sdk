@@ -1230,19 +1230,6 @@ class TypeSystemImpl implements TypeSystem {
       typeParameters,
       considerExtendsClause: false,
     );
-
-    // It is an error to use a generic function type as a bound.
-    // What is worse, inference does not do anything to their type formals.
-    // So, we might be left with bounds of their type formals not replaced.
-    // Then we cannot store this linked information, because it references
-    // types that are not in scope.
-    for (var i = 0; i < inferredTypes.length; i++) {
-      var inferredType = inferredTypes[i];
-      if (inferredType is FunctionType && inferredType.typeFormals.isNotEmpty) {
-        inferredTypes[i] = DynamicTypeImpl.instance;
-      }
-    }
-
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {

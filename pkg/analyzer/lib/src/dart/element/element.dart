@@ -42,7 +42,6 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
@@ -501,7 +500,6 @@ class ClassElementImpl extends AbstractClassElementImpl
 
     if (linkedNode != null) {
       if (linkedNode is ClassOrMixinDeclaration) {
-        LazyAst.applyResolution(linkedNode);
         _createPropertiesAndAccessors();
         assert(_accessors != null);
         return _accessors;
@@ -546,7 +544,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
 
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@constructor');
       _constructors = context.getConstructors(linkedNode).map((node) {
@@ -608,7 +605,6 @@ class ClassElementImpl extends AbstractClassElementImpl
 
     if (linkedNode != null) {
       if (linkedNode is ClassOrMixinDeclaration) {
-        LazyAst.applyResolution(linkedNode);
         _createPropertiesAndAccessors();
         assert(_fields != null);
         return _fields;
@@ -709,7 +705,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
 
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
       var context = enclosingUnit.linkedContext;
       var implementsClause = context.getImplementsClause(linkedNode);
       if (implementsClause != null) {
@@ -785,7 +780,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
 
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@method');
       return _methods = context
@@ -822,7 +816,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
 
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
       var context = enclosingUnit.linkedContext;
       var withClause = context.getWithClause(linkedNode);
       if (withClause != null) {
@@ -872,18 +865,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
 
     if (linkedNode != null) {
-      var node = linkedNode;
-      LazyAst.applyResolution(node);
-
-      DartType type;
-      if (node is ClassDeclaration) {
-        type = node.extendsClause?.superclass?.type;
-      } else if (node is ClassTypeAlias) {
-        type = linkedContext.getSuperclass(linkedNode)?.type;
-      } else {
-        throw UnimplementedError('${node.runtimeType}');
-      }
-
+      var type = linkedContext.getSuperclass(linkedNode)?.type;
       if (_isInterfaceTypeClass(type)) {
         return _supertype = type;
       }
@@ -1982,9 +1964,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
     if (_constantInitializers != null) return _constantInitializers;
 
     if (linkedNode != null) {
-      var node = linkedNode as ConstructorDeclaration;
-      LazyAst.applyResolution(node);
-      return _constantInitializers = node.initializers;
+      return _constantInitializers = linkedContext.getConstructorInitializers(
+        linkedNode,
+      );
     }
 
     return _constantInitializers;
@@ -2098,13 +2080,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
     if (_redirectedConstructor != null) return _redirectedConstructor;
 
     if (linkedNode != null) {
-      var node = linkedNode as ConstructorDeclaration;
-      LazyAst.applyResolution(node);
+      var context = enclosingUnit.linkedContext;
       if (isFactory) {
-        return _redirectedConstructor =
-            node.redirectedConstructor?.staticElement;
+        var node = context.getConstructorRedirected(linkedNode);
+        return _redirectedConstructor = node?.staticElement;
       } else {
-        for (var initializer in node.initializers) {
+        var initializers = context.getConstructorInitializers(linkedNode);
+        for (var initializer in initializers) {
           if (initializer is RedirectingConstructorInvocation) {
             return _redirectedConstructor = initializer.staticElement;
           }
@@ -2232,7 +2214,6 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
     if (_constantInitializer != null) return _constantInitializer;
 
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
       var context = enclosingUnit.linkedContext;
       return _constantInitializer = context.readInitializer(linkedNode);
     }
@@ -3001,10 +2982,8 @@ abstract class ElementImpl implements Element {
 
   @override
   List<ElementAnnotation> get metadata {
-    if (_metadata != null) return _metadata;
-
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
+      if (_metadata != null) return _metadata;
       var metadata = linkedContext.getMetadata(linkedNode);
       return _metadata = _buildAnnotations2(enclosingUnit, metadata);
     }
@@ -3510,9 +3489,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   ConstructorElement getNamedConstructor(String name) => null;
 
   void _resynthesizeMembers2() {
-    var node = linkedNode as EnumDeclaration;
-    LazyAst.applyResolution(node);
-
     var fields = <FieldElementImpl>[];
     var getters = <PropertyAccessorElementImpl>[];
 
@@ -3540,7 +3516,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
     // Build fields for all enum constants.
     var containerRef = reference.getChild('@constant');
-    var constants = node.constants;
+    var constants = linkedContext.getEnumConstants(linkedNode);
     for (var i = 0; i < constants.length; ++i) {
       var constant = constants[i];
       var name = constant.name.name;
@@ -3725,11 +3701,10 @@ abstract class ExecutableElementImpl extends ElementImpl
     if (_parameters != null) return _parameters;
 
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@parameter');
       var formalParameters = context.getFormalParameters(linkedNode);
-      return _parameters = ParameterElementImpl.forLinkedNodeList(
+      _parameters = ParameterElementImpl.forLinkedNodeList(
         this,
         context,
         containerRef,
@@ -3764,7 +3739,6 @@ abstract class ExecutableElementImpl extends ElementImpl
     if (_returnType != null) return _returnType;
 
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
       var context = enclosingUnit.linkedContext;
       return _returnType = context.getReturnType(linkedNode);
     }
@@ -3953,7 +3927,6 @@ class ExtensionElementImpl extends ElementImpl
 
     if (linkedNode != null) {
       if (linkedNode is ExtensionDeclaration) {
-        LazyAst.applyResolution(linkedNode);
         _createPropertiesAndAccessors();
         assert(_accessors != null);
         return _accessors;
@@ -4013,9 +3986,7 @@ class ExtensionElementImpl extends ElementImpl
     if (_extendedType != null) return _extendedType;
 
     if (linkedNode != null) {
-      var node = linkedNode as ExtensionDeclaration;
-      LazyAst.applyResolution(linkedNode);
-      return _extendedType = node.extendedType.type;
+      return _extendedType = linkedContext.getExtendedType(linkedNode).type;
     }
 
     return _extendedType;
@@ -4029,7 +4000,6 @@ class ExtensionElementImpl extends ElementImpl
 
     if (linkedNode != null) {
       if (linkedNode is ExtensionDeclaration) {
-        LazyAst.applyResolution(linkedNode);
         _createPropertiesAndAccessors();
         assert(_fields != null);
         return _fields;
@@ -4069,7 +4039,6 @@ class ExtensionElementImpl extends ElementImpl
     }
 
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
       var context = enclosingUnit.linkedContext;
       var containerRef = reference.getChild('@method');
       return _methods = context
@@ -4535,17 +4504,15 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   GenericFunctionTypeElementImpl get function {
     if (_function != null) return _function;
 
-    var node = linkedNode;
-    if (node != null) {
-      LazyAst.applyResolution(node);
-      if (node is GenericTypeAlias) {
-        var function = node.functionType;
+    if (linkedNode != null) {
+      if (linkedNode is GenericTypeAlias) {
+        var context = enclosingUnit.linkedContext;
+        var function = context.getGeneticTypeAliasFunction(linkedNode);
         if (function != null) {
-          return _function = GenericFunctionTypeElementImpl.forLinkedNode(
-            this,
-            reference.getChild('@function'),
-            function,
-          );
+          var reference = context.getGenericFunctionTypeReference(function);
+          _function = reference.element;
+          encloseElement(_function);
+          return _function;
         } else {
           return _function = GenericFunctionTypeElementImpl.forOffset(-1)
             ..typeParameters = const <TypeParameterElement>[]
@@ -4740,20 +4707,17 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   List<ParameterElement> get parameters {
-    if (_parameters != null) return _parameters;
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      var containerRef = reference.getChild('@parameter');
-      var formalParameters = context.getFormalParameters(linkedNode);
-      return _parameters = ParameterElementImpl.forLinkedNodeList(
-        this,
-        context,
-        containerRef,
-        formalParameters,
-      );
+    if (_parameters == null) {
+      if (linkedNode != null) {
+        var context = enclosingUnit.linkedContext;
+        return _parameters = ParameterElementImpl.forLinkedNodeList(
+          this,
+          context,
+          reference.getChild('@parameter'),
+          context.getFormalParameters(linkedNode),
+        );
+      }
     }
-
     return _parameters ?? const <ParameterElement>[];
   }
 
@@ -5873,10 +5837,8 @@ class MixinElementImpl extends ClassElementImpl {
     if (_superclassConstraints != null) return _superclassConstraints;
 
     if (linkedNode != null) {
-      var node = linkedNode as MixinDeclaration;
-      LazyAst.applyResolution(node);
       List<InterfaceType> constraints;
-      var onClause = node.onClause;
+      var onClause = enclosingUnit.linkedContext.getOnClause(linkedNode);
       if (onClause != null) {
         constraints = onClause.superclassConstraints
             .map((node) => node.type)
@@ -6570,14 +6532,18 @@ class ParameterElementImpl extends VariableElementImpl
 
     if (linkedNode != null) {
       var context = enclosingUnit.linkedContext;
-      var containerRef = reference.getChild('@parameter');
       var formalParameters = context.getFormalParameters(linkedNode);
-      return _parameters = ParameterElementImpl.forLinkedNodeList(
-        this,
-        context,
-        containerRef,
-        formalParameters,
-      );
+      if (formalParameters != null) {
+        var containerRef = reference.getChild('@parameter');
+        return _parameters = ParameterElementImpl.forLinkedNodeList(
+          this,
+          context,
+          containerRef,
+          formalParameters,
+        );
+      } else {
+        return _parameters ??= const <ParameterElement>[];
+      }
     }
 
     return _parameters ??= const <ParameterElement>[];
@@ -6597,9 +6563,8 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   DartType get typeInternal {
-    if (_type != null) return _type;
-
     if (linkedNode != null) {
+      if (_type != null) return _type;
       var context = enclosingUnit.linkedContext;
       return _type = context.getType(linkedNode);
     }
@@ -6611,7 +6576,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (_typeParameters != null) return _typeParameters;
 
     if (linkedNode != null) {
-      var typeParameters = linkedContext.getTypeParameters(linkedNode);
+      var typeParameters = linkedContext.getTypeParameters2(linkedNode);
       if (typeParameters == null) {
         return _typeParameters = const [];
       }
@@ -7192,7 +7157,6 @@ abstract class PropertyInducingElementImpl
   DartType get typeInternal {
     if (linkedNode != null) {
       if (_type != null) return _type;
-      LazyAst.applyResolution(linkedNode);
       _type = linkedContext.getType(linkedNode);
 
       // While performing inference during linking, the first step is to collect
@@ -7426,8 +7390,8 @@ class TypeParameterElementImpl extends ElementImpl
     if (_bound != null) return _bound;
 
     if (linkedNode != null) {
-      var node = linkedNode as TypeParameter;
-      return _bound = node.bound?.type;
+      var context = enclosingUnit.linkedContext;
+      return _bound = context.getTypeParameterBound(linkedNode)?.type;
     }
 
     return _bound;
@@ -7561,19 +7525,13 @@ mixin TypeParameterizedElementMixin
     if (_typeParameterElements != null) return _typeParameterElements;
 
     if (linkedNode != null) {
-      LazyAst.applyResolution(linkedNode);
-      var typeParameters = linkedContext.getTypeParameters(linkedNode);
+      var typeParameters = linkedContext.getTypeParameters2(linkedNode);
       if (typeParameters == null) {
         return _typeParameterElements = const [];
       }
       var containerRef = reference.getChild('@typeParameter');
       return _typeParameterElements =
           typeParameters.typeParameters.map<TypeParameterElement>((node) {
-        var element = node.declaredElement;
-        if (element != null) {
-          return element;
-        }
-
         var reference = containerRef.getChild(node.name.name);
         if (reference.hasElementFor(node)) {
           return reference.element as TypeParameterElement;
