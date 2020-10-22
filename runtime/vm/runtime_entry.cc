@@ -109,27 +109,6 @@ void VerifyOnTransition() {
 }
 #endif
 
-// Add function to a class and that class to the class dictionary so that
-// frame walking can be used.
-const Function& RegisterFakeFunction(const char* name, const Code& code) {
-  Thread* thread = Thread::Current();
-  const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
-  const Script& script = Script::Handle();
-  const Library& lib = Library::Handle(Library::CoreLibrary());
-  const Class& owner_class = Class::Handle(
-      Class::New(lib, class_name, script, TokenPosition::kNoSource));
-  const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
-  const Function& function = Function::ZoneHandle(Function::New(
-      function_name, FunctionLayout::kRegularFunction, true, false, false,
-      false, false, owner_class, TokenPosition::kMinSource));
-  const Array& functions = Array::Handle(Array::New(1));
-  functions.SetAt(0, function);
-  owner_class.SetFunctions(functions);
-  lib.AddClass(owner_class);
-  function.AttachCode(code);
-  return function;
-}
-
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& index = Instance::CheckedHandle(zone, arguments.ArgAt(1));
@@ -1776,10 +1755,10 @@ static FunctionPtr Resolve(Thread* thread,
                            const String& name,
                            const Array& descriptor) {
   ASSERT(name.IsSymbol());
-
-  ArgumentsDescriptor args_desc(descriptor);
   Function& target_function = Function::Handle(zone);
+
   if (receiver_class.EnsureIsFinalized(thread) == Error::null()) {
+    ArgumentsDescriptor args_desc(descriptor);
     target_function = Resolver::ResolveDynamicForReceiverClass(receiver_class,
                                                                name, args_desc);
   }

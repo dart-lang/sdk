@@ -51,7 +51,7 @@ static void Finish(Thread* thread) {
   ObjectStore* object_store = thread->isolate()->object_store();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone, object_store->closure_class());
-  ClassFinalizer::LoadClassMembers(cls);
+  cls.EnsureIsFinalized(thread);
 
   // Make sure _Closure fields are not marked as unboxing candidates
   // as they are accessed with plain loads.
@@ -88,7 +88,7 @@ static void Finish(Thread* thread) {
 
   // Eagerly compile Bool class, bool constants are used from within compiler.
   cls = object_store->bool_class();
-  ClassFinalizer::LoadClassMembers(cls);
+  cls.EnsureIsFinalized(thread);
 }
 
 static ErrorPtr BootstrapFromKernel(Thread* thread,

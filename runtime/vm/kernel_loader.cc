@@ -734,6 +734,7 @@ void KernelLoader::LoadNativeExtension(const Library& library,
 }
 
 ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
+  SafepointWriteRwLocker ml(thread_, thread_->isolate_group()->program_lock());
   ASSERT(kernel_program_info_.constants() == Array::null());
 
   if (!program_->is_single_program()) {
