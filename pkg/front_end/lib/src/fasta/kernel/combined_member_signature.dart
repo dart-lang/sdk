@@ -311,7 +311,7 @@ abstract class CombinedMemberSignatureBase<T> {
 
   /// Create a member signature with the [combinedMemberSignatureType] using the
   /// [canonicalMember] as member signature origin.
-  Procedure createMemberFromSignature({bool copyLocation: true}) {
+  Procedure createMemberFromSignature() {
     if (canonicalMemberIndex == null) {
       return null;
     }
@@ -320,8 +320,7 @@ abstract class CombinedMemberSignatureBase<T> {
       switch (member.kind) {
         case ProcedureKind.Getter:
           return _createGetterMemberSignature(
-              member, combinedMemberSignatureType,
-              copyLocation: copyLocation);
+              member, combinedMemberSignatureType);
         case ProcedureKind.Setter:
           VariableDeclaration parameter =
               member.function.positionalParameters.first;
@@ -329,12 +328,10 @@ abstract class CombinedMemberSignatureBase<T> {
               member, combinedMemberSignatureType,
               isGenericCovariantImpl: parameter.isGenericCovariantImpl,
               isCovariant: parameter.isCovariant,
-              parameterName: parameter.name,
-              copyLocation: copyLocation);
+              parameterName: parameter.name);
         case ProcedureKind.Method:
         case ProcedureKind.Operator:
-          return _createMethodSignature(member, combinedMemberSignatureType,
-              copyLocation: copyLocation);
+          return _createMethodSignature(member, combinedMemberSignatureType);
         case ProcedureKind.Factory:
         default:
           throw new UnsupportedError(
@@ -344,11 +341,10 @@ abstract class CombinedMemberSignatureBase<T> {
       if (forSetter) {
         return _createSetterMemberSignature(member, combinedMemberSignatureType,
             isGenericCovariantImpl: member.isGenericCovariantImpl,
-            isCovariant: member.isCovariant,
-            copyLocation: copyLocation);
+            isCovariant: member.isCovariant);
       } else {
-        return _createGetterMemberSignature(member, combinedMemberSignatureType,
-            copyLocation: copyLocation);
+        return _createGetterMemberSignature(
+            member, combinedMemberSignatureType);
       }
     } else {
       throw new UnsupportedError(
@@ -358,27 +354,17 @@ abstract class CombinedMemberSignatureBase<T> {
 
   /// Creates a getter member signature for [member] with the given
   /// [type].
-  Member _createGetterMemberSignature(Member member, DartType type,
-      {bool copyLocation}) {
-    assert(copyLocation != null);
+  Member _createGetterMemberSignature(Member member, DartType type) {
     Class enclosingClass = classBuilder.cls;
     Procedure referenceFrom;
     if (classBuilder.referencesFromIndexed != null) {
       referenceFrom = classBuilder.referencesFromIndexed
           .lookupProcedureNotSetter(member.name.text);
     }
-    Uri fileUri;
-    int startFileOffset;
-    int fileOffset;
-    if (copyLocation) {
-      fileUri = member.fileUri;
-      startFileOffset =
-          member is Procedure ? member.startFileOffset : member.fileOffset;
-      fileOffset = member.fileOffset;
-    } else {
-      fileUri = enclosingClass.fileUri;
-      startFileOffset = fileOffset = enclosingClass.fileOffset;
-    }
+    Uri fileUri = member.fileUri;
+    int startFileOffset =
+        member is Procedure ? member.startFileOffset : member.fileOffset;
+    int fileOffset = member.fileOffset;
     return new Procedure(member.name, ProcedureKind.Getter,
         new FunctionNode(null, returnType: type),
         isAbstract: true,
@@ -395,31 +381,19 @@ abstract class CombinedMemberSignatureBase<T> {
   /// [type]. The flags of parameter is set according to [isCovariant] and
   /// [isGenericCovariantImpl] and the [parameterName] is used, if provided.
   Member _createSetterMemberSignature(Member member, DartType type,
-      {bool isCovariant,
-      bool isGenericCovariantImpl,
-      String parameterName,
-      bool copyLocation}) {
+      {bool isCovariant, bool isGenericCovariantImpl, String parameterName}) {
     assert(isCovariant != null);
     assert(isGenericCovariantImpl != null);
-    assert(copyLocation != null);
     Class enclosingClass = classBuilder.cls;
     Procedure referenceFrom;
     if (classBuilder.referencesFromIndexed != null) {
       referenceFrom = classBuilder.referencesFromIndexed
           .lookupProcedureSetter(member.name.text);
     }
-    Uri fileUri;
-    int startFileOffset;
-    int fileOffset;
-    if (copyLocation) {
-      fileUri = member.fileUri;
-      startFileOffset =
-          member is Procedure ? member.startFileOffset : member.fileOffset;
-      fileOffset = member.fileOffset;
-    } else {
-      fileUri = enclosingClass.fileUri;
-      startFileOffset = fileOffset = enclosingClass.fileOffset;
-    }
+    Uri fileUri = member.fileUri;
+    int startFileOffset =
+        member is Procedure ? member.startFileOffset : member.fileOffset;
+    int fileOffset = member.fileOffset;
     return new Procedure(
         member.name,
         ProcedureKind.Setter,
@@ -440,26 +414,17 @@ abstract class CombinedMemberSignatureBase<T> {
       ..parent = enclosingClass;
   }
 
-  Member _createMethodSignature(Procedure procedure, FunctionType functionType,
-      {bool copyLocation}) {
-    assert(copyLocation != null);
+  Member _createMethodSignature(
+      Procedure procedure, FunctionType functionType) {
     Class enclosingClass = classBuilder.cls;
     Procedure referenceFrom;
     if (classBuilder.referencesFromIndexed != null) {
       referenceFrom = classBuilder.referencesFromIndexed
           .lookupProcedureNotSetter(procedure.name.text);
     }
-    Uri fileUri;
-    int startFileOffset;
-    int fileOffset;
-    if (copyLocation) {
-      fileUri = procedure.fileUri;
-      startFileOffset = procedure.startFileOffset;
-      fileOffset = procedure.fileOffset;
-    } else {
-      fileUri = enclosingClass.fileUri;
-      startFileOffset = fileOffset = enclosingClass.fileOffset;
-    }
+    Uri fileUri = procedure.fileUri;
+    int startFileOffset = procedure.startFileOffset;
+    int fileOffset = procedure.fileOffset;
     FunctionNode function = procedure.function;
     List<VariableDeclaration> positionalParameters = [];
     for (int i = 0; i < function.positionalParameters.length; i++) {
