@@ -676,7 +676,7 @@ const nullCheck = const _NullCheck();
   _compilerState = await fe.initializeCompiler(oldCompilerState, false, null,
       sdkUri, packagesUri, null, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem,
-      experiments: const {},
+      explicitExperimentalFlags: const {},
       environmentDefines: const {},
       nnbdMode: fe.NnbdMode.Weak);
   if (!identical(oldCompilerState, _compilerState)) inference = null;

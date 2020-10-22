@@ -136,7 +136,8 @@ class CompilerOptions {
   /// Enable or disable experimental features. Features mapping to `true` are
   /// explicitly enabled. Features mapping to `false` are explicitly disabled.
   /// Features not mentioned in the map will have their default value.
-  Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
+  Map<ExperimentalFlag, bool> explicitExperimentalFlags =
+      <ExperimentalFlag, bool>{};
 
   Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting;
   AllowedExperimentalFlags allowedExperimentalFlagsForTesting;
@@ -263,22 +264,24 @@ class CompilerOptions {
         defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
   }
 
-  bool isExperimentEnabledGlobally(ExperimentalFlag flag) {
+  /// Returns
+  bool isExperimentEnabled(ExperimentalFlag flag) {
     return flags.isExperimentEnabled(flag,
-        experimentalFlags: experimentalFlags,
+        explicitExperimentalFlags: explicitExperimentalFlags,
         defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting);
   }
 
   bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri importUri) {
     return flags.isExperimentEnabledInLibrary(flag, importUri,
         defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-        experimentalFlags: experimentalFlags,
+        explicitExperimentalFlags: explicitExperimentalFlags,
         allowedExperimentalFlags: allowedExperimentalFlagsForTesting);
   }
 
   Version getExperimentEnabledVersionInLibrary(
       ExperimentalFlag flag, Uri importUri) {
-    return flags.getExperimentEnabledVersionInLibrary(flag, importUri,
+    return flags.getExperimentEnabledVersionInLibrary(
+        flag, importUri, explicitExperimentalFlags,
         defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
         allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
         experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
@@ -306,7 +309,10 @@ class CompilerOptions {
     if (compileSdk != compileSdk) return false;
     // chaseDependencies aren't used anywhere, so ignored here.
     // targetPatches aren't used anywhere, so ignored here.
-    if (!equalMaps(experimentalFlags, other.experimentalFlags)) return false;
+    if (!equalMaps(
+        explicitExperimentalFlags, other.explicitExperimentalFlags)) {
+      return false;
+    }
     if (!equalMaps(environmentDefines, other.environmentDefines)) return false;
     if (errorOnUnevaluatedConstant != other.errorOnUnevaluatedConstant) {
       return false;
@@ -366,9 +372,7 @@ Map<String, bool> parseExperimentalArguments(List<String> arguments) {
 }
 
 /// Parse a map of experimental flags to values that can be passed to
-/// [CompilerOptions.experimentalFlags].
-/// The returned map is normalized to contain default values for unmentioned
-/// flags.
+/// [CompilerOptions.explicitExperimentalFlags].
 ///
 /// If an unknown flag is mentioned, or a flag is mentioned more than once,
 /// the supplied error handler is called with an error message.

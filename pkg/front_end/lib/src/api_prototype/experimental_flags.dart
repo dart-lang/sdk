@@ -42,15 +42,16 @@ class AllowedExperimentalFlags {
   }
 }
 
-/// Returns `true` if [flag] is enabled using global [experimentalFlags].
+/// Returns `true` if [flag] is enabled either by default or through
+/// [explicitExperimentalFlags].
 ///
-/// If [experimentalFlags] is `null` or doesn't contain [flag], the default
-/// value from [defaultExperimentalFlags] is returned.
+/// If [explicitExperimentalFlags] is `null` or doesn't contain [flag], the
+/// default value from [defaultExperimentalFlags] is returned.
 ///
 /// If [flag] is marked as expired in [expiredExperimentalFlags], the value from
 /// [defaultExperimentalFlags] is always returned.
 bool isExperimentEnabled(ExperimentalFlag flag,
-    {Map<ExperimentalFlag, bool> experimentalFlags,
+    {Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
@@ -60,8 +61,8 @@ bool isExperimentEnabled(ExperimentalFlag flag,
     return defaultExperimentalFlags[flag];
   }
   bool enabled;
-  if (experimentalFlags != null) {
-    enabled = experimentalFlags[flag];
+  if (explicitExperimentalFlags != null) {
+    enabled = explicitExperimentalFlags[flag];
   }
   if (defaultExperimentFlagsForTesting != null) {
     enabled ??= defaultExperimentFlagsForTesting[flag];
@@ -71,11 +72,11 @@ bool isExperimentEnabled(ExperimentalFlag flag,
 }
 
 /// Returns `true` if [flag] is enabled in the library with the [canonicalUri]
-/// either globally using [experimentalFlags] or per library using
+/// either globally using [explicitExperimentalFlags] or per library using
 /// [allowedExperimentalFlags].
 ///
-/// If [experimentalFlags] is `null` or doesn't contain [flag], the default
-/// value from [defaultExperimentalFlags] used as the global flag state.
+/// If [explicitExperimentalFlags] is `null` or doesn't contain [flag], the
+/// default value from [defaultExperimentalFlags] used as the global flag state.
 ///
 /// If [allowedExperimentalFlags] is `null` [defaultAllowedExperimentalFlags] is
 /// used for the per library flag state.
@@ -88,7 +89,7 @@ bool isExperimentEnabled(ExperimentalFlag flag,
 /// or `file:///path/dir/file.dart`.
 bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
     {Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting,
-    Map<ExperimentalFlag, bool> experimentalFlags,
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     AllowedExperimentalFlags allowedExperimentalFlags}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
@@ -98,8 +99,8 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
     return defaultExperimentalFlags[flag];
   }
   bool enabled;
-  if (experimentalFlags != null) {
-    enabled = experimentalFlags[flag];
+  if (explicitExperimentalFlags != null) {
+    enabled = explicitExperimentalFlags[flag];
   }
   if (defaultExperimentFlagsForTesting != null) {
     enabled ??= defaultExperimentFlagsForTesting[flag];
@@ -129,8 +130,8 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
 
 /// Returns the version in which [flag] is enabled for the library with the
 /// [canonicalUri].
-Version getExperimentEnabledVersionInLibrary(
-    ExperimentalFlag flag, Uri canonicalUri,
+Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
+    Uri canonicalUri, Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     {AllowedExperimentalFlags allowedExperimentalFlags,
     Map<ExperimentalFlag, bool> defaultExperimentFlagsForTesting,
     Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting,
@@ -156,8 +157,12 @@ Version getExperimentEnabledVersionInLibrary(
     enabledByDefault = defaultExperimentFlagsForTesting[flag];
   }
   enabledByDefault ??= defaultExperimentalFlags[flag];
+
+  bool enabledExplicitly = explicitExperimentalFlags[flag] ?? false;
+
   if (!enabledByDefault ||
-      allowedFlags != null && allowedFlags.contains(flag)) {
+      enabledExplicitly ||
+      (allowedFlags != null && allowedFlags.contains(flag))) {
     // If the feature is not enabled by default or is enabled by the allowed
     // list use the experiment release version.
     if (experimentReleasedVersionForTesting != null) {

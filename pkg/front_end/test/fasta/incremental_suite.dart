@@ -224,7 +224,7 @@ Future<Context> createContext(
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
-    ..experimentalFlags = {ExperimentalFlag.nonNullable: false}
+    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: false}
     ..onDiagnostic = (DiagnosticMessage message) {
       printDiagnosticMessage(message, print);
       if (message.severity == Severity.error) {

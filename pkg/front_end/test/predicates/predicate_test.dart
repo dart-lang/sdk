@@ -22,7 +22,9 @@ main(List<String> args) async {
       onFailure: onFailure,
       runTest: runTestFor(const PredicateDataComputer(), [
         const TestConfig(cfeMarker, 'cfe',
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true},
+            explicitExperimentalFlags: const {
+              ExperimentalFlag.nonNullable: true
+            },
             targetFlags: const TargetFlags(forceLateLoweringForTesting: true))
       ]));
 }

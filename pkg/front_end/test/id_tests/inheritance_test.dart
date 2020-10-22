@@ -25,11 +25,15 @@ main(List<String> args) async {
       onFailure: onFailure,
       runTest: runTestFor(const InheritanceDataComputer(), [
         new TestConfig(cfeMarker, 'cfe with nnbd',
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true},
+            explicitExperimentalFlags: const {
+              ExperimentalFlag.nonNullable: true
+            },
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             compileSdk: true),
         new TestConfig(cfeFromBuilderMarker, 'cfe from builder',
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true},
+            explicitExperimentalFlags: const {
+              ExperimentalFlag.nonNullable: true
+            },
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             compileSdk: true)
       ]));

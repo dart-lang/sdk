@@ -83,7 +83,7 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     ..fileSystem = new TestFileSystem(fs)
     ..additionalDills = additionalDills
     ..packagesFileUri = toTestUri('.packages')
-    ..experimentalFlags = {ExperimentalFlag.nonNullable: true};
+    ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};
   var inputUris = inputs.map(toTestUri).toList();
   var inputUriSet = inputUris.toSet();
   var component = (await kernelForModule(inputUris, options)).component;

@@ -248,7 +248,7 @@ Future<CompilerResult> _compile(List<String> args,
     fe.printDiagnosticMessage(message, print);
   }
 
-  var experiments = fe.parseExperimentalFlags(options.experiments,
+  var explicitExperimentalFlags = fe.parseExperimentalFlags(options.experiments,
       onError: stderr.writeln, onWarning: print);
 
   var trackWidgetCreation =
@@ -275,7 +275,7 @@ Future<CompilerResult> _compile(List<String> args,
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
-        experiments: experiments,
+        explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
         nnbdMode:
             options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
@@ -314,7 +314,7 @@ Future<CompilerResult> _compile(List<String> args,
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: options.enableNullSafety)),
         fileSystem: fileSystem,
-        experiments: experiments,
+        explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
         trackNeededDillLibraries: recordUsedInputs,
         nnbdMode:

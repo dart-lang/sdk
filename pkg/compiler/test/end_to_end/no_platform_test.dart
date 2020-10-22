@@ -23,7 +23,7 @@ main() {
             sdkLibrariesSpecificationUri,
             [], // additionalDills
             Uri.base.resolve('.packages'), // packagesFileUri
-            experimentalFlags: experimentalFlags,
+            explicitExperimentalFlags: experimentalFlags,
             verify: true);
     ir.Component component = await fe.compile(
         initializedCompilerState, false, fe.StandardFileSystem.instance,

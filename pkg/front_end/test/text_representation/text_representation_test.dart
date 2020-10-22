@@ -81,7 +81,9 @@ main(List<String> args) async {
 class TextRepresentationConfig extends TestConfig {
   const TextRepresentationConfig(String marker, String name)
       : super(marker, name,
-            experimentalFlags: const {ExperimentalFlag.nonNullable: true},
+            explicitExperimentalFlags: const {
+              ExperimentalFlag.nonNullable: true
+            },
             nnbdMode: NnbdMode.Strong);
 
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {

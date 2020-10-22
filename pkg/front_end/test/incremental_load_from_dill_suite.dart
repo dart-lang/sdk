@@ -534,13 +534,15 @@ class NewWorldTest {
           // flag is on by default.
           // TODO(johnniwinther,jensj): Update tests to explicitly opt out.
           flagsFromOptions['non-nullable'] ??= false;
-          Map<ExperimentalFlag, bool> experimentalFlags =
+          Map<ExperimentalFlag, bool> explicitExperimentalFlags =
               parseExperimentalFlags(flagsFromOptions,
                   onError: (e) =>
                       throw "Error on parsing experiments flags: $e");
-          options.experimentalFlags = experimentalFlags;
+          options.explicitExperimentalFlags = explicitExperimentalFlags;
         } else {
-          options.experimentalFlags = {ExperimentalFlag.nonNullable: false};
+          options.explicitExperimentalFlags = {
+            ExperimentalFlag.nonNullable: false
+          };
         }
         if (world["nnbdMode"] != null) {
           String nnbdMode = world["nnbdMode"];
@@ -840,7 +842,8 @@ class NewWorldTest {
             data,
             InitializedFromDillMismatch,
             "Expected that initializedFromDill would be "
-            "$expectInitializeFromDill but was ${compiler.initializedFromDill}");
+            "$expectInitializeFromDill but was "
+            "${compiler.initializedFromDill}");
       }
 
       if (incrementalSerialization == true && compiler.initializedFromDill) {

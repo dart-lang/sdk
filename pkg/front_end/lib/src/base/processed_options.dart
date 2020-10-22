@@ -355,7 +355,7 @@ class ProcessedOptions {
   /// default.
   bool isExperimentEnabledGlobally(flags.ExperimentalFlag flag) {
     return flags.isExperimentEnabled(flag,
-        experimentalFlags: _raw.experimentalFlags,
+        explicitExperimentalFlags: _raw.explicitExperimentalFlags,
         defaultExperimentFlagsForTesting:
             _raw.defaultExperimentFlagsForTesting);
   }

@@ -144,7 +144,7 @@ class KernelLoaderTask extends CompilerTask {
           ..target = target
           ..librariesSpecificationUri = _options.librariesSpecificationUri
           ..packagesFileUri = _options.packageConfig
-          ..experimentalFlags = _options.languageExperiments
+          ..explicitExperimentalFlags = _options.explicitExperimentalFlags
           ..verbose = verbose
           ..fileSystem = fileSystem
           ..onDiagnostic = onDiagnostic;
@@ -167,7 +167,7 @@ class KernelLoaderTask extends CompilerTask {
             _options.librariesSpecificationUri,
             dependencies,
             _options.packageConfig,
-            experimentalFlags: _options.languageExperiments,
+            explicitExperimentalFlags: _options.explicitExperimentalFlags,
             nnbdMode: _options.useLegacySubtyping
                 ? fe.NnbdMode.Weak
                 : fe.NnbdMode.Strong);

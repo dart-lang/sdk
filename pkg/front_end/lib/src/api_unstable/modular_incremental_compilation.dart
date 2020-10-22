@@ -51,7 +51,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     {bool compileSdk: false,
     Uri sdkRoot: null,
     FileSystem fileSystem,
-    Map<ExperimentalFlag, bool> experimentalFlags,
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     Map<String, String> environmentDefines: const {},
     bool outlineOnly,
     bool omitPlatform: false,
@@ -82,7 +82,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           oldState.options.compileSdk != compileSdk ||
           oldState.incrementalCompiler.outlineOnly != outlineOnly ||
           oldState.options.nnbdMode != nnbdMode ||
-          !equalMaps(oldState.options.experimentalFlags, experimentalFlags) ||
+          !equalMaps(oldState.options.explicitExperimentalFlags,
+              explicitExperimentalFlags) ||
           !equalMaps(oldState.options.environmentDefines, environmentDefines) ||
           !equalSets(oldState.tags, tags) ||
           cachedSdkInput == null ||
@@ -103,7 +104,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           ..fileSystem = fileSystem
           ..omitPlatform = omitPlatform
           ..environmentDefines = environmentDefines
-          ..experimentalFlags = experimentalFlags
+          ..explicitExperimentalFlags = explicitExperimentalFlags
           ..verbose = verbose
           ..nnbdMode = nnbdMode;
 

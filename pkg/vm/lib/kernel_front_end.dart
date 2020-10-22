@@ -246,7 +246,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..fileSystem = fileSystem
     ..additionalDills = additionalDills
     ..packagesFileUri = packagesUri
-    ..experimentalFlags = parseExperimentalFlags(
+    ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
     ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
@@ -256,7 +256,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..embedSourceText = embedSources;
 
   if (nullSafety == null &&
-      compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
+      compilerOptions.isExperimentEnabled(ExperimentalFlag.nonNullable)) {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 

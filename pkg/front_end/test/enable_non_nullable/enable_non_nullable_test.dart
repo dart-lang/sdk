@@ -25,6 +25,7 @@ main() async {
   print('--------------------------------------------------------------------');
   await test(
       enableNonNullableByDefault: false,
+      enableNonNullableExplicitly: true,
       // When the flag is off by default, the experiment release version should
       // be used as the opt-in criterion for all libraries.
       versionImpliesOptIn: experimentReleaseVersion,
@@ -35,16 +36,30 @@ main() async {
   print('--------------------------------------------------------------------');
   await test(
       enableNonNullableByDefault: true,
+      enableNonNullableExplicitly: false,
       // When the flag is on by default, the experiment release version should
       // be used as the opt-in criterion only for libraries in allowed packages
       // and the experiment enabled version should be used as the opt-in
       // criterion for all other libraries.
       versionImpliesOptIn: experimentEnabledVersion,
       versionOptsInAllowed: experimentReleaseVersion);
+
+  print('--------------------------------------------------------------------');
+  print('Test on-by-default and explicitly with command-line flag');
+  print('--------------------------------------------------------------------');
+  await test(
+      enableNonNullableByDefault: true,
+      enableNonNullableExplicitly: true,
+      // When the flag is on by default but the experiment is enabled explicitly
+      // the experiment release version should be used as the opt-in criterion
+      // for all libraries.
+      versionImpliesOptIn: experimentReleaseVersion,
+      versionOptsInAllowed: experimentReleaseVersion);
 }
 
 test(
     {bool enableNonNullableByDefault,
+    bool enableNonNullableExplicitly,
     Version versionImpliesOptIn,
     Version versionOptsInAllowed}) async {
   CompilerOptions options = new CompilerOptions();
@@ -54,10 +69,14 @@ test(
       ExperimentalFlag.nonNullable: true
     };
   } else {
-    // Pretend non-nullable is off by default but enabled on command-line.
-    options
-      ..defaultExperimentFlagsForTesting = {ExperimentalFlag.nonNullable: false}
-      ..experimentalFlags = {ExperimentalFlag.nonNullable: true};
+    // Pretend non-nullable is off by default.
+    options.defaultExperimentFlagsForTesting = {
+      ExperimentalFlag.nonNullable: false
+    };
+  }
+  if (enableNonNullableExplicitly) {
+    // Enable non-nullable explicitly on the command-line.
+    options..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};
   }
 
   Uri sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
