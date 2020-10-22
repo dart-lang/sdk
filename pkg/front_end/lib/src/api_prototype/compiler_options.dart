@@ -433,10 +433,5 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
       }
     }
   }
-  for (ExperimentalFlag flag in ExperimentalFlag.values) {
-    assert(defaultExperimentalFlags.containsKey(flag),
-        "No default value for $flag.");
-    flags[flag] ??= defaultExperimentalFlags[flag];
-  }
   return flags;
 }
