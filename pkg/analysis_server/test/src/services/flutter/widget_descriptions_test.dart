@@ -17,6 +17,37 @@ void main() {
 
 @reflectiveTest
 class GetDescriptionTest extends WidgetDescriptionBase {
+  Future<void> test_documentation_fieldFormalParameter() async {
+    await resolveTestUnit('''
+class MyWidget {
+  /// my doc
+  final int f;
+  MyWidget(this.f);
+}
+
+void f() {
+  MyWidget(0);
+}
+''');
+    var property = await getWidgetProperty('MyWidget(0', 'f');
+    expect(property.documentation, 'my doc');
+  }
+
+  Future<void> test_documentation_fieldFormalParameter_unresolvedField() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+class MyWidget {
+  MyWidget(this.f);
+}
+
+void f() {
+  MyWidget(0);
+}
+''');
+    var property = await getWidgetProperty('MyWidget(0', 'f');
+    expect(property.documentation, isNull);
+  }
+
   Future<void> test_kind_named_notSet() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
