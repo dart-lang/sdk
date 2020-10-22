@@ -45,7 +45,11 @@ class ReplaceWithVar extends CorrectionProducer {
         if (initializer is TypedLiteral) {
           if (initializer.typeArguments == null) {
             typeArgumentsText = utils.getNodeText(type.typeArguments);
-            typeArgumentsOffset = initializer.offset;
+            if (initializer is ListLiteral) {
+              typeArgumentsOffset = initializer.leftBracket.offset;
+            } else if (initializer is SetOrMapLiteral) {
+              typeArgumentsOffset = initializer.leftBracket.offset;
+            }
           }
         } else if (initializer is InstanceCreationExpression) {
           if (initializer.constructorName.type.typeArguments == null) {

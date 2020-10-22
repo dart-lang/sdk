@@ -123,6 +123,21 @@ List f() {
 ''');
   }
 
+  Future<void> test_generic_listLiteral_const() async {
+    await resolveTestUnit('''
+String f() {
+  const List<String> values = const ['a'];
+  return values[0];
+}
+''');
+    await assertHasFix('''
+String f() {
+  const values = const <String>['a'];
+  return values[0];
+}
+''');
+  }
+
   Future<void> test_generic_mapLiteral() async {
     await resolveTestUnit('''
 Map f() {
@@ -133,6 +148,21 @@ Map f() {
     await assertHasFix('''
 Map f() {
   var m = <String, int>{};
+  return m;
+}
+''');
+  }
+
+  Future<void> test_generic_mapLiteral_const() async {
+    await resolveTestUnit('''
+Map f() {
+  const Map<String, int> m = const {};
+  return m;
+}
+''');
+    await assertHasFix('''
+Map f() {
+  const m = const <String, int>{};
   return m;
 }
 ''');
@@ -161,6 +191,21 @@ Set f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_generic_setLiteral_const() async {
+    await resolveTestUnit('''
+String f() {
+  const Set<String> s = const {'a'};
+  return s.first;
+}
+''');
+    await assertHasFix('''
+String f() {
+  const s = const <String>{'a'};
+  return s.first;
+}
+''');
   }
 
   Future<void> test_simple() async {
