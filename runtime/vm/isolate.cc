@@ -374,6 +374,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
       type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
           "IsolateGroup::type_arguments_canonicalization_mutex_")),
+      program_lock_(new SafepointRwLock()),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()) {
   const bool is_vm_isolate = Dart::VmIsolateNameEquals(source_->name);

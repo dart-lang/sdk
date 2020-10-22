@@ -436,6 +436,7 @@ vm_sources_tests = [
   "snapshot_test.cc",
   "source_report_test.cc",
   "stack_frame_test.cc",
+  "stub_code_test.cc",
   "stub_code_arm64_test.cc",
   "stub_code_arm_test.cc",
   "stub_code_ia32_test.cc",

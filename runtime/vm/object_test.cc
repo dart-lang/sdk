@@ -121,7 +121,10 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
 
   // The class can now be finalized.
   cls.Finalize();
@@ -200,7 +203,11 @@ ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
     }
 
     cls.set_interfaces(Array::empty_array());
-    cls.SetFunctions(Array::empty_array());
+    {
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      cls.SetFunctions(Array::empty_array());
+    }
     cls.SetFields(fields);
     cls.Finalize();
 
@@ -2516,7 +2523,10 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
       Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
@@ -3766,7 +3776,10 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
       Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
@@ -3802,7 +3815,10 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
       Function::New(parent_name, FunctionLayout::kRegularFunction, false, false,
                     false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
-  cls.SetFunctions(functions);
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(functions);
+  }
   cls.Finalize();
 
   // Add invocation dispatcher.

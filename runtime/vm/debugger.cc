@@ -1919,7 +1919,8 @@ void Debugger::DeoptimizeWorld() {
   // Iterate over all classes, deoptimize functions.
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
   const ClassTable& class_table = *isolate_->class_table();
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   CallSiteResetter resetter(zone);
   Class& cls = Class::Handle(zone);
   Array& functions = Array::Handle(zone);
@@ -1929,6 +1930,9 @@ void Debugger::DeoptimizeWorld() {
 
   const intptr_t num_classes = class_table.NumCids();
   const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
+  // TODO(dartbug.com/36097): Need to stop other mutators running in same IG
+  // before deoptimizing the world.
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
     const classid_t cid =
         i < num_classes ? i : ClassTable::CidFromTopLevelIndex(i - num_classes);

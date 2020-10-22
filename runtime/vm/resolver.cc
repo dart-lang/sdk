@@ -57,6 +57,7 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
 
   const bool is_dyn_call = demangled.raw() != function_name.raw();
 
+  bool need_to_create_method_extractor = false;
   while (!cls.IsNull()) {
     if (is_dyn_call) {
       // Try to find a dyn:* forwarder & return it.
@@ -82,18 +83,21 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
       function = lookup(cls, demangled_getter_name);
       if (!function.IsNull()) {
         if (allow_add && FLAG_lazy_dispatchers) {
-          // We were looking for the getter but found a method with the same
-          // name. Create a method extractor and return it.
-          // The extractor does not exist yet, so using GetMethodExtractor is
-          // not necessary here.
-          function = function.CreateMethodExtractor(demangled);
-          return function.raw();
+          need_to_create_method_extractor = true;
+          break;
         } else {
           return Function::null();
         }
       }
     }
     cls = cls.SuperClass();
+  }
+  if (need_to_create_method_extractor) {
+    // We were looking for the getter but found a method with the same
+    // name. Create a method extractor and return it.
+    // Use GetMethodExtractor instead of CreateMethodExtractor to ensure
+    // nobody created method extractor since we last checked under ReadRwLocker.
+    function = function.GetMethodExtractor(demangled);
   }
   return function.raw();
 }

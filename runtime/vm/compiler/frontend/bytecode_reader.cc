@@ -2472,7 +2472,11 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     functions_->SetAt(function_index_++, function);
   }
 
-  cls.SetFunctions(*functions_);
+  {
+    Thread* thread = Thread::Current();
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(*functions_);
+  }
 
   if (cls.IsTopLevel()) {
     const Library& library = Library::Handle(Z, cls.library());

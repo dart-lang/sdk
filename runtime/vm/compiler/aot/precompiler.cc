@@ -1724,6 +1724,7 @@ void Precompiler::DropFunctions() {
     }
   };
 
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   auto& dispatchers_array = Array::Handle(Z);
   auto& name = String::Handle(Z);
   auto& desc = Array::Handle(Z);

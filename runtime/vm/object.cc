@@ -1116,7 +1116,11 @@ void Object::Init(Isolate* isolate) {
   cls = type_arguments_class_;
   cls.set_interfaces(Object::empty_array());
   cls.SetFields(Object::empty_array());
-  cls.SetFunctions(Object::empty_array());
+  {
+    Thread* thread = Thread::Current();
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    cls.SetFunctions(Object::empty_array());
+  }
 
   cls = Class::New<Bool, RTN::Bool>(isolate);
   isolate->object_store()->set_bool_class(cls);
@@ -1654,6 +1658,7 @@ ErrorPtr Object::Init(Isolate* isolate,
     // This will initialize isolate group object_store, shared by all isolates
     // running in the isolate group.
     ObjectStore* object_store = isolate->object_store();
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
     Class& cls = Class::Handle(zone);
     Type& type = Type::Handle(zone);
@@ -3000,7 +3005,11 @@ class ClassFunctionsTraits {
 typedef UnorderedHashSet<ClassFunctionsTraits> ClassFunctionsSet;
 
 void Class::SetFunctions(const Array& value) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+#endif
   ASSERT(!value.IsNull());
   set_functions(value);
   const intptr_t len = value.Length();
@@ -3020,7 +3029,11 @@ void Class::SetFunctions(const Array& value) const {
 }
 
 void Class::AddFunction(const Function& function) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+#endif
   const Array& arr = Array::Handle(functions());
   const Array& new_array =
       Array::Handle(Array::Grow(arr, arr.Length() + 1, Heap::kOld));
@@ -3616,13 +3629,19 @@ FunctionPtr Function::GetMethodExtractor(const String& getter_name) const {
   const Function& closure_function =
       Function::Handle(ImplicitClosureFunction());
   const Class& owner = Class::Handle(closure_function.Owner());
-  if (owner.EnsureIsFinalized(Thread::Current()) != Error::null()) {
+  Thread* thread = Thread::Current();
+  if (owner.EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
   }
+  IsolateGroup* group = thread->isolate_group();
   Function& result =
       Function::Handle(owner.LookupDynamicFunctionUnsafe(getter_name));
   if (result.IsNull()) {
-    result = CreateMethodExtractor(getter_name);
+    SafepointWriteRwLocker ml(thread, group->program_lock());
+    result = owner.LookupDynamicFunctionUnsafe(getter_name);
+    if (result.IsNull()) {
+      result = CreateMethodExtractor(getter_name);
+    }
   }
   ASSERT(result.kind() == FunctionLayout::kMethodExtractor);
   return result.raw();
@@ -4287,6 +4306,10 @@ ErrorPtr Class::EnsureIsFinalized(Thread* thread) const {
   if (Compiler::IsBackgroundCompilation()) {
     Compiler::AbortBackgroundCompilation(DeoptId::kNone,
                                          "Class finalization while compiling");
+  }
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  if (is_finalized()) {
+    return Error::null();
   }
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
@@ -13126,7 +13149,8 @@ static ObjectPtr EvaluateCompiledExpressionHelper(
     const String& klass,
     const Array& arguments,
     const TypeArguments& type_arguments) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
   const String& error_str = String::Handle(
       zone,
