@@ -550,7 +550,7 @@ class ApplyResolutionVisitor extends ThrowingAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    node.target.accept(this);
+    node.target?.accept(this);
     node.propertyName.accept(this);
 
     node.staticType = _nextType();

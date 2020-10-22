@@ -2871,6 +2871,46 @@ const A b;
         withFullyResolvedAst: true);
   }
 
+  test_const_invalid_cascade_propertyAccess() async {
+    var library = await checkLibrary(r'''
+class A {
+  final a = 0;
+}
+const c = A()..a;
+''', allowErrors: true);
+    checkElementText(
+        library,
+        r'''
+class A {
+  final int a;
+}
+const dynamic c;
+  constantInitializer
+    CascadeExpression
+      cascadeSections
+        PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            staticElement: self::@class::A::@getter::a
+            staticType: int
+            token: a
+          staticType: int
+      staticType: A
+      target: InstanceCreationExpression
+        argumentList: ArgumentList
+        constructorName: ConstructorName
+          staticElement: self::@class::A::@constructor::•
+          type: TypeName
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: null
+              token: A
+            type: A
+        staticType: A
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_const_invalid_field_const() async {
     var library = await checkLibrary(r'''
 class C {
