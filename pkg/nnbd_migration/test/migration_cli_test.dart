@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -208,6 +209,9 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   final hasUsageText = contains('Usage: nnbd_migration');
 
   final urlStartRegexp = RegExp('https?:');
+
+  final dartVersionIsNullSafeByDefault =
+      Feature.non_nullable.releaseVersion != null;
 
   String assertDecodeArgsFailure(List<String> args) {
     var cli = _createCli();
@@ -430,20 +434,8 @@ name: test
 environment:
   sdk: '${migrated ? '>=2.10.0 <2.12.0' : '>=2.6.0 <3.0.0'}'
 ''',
-      '.dart_tool/package_config.json': packageConfigText ??
-          '''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "test",
-      "rootUri": "../",
-      "packageUri": "lib/",
-      "languageVersion": "${migrated ? '2.10' : '2.6'}"
-    }
-  ]
-}
-''',
+      '.dart_tool/package_config.json':
+          packageConfigText ?? _getPackageConfigText(migrated: migrated),
       'lib/test.dart': sourceText ??
           '''
 int${migrated ? '?' : ''} f() => null;
@@ -1735,20 +1727,29 @@ int f() => null;
     var projectContents = simpleProject()
       ..remove('.dart_tool/package_config.json');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
-    await cliRunner.run();
-    // The Dart source code should still be migrated.
-    assertProjectContents(
-        projectDir,
-        simpleProject(migrated: true)
-          ..remove('.dart_tool/package_config.json'));
+
+    if (dartVersionIsNullSafeByDefault) {
+      // The lack of a package config file means the test file is already opted
+      // in.
+      await assertRunFailure(
+          ['--no-web-preview', '--apply-changes', projectDir]);
+      _expectErrorIndicatingCodeIsAlreadyOptedIn();
+    } else {
+      var cliRunner = _createCli().decodeCommandLineArgs(
+          _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+      await cliRunner.run();
+      // The Dart source code should still be migrated.
+      assertProjectContents(
+          projectDir,
+          simpleProject(migrated: true)
+            ..remove('.dart_tool/package_config.json'));
+    }
   }
 
   test_package_config_is_missing_languageVersion() async {
     var packageConfigText = '''
 {
-  "configVersion": 3,
+  "configVersion": 2,
   "packages": [
     {
       "name": "test",
@@ -1760,30 +1761,48 @@ int f() => null;
 ''';
     var projectContents = simpleProject(packageConfigText: packageConfigText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
-    await cliRunner.run();
-    // The Dart source code should still be migrated.
-    assertProjectContents(projectDir,
-        simpleProject(migrated: true, packageConfigText: packageConfigText));
+
+    if (dartVersionIsNullSafeByDefault) {
+      // An omitted languageVersion field means the code is opted in to null
+      // safety.
+      await assertRunFailure(
+          ['--no-web-preview', '--apply-changes', projectDir]);
+      _expectErrorIndicatingCodeIsAlreadyOptedIn();
+    } else {
+      var cliRunner = _createCli().decodeCommandLineArgs(
+          _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+      await cliRunner.run();
+      // The Dart source code should still be migrated.
+      assertProjectContents(projectDir,
+          simpleProject(migrated: true, packageConfigText: packageConfigText));
+    }
   }
 
   test_package_config_is_missing_this_package() async {
     var packageConfigText = '''
 {
-  "configVersion": 3,
+  "configVersion": 2,
   "packages": [
   ]
 }
 ''';
     var projectContents = simpleProject(packageConfigText: packageConfigText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
-    await cliRunner.run();
-    // The Dart source code should still be migrated.
-    assertProjectContents(projectDir,
-        simpleProject(migrated: true, packageConfigText: packageConfigText));
+
+    if (dartVersionIsNullSafeByDefault) {
+      // An omitted entry in the package config means the code is opted in to null
+      // safety.
+      await assertRunFailure(
+          ['--no-web-preview', '--apply-changes', projectDir]);
+      _expectErrorIndicatingCodeIsAlreadyOptedIn();
+    } else {
+      var cliRunner = _createCli().decodeCommandLineArgs(
+          _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+      await cliRunner.run();
+      // The Dart source code should still be migrated.
+      assertProjectContents(projectDir,
+          simpleProject(migrated: true, packageConfigText: packageConfigText));
+    }
   }
 
   test_package_config_is_wrong_version() async {
@@ -1802,12 +1821,20 @@ int f() => null;
 ''';
     var projectContents = simpleProject(packageConfigText: packageConfigText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
-    await cliRunner.run();
-    // The Dart source code should still be migrated.
-    assertProjectContents(projectDir,
-        simpleProject(migrated: true, packageConfigText: packageConfigText));
+
+    if (dartVersionIsNullSafeByDefault) {
+      // An unreadable package config means the code is opted in to null safety.
+      await assertRunFailure(
+          ['--no-web-preview', '--apply-changes', projectDir]);
+      _expectErrorIndicatingCodeIsAlreadyOptedIn();
+    } else {
+      var cliRunner = _createCli().decodeCommandLineArgs(
+          _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+      await cliRunner.run();
+      // The Dart source code should still be migrated.
+      assertProjectContents(projectDir,
+          simpleProject(migrated: true, packageConfigText: packageConfigText));
+    }
   }
 
   test_pub_outdated_has_malformed_json() {
@@ -1939,9 +1966,7 @@ int f() => null;
   }
 
   test_pubspec_does_not_exist() async {
-    var projectContents = simpleProject()
-      ..remove('pubspec.yaml')
-      ..remove('.dart_tool/package_config.json');
+    var projectContents = simpleProject()..remove('pubspec.yaml');
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
@@ -1949,9 +1974,11 @@ int f() => null;
     // The Dart source code should still be migrated.
     assertProjectContents(
         projectDir,
-        simpleProject(migrated: true)
-          ..remove('pubspec.yaml')
-          ..remove('.dart_tool/package_config.json'));
+        simpleProject(
+            migrated: true,
+            // The package config file should not have been touched.
+            packageConfigText: _getPackageConfigText(migrated: false))
+          ..remove('pubspec.yaml'));
   }
 
   test_pubspec_environment_is_missing_sdk() async {
@@ -1995,8 +2022,7 @@ name: test
 environment:
   sdk: 1
 ''';
-    var projectContents = simpleProject(pubspecText: pubspecText)
-      ..remove('.dart_tool/package_config.json');
+    var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli().decodeCommandLineArgs(
         _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
@@ -2004,8 +2030,11 @@ environment:
     // The Dart source code should still be migrated.
     assertProjectContents(
         projectDir,
-        simpleProject(migrated: true, pubspecText: pubspecText)
-          ..remove('.dart_tool/package_config.json'));
+        simpleProject(
+            migrated: true,
+            pubspecText: pubspecText,
+            // The package config file should not have been touched.
+            packageConfigText: _getPackageConfigText(migrated: false)));
   }
 
   test_pubspec_is_missing_environment() async {
@@ -2055,6 +2084,15 @@ name: test
     return _MigrationCli(this);
   }
 
+  void _expectErrorIndicatingCodeIsAlreadyOptedIn() {
+    var errorOutput = logger.stdoutBuffer.toString();
+    expect(errorOutput, contains('1 analysis issue found:'));
+    expect(
+        errorOutput,
+        contains("A value of type 'Null' can't be returned from function 'f' "
+            "because it has a return type of 'int'"));
+  }
+
   String _getHelpText({@required bool verbose}) {
     var cliRunner = _createCli().decodeCommandLineArgs(_parseArgs(
         ['--${CommandLineOptions.helpFlag}', if (verbose) '--verbose']));
@@ -2066,6 +2104,20 @@ name: test
   ArgResults _parseArgs(List<String> args) {
     return MigrationCli.createParser().parse(args);
   }
+
+  static String _getPackageConfigText({@required bool migrated}) => '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "${migrated ? '2.10' : '2.6'}"
+    }
+  ]
+}
+''';
 }
 
 @reflectiveTest
