@@ -253,7 +253,8 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
    */
   void clear();
 
-  /* Creates a [Set] with the same elements and behavior as this `Set`.
+  /**
+   * Creates a [Set] with the same elements and behavior as this `Set`.
    *
    * The returned set behaves the same as this set
    * with regard to adding and removing elements.
