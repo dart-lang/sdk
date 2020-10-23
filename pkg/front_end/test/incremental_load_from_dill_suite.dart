@@ -762,9 +762,11 @@ class NewWorldTest {
 
       result = checkExpectFile(data, worldNum, "", context, actualSerialized);
       if (result != null) return result;
-      result =
-          checkClassHierarchy(compiler, component, data, worldNum, context);
-      if (result != null) return result;
+      if (world["skipClassHierarchyTest"] != true) {
+        result =
+            checkClassHierarchy(compiler, component, data, worldNum, context);
+        if (result != null) return result;
+      }
 
       int nonSyntheticLibraries = countNonSyntheticLibraries(component);
       int nonSyntheticPlatformLibraries =

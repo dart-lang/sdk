@@ -1,0 +1,64 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Reproduce weirdness with abstract member-signatures and forwarding stubs from
+# https://github.com/flutter/flutter/issues/66122
+
+type: newworld
+target: DDC
+trackWidgetCreation: true
+worlds:
+  - entry: main.dart
+    skipClassHierarchyTest: true
+    sources:
+      main.dart: |
+        import 'package:flutter/framework.dart';
+        import 'after_layout.dart';
+        class _HotReloadIssueState extends State<HotReloadIssue>
+            with AfterLayoutMixin<HotReloadIssue> {
+          Widget build(BuildContext context) {}
+          void afterFirstLayout(BuildContext context) {}
+        }
+        class HotReloadIssue extends StatefulWidget {}
+
+      after_layout.dart:
+        import 'package:flutter/framework.dart';
+        mixin AfterLayoutMixin<T extends StatefulWidget> on State<T> {}
+
+      flutter/lib/framework.dart: |
+        mixin Diagnosticable {
+          String toString() {
+            return "foo";
+          }
+        }
+        abstract class State<T extends StatefulWidget> with Diagnosticable {
+          T? _widget;
+        }
+        class State2 extends State {}
+        class StatefulWidget {}
+        class Widget {}
+        class BuildContext {}
+        final State<StatefulWidget> state = new State2();
+        void foo() {
+          state._widget = null;
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../flutter",
+              "packageUri": "lib/"
+            }
+          ]
+        }
+    expectedLibraryCount: 3
+  - entry: main.dart
+    skipClassHierarchyTest: true
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    expectedLibraryCount: 3
