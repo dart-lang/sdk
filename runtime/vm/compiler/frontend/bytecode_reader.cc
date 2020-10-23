@@ -649,18 +649,22 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
       TypeArguments::Handle(Z, TypeArguments::New(num_type_params));
   String& name = String::Handle(Z);
   TypeParameter& parameter = TypeParameter::Handle(Z);
-  AbstractType& bound = AbstractType::Handle(Z);
+  AbstractType& type = AbstractType::Handle(Z);
   for (intptr_t i = 0; i < num_type_params; ++i) {
     name ^= ReadObject();
     ASSERT(name.IsSymbol());
     parameter = TypeParameter::New(parameterized_class, parameterized_function,
-                                   i, name, bound,
+                                   i, name, /* bound = */ type,
                                    /* is_generic_covariant_impl = */ false,
                                    nullability, TokenPosition::kNoSource);
     parameter.set_index(offset + i);
     parameter.SetIsFinalized();
     parameter.SetCanonical();
     parameter.SetDeclaration(true);
+    // For functions, default type arguments aren't available here but with the
+    // bytecode, so update any non-dynamic default arguments when reading the
+    // bytecode. (For classes, we don't currently use this, so dynamic is fine.)
+    parameter.set_default_argument(Object::dynamic_type());
     type_parameters.SetTypeAt(i, parameter);
   }
 
@@ -686,23 +690,22 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   // Step b) Fill in the bounds of all [TypeParameter]s.
   for (intptr_t i = 0; i < num_type_params; ++i) {
     parameter ^= type_parameters.TypeAt(i);
-    bound ^= ReadObject();
+    type ^= ReadObject();
     // Convert dynamic to Object? or Object* in bounds of type parameters so
     // they are equivalent when doing subtype checks for function types.
     // TODO(https://github.com/dart-lang/language/issues/495): revise this
     // when function subtyping is fixed.
-    if (bound.IsDynamicType()) {
-      bound = nnbd_mode == NNBDMode::kOptedInLib
-                  ? I->object_store()->nullable_object_type()
-                  : I->object_store()->legacy_object_type();
+    if (type.IsDynamicType()) {
+      type = nnbd_mode == NNBDMode::kOptedInLib
+                 ? I->object_store()->nullable_object_type()
+                 : I->object_store()->legacy_object_type();
     }
-    parameter.set_bound(bound);
+    parameter.set_bound(type);
   }
 
   // Fix bounds in all derived type parameters (with different nullabilities).
   if (active_class_->derived_type_parameters != nullptr) {
     auto& derived = TypeParameter::Handle(Z);
-    auto& bound = AbstractType::Handle(Z);
     for (intptr_t i = 0, n = active_class_->derived_type_parameters->Length();
          i < n; ++i) {
       derived ^= active_class_->derived_type_parameters->At(i);
@@ -714,8 +717,10 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
                 parameterized_function.raw()))) {
         ASSERT(derived.IsFinalized());
         parameter ^= type_parameters.TypeAt(derived.index() - offset);
-        bound = parameter.bound();
-        derived.set_bound(bound);
+        type = parameter.bound();
+        derived.set_bound(type);
+        type = parameter.default_argument();
+        derived.set_default_argument(type);
       }
     }
   }
@@ -3119,7 +3124,19 @@ void BytecodeReaderHelper::ParseForwarderFunction(
     const intptr_t cp_index = reader_.ReadUInt();
     const auto& type_args =
         TypeArguments::CheckedHandle(Z, obj_pool.ObjectAt(cp_index));
-    parsed_function->SetDefaultFunctionTypeArguments(type_args);
+    // In bytecode mode, all type parameters are created with a default
+    // argument of dynamic, so only need to update if not the all-dynamic TAV.
+    if (!type_args.IsNull()) {
+      auto& type_params = TypeArguments::Handle(Z, function.type_parameters());
+      ASSERT_EQUAL(type_params.Length(), type_args.Length());
+      auto& param = TypeParameter::Handle(Z);
+      auto& type = AbstractType::Handle(Z);
+      for (intptr_t i = 0; i < type_params.Length(); i++) {
+        param ^= type_params.TypeAt(i);
+        type = type_args.TypeAt(i);
+        param.set_default_argument(type);
+      }
+    }
   }
 
   if (function.HasOptionalParameters()) {

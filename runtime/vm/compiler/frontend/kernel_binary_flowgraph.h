@@ -63,7 +63,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void ReadForwardingStubTarget(const Function& function);
   void EvaluateConstFieldValue(const Field& field);
   void SetupDefaultParameterValues();
-  void ReadDefaultFunctionTypeArguments(const Function& function);
 
   FlowGraph* BuildGraphOfFieldInitializer();
   Fragment BuildFieldInitializer(const Field& field,

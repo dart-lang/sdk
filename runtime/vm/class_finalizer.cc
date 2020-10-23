@@ -817,7 +817,7 @@ void ClassFinalizer::FinalizeSignature(const Function& function,
                                        FinalizationKind finalization) {
   AbstractType& type = AbstractType::Handle();
   AbstractType& finalized_type = AbstractType::Handle();
-  // Finalize function type parameters and their upper bounds.
+  // Finalize function type parameters, including their bounds and default args.
   const intptr_t num_parent_type_params = function.NumParentTypeParameters();
   const intptr_t num_type_params = function.NumTypeParameters();
   if (num_type_params > 0) {
@@ -841,6 +841,11 @@ void ClassFinalizer::FinalizeSignature(const Function& function,
       if (finalized_type.raw() != type.raw()) {
         type_param.set_bound(finalized_type);
       }
+      type = type_param.default_argument();
+      finalized_type = FinalizeType(type, finalization);
+      if (finalized_type.raw() != type.raw()) {
+        type_param.set_default_argument(finalized_type);
+      }
     }
   }
   // Finalize result type.
@@ -860,26 +865,31 @@ void ClassFinalizer::FinalizeSignature(const Function& function,
   }
 }
 
-// Finalize the upper bounds of the type parameters of class cls.
+// Finalize bounds and default arguments of the type parameters of class cls.
 void ClassFinalizer::FinalizeUpperBounds(const Class& cls,
                                          FinalizationKind finalization) {
   const intptr_t num_type_params = cls.NumTypeParameters();
   TypeParameter& type_param = TypeParameter::Handle();
-  AbstractType& bound = AbstractType::Handle();
+  AbstractType& type = AbstractType::Handle();
   const TypeArguments& type_params =
       TypeArguments::Handle(cls.type_parameters());
   ASSERT((type_params.IsNull() && (num_type_params == 0)) ||
          (type_params.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_param ^= type_params.TypeAt(i);
-    bound = type_param.bound();
+    // First, finalize the default argument (no cycles possible here).
+    type = type_param.default_argument();
+    type = FinalizeType(type, finalization);
+    type_param.set_default_argument(type);
+    // Next, finalize the bound.
+    type = type_param.bound();
     // Bound may be finalized, but not canonical yet.
-    if (bound.IsCanonical() || bound.IsBeingFinalized()) {
+    if (type.IsCanonical() || type.IsBeingFinalized()) {
       // A bound involved in F-bounded quantification may form a cycle.
       continue;
     }
-    bound = FinalizeType(bound, finalization);
-    type_param.set_bound(bound);
+    type = FinalizeType(type, finalization);
+    type_param.set_bound(type);
   }
 }
 

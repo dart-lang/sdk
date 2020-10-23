@@ -3331,7 +3331,7 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   }
   ActiveTypeParametersScope scope(active_class, enclosing, type_parameters, Z);
 
-  // Step b) Fill in the bounds of all [TypeParameter]s.
+  // Step b) Fill in the bounds and default arguments of all [TypeParameter]s.
   for (intptr_t i = 0; i < type_parameter_count; i++) {
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
@@ -3350,14 +3350,21 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
       parameter.set_bound(bound);
     }
+    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
+    const AbstractType* default_arg = &Object::dynamic_type();
+    if (helper_->ReadTag() == kSomething) {
+      default_arg = &BuildTypeWithoutFinalization();
+    }
+    parameter.set_default_argument(*default_arg);
 
     helper.Finish();
   }
 
-  // Fix bounds in all derived type parameters (with different nullabilities).
+  // Fix bounds and default arguments in all derived type parameters (with
+  // different nullabilities).
   if (active_class->derived_type_parameters != nullptr) {
     auto& derived = TypeParameter::Handle(Z);
-    auto& bound = AbstractType::Handle(Z);
+    auto& type = AbstractType::Handle(Z);
     for (intptr_t i = 0, n = active_class->derived_type_parameters->Length();
          i < n; ++i) {
       derived ^= active_class->derived_type_parameters->At(i);
@@ -3366,8 +3373,10 @@ void TypeTranslator::LoadAndSetupTypeParameters(
            derived.parameterized_function() == set_on.raw())) {
         ASSERT(!derived.IsFinalized());
         parameter ^= type_parameters.TypeAt(derived.index());
-        bound = parameter.bound();
-        derived.set_bound(bound);
+        type = parameter.bound();
+        derived.set_bound(type);
+        type = parameter.default_argument();
+        derived.set_default_argument(type);
       }
     }
   }

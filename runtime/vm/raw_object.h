@@ -2289,6 +2289,11 @@ class TypeParameterLayout : public AbstractTypeLayout {
   StringPtr name_;
   SmiPtr hash_;
   AbstractTypePtr bound_;  // ObjectType if no explicit bound specified.
+  // The instantiation to bounds of this parameter as calculated by the CFE.
+  //
+  // TODO(dartbug.com/43901): Once a separate TypeParameters class has been
+  // added, move these there and remove them from TypeParameter objects.
+  AbstractTypePtr default_argument_;
   FunctionPtr parameterized_function_;
   VISIT_TO(ObjectPtr, parameterized_function_)
   ClassIdTagType parameterized_class_id_;
