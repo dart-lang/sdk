@@ -338,6 +338,7 @@ void main() {
 
   group('Expression compiler tests in static function:', () {
     const source = '''
+      // @dart = 2.9
       int foo(int x, {int y}) {
         int z = 0;
         /* evaluation placeholder */
@@ -1362,6 +1363,7 @@ void main() {
 
   group('Expression compiler tests in constructor:', () {
     const source = '''
+      // @dart = 2.9
       extension NumberParsing on String {
         int parseInt() {
           return int.parse(this);
@@ -1618,6 +1620,7 @@ void main() {
 
   group('Expression compiler tests in loops:', () {
     const source = r'''
+      // @dart = 2.9
       int globalFunction() {
         int x = 15;
         var c = C(1, 2);
@@ -1674,6 +1677,7 @@ void main() {
 
   group('Expression compiler tests in conditional (then):', () {
     const source = r'''
+      // @dart = 2.9
       int globalFunction() {
         int x = 1;
         var c = C(1, 2);
@@ -1726,6 +1730,7 @@ void main() {
 
   group('Expression compiler tests in conditional (else):', () {
     const source = r'''
+      // @dart = 2.9
       int globalFunction() {
         int x = 1;
         var c = C(1, 2);
@@ -1778,6 +1783,7 @@ void main() {
 
   group('Expression compiler tests after conditionals:', () {
     const source = r'''
+      // @dart = 2.9
       int globalFunction() {
         int x = 1;
         var c = C(1, 2);
