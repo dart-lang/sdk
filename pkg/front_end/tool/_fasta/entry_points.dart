@@ -23,11 +23,6 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'package:kernel/src/types.dart' show Types;
 
-import 'package:vm/bytecode/gen_bytecode.dart'
-    show createFreshComponentWithBytecode, generateBytecode;
-
-import 'package:vm/bytecode/options.dart' show BytecodeOptions;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
@@ -433,18 +428,7 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
-  Component component = result.component;
-  if (c.options.bytecode) {
-    generateBytecode(component,
-        options: new BytecodeOptions(
-            enableAsserts: true,
-            emitSourceFiles: true,
-            emitSourcePositions: true,
-            environmentDefines: c.options.environmentDefines));
-    component = createFreshComponentWithBytecode(component);
-  }
-
-  await writeComponentToFile(component, fullOutput);
+  await writeComponentToFile(result.component, fullOutput);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 

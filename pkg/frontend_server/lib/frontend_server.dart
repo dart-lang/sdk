@@ -30,12 +30,6 @@ import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
-import 'package:vm/metadata/binary_cache.dart'
-    show BinaryCacheMetadataRepository;
-
-import 'package:vm/bytecode/gen_bytecode.dart'
-    show generateBytecode, createFreshComponentWithBytecode;
-import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 
@@ -145,14 +139,6 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false)
-  ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
-  ..addMultiOption('bytecode-options',
-      help: 'Specify options for bytecode generation:',
-      valueHelp: 'opt1,opt2,...',
-      allowed: BytecodeOptions.commandLineFlags.keys,
-      allowedHelp: BytecodeOptions.commandLineFlags)
-  ..addFlag('drop-ast',
-      help: 'Include only bytecode into the output file', defaultsTo: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addFlag('sound-null-safety',
@@ -345,7 +331,6 @@ class FrontendCompiler implements CompilerInterface {
   bool _printIncrementalDependencies;
 
   CompilerOptions _compilerOptions;
-  BytecodeOptions _bytecodeOptions;
   ProcessedOptions _processedOptions;
   FileSystem _fileSystem;
   Uri _mainSource;
@@ -484,14 +469,6 @@ class FrontendCompiler implements CompilerInterface {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }
 
-    compilerOptions.bytecode = options['gen-bytecode'];
-    final BytecodeOptions bytecodeOptions = BytecodeOptions(
-      enableAsserts: options['enable-asserts'],
-      emitSourceFiles: options['embed-source-text'],
-      environmentDefines: environmentDefines,
-      aot: options['aot'],
-    )..parseCommandLineFlags(options['bytecode-options']);
-
     // Initialize additional supported kernel targets.
     _installDartdevcTarget();
     compilerOptions.target = createFrontEndTarget(
@@ -511,17 +488,7 @@ class FrontendCompiler implements CompilerInterface {
       ];
     }
 
-    if (compilerOptions.bytecode && _initializeFromDill != null) {
-      // If we are generating bytecode, put bytecode only (not AST) in
-      // [_kernelBinaryFilename], which the user of this tool will eventually
-      // feed to Flutter engine or flutter_tester. Use a separate file to cache
-      // the AST result to initialize the incremental compiler for the next
-      // invocation of this tool.
-      _initializeFromDill += ".ast";
-    }
-
     _compilerOptions = compilerOptions;
-    _bytecodeOptions = bytecodeOptions;
     _processedOptions = ProcessedOptions(options: compilerOptions);
 
     KernelCompilationResults results;
@@ -554,7 +521,6 @@ class FrontendCompiler implements CompilerInterface {
           sdkRoot.resolve(platformKernelDill)
         ];
       }
-      // No bytecode at this step. Bytecode is generated later in _writePackage.
       results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
           includePlatform: options['link-platform'],
@@ -595,22 +561,6 @@ class FrontendCompiler implements CompilerInterface {
     }
     results = null; // Fix leak: Probably variation of http://dartbug.com/36983.
     return errors.isEmpty;
-  }
-
-  Future<Component> _generateBytecodeIfNeeded(Component component) async {
-    if (_compilerOptions.bytecode && errors.isEmpty) {
-      await runWithFrontEndCompilerContext(
-          _mainSource, _compilerOptions, component, () {
-        generateBytecode(component,
-            coreTypes: _generator.getCoreTypes(),
-            hierarchy: _generator.getClassHierarchy(),
-            options: _bytecodeOptions);
-        if (_options['drop-ast']) {
-          component = createFreshComponentWithBytecode(component);
-        }
-      });
-    }
-    return component;
   }
 
   void _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
@@ -695,88 +645,29 @@ class FrontendCompiler implements CompilerInterface {
       {bool filterExternal: false,
       IncrementalSerializer incrementalSerializer}) async {
     final Component component = results.component;
-    // Remove the cache that came either from this function or from
-    // initializing from a kernel file.
-    component.metadata.remove(BinaryCacheMetadataRepository.repositoryTag);
+    final IOSink sink = File(filename).openWrite();
+    final Set<Library> loadedLibraries = results.loadedLibraries;
+    final BinaryPrinter printer = filterExternal
+        ? BinaryPrinter(sink,
+            libraryFilter: (lib) => !loadedLibraries.contains(lib),
+            includeSources: false)
+        : printerFactory.newBinaryPrinter(sink);
 
-    if (_compilerOptions.bytecode) {
-      {
-        // Generate bytecode as the output proper.
-        final IOSink sink = File(filename).openWrite();
-        await runWithFrontEndCompilerContext(
-            _mainSource, _compilerOptions, component, () async {
-          if (_options['incremental']) {
-            // When loading a single kernel buffer with multiple sub-components,
-            // the VM expects 'main' to be the first sub-component.
-            await forEachPackage(results,
-                (String package, List<Library> libraries) async {
-              _writePackage(results, package, libraries, sink);
-            }, mainFirst: true);
-          } else {
-            _writePackage(results, 'main', component.libraries, sink);
-          }
-        });
-        await sink.close();
-      }
+    sortComponent(component);
 
-      {
-        // Generate AST as a cache. This goes to [_initializeFromDill] instead
-        // of [filename] so that a later invocation of frontend_server will the
-        // same arguments will use this to initialize its incremental kernel
-        // compiler.
-        final repository = BinaryCacheMetadataRepository();
-        component.addMetadataRepository(repository);
-        for (var lib in component.libraries) {
-          var bytes = BinaryCacheMetadataRepository.lookup(lib);
-          if (bytes != null) {
-            repository.mapping[lib] = bytes;
-          }
-        }
-
-        final file = new File(_initializeFromDill);
-        await file.create(recursive: true);
-        final IOSink sink = file.openWrite();
-        final Set<Library> loadedLibraries = results.loadedLibraries;
-        final BinaryPrinter printer = filterExternal
-            ? BinaryPrinter(sink,
-                libraryFilter: (lib) => !loadedLibraries.contains(lib),
-                includeSources: false)
-            : printerFactory.newBinaryPrinter(sink);
-
-        sortComponent(component);
-
-        printer.writeComponentFile(component);
-        await sink.close();
-      }
-    } else {
-      // Generate AST as the output proper.
-      final IOSink sink = File(filename).openWrite();
-      final Set<Library> loadedLibraries = results.loadedLibraries;
-      final BinaryPrinter printer = filterExternal
-          ? BinaryPrinter(sink,
-              libraryFilter: (lib) => !loadedLibraries.contains(lib),
-              includeSources: false)
-          : printerFactory.newBinaryPrinter(sink);
-
-      sortComponent(component);
-
-      if (incrementalSerializer != null) {
-        incrementalSerializer.writePackagesToSinkAndTrimComponent(
-            component, sink);
-      } else if (unsafePackageSerialization == true) {
-        writePackagesToSinkAndTrimComponent(component, sink);
-      }
-
-      printer.writeComponentFile(component);
-      await sink.close();
+    if (incrementalSerializer != null) {
+      incrementalSerializer.writePackagesToSinkAndTrimComponent(
+          component, sink);
+    } else if (unsafePackageSerialization == true) {
+      writePackagesToSinkAndTrimComponent(component, sink);
     }
+
+    printer.writeComponentFile(component);
+    await sink.close();
 
     if (_options['split-output-by-packages']) {
       await writeOutputSplitByPackages(
-          _mainSource, _compilerOptions, results, filename,
-          genBytecode: _compilerOptions.bytecode,
-          bytecodeOptions: _bytecodeOptions,
-          dropAST: _options['drop-ast']);
+          _mainSource, _compilerOptions, results, filename);
     }
 
     final String manifestFilename = _options['far-manifest'];
@@ -846,54 +737,6 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
-  void _writePackage(KernelCompilationResults result, String package,
-      List<Library> libraries, IOSink sink) {
-    final canCache = libraries.isNotEmpty &&
-        _compilerOptions.bytecode &&
-        errors.isEmpty &&
-        package != "main";
-
-    if (canCache) {
-      var cachedBytes = BinaryCacheMetadataRepository.lookup(libraries.first);
-      if (cachedBytes != null) {
-        sink.add(cachedBytes);
-        return;
-      }
-    }
-
-    Component partComponent = result.component;
-    if (_compilerOptions.bytecode && errors.isEmpty) {
-      final List<Library> librariesFiltered = new List<Library>();
-      final Set<Library> loadedLibraries = result.loadedLibraries;
-      for (Library library in libraries) {
-        if (loadedLibraries.contains(library)) continue;
-        librariesFiltered.add(library);
-      }
-
-      generateBytecode(partComponent,
-          options: _bytecodeOptions,
-          libraries: librariesFiltered,
-          coreTypes: _generator?.getCoreTypes(),
-          hierarchy: _generator?.getClassHierarchy());
-
-      if (_options['drop-ast']) {
-        partComponent = createFreshComponentWithBytecode(partComponent);
-      }
-    }
-
-    final byteSink = ByteSink();
-    final BinaryPrinter printer = BinaryPrinter(byteSink,
-        libraryFilter: (lib) =>
-            packageFor(lib, result.loadedLibraries) == package);
-    printer.writeComponentFile(partComponent);
-
-    final bytes = byteSink.builder.takeBytes();
-    sink.add(bytes);
-    if (canCache) {
-      BinaryCacheMetadataRepository.insert(libraries.first, bytes);
-    }
-  }
-
   @override
   Future<Null> recompileDelta({String entryPoint}) async {
     final String boundaryKey = Uuid().generateV4();
@@ -946,7 +789,6 @@ class FrontendCompiler implements CompilerInterface {
         expression, definitions, typeDefinitions, libraryUri, klass, isStatic);
     if (procedure != null) {
       Component component = createExpressionEvaluationComponent(procedure);
-      component = await _generateBytecodeIfNeeded(component);
       final IOSink sink = File(_kernelBinaryFilename).openWrite();
       sink.add(serializeComponent(component));
       await sink.close();

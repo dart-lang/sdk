@@ -101,39 +101,6 @@ main() {
     ]);
   }, timeout: Timeout.none);
 
-  test('compile-bytecode', () async {
-    await testCompile([
-      '--platform',
-      platformPath(),
-      '--packages',
-      '$sdkDir/$packagesFile',
-      '--output',
-      outputDill(),
-      '--gen-bytecode',
-      '--drop-ast',
-      '$sdkDir/$mainScript',
-    ]);
-  }, timeout: Timeout.none);
-
-  test('compile-bytecode-package-split', () async {
-    await testCompile([
-      '--platform',
-      platformPath(),
-      '--packages',
-      '$sdkDir/$packagesFile',
-      '--output',
-      outputDill(),
-      '--gen-bytecode',
-      '--drop-ast',
-      '--split-output-by-packages',
-      '--manifest',
-      outputManifest(),
-      '--component-name',
-      'foo_component',
-      '$sdkDir/$mainScript',
-    ]);
-  }, timeout: Timeout.none);
-
   test('compile-package-config', () async {
     await testCompile([
       '--platform',

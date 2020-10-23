@@ -20,7 +20,6 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/vm/constants_native_effects.dart'
     show VmConstantsBackend;
 
-import '../metadata/binary_cache.dart' show BinaryCacheMetadataRepository;
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/lowering.dart' as lowering show transformLibraries;
 import '../transformations/ffi.dart' as transformFfi show ReplacedMembers;
@@ -400,7 +399,6 @@ class VmTarget extends Target {
   @override
   Component configureComponent(Component component) {
     callSiteAnnotator.addRepositoryTo(component);
-    component.addMetadataRepository(new BinaryCacheMetadataRepository());
     return super.configureComponent(component);
   }
 

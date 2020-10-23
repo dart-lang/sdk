@@ -39,15 +39,9 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show Component, Library, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:vm/bytecode/gen_bytecode.dart'
-    show createFreshComponentWithBytecode, generateBytecode;
-import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart'
-    show
-        autoDetectNullSafetyMode,
-        createLoadedLibrariesSet,
-        runWithFrontEndCompilerContext;
+    show autoDetectNullSafetyMode, createLoadedLibrariesSet;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -99,7 +93,6 @@ CompilerOptions setupCompilerOptions(
     bool enableAsserts,
     int nullSafety,
     List<String> experimentalFlags,
-    bool bytecode,
     Uri packagesUri,
     List<String> errors) {
   final expFlags = <String>[];
@@ -117,7 +110,6 @@ CompilerOptions setupCompilerOptions(
     ..sdkSummary = platformKernelPath
     ..verbose = verbose
     ..omitPlatform = true
-    ..bytecode = bytecode
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(expFlags),
         onError: (msg) => errors.add(msg))
@@ -156,7 +148,6 @@ abstract class Compiler {
   final bool enableAsserts;
   final int nullSafety;
   final List<String> experimentalFlags;
-  final bool bytecode;
   final String packageConfig;
 
   // Code coverage and hot reload are only supported by incremental compiler,
@@ -173,7 +164,6 @@ abstract class Compiler {
       this.enableAsserts: false,
       this.nullSafety: kNullSafetyOptionUnspecified,
       this.experimentalFlags: null,
-      this.bytecode: false,
       this.supportCodeCoverage: false,
       this.supportHotReload: false,
       this.packageConfig: null}) {
@@ -198,65 +188,18 @@ abstract class Compiler {
         enableAsserts,
         nullSafety,
         experimentalFlags,
-        bytecode,
         packagesUri,
         errors);
   }
 
   Future<CompilerResult> compile(Uri script) {
     return runWithPrintToStderr(() async {
-      CompilerResult compilerResult = await compileInternal(script);
-      Component component = compilerResult.component;
+      final CompilerResult compilerResult = await compileInternal(script);
+      final Component component = compilerResult.component;
 
       if (errors.isEmpty) {
-        // Record dependencies only if compilation was error free, and before
-        // createFreshComponentWithBytecode drops the uriToSource table.
+        // Record dependencies only if compilation was error free.
         _recordDependencies(isolateId, component, options.packagesFileUri);
-      }
-
-      if (options.bytecode && errors.isEmpty) {
-        final List<Library> libraries = new List<Library>();
-        final Set<Library> loadedLibraries = compilerResult.loadedLibraries;
-        for (Library library in component.libraries) {
-          if (loadedLibraries.contains(library)) continue;
-          libraries.add(library);
-        }
-
-        await runWithFrontEndCompilerContext(script, options, component, () {
-          // TODO(alexmarkov): disable local variables info,
-          //  debugger stops and source files in VM PRODUCT mode.
-          // TODO(rmacnak): disable annotations if mirrors are not enabled.
-          generateBytecode(component,
-              libraries: libraries,
-              coreTypes: compilerResult.coreTypes,
-              hierarchy: compilerResult.classHierarchy,
-              options: new BytecodeOptions(
-                enableAsserts: enableAsserts,
-                environmentDefines: options.environmentDefines,
-                // Needed both for stack traces and the debugger.
-                emitSourcePositions: true,
-                // Only needed when the debugger is available.
-                emitLocalVarInfo: true,
-                // Only needed when the debugger is available.
-                emitDebuggerStops: true,
-                // Only needed when the VM service is available.
-                emitSourceFiles: true,
-                // Only needed when reload is available.
-                emitInstanceFieldInitializers: supportHotReload,
-                // Only needed when mirrors are available.
-                emitAnnotations: true,
-                // Only needed when observatory (source report) is available.
-                keepUnreachableCode: supportCodeCoverage,
-                avoidClosureCallInstructions: supportCodeCoverage,
-              ));
-          Component freshComponent =
-              createFreshComponentWithBytecode(component);
-          compilerResult = new CompilerResult(
-              freshComponent,
-              compilerResult.loadedLibraries,
-              compilerResult.classHierarchy,
-              compilerResult.coreTypes);
-        });
       }
 
       return compilerResult;
@@ -336,14 +279,12 @@ class IncrementalCompilerWrapper extends Compiler {
       bool enableAsserts: false,
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
-      bool bytecode: false,
       String packageConfig: null})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
-            bytecode: bytecode,
             supportHotReload: true,
             supportCodeCoverage: true,
             packageConfig: packageConfig);
@@ -356,14 +297,12 @@ class IncrementalCompilerWrapper extends Compiler {
       {bool suppressWarnings: false,
       bool enableAsserts: false,
       List<String> experimentalFlags: null,
-      bool bytecode: false,
       String packageConfig: null}) {
     IncrementalCompilerWrapper result = IncrementalCompilerWrapper(
         isolateId, fileSystem, platformKernelPath,
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
-        bytecode: bytecode,
         packageConfig: packageConfig);
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
         component,
@@ -393,7 +332,6 @@ class IncrementalCompilerWrapper extends Compiler {
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
-        bytecode: bytecode,
         packageConfig: packageConfig);
 
     generator.resetDeltaState();
@@ -424,14 +362,12 @@ class SingleShotCompilerWrapper extends Compiler {
       bool enableAsserts: false,
       int nullSafety: kNullSafetyOptionUnspecified,
       List<String> experimentalFlags: null,
-      bool bytecode: false,
       String packageConfig: null})
       : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
-            bytecode: bytecode,
             packageConfig: packageConfig);
 
   @override
@@ -466,7 +402,6 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     bool enableAsserts: false,
     int nullSafety: kNullSafetyOptionUnspecified,
     List<String> experimentalFlags: null,
-    bool bytecode: false,
     String packageConfig: null,
     String multirootFilepaths,
     String multirootScheme}) async {
@@ -498,7 +433,6 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
           enableAsserts: enableAsserts,
           nullSafety: nullSafety,
           experimentalFlags: experimentalFlags,
-          bytecode: bytecode,
           packageConfig: packageConfig);
     }
     isolateCompilers[isolateId] = compiler;
@@ -552,7 +486,6 @@ Future _processExpressionCompilationRequest(request) async {
   final bool enableAsserts = request[13];
   final List<String> experimentalFlags =
       request[14] != null ? request[14].cast<String>() : null;
-  final bool bytecode = request[15];
 
   IncrementalCompilerWrapper compiler = isolateCompilers[isolateId];
 
@@ -635,7 +568,6 @@ Future _processExpressionCompilationRequest(request) async {
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
-            bytecode: bytecode,
             packageConfig: dotPackagesFile);
         isolateCompilers[isolateId] = compiler;
         await compiler.compile(
@@ -678,19 +610,6 @@ Future _processExpressionCompilationRequest(request) async {
       result = new CompilationResult.errors(compiler.errors, null);
     } else {
       Component component = createExpressionEvaluationComponent(procedure);
-      if (compiler.bytecode) {
-        await runWithFrontEndCompilerContext(
-            compiler.generator.entryPoint, compiler.options, component, () {
-          generateBytecode(component,
-              coreTypes: compiler.generator.getCoreTypes(),
-              hierarchy: compiler.generator.getClassHierarchy(),
-              options: new BytecodeOptions(
-                enableAsserts: compiler.enableAsserts,
-                environmentDefines: compiler.options.environmentDefines,
-              ));
-          component = createFreshComponentWithBytecode(component);
-        });
-      }
       result = new CompilationResult.ok(serializeComponent(component));
     }
   } catch (error, stack) {
@@ -813,7 +732,6 @@ Future _processLoadRequest(request) async {
   final bool enableAsserts = request[9];
   final List<String> experimentalFlags =
       request[10] != null ? request[10].cast<String>() : null;
-  final bool bytecode = request[11];
   final String packageConfig = request[12];
   final String multirootFilepaths = request[13];
   final String multirootScheme = request[14];
@@ -876,7 +794,7 @@ Future _processLoadRequest(request) async {
     }
     final List<String> errors = <String>[];
     var options = setupCompilerOptions(fileSystem, platformKernelPath, false,
-        false, nullSafety, experimentalFlags, false, packagesUri, errors);
+        false, nullSafety, experimentalFlags, packagesUri, errors);
 
     // script should only be null for kUpdateSourcesTag.
     assert(script != null);
@@ -900,7 +818,6 @@ Future _processLoadRequest(request) async {
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
-        bytecode: bytecode,
         packageConfig: packageConfig,
         multirootFilepaths: multirootFilepaths,
         multirootScheme: multirootScheme);
@@ -914,7 +831,6 @@ Future _processLoadRequest(request) async {
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
-        bytecode: bytecode,
         packageConfig: packageConfig);
   }
 
@@ -1016,9 +932,9 @@ FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
   return fileSystem;
 }
 
-train(String scriptUri, String platformKernelPath, bool bytecode) async {
+train(String scriptUri, String platformKernelPath) async {
   // Train on program asked to train on.
-  await trainInternal(scriptUri, platformKernelPath, bytecode);
+  await trainInternal(scriptUri, platformKernelPath);
 
   // Also train a few times on a hello-world program to make sure we exercise
   // the startup sequence.
@@ -1032,16 +948,14 @@ train(String scriptUri, String platformKernelPath, bool bytecode) async {
           """);
   try {
     for (int i = 0; i < 10; i++) {
-      await trainInternal(
-          helloDart.uri.toString(), platformKernelPath, bytecode);
+      await trainInternal(helloDart.uri.toString(), platformKernelPath);
     }
   } finally {
     tmpDir.deleteSync(recursive: true);
   }
 }
 
-Future trainInternal(
-    String scriptUri, String platformKernelPath, bool bytecode) async {
+Future trainInternal(String scriptUri, String platformKernelPath) async {
   var tag = kTrainTag;
   var responsePort = new RawReceivePort();
   responsePort.handler = (response) {
@@ -1067,7 +981,7 @@ Future trainInternal(
     false /* suppress warnings */,
     false /* enable asserts */,
     null /* experimental_flags */,
-    bytecode,
+    null /* unused */,
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
@@ -1081,17 +995,11 @@ main([args]) {
     // This entry point is used when creating an app snapshot.
     // It takes the following extra arguments:
     // 1) Script to compile.
-    // 2) Optional '--bytecode' argument to train bytecode generation.
-    // 3) Optional platform kernel path.
+    // 2) Optional platform kernel path.
     int argIndex = 1;
     final String script = args[argIndex++];
-    bool bytecode = false;
-    if ((argIndex < args.length) && (args[argIndex] == '--bytecode')) {
-      bytecode = true;
-      ++argIndex;
-    }
     final String platform = (argIndex < args.length) ? args[argIndex] : null;
-    train(script, platform, bytecode);
+    train(script, platform);
   } else {
     // Entry point for the Kernel isolate.
     return new RawReceivePort()..handler = _processLoadRequest;

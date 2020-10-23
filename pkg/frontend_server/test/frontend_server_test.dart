@@ -2122,52 +2122,6 @@ class BarState extends State<FizzWidget> {
       expect(count, 3);
     });
 
-    test('compile with bytecode', () async {
-      var file = File('${tempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("main() {}\n");
-      var dillFile = File('${tempDir.path}/app.dill');
-      expect(dillFile.existsSync(), equals(false));
-      final List<String> args = <String>[
-        '--sdk-root=${sdkRoot.toFilePath()}',
-        '--incremental',
-        '--platform=${platformKernel.path}',
-        '--output-dill=${dillFile.path}',
-        '--gen-bytecode',
-        '--drop-ast',
-        file.path,
-      ];
-      expect(await starter(args), 0);
-    });
-
-    test('compile with bytecode and produce deps file', () async {
-      var sourceFoo = File('${tempDir.path}/foo.dart')..createSync();
-      sourceFoo.writeAsStringSync("import 'bar.dart'; main() { barfunc(); }\n");
-      var sourceBar = File('${tempDir.path}/bar.dart')..createSync();
-      sourceBar.writeAsStringSync("barfunc() {}\n");
-      var dillFile = File('${tempDir.path}/app.dill');
-      expect(dillFile.existsSync(), equals(false));
-      var depFile = File('${tempDir.path}/app.dill.d');
-      expect(depFile.existsSync(), equals(false));
-      final List<String> args = <String>[
-        '--sdk-root=${sdkRoot.toFilePath()}',
-        '--incremental',
-        '--platform=${platformKernel.path}',
-        '--output-dill=${dillFile.path}',
-        '--depfile=${depFile.path}',
-        '--gen-bytecode',
-        '--drop-ast',
-        sourceFoo.path,
-      ];
-      expect(await starter(args), 0);
-      expect(depFile.existsSync(), true);
-      var depContents = depFile.readAsStringSync();
-      print(depContents);
-      var depContentsParsed = depContents.split(': ');
-      expect(path.basename(depContentsParsed[0]), path.basename(dillFile.path));
-      expect(depContentsParsed[1], contains(path.basename(sourceFoo.path)));
-      expect(depContentsParsed[1], contains(path.basename(sourceBar.path)));
-    });
-
     test('compile "package:"-file', () async {
       Directory lib = Directory('${tempDir.path}/lib')..createSync();
       File('${lib.path}/foo.dart')
