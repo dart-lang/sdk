@@ -4,6 +4,7 @@
 
 // dart2jsOptions=--native-null-assertions
 
+import 'non_web_library_interfaces.dart';
 import 'null_assertions_test_lib.dart';
 
 void main() {

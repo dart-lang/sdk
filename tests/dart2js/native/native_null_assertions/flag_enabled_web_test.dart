@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// dart2jsOptions=--native-null-assertions
+
 import 'null_assertions_test_lib.dart';
+import 'web_library_interfaces.dart';
 
 void main() {
-  var flagEnabled = false;
+  var flagEnabled = true;
   testNativeNullAssertions(flagEnabled);
   testJSInvocationNullAssertions(flagEnabled);
 }

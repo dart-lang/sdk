@@ -3,31 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../native_testing.dart';
-import 'js_invocations_in_non_web_library.dart';
-import 'js_invocations_in_web_library.dart';
-import 'null_assertions_lib.dart';
 
-/// Returns an 'AAA' object that satisfies the interface.
-AAA makeA() native;
+abstract class NativeInterface {
+  int get size;
+  String get name;
+  String? get optName;
+  int method1();
+  String method2();
+  String? optMethod();
+}
 
-/// Returns an 'AAA' object where each method breaks the interface's contract.
-AAA makeAX() native;
+abstract class JSInterface {
+  String get name;
+  String? get optName;
+}
 
-/// Returns a 'JSInterface' object whose `JS()` invocations exist in a library
-/// that is part of the allowlist.
-CCCInWebLibrary makeWebC() native;
-
-/// Returns the same as above but where each method breaks the interface's
-/// contract.
-CCCInWebLibrary makeWebCX() native;
-
-/// Returns a 'JSInterface' object whose `JS()` invocations exist in a library
-/// that is not part of the allowlist.
-CCCInNonWebLibrary makeNonWebC() native;
-
-/// Returns the same as above but where each method breaks the interface's
-/// contract.
-CCCInNonWebLibrary makeNonWebCX() native;
+class BBB implements NativeInterface {
+  int get size => 300;
+  String get name => 'Brenda';
+  String? get optName => name;
+  int method1() => 400;
+  String method2() => 'brilliant!';
+  String? optMethod() => method2();
+}
 
 void setup() {
   JS('', r"""
@@ -52,40 +50,25 @@ void setup() {
 
   self.nativeConstructor(AAA);
 
-  function CCCInWebLibrary(n) {
-    this.name = n;
-    this.optName = n;
-  }
-  function CCCInNonWebLibrary(n) {
+  function CCC(n) {
     this.name = n;
     this.optName = n;
   }
 
-  makeWebC = function() {
-    return new CCCInWebLibrary('Carol');
+  makeC = function() {
+    return new CCC('Carol');
   };
-  makeWebCX = function() {
-    return new CCCInWebLibrary(void 0);
-  };
-  makeNonWebC = function() {
-    return new CCCInNonWebLibrary('Carol');
-  };
-  makeNonWebCX = function() {
-    return new CCCInNonWebLibrary(void 0);
+  makeCX = function() {
+    return new CCC(void 0);
   };
 
-  self.nativeConstructor(CCCInWebLibrary);
-  self.nativeConstructor(CCCInNonWebLibrary);
+  self.nativeConstructor(CCC);
 })()""");
 }
 
 // The 'NativeInterface' version of the code is passed both native and Dart
 // objects, so there will be an interceptor dispatch to the method. This tests
 // that the null-check exists in the forwarding method.
-//
-// The 'AAA' version of the code is passed only objects of a single native
-// class, so the native method can be inlined (which happens in the optimizer).
-// This tests that the null-check exists in the 'inlined' code.
 
 @pragma('dart2js:noInline')
 String describeNativeInterface(NativeInterface o) {
@@ -93,17 +76,7 @@ String describeNativeInterface(NativeInterface o) {
 }
 
 @pragma('dart2js:noInline')
-String describeAAA(AAA o) {
-  return '${o.name} ${o.method2()} ${o.size} ${o.method1()}';
-}
-
-@pragma('dart2js:noInline')
 String describeOptNativeInterface(NativeInterface o) {
-  return '${o.optName} ${o.optMethod()}';
-}
-
-@pragma('dart2js:noInline')
-String describeOptAAA(AAA o) {
   return '${o.optName} ${o.optMethod()}';
 }
 
@@ -126,68 +99,3 @@ const expectedOptX = 'null null';
 const expectedC = 'Carol';
 const expectedOptC = 'Carol';
 const expectedOptCX = 'null';
-
-// Test that `--native-null-assertions` injects null-checks on the returned
-// value of native methods with a non-nullable return type in an opt-in library.
-void testNativeNullAssertions(bool flagEnabled) {
-  nativeTesting();
-  setup();
-  AAA a = makeA();
-  BBB b = BBB();
-
-  Expect.equals(expectedA, describeNativeInterface(a));
-  Expect.equals(expectedB, describeNativeInterface(b));
-
-  Expect.equals(expectedA, describeAAA(a));
-
-  AAA x = makeAX(); // This object returns `null`!
-  var checkExpectation = flagEnabled ? Expect.throws : (f) => f();
-  checkExpectation(() => describeNativeInterface(x));
-  checkExpectation(() => describeAAA(x));
-
-  checkExpectation(() => x.name);
-  checkExpectation(() => x.size);
-  checkExpectation(() => x.method1());
-  checkExpectation(() => x.method2());
-
-  // Now test that a nullable return type does not have a check.
-  Expect.equals(expectedOptA, describeOptNativeInterface(a));
-  Expect.equals(expectedOptB, describeOptNativeInterface(b));
-  Expect.equals(expectedOptX, describeOptNativeInterface(x));
-
-  Expect.equals(expectedOptA, describeOptAAA(a));
-  Expect.equals(expectedOptX, describeOptAAA(x));
-}
-
-// Test that `--native-null-assertions` injects null-checks on the returned
-// value of `JS()` invocations with a non-nullable static type in an opt-in
-// library.
-void testJSInvocationNullAssertions(bool flagEnabled) {
-  nativeTesting();
-  setup();
-
-  CCCInWebLibrary webC = makeWebC();
-  CCCInWebLibrary webCX = makeWebCX();
-
-  CCCInNonWebLibrary nonWebC = makeNonWebC();
-  CCCInNonWebLibrary nonWebCX = makeNonWebCX();
-
-  Expect.equals(expectedC, describeJSInterface(webC));
-  Expect.equals(expectedC, describeJSInterface(nonWebC));
-
-  // If invocations are in a web library, this should throw if null checks are
-  // enabled.
-  var checkExpectationWeb = flagEnabled ? Expect.throws : (f) => f();
-  checkExpectationWeb(() => describeJSInterface(webCX));
-
-  // If invocations are not in a web library, there should not be a null check
-  // regardless if the flag is enabled or not.
-  var checkExpectationNonWeb = (f) => f();
-  checkExpectationNonWeb(() => describeJSInterface(nonWebCX));
-
-  // Test that invocations with a nullable static type do not have checks.
-  Expect.equals(expectedOptC, describeOptJSInterface(webC));
-  Expect.equals(expectedOptC, describeOptJSInterface(nonWebC));
-  Expect.equals(expectedOptCX, describeOptJSInterface(webCX));
-  Expect.equals(expectedOptCX, describeOptJSInterface(nonWebCX));
-}

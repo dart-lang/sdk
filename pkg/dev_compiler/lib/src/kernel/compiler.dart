@@ -4283,7 +4283,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _extensionTypes.isNativeClass(member.enclosingClass) &&
       member is Procedure &&
       member.function != null &&
-      member.function.returnType.isPotentiallyNonNullable;
+      member.function.returnType.isPotentiallyNonNullable &&
+      _isWebLibrary(member.enclosingLibrary?.importUri);
 
   // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
   // _emitMemberName would be a nice place to handle it, but we don't have
@@ -5105,6 +5106,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   bool _isWebLibrary(Uri importUri) =>
+      importUri != null &&
       importUri.scheme == 'dart' &&
       (importUri.path == 'html' ||
           importUri.path == 'svg' ||
