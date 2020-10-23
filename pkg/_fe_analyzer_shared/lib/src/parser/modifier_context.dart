@@ -220,6 +220,12 @@ class ModifierRecoveryContext {
     assert(optional('abstract', next));
     if (abstractToken == null) {
       abstractToken = next;
+
+      if (varFinalOrConst != null) {
+        reportModifierOutOfOrder(next, varFinalOrConst.lexeme);
+      } else if (covariantToken != null) {
+        reportModifierOutOfOrder(next, covariantToken.lexeme);
+      }
       return next;
     }
 
