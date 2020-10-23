@@ -310,6 +310,7 @@ gtgt
 gulp
 gunk
 hackish
+hardly
 helper2
 hest
 heuristics
@@ -326,6 +327,7 @@ hunk
 hurray
 i'm
 ia
+ideal
 idle
 ikg
 illustrate

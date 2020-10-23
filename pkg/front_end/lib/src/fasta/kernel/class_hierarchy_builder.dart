@@ -116,6 +116,8 @@ class Tuple {
   final Name name;
   ClassMember declaredMember;
   ClassMember declaredSetter;
+  ClassMember mixedInMember;
+  ClassMember mixedInSetter;
   ClassMember extendedMember;
   ClassMember extendedSetter;
   List<ClassMember> implementedMembers;
@@ -124,6 +126,10 @@ class Tuple {
   Tuple.declareMember(this.declaredMember)
       : assert(!declaredMember.forSetter),
         this.name = declaredMember.name;
+
+  Tuple.mixInMember(this.mixedInMember)
+      : assert(!mixedInMember.forSetter),
+        this.name = mixedInMember.name;
 
   Tuple.extendMember(this.extendedMember)
       : assert(!extendedMember.forSetter),
@@ -137,6 +143,10 @@ class Tuple {
   Tuple.declareSetter(this.declaredSetter)
       : assert(declaredSetter.forSetter),
         this.name = declaredSetter.name;
+
+  Tuple.mixInSetter(this.mixedInSetter)
+      : assert(mixedInSetter.forSetter),
+        this.name = mixedInSetter.name;
 
   Tuple.extendSetter(this.extendedSetter)
       : assert(extendedSetter.forSetter),
@@ -162,6 +172,18 @@ class Tuple {
       sb.write(comma);
       sb.write('declaredSetter=');
       sb.write(declaredSetter);
+      comma = ',';
+    }
+    if (mixedInMember != null) {
+      sb.write(comma);
+      sb.write('mixedInMember=');
+      sb.write(mixedInMember);
+      comma = ',';
+    }
+    if (mixedInSetter != null) {
+      sb.write(comma);
+      sb.write('mixedInSetter=');
+      sb.write(mixedInSetter);
       comma = ',';
     }
     if (extendedMember != null) {
@@ -1677,27 +1699,9 @@ class ClassHierarchyNodeBuilder {
       assert(supernode != null);
     }
 
-    Scope scope = classBuilder.scope;
-    if (classBuilder.isMixinApplication) {
-      TypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder;
-      TypeDeclarationBuilder mixin = mixedInTypeBuilder.declaration;
-      inferMixinApplication();
-      while (mixin.isNamedMixinApplication) {
-        ClassBuilder named = mixin;
-        mixedInTypeBuilder = named.mixedInTypeBuilder;
-        mixin = mixedInTypeBuilder.declaration;
-      }
-      if (mixin is TypeAliasBuilder) {
-        TypeAliasBuilder aliasBuilder = mixin;
-        NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-        mixin = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
-      }
-      if (mixin is ClassBuilder) {
-        scope = mixin.scope.computeMixinScope();
-      }
-    }
-
     Map<Name, Tuple> memberMap = {};
+
+    Scope scope = classBuilder.scope;
 
     for (MemberBuilder memberBuilder in scope.localMembers) {
       for (ClassMember classMember in memberBuilder.localMembers) {
@@ -1733,6 +1737,63 @@ class ClassHierarchyNodeBuilder {
           memberMap[classMember.name] = new Tuple.declareSetter(classMember);
         } else {
           tuple.declaredSetter = classMember;
+        }
+      }
+    }
+
+    if (classBuilder.isMixinApplication) {
+      TypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder;
+      TypeDeclarationBuilder mixin = mixedInTypeBuilder.declaration;
+      inferMixinApplication();
+      while (mixin.isNamedMixinApplication) {
+        ClassBuilder named = mixin;
+        mixedInTypeBuilder = named.mixedInTypeBuilder;
+        mixin = mixedInTypeBuilder.declaration;
+      }
+      if (mixin is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = mixin;
+        NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
+        mixin = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+      }
+      if (mixin is ClassBuilder) {
+        scope = mixin.scope.computeMixinScope();
+
+        for (MemberBuilder memberBuilder in scope.localMembers) {
+          for (ClassMember classMember in memberBuilder.localMembers) {
+            Tuple tuple = memberMap[classMember.name];
+            if (tuple == null) {
+              memberMap[classMember.name] = new Tuple.mixInMember(classMember);
+            } else {
+              tuple.mixedInMember = classMember;
+            }
+          }
+          for (ClassMember classMember in memberBuilder.localSetters) {
+            Tuple tuple = memberMap[classMember.name];
+            if (tuple == null) {
+              memberMap[classMember.name] = new Tuple.mixInSetter(classMember);
+            } else {
+              tuple.mixedInSetter = classMember;
+            }
+          }
+        }
+
+        for (MemberBuilder memberBuilder in scope.localSetters) {
+          for (ClassMember classMember in memberBuilder.localMembers) {
+            Tuple tuple = memberMap[classMember.name];
+            if (tuple == null) {
+              memberMap[classMember.name] = new Tuple.mixInMember(classMember);
+            } else {
+              tuple.mixedInMember = classMember;
+            }
+          }
+          for (ClassMember classMember in memberBuilder.localSetters) {
+            Tuple tuple = memberMap[classMember.name];
+            if (tuple == null) {
+              memberMap[classMember.name] = new Tuple.mixInSetter(classMember);
+            } else {
+              tuple.mixedInSetter = classMember;
+            }
+          }
         }
       }
     }
@@ -1973,8 +2034,16 @@ class ClassHierarchyNodeBuilder {
         }
       }
 
-      ClassMember computeClassMember(ClassMember declaredMember,
-          ClassMember extendedMember, bool forSetter) {
+      ClassMember computeClassMember(
+          ClassMember declaredMember,
+          ClassMember mixedInMember,
+          ClassMember extendedMember,
+          bool forSetter) {
+        if (mixedInMember != null) {
+          // TODO(johnniwinther): Handle members declared in mixin applications
+          // correctly.
+          declaredMember = null;
+        }
         if (declaredMember != null) {
           if (extendedMember != null && !extendedMember.isStatic) {
             if (declaredMember == extendedMember) return declaredMember;
@@ -2021,11 +2090,79 @@ class ClassHierarchyNodeBuilder {
                     concrete.name);
                 hierarchy.registerMemberComputation(result);
               }
-            } else if (classBuilder.isMixinApplication &&
-                declaredMember.classBuilder != classBuilder) {
+            }
+            assert(
+                !(classBuilder.isMixinApplication &&
+                    declaredMember.classBuilder != classBuilder),
+                "Unexpected declared member ${declaredMember} in "
+                "${classBuilder} from foreign class.");
+
+            if (result.name == noSuchMethodName &&
+                !result.isObjectMember(objectClass)) {
+              hasNoSuchMethod = true;
+            }
+            return result;
+          } else {
+            if (declaredMember.isAbstract) {
+              recordAbstractMember(declaredMember);
+            }
+            return declaredMember;
+          }
+        } else if (mixedInMember != null) {
+          if (extendedMember != null && !extendedMember.isStatic) {
+            if (mixedInMember == extendedMember) return mixedInMember;
+            if (mixedInMember.isDuplicate || extendedMember.isDuplicate) {
+              // Don't check overrides involving duplicated members.
+              return mixedInMember;
+            }
+            ClassMember result =
+                checkInheritanceConflict(mixedInMember, extendedMember);
+            if (result != null) return result;
+            assert(
+                mixedInMember.isProperty == extendedMember.isProperty,
+                "Unexpected member combination: "
+                "$mixedInMember vs $extendedMember");
+            result = mixedInMember;
+
+            // [declaredMember] is a method declared in [cls]. This means it
+            // defines the interface of this class regardless if its abstract.
+            if (!mixedInMember.isSynthesized) {
+              registerOverrideDependency(
+                  mixedInMember, extendedMember.abstract);
+              registerOverrideCheck(mixedInMember, extendedMember.abstract);
+            }
+
+            if (mixedInMember.isAbstract) {
+              if (extendedMember.isAbstract) {
+                recordAbstractMember(mixedInMember);
+              } else {
+                if (!classBuilder.isAbstract) {
+                  // The interface of this class is [declaredMember]. But the
+                  // implementation is [extendedMember]. So [extendedMember]
+                  // must implement [declaredMember], unless [cls] is abstract.
+                  registerOverrideCheck(extendedMember, mixedInMember);
+                }
+                ClassMember concrete = extendedMember.concrete;
+                result = new AbstractMemberOverridingImplementation(
+                    classBuilder,
+                    mixedInMember,
+                    concrete,
+                    mixedInMember.isProperty,
+                    forSetter,
+                    shouldModifyKernel,
+                    concrete.isAbstract,
+                    concrete.name);
+                hierarchy.registerMemberComputation(result);
+              }
+            } else {
+              assert(
+                  (classBuilder.isMixinApplication &&
+                      mixedInMember.classBuilder != classBuilder),
+                  "Unexpected mixed in member ${mixedInMember} in "
+                  "${classBuilder} from the current class.");
               result = InheritedImplementationInterfaceConflict.combined(
                   classBuilder,
-                  declaredMember,
+                  mixedInMember,
                   extendedMember,
                   forSetter,
                   shouldModifyKernel,
@@ -2041,10 +2178,10 @@ class ClassHierarchyNodeBuilder {
             }
             return result;
           } else {
-            if (declaredMember.isAbstract) {
-              recordAbstractMember(declaredMember);
+            if (mixedInMember.isAbstract) {
+              recordAbstractMember(mixedInMember);
             }
-            return declaredMember;
+            return mixedInMember;
           }
         } else if (extendedMember != null && !extendedMember.isStatic) {
           if (extendedMember.isAbstract) {
@@ -2235,20 +2372,24 @@ class ClassHierarchyNodeBuilder {
         }
       }
 
-      ClassMember classMember =
-          computeClassMember(tuple.declaredMember, tuple.extendedMember, false);
+      ClassMember classMember = computeClassMember(tuple.declaredMember,
+          tuple.mixedInMember, tuple.extendedMember, false);
       ClassMember interfaceMember =
           computeInterfaceMember(classMember, tuple.implementedMembers, false);
-      ClassMember classSetter =
-          computeClassMember(tuple.declaredSetter, tuple.extendedSetter, true);
+      ClassMember classSetter = computeClassMember(tuple.declaredSetter,
+          tuple.mixedInSetter, tuple.extendedSetter, true);
       ClassMember interfaceSetter =
           computeInterfaceMember(classSetter, tuple.implementedSetters, true);
 
-      if (tuple.declaredMember != null && classSetter != null) {
-        checkMemberVsSetter(tuple.declaredMember, classSetter);
+      if ((tuple.mixedInMember != null || tuple.declaredMember != null) &&
+          classSetter != null) {
+        checkMemberVsSetter(
+            tuple.mixedInMember ?? tuple.declaredMember, classSetter);
       }
-      if (tuple.declaredSetter != null && classMember != null) {
-        checkMemberVsSetter(tuple.declaredSetter, classMember);
+      if ((tuple.mixedInSetter != null || tuple.declaredSetter != null) &&
+          classMember != null) {
+        checkMemberVsSetter(
+            tuple.mixedInSetter ?? tuple.declaredSetter, classMember);
       }
       if (classMember != null && interfaceSetter != null) {
         checkMemberVsSetter(classMember, interfaceSetter);
@@ -2317,8 +2458,10 @@ class ClassHierarchyNodeBuilder {
           }
         }
 
-        registerOverrideDependencies(tuple.declaredMember);
-        registerOverrideDependencies(tuple.declaredSetter);
+        registerOverrideDependencies(
+            tuple.mixedInMember ?? tuple.declaredMember);
+        registerOverrideDependencies(
+            tuple.mixedInSetter ?? tuple.declaredSetter);
       }
     });
 

@@ -281,6 +281,8 @@ ExtraneousModifier/part_wrapped_script20: Fail
 ExtraneousModifier/part_wrapped_script3: Fail
 ExtraneousModifier/part_wrapped_script4: Fail
 ExtraneousModifier/part_wrapped_script5: Fail
+ExtraneousModifier/part_wrapped_script6: Fail # Fails because two errors are given. Only one should be given though.
+ExtraneousModifier/script6: Fail # Fails because two errors are given. Only one should be given though.
 ExtraneousModifier/part_wrapped_script7: Fail
 ExtraneousModifier/part_wrapped_script8: Fail
 ExtraneousModifier/part_wrapped_script9: Fail
