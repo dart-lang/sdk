@@ -167,10 +167,9 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     return unit;
   }
 
-  /// Uses the InfoBuilder to build information for test files.
+  /// Uses the [InfoBuilder] to build information for test files.
   ///
-  /// Returns
-  /// the singular UnitInfo which was built.
+  /// Returns the singular [UnitInfo] which was built.
   Future<List<UnitInfo>> buildInfoForTestFiles(Map<String, String> files,
       {String includedRoot}) async {
     var testPaths = <String>[];

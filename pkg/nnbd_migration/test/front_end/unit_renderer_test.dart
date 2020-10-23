@@ -350,19 +350,18 @@ void f() {
     // addition of a `?`, but at different offsets.  We make sure the `?`s get
     // added at the correct locations in each file.
     var files = {
-      convertPath('/project/lib/a.dart'): '''
+      convertPath('$projectPath/lib/a.dart'): '''
 part 'b.dart';
 
 int f() => null;
 ''',
-      convertPath('/project/lib/b.dart'): '''
+      convertPath('$projectPath/lib/b.dart'): '''
 part of 'a.dart';
 
 int g() => null;
 ''',
     };
-    var packageRoot = convertPath('/project');
-    await buildInfoForTestFiles(files, includedRoot: packageRoot);
+    await buildInfoForTestFiles(files, includedRoot: projectPath);
     var output = renderUnits();
     expect(output[0].sourceCode, contains('int?'));
     expect(output[1].sourceCode, contains('int?'));
