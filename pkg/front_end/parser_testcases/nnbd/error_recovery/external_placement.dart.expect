@@ -1,0 +1,142 @@
+Problems reported:
+
+parser/nnbd/error_recovery/external_placement:5:7: The modifier 'external' should be before the modifier 'final'.
+final external int i1;
+      ^^^^^^^^
+
+parser/nnbd/error_recovery/external_placement:6:5: The modifier 'external' should be before the modifier 'var'.
+var external i2;
+    ^^^^^^^^
+
+parser/nnbd/error_recovery/external_placement:9:13: The modifier 'external' should be before the modifier 'covariant'.
+  covariant external num i3;
+            ^^^^^^^^
+
+parser/nnbd/error_recovery/external_placement:10:9: The modifier 'external' should be before the modifier 'final'.
+  final external int i4;
+        ^^^^^^^^
+
+parser/nnbd/error_recovery/external_placement:11:9: The modifier 'external' should be before the modifier 'final'.
+  final external i5;
+        ^^^^^^^^
+
+parser/nnbd/error_recovery/external_placement:12:10: The modifier 'external' should be before the modifier 'static'.
+  static external final i6;
+         ^^^^^^^^
+
+parser/nnbd/error_recovery/external_placement:13:16: The modifier 'external' should be before the modifier 'static'.
+  static final external i7;
+               ^^^^^^^^
+
+parser/nnbd/error_recovery/external_placement:14:9: The modifier 'static' should be before the modifier 'final'.
+  final static external i8;
+        ^^^^^^
+
+parser/nnbd/error_recovery/external_placement:14:16: The modifier 'external' should be before the modifier 'static'.
+  final static external i8;
+               ^^^^^^^^
+
+beginCompilationUnit(final)
+  beginMetadataStar(final)
+  endMetadataStar(0)
+  beginTopLevelMember(final)
+    handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'external' should be before the modifier 'final'., Try re-ordering the modifiers., {string: external, string2: final}], external, external)
+    beginFields()
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments(i1)
+      handleType(int, null)
+      handleIdentifier(i1, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(external, null, null, null, final, 1, final, ;)
+  endTopLevelDeclaration(var)
+  beginMetadataStar(var)
+  endMetadataStar(0)
+  beginTopLevelMember(var)
+    handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'external' should be before the modifier 'var'., Try re-ordering the modifiers., {string: external, string2: var}], external, external)
+    beginFields(;)
+      handleNoType(external)
+      handleIdentifier(i2, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(external, null, null, null, var, 1, var, ;)
+  endTopLevelDeclaration(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinBody(DeclarationKind.Class, {)
+        beginMetadataStar(covariant)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'external' should be before the modifier 'covariant'., Try re-ordering the modifiers., {string: external, string2: covariant}], external, external)
+        beginMember()
+          beginFields({)
+            handleIdentifier(num, typeReference)
+            handleNoTypeArguments(i3)
+            handleType(num, null)
+            handleIdentifier(i3, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, external, null, covariant, null, null, 1, covariant, ;)
+        endMember()
+        beginMetadataStar(final)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'external' should be before the modifier 'final'., Try re-ordering the modifiers., {string: external, string2: final}], external, external)
+        beginMember()
+          beginFields(;)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(i4)
+            handleType(int, null)
+            handleIdentifier(i4, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, external, null, null, null, final, 1, final, ;)
+        endMember()
+        beginMetadataStar(final)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'external' should be before the modifier 'final'., Try re-ordering the modifiers., {string: external, string2: final}], external, external)
+        beginMember()
+          beginFields(;)
+            handleNoType(external)
+            handleIdentifier(i5, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, external, null, null, null, final, 1, final, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'external' should be before the modifier 'static'., Try re-ordering the modifiers., {string: external, string2: static}], external, external)
+        beginMember()
+          beginFields(;)
+            handleNoType(final)
+            handleIdentifier(i6, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, external, static, null, null, final, 1, static, ;)
+        endMember()
+        beginMetadataStar(static)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'external' should be before the modifier 'static'., Try re-ordering the modifiers., {string: external, string2: static}], external, external)
+        beginMember()
+          beginFields(;)
+            handleNoType(external)
+            handleIdentifier(i7, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, external, static, null, null, final, 1, static, ;)
+        endMember()
+        beginMetadataStar(final)
+        endMetadataStar(0)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'static' should be before the modifier 'final'., Try re-ordering the modifiers., {string: static, string2: final}], static, static)
+        handleRecoverableError(Message[ModifierOutOfOrder, The modifier 'external' should be before the modifier 'static'., Try re-ordering the modifiers., {string: external, string2: static}], external, external)
+        beginMember()
+          beginFields(;)
+            handleNoType(external)
+            handleIdentifier(i8, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, external, static, null, null, final, 1, final, ;)
+        endMember()
+      endClassOrMixinBody(DeclarationKind.Class, 6, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration()
+endCompilationUnit(3, )

@@ -314,6 +314,10 @@ class ModifierRecoveryContext {
         reportModifierOutOfOrder(next, staticToken.lexeme);
       } else if (lateToken != null) {
         reportModifierOutOfOrder(next, lateToken.lexeme);
+      } else if (varFinalOrConst != null) {
+        reportModifierOutOfOrder(next, varFinalOrConst.lexeme);
+      } else if (covariantToken != null) {
+        reportModifierOutOfOrder(next, covariantToken.lexeme);
       }
       return next;
     }
