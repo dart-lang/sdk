@@ -24,7 +24,7 @@ String getFieldDocumentation(FieldElement field) {
 
 String getParameterDocumentation(ParameterElement parameter) {
   if (parameter is FieldFormalParameterElement) {
-    var rawComment = parameter.field.documentationComment;
+    var rawComment = parameter.field?.documentationComment;
     return getDartDocPlainText(rawComment);
   }
   return null;

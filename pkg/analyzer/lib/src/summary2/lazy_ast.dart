@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/apply_resolution.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -31,77 +30,9 @@ class LazyAst {
   static const _typeKey = 'lazyAst_type';
   static const _varianceKey = 'lazyAst_variance';
 
-  static final Expando<LinkedNode> _dataExpando = Expando();
-
   final LinkedNode data;
 
   LazyAst(this.data);
-
-  static void applyResolution(AstNode node) {
-    if (node is ClassDeclaration) {
-      var lazy = LazyClassDeclaration.get(node);
-      lazy?.applyResolution();
-    } else if (node is ClassTypeAlias) {
-      var lazy = LazyClassTypeAlias.get(node);
-      lazy?.applyResolution();
-    } else if (node is CompilationUnit) {
-      // TODO(scheglov)
-    } else if (node is ConstructorDeclaration) {
-      var lazy = LazyConstructorDeclaration.get(node);
-      lazy?.applyResolution();
-    } else if (node is Directive) {
-      var lazy = LazyDirective.get(node);
-      lazy?.applyResolution();
-    } else if (node is EnumDeclaration) {
-      var lazy = LazyEnumDeclaration.get(node);
-      lazy?.applyResolution();
-    } else if (node is ExtensionDeclaration) {
-      var lazy = LazyExtensionDeclaration.get(node);
-      if (lazy?.data != null) {
-        lazy?.applyResolution();
-      }
-    } else if (node is FieldFormalParameter) {
-      // TODO(scheglov)
-    } else if (node is FunctionDeclaration) {
-      var lazy = LazyFunctionDeclaration.get(node);
-      lazy?.applyResolution();
-    } else if (node is FunctionTypeAlias) {
-      var lazy = LazyFunctionTypeAlias.get(node);
-      lazy?.applyResolution();
-    } else if (node is GenericFunctionType) {
-      // TODO(scheglov)
-    } else if (node is GenericTypeAlias) {
-      var lazy = LazyGenericTypeAlias.get(node);
-      lazy?.applyResolution();
-    } else if (node is ImportDirective) {
-      // TODO(scheglov)
-    } else if (node is MethodDeclaration) {
-      var lazy = LazyMethodDeclaration.get(node);
-      lazy?.applyResolution();
-    } else if (node is MixinDeclaration) {
-      var lazy = LazyMixinDeclaration.get(node);
-      if (lazy?.data != null) {
-        lazy?.applyResolution();
-      }
-    } else if (node is SimpleFormalParameter) {
-      // TODO(scheglov)
-    } else if (node is VariableDeclaration) {
-      var parent2 = node.parent.parent;
-      if (parent2 is FieldDeclaration) {
-        var lazy = LazyFieldDeclaration.get(parent2);
-        lazy?.applyResolution();
-      } else if (parent2 is TopLevelVariableDeclaration) {
-        var lazy = LazyTopLevelVariableDeclaration.get(parent2);
-        lazy?.applyResolution();
-      } else {
-        throw UnimplementedError('${parent2.runtimeType}');
-      }
-    }
-  }
-
-  static LinkedNode getData(AstNode node) {
-    return _dataExpando[node];
-  }
 
   static DartType getDefaultType(TypeParameter node) {
     return node.getProperty(_defaultTypeKey);
@@ -146,10 +77,6 @@ class LazyAst {
 
   static bool isSimplyBounded(AstNode node) {
     return node.getProperty(_isSimplyBoundedKey);
-  }
-
-  static void setData(AstNode node, LinkedNode data) {
-    _dataExpando[node] = data;
   }
 
   static void setDefaultType(TypeParameter node, DartType type) {
@@ -201,29 +128,16 @@ class LazyAst {
 class LazyClassDeclaration {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final ClassDeclaration node;
 
   bool _hasDocumentationComment = false;
+  bool _hasExtendsClause = false;
+  bool _hasImplementsClause = false;
   bool _hasMembers = false;
-  bool _hasResolutionApplied = false;
+  bool _hasMetadata = false;
+  bool _hasWithClause = false;
 
-  LazyClassDeclaration(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    unitContext.pushTypeParameterStack();
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-
-    unitContext.popTypeParameterStack();
-  }
+  LazyClassDeclaration(this.data);
 
   static LazyClassDeclaration get(ClassDeclaration node) {
     return node.getProperty(_key);
@@ -262,6 +176,32 @@ class LazyClassDeclaration {
     }
   }
 
+  static void readExtendsClause(
+    AstBinaryReader reader,
+    ClassDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasExtendsClause) {
+      node.extendsClause = reader.readNode(
+        lazy.data.classDeclaration_extendsClause,
+      );
+      lazy._hasExtendsClause = true;
+    }
+  }
+
+  static void readImplementsClause(
+    AstBinaryReader reader,
+    ClassDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasImplementsClause) {
+      node.implementsClause = reader.readNode(
+        lazy.data.classOrMixinDeclaration_implementsClause,
+      );
+      lazy._hasImplementsClause = true;
+    }
+  }
+
   static void readMembers(
     AstBinaryReader reader,
     ClassDeclaration node,
@@ -277,12 +217,36 @@ class LazyClassDeclaration {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readMetadata(
+    AstBinaryReader reader,
     ClassDeclaration node,
   ) {
-    node.setProperty(_key, LazyClassDeclaration(unitContext, data, node));
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void readWithClause(
+    AstBinaryReader reader,
+    ClassDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasWithClause) {
+      node.withClause = reader.readNode(
+        lazy.data.classDeclaration_withClause,
+      );
+      lazy._hasWithClause = true;
+    }
+  }
+
+  static void setData(ClassDeclaration node, LinkedNode data) {
+    node.setProperty(_key, LazyClassDeclaration(data));
     LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
@@ -290,28 +254,15 @@ class LazyClassDeclaration {
 class LazyClassTypeAlias {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final ClassTypeAlias node;
 
   bool _hasDocumentationComment = false;
-  bool _hasResolutionApplied = false;
+  bool _hasImplementsClause = false;
+  bool _hasMetadata = false;
+  bool _hasSuperclass = false;
+  bool _hasWithClause = false;
 
-  LazyClassTypeAlias(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    unitContext.pushTypeParameterStack();
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-
-    unitContext.popTypeParameterStack();
-  }
+  LazyClassTypeAlias(this.data);
 
   static LazyClassTypeAlias get(ClassTypeAlias node) {
     return node.getProperty(_key);
@@ -350,12 +301,62 @@ class LazyClassTypeAlias {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readImplementsClause(
+    AstBinaryReader reader,
     ClassTypeAlias node,
   ) {
-    node.setProperty(_key, LazyClassTypeAlias(unitContext, data, node));
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasImplementsClause) {
+      node.implementsClause = reader.readNode(
+        lazy.data.classTypeAlias_implementsClause,
+      );
+      lazy._hasImplementsClause = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    ClassTypeAlias node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void readSuperclass(
+    AstBinaryReader reader,
+    ClassTypeAlias node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasSuperclass) {
+      node.superclass = reader.readNode(
+        lazy.data.classTypeAlias_superclass,
+      );
+      lazy._hasSuperclass = true;
+    }
+  }
+
+  static void readWithClause(
+    AstBinaryReader reader,
+    ClassTypeAlias node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasWithClause) {
+      node.withClause = reader.readNode(
+        lazy.data.classTypeAlias_withClause,
+      );
+      lazy._hasWithClause = true;
+    }
+  }
+
+  static void setData(ClassTypeAlias node, LinkedNode data) {
+    node.setProperty(_key, LazyClassTypeAlias(data));
     LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 }
@@ -418,29 +419,16 @@ class LazyCompilationUnit {
 class LazyConstructorDeclaration {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final ConstructorDeclaration node;
 
+  bool _hasBody = false;
   bool _hasDocumentationComment = false;
-  bool _hasResolutionApplied = false;
+  bool _hasFormalParameters = false;
+  bool _hasInitializers = false;
+  bool _hasMetadata = false;
+  bool _hasRedirectedConstructor = false;
 
-  LazyConstructorDeclaration(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    unitContext.pushTypeParameterStack();
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    visitor.addParentTypeParameters(node);
-    node.accept(visitor);
-
-    unitContext.popTypeParameterStack();
-  }
+  LazyConstructorDeclaration(this.data);
 
   static LazyConstructorDeclaration get(ConstructorDeclaration node) {
     return node.getProperty(_key);
@@ -468,6 +456,19 @@ class LazyConstructorDeclaration {
     return node.offset;
   }
 
+  static void readBody(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasBody) {
+      node.body = reader.readNode(
+        lazy.data.constructorDeclaration_body,
+      );
+      lazy._hasBody = true;
+    }
+  }
+
   static void readDocumentationComment(
     LinkedUnitContext context,
     ConstructorDeclaration node,
@@ -479,12 +480,64 @@ class LazyConstructorDeclaration {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readFormalParameters(
+    AstBinaryReader reader,
     ConstructorDeclaration node,
   ) {
-    node.setProperty(_key, LazyConstructorDeclaration(unitContext, data, node));
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasFormalParameters) {
+      node.parameters = reader.readNode(
+        lazy.data.constructorDeclaration_parameters,
+      );
+      lazy._hasFormalParameters = true;
+    }
+  }
+
+  static void readInitializers(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasInitializers) {
+      var dataList = lazy.data.constructorDeclaration_initializers;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.initializers[i] = reader.readNode(data);
+      }
+      lazy._hasInitializers = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void readRedirectedConstructor(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasRedirectedConstructor) {
+      node.redirectedConstructor = reader.readNode(
+        lazy.data.constructorDeclaration_redirectedConstructor,
+      );
+      lazy._hasRedirectedConstructor = true;
+    }
+  }
+
+  static void setData(ConstructorDeclaration node, LinkedNode data) {
+    node.setProperty(_key, LazyConstructorDeclaration(data));
   }
 }
 
@@ -492,24 +545,11 @@ class LazyDirective {
   static const _key = 'lazyAst';
   static const _uriKey = 'lazyAst_selectedUri';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final Directive node;
 
-  bool _hasResolutionApplied = false;
+  bool _hasMetadata = false;
 
-  LazyDirective(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-
-    _hasResolutionApplied = true;
-  }
+  LazyDirective(this.data);
 
   static LazyDirective get(Directive node) {
     return node.getProperty(_key);
@@ -519,12 +559,20 @@ class LazyDirective {
     return node.getProperty(_uriKey);
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
-    Directive node,
-  ) {
-    node.setProperty(_key, LazyDirective(unitContext, data, node));
+  static void readMetadata(AstBinaryReader reader, Directive node) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void setData(Directive node, LinkedNode data) {
+    node.setProperty(_key, LazyDirective(data));
     if (node is NamespaceDirective) {
       node.setProperty(_uriKey, data.namespaceDirective_selectedUri);
     }
@@ -541,6 +589,7 @@ class LazyEnumConstantDeclaration {
   final LinkedNode data;
 
   bool _hasDocumentationComment = false;
+  bool _hasMetadata = false;
 
   LazyEnumConstantDeclaration(this.data);
 
@@ -581,6 +630,21 @@ class LazyEnumConstantDeclaration {
     }
   }
 
+  static void readMetadata(
+    AstBinaryReader reader,
+    EnumConstantDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
   static void setData(EnumConstantDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyEnumConstantDeclaration(data));
   }
@@ -589,28 +653,13 @@ class LazyEnumConstantDeclaration {
 class LazyEnumDeclaration {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final EnumDeclaration node;
 
+  bool _hasConstants = false;
   bool _hasDocumentationComment = false;
-  bool _hasResolutionApplied = false;
+  bool _hasMetadata = false;
 
-  LazyEnumDeclaration(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    unitContext.pushTypeParameterStack();
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-
-    unitContext.popTypeParameterStack();
-  }
+  LazyEnumDeclaration(this.data);
 
   static LazyEnumDeclaration get(EnumDeclaration node) {
     return node.getProperty(_key);
@@ -638,6 +687,21 @@ class LazyEnumDeclaration {
     return node.offset;
   }
 
+  static void readConstants(
+    AstBinaryReader reader,
+    EnumDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasConstants) {
+      var dataList = lazy.data.enumDeclaration_constants;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.constants[i] = reader.readNode(data);
+      }
+      lazy._hasConstants = true;
+    }
+  }
+
   static void readDocumentationComment(
     LinkedUnitContext context,
     EnumDeclaration node,
@@ -649,31 +713,41 @@ class LazyEnumDeclaration {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readMetadata(
+    AstBinaryReader reader,
     EnumDeclaration node,
   ) {
-    node.setProperty(_key, LazyEnumDeclaration(unitContext, data, node));
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void setData(EnumDeclaration node, LinkedNode data) {
+    node.setProperty(_key, LazyEnumDeclaration(data));
   }
 }
 
 class LazyExtensionDeclaration {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final ExtensionDeclaration node;
 
   bool _hasDocumentationComment = false;
+  bool _hasExtendedType = false;
   bool _hasMembers = false;
-  bool _hasResolutionApplied = false;
+  bool _hasMetadata = false;
 
   /// The name for use in `Reference`. If the extension is named, the name
   /// of the extension. If the extension is unnamed, a synthetic name.
   String _refName;
 
-  LazyExtensionDeclaration(this.unitContext, this.data, this.node) {
+  LazyExtensionDeclaration(ExtensionDeclaration node, this.data) {
     node.setProperty(_key, this);
     if (data != null) {
       _refName = data.extensionDeclaration_refName;
@@ -681,16 +755,6 @@ class LazyExtensionDeclaration {
   }
 
   String get refName => _refName;
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-  }
 
   void put(LinkedNodeBuilder builder) {
     assert(_refName != null);
@@ -704,7 +768,7 @@ class LazyExtensionDeclaration {
   static LazyExtensionDeclaration get(ExtensionDeclaration node) {
     LazyExtensionDeclaration lazy = node.getProperty(_key);
     if (lazy == null) {
-      return LazyExtensionDeclaration(null, null, node);
+      return LazyExtensionDeclaration(node, null);
     }
     return lazy;
   }
@@ -742,6 +806,19 @@ class LazyExtensionDeclaration {
     }
   }
 
+  static void readExtendedType(
+    AstBinaryReader reader,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy?.data != null && !lazy._hasExtendedType) {
+      (node as ExtensionDeclarationImpl).extendedType = reader.readNode(
+        lazy.data.extensionDeclaration_extendedType,
+      );
+      lazy._hasExtendedType = true;
+    }
+  }
+
   static void readMembers(
     AstBinaryReader reader,
     ExtensionDeclaration node,
@@ -756,34 +833,32 @@ class LazyExtensionDeclaration {
       lazy._hasMembers = true;
     }
   }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy?.data != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
 }
 
 class LazyFieldDeclaration {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final FieldDeclaration node;
 
   bool _hasDocumentationComment = false;
-  bool _hasResolutionApplied = false;
+  bool _hasMetadata = false;
 
-  LazyFieldDeclaration(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    unitContext.pushTypeParameterStack();
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    visitor.addParentTypeParameters(node);
-    node.accept(visitor);
-
-    unitContext.popTypeParameterStack();
-  }
+  LazyFieldDeclaration(this.data);
 
   static LazyFieldDeclaration get(FieldDeclaration node) {
     return node.getProperty(_key);
@@ -800,12 +875,23 @@ class LazyFieldDeclaration {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readMetadata(
+    AstBinaryReader reader,
     FieldDeclaration node,
   ) {
-    node.setProperty(_key, LazyFieldDeclaration(unitContext, data, node));
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void setData(FieldDeclaration node, LinkedNode data) {
+    node.setProperty(_key, LazyFieldDeclaration(data));
   }
 }
 
@@ -814,7 +900,12 @@ class LazyFormalParameter {
 
   final LinkedNode data;
 
+  bool _hasDefaultValue = false;
+  bool _hasFormalParameters = false;
+  bool _hasMetadata = false;
+  bool _hasType = false;
   bool _hasTypeInferenceError = false;
+  bool _hasTypeNode = false;
 
   LazyFormalParameter(this.data);
 
@@ -859,6 +950,19 @@ class LazyFormalParameter {
     }
   }
 
+  static DartType getType(
+    AstBinaryReader reader,
+    FormalParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasType) {
+      var type = reader.readType(lazy.data.actualType);
+      LazyAst.setType(node, type);
+      lazy._hasType = true;
+    }
+    return LazyAst.getType(node);
+  }
+
   static TopLevelInferenceError getTypeInferenceError(FormalParameter node) {
     var lazy = get(node);
     if (lazy != null && !lazy._hasTypeInferenceError) {
@@ -878,6 +982,68 @@ class LazyFormalParameter {
     }
   }
 
+  static void readDefaultValue(
+    AstBinaryReader reader,
+    DefaultFormalParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasDefaultValue) {
+      node.defaultValue = reader.readNode(
+        lazy.data.defaultFormalParameter_defaultValue,
+      );
+      lazy._hasDefaultValue = true;
+    }
+  }
+
+  static void readFormalParameters(
+    AstBinaryReader reader,
+    FormalParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasFormalParameters) {
+      if (node is FunctionTypedFormalParameter) {
+        node.parameters = reader.readNode(
+          lazy.data.functionTypedFormalParameter_formalParameters,
+        );
+      } else if (node is FieldFormalParameter) {
+        node.parameters = reader.readNode(
+          lazy.data.fieldFormalParameter_formalParameters,
+        );
+      }
+      lazy._hasFormalParameters = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    FormalParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.normalFormalParameter_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void readTypeNode(
+    AstBinaryReader reader,
+    FormalParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasTypeNode) {
+      if (node is SimpleFormalParameter) {
+        node.type = reader.readNode(
+          lazy.data.simpleFormalParameter_type,
+        );
+      }
+      lazy._hasTypeNode = true;
+    }
+  }
+
   static void setData(FormalParameter node, LinkedNode data) {
     node.setProperty(_key, LazyFormalParameter(data));
   }
@@ -886,28 +1052,14 @@ class LazyFormalParameter {
 class LazyFunctionDeclaration {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final FunctionDeclaration node;
 
   bool _hasDocumentationComment = false;
-  bool _hasResolutionApplied = false;
+  bool _hasMetadata = false;
+  bool _hasReturnType = false;
+  bool _hasReturnTypeNode = false;
 
-  LazyFunctionDeclaration(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    unitContext.pushTypeParameterStack();
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-
-    unitContext.popTypeParameterStack();
-  }
+  LazyFunctionDeclaration(this.data);
 
   static LazyFunctionDeclaration get(FunctionDeclaration node) {
     return node.getProperty(_key);
@@ -935,6 +1087,22 @@ class LazyFunctionDeclaration {
     return node.offset;
   }
 
+  static DartType getReturnType(
+    AstBinaryReader reader,
+    FunctionDeclaration node,
+  ) {
+    readFunctionExpression(reader, node);
+
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnType) {
+      var type = reader.readType(lazy.data.actualReturnType);
+      LazyAst.setReturnType(node, type);
+      lazy._hasReturnType = true;
+    }
+
+    return LazyAst.getReturnType(node);
+  }
+
   static void readDocumentationComment(
     LinkedUnitContext context,
     FunctionDeclaration node,
@@ -946,12 +1114,48 @@ class LazyFunctionDeclaration {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readFunctionExpression(
+    AstBinaryReader reader,
     FunctionDeclaration node,
   ) {
-    node.setProperty(_key, LazyFunctionDeclaration(unitContext, data, node));
+    if (node.functionExpression == null) {
+      var lazy = get(node);
+      node.functionExpression = reader.readNode(
+        lazy.data.functionDeclaration_functionExpression,
+      );
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    FunctionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void readReturnTypeNode(
+    AstBinaryReader reader,
+    FunctionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnTypeNode) {
+      node.returnType = reader.readNode(
+        lazy.data.functionDeclaration_returnType,
+      );
+      lazy._hasReturnTypeNode = true;
+    }
+  }
+
+  static void setData(FunctionDeclaration node, LinkedNode data) {
+    node.setProperty(_key, LazyFunctionDeclaration(data));
   }
 }
 
@@ -961,6 +1165,7 @@ class LazyFunctionExpression {
   final LinkedNode data;
 
   bool _hasBody = false;
+  bool _hasFormalParameters = false;
 
   LazyFunctionExpression(this.data);
 
@@ -999,6 +1204,19 @@ class LazyFunctionExpression {
     }
   }
 
+  static void readFormalParameters(
+    AstBinaryReader reader,
+    FunctionExpression node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasFormalParameters) {
+      node.parameters = reader.readNode(
+        lazy.data.functionExpression_formalParameters,
+      );
+      lazy._hasFormalParameters = true;
+    }
+  }
+
   static void setData(FunctionExpression node, LinkedNode data) {
     node.setProperty(_key, LazyFunctionExpression(data));
   }
@@ -1008,25 +1226,15 @@ class LazyFunctionTypeAlias {
   static const _key = 'lazyAst';
   static const _hasSelfReferenceKey = 'lazyAst_hasSelfReferenceKey';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final FunctionTypeAlias node;
 
   bool _hasDocumentationComment = false;
-  bool _hasResolutionApplied = false;
+  bool _hasFormalParameters = false;
+  bool _hasMetadata = false;
+  bool _hasReturnType = false;
+  bool _hasReturnTypeNode = false;
 
-  LazyFunctionTypeAlias(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-
-    _hasResolutionApplied = true;
-  }
+  LazyFunctionTypeAlias(this.data);
 
   static LazyFunctionTypeAlias get(FunctionTypeAlias node) {
     return node.getProperty(_key);
@@ -1058,6 +1266,19 @@ class LazyFunctionTypeAlias {
     return node.getProperty(_hasSelfReferenceKey);
   }
 
+  static DartType getReturnType(
+    AstBinaryReader reader,
+    FunctionTypeAlias node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnType) {
+      var type = reader.readType(lazy.data.actualReturnType);
+      LazyAst.setReturnType(node, type);
+      lazy._hasReturnType = true;
+    }
+    return LazyAst.getReturnType(node);
+  }
+
   static void readDocumentationComment(
     LinkedUnitContext context,
     FunctionTypeAlias node,
@@ -1069,12 +1290,49 @@ class LazyFunctionTypeAlias {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readFormalParameters(
+    AstBinaryReader reader,
     FunctionTypeAlias node,
   ) {
-    node.setProperty(_key, LazyFunctionTypeAlias(unitContext, data, node));
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasFormalParameters) {
+      node.parameters = reader.readNode(
+        lazy.data.functionTypeAlias_formalParameters,
+      );
+      lazy._hasFormalParameters = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    FunctionTypeAlias node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void readReturnTypeNode(
+    AstBinaryReader reader,
+    FunctionTypeAlias node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnTypeNode) {
+      node.returnType = reader.readNode(
+        lazy.data.functionTypeAlias_returnType,
+      );
+      lazy._hasReturnTypeNode = true;
+    }
+  }
+
+  static void setData(FunctionTypeAlias node, LinkedNode data) {
+    node.setProperty(_key, LazyFunctionTypeAlias(data));
     LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 
@@ -1087,25 +1345,13 @@ class LazyGenericTypeAlias {
   static const _key = 'lazyAst';
   static const _hasSelfReferenceKey = 'lazyAst_hasSelfReferenceKey';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final GenericTypeAlias node;
 
   bool _hasDocumentationComment = false;
-  bool _hasResolutionApplied = false;
+  bool _hasFunction = false;
+  bool _hasMetadata = false;
 
-  LazyGenericTypeAlias(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-
-    _hasResolutionApplied = true;
-  }
+  LazyGenericTypeAlias(this.data);
 
   static LazyGenericTypeAlias get(GenericTypeAlias node) {
     return node.getProperty(_key);
@@ -1148,12 +1394,36 @@ class LazyGenericTypeAlias {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readFunctionType(
+    AstBinaryReader reader,
     GenericTypeAlias node,
   ) {
-    node.setProperty(_key, LazyGenericTypeAlias(unitContext, data, node));
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasFunction) {
+      node.functionType = reader.readNode(
+        lazy.data.genericTypeAlias_functionType,
+      );
+      lazy._hasFunction = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    GenericTypeAlias node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void setData(GenericTypeAlias node, LinkedNode data) {
+    node.setProperty(_key, LazyGenericTypeAlias(data));
     LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
   }
 
@@ -1165,30 +1435,17 @@ class LazyGenericTypeAlias {
 class LazyMethodDeclaration {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final MethodDeclaration node;
 
+  bool _hasBody = false;
   bool _hasDocumentationComment = false;
+  bool _hasFormalParameters = false;
+  bool _hasMetadata = false;
+  bool _hasReturnType = false;
+  bool _hasReturnTypeNode = false;
   bool _hasTypeInferenceError = false;
-  bool _hasResolutionApplied = false;
 
-  LazyMethodDeclaration(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    unitContext.pushTypeParameterStack();
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    visitor.addParentTypeParameters(node);
-    node.accept(visitor);
-
-    unitContext.popTypeParameterStack();
-  }
+  LazyMethodDeclaration(this.data);
 
   static LazyMethodDeclaration get(MethodDeclaration node) {
     return node.getProperty(_key);
@@ -1214,6 +1471,19 @@ class LazyMethodDeclaration {
       return context.getInformativeData(lazy.data)?.codeOffset ?? 0;
     }
     return node.offset;
+  }
+
+  static DartType getReturnType(
+    AstBinaryReader reader,
+    MethodDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnType) {
+      var type = reader.readType(lazy.data.actualReturnType);
+      LazyAst.setReturnType(node, type);
+      lazy._hasReturnType = true;
+    }
+    return LazyAst.getReturnType(node);
   }
 
   static TopLevelInferenceError getTypeInferenceError(MethodDeclaration node) {
@@ -1253,6 +1523,19 @@ class LazyMethodDeclaration {
     }
   }
 
+  static void readBody(
+    AstBinaryReader reader,
+    MethodDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasBody) {
+      node.body = reader.readNode(
+        lazy.data.methodDeclaration_body,
+      );
+      lazy._hasBody = true;
+    }
+  }
+
   static void readDocumentationComment(
     LinkedUnitContext context,
     MethodDeclaration node,
@@ -1264,47 +1547,70 @@ class LazyMethodDeclaration {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readFormalParameters(
+    AstBinaryReader reader,
     MethodDeclaration node,
   ) {
-    node.setProperty(_key, LazyMethodDeclaration(unitContext, data, node));
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasFormalParameters) {
+      node.parameters = reader.readNode(
+        lazy.data.methodDeclaration_formalParameters,
+      );
+      lazy._hasFormalParameters = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    MethodDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void readReturnTypeNode(
+    AstBinaryReader reader,
+    MethodDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasReturnTypeNode) {
+      node.returnType = reader.readNode(
+        lazy.data.methodDeclaration_returnType,
+      );
+      lazy._hasReturnTypeNode = true;
+    }
+  }
+
+  static void setData(MethodDeclaration node, LinkedNode data) {
+    node.setProperty(_key, LazyMethodDeclaration(data));
   }
 }
 
 class LazyMixinDeclaration {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final MixinDeclaration node;
 
   bool _hasDocumentationComment = false;
+  bool _hasOnClause = false;
+  bool _hasImplementsClause = false;
   bool _hasMembers = false;
-  bool _hasResolutionApplied = false;
+  bool _hasMetadata = false;
 
   List<String> _superInvokedNames;
 
-  LazyMixinDeclaration(this.unitContext, this.data, this.node) {
+  LazyMixinDeclaration(MixinDeclaration node, this.data) {
     node.setProperty(_key, this);
     if (data != null) {
       LazyAst.setSimplyBounded(node, data.simplyBoundable_isSimplyBounded);
     }
-  }
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    unitContext.pushTypeParameterStack();
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-
-    unitContext.popTypeParameterStack();
   }
 
   List<String> getSuperInvokedNames() {
@@ -1322,7 +1628,7 @@ class LazyMixinDeclaration {
   static LazyMixinDeclaration get(MixinDeclaration node) {
     LazyMixinDeclaration lazy = node.getProperty(_key);
     if (lazy == null) {
-      return LazyMixinDeclaration(null, null, node);
+      return LazyMixinDeclaration(node, null);
     }
     return lazy;
   }
@@ -1360,6 +1666,19 @@ class LazyMixinDeclaration {
     }
   }
 
+  static void readImplementsClause(
+    AstBinaryReader reader,
+    MixinDeclarationImpl node,
+  ) {
+    var lazy = get(node);
+    if (lazy.data != null && !lazy._hasImplementsClause) {
+      node.implementsClause = reader.readNode(
+        lazy.data.classOrMixinDeclaration_implementsClause,
+      );
+      lazy._hasImplementsClause = true;
+    }
+  }
+
   static void readMembers(
     AstBinaryReader reader,
     MixinDeclaration node,
@@ -1374,33 +1693,45 @@ class LazyMixinDeclaration {
       lazy._hasMembers = true;
     }
   }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    MixinDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy.data != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void readOnClause(
+    AstBinaryReader reader,
+    MixinDeclarationImpl node,
+  ) {
+    var lazy = get(node);
+    if (lazy.data != null && !lazy._hasOnClause) {
+      node.onClause = reader.readNode(
+        lazy.data.mixinDeclaration_onClause,
+      );
+      lazy._hasOnClause = true;
+    }
+  }
 }
 
 class LazyTopLevelVariableDeclaration {
   static const _key = 'lazyAst';
 
-  final LinkedUnitContext unitContext;
   final LinkedNode data;
-  final TopLevelVariableDeclaration node;
 
   bool _hasDocumentationComment = false;
-  bool _hasResolutionApplied = false;
+  bool _hasMetadata = false;
 
-  LazyTopLevelVariableDeclaration(this.unitContext, this.data, this.node);
-
-  void applyResolution() {
-    if (_hasResolutionApplied) {
-      return;
-    }
-    _hasResolutionApplied = true;
-
-    unitContext.pushTypeParameterStack();
-
-    var visitor = ApplyResolutionVisitor(unitContext, data.resolution);
-    node.accept(visitor);
-
-    unitContext.popTypeParameterStack();
-  }
+  LazyTopLevelVariableDeclaration(this.data);
 
   static LazyTopLevelVariableDeclaration get(TopLevelVariableDeclaration node) {
     return node.getProperty(_key);
@@ -1417,23 +1748,34 @@ class LazyTopLevelVariableDeclaration {
     }
   }
 
-  static void setData(
-    LinkedUnitContext unitContext,
-    LinkedNode data,
+  static void readMetadata(
+    AstBinaryReader reader,
     TopLevelVariableDeclaration node,
   ) {
-    node.setProperty(
-      _key,
-      LazyTopLevelVariableDeclaration(unitContext, data, node),
-    );
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void setData(TopLevelVariableDeclaration node, LinkedNode data) {
+    node.setProperty(_key, LazyTopLevelVariableDeclaration(data));
   }
 }
 
-/// TODO(scheglov) remove completely?
 class LazyTypeParameter {
   static const _key = 'lazyAst';
 
   final LinkedNode data;
+
+  bool _hasBound = false;
+  bool _hasDefaultType = false;
+  bool _hasMetadata = false;
 
   LazyTypeParameter(this.data);
 
@@ -1463,17 +1805,52 @@ class LazyTypeParameter {
     return node.offset;
   }
 
+  static DartType getDefaultType(AstBinaryReader reader, TypeParameter node) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasDefaultType) {
+      lazy._hasDefaultType = true;
+      var type = reader.readType(lazy.data.typeParameter_defaultType);
+      LazyAst.setDefaultType(node, type);
+      return type;
+    }
+    return LazyAst.getDefaultType(node);
+  }
+
+  static void readBound(AstBinaryReader reader, TypeParameter node) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasBound) {
+      node.bound = reader.readNode(lazy.data.typeParameter_bound);
+      lazy._hasBound = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    TypeParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
   static void setData(TypeParameter node, LinkedNode data) {
     node.setProperty(_key, LazyTypeParameter(data));
   }
 }
 
-/// TODO(scheglov) remove completely?
 class LazyVariableDeclaration {
   static const _key = 'lazyAst';
 
   final LinkedNode data;
 
+  bool _hasInitializer = false;
+  bool _hasType = false;
   bool _hasTypeInferenceError = false;
 
   LazyVariableDeclaration(this.data);
@@ -1514,6 +1891,19 @@ class LazyVariableDeclaration {
     }
   }
 
+  static DartType getType(
+    AstBinaryReader reader,
+    VariableDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasType) {
+      var type = reader.readType(lazy.data.actualType);
+      LazyAst.setType(node, type);
+      lazy._hasType = true;
+    }
+    return LazyAst.getType(node);
+  }
+
   static TopLevelInferenceError getTypeInferenceError(
       VariableDeclaration node) {
     var lazy = get(node);
@@ -1531,6 +1921,19 @@ class LazyVariableDeclaration {
       return AstBinaryFlags.hasInitializer(lazy.data.flags);
     } else {
       return node.initializer != null;
+    }
+  }
+
+  static void readInitializer(
+    AstBinaryReader reader,
+    VariableDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasInitializer) {
+      node.initializer = reader.readNode(
+        lazy.data.variableDeclaration_initializer,
+      );
+      lazy._hasInitializer = true;
     }
   }
 

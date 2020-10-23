@@ -196,10 +196,11 @@ class A<T extends F> {}
 ''');
   }
 
+  @failingTest
   test_fuzz_12() async {
-    // This code used to crash because we were reading AST lazily, so we did
-    // not read metadata `@b` for `c`. But now we read AST of each declaration
-    // (`f` here) fully, and apply resolution. So, it works now.
+    // This code crashed with summary2 because usually AST reader is lazy,
+    // so we did not read metadata `@b` for `c`. But default values must be
+    // read fully.
     await _assertCanBeAnalyzed(r'''
 void f({a = [for (@b c = 0;;)]}) {}
 ''');

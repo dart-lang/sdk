@@ -422,8 +422,6 @@ enum LinkedNodeTypeKind : byte {
 
   never,
 
-  null_,
-
   typeParameter,
 
   void_
@@ -1090,7 +1088,13 @@ table LinkedNode {
 
   variantField_7:LinkedNode (id: 7);
 
+  variantField_17:uint (id: 17);
+
   variantField_8:LinkedNode (id: 8);
+
+  variantField_38:LinkedNodeTypeSubstitution (id: 38);
+
+  variantField_15:uint (id: 15);
 
   variantField_28:UnlinkedTokenType (id: 28);
 
@@ -1110,10 +1114,10 @@ table LinkedNode {
 
   variantField_3:[LinkedNode] (id: 3);
 
-  variantField_19:[uint] (id: 19);
+  variantField_41:[uint] (id: 41);
 
   /// The language version information.
-  variantField_39:LinkedLibraryLanguageVersion (id: 39);
+  variantField_40:LinkedLibraryLanguageVersion (id: 40);
 
   variantField_10:LinkedNode (id: 10);
 
@@ -1121,17 +1125,13 @@ table LinkedNode {
 
   variantField_21:double (id: 21);
 
-  variantField_15:uint (id: 15);
-
   variantField_25:LinkedNodeType (id: 25);
 
   variantField_20:string (id: 20);
 
-  variantField_38:[LinkedNodeType] (id: 38);
+  variantField_39:[LinkedNodeType] (id: 39);
 
   flags:uint (id: 18);
-
-  variantField_17:uint (id: 17);
 
   variantField_1:string (id: 1);
 
@@ -1149,9 +1149,7 @@ table LinkedNode {
 
   variantField_34:[string] (id: 34);
 
-  variantField_37:string (id: 37);
-
-  resolution:LinkedNodeResolution (id: 40);
+  name:string (id: 37);
 
   variantField_35:UnlinkedTokenType (id: 35);
 
@@ -1162,6 +1160,8 @@ table LinkedNode {
   variantField_11:LinkedNode (id: 11);
 
   variantField_22:string (id: 22);
+
+  variantField_19:uint (id: 19);
 }
 
 /// Information about a group of libraries linked together, for example because
@@ -1195,17 +1195,6 @@ table LinkedNodeReferences {
   parent:[uint] (id: 0);
 }
 
-/// Resolution information for the whole node, as the sequence of elements
-/// and types for sub-nodes, which the writer and reader visit in the same
-/// order.
-table LinkedNodeResolution {
-  elements:[uint] (id: 0);
-
-  substitutions:[LinkedNodeTypeSubstitution] (id: 1);
-
-  types:[LinkedNodeType] (id: 2);
-}
-
 /// Information about a Dart type.
 table LinkedNodeType {
   functionFormalParameters:[LinkedNodeTypeFormalParameter] (id: 0);
@@ -1213,9 +1202,9 @@ table LinkedNodeType {
   functionReturnType:LinkedNodeType (id: 1);
 
   /// The typedef this function type is created for.
-  functionTypedef:uint (id: 8);
+  functionTypedef:uint (id: 9);
 
-  functionTypedefTypeArguments:[LinkedNodeType] (id: 9);
+  functionTypedefTypeArguments:[LinkedNodeType] (id: 10);
 
   functionTypeParameters:[LinkedNodeTypeTypeParameter] (id: 2);
 
@@ -1226,9 +1215,11 @@ table LinkedNodeType {
 
   kind:LinkedNodeTypeKind (id: 5);
 
-  nullabilitySuffix:EntityRefNullabilitySuffix (id: 7);
+  nullabilitySuffix:EntityRefNullabilitySuffix (id: 8);
 
-  typeParameterId:uint (id: 6);
+  typeParameterElement:uint (id: 6);
+
+  typeParameterId:uint (id: 7);
 }
 
 /// Information about a formal parameter in a function type.

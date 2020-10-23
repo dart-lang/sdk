@@ -29,7 +29,8 @@ class LinkingBundleContext {
     name: [''],
   );
 
-  final _TypeParameterIndexer typeParameterIndexer = _TypeParameterIndexer();
+  final Map<TypeParameterElement, int> _typeParameters = Map.identity();
+  int _nextSyntheticTypeParameterId = 0x10000;
 
   LinkingBundleContext(this.dynamicReference);
 
@@ -43,21 +44,21 @@ class LinkingBundleContext {
     }
   }
 
+  int idOfTypeParameter(TypeParameterElement element) {
+    return _typeParameters[element];
+  }
+
   int indexOfElement(Element element) {
     if (element == null) return 0;
     if (element is MultiplyDefinedElement) return 0;
     assert(element is! Member);
 
-    if (element is TypeParameterElement) {
-      return typeParameterIndexer[element] << 1 | 0x1;
-    }
-
     if (identical(element, DynamicElementImpl.instance)) {
-      return indexOfReference(dynamicReference) << 1;
+      return indexOfReference(dynamicReference);
     }
 
     var reference = (element as ElementImpl).reference;
-    return indexOfReference(reference) << 1;
+    return indexOfReference(reference);
   }
 
   int indexOfReference(Reference reference) {
@@ -75,11 +76,9 @@ class LinkingBundleContext {
   }
 
   LinkedNodeTypeBuilder writeType(DartType type) {
-    if (type == null) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.null_,
-      );
-    } else if (type.isDynamic) {
+    if (type == null) return null;
+
+    if (type.isDynamic) {
       return LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.dynamic_,
       );
@@ -98,11 +97,22 @@ class LinkingBundleContext {
         nullabilitySuffix: _nullabilitySuffix(type),
       );
     } else if (type is TypeParameterType) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.typeParameter,
-        nullabilitySuffix: _nullabilitySuffix(type),
-        typeParameterId: indexOfElement(type.element),
-      );
+      TypeParameterElementImpl element = type.element;
+      var id = _typeParameters[element];
+      if (id != null) {
+        return LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.typeParameter,
+          nullabilitySuffix: _nullabilitySuffix(type),
+          typeParameterId: id,
+        );
+      } else {
+        var index = indexOfElement(element);
+        return LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.typeParameter,
+          nullabilitySuffix: _nullabilitySuffix(type),
+          typeParameterElement: index,
+        );
+      }
     } else if (type is VoidType) {
       return LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.void_,
@@ -146,16 +156,17 @@ class LinkingBundleContext {
     var typeParameterBuilders = <LinkedNodeTypeTypeParameterBuilder>[];
 
     var typeParameters = type.typeFormals;
-    typeParameterIndexer.enter(typeParameters);
+    for (var i = 0; i < typeParameters.length; ++i) {
+      var typeParameter = typeParameters[i];
+      _typeParameters[typeParameter] = _nextSyntheticTypeParameterId++;
+      typeParameterBuilders.add(
+        LinkedNodeTypeTypeParameterBuilder(name: typeParameter.name),
+      );
+    }
 
     for (var i = 0; i < typeParameters.length; ++i) {
       var typeParameter = typeParameters[i];
-      typeParameterBuilders.add(
-        LinkedNodeTypeTypeParameterBuilder(
-          name: typeParameter.name,
-          bound: writeType(typeParameter.bound),
-        ),
-      );
+      typeParameterBuilders[i].bound = writeType(typeParameter.bound);
     }
 
     Element typedefElement;
@@ -188,7 +199,10 @@ class LinkingBundleContext {
       nullabilitySuffix: _nullabilitySuffix(type),
     );
 
-    typeParameterIndexer.exit(typeParameters);
+    for (var typeParameter in typeParameters) {
+      _typeParameters.remove(typeParameter);
+      --_nextSyntheticTypeParameterId;
+    }
 
     return result;
   }
@@ -204,30 +218,6 @@ class LinkingBundleContext {
         return EntityRefNullabilitySuffix.none;
       default:
         throw StateError('$nullabilitySuffix');
-    }
-  }
-}
-
-class _TypeParameterIndexer {
-  final Map<TypeParameterElement, int> _index = Map.identity();
-  int _stackHeight = 0;
-
-  int operator [](TypeParameterElement parameter) {
-    return _index[parameter] ??
-        (throw ArgumentError('Type parameter $parameter is not indexed'));
-  }
-
-  void enter(List<TypeParameterElement> typeParameters) {
-    for (var i = 0; i < typeParameters.length; i++) {
-      var parameter = typeParameters[i];
-      _index[parameter] = _stackHeight++;
-    }
-  }
-
-  void exit(List<TypeParameterElement> typeParameters) {
-    _stackHeight -= typeParameters.length;
-    for (var i = 0; i < typeParameters.length; i++) {
-      _index.remove(typeParameters[i]);
     }
   }
 }
