@@ -240,7 +240,8 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate code asserting that non-nullable return values of
   /// `@Native` methods or `JS()` invocations are checked for being non-null.
-  bool enableNativeNullAssertions = false;
+  bool nativeNullAssertions = false;
+  bool _noNativeNullAssertions = false;
 
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
@@ -454,8 +455,9 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.enableAsserts)
       ..enableNullAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableNullAssertions)
-      ..enableNativeNullAssertions =
-          _hasOption(options, Flags.enableNativeNullAssertions)
+      ..nativeNullAssertions = _hasOption(options, Flags.nativeNullAssertions)
+      .._noNativeNullAssertions =
+          _hasOption(options, Flags.noNativeNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
@@ -534,6 +536,10 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("'${Flags.soundNullSafety}' requires the "
           "'non-nullable' experiment to be enabled");
     }
+    if (nativeNullAssertions && _noNativeNullAssertions) {
+      throw ArgumentError("'${Flags.nativeNullAssertions}' incompatible with "
+          "'${Flags.noNativeNullAssertions}'");
+    }
   }
 
   void deriveOptions() {
@@ -592,6 +598,8 @@ class CompilerOptions implements DiagnosticOptions {
     if (_disableMinification) {
       enableMinification = false;
     }
+
+    if (_noNativeNullAssertions) nativeNullAssertions = false;
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.
