@@ -13,6 +13,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../ir/util.dart';
 import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/backend.dart' show CodegenInputs;
@@ -925,11 +926,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction maybeAddNativeReturnNullCheck(
       HInstruction node, HInstruction replacement, FunctionEntity method) {
-    if (_options.enableNativeNullAssertions) {
+    if (_options.nativeNullAssertions) {
       if (method.library.isNonNullableByDefault) {
         FunctionType type =
             _closedWorld.elementEnvironment.getFunctionType(method);
-        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType) &&
+            memberEntityIsInWebLibrary(method)) {
           node.block.addBefore(node, replacement);
           replacement = HNullCheck(replacement,
               _abstractValueDomain.excludeNull(replacement.instructionType),

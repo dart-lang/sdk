@@ -23,7 +23,6 @@ class Flags {
   static const String enableCheckedMode = '--enable-checked-mode';
   static const String enableAsserts = '--enable-asserts';
   static const String enableNullAssertions = '--null-assertions';
-  static const String enableNativeNullAssertions = '--native-null-assertions';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
@@ -76,6 +75,10 @@ class Flags {
       '--no-frequency-based-minification';
   // Disables minification even if enabled by other options, e.g. '-O2'.
   static const String noMinify = '--no-minify';
+
+  static const String nativeNullAssertions = '--native-null-assertions';
+  static const String noNativeNullAssertions = '--no-native-null-assertions';
+
   static const String noSourceMaps = '--no-source-maps';
   static const String preserveUris = '--preserve-uris';
   static const String printLegacyStars = '--debug-print-legacy-stars';

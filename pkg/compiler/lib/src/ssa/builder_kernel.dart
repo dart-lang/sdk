@@ -1545,10 +1545,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           sourceInformation: null));
       HInstruction value = pop();
       // TODO(johnniwinther): Provide source information.
-      if (options.enableNativeNullAssertions) {
+      if (options.nativeNullAssertions) {
         if (_isNonNullableByDefault(functionNode)) {
           DartType type = _getDartTypeIfValid(functionNode.returnType);
-          if (dartTypes.isNonNullableIfSound(type)) {
+          if (dartTypes.isNonNullableIfSound(type) &&
+              nodeIsInWebLibrary(functionNode)) {
             push(HNullCheck(value, _abstractValueDomain.excludeNull(returnType),
                 sticky: true));
             value = pop();
@@ -4799,8 +4800,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   /// If [invocation] is a `JS()` invocation in a web library and the static
   /// type is non-nullable, add a check to make sure it isn't null.
   void _maybeAddNullCheckOnJS(ir.StaticInvocation invocation) {
-    if (options.enableNativeNullAssertions &&
-        _isInWebLibrary(invocation) &&
+    if (options.nativeNullAssertions &&
+        nodeIsInWebLibrary(invocation) &&
         closedWorld.dartTypes
             .isNonNullableIfSound(_getStaticType(invocation).type)) {
       HInstruction code = pop();
@@ -4808,25 +4809,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           code, _abstractValueDomain.excludeNull(code.instructionType),
           sticky: true));
     }
-  }
-
-  /// Returns true if [node] belongs to dart:html and related libraries.
-  bool _isInWebLibrary(ir.TreeNode node) {
-    if (node == null) return false;
-    bool isWebLibrary(Uri importUri) =>
-        importUri.scheme == 'dart' &&
-            (importUri.path == 'html' ||
-                importUri.path == 'svg' ||
-                importUri.path == 'indexed_db' ||
-                importUri.path == 'web_audio' ||
-                importUri.path == 'web_gl' ||
-                importUri.path == 'web_sql' ||
-                importUri.path == 'html_common') ||
-        // Mock web library path for testing.
-        importUri.path
-            .contains('native_null_assertions/js_invocations_in_web_library');
-    if (node is ir.Library) return isWebLibrary(node.importUri);
-    return _isInWebLibrary(node.parent);
   }
 
   void _handleJsStringConcat(ir.StaticInvocation invocation) {
