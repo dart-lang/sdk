@@ -27,6 +27,7 @@ import '../core_types.dart';
 import '../type_algebra.dart';
 import '../type_environment.dart';
 import 'legacy_erasure.dart';
+import 'non_null.dart';
 
 mixin StandardBounds {
   ClassHierarchyBase get hierarchy;
@@ -354,20 +355,20 @@ mixin StandardBounds {
       if (coreTypes.isObject(type2)) {
         return moretop(type2, type1) ? type1 : type2;
       }
-      if (type2.declaredNullability == Nullability.nonNullable) {
+      if (type2.nullability == Nullability.nonNullable) {
         return type2;
       }
-      type2 = type2.withDeclaredNullability(Nullability.nonNullable);
-      if (type2.declaredNullability == Nullability.nonNullable) {
+      type2 = computeNonNull(coreTypes, type2);
+      if (type2.nullability == Nullability.nonNullable) {
         return type2;
       }
       return const NeverType(Nullability.nonNullable);
     } else if (coreTypes.isObject(type2)) {
-      if (type1.declaredNullability == Nullability.nonNullable) {
+      if (type1.nullability == Nullability.nonNullable) {
         return type1;
       }
-      type1 = type1.withDeclaredNullability(Nullability.nonNullable);
-      if (type1.declaredNullability == Nullability.nonNullable) {
+      type1 = computeNonNull(coreTypes, type1);
+      if (type1.nullability == Nullability.nonNullable) {
         return type1;
       }
       return const NeverType(Nullability.nonNullable);
@@ -667,12 +668,12 @@ mixin StandardBounds {
       if (coreTypes.isObject(type2)) {
         return moretop(type1, type2) ? type1 : type2;
       }
-      if (type2.declaredNullability == Nullability.nonNullable) {
+      if (type2.nullability == Nullability.nonNullable) {
         return type1;
       }
       return type1.withDeclaredNullability(Nullability.nullable);
     } else if (coreTypes.isObject(type2)) {
-      if (type1.declaredNullability == Nullability.nonNullable) {
+      if (type1.nullability == Nullability.nonNullable) {
         return type2;
       }
       return type2.withDeclaredNullability(Nullability.nullable);

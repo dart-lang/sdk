@@ -42,6 +42,7 @@ class A<T extends List<Object>>;
 class B<T extends List<List<Object>>>;
 <E>(E) -> int
 S & T
+S & T & U
 class C;
 <E>(E) -> int & <E>(E) -> void
 C*
