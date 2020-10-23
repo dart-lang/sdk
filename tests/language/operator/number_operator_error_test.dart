@@ -26,7 +26,7 @@ void
   if (on is! num) throw "promote on to I&num";
   checkIntersectionType<O, num>(on, on, on);
   dynamic dyn = cast(1);
-  late never = throw "unreachable";
+  late var never = throw "unreachable";
 
   /* indent */ i + "string";
   //               ^^^^^^^^

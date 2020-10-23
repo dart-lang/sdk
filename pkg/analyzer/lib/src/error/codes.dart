@@ -710,7 +710,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // %experiments=non-nullable
   // Future<int> f() async {
-  //   late v = [!await!] 42;
+  //   late var v = [!await!] 42;
   //   return v;
   // }
   // ```
@@ -722,7 +722,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // %experiments=non-nullable
   // Future<int> f() async {
-  //   late v = 42;
+  //   late var v = 42;
   //   return v;
   // }
   // ```

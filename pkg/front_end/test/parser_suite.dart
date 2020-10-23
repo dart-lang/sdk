@@ -53,6 +53,8 @@ import 'parser_test_listener.dart' show ParserTestListener;
 
 import 'parser_test_parser.dart' show TestParser;
 
+import 'testing_utils.dart' show checkEnvironment;
+
 const String EXPECTATIONS = '''
 [
   {
@@ -71,8 +73,18 @@ main([List<String> arguments = const []]) =>
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new Context(suite.name, environment["updateExpectations"] == "true",
-      environment["trace"] == "true", environment["annotateLines"] == "true");
+  const Set<String> knownEnvironmentKeys = {
+    "updateExpectations",
+    "trace",
+    "annotateLines"
+  };
+  checkEnvironment(environment, knownEnvironmentKeys);
+
+  bool updateExpectations = environment["updateExpectations"] == "true";
+  bool trace = environment["trace"] == "true";
+  bool annotateLines = environment["annotateLines"] == "true";
+
+  return new Context(suite.name, updateExpectations, trace, annotateLines);
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(

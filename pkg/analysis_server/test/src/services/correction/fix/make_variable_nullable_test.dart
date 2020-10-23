@@ -61,7 +61,7 @@ void f() {
   Future<void> test_noKeywordOrType() async {
     await resolveTestUnit('''
 void f() {
-  late s = '';
+  late var s = '';
   s = null;
   print(s);
 }
