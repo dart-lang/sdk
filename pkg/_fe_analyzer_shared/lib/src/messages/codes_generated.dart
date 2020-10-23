@@ -8626,7 +8626,7 @@ const Template<
             _names)> templateStrongModeNNBDPackageOptOut = const Template<
         Message Function(List<String> _names)>(
     messageTemplate:
-        r"""Cannot run with sound null safety as one or more dependencies do not
+        r"""This project cannot run with sound null safety, because one or more project dependencies do not
 support null safety:
 
 #names
@@ -8649,7 +8649,7 @@ Message _withArgumentsStrongModeNNBDPackageOptOut(List<String> _names) {
   String names = itemizeNames(_names);
   return new Message(codeStrongModeNNBDPackageOptOut,
       message:
-          """Cannot run with sound null safety as one or more dependencies do not
+          """This project cannot run with sound null safety, because one or more project dependencies do not
 support null safety:
 
 ${names}
