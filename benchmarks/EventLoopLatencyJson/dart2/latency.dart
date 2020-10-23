@@ -85,13 +85,13 @@ class EventLoopLatencyStats {
       this.maxRss);
 
   void report(String name) {
-    print('$name.Min(RunTime): $minLatency ms.');
-    print('$name.Avg(RunTime): $avgLatency ms.');
-    print('$name.Percentile50(RunTime): $percentile50th ms.');
-    print('$name.Percentile90(RunTime): $percentile90th ms.');
-    print('$name.Percentile95(RunTime): $percentile95th ms.');
-    print('$name.Percentile99(RunTime): $percentile99th ms.');
-    print('$name.Max(RunTime): $maxLatency ms.');
+    print('$name.Min(RunTimeRaw): $minLatency ms.');
+    print('$name.Avg(RunTimeRaw): $avgLatency ms.');
+    print('$name.Percentile50(RunTimeRaw): $percentile50th ms.');
+    print('$name.Percentile90(RunTimeRaw): $percentile90th ms.');
+    print('$name.Percentile95(RunTimeRaw): $percentile95th ms.');
+    print('$name.Percentile99(RunTimeRaw): $percentile99th ms.');
+    print('$name.Max(RunTimeRaw): $maxLatency ms.');
     print('$name.MaxRss(MemoryUse): $maxRss');
   }
 }
