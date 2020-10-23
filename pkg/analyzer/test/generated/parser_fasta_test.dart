@@ -3814,7 +3814,9 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     var statement = parseStatement('late a;', featureSet: nonNullable)
         as VariableDeclarationStatement;
     var declarationList = statement.variables;
-    assertNoErrors();
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
+    ]);
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNull);
     expect(declarationList.variables, hasLength(1));
@@ -3834,7 +3836,9 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     var statement = parseStatement('late a = 0;', featureSet: nonNullable)
         as VariableDeclarationStatement;
     var declarationList = statement.variables;
-    assertNoErrors();
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
+    ]);
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNull);
     expect(declarationList.variables, hasLength(1));
@@ -3853,6 +3857,17 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 
   void test_parseVariableDeclaration_late_var() {
     var statement = parseStatement('late var a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.lateKeyword, isNotNull);
+    expect(declarationList.keyword?.lexeme, 'var');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late_var_init() {
+    var statement = parseStatement('late var a = 0;', featureSet: nonNullable)
         as VariableDeclarationStatement;
     var declarationList = statement.variables;
     assertNoErrors();

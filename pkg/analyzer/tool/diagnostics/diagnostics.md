@@ -744,7 +744,7 @@ is used in the initializer for `v`, a local variable that is marked `late`:
 
 {% prettify dart tag=pre+code %}
 Future<int> f() async {
-  late v = [!await!] 42;
+  late var v = [!await!] 42;
   return v;
 }
 {% endprettify %}
@@ -755,7 +755,7 @@ If the initializer can be rewritten to not use `await`, then rewrite it:
 
 {% prettify dart tag=pre+code %}
 Future<int> f() async {
-  late v = 42;
+  late var v = 42;
   return v;
 }
 {% endprettify %}
