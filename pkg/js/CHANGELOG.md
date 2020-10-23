@@ -1,3 +1,7 @@
+## 0.6.3-nullsafety.2
+
+* Allow prerelease versions of the `2.12` sdk.
+
 ## 0.6.3-nullsafety.1
 
 * Allow 2.10 stable and 2.11.0 dev SDK versions.
