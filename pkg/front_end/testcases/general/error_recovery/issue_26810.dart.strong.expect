@@ -87,24 +87,24 @@ abstract class Key extends core::Object {
     core::print("hello ${x.{core::int::^}(y)}");
   }
   get a() → core::int*
-    return this.{self::Key::runtimeType}.{core::Object::hashCode}.{core::int::^}(null.{core::Null::hashCode});
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Null::hashCode});
   get b() → core::int*
-    return this.{self::Key::runtimeType}.{core::Object::hashCode}.{core::int::^}(null.{core::Null::hashCode});
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Null::hashCode});
   get c() → core::int* {
-    return this.{self::Key::runtimeType}.{core::Object::hashCode}.{core::int::^}(null.{core::Null::hashCode});
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Null::hashCode});
   }
   get d() → core::int* {
-    return this.{self::Key::runtimeType}.{core::Object::hashCode}.{core::int::^}(null.{core::Null::hashCode});
+    return this.{self::Key::runtimeType}.{core::Type::hashCode}.{core::int::^}(null.{core::Null::hashCode});
   }
   get e() → core::int*
-    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Object::hashCode}).{core::int::^}(null.{core::Null::hashCode}.{core::num::+}(3));
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Null::hashCode}.{core::num::+}(3));
   get f() → core::int*
-    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Object::hashCode}).{core::int::^}(null.{core::Null::hashCode}.{core::num::+}(3));
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Null::hashCode}.{core::num::+}(3));
   get g() → core::int* {
-    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Object::hashCode}).{core::int::^}(null.{core::Null::hashCode}.{core::num::+}(3));
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Null::hashCode}.{core::num::+}(3));
   }
   get h() → core::int* {
-    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Object::hashCode}).{core::int::^}(null.{core::Null::hashCode}.{core::num::+}(3));
+    return 1.{core::num::+}(this.{self::Key::runtimeType}.{core::Type::hashCode}).{core::int::^}(null.{core::Null::hashCode}.{core::num::+}(3));
   }
   method i(core::int* x, core::int* y) → core::int*
     return x.{core::int::^}(y);
