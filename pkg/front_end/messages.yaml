@@ -1325,7 +1325,7 @@ StrongModeNNBDButOptOut:
 
 StrongModeNNBDPackageOptOut:
   template:  |
-    Cannot run with sound null safety as one or more dependencies do not
+    This project cannot run with sound null safety, because one or more project dependencies do not
     support null safety:
 
     #names
