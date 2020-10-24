@@ -19,7 +19,7 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
       'ASSIGNMENT_OF_DO_NOT_STORE',
-      "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field.",
+      "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable.",
       correction: "Try removing the assignment.");
 
   /**

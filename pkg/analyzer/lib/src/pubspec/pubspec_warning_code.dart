@@ -63,6 +63,15 @@ class PubspecWarningCode extends ErrorCode {
       "The value of the name field is expected to be a string.",
       correction: "Try converting the value to be a string.");
 
+  /// A code indicating that a specified path dependency does not exist.
+  ///
+  /// Parameters:
+  /// 0: the path to the dependency as given in the file.
+  static const PubspecWarningCode PATH_DOES_NOT_EXIST = PubspecWarningCode(
+      'PATH_DOES_NOT_EXIST', "The path {0} does not exist.",
+      correction:
+          "Try creating the referenced path or using a path that exists.");
+
   /// A code indicating that a package listed as a dev dependency is also listed
   /// as a normal dependency.
   ///

@@ -29,6 +29,9 @@ class PubspecValidator {
   /// The name of the field whose value is the name of the package.
   static const String NAME_FIELD = 'name';
 
+  /// The name of the field whose value is a path to a package dependency.
+  static const String PATH_FIELD = 'path';
+
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
@@ -118,11 +121,17 @@ class PubspecValidator {
     Map<dynamic, YamlNode> declaredDevDependencies =
         _getDeclaredDependencies(reporter, contents, DEV_DEPENDENCIES_FIELD);
 
-    for (YamlNode packageName in declaredDevDependencies.keys) {
+    for (var dependency in declaredDependencies.entries) {
+      _validatePathEntries(reporter, dependency.value);
+    }
+
+    for (var dependency in declaredDevDependencies.entries) {
+      var packageName = dependency.key;
       if (declaredDependencies.containsKey(packageName)) {
         _reportErrorForNode(reporter, packageName,
             PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY, [packageName.value]);
       }
+      _validatePathEntries(reporter, dependency.value);
     }
   }
 
@@ -191,6 +200,26 @@ class PubspecValidator {
     } else if (nameField is! YamlScalar || nameField.value is! String) {
       _reportErrorForNode(
           reporter, nameField, PubspecWarningCode.NAME_NOT_STRING);
+    }
+  }
+
+  /// Validate that `path` entries reference valid paths.
+  void _validatePathEntries(ErrorReporter reporter, YamlNode dependency) {
+    if (dependency is YamlMap) {
+      for (var node in dependency.nodes.entries) {
+        var pathEntry = dependency[PATH_FIELD];
+        if (pathEntry != null) {
+          var context = provider.pathContext;
+          var normalizedPath = context.joinAll(path.posix.split(pathEntry));
+          var packageRoot = context.dirname(source.fullName);
+          var dependencyPath =
+              path.canonicalize(context.join(packageRoot, normalizedPath));
+          if (!provider.getFolder(dependencyPath).exists) {
+            _reportErrorForNode(reporter, node.value,
+                PubspecWarningCode.PATH_DOES_NOT_EXIST, [pathEntry]);
+          }
+        }
+      }
     }
   }
 }

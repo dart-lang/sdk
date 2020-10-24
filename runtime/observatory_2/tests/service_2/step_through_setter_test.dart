@@ -28,7 +28,7 @@ class Bar {
     _xyz = i - 1;
   }
 
-  get barXYZ => _xyz + 1;
+  int get barXYZ => _xyz + 1;
 }
 
 List<String> stops = [];

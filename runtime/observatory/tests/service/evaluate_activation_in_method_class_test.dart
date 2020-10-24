@@ -15,7 +15,7 @@ import 'evaluate_activation_in_method_class_other.dart';
 
 var topLevel = "TestLibrary";
 
-class Subclass extends Superclass with Klass {
+class Subclass extends Superclass1 {
   var _instVar = 'Subclass';
   var instVar = 'Subclass';
   method() => 'Subclass';
@@ -36,18 +36,18 @@ Future testerDo(Isolate isolate) async {
   var topFrame = 0;
   expect(stack.type, equals('Stack'));
   expect(stack['frames'][topFrame].function.name, equals('test'));
-  expect(stack['frames'][topFrame].function.dartOwner.name,
-      equals('Superclass&Klass'));
+  expect(
+      stack['frames'][topFrame].function.dartOwner.name, equals('Superclass1'));
 
   Instance result;
 
   result = await isolate.evalFrame(topFrame, '_local') as Instance;
   print(result);
-  expect(result.valueAsString, equals('Klass'));
+  expect(result.valueAsString, equals('Superclass1'));
 
   result = await isolate.evalFrame(topFrame, '_instVar') as Instance;
   print(result);
-  expect(result.valueAsString, equals('Klass'));
+  expect(result.valueAsString, equals('Superclass1'));
 
   result = await isolate.evalFrame(topFrame, 'instVar') as Instance;
   print(result);
@@ -59,19 +59,19 @@ Future testerDo(Isolate isolate) async {
 
   result = await isolate.evalFrame(topFrame, 'super._instVar') as Instance;
   print(result);
-  expect(result.valueAsString, equals('Superclass'));
+  expect(result.valueAsString, equals('Superclass2'));
 
   result = await isolate.evalFrame(topFrame, 'super.instVar') as Instance;
   print(result);
-  expect(result.valueAsString, equals('Superclass'));
+  expect(result.valueAsString, equals('Superclass2'));
 
   result = await isolate.evalFrame(topFrame, 'super.method()') as Instance;
   print(result);
-  expect(result.valueAsString, equals('Superclass'));
+  expect(result.valueAsString, equals('Superclass2'));
 
   result = await isolate.evalFrame(topFrame, 'staticMethod()') as Instance;
   print(result);
-  expect(result.valueAsString, equals('Klass'));
+  expect(result.valueAsString, equals('Superclass1'));
 
   // function.Owner verus function.Origin
   // The mixin of Superclass is in _other.dart and the mixin

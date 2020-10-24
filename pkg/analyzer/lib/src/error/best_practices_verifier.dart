@@ -418,15 +418,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               [field.name, overriddenElement.enclosingElement.name]);
         }
 
-        var expressionMap =
-            _getSubExpressionsMarkedDoNotStore(field.initializer);
-        for (var entry in expressionMap.entries) {
-          _errorReporter.reportErrorForNode(
-            HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
-            entry.key,
-            [entry.value.name],
-          );
-        }
+        _checkForAssignmentOfDoNotStore(field.initializer);
       }
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
@@ -705,6 +697,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (_hasDeprecatedAnnotation(node.metadata)) {
       _inDeprecatedMember = true;
     }
+    for (var decl in node.variables.variables) {
+      _checkForAssignmentOfDoNotStore(decl.initializer);
+    }
 
     try {
       super.visitTopLevelVariableDeclaration(node);
@@ -796,6 +791,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return false;
+  }
+
+  void _checkForAssignmentOfDoNotStore(Expression expression) {
+    var expressionMap = _getSubExpressionsMarkedDoNotStore(expression);
+    for (var entry in expressionMap.entries) {
+      _errorReporter.reportErrorForNode(
+        HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
+        entry.key,
+        [entry.value.name],
+      );
+    }
   }
 
   /// Given some [element], look at the associated metadata and report the use
