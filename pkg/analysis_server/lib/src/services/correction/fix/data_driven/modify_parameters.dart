@@ -96,7 +96,7 @@ class ModifyParameters extends Change<_Data> {
         builder.write(': ');
       }
       parameter.argumentValue
-          .writeOn(builder, TemplateContext(argumentList, fix.utils));
+          .writeOn(builder, TemplateContext(argumentList.parent, fix.utils));
     }
 
     var insertionRanges = argumentsToInsert.contiguousSubRanges.toList();

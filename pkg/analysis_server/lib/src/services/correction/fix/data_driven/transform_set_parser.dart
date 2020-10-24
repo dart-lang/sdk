@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
@@ -361,7 +362,8 @@ class TransformSetParser {
         // The error has already been reported.
         return null;
       }
-      return ArgumentExpression(PositionalParameterReference(index));
+      return CodeFragment(
+          [ArgumentAccessor(PositionalParameterReference(index))]);
     }
     var nameNode = node.valueAt(_nameKey);
     if (nameNode != null) {
@@ -372,7 +374,7 @@ class TransformSetParser {
         // The error has already been reported.
         return null;
       }
-      return ArgumentExpression(NamedParameterReference(name));
+      return CodeFragment([ArgumentAccessor(NamedParameterReference(name))]);
     }
     // TODO(brianwilkerson) Report the missing YAML.
     return null;
