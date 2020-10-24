@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
@@ -90,6 +91,6 @@ void g(int x, int y) {}
 
   TemplateText _text(String text) => TemplateText(text);
 
-  TemplateVariable _variable(int index) =>
-      TemplateVariable(ArgumentExpression(PositionalParameterReference(index)));
+  TemplateVariable _variable(int index) => TemplateVariable(
+      CodeFragment([ArgumentAccessor(PositionalParameterReference(index))]));
 }

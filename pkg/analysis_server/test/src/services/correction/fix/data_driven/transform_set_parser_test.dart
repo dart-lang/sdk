@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
@@ -63,8 +64,7 @@ transforms:
     expect(modification.isPositional, false);
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
-    var value =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -135,8 +135,7 @@ transforms:
     expect(modification.isPositional, false);
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
-    var value =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -177,8 +176,7 @@ transforms:
     expect(modification.isPositional, true);
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
-    var value =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -222,13 +220,11 @@ transforms:
     expect(modification.isPositional, true);
     var components = modification.argumentValue.components;
     expect(components, hasLength(4));
-    var extractorA =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var extractorA = _accessor(components[0]) as ArgumentAccessor;
     var parameterA = extractorA.parameter as PositionalParameterReference;
     expect(parameterA.index, 1);
     expect((components[1] as TemplateText).text, '(');
-    var extractorB =
-        (components[2] as TemplateVariable).generator as ArgumentExpression;
+    var extractorB = _accessor(components[2]) as ArgumentAccessor;
     var parameterB = extractorB.parameter as PositionalParameterReference;
     expect(parameterB.index, 2);
     expect((components[3] as TemplateText).text, ')');
@@ -304,8 +300,7 @@ transforms:
 
     var components = change.argumentValue.components;
     expect(components, hasLength(1));
-    var value =
-        (components[0] as TemplateVariable).generator as ArgumentExpression;
+    var value = _accessor(components[0]) as ArgumentAccessor;
     var parameter = value.parameter as NamedParameterReference;
     expect(parameter.name, 'p');
   }
@@ -348,8 +343,7 @@ transforms:
 
     var argumentComponents = change.argumentValue.components;
     expect(argumentComponents, hasLength(1));
-    var value = (argumentComponents[0] as TemplateVariable).generator
-        as ArgumentExpression;
+    var value = _accessor(argumentComponents[0]) as ArgumentAccessor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 2);
   }
@@ -561,6 +555,10 @@ transforms:
     var rename = transform.changes[0] as Rename;
     expect(rename.newName, 'B');
   }
+
+  /// Return the first accessor from the given [component].
+  Accessor _accessor(TemplateComponent component) =>
+      ((component as TemplateVariable).generator as CodeFragment).accessors[0];
 
   ElementMatcher _matcher(String name) =>
       ElementMatcher(importedUris: uris, name: name);
