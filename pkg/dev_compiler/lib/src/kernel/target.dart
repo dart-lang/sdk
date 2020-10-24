@@ -367,7 +367,14 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
 
   @override
   void visitProcedure(Procedure node) {
-    if (node.name.isPrivate && node.isInstanceMember && node.function != null) {
+    if (node.name.isPrivate &&
+        // The member must be private to this library. Member signatures,
+        // forwarding stubs and noSuchMethod forwarders for private members in
+        // other libraries can be injected.
+        node.name.library == _library &&
+        node.isInstanceMember &&
+        // No need to check abstract methods.
+        node.function.body != null) {
       _privateProcedures.add(node);
     }
     super.visitProcedure(node);
@@ -375,7 +382,14 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
 
   @override
   void visitField(Field node) {
-    if (node.name.isPrivate && isCovariantField(node)) _privateFields.add(node);
+    if (node.name.isPrivate &&
+        // The member must be private to this library. Member signatures,
+        // forwarding stubs and noSuchMethod forwarders for private members in
+        // other libraries can be injected.
+        node.name.library == _library &&
+        isCovariantField(node)) {
+      _privateFields.add(node);
+    }
     super.visitField(node);
   }
 

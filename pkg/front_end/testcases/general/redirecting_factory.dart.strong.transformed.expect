@@ -16,16 +16,16 @@ abstract class FooBase<Tf extends core::Object* = dynamic> extends core::Object 
   abstract get x() → core::int*;
   static factory •<Tf extends core::Object* = dynamic>(core::int* x) → self::FooBase<self::FooBase::•::Tf*>*
     let <T extends core::Object* = dynamic>(core::int*) →* self::Foo<T*>* #redirecting_factory = self::Foo::• in let self::FooBase::•::Tf* #typeArg0 = null in invalid-expression;
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class Foo<T extends core::Object* = dynamic> extends core::Object implements self::FooBase<dynamic> {
   static field dynamic _redirecting# = <dynamic>[self::Foo::•];
@@ -66,31 +66,31 @@ class Builder<X extends core::Object* = dynamic> extends core::Object {
   method method() → dynamic {
     return new self::Bar::•<core::String*, self::Builder::X*>(4);
   }
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class SimpleCase<A extends core::Object* = dynamic, B extends core::Object* = dynamic> extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::SimpleCase::•];
   static factory •<A extends core::Object* = dynamic, B extends core::Object* = dynamic>() → self::SimpleCase<self::SimpleCase::•::A*, self::SimpleCase::•::B*>*
     let <Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic>() →* self::SimpleCaseImpl<Ai*, Bi*>* #redirecting_factory = self::SimpleCaseImpl::• in let self::SimpleCase::•::A* #typeArg0 = null in let self::SimpleCase::•::B* #typeArg1 = null in invalid-expression;
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class SimpleCaseImpl<Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai*, self::SimpleCaseImpl::Bi*> {
   static field dynamic _redirecting# = <dynamic>[self::SimpleCaseImpl::•];
@@ -126,46 +126,46 @@ class Base<M extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Base<self::Base::M*>*
     : super core::Object::•()
     ;
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Mixin<M extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Mixin<self::Mixin::M*>*
     : super core::Object::•()
     ;
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Mix<M extends core::Object* = dynamic> extends self::Base<self::Mix::M*> implements self::Mixin<self::Mix::M*> /*isEliminatedMixin*/  {
   synthetic constructor •() → self::Mix<self::Mix::M*>*
     : super self::Base::•()
     ;
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ toString() → core::String*; -> core::Object::toString
-  abstract member-signature method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/object_patch.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
   core::print(new self::Bar::•<core::String*, core::double*>(4).{self::FooBase::x});

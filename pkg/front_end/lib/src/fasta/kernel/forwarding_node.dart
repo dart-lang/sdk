@@ -98,7 +98,10 @@ class ForwardingNode {
       // Covariance can only come from [interfaceMember] so we never need a
       // forwarding stub.
       if (_combinedMemberSignature.neededLegacyErasure) {
-        return _combinedMemberSignature.createMemberFromSignature();
+        return _combinedMemberSignature.createMemberFromSignature(
+            // TODO(johnniwinther): Change member signatures to use location
+            // of origin.
+            copyLocation: false);
       } else {
         // Nothing to do.
         return interfaceMember;

@@ -4,12 +4,12 @@ library from "org-dartlang-test:///after_layout.dart" as aft {
   import "package:flutter/framework.dart";
 
   abstract class AfterLayoutMixin<T extends fra::StatefulWidget* = fra::StatefulWidget*> extends fra::State<aft::AfterLayoutMixin::T*> /*isMixinDeclaration*/  {
-    abstract member-signature get /* from org-dartlang-test:///flutter/lib/framework.dart */ _widget() → aft::AfterLayoutMixin::T*; -> fra::State::_widget
-    abstract member-signature set /* from org-dartlang-test:///flutter/lib/framework.dart */ _widget(aft::AfterLayoutMixin::T* value) → void; -> fra::State::_widget
-    abstract member-signature operator /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    abstract member-signature get _widget() → aft::AfterLayoutMixin::T*; -> fra::State::_widget
+    abstract member-signature set _widget(generic-covariant-impl aft::AfterLayoutMixin::T* value) → void; -> fra::State::_widget
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
 }
 library from "package:flutter/framework.dart" as fra {
@@ -65,7 +65,7 @@ library from "org-dartlang-test:///main.dart" as main {
       : super fra::State::•()
       ;
     abstract member-signature get _widget() → main::HotReloadIssue*; -> fra::State::_widget
-    abstract member-signature set _widget(main::HotReloadIssue* _) → void; -> fra::State::_widget
+    abstract member-signature set _widget(generic-covariant-impl main::HotReloadIssue* _) → void; -> fra::State::_widget
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
@@ -82,10 +82,10 @@ library from "org-dartlang-test:///main.dart" as main {
     synthetic constructor •() → main::HotReloadIssue*
       : super fra::StatefulWidget::•()
       ;
-    abstract member-signature operator /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get /* from org-dartlang-sdk:///lib/_internal/js_dev_runtime/patch/core_patch.dart */ runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
 }
