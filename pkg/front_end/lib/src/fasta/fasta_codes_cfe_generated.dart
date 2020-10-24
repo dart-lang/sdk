@@ -1034,32 +1034,6 @@ Message _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
-    templateIllegalRecursiveType = const Template<
-            Message Function(DartType _type, bool isNonNullableByDefault)>(
-        messageTemplate: r"""Illegal recursive type '#type'.""",
-        withArguments: _withArgumentsIllegalRecursiveType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
-    codeIllegalRecursiveType =
-    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
-  "IllegalRecursiveType",
-  templateIllegalRecursiveType,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIllegalRecursiveType(
-    DartType _type, bool isNonNullableByDefault) {
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeIllegalRecursiveType,
-      message: """Illegal recursive type '${type}'.""" + labeler.originMessages,
-      arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateImplicitCallOfNonMethod = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
         messageTemplate:

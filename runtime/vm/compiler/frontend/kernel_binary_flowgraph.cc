@@ -457,32 +457,6 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
   return instructions;
 }
 
-void StreamingFlowGraphBuilder::ReadDefaultFunctionTypeArguments(
-    const Function& function) {
-  if (!function.IsGeneric()) {
-    return;
-  }
-  AlternativeReadingScope alt(&reader_);
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-  intptr_t num_type_params = ReadListLength();
-  ASSERT(num_type_params == function.NumTypeParameters());
-  TypeArguments& default_types =
-      TypeArguments::Handle(Z, TypeArguments::New(num_type_params));
-  for (intptr_t i = 0; i < num_type_params; ++i) {
-    TypeParameterHelper helper(this);
-    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
-    if (ReadTag() == kSomething) {
-      default_types.SetTypeAt(i, T.BuildType());
-    } else {
-      default_types.SetTypeAt(i, Object::dynamic_type());
-    }
-    helper.Finish();
-  }
-  default_types = default_types.Canonicalize(thread(), nullptr);
-  parsed_function()->SetDefaultFunctionTypeArguments(default_types);
-}
-
 Fragment StreamingFlowGraphBuilder::DebugStepCheckInPrologue(
     const Function& dart_function,
     TokenPosition position) {
@@ -1215,7 +1189,6 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case FunctionLayout::kImplicitClosureFunction:
       ReadUntilFunctionNode();
       SetupDefaultParameterValues();
-      ReadDefaultFunctionTypeArguments(function);
       break;
     case FunctionLayout::kImplicitGetter:
     case FunctionLayout::kImplicitStaticGetter:
@@ -1230,7 +1203,6 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
       if (PeekTag() != kField) {
         ReadUntilFunctionNode();
         SetupDefaultParameterValues();
-        ReadDefaultFunctionTypeArguments(function);
       }
       break;
     case FunctionLayout::kSignatureFunction:

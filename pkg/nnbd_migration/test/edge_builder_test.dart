@@ -5018,13 +5018,13 @@ void g(C c, int j) {
   }
 
   Future<void> test_methodInvocation_parameter_named_differentPackage() async {
-    addPackageFile('pkgC', 'c.dart', '''
+    addPackageFile('foo', 'c.dart', '''
 class C {
   void f({int i}) {}
 }
 ''');
     await analyze('''
-import "package:pkgC/c.dart";
+import "package:foo/c.dart";
 void g(C c, int j) {
   c.f(i: j/*check*/);
 }
@@ -7663,11 +7663,11 @@ double get myPi => pi;
   }
 
   Future<void> test_topLevelVar_reference_differentPackage() async {
-    addPackageFile('pkgPi', 'piConst.dart', '''
+    addPackageFile('foo', 'piConst.dart', '''
 double pi = 3.1415;
 ''');
     await analyze('''
-import "package:pkgPi/piConst.dart";
+import "package:foo/piConst.dart";
 double get myPi => pi;
 ''');
     var myPiType = decoratedTypeAnnotation('double get');

@@ -3284,6 +3284,33 @@ intptr_t Class::NumTypeArguments() const {
   return num_type_args;
 }
 
+static TypeArgumentsPtr InstantiateTypeArgumentsToBounds(
+    Thread* thread,
+    const TypeArguments& parameters) {
+  ASSERT(thread != nullptr);
+  if (parameters.IsNull()) {
+    return Object::empty_type_arguments().raw();
+  }
+  auto const zone = thread->zone();
+  const auto& result = TypeArguments::Handle(
+      zone, TypeArguments::New(parameters.Length(), Heap::kNew));
+  auto& param = TypeParameter::Handle(zone);
+  auto& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0, n = parameters.Length(); i < n; i++) {
+    param ^= parameters.TypeAt(i);
+    type = param.default_argument();
+    ASSERT(type.IsFinalized());
+    result.SetTypeAt(i, type);
+  }
+  return result.Canonicalize(thread);
+}
+
+TypeArgumentsPtr Class::InstantiateToBounds(Thread* thread) const {
+  const auto& type_params =
+      TypeArguments::Handle(thread->zone(), type_parameters());
+  return InstantiateTypeArgumentsToBounds(thread, type_params);
+}
+
 ClassPtr Class::SuperClass(bool original_classes) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -7010,6 +7037,12 @@ void Function::set_parent_function(const Function& value) const {
   }
 }
 
+TypeArgumentsPtr Function::InstantiateToBounds(Thread* thread) const {
+  const auto& type_params =
+      TypeArguments::Handle(thread->zone(), type_parameters());
+  return InstantiateTypeArgumentsToBounds(thread, type_params);
+}
+
 FunctionPtr Function::GetGeneratedClosure() const {
   const auto& closure_functions = GrowableObjectArray::Handle(
       Isolate::Current()->object_store()->closure_functions());
@@ -7967,90 +8000,6 @@ static ObjectPtr TypeArgumentsAreBoundSubtypes(
   return Error::null();
 }
 
-// Returns a TypeArguments object where, for each type parameter local to this
-// function, the entry in the TypeArguments is an instantiated version of its
-// bound. In the instantiated bound, any local function type parameter
-// references are replaced with the corresponding bound if that bound can be
-// fully instantiated without local function type parameters, otherwise dynamic.
-static TypeArgumentsPtr InstantiateTypeParametersToBounds(
-    Thread* thread,
-    const TokenPosition& token_pos,
-    const TypeArguments& type_parameters,
-    const TypeArguments& instantiator_type_args,
-    intptr_t num_parent_type_args,
-    const TypeArguments& parent_type_args) {
-  ASSERT(!type_parameters.IsNull());
-  auto const zone = thread->zone();
-  const intptr_t kNumCurrentTypeArgs = type_parameters.Length();
-  const intptr_t kNumTypeArgs = kNumCurrentTypeArgs + num_parent_type_args;
-  auto& function_type_args = TypeArguments::Handle(zone);
-
-  bool all_bounds_instantiated = true;
-
-  // Create a type argument vector large enough for the parents' and current
-  // type arguments.
-  function_type_args = TypeArguments::New(kNumTypeArgs);
-  auto& type = AbstractType::Handle(zone);
-  auto& bound = AbstractType::Handle(zone);
-  // First copy over the parent type args (or the dynamic type if null).
-  for (intptr_t i = 0; i < num_parent_type_args; i++) {
-    type = parent_type_args.IsNull() ? Type::DynamicType()
-                                     : parent_type_args.TypeAt(i);
-    function_type_args.SetTypeAt(i, type);
-  }
-  // Now try fully instantiating the bounds of each parameter using only
-  // the instantiator and parent function type arguments. If possible, keep the
-  // instantiated bound as the entry. Otherwise, just set that entry to dynamic.
-  for (intptr_t i = num_parent_type_args; i < kNumTypeArgs; i++) {
-    type = type_parameters.TypeAt(i - num_parent_type_args);
-    const auto& param = TypeParameter::Cast(type);
-    bound = param.bound();
-    // Only instantiate up to the parent type parameters.
-    if (!bound.IsInstantiated(kAny, num_parent_type_args)) {
-      bound = bound.InstantiateFrom(instantiator_type_args, function_type_args,
-                                    num_parent_type_args, Heap::kNew);
-    }
-    if (!bound.IsInstantiated()) {
-      // There are local type variables used in this bound.
-      bound = Type::DynamicType();
-      all_bounds_instantiated = false;
-    }
-    function_type_args.SetTypeAt(i, bound);
-  }
-
-  // If all the bounds were instantiated in the first pass, then there can't
-  // be any self or mutual recursion, so skip the bounds subtype check.
-  if (all_bounds_instantiated) return function_type_args.raw();
-
-  // Do another pass, using the set of TypeArguments we just created. If a given
-  // bound was instantiated in the last pass, just copy it over. (We don't need
-  // to iterate to a fixed point, since there should be no self or mutual
-  // recursion in the bounds.)
-  const auto& first_round =
-      TypeArguments::Handle(zone, function_type_args.raw());
-  function_type_args = TypeArguments::New(kNumTypeArgs);
-  // Again, copy over the parent type arguments first.
-  for (intptr_t i = 0; i < num_parent_type_args; i++) {
-    type = first_round.TypeAt(i);
-    function_type_args.SetTypeAt(i, type);
-  }
-  for (intptr_t i = num_parent_type_args; i < kNumTypeArgs; i++) {
-    type = type_parameters.TypeAt(i - num_parent_type_args);
-    const auto& param = TypeParameter::Cast(type);
-    bound = first_round.TypeAt(i);
-    // The dynamic type is never a bound, even when implicit, so it also marks
-    // bounds that were not already fully instantiated.
-    if (bound.raw() == Type::DynamicType()) {
-      bound = param.bound();
-      bound = bound.InstantiateFrom(instantiator_type_args, first_round,
-                                    kAllFree, Heap::kNew);
-    }
-    function_type_args.SetTypeAt(i, bound);
-  }
-
-  return function_type_args.Canonicalize(thread);
-}
-
 // Retrieves the function type arguments, if any. This could be explicitly
 // passed type from the arguments array, delayed type arguments in closures,
 // or instantiated bounds for the type parameters if no other source for
@@ -8087,31 +8036,27 @@ static TypeArgumentsPtr RetrieveFunctionTypeArguments(
   if (kNumCurrentTypeArgs == 0) return parent_type_args.raw();
 
   auto& function_type_args = TypeArguments::Handle(zone);
+  // First check for delayed type arguments before using either provided or
+  // default type arguments.
+  bool has_delayed_type_args = false;
   if (function.IsClosureFunction()) {
     const auto& closure = Closure::Cast(receiver);
     function_type_args = closure.delayed_type_arguments();
-    if (function_type_args.raw() == Object::empty_type_arguments().raw()) {
-      // There are no delayed type arguments, so set back to null.
-      function_type_args = TypeArguments::null();
-    } else {
-      // We should never end up here when the receiver is a closure with delayed
-      // type arguments unless this dynamically called closure function was
-      // retrieved directly from the closure instead of going through
-      // DartEntry::ResolveCallable, which appropriately checks for this case.
-      ASSERT(args_desc.TypeArgsLen() == 0);
-    }
+    has_delayed_type_args =
+        function_type_args.raw() != Object::empty_type_arguments().raw();
   }
 
   if (args_desc.TypeArgsLen() > 0) {
+    // We should never end up here when the receiver is a closure with delayed
+    // type arguments unless this dynamically called closure function was
+    // retrieved directly from the closure instead of going through
+    // DartEntry::ResolveCallable, which appropriately checks for this case.
+    ASSERT(!has_delayed_type_args);
     function_type_args ^= args.At(0);
-  }
-
-  if (function_type_args.IsNull()) {
-    // We have no explicitly provided function type arguments, so generate
-    // some by instantiating the parameters to bounds.
-    return InstantiateTypeParametersToBounds(
-        thread, function.token_pos(), type_params, instantiator_type_args,
-        kNumParentTypeArgs, parent_type_args);
+  } else if (!has_delayed_type_args) {
+    // We have no explicitly provided function type arguments, so instantiate
+    // the type parameters to bounds.
+    function_type_args = function.InstantiateToBounds(thread);
   }
 
   return function_type_args.Prepend(zone, parent_type_args, kNumParentTypeArgs,
@@ -21023,6 +20968,10 @@ void TypeParameter::set_name(const String& value) const {
 
 void TypeParameter::set_bound(const AbstractType& value) const {
   StorePointer(&raw_ptr()->bound_, value.raw());
+}
+
+void TypeParameter::set_default_argument(const AbstractType& value) const {
+  StorePointer(&raw_ptr()->default_argument_, value.raw());
 }
 
 AbstractTypePtr TypeParameter::GetFromTypeArguments(

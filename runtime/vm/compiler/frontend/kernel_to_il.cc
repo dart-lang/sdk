@@ -2816,8 +2816,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 
 Fragment FlowGraphBuilder::BuildDefaultTypeHandling(const Function& function) {
   if (function.IsGeneric()) {
-    const TypeArguments& default_types =
-        parsed_function_->DefaultFunctionTypeArguments();
+    auto& default_types =
+        TypeArguments::ZoneHandle(Z, function.InstantiateToBounds(thread_));
 
     if (!default_types.IsNull()) {
       Fragment then;

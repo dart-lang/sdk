@@ -1114,6 +1114,10 @@ class Class : public Object {
   // Return true if this class declares type parameters.
   bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
 
+  // Returns a canonicalized vector of the type parameters instantiated
+  // to bounds. If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr InstantiateToBounds(Thread* thread) const;
+
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
   intptr_t host_type_arguments_field_offset() const {
@@ -2767,6 +2771,10 @@ class Function : public Object {
 
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
+
+  // Returns a canonicalized vector of the type parameters instantiated
+  // to bounds. If non-generic, the empty type arguments vector is returned.
+  TypeArgumentsPtr InstantiateToBounds(Thread* thread) const;
 
   // Enclosed generated closure function of this local function.
   // This will only work after the closure function has been allocated in the
@@ -8517,6 +8525,10 @@ class TypeParameter : public AbstractType {
   void set_index(intptr_t value) const;
   AbstractTypePtr bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
+  AbstractTypePtr default_argument() const {
+    return raw_ptr()->default_argument_;
+  }
+  void set_default_argument(const AbstractType& value) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,

@@ -171,7 +171,6 @@ class ParsedArguments {
 //  * Get an explicit approval from the front-end team.
 const Map<String, ValueSpecification> optionSpecification =
     const <String, ValueSpecification>{
-  Flags.bytecode: const BoolValue(false),
   Flags.compileSdk: const UriValue(),
   Flags.dumpIr: const BoolValue(false),
   Flags.enableExperiment: const StringListValue(),
@@ -285,8 +284,6 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final int fatalSkip = int.tryParse(options[Flags.fatalSkip] ?? "0") ?? -1;
 
-  final bool bytecode = options[Flags.bytecode];
-
   final bool compileSdk = options.containsKey(Flags.compileSdk);
 
   final String singleRootScheme = options[Flags.singleRootScheme];
@@ -376,8 +373,7 @@ ProcessedOptions analyzeCommandLine(String programName,
         options: compilerOptions
           ..sdkSummary = options[Flags.platform]
           ..librariesSpecificationUri = resolveInputUri(arguments[1])
-          ..setExitCodeOnProblem = true
-          ..bytecode = bytecode,
+          ..setExitCodeOnProblem = true,
         inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {

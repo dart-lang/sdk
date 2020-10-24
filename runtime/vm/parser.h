@@ -213,14 +213,6 @@ class ParsedFunction : public ZoneAllocated {
     return scope()->VariableAt(i);
   }
 
-  void SetDefaultFunctionTypeArguments(const TypeArguments& value) {
-    default_function_type_arguments_ = value.raw();
-  }
-
-  const TypeArguments& DefaultFunctionTypeArguments() const {
-    return default_function_type_arguments_;
-  }
-
   // Remembers the set of covariant parameters.
   // [covariant_parameters] is a bitvector of function.NumParameters() length.
   void SetCovariantParameters(const BitVector* covariant_parameters);
@@ -287,8 +279,6 @@ class ParsedFunction : public ZoneAllocated {
 
   const Function* forwarding_stub_super_target_ = nullptr;
   kernel::ScopeBuildingResult* kernel_scopes_;
-
-  TypeArguments& default_function_type_arguments_;
 
   const BitVector* covariant_parameters_ = nullptr;
   const BitVector* generic_covariant_impl_parameters_ = nullptr;

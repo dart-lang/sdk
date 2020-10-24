@@ -66,8 +66,7 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       first_parameter_index_(),
       num_stack_locals_(0),
       have_seen_await_expr_(false),
-      kernel_scopes_(NULL),
-      default_function_type_arguments_(TypeArguments::ZoneHandle(zone())) {
+      kernel_scopes_(NULL) {
   ASSERT(function.IsZoneHandle());
   // Every function has a local variable for the current context.
   LocalVariable* temp = new (zone())

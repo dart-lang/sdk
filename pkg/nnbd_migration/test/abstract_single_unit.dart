@@ -74,6 +74,36 @@ analyzer:
     - non-nullable
 ''');
     }
+    if (analyzeWithNnbd) {
+      newFile('$testRoot/pubspec.yaml', content: '''
+name: tests
+version: 1.0.0
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+''');
+      newFile('$testRoot/.dart_tool/package_config.json', content: '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "meta",
+      "rootUri": "file:///.pub-cache/meta",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "tests",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    }
+  ],
+  "generated": "2020-10-21T21:13:05.186004Z",
+  "generator": "pub",
+  "generatorVersion": "2.12.0"
+}
+''');
+    }
     super.setUp();
     testFile = convertPath('$testRoot/lib/test.dart');
     testUri = Uri.parse('package:tests/test.dart');

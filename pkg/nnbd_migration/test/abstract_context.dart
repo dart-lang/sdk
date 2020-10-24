@@ -131,6 +131,88 @@ export 'package:test_core/test_core.dart';
     newFile('$testsPath/.packages', content: '''
 tests:file://$testsPath/lib
 ''');
+    var pubspecPath = '$testsPath/pubspec.yaml';
+    // Subclasses may write out a different file first.
+    if (!getFile(pubspecPath).exists) {
+      newFile(pubspecPath, content: '''
+name: tests
+version: 1.0.0
+environment:
+  sdk: '>=2.9.0 <3.0.0'
+''');
+    }
+    var packageConfigPath = '$testsPath/.dart_tool/package_config.json';
+    // Subclasses may write out a different file first.
+    if (!getFile(packageConfigPath).exists) {
+      // TODO(srawlins): This is a rough hack to allow for the "null safe by
+      // default" flag flip. We need to _opt out_ all packages at the onset.
+      // A better solution likely involves the package config-editing code in
+      // analyzer's [context_collection_resolution.dart].
+      newFile(packageConfigPath, content: '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "args",
+      "rootUri": "${toUriStr('/.pub-cache/args')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "collection",
+      "rootUri": "${toUriStr('/.pub-cache/collection')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "fixnum",
+      "rootUri": "${toUriStr('/.pub-cache/fixnum')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "foo",
+      "rootUri": "${toUriStr('/.pub-cache/foo')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "meta",
+      "rootUri": "${toUriStr('/.pub-cache/meta')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "quiver",
+      "rootUri": "${toUriStr('/.pub-cache/quiver')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "test",
+      "rootUri": "${toUriStr('/.pub-cache/test')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "test_core",
+      "rootUri": "${toUriStr('/.pub-cache/test_core')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
+      "name": "tests",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    }
+  ],
+  "generated": "2020-10-21T21:13:05.186004Z",
+  "generator": "pub",
+  "generatorVersion": "2.10.0"
+}
+''');
+    }
 
     createAnalysisContexts();
   }

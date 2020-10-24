@@ -1325,7 +1325,7 @@ StrongModeNNBDButOptOut:
 
 StrongModeNNBDPackageOptOut:
   template:  |
-    Cannot run with sound null safety as one or more dependencies do not
+    This project cannot run with sound null safety, because one or more project dependencies do not
     support null safety:
 
     #names
@@ -1746,9 +1746,6 @@ FastaUsageLong:
 
       --omit-platform
         Exclude the platform from the serialized dill file.
-
-      --bytecode
-        Generate bytecode. Supported only for SDK platform compilation.
 
       --exclude-source
         Do not include source code in the dill file.
@@ -4211,15 +4208,6 @@ InvalidTypeVariableVariancePositionInReturnType:
         return null;
       }
     }
-
-IllegalRecursiveType:
-  template: "Illegal recursive type '#type'."
-  script: >
-    class Base<T> {}
-    class Derived<T> extends Base<Derived<Derived<T>>> {}
-
-BytecodeLimitExceededTooManyArguments:
-  template: "Dart bytecode limit exceeded: too many arguments."
 
 CombinedMemberSignatureFailed:
   template: "Class '#name' inherits multiple members named '#name2' with incompatible signatures."

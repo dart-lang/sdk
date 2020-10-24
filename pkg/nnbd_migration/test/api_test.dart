@@ -30,6 +30,13 @@ class _ProvisionalApiTest extends _ProvisionalApiTestBase
 abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   bool get _usePermissiveMode;
 
+  String projectPath;
+
+  void setUp() {
+    projectPath = convertPath(AbstractContextTest.testsPath);
+    super.setUp();
+  }
+
   /// Hook invoked between stages of processing inputs.
   void _betweenStages() {}
 
@@ -102,7 +109,8 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       {Map<String, String> migratedInput = const {},
       bool removeViaComments = false,
       bool warnOnWeakCode = false}) async {
-    var sourcePath = convertPath('/home/test/lib/test.dart');
+    var sourcePath =
+        convertPath('${AbstractContextTest.testsPath}/lib/test.dart');
     await _checkMultipleFileChanges(
         {sourcePath: content}, {sourcePath: expected},
         migratedInput: migratedInput,
@@ -398,7 +406,7 @@ void f() {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '/home/test/lib/already_migrated.dart': alreadyMigrated
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
     });
   }
 
@@ -4312,7 +4320,7 @@ int g() => x;
   }
 
   Future<void> test_libraryWithParts() async {
-    var root = '/home/test/lib';
+    var root = '$projectPath/lib';
     var path1 = convertPath('$root/lib.dart');
     var file1 = '''
 part 'src/foo/part.dart';
@@ -4338,7 +4346,7 @@ class C {
   }
 
   Future<void> test_libraryWithParts_add_questions() async {
-    var root = '/home/test/lib';
+    var root = '$projectPath/lib';
     var path1 = convertPath('$root/lib.dart');
     var file1 = '''
 part 'src/foo/part.dart';
@@ -5581,7 +5589,7 @@ D<int?> test(C<int?> c) => -c;
   }
 
   Future<void> test_prefixes() async {
-    var root = '/home/test/lib';
+    var root = '$projectPath/lib';
     var path1 = convertPath('$root/file1.dart');
     var file1 = '''
 import 'file2.dart';
@@ -6408,7 +6416,7 @@ g(String s) {}
   }
 
   Future<void> test_two_files() async {
-    var root = '/home/test/lib';
+    var root = '$projectPath/lib';
     var path1 = convertPath('$root/file1.dart');
     var file1 = '''
 import 'file2.dart';
@@ -6509,7 +6517,7 @@ void main(F<int?> f) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '/home/test/lib/migrated_typedef.dart': 'typedef F<R> = Function(R);'
+      '$projectPath/lib/migrated_typedef.dart': 'typedef F<R> = Function(R);'
     });
   }
 
@@ -6545,7 +6553,7 @@ void f4(F<int> f) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '/home/test/lib/migrated_typedef.dart':
+      '$projectPath/lib/migrated_typedef.dart':
           'typedef F<T> = Function<R>(T, R);'
     });
   }
@@ -6564,7 +6572,7 @@ void main(F f) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '/home/test/lib/migrated_typedef.dart': 'typedef F = Function<R>(R);'
+      '$projectPath/lib/migrated_typedef.dart': 'typedef F = Function<R>(R);'
     });
   }
 

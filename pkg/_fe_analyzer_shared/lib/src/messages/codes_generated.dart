@@ -491,15 +491,6 @@ Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeBytecodeLimitExceededTooManyArguments =
-    messageBytecodeLimitExceededTooManyArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageBytecodeLimitExceededTooManyArguments =
-    const MessageCode("BytecodeLimitExceededTooManyArguments",
-        message: r"""Dart bytecode limit exceeded: too many arguments.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCandidateFound = messageCandidateFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3743,9 +3734,6 @@ const MessageCode messageFastaUsageLong =
 
   --omit-platform
     Exclude the platform from the serialized dill file.
-
-  --bytecode
-    Generate bytecode. Supported only for SDK platform compilation.
 
   --exclude-source
     Do not include source code in the dill file.
@@ -8626,7 +8614,7 @@ const Template<
             _names)> templateStrongModeNNBDPackageOptOut = const Template<
         Message Function(List<String> _names)>(
     messageTemplate:
-        r"""Cannot run with sound null safety as one or more dependencies do not
+        r"""This project cannot run with sound null safety, because one or more project dependencies do not
 support null safety:
 
 #names
@@ -8649,7 +8637,7 @@ Message _withArgumentsStrongModeNNBDPackageOptOut(List<String> _names) {
   String names = itemizeNames(_names);
   return new Message(codeStrongModeNNBDPackageOptOut,
       message:
-          """Cannot run with sound null safety as one or more dependencies do not
+          """This project cannot run with sound null safety, because one or more project dependencies do not
 support null safety:
 
 ${names}
