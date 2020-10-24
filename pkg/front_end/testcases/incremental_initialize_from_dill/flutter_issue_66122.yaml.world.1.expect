@@ -5,7 +5,7 @@ library from "org-dartlang-test:///after_layout.dart" as aft {
 
   abstract class AfterLayoutMixin<T extends fra::StatefulWidget* = fra::StatefulWidget*> extends fra::State<aft::AfterLayoutMixin::T*> /*isMixinDeclaration*/  {
     abstract member-signature get _widget() → aft::AfterLayoutMixin::T*; -> fra::State::_widget
-    abstract member-signature set _widget(aft::AfterLayoutMixin::T* value) → void; -> fra::State::_widget
+    abstract member-signature set _widget(generic-covariant-impl aft::AfterLayoutMixin::T* value) → void; -> fra::State::_widget
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
@@ -65,7 +65,7 @@ library from "org-dartlang-test:///main.dart" as main {
       : super fra::State::•()
       ;
     abstract member-signature get _widget() → main::HotReloadIssue*; -> fra::State::_widget
-    abstract member-signature set _widget(main::HotReloadIssue* _) → void; -> fra::State::_widget
+    abstract member-signature set _widget(generic-covariant-impl main::HotReloadIssue* _) → void; -> fra::State::_widget
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
