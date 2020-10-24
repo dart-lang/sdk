@@ -196,6 +196,47 @@ dependencies:
 ''');
   }
 
+  test_dependencyGitPath() {
+    // git paths are not validated
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git:
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
+''');
+  }
+
+  test_dependencyPathDoesNotExist_path_error() {
+    assertErrors('''
+name: sample
+dependencies:
+  foo:
+    path: does/not/exist
+''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
+  }
+
+  test_dependencyPathExists() {
+    newFolder('/foo');
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: /foo
+''');
+  }
+
+  test_dependencyPathRelativeExists() {
+    newFolder('/foo');
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: ../foo
+''');
+  }
+
   test_devDependenciesField_empty() {
     assertNoErrors('''
 name: sample
@@ -215,6 +256,25 @@ dev_dependencies: true
 name: sample
 dev_dependencies:
   a: any
+''');
+  }
+
+  test_devDependencyPathDoesNotExist_path_error() {
+    assertErrors('''
+name: sample
+dev_dependencies:
+  foo:
+    path: does/not/exist
+''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
+  }
+
+  test_devDependencyPathExists() {
+    newFolder('/foo');
+    assertNoErrors('''
+name: sample
+dev_dependencies:
+  foo:
+    path: /foo
 ''');
   }
 
