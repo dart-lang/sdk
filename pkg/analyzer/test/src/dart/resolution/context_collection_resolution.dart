@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
@@ -27,6 +28,8 @@ import 'package:test/test.dart';
 
 import 'context_collection_resolution_caching.dart';
 import 'resolution.dart';
+
+export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 class AnalysisOptionsFileConfig {
   final List<String> experiments;
@@ -248,79 +251,6 @@ abstract class ContextResolutionTest
   }
 }
 
-class PackageConfigFileBuilder {
-  final List<_PackageDescription> _packages = [];
-
-  void add({
-    @required String name,
-    @required String rootPath,
-    String packageUri = 'lib/',
-    String languageVersion,
-  }) {
-    if (_packages.any((e) => e.name == name)) {
-      throw StateError('Already added: $name');
-    }
-    _packages.add(
-      _PackageDescription(
-        name: name,
-        rootPath: rootPath,
-        packageUri: packageUri,
-        languageVersion: languageVersion,
-      ),
-    );
-  }
-
-  String toContent(String Function(String) toUriStr) {
-    var buffer = StringBuffer();
-
-    buffer.writeln('{');
-
-    var prefix = ' ' * 2;
-    buffer.writeln('$prefix"configVersion": 2,');
-    buffer.writeln('$prefix"packages": [');
-
-    for (var i = 0; i < _packages.length; i++) {
-      var package = _packages[i];
-
-      var prefix = ' ' * 4;
-      buffer.writeln('$prefix{');
-
-      prefix = ' ' * 6;
-      buffer.writeln('$prefix"name": "${package.name}",');
-
-      var rootUri = toUriStr(package.rootPath);
-      buffer.write('$prefix"rootUri": "$rootUri"');
-
-      if (package.packageUri != null) {
-        buffer.writeln(',');
-        buffer.write('$prefix"packageUri": "${package.packageUri}"');
-      }
-
-      if (package.languageVersion != null) {
-        buffer.writeln(',');
-        buffer.write('$prefix"languageVersion": "${package.languageVersion}"');
-      }
-
-      buffer.writeln();
-
-      prefix = ' ' * 4;
-      buffer.write(prefix);
-      buffer.writeln(i < _packages.length - 1 ? '},' : '}');
-    }
-
-    buffer.writeln('  ]');
-    buffer.writeln('}');
-
-    return buffer.toString();
-  }
-
-  PackageConfigFileBuilder _copy() {
-    var copy = PackageConfigFileBuilder();
-    copy._packages.addAll(_packages);
-    return copy;
-  }
-}
-
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
     var path = convertPath(testPackageRootPath);
@@ -351,7 +281,12 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, content: config.toContent(toUriStr));
+    newFile(
+      path,
+      content: config.toContent(
+        toUriStr: toUriStr,
+      ),
+    );
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
@@ -367,7 +302,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     bool js = false,
     bool meta = false,
   }) {
-    config = config._copy();
+    config = config.copy();
 
     config.add(
       name: 'test',
@@ -445,18 +380,4 @@ mixin WithNullSafetyMixin on PubPackageResolutionTest {
       ),
     );
   }
-}
-
-class _PackageDescription {
-  final String name;
-  final String rootPath;
-  final String packageUri;
-  final String languageVersion;
-
-  _PackageDescription({
-    @required this.name,
-    @required this.rootPath,
-    @required this.packageUri,
-    @required this.languageVersion,
-  });
 }
