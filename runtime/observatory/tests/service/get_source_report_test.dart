@@ -73,12 +73,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': 432,
-      'endPos': 576,
+      'startPos': 424,
+      'endPos': 568,
       'compiled': true,
       'coverage': {
-        'hits': [432, 482, 533, 562],
-        'misses': [495],
+        'hits': [424, 474, 525, 554],
+        'misses': [487],
       }
     };
 
@@ -91,7 +91,7 @@ var tests = <IsolateTest>[
     final numRanges = coverage['ranges'].length;
     expect(coverage['type'], equals('SourceReport'));
 
-    expect(numRanges, equals(12));
+    expect(numRanges, equals(10));
     expect(coverage['ranges'][0], equals(expectedRange));
     expect(coverage['scripts'].length, 1);
     expect(
@@ -106,7 +106,7 @@ var tests = <IsolateTest>[
     };
     coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
     expect(coverage['type'], equals('SourceReport'));
-    expect(coverage['ranges'].length, numRanges);
+    expect(coverage['ranges'].length, 11);
     expect(allRangesCompiled(coverage), isTrue);
 
     // One function
