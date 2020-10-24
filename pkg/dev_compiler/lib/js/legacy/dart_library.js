@@ -293,14 +293,18 @@ if (!dart_library) {
       if (library.onReloadEnd) {
         library.onReloadEnd();
         return;
-      } else {
-        document.body = _originalBody;
+      } else { 
+        if (dart_sdk.dart.global.document) {
+          dart_sdk.dart.global.document.body = _originalBody;
+        }
       }
     } else {
       // If not a reload then store the initial html to reset it on reload.
-      _originalBody = document.body.cloneNode(true);
+      if (dart_sdk.dart.global.document) {
+        _originalBody = dart_sdk.dart.global.document.body.cloneNode(true);
+      }
     }
-    library.main();
+    library.main([]);
   }
   dart_library.start = start;
 
