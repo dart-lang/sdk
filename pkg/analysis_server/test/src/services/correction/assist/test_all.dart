@@ -58,7 +58,7 @@ import 'flutter_wrap_container_test.dart' as flutter_wrap_container;
 import 'flutter_wrap_generic_test.dart' as flutter_wrap_generic;
 import 'flutter_wrap_padding_test.dart' as flutter_wrap_padding;
 import 'flutter_wrap_row_test.dart' as flutter_wrap_row;
-import 'flutter_wrap_sized_box.dart' as flutter_wrap_sized_box;
+import 'flutter_wrap_sized_box_test.dart' as flutter_wrap_sized_box;
 import 'flutter_wrap_stream_builder_test.dart' as flutter_wrap_stream_builder;
 import 'import_add_show_test.dart' as import_add_show;
 import 'inline_invocation_test.dart' as inline_invocation;
