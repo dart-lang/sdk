@@ -282,35 +282,37 @@ class NodeChangeForAnnotation extends NodeChange<Annotation> {
 /// Implementation of [NodeChange] specialized for operating on [ArgumentList]
 /// nodes.
 class NodeChangeForArgumentList extends NodeChange<ArgumentList> {
-  /// The set of arguments that should be dropped from this argument list, or
-  /// the empty set if no arguments should be dropped.
-  final Set<Expression> _argumentsToDrop = {};
+  /// Map whose keys are the arguments that should be dropped from this argument
+  /// list, if any.  Values are info about why the arguments are being dropped.
+  final Map<Expression, AtomicEditInfo> _argumentsToDrop = {};
 
   NodeChangeForArgumentList() : super._();
 
-  /// Queries the set of arguments that should be dropped from this argument
-  /// list, or the empty set if no arguments should be dropped.
+  /// Queries the map whose keys are the arguments that should be dropped from
+  /// this argument list, if any.  Values are info about why the arguments are
+  /// being dropped.
   @visibleForTesting
-  Iterable<Expression> get argumentsToDrop => _argumentsToDrop;
+  Map<Expression, AtomicEditInfo> get argumentsToDrop => _argumentsToDrop;
 
   @override
-  Iterable<String> get _toStringParts => [
-        if (_argumentsToDrop.isNotEmpty)
-          'argumentsToDrop: {${_argumentsToDrop.join(', ')}}'
-      ];
+  Iterable<String> get _toStringParts =>
+      [if (_argumentsToDrop.isNotEmpty) 'argumentsToDrop: $_argumentsToDrop'];
 
-  /// Updates `this` so that the given [argument] will be dropped.
-  void dropArgument(Expression argument) {
-    _argumentsToDrop.add(argument);
+  /// Updates `this` so that the given [argument] will be dropped, using [info]
+  /// to annotate the reason why it is being dropped.
+  void dropArgument(Expression argument, AtomicEditInfo info) {
+    assert(!_argumentsToDrop.containsKey(argument));
+    _argumentsToDrop[argument] = info;
   }
 
   @override
   EditPlan _apply(ArgumentList node, FixAggregator aggregator) {
-    assert(_argumentsToDrop.every((e) => identical(e.parent, node)));
+    assert(_argumentsToDrop.keys.every((e) => identical(e.parent, node)));
     List<EditPlan> innerPlans = [];
     for (var argument in node.arguments) {
-      if (_argumentsToDrop.contains(argument)) {
-        innerPlans.add(aggregator.planner.removeNode(argument));
+      if (_argumentsToDrop.containsKey(argument)) {
+        innerPlans.add(aggregator.planner
+            .removeNode(argument, info: _argumentsToDrop[argument]));
       } else {
         innerPlans.add(aggregator.planForNode(argument));
       }
@@ -497,7 +499,8 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
       innerPlans.add(aggregator.planner.insertText(node, offset, [
         if (prefix.isNotEmpty) AtomicEdit.insert(prefix),
         AtomicEdit.insert(
-            "import '${importToAdd.key}' show ${shownNames.join(', ')};"),
+            "import '${importToAdd.key}' show ${shownNames.join(', ')};",
+            info: AtomicEditInfo(NullabilityFixDescription.addImport, {})),
         if (suffix.isNotEmpty) AtomicEdit.insert(suffix)
       ]));
     }
@@ -875,18 +878,40 @@ class NodeChangeForMethodInvocation
 class NodeChangeForMethodName extends NodeChange<SimpleIdentifier> {
   /// The name the method name should be changed to, or `null` if no change
   /// should be made.
-  String replacement;
+  String _replacement;
+
+  /// Info object associated with the replacement.
+  AtomicEditInfo _replacementInfo;
 
   NodeChangeForMethodName() : super._();
+
+  /// Queries the name the method name should be changed to, or `null` if no
+  /// change should be made.
+  @visibleForTesting
+  String get replacement => _replacement;
+
+  /// Queries the info object associated with the replacement.
+  @visibleForTesting
+  AtomicEditInfo get replacementInfo => _replacementInfo;
 
   @override
   Iterable<String> get _toStringParts =>
       [if (replacement != null) 'replacement: $replacement'];
 
+  /// Updates `this` so that the method name will be changed to [replacement],
+  /// using [info] to annotate the reason for the change.
+  void replaceWith(String replacement, AtomicEditInfo info) {
+    assert(_replacement == null);
+    _replacement = replacement;
+    _replacementInfo = info;
+  }
+
   @override
   EditPlan _apply(SimpleIdentifier node, FixAggregator aggregator) {
     if (replacement != null) {
-      return aggregator.planner.replace(node, [AtomicEdit.insert(replacement)]);
+      return aggregator.planner.replace(
+          node, [AtomicEdit.insert(replacement, info: replacementInfo)],
+          info: replacementInfo);
     } else {
       return aggregator.innerPlanForNode(node);
     }

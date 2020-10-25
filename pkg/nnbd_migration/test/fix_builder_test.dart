@@ -1371,7 +1371,7 @@ _f(Iterable<int> x) => x.firstWhere((n) => n.isEven, orElse: () => null);
     var fixBuilder = visitSubexpression(methodInvocation, 'int?', changes: {
       methodInvocation.methodName: isMethodNameChange('firstWhereOrNull'),
       methodInvocation.argumentList:
-          isDropArgument(unorderedEquals([functionExpression.parent])),
+          isDropArgument({functionExpression.parent: anything}),
       // Behavior of the function expression and its subexpression don't matter
       // because they're being dropped.
       functionExpression.parent: anything,

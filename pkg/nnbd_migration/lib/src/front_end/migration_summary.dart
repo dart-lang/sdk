@@ -60,6 +60,9 @@ class MigrationSummary {
 
   String _keyForKind(NullabilityFixKind kind) {
     switch (kind) {
+      case NullabilityFixKind.addImport:
+        return 'addImport';
+        break;
       case NullabilityFixKind.addLate:
         return 'addLate';
         break;
@@ -77,6 +80,9 @@ class MigrationSummary {
         break;
       case NullabilityFixKind.addType:
         return 'addType';
+        break;
+      case NullabilityFixKind.changeMethodName:
+        return 'changeMethodName';
         break;
       case NullabilityFixKind.checkExpression:
         return 'checkExpression';

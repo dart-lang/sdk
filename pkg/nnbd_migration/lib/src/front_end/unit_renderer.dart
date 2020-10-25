@@ -31,6 +31,7 @@ class UnitRenderer {
     NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode,
     NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode,
     NullabilityFixKind.otherCastExpression,
+    NullabilityFixKind.changeMethodName,
     NullabilityFixKind.checkExpression,
     NullabilityFixKind.addRequired,
     NullabilityFixKind.makeTypeNullable,
@@ -44,6 +45,7 @@ class UnitRenderer {
     NullabilityFixKind.addLateFinalDueToHint,
     NullabilityFixKind.checkExpressionDueToHint,
     NullabilityFixKind.makeTypeNullableDueToHint,
+    NullabilityFixKind.addImport,
     NullabilityFixKind.removeLanguageVersionComment
   ];
 
@@ -183,38 +185,48 @@ class UnitRenderer {
   /// HTML-escaped.
   String _computeRegionContent(UnitInfo unit) {
     var content = unitInfo.content;
-    var regions = StringBuffer();
+    var rows = <String>[];
+    var currentTextCell = StringBuffer();
+    bool isAddedLine = false;
     var lineNumber = 1;
+
+    void finishRow(bool isAddedText) {
+      var line = currentTextCell?.toString();
+      if (isAddedLine) {
+        rows.add('<tr><td class="line-no">(new)</td><td>$line</td></tr>');
+      } else {
+        rows.add('<tr><td class="line-no">$lineNumber</td>'
+            '<td class="line-$lineNumber">$line</td></tr>');
+        lineNumber++;
+      }
+      currentTextCell = StringBuffer();
+      isAddedLine = isAddedText;
+    }
 
     void writeSplitLines(
       String lines, {
       String perLineOpeningTag = '',
       String perLineClosingTag = '',
+      bool isAddedText = false,
     }) {
       var lineIterator = LineSplitter.split(lines).iterator;
       lineIterator.moveNext();
 
       while (true) {
-        regions.write(perLineOpeningTag);
-        regions.write(_htmlEscape.convert(lineIterator.current));
-        regions.write(perLineClosingTag);
+        currentTextCell.write(perLineOpeningTag);
+        currentTextCell.write(_htmlEscape.convert(lineIterator.current));
+        currentTextCell.write(perLineClosingTag);
         if (lineIterator.moveNext()) {
-          // If we're not on the last element, end this table row, and start a
-          // new table row.
-          lineNumber++;
-          regions.write('</td></tr>'
-              '<tr><td class="line-no">$lineNumber</td>'
-              '<td class="line-$lineNumber">');
+          // If we're not on the last element, end this row, and get ready to
+          // start a new row.
+          finishRow(isAddedText);
         } else {
           break;
         }
       }
 
       if (lines.endsWith('\n')) {
-        lineNumber++;
-        regions.write('</td></tr>'
-            '<tr><td class="line-no">$lineNumber</td>'
-            '<td class="line-$lineNumber">');
+        finishRow(isAddedText);
       }
     }
 
@@ -232,8 +244,6 @@ class UnitRenderer {
     }
 
     var previousOffset = 0;
-    regions.write('<table data-path="${pathMapper.map(unit.path)}"><tbody>');
-    regions.write('<tr><td class="line-no">$lineNumber</td><td>');
     for (var region in unitInfo.regions) {
       var offset = region.offset;
       var length = region.length;
@@ -242,24 +252,32 @@ class UnitRenderer {
         writeSplitLines(content.substring(previousOffset, offset));
       }
       previousOffset = offset + length;
+      var shouldBeShown = region.kind != null;
       var regionClass = classForRegion(region.regionType);
-      var regionSpanTag = '<span class="region $regionClass" '
-          'data-offset="$offset" data-line="$lineNumber">';
+      var regionSpanTag = shouldBeShown
+          ? '<span class="region $regionClass" '
+              'data-offset="$offset" data-line="$lineNumber">'
+          : '';
       writeSplitLines(content.substring(offset, offset + length),
-          perLineOpeningTag: regionSpanTag, perLineClosingTag: '</span>');
+          perLineOpeningTag: regionSpanTag,
+          perLineClosingTag: shouldBeShown ? '</span>' : '',
+          isAddedText: region.regionType == RegionType.add);
     }
     if (previousOffset < content.length) {
       // Last region of unmodified content.
       writeSplitLines(content.substring(previousOffset));
     }
-    regions.write('</td></tr></tbody></table>');
-    return regions.toString();
+    finishRow(false);
+    return '<table data-path="${pathMapper.map(unit.path)}"><tbody>'
+        '${rows.join()}</tbody></table>';
   }
 
   String _headerForKind(NullabilityFixKind kind, int count) {
     var s = count == 1 ? '' : 's';
     var es = count == 1 ? '' : 'es';
     switch (kind) {
+      case NullabilityFixKind.addImport:
+        return '$count import$s added';
       case NullabilityFixKind.addLate:
         return '$count late keyword$s added';
       case NullabilityFixKind.addLateDueToHint:
@@ -272,6 +290,8 @@ class UnitRenderer {
         return '$count required keyword$s added';
       case NullabilityFixKind.addType:
         return '$count type$s added';
+      case NullabilityFixKind.changeMethodName:
+        return '$count method name$s changed';
       case NullabilityFixKind.downcastExpression:
         return '$count downcast$s added';
       case NullabilityFixKind.otherCastExpression:

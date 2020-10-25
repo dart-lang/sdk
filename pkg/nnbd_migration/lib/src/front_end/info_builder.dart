@@ -205,6 +205,12 @@ class InfoBuilder {
         // We don't offer any edits around bad compound assignments or bad
         // increment/decrement operations.
         break;
+      case NullabilityFixKind.addImport:
+      case NullabilityFixKind.changeMethodName:
+        // These fix kinds have to do with changing iterable method calls to
+        // their "OrNull" equivalents.  We don't offer any hints around
+        // this transformation.
+        break;
     }
     return edits;
   }
@@ -362,44 +368,42 @@ class InfoBuilder {
         var description = info?.description;
         var hint = info?.hintComment;
         var isCounted = hint == null || hintsSeen.add(hint);
-        if (description != null) {
-          var explanation = description.appliedMessage;
-          var kind = description.kind;
-          if (edit.isInsertion) {
-            regions.add(RegionInfo(
-                edit.isInformative ? RegionType.informative : RegionType.add,
-                offset,
-                replacement.length,
-                lineNumber,
-                explanation,
-                kind,
-                isCounted,
-                edits: edits,
-                traces: traces));
-          } else if (edit.isDeletion) {
-            regions.add(RegionInfo(
-                edit.isInformative ? RegionType.informative : RegionType.remove,
-                offset,
-                length,
-                lineNumber,
-                explanation,
-                kind,
-                isCounted,
-                edits: edits,
-                traces: traces));
-          } else if (edit.isReplacement) {
-            assert(!edit.isInformative);
-            regions.add(RegionInfo(RegionType.remove, offset, length,
-                lineNumber, explanation, kind, isCounted,
-                edits: edits, traces: traces));
-            regions.add(RegionInfo(RegionType.add, end, replacement.length,
-                lineNumber, explanation, kind, isCounted,
-                edits: edits, traces: traces));
-          } else {
-            throw StateError(
-                'Edit is not an insertion, deletion, replacement, nor '
-                'informative: $edit');
-          }
+        var explanation = description?.appliedMessage;
+        var kind = description?.kind;
+        if (edit.isInsertion) {
+          regions.add(RegionInfo(
+              edit.isInformative ? RegionType.informative : RegionType.add,
+              offset,
+              replacement.length,
+              lineNumber,
+              explanation,
+              kind,
+              isCounted,
+              edits: edits,
+              traces: traces));
+        } else if (edit.isDeletion) {
+          regions.add(RegionInfo(
+              edit.isInformative ? RegionType.informative : RegionType.remove,
+              offset,
+              length,
+              lineNumber,
+              explanation,
+              kind,
+              isCounted,
+              edits: edits,
+              traces: traces));
+        } else if (edit.isReplacement) {
+          assert(!edit.isInformative);
+          regions.add(RegionInfo(RegionType.remove, offset, length, lineNumber,
+              explanation, kind, isCounted,
+              edits: edits, traces: traces));
+          regions.add(RegionInfo(RegionType.add, end, replacement.length,
+              lineNumber, explanation, kind, isCounted,
+              edits: edits, traces: traces));
+        } else {
+          throw StateError(
+              'Edit is not an insertion, deletion, replacement, nor '
+              'informative: $edit');
         }
         sourceOffset += length;
         offset += length + replacement.length;

@@ -17,6 +17,11 @@ export 'package:nnbd_migration/src/utilities/hint_utils.dart' show HintComment;
 
 /// Description of fixes that might be performed by nullability migration.
 class NullabilityFixDescription {
+  /// An import was added to the library.
+  static const addImport = NullabilityFixDescription._(
+      appliedMessage: 'Added import for use in migrated code',
+      kind: NullabilityFixKind.addImport);
+
   /// A variable declaration needs to be marked as "late".
   static const addLate = NullabilityFixDescription._(
       appliedMessage: 'Added a late keyword', kind: NullabilityFixKind.addLate);
@@ -181,6 +186,13 @@ class NullabilityFixDescription {
         kind: NullabilityFixKind.replaceVar,
       );
 
+  /// A method call was changed from calling one method to another.
+  factory NullabilityFixDescription.changeMethodName(
+          String oldName, String newName) =>
+      NullabilityFixDescription._(
+          appliedMessage: "Changed method '$oldName' to '$newName'",
+          kind: NullabilityFixKind.changeMethodName);
+
   /// An explicit type mentioned in the source program needs to be made
   /// nullable.
   factory NullabilityFixDescription.makeTypeNullable(String type) =>
@@ -222,7 +234,9 @@ class NullabilityFixDescription {
       );
 
   const NullabilityFixDescription._(
-      {@required this.appliedMessage, @required this.kind});
+      {@required this.appliedMessage, @required this.kind})
+      : assert(appliedMessage != null),
+        assert(kind != null);
 
   @override
   int get hashCode {
@@ -245,12 +259,14 @@ class NullabilityFixDescription {
 
 /// An enumeration of the various kinds of nullability fixes.
 enum NullabilityFixKind {
+  addImport,
   addLate,
   addLateDueToHint,
   addLateDueToTestSetup,
   addLateFinalDueToHint,
   addRequired,
   addType,
+  changeMethodName,
   checkExpression,
   checkExpressionDueToHint,
   compoundAssignmentHasNullableSource,

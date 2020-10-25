@@ -244,6 +244,40 @@ class <span id="...">C</span> {
 ''');
   }
 
+  Future<void> test_inserted_lines() async {
+    await buildInfoForSingleTestFile('''
+int f(List<int> values)
+    => values.firstWhere((i) => i.isEven, orElse: () => null);
+''', migratedContent: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? f(List<int >  values)
+    => values.firstWherefirstWhereOrNull((i) => i.isEven/* , orElse: () => null */);
+''');
+    var output = renderUnits()[0];
+    var regions = output.regions;
+    // We're not testing the correctness of the data path, so drop it.
+    regions = regions.replaceAll(RegExp(' data-path="[^"]*"'), '');
+    // Split the output into table rows.
+    var rows = regions.split(RegExp('(?=<tr)'));
+    // The table should begin with an added region for the added import; since
+    // adding the import involves adding 2 lines, the second and third lines
+    // should have a line number of "(new)", and then lines should resume
+    // counting at 2 after that.
+    expect(rows[0], '<table><tbody>');
+    expect(
+        rows[1],
+        '<tr><td class="line-no">1</td>'
+        '<td class="line-1">'
+        '<span class="region added-region" data-offset="0" data-line="1">'
+        "import 'package:collection/collection.dart' show IterableExtension;"
+        '</span></td></tr>');
+    expect(rows[2], '<tr><td class="line-no">(new)</td><td></td></tr>');
+    expect(rows[3], startsWith('<tr><td class="line-no">(new)</td><td>int'));
+    expect(rows[4],
+        startsWith('<tr><td class="line-no">2</td><td class="line-2">'));
+  }
+
   void test_kindPriorityOrder() {
     var nonDisplayedKinds = NullabilityFixKind.values.toSet();
     for (var kind in UnitRenderer.kindPriorityOrder) {
@@ -255,6 +289,33 @@ class <span id="...">C</span> {
       NullabilityFixKind.typeNotMadeNullable,
       NullabilityFixKind.typeNotMadeNullableDueToHint
     });
+  }
+
+  Future<void> test_method_name_change() async {
+    addPackageFile('collection', 'collection.dart', '');
+    await buildInfoForSingleTestFile(
+        '''
+import 'package:collection/collection.dart';
+
+int f(List<int> values)
+    => values.firstWhere((i) => i.isEven, orElse: () => null);
+''',
+        removeViaComments: false,
+        migratedContent: '''
+import 'package:collection/collection.dart';
+
+int? f(List<int >  values)
+    => values.firstWherefirstWhereOrNull((i) => i.isEven, orElse: () => null);
+''');
+    var output = renderUnits()[0];
+    var regions = output.regions;
+    // We aren't testing data-offset or data-line behaviors.
+    regions = regions.replaceAll(RegExp(' data-offset="[^"]*"'), '');
+    regions = regions.replaceAll(RegExp(' data-line="[^"]*"'), '');
+    expect(
+        regions,
+        contains('<span class="region removed-region">firstWhere</span>'
+            '<span class="region added-region">firstWhereOrNull</span>('));
   }
 
   Future<void> test_navContentContainsEscapedHtml() async {
