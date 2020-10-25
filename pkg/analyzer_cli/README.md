@@ -77,3 +77,10 @@ The following are advanced options to use with dartanalyzer:
 * `--url-mapping=libraryUri,/path/to/library.dart`
 
   Use the specified library as the source for that particular import.
+  
+  ## CI
+  
+  You can use dart-analyzer to validate your pull requests with the following tools
+  
+  - [Mega-Linter](https://github.com/nvuillam/mega-linter#readme): 100% open-source linters aggregator, embedding dart-analyzer
+  
