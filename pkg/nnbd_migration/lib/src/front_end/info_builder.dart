@@ -336,11 +336,12 @@ class InfoBuilder {
     var sourceOffsets = changes.keys.toList();
     sourceOffsets.sort();
     var offset = 0;
-    var lastSourceOffset = 0;
-    for (var sourceOffset in sourceOffsets) {
-      offset += sourceOffset - lastSourceOffset;
-      lastSourceOffset = sourceOffset;
-      var changesForSourceOffset = changes[sourceOffset];
+    var sourceOffset = 0;
+    for (var nextSourceOffset in sourceOffsets) {
+      var changesForSourceOffset = changes[nextSourceOffset];
+      var unchangedTextLength = nextSourceOffset - sourceOffset;
+      offset += unchangedTextLength;
+      sourceOffset += unchangedTextLength;
       for (var edit in changesForSourceOffset) {
         var length = edit.length;
         var replacement = edit.replacement;
@@ -400,7 +401,8 @@ class InfoBuilder {
                 'informative: $edit');
           }
         }
-        offset += replacement.length;
+        sourceOffset += length;
+        offset += length + replacement.length;
       }
     }
 

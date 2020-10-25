@@ -886,6 +886,26 @@ C/*!*/ _f(C  c) => (c + c)!;
         kind: NullabilityFixKind.checkExpression);
   }
 
+  Future<void> test_method_name_change() async {
+    addPackageFile('collection', 'collection.dart', '');
+    var content = '''
+import 'package:collection/collection.dart';
+
+int f(List<int> values, int/*?*/ x)
+    => values.firstWhere((i) => (i + x).isEven,
+        orElse: () => null);
+''';
+    var migratedContent = '''
+import 'package:collection/collection.dart';
+
+int? f(List<int >  values, int/*?*/ x)
+    => values.firstWherefirstWhereOrNull((i) => (i + x!).isEven,
+        orElse: () => null);
+''';
+    await buildInfoForSingleTestFile(content,
+        migratedContent: migratedContent, removeViaComments: false);
+  }
+
   void test_nullAwareAssignment_remove() async {
     var unit = await buildInfoForSingleTestFile('''
 int f(int/*!*/ x, int y) => x ??= y;
