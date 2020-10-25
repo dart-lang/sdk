@@ -269,8 +269,9 @@ int? f(List<int >  values)
         rows[1],
         '<tr><td class="line-no">1</td>'
         '<td class="line-1">'
+        '<span class="region added-region" data-offset="0" data-line="1">'
         "import 'package:collection/collection.dart' show IterableExtension;"
-        '</td></tr>');
+        '</span></td></tr>');
     expect(rows[2], '<tr><td class="line-no">(new)</td><td></td></tr>');
     expect(rows[3], startsWith('<tr><td class="line-no">(new)</td><td>int'));
     expect(rows[4],
@@ -288,6 +289,33 @@ int? f(List<int >  values)
       NullabilityFixKind.typeNotMadeNullable,
       NullabilityFixKind.typeNotMadeNullableDueToHint
     });
+  }
+
+  Future<void> test_method_name_change() async {
+    addPackageFile('collection', 'collection.dart', '');
+    await buildInfoForSingleTestFile(
+        '''
+import 'package:collection/collection.dart';
+
+int f(List<int> values)
+    => values.firstWhere((i) => i.isEven, orElse: () => null);
+''',
+        removeViaComments: false,
+        migratedContent: '''
+import 'package:collection/collection.dart';
+
+int? f(List<int >  values)
+    => values.firstWherefirstWhereOrNull((i) => i.isEven, orElse: () => null);
+''');
+    var output = renderUnits()[0];
+    var regions = output.regions;
+    // We aren't testing data-offset or data-line behaviors.
+    regions = regions.replaceAll(RegExp(' data-offset="[^"]*"'), '');
+    regions = regions.replaceAll(RegExp(' data-line="[^"]*"'), '');
+    expect(
+        regions,
+        contains('<span class="region removed-region">firstWhere</span>'
+            '<span class="region added-region">firstWhereOrNull</span>('));
   }
 
   Future<void> test_navContentContainsEscapedHtml() async {

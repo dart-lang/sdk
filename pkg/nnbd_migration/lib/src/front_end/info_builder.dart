@@ -205,6 +205,12 @@ class InfoBuilder {
         // We don't offer any edits around bad compound assignments or bad
         // increment/decrement operations.
         break;
+      case NullabilityFixKind.addImport:
+      case NullabilityFixKind.changeMethodName:
+        // These fix kinds have to do with changing iterable method calls to
+        // their "OrNull" equivalents.  We don't offer any hints around
+        // this transformation.
+        break;
     }
     return edits;
   }

@@ -635,13 +635,18 @@ class MigrationResolutionHooksImpl
       if (transformationInfo != null) {
         // We can fix this by dropping the node and changing the method call.
         _fixBuilder.needsIterableExtension = true;
+        var info = AtomicEditInfo(
+            NullabilityFixDescription.changeMethodName(
+                transformationInfo.originalName,
+                transformationInfo.replacementName),
+            {});
         (_fixBuilder._getChange(transformationInfo.methodInvocation.methodName)
                 as NodeChangeForMethodName)
-            .replacement = transformationInfo.replacementName;
+            .replaceWith(transformationInfo.replacementName, info);
         (_fixBuilder._getChange(
                     transformationInfo.methodInvocation.argumentList)
                 as NodeChangeForArgumentList)
-            .dropArgument(transformationInfo.orElseArgument);
+            .dropArgument(transformationInfo.orElseArgument, info);
         _deferredMethodInvocationProcessing[
                 transformationInfo.methodInvocation] =
             (methodInvocationType) => _fixBuilder._typeSystem

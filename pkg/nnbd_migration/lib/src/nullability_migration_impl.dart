@@ -87,7 +87,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       NullabilityMigrationInstrumentation instrumentation,
       bool removeViaComments = false,
       bool warnOnWeakCode = true,
-      bool transformWhereOrNull = false})
+      bool transformWhereOrNull = true})
       : this._(
             listener,
             NullabilityGraph(instrumentation: instrumentation),

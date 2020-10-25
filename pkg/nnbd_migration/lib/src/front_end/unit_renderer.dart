@@ -31,6 +31,7 @@ class UnitRenderer {
     NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode,
     NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode,
     NullabilityFixKind.otherCastExpression,
+    NullabilityFixKind.changeMethodName,
     NullabilityFixKind.checkExpression,
     NullabilityFixKind.addRequired,
     NullabilityFixKind.makeTypeNullable,
@@ -44,6 +45,7 @@ class UnitRenderer {
     NullabilityFixKind.addLateFinalDueToHint,
     NullabilityFixKind.checkExpressionDueToHint,
     NullabilityFixKind.makeTypeNullableDueToHint,
+    NullabilityFixKind.addImport,
     NullabilityFixKind.removeLanguageVersionComment
   ];
 
@@ -274,6 +276,8 @@ class UnitRenderer {
     var s = count == 1 ? '' : 's';
     var es = count == 1 ? '' : 'es';
     switch (kind) {
+      case NullabilityFixKind.addImport:
+        return '$count import$s added';
       case NullabilityFixKind.addLate:
         return '$count late keyword$s added';
       case NullabilityFixKind.addLateDueToHint:
@@ -286,6 +290,8 @@ class UnitRenderer {
         return '$count required keyword$s added';
       case NullabilityFixKind.addType:
         return '$count type$s added';
+      case NullabilityFixKind.changeMethodName:
+        return '$count method name$s changed';
       case NullabilityFixKind.downcastExpression:
         return '$count downcast$s added';
       case NullabilityFixKind.otherCastExpression:

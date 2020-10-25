@@ -304,8 +304,8 @@ g(int x, int y) => f(x, y);
     await analyze(content);
     var previewInfo = run({
       findNode.methodInvocation('f(x').argumentList: NodeChangeForArgumentList()
-        ..dropArgument(findNode.simple('y);'))
-        ..dropArgument(findNode.simple('x, y'))
+        ..dropArgument(findNode.simple('y);'), null)
+        ..dropArgument(findNode.simple('x, y'), null)
     });
     expect(previewInfo.applyTo(code), '''
 f([int x, int y]) => null;
@@ -321,7 +321,7 @@ g(int x, int y) => f(x, y);
     await analyze(content);
     var previewInfo = run({
       findNode.methodInvocation('f(x').argumentList: NodeChangeForArgumentList()
-        ..dropArgument(findNode.simple('y);'))
+        ..dropArgument(findNode.simple('y);'), null)
     });
     expect(previewInfo.applyTo(code), '''
 f([int x, int y]) => null;
@@ -337,7 +337,7 @@ g(int x, int y) => f(x, y);
     await analyze(content);
     var previewInfo = run({
       findNode.methodInvocation('f(x').argumentList: NodeChangeForArgumentList()
-        ..dropArgument(findNode.simple('y);')),
+        ..dropArgument(findNode.simple('y);'), null),
       findNode.simple('x, y'): NodeChangeForExpression()..addNullCheck(null)
     });
     expect(previewInfo.applyTo(code), '''
@@ -1098,7 +1098,7 @@ f(Object o) => o as a.Future<Null>;
     await analyze('f() => f();');
     var previewInfo = run({
       findNode.methodInvocation('f();').methodName: NodeChangeForMethodName()
-        ..replacement = 'g'
+        ..replaceWith('g', null)
     });
     expect(previewInfo.applyTo(code), 'f() => g();');
   }
