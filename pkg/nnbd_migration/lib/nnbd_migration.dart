@@ -222,7 +222,9 @@ class NullabilityFixDescription {
       );
 
   const NullabilityFixDescription._(
-      {@required this.appliedMessage, @required this.kind});
+      {@required this.appliedMessage, @required this.kind})
+      : assert(appliedMessage != null),
+        assert(kind != null);
 
   @override
   int get hashCode {

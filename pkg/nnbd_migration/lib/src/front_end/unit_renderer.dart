@@ -242,11 +242,15 @@ class UnitRenderer {
         writeSplitLines(content.substring(previousOffset, offset));
       }
       previousOffset = offset + length;
+      var shouldBeShown = region.kind != null;
       var regionClass = classForRegion(region.regionType);
-      var regionSpanTag = '<span class="region $regionClass" '
-          'data-offset="$offset" data-line="$lineNumber">';
+      var regionSpanTag = shouldBeShown
+          ? '<span class="region $regionClass" '
+              'data-offset="$offset" data-line="$lineNumber">'
+          : '';
       writeSplitLines(content.substring(offset, offset + length),
-          perLineOpeningTag: regionSpanTag, perLineClosingTag: '</span>');
+          perLineOpeningTag: regionSpanTag,
+          perLineClosingTag: shouldBeShown ? '</span>' : '');
     }
     if (previousOffset < content.length) {
       // Last region of unmodified content.
