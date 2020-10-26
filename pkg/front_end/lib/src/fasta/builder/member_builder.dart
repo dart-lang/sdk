@@ -251,9 +251,6 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isStatic => memberBuilder.isStatic;
 
   @override
-  Member getMember(ClassHierarchyBuilder hierarchy) => memberBuilder.member;
-
-  @override
   bool isObjectMember(ClassBuilder objectClass) {
     return classBuilder == objectClass;
   }

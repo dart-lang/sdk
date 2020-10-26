@@ -13,6 +13,7 @@ import 'package:kernel/type_algebra.dart';
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/forest.dart';
 import '../kernel/internal_ast.dart';
+import '../kernel/member_covariance.dart';
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -593,6 +594,8 @@ class SourceProcedureMember extends BuilderClassMember {
   @override
   final SourceProcedureBuilder memberBuilder;
 
+  Covariance _covariance;
+
   SourceProcedureMember(this.memberBuilder);
 
   @override
@@ -612,6 +615,12 @@ class SourceProcedureMember extends BuilderClassMember {
   Member getMember(ClassHierarchyBuilder hierarchy) {
     memberBuilder._ensureTypes(hierarchy);
     return memberBuilder.member;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    return _covariance ??=
+        new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter);
   }
 
   @override

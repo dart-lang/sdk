@@ -309,16 +309,7 @@ abstract class CombinedMemberSignatureBase<T> {
     return _combinedMemberSignatureType;
   }
 
-  Covariance _getMemberCovariance(int index) {
-    _memberCovariances ??= new List<Covariance>(members.length);
-    Covariance covariance = _memberCovariances[index];
-    if (covariance == null) {
-      Member member = _getMember(index);
-      _memberCovariances[index] =
-          covariance = new Covariance.fromMember(member, forSetter: forSetter);
-    }
-    return covariance;
-  }
+  Covariance _getMemberCovariance(int index);
 
   void _ensureCombinedMemberSignatureCovariance() {
     if (!_isCombinedMemberSignatureCovarianceComputed) {
@@ -705,6 +696,15 @@ class CombinedClassMemberSignature
         "No member computed for ${candidate} (${candidate.runtimeType})");
     return target;
   }
+
+  @override
+  Covariance _getMemberCovariance(int index) {
+    ClassMember candidate = members[index];
+    Covariance covariance = candidate.getCovariance(hierarchy);
+    assert(covariance != null,
+        "No covariance computed for ${candidate} (${candidate.runtimeType})");
+    return covariance;
+  }
 }
 
 /// Class used for computing and inspecting the combined member signature for
@@ -728,4 +728,15 @@ class CombinedMemberSignatureBuilder
 
   @override
   Member _getMember(int index) => members[index];
+
+  @override
+  Covariance _getMemberCovariance(int index) {
+    _memberCovariances ??= new List<Covariance>(members.length);
+    Covariance covariance = _memberCovariances[index];
+    if (covariance == null) {
+      _memberCovariances[index] = covariance =
+          new Covariance.fromMember(members[index], forSetter: forSetter);
+    }
+    return covariance;
+  }
 }

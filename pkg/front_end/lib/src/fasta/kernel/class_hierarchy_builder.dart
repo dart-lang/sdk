@@ -81,6 +81,8 @@ import '../type_inference/type_schema_environment.dart' show TypeConstraint;
 
 import 'combined_member_signature.dart';
 
+import 'member_covariance.dart';
+
 import 'forwarding_node.dart' show ForwardingNode;
 
 import 'kernel_builder.dart' show ImplicitFieldType;
@@ -233,6 +235,10 @@ abstract class ClassMember {
   /// Returns `true` if this member is a field, getter or setter.
   bool get isProperty;
   Member getMember(ClassHierarchyBuilder hierarchy);
+
+  /// Returns the member [Covariance] for this class member.
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy);
+
   bool get isDuplicate;
   String get fullName;
   String get fullNameForErrors;
@@ -978,84 +984,10 @@ class ClassHierarchyNodeBuilder {
     assert(!declaredMember.isGetter && !declaredMember.isSetter);
     // Trigger computation of method type.
     Procedure declaredProcedure = declaredMember.getMember(hierarchy);
-    FunctionNode declaredFunction = declaredProcedure.function;
-    List<TypeParameter> declaredTypeParameters =
-        declaredFunction.typeParameters;
-    List<VariableDeclaration> declaredPositional =
-        declaredFunction.positionalParameters;
-    List<VariableDeclaration> declaredNamed = declaredFunction.namedParameters;
     for (ClassMember overriddenMember
         in toSet(declaredMember.classBuilder, overriddenMembers)) {
-      Member bMember = overriddenMember.getMember(hierarchy);
-      if (bMember is! Procedure) {
-        debug?.log("Giving up 1");
-        continue;
-      }
-      Procedure bProcedure = bMember;
-      FunctionNode bFunction = bProcedure.function;
-
-      List<TypeParameter> bTypeParameters = bFunction.typeParameters;
-      int typeParameterCount = declaredTypeParameters.length;
-      if (typeParameterCount != bTypeParameters.length) {
-        debug?.log("Giving up 2");
-        continue;
-      }
-      if (typeParameterCount != 0) {
-        for (int i = 0; i < typeParameterCount; i++) {
-          copyTypeParameterCovariance(declaredMember.classBuilder,
-              declaredTypeParameters[i], bTypeParameters[i]);
-        }
-      }
-
-      if (declaredFunction.requiredParameterCount >
-          bFunction.requiredParameterCount) {
-        debug?.log("Giving up 4");
-        continue;
-      }
-      List<VariableDeclaration> bPositional = bFunction.positionalParameters;
-      if (declaredPositional.length < bPositional.length) {
-        debug?.log("Giving up 5");
-        continue;
-      }
-
-      for (int i = 0; i < bPositional.length; i++) {
-        VariableDeclaration aParameter = declaredPositional[i];
-        VariableDeclaration bParameter = bPositional[i];
-        copyParameterCovariance(
-            declaredMember.classBuilder, aParameter, bParameter);
-      }
-
-      List<VariableDeclaration> bNamed = bFunction.namedParameters;
-      named:
-      if (declaredNamed.isNotEmpty || bNamed.isNotEmpty) {
-        if (declaredPositional.length != bPositional.length) {
-          debug?.log("Giving up 9");
-          break named;
-        }
-        if (declaredFunction.requiredParameterCount !=
-            bFunction.requiredParameterCount) {
-          debug?.log("Giving up 10");
-          break named;
-        }
-
-        declaredNamed = declaredNamed.toList()..sort(compareNamedParameters);
-        bNamed = bNamed.toList()..sort(compareNamedParameters);
-        int aCount = 0;
-        for (int bCount = 0; bCount < bNamed.length; bCount++) {
-          String name = bNamed[bCount].name;
-          for (; aCount < declaredNamed.length; aCount++) {
-            if (declaredNamed[aCount].name == name) break;
-          }
-          if (aCount == declaredNamed.length) {
-            debug?.log("Giving up 11");
-            break named;
-          }
-          VariableDeclaration aParameter = declaredNamed[aCount];
-          VariableDeclaration bParameter = bNamed[bCount];
-          copyParameterCovariance(
-              declaredMember.classBuilder, aParameter, bParameter);
-        }
-      }
+      Covariance covariance = overriddenMember.getCovariance(hierarchy);
+      covariance.applyCovariance(declaredProcedure);
     }
   }
 
@@ -1072,30 +1004,10 @@ class ClassHierarchyNodeBuilder {
     assert(declaredMember.isSetter);
     // Trigger computation of the getter type.
     Procedure declaredSetter = declaredMember.getMember(hierarchy);
-    VariableDeclaration setterParameter =
-        declaredSetter.function.positionalParameters.single;
     for (ClassMember overriddenMember
         in toSet(declaredMember.classBuilder, overriddenMembers)) {
-      Member bTarget = overriddenMember.getMember(hierarchy);
-      if (bTarget is Field) {
-        copyParameterCovarianceFromField(
-            declaredMember.classBuilder, setterParameter, bTarget);
-      } else if (bTarget is Procedure) {
-        if (overriddenMember.isSetter) {
-          VariableDeclaration bParameter =
-              bTarget.function.positionalParameters.single;
-          copyParameterCovariance(
-              declaredMember.classBuilder, setterParameter, bParameter);
-        } else if (overriddenMember.isGetter) {
-          // No variance to copy from getter.
-        } else {
-          debug?.log("Giving up (not accessor: ${bTarget.kind})");
-          continue;
-        }
-      } else {
-        debug?.log("Giving up (not field/procedure: ${bTarget.runtimeType})");
-        return;
-      }
+      Covariance covariance = overriddenMember.getCovariance(hierarchy);
+      covariance.applyCovariance(declaredSetter);
     }
   }
 
@@ -1546,74 +1458,8 @@ class ClassHierarchyNodeBuilder {
     Field declaredField = declaredMember.getMember(hierarchy);
     for (ClassMember overriddenMember
         in toSet(declaredMember.classBuilder, overriddenMembers)) {
-      Member bTarget = overriddenMember.getMember(hierarchy);
-      if (bTarget is Procedure) {
-        if (bTarget.isSetter) {
-          VariableDeclaration parameter =
-              bTarget.function.positionalParameters.single;
-          copyFieldCovarianceFromParameter(
-              declaredMember.classBuilder, declaredField, parameter);
-        }
-      } else if (bTarget is Field) {
-        copyFieldCovariance(
-            declaredMember.classBuilder, declaredField, bTarget);
-      }
-    }
-  }
-
-  void copyParameterCovariance(Builder parent, VariableDeclaration aParameter,
-      VariableDeclaration bParameter) {
-    if (parent == classBuilder) {
-      if (bParameter.isCovariant) {
-        aParameter.isCovariant = true;
-      }
-      if (bParameter.isGenericCovariantImpl) {
-        aParameter.isGenericCovariantImpl = true;
-      }
-    }
-  }
-
-  void copyParameterCovarianceFromField(
-      Builder parent, VariableDeclaration aParameter, Field bField) {
-    if (parent == classBuilder) {
-      if (bField.isCovariant) {
-        aParameter.isCovariant = true;
-      }
-      if (bField.isGenericCovariantImpl) {
-        aParameter.isGenericCovariantImpl = true;
-      }
-    }
-  }
-
-  void copyFieldCovariance(Builder parent, Field aField, Field bField) {
-    if (parent == classBuilder) {
-      if (bField.isCovariant) {
-        aField.isCovariant = true;
-      }
-      if (bField.isGenericCovariantImpl) {
-        aField.isGenericCovariantImpl = true;
-      }
-    }
-  }
-
-  void copyFieldCovarianceFromParameter(
-      Builder parent, Field aField, VariableDeclaration bParameter) {
-    if (parent == classBuilder) {
-      if (bParameter.isCovariant) {
-        aField.isCovariant = true;
-      }
-      if (bParameter.isGenericCovariantImpl) {
-        aField.isGenericCovariantImpl = true;
-      }
-    }
-  }
-
-  void copyTypeParameterCovariance(
-      Builder parent, TypeParameter aParameter, TypeParameter bParameter) {
-    if (parent == classBuilder) {
-      if (bParameter.isGenericCovariantImpl) {
-        aParameter.isGenericCovariantImpl = true;
-      }
+      Covariance covariance = overriddenMember.getCovariance(hierarchy);
+      covariance.applyCovariance(declaredField);
     }
   }
 
@@ -3146,7 +2992,8 @@ abstract class DelayedMember implements ClassMember {
 /// has conflicts with methods inherited from an interface. The concrete
 /// implementation is the first element of [declarations].
 class InheritedImplementationInterfaceConflict extends DelayedMember {
-  Member combinedMemberSignatureResult;
+  Member _member;
+  Covariance _covariance;
   final ClassMember concreteMember;
 
   @override
@@ -3193,25 +3040,36 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
         isInheritableConflict == other.isInheritableConflict;
   }
 
-  @override
-  Member getMember(ClassHierarchyBuilder hierarchy) {
-    if (combinedMemberSignatureResult != null) {
-      return combinedMemberSignatureResult;
-    }
-    if (!classBuilder.isAbstract) {
-      if (classBuilder is SourceClassBuilder) {
-        for (int i = 0; i < declarations.length; i++) {
-          if (concreteMember != declarations[i]) {
-            new DelayedOverrideCheck(
-                    classBuilder, concreteMember, declarations[i])
-                .check(hierarchy);
+  void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
+    if (_member == null) {
+      if (!classBuilder.isAbstract) {
+        if (classBuilder is SourceClassBuilder) {
+          for (int i = 0; i < declarations.length; i++) {
+            if (concreteMember != declarations[i]) {
+              new DelayedOverrideCheck(
+                      classBuilder, concreteMember, declarations[i])
+                  .check(hierarchy);
+            }
           }
         }
       }
+      InterfaceConflict interfaceConflict = new InterfaceConflict(classBuilder,
+          declarations, isProperty, isSetter, modifyKernel, isAbstract, name);
+      _member = interfaceConflict.getMember(hierarchy);
+      _covariance = interfaceConflict.getCovariance(hierarchy);
     }
-    return combinedMemberSignatureResult = new InterfaceConflict(classBuilder,
-            declarations, isProperty, isSetter, modifyKernel, isAbstract, name)
-        .getMember(hierarchy);
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
+    return _member;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
+    return _covariance;
   }
 
   @override
@@ -3288,7 +3146,8 @@ class InterfaceConflict extends DelayedMember {
   @override
   bool get isAbstract => isExplicitlyAbstract || isImplicitlyAbstract;
 
-  Member combinedMemberSignatureResult;
+  Member _member;
+  Covariance _covariance;
 
   @override
   String toString() {
@@ -3314,14 +3173,14 @@ class InterfaceConflict extends DelayedMember {
         isImplicitlyAbstract == other.isImplicitlyAbstract;
   }
 
-  @override
-  Member getMember(ClassHierarchyBuilder hierarchy) {
-    if (combinedMemberSignatureResult != null) {
-      return combinedMemberSignatureResult;
+  void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
+    if (_member != null) {
+      return;
     }
     if (classBuilder.library is! SourceLibraryBuilder) {
-      return combinedMemberSignatureResult =
-          declarations.first.getMember(hierarchy);
+      _member = declarations.first.getMember(hierarchy);
+      _covariance = declarations.first.getCovariance(hierarchy);
+      return;
     }
 
     CombinedClassMemberSignature combinedMemberSignature =
@@ -3345,8 +3204,9 @@ class InterfaceConflict extends DelayedMember {
           context: context);
       // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
       // cascading errors.
-      return combinedMemberSignatureResult =
-          declarations.first.getMember(hierarchy);
+      _member = declarations.first.getMember(hierarchy);
+      _covariance = declarations.first.getCovariance(hierarchy);
+      return;
     }
     debug?.log("Combined Member Signature of ${fullNameForErrors}: "
         "${combinedMemberSignature.canonicalMember.fullName}");
@@ -3368,11 +3228,6 @@ class InterfaceConflict extends DelayedMember {
           "$declarations, $kind)");
       Member stub =
           new ForwardingNode(combinedMemberSignature, kind).finalize();
-      /*assert(
-          !(combinedMemberSignature.neededCovarianceMerging &&
-              stub.enclosingClass != classBuilder.cls),
-          "Members $declarations needed covariance merging into "
-          "${classBuilder.cls}");*/
       if (stub != null && classBuilder.cls == stub.enclosingClass) {
         classBuilder.cls.addMember(stub);
         SourceLibraryBuilder library = classBuilder.library;
@@ -3383,14 +3238,34 @@ class InterfaceConflict extends DelayedMember {
         }
         debug?.log("Combined Member Signature of ${fullNameForErrors}: "
             "added stub $stub");
-        return combinedMemberSignatureResult = stub;
+        _member = stub;
+        _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
+        assert(
+            _covariance ==
+                new Covariance.fromMember(_member, forSetter: forSetter),
+            "Unexpected covariance for combined members signature "
+            "$_member. Found $_covariance, expected "
+            "${new Covariance.fromMember(_member, forSetter: forSetter)}.");
+        return;
       }
     }
 
     debug?.log(
         "Combined Member Signature of ${fullNameForErrors}: picked bestSoFar");
-    return combinedMemberSignatureResult =
-        combinedMemberSignature.canonicalMember.getMember(hierarchy);
+    _member = combinedMemberSignature.canonicalMember.getMember(hierarchy);
+    _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
+    return _member;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
+    return _covariance;
   }
 
   @override
@@ -3469,8 +3344,7 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
 
   bool _isChecked = false;
 
-  @override
-  Member getMember(ClassHierarchyBuilder hierarchy) {
+  void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
     if (!_isChecked) {
       _isChecked = true;
       if (!classBuilder.isAbstract &&
@@ -3497,7 +3371,18 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
             .finalize();
       }
     }
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
     return abstractMember.getMember(hierarchy);
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    _ensureMemberAndCovariance(hierarchy);
+    return abstractMember.getCovariance(hierarchy);
   }
 
   @override
