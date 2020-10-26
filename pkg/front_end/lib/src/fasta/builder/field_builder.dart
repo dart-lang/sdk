@@ -1475,12 +1475,6 @@ class _SynthesizedFieldClassMember implements ClassMember {
   ClassMember get concrete => this;
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return false;
-  }
-
-  @override
   bool isSameDeclaration(ClassMember other) {
     if (identical(this, other)) return true;
     return other is _SynthesizedFieldClassMember &&

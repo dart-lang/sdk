@@ -265,8 +265,6 @@ abstract class ClassMember {
   ClassMember get abstract;
   ClassMember get concrete;
 
-  bool operator ==(Object other);
-
   void inferType(ClassHierarchyBuilder hierarchy);
   void registerOverrideDependency(Set<ClassMember> overriddenMembers);
 
@@ -2960,32 +2958,6 @@ abstract class DelayedMember implements ClassMember {
   void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
     // Do nothing; this is only for declared members.
   }
-
-  @override
-  int get hashCode {
-    int hash = classBuilder.hashCode * 13 +
-        isSetter.hashCode * 17 +
-        isProperty.hashCode * 19 +
-        modifyKernel.hashCode * 23 +
-        name.hashCode * 29;
-    for (ClassMember declaration in declarations) {
-      hash ^= declaration.hashCode;
-    }
-    return hash;
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is DelayedMember &&
-        classBuilder == other.classBuilder &&
-        isSetter == other.isSetter &&
-        isProperty == other.isProperty &&
-        modifyKernel == other.modifyKernel &&
-        name == other.name &&
-        declarations.length == other.declarations.length &&
-        _equalsList(declarations, other.declarations, declarations.length);
-  }
 }
 
 /// This represents a concrete implementation inherited from a superclass that
@@ -3023,21 +2995,6 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
     return "InheritedImplementationInterfaceConflict("
         "${classBuilder.fullNameForErrors}, $concreteMember, "
         "[${declarations.join(', ')}])";
-  }
-
-  @override
-  int get hashCode =>
-      super.hashCode +
-      concreteMember.hashCode * 11 +
-      isInheritableConflict.hashCode * 13;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return super == other &&
-        other is InheritedImplementationInterfaceConflict &&
-        concreteMember == other.concreteMember &&
-        isInheritableConflict == other.isInheritableConflict;
   }
 
   void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
@@ -3153,24 +3110,6 @@ class InterfaceConflict extends DelayedMember {
   String toString() {
     return "InterfaceConflict(${classBuilder.fullNameForErrors}, "
         "[${declarations.join(', ')}])";
-  }
-
-  @override
-  int get hashCode {
-    int hash = super.hashCode;
-    hash ^= isImplicitlyAbstract.hashCode;
-    for (ClassMember declaration in declarations) {
-      hash ^= declaration.hashCode;
-    }
-    return hash;
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return super == other &&
-        other is InterfaceConflict &&
-        isImplicitlyAbstract == other.isImplicitlyAbstract;
   }
 
   void _ensureMemberAndCovariance(ClassHierarchyBuilder hierarchy) {
@@ -3408,12 +3347,6 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
   }
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return super == other && other is AbstractMemberOverridingImplementation;
-  }
-
-  @override
   ClassMember get abstract => abstractMember;
 
   @override
@@ -3578,17 +3511,6 @@ ClassBuilder getClass(TypeBuilder type) {
     declaration = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
   }
   return declaration is ClassBuilder ? declaration : null;
-}
-
-/// Returns `true` if the first [length] elements of [a] and [b] are the same.
-bool _equalsList<T>(List<T> a, List<T> b, int length) {
-  if (a.length < length || b.length < length) return false;
-  for (int index = 0; index < length; index++) {
-    if (a[index] != b[index]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 Set<ClassMember> toSet(
