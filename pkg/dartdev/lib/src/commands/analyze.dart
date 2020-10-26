@@ -14,7 +14,7 @@ import '../events.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
-class AnalyzeCommand extends DartdevCommand<int> {
+class AnalyzeCommand extends DartdevCommand {
   static const String cmdName = 'analyze';
 
   /// The maximum length of any of the existing severity labels.

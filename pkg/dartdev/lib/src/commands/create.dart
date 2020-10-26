@@ -16,7 +16,7 @@ import '../events.dart';
 import '../sdk.dart';
 
 /// A command to create a new project from a set of templates.
-class CreateCommand extends DartdevCommand<int> {
+class CreateCommand extends DartdevCommand {
   static const String cmdName = 'create';
 
   static String defaultTemplateId = 'console-simple';

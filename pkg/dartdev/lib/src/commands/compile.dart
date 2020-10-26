@@ -239,7 +239,7 @@ Remove debugging information from the output and save it separately to the speci
   }
 }
 
-abstract class CompileSubcommandCommand extends DartdevCommand<int> {
+abstract class CompileSubcommandCommand extends DartdevCommand {
   CompileSubcommandCommand(String name, String description,
       {bool hidden = false})
       : super(name, description, hidden: hidden);
@@ -252,7 +252,7 @@ abstract class CompileSubcommandCommand extends DartdevCommand<int> {
       );
 }
 
-class CompileCommand extends DartdevCommand<int> {
+class CompileCommand extends DartdevCommand {
   static const String cmdName = 'compile';
 
   CompileCommand() : super(cmdName, 'Compile Dart to various formats.') {
