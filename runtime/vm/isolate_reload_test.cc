@@ -1096,12 +1096,12 @@ TEST_CASE(IsolateReload_LibraryLookup) {
 
   const char* kScript =
       "main() {\n"
-      "  return importedFunc();\n"
+      "  return 'b';\n"
       "}\n";
   Dart_Handle result;
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
-  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "importedFunc");
+  EXPECT_STREQ("b", SimpleInvokeStr(lib, "main"));
 
   // Fail to find 'test:lib1' in the isolate.
   result = Dart_LookupLibrary(NewString("test:lib1"));
@@ -1122,7 +1122,7 @@ TEST_CASE(IsolateReload_LibraryLookup) {
   result = Dart_LookupLibrary(NewString("test:lib1"));
   EXPECT(Dart_IsLibrary(result));
 
-  // Reload and remove 'dart:math' from isolate.
+  // Reload and remove 'test:lib1' from isolate.
   lib = TestCase::ReloadTestScript(kScript);
   EXPECT_VALID(lib);
 
@@ -1362,21 +1362,14 @@ TEST_CASE(IsolateReload_PendingUnqualifiedCall_InstanceToStatic) {
       "}\n";
 
   EXPECT_VALID(TestCase::SetReloadTestScript(kReloadScript));
-
   const char* expected = "static";
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_NOTNULL(result);
-
   // Bail out if we've already failed so we don't crash in StringEquals.
   if (result == NULL) {
     return;
   }
   EXPECT_STREQ(expected, result);
-
-  // Bail out if we've already failed so we don't crash in the tag handler.
-  if (strcmp(expected, result) != 0) {
-    return;
-  }
 
   lib = Dart_RootLibrary();
   EXPECT_NON_NULL(lib);
@@ -1390,7 +1383,6 @@ TEST_CASE(IsolateReload_PendingConstructorCall_AbstractToConcrete) {
       "class C {\n"
       "  test() {\n"
       "    reloadTest();\n"
-      "    return new Foo();\n"
       "  }\n"
       "}\n"
       "main() {\n"
@@ -1480,19 +1472,7 @@ TEST_CASE(IsolateReload_PendingConstructorCall_ConcreteToAbstract) {
       "}\n";
 
   EXPECT_VALID(TestCase::SetReloadTestScript(kReloadScript));
-
-  const char* expected = "exception";
-  const char* result = SimpleInvokeStr(lib, "main");
-  EXPECT_STREQ(expected, result);
-
-  // Bail out if we've already failed so we don't crash in the tag handler.
-  if ((result == NULL) || (strcmp(expected, result) != 0)) {
-    return;
-  }
-
-  lib = Dart_RootLibrary();
-  EXPECT_NON_NULL(lib);
-  EXPECT_STREQ(expected, SimpleInvokeStr(lib, "main"));
+  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "is abstract");
 }
 
 TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
@@ -1533,7 +1513,6 @@ TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
       "}\n";
 
   EXPECT_VALID(TestCase::SetReloadTestScript(kReloadScript));
-
   const char* expected = "exception";
   const char* result = SimpleInvokeStr(lib, "main");
   EXPECT_NOTNULL(result);
@@ -1544,12 +1523,6 @@ TEST_CASE(IsolateReload_PendingStaticCall_DefinedToNSM) {
   }
   EXPECT_STREQ(expected, result);
 
-  // Bail out if we've already failed so we don't crash in the tag handler.
-  if (strcmp(expected, result) != 0) {
-    return;
-  }
-
-  EXPECT_STREQ(expected, result);
   lib = Dart_RootLibrary();
   EXPECT_NON_NULL(lib);
   EXPECT_STREQ(expected, SimpleInvokeStr(lib, "main"));
@@ -1596,12 +1569,12 @@ TEST_CASE(IsolateReload_PendingStaticCall_NSMToDefined) {
 
   const char* expected = "static";
   const char* result = SimpleInvokeStr(lib, "main");
-  EXPECT_STREQ(expected, result);
 
   // Bail out if we've already failed so we don't crash in the tag handler.
-  if ((result == NULL) || (strcmp(expected, result) != 0)) {
+  if (result == NULL) {
     return;
   }
+  EXPECT_STREQ(expected, result);
 
   lib = Dart_RootLibrary();
   EXPECT_NON_NULL(lib);

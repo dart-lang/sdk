@@ -1966,7 +1966,7 @@ TEST_CASE(DartAPI_TypedDataViewListGetAsBytes) {
 
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
-      "List main(int size) {\n"
+      "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
       "  var view = new Int8List.view(a.buffer, 0, size);\n"
       "  return view;\n"
@@ -1977,7 +1977,7 @@ TEST_CASE(DartAPI_TypedDataViewListGetAsBytes) {
   // Test with a typed data view object.
   Dart_Handle dart_args[1];
   dart_args[0] = Dart_NewInteger(kSize);
-  Dart_Handle view_obj = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  Dart_Handle view_obj = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   EXPECT_VALID(view_obj);
   for (intptr_t i = 0; i < kSize; ++i) {
     EXPECT_VALID(Dart_ListSetAt(view_obj, i, Dart_NewInteger(i & 0xff)));
@@ -1998,7 +1998,7 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
 
   const char* kScriptChars =
       "import 'dart:typed_data';\n"
-      "List main(int size) {\n"
+      "List testMain(int size) {\n"
       "  var a = new Int8List(size);\n"
       "  var view = new Int8List.view(a.buffer, 0, size);\n"
       "  return view;\n"
@@ -2009,7 +2009,7 @@ TEST_CASE(DartAPI_TypedDataViewListIsTypedData) {
   // Create a typed data view object.
   Dart_Handle dart_args[1];
   dart_args[0] = Dart_NewInteger(kSize);
-  Dart_Handle view_obj = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  Dart_Handle view_obj = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   EXPECT_VALID(view_obj);
   // Test that the API considers it a TypedData object.
   EXPECT(Dart_IsTypedData(view_obj));
@@ -5524,9 +5524,6 @@ TEST_CASE(DartAPI_New) {
       "  factory MyClass.multiply(value) {\n"
       "    return new MyClass.named(value * 100);\n"
       "  }\n"
-      "  factory MyClass.nullo() {\n"
-      "    return null;\n"
-      "  }\n"
       "  var foo;\n"
       "}\n"
       "\n"
@@ -5686,11 +5683,6 @@ TEST_CASE(DartAPI_New) {
   foo = Dart_GetField(result, NewString("foo"));
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(1100, int_value);
-
-  // Invoke a factory constructor which returns null.
-  result = Dart_New(type, NewString("nullo"), 0, NULL);
-  EXPECT_VALID(result);
-  EXPECT(Dart_IsNull(result));
 
   // Pass an error class object.  Error is passed through.
   result = Dart_New(Dart_NewApiError("myerror"), NewString("named"), 1, args);
@@ -5967,6 +5959,13 @@ TEST_CASE(DartAPI_NewListOfTypeFilled) {
 
   // Null is always valid as the fill argument if we're creating an empty list.
   EXPECT_VALID(Dart_NewListOfTypeFilled(zxhandle_type, Dart_Null(), 0));
+
+  // Test creation of a non nullable list of strings.
+  Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
+  EXPECT_VALID(corelib);
+  Dart_Handle string_type =
+      Dart_GetNonNullableType(corelib, NewString("String"), 0, NULL);
+  EXPECT_VALID(Dart_NewListOfTypeFilled(string_type, Dart_EmptyString(), 2));
 }
 
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
@@ -8626,7 +8625,7 @@ TEST_CASE(DartAPI_CollectTwoOldSpacePeers) {
 
 TEST_CASE(DartAPI_ExternalStringIndexOf) {
   const char* kScriptChars =
-      "main(String pattern) {\n"
+      "testMain(String pattern) {\n"
       "  var str = 'Hello World';\n"
       "  return str.indexOf(pattern);\n"
       "}\n";
@@ -8641,7 +8640,7 @@ TEST_CASE(DartAPI_ExternalStringIndexOf) {
 
   Dart_Handle dart_args[1];
   dart_args[0] = ext8;
-  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   int64_t value = 0;
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
