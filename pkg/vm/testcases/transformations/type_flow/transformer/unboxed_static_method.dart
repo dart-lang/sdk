@@ -6,6 +6,11 @@ final bool kTrue = int.parse('1') == 1 ? true : false;
 final bool kFalse = int.parse('1') == 2 ? true : false;
 int get mint => 0xaabbccddaabbccdd;
 int get smiOrMint => kTrue ? 1 : mint;
+dynamic usedObject;
+
+void use(dynamic object) {
+  usedObject ??= object;
+}
 
 class X {}
 
@@ -18,7 +23,16 @@ void takePositional(
     dynamic boxedIntOrDouble,
     dynamic boxedNullableIntOrDouble,
     dynamic boxedNullableX,
-    dynamic boxedX) {}
+    dynamic boxedX) {
+  use(unboxedInt);
+  use(unboxedDouble);
+  use(boxedNullableInt);
+  use(boxedNullableDouble);
+  use(boxedIntOrDouble);
+  use(boxedNullableIntOrDouble);
+  use(boxedNullableX);
+  use(boxedX);
+}
 
 void takeOptional(
     [int unboxedSmi,
@@ -29,7 +43,16 @@ void takeOptional(
     dynamic boxedIntOrDouble,
     dynamic boxedNullableIntOrDouble,
     dynamic boxedNullableX,
-    dynamic boxedX]) {}
+    dynamic boxedX]) {
+  use(unboxedInt);
+  use(unboxedDouble);
+  use(boxedNullableInt);
+  use(boxedNullableDouble);
+  use(boxedIntOrDouble);
+  use(boxedNullableIntOrDouble);
+  use(boxedNullableX);
+  use(boxedX);
+}
 
 void takeNamed(
     {int unboxedSmi,
@@ -40,7 +63,16 @@ void takeNamed(
     dynamic boxedIntOrDouble,
     dynamic boxedNullableIntOrDouble,
     dynamic boxedNullableX,
-    dynamic boxedX}) {}
+    dynamic boxedX}) {
+  use(unboxedInt);
+  use(unboxedDouble);
+  use(boxedNullableInt);
+  use(boxedNullableDouble);
+  use(boxedIntOrDouble);
+  use(boxedNullableIntOrDouble);
+  use(boxedNullableX);
+  use(boxedX);
+}
 
 dynamic returnUnboxedSmi() => kTrue ? 1 : 2;
 dynamic returnUnboxedInt() => kTrue ? smiOrMint : 2;
@@ -106,5 +138,3 @@ main() {
   use(returnBoxedX());
   use(returnBoxedSmiFromEntryPoint());
 }
-
-void use(dynamic value) {}

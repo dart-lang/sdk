@@ -750,12 +750,48 @@ DART_EXPORT float InventFloatValue() {
   return retval;
 }
 
+// Can't easily share this with the generated file.
+struct Struct20BytesHomogeneousInt32Copy {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
+  int32_t a4;
+};
+
+DART_EXPORT Struct20BytesHomogeneousInt32Copy PassStructRecursive(
+    int64_t recursionCounter,
+    Struct20BytesHomogeneousInt32Copy a0,
+    Struct20BytesHomogeneousInt32Copy (*f)(int64_t,
+                                           Struct20BytesHomogeneousInt32Copy)) {
+  std::cout << "PassStruct20BytesHomogeneousInt32x10"
+            << "(" << recursionCounter << ", (" << a0.a0 << ", " << a0.a1
+            << ", " << a0.a2 << ", " << a0.a3 << ", " << a0.a4 << "), "
+            << reinterpret_cast<void*>(f) << ")\n";
+  a0.a0++;
+  const int32_t a0_a0_saved = a0.a0;
+
+  if (recursionCounter <= 0) {
+    return a0;
+  }
+
+  Struct20BytesHomogeneousInt32Copy result = f(recursionCounter - 1, a0);
+  result.a0++;
+  if (a0_a0_saved != a0.a0) {
+    result.a4 = 0;
+  }
+
+  return result;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for callbacks.
 
 // Sanity test.
 DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
-  CHECK_EQ(add(10, 20), 30);
+  const intptr_t result = add(10, 20);
+  std::cout << "result " << result << "\n";
+  CHECK_EQ(result, 30);
   return 0;
 }
 
@@ -764,7 +800,9 @@ DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
 
 DART_EXPORT intptr_t
 TestIntComputation(int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
-  CHECK_EQ(fn(125, 250, 500, 1000), 625);
+  const int64_t result = fn(125, 250, 500, 1000);
+  std::cout << "result " << result << "\n";
+  CHECK_EQ(result, 625);
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
   CHECK_EQ(((int64_t)-0x8000000000000000LL),
            fn(0, 0, 0, -0x8000000000000000LL));

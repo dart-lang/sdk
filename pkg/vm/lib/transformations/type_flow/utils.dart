@@ -329,3 +329,45 @@ Expression getArgumentOfComparisonWithNull(MethodInvocation node) {
 
 bool isComparisonWithNull(MethodInvocation node) =>
     getArgumentOfComparisonWithNull(node) != null;
+
+bool mayHaveSideEffects(Expression node) {
+  // Keep this function in sync with mayHaveOrSeeSideEffects:
+  // If new false cases are added here, add the corresponding visibility cases
+  // to mayHaveOrSeeSideEffects.
+  if (node is BasicLiteral ||
+      node is ConstantExpression ||
+      node is ThisExpression) {
+    return false;
+  }
+  if (node is VariableGet && !node.variable.isLate) {
+    return false;
+  }
+  if (node is StaticGet) {
+    final target = node.target;
+    if (target is Field && !target.isLate) {
+      final initializer = target.initializer;
+      if (initializer == null ||
+          initializer is BasicLiteral ||
+          initializer is ConstantExpression) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool mayHaveOrSeeSideEffects(Expression node) {
+  if (mayHaveSideEffects(node)) {
+    return true;
+  }
+  if (node is VariableGet && !node.variable.isFinal) {
+    return true;
+  }
+  if (node is StaticGet) {
+    final target = node.target;
+    if (target is Field && !target.isFinal) {
+      return true;
+    }
+  }
+  return false;
+}

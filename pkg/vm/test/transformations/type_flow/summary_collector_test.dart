@@ -56,6 +56,9 @@ class FakeEntryPointsListener implements EntryPointsListener {
 
   @override
   void recordMemberCalledViaThis(Member target) {}
+
+  @override
+  void recordTearOff(Procedure target) {}
 }
 
 class PrintSummaries extends RecursiveVisitor<Null> {

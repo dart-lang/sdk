@@ -6,6 +6,11 @@ final bool kTrue = int.parse('1') == 1 ? true : false;
 final bool kFalse = int.parse('1') == 2 ? true : false;
 int get mint => 0xaabbccddaabbccdd;
 int get smiOrMint => kTrue ? 1 : mint;
+dynamic usedObject;
+
+void use(dynamic object) {
+  usedObject ??= object;
+}
 
 class X {}
 
@@ -64,5 +69,3 @@ main() {
   use(a.boxedNullableX);
   use(a.boxedX);
 }
-
-void use(dynamic object) {}

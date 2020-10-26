@@ -847,7 +847,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         break;
     }
 
-    return new Args<Type>(args, names: names, unknownArity: true);
+    return new Args<Type>(args, names: names);
   }
 
   TypeExpr _visit(TreeNode node) => node.accept(this);
@@ -2423,6 +2423,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     final Procedure procedure = constant.procedure;
     summaryCollector._entryPointsListener
         .addRawCall(new DirectSelector(procedure));
+    summaryCollector._entryPointsListener.recordTearOff(procedure);
     return _getStaticType(constant);
   }
 
