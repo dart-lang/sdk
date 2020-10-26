@@ -7,6 +7,7 @@
 import 'dart:collection';
 
 import 'package:meta/meta.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'vm_service.dart';
 
@@ -28,13 +29,28 @@ extension DartIOExtension on VmService {
 
   /// Start profiling new socket connections. Statistics for sockets created
   /// before profiling was enabled will not be recorded.
+  @Deprecated('Use socketProfilingEnabled instead')
   Future<Success> startSocketProfiling(String isolateId) =>
       _callHelper('ext.dart.io.startSocketProfiling', isolateId);
 
   /// Pause recording socket statistics. [clearSocketProfile] must be called in
   /// order for collected statistics to be cleared.
+  @Deprecated('Use socketProfilingEnabled instead')
   Future<Success> pauseSocketProfiling(String isolateId) =>
       _callHelper('ext.dart.io.pauseSocketProfiling', isolateId);
+
+  /// The _socketProfilingEnabled_ RPC is used to enable/disable the socket profiler
+  /// and query its current state. If `enabled` is provided, the profiler state will
+  /// be updated to reflect the value of `enabled`.
+  ///
+  /// If the state of the socket profiler is changed, a `SocketProfilingStateChange`
+  /// event will be sent on the `Extension` stream.
+  Future<SocketProfilingState> socketProfilingEnabled(String isolateId,
+      [bool enabled]) async {
+    return _callHelper('ext.dart.io.socketProfilingEnabled', isolateId, args: {
+      if (enabled != null) 'enabled': enabled,
+    });
+  }
 
   /// Removes all statistics associated with prior and current sockets.
   Future<Success> clearSocketProfile(String isolateId) =>
@@ -148,6 +164,7 @@ extension DartIOExtension on VmService {
     addTypeFactory('@SpawnedProcess', SpawnedProcessRef.parse);
     addTypeFactory('SocketProfile', SocketProfile.parse);
     addTypeFactory('SocketStatistic', SocketStatistic.parse);
+    addTypeFactory('SocketProfilingState', SocketProfilingState.parse);
     _factoriesRegistered = true;
   }
 }
@@ -219,23 +236,41 @@ class SocketProfile extends Response {
   }
 }
 
-/// A [HttpTimelineLoggingState] provides information about the current state of HTTP
-/// request logging for a given isolate.
-class HttpTimelineLoggingState extends Response {
-  static HttpTimelineLoggingState parse(Map json) =>
-      json == null ? null : HttpTimelineLoggingState._fromJson(json);
-
-  HttpTimelineLoggingState({@required this.enabled});
+/// A [Response] containing the enabled state of a service extension.
+abstract class State extends Response {
+  State({@required this.enabled});
 
   // TODO(bkonyi): make this part of the vm_service.dart library so we can
   // call super._fromJson.
-  HttpTimelineLoggingState._fromJson(Map<String, dynamic> json)
-      : enabled = json['enabled'] {
+  State._fromJson(Map<String, dynamic> json) : enabled = json['enabled'] {
     type = json['type'];
   }
 
-  /// Whether or not HttpClient.enableTimelineLogging is set to true for a given isolate.
   final bool enabled;
+}
+
+/// A [HttpTimelineLoggingState] provides information about the current state of HTTP
+/// request logging for a given isolate.
+class HttpTimelineLoggingState extends State {
+  static HttpTimelineLoggingState parse(Map json) =>
+      json == null ? null : HttpTimelineLoggingState._fromJson(json);
+
+  HttpTimelineLoggingState({@required bool enabled}) : super(enabled: enabled);
+
+  HttpTimelineLoggingState._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json);
+}
+
+/// A [SocketProfilingState] provides information about the current state of
+/// socket profiling for a given isolate.
+class SocketProfilingState extends State {
+  static SocketProfilingState parse(Map json) =>
+      json == null ? null : SocketProfilingState._fromJson(json);
+
+  SocketProfilingState({@required bool enabled}) : super(enabled: enabled);
+
+  SocketProfilingState._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json);
 }
 
 /// A [SpawnedProcessRef] contains identifying information about a spawned process.
