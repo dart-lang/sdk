@@ -50,13 +50,13 @@ class Class2a extends opt::LegacyClass implements self::Interface {
     : super opt::LegacyClass::•()
     ;
   abstract member-signature get field1() → core::int; -> opt::LegacyClass::field1
-  abstract member-signature set field1(core::int _) → void; -> opt::LegacyClass::field1
+  abstract member-signature set field1(core::int value) → void; -> opt::LegacyClass::field1
   abstract member-signature get field2() → core::int?; -> opt::LegacyClass::field2
-  abstract member-signature set field2(core::int? _) → void; -> opt::LegacyClass::field2
+  abstract member-signature set field2(core::int? value) → void; -> opt::LegacyClass::field2
   abstract member-signature get field3() → core::int; -> opt::LegacyClass::field3
-  abstract member-signature set field3(core::int _) → void; -> opt::LegacyClass::field3
+  abstract member-signature set field3(core::int value) → void; -> opt::LegacyClass::field3
   abstract member-signature get field4() → core::int?; -> opt::LegacyClass::field4
-  abstract member-signature set field4(core::int? _) → void; -> opt::LegacyClass::field4
+  abstract member-signature set field4(core::int? value) → void; -> opt::LegacyClass::field4
   abstract member-signature get property1() → core::int; -> opt::LegacyClass::property1
   abstract member-signature set property1(core::int value) → void; -> opt::LegacyClass::property1
   abstract member-signature get property2() → core::int?; -> opt::LegacyClass::property2

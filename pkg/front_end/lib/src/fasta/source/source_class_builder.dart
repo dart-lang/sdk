@@ -674,6 +674,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                 clsHasUserDefinedNoSuchMethod, member, cls, concreteMembers,
                 isPatch: member.fileUri != member.enclosingClass.fileUri) &&
             !existingForwarders.contains(member)) {
+          assert(!combinedMemberSignature.needsCovarianceMerging,
+              "Needed covariant merging for ${members}");
           if (ClassHierarchy.findMemberByName(declaredMembers, member.name) !=
               null) {
             _transformProcedureToNoSuchMethodForwarder(

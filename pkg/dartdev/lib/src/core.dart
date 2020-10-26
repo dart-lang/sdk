@@ -20,7 +20,7 @@ import 'utils.dart';
 Logger log;
 bool isDiagnostics = false;
 
-abstract class DartdevCommand<int> extends Command {
+abstract class DartdevCommand extends Command {
   final String _name;
   final String _description;
 

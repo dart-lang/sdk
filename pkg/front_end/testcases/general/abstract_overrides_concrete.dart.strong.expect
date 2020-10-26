@@ -82,13 +82,13 @@ class D extends self::A implements self::I {
   synthetic constructor •() → self::D*
     : super self::A::•()
     ;
-  abstract forwarding-stub method foo([dynamic a = #C1]) → void;
+  abstract member-signature method foo([dynamic a = #C1]) → void; -> self::I::foo
 }
 abstract class E extends self::A implements self::I {
   synthetic constructor •() → self::E*
     : super self::A::•()
     ;
-  abstract forwarding-stub method foo([dynamic a = #C1]) → void;
+  abstract member-signature method foo([dynamic a = #C1]) → void; -> self::I::foo
 }
 class F extends self::E {
   synthetic constructor •() → self::F*

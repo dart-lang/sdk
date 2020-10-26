@@ -18,6 +18,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 import '../kernel/late_lowering.dart' as late_lowering;
+import '../kernel/member_covariance.dart';
 
 import '../modifier.dart' show covariantMask, hasInitializerMask, lateMask;
 
@@ -697,6 +698,8 @@ class SourceFieldMember extends BuilderClassMember {
   @override
   final SourceFieldBuilder memberBuilder;
 
+  Covariance _covariance;
+
   @override
   final bool forSetter;
 
@@ -717,6 +720,13 @@ class SourceFieldMember extends BuilderClassMember {
   Member getMember(ClassHierarchyBuilder hierarchy) {
     memberBuilder._ensureType(hierarchy);
     return memberBuilder.field;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    return _covariance ??= forSetter
+        ? new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter)
+        : const Covariance.empty();
   }
 
   @override
@@ -1325,6 +1335,8 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   final Member _member;
 
+  Covariance _covariance;
+
   @override
   final bool forSetter;
 
@@ -1338,6 +1350,12 @@ class _SynthesizedFieldClassMember implements ClassMember {
   Member getMember(ClassHierarchyBuilder hierarchy) {
     fieldBuilder._ensureType(hierarchy);
     return _member;
+  }
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    return _covariance ??=
+        new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter);
   }
 
   @override

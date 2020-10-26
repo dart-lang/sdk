@@ -13,6 +13,7 @@ import '../builder/library_builder.dart';
 
 import '../kernel/class_hierarchy_builder.dart'
     show ClassHierarchyBuilder, ClassMember;
+import '../kernel/member_covariance.dart';
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
 
@@ -223,6 +224,8 @@ class DillClassMember extends BuilderClassMember {
   @override
   final DillMemberBuilder memberBuilder;
 
+  Covariance _covariance;
+
   @override
   final bool forSetter;
 
@@ -250,6 +253,15 @@ class DillClassMember extends BuilderClassMember {
     return member is Procedure &&
         (member.isMemberSignature ||
             (member.isForwardingStub && !member.isForwardingSemiStub));
+  }
+
+  @override
+  Member getMember(ClassHierarchyBuilder hierarchy) => memberBuilder.member;
+
+  @override
+  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+    return _covariance ??=
+        new Covariance.fromMember(memberBuilder.member, forSetter: forSetter);
   }
 
   @override

@@ -27,13 +27,13 @@ abstract class _C&Object&A&B = self::_C&Object&A with iss::B /*isAnonymousMixin,
   const synthetic constructor •() → self::_C&Object&A&B*
     : super self::_C&Object&A::•()
     ;
-  abstract forwarding-stub method method(core::num* i, {core::String* s = #C1}) → core::String*;
+  abstract member-signature method method(core::num* i, {core::String* s = #C1}) → core::String*; -> iss::A::method
 }
 class C extends self::_C&Object&A&B {
   synthetic constructor •() → self::C*
     : super self::_C&Object&A&B::•()
     ;
-  abstract forwarding-stub method method(core::num* i, {core::String* s = #C1}) → core::String*;
+  abstract member-signature method method(core::num* i, {core::String* s = #C1}) → core::String*; -> iss::A::method
 }
 abstract class _E&Object&A = core::Object with iss::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A*
@@ -50,7 +50,7 @@ class E extends self::_E&Object&A&D {
   synthetic constructor •() → self::E*
     : super self::_E&Object&A&D::•()
     ;
-  abstract forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*;
+  abstract member-signature method method(covariant core::num* i, {core::String* s = #C1}) → core::String*; -> self::_E&Object&A&D::method
 }
 static method main() → dynamic {
   core::print(new self::C::•().{self::C::method}(0));

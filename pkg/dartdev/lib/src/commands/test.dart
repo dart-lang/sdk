@@ -16,7 +16,7 @@ import '../vm_interop_handler.dart';
 /// Implement `dart test`.
 ///
 /// This command largely delegates to `pub run test`.
-class TestCommand extends DartdevCommand<int> {
+class TestCommand extends DartdevCommand {
   static const String cmdName = 'test';
 
   TestCommand() : super(cmdName, 'Run tests in this package.');

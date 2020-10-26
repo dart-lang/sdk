@@ -13,7 +13,7 @@ import '../experiments.dart';
 import '../sdk.dart';
 import '../vm_interop_handler.dart';
 
-class PubCommand extends DartdevCommand<int> {
+class PubCommand extends DartdevCommand {
   static const String cmdName = 'pub';
 
   PubCommand() : super(cmdName, 'Work with packages.');

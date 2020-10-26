@@ -15,7 +15,7 @@ import '../events.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
-class FixCommand extends DartdevCommand<int> {
+class FixCommand extends DartdevCommand {
   static const String cmdName = 'fix';
 
   // This command is hidden as its currently experimental.

@@ -285,9 +285,9 @@ abstract class C extends core::Object implements self::A<core::int>, self::B<cor
   abstract set setter1c(invalid-type x) → void;
   abstract set setter1d(core::String x) → void;
   abstract set setter1e(core::Object x) → void;
-  abstract forwarding-stub set getter1d(core::Object x) → void;
-  abstract forwarding-stub set getter1e(core::Object x) → void;
-  abstract forwarding-stub set field2a(core::num? value) → void;
+  abstract member-signature set getter1d(core::Object x) → void; -> self::B::getter1d
+  abstract member-signature set getter1e(core::Object x) → void; -> self::B::getter1e
+  abstract member-signature set field2a(core::num? value) → void; -> self::B::field2a
 }
 static method main() → dynamic {}
 
