@@ -682,100 +682,16 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   __ Drop(2);
 }
 
-// Optimize assignable type check by adding inlined tests for:
-// - NULL -> return NULL.
-// - Smi -> compile time subtype check (only if dst class is not parameterized).
-// - Class equality (only if class is not parameterized).
-// Inputs:
-// - R0: instance being type checked.
-// - R8: destination type (if non-constant).
-// - R2: instantiator type arguments or raw_null.
-// - R1: function type arguments or raw_null.
-// Returns:
-// - object in R0 for successful assignable check (or throws TypeError).
-// Performance notes: positive checks must be quick, negative checks can be slow
-// as they throw an exception.
-void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
-                                                 TokenPosition token_pos,
-                                                 intptr_t deopt_id,
-                                                 const String& dst_name,
-                                                 LocationSummary* locs) {
-  ASSERT(!token_pos.IsClassifying());
-  ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
-
-  if (locs->in(1).IsConstant()) {
-    const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
-    ASSERT(dst_type.IsFinalized());
-
-    if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
-
-    GenerateAssertAssignableViaTypeTestingStub(receiver_type, token_pos,
-                                               deopt_id, dst_name, locs);
-    return;
-  } else {
-    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
-    UNREACHABLE();
-  }
-}
-
-void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
-    CompileType* receiver_type,
-    TokenPosition token_pos,
-    intptr_t deopt_id,
-    const String& dst_name,
-    LocationSummary* locs) {
-  ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
-  // We must have a constant dst_type for generating a call to the stub.
-  ASSERT(locs->in(1).IsConstant());
-  const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
-
-  // If the dst_type is instantiated we know the target TTS stub at
-  // compile-time and can therefore use a pc-relative call.
-  const bool use_pc_relative_call =
-      dst_type.IsInstantiated() && CanPcRelativeCall(dst_type);
-
-  const Register kRegToCall =
-      use_pc_relative_call
-          ? kNoRegister
-          : (dst_type.IsTypeParameter() ? R9 : TypeTestABI::kDstTypeReg);
-  const Register kScratchReg = R4;
-
-  compiler::Label done;
-
-  GenerateAssertAssignableViaTypeTestingStub(receiver_type, dst_type, dst_name,
-                                             kRegToCall, kScratchReg, &done);
-
-  // We use 2 consecutive entries in the pool for the subtype cache and the
-  // destination name.  The second entry, namely [dst_name] seems to be unused,
-  // but it will be used by the code throwing a TypeError if the type test fails
-  // (see runtime/vm/runtime_entry.cc:TypeCheck).  It will use pattern matching
-  // on the call site to find out at which pool index the destination name is
-  // located.
-  const intptr_t sub_type_cache_index = __ object_pool_builder().AddObject(
-      Object::null_object(), ObjectPool::Patchability::kPatchable);
-  const intptr_t sub_type_cache_offset =
-      compiler::target::ObjectPool::element_offset(sub_type_cache_index) -
-      kHeapObjectTag;
-  const intptr_t dst_name_index = __ object_pool_builder().AddObject(
-      dst_name, ObjectPool::Patchability::kPatchable);
-  ASSERT((sub_type_cache_index + 1) == dst_name_index);
-  ASSERT(__ constant_pool_allowed());
-
-  if (use_pc_relative_call) {
-    __ LoadWordFromPoolOffset(TypeTestABI::kSubtypeTestCacheReg,
-                              sub_type_cache_offset, PP);
-    __ GenerateUnRelocatedPcRelativeCall();
-    AddPcRelativeTTSCallTypeTarget(dst_type);
-  } else {
-    __ LoadField(R9, compiler::FieldAddress(
-                         kRegToCall, compiler::target::AbstractType::
-                                         type_test_stub_entry_point_offset()));
-    __ LoadWordFromPoolOffset(TypeTestABI::kSubtypeTestCacheReg,
-                              sub_type_cache_offset, PP);
-    __ blx(R9);
-  }
-  EmitCallsiteMetadata(token_pos, deopt_id, PcDescriptorsLayout::kOther, locs);
-  __ Bind(&done);
+void FlowGraphCompiler::GenerateIndirectTTSCall(Register reg_to_call,
+                                                intptr_t sub_type_cache_index) {
+  __ LoadField(
+      R9,
+      compiler::FieldAddress(
+          reg_to_call,
+          compiler::target::AbstractType::type_test_stub_entry_point_offset()));
+  __ LoadWordFromPoolIndex(TypeTestABI::kSubtypeTestCacheReg,
+                           sub_type_cache_index);
+  __ blx(R9);
 }
 
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {

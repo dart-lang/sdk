@@ -2303,29 +2303,178 @@ FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
              : kTestTypeSixArgs;
 }
 
-void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
+#if !defined(TARGET_ARCH_IA32)
+// Generates an assignable check for a given object. Emits no code if the
+// destination type is known at compile time and is a top type. See
+// GenerateCallerChecksForAssertAssignable for other optimized cases.
+//
+// Inputs (preserved for successful checks):
+// - TypeTestABI::kInstanceReg: object.
+// - TypeTestABI::kDstTypeReg: destination type (if non-constant).
+// - TypeTestABI::kInstantiatorTypeArgumentsReg: instantiator type arguments.
+// - TypeTestABI::kFunctionTypeArgumentsReg: function type arguments.
+//
+// Throws:
+// - TypeError (on unsuccessful assignable checks)
+//
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
+void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
+                                                 TokenPosition token_pos,
+                                                 intptr_t deopt_id,
+                                                 const String& dst_name,
+                                                 LocationSummary* locs) {
+  ASSERT(!token_pos.IsClassifying());
+  ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
+
+  if (!locs->in(1).IsConstant()) {
+    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
+    UNREACHABLE();
+  }
+  const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
+  ASSERT(dst_type.IsFinalized());
+
+  if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
+
+  compiler::Label done;
+
+  GenerateCallerChecksForAssertAssignable(receiver_type, dst_type, &done);
+
+  GenerateTTSCall(token_pos, deopt_id,
+                  dst_type.IsTypeParameter() ? TypeTestABI::kScratchReg
+                                             : TypeTestABI::kDstTypeReg,
+                  dst_type, dst_name, locs);
+  __ Bind(&done);
+}
+
+// Generates a call to the type testing stub for the type in [reg_with_type].
+// Provide a non-null [dst_type] and [dst_name] if they are known at compile
+// time.
+void FlowGraphCompiler::GenerateTTSCall(TokenPosition token_pos,
+                                        intptr_t deopt_id,
+                                        Register reg_with_type,
+                                        const AbstractType& dst_type,
+                                        const String& dst_name,
+                                        LocationSummary* locs) {
+  // For now, we don't allow dynamic (non-compile-time) dst_type/dst_name.
+  ASSERT(!dst_type.IsNull() && !dst_name.IsNull());
+  // We use 2 consecutive entries in the pool for the subtype cache and the
+  // destination name.  The second entry, namely [dst_name] seems to be unused,
+  // but it will be used by the code throwing a TypeError if the type test fails
+  // (see runtime/vm/runtime_entry.cc:TypeCheck).  It will use pattern matching
+  // on the call site to find out at which pool index the destination name is
+  // located.
+  const intptr_t sub_type_cache_index = __ object_pool_builder().AddObject(
+      Object::null_object(), compiler::ObjectPoolBuilderEntry::kPatchable);
+  const intptr_t dst_name_index = __ object_pool_builder().AddObject(
+      dst_name, compiler::ObjectPoolBuilderEntry::kPatchable);
+  ASSERT((sub_type_cache_index + 1) == dst_name_index);
+  ASSERT(__ constant_pool_allowed());
+
+  // If the dst_type is known at compile time and instantiated, we know the
+  // target TTS stub and so can use a PC-relative call when available.
+  if (dst_type.IsInstantiated() && CanPcRelativeCall(dst_type)) {
+    __ LoadWordFromPoolIndex(TypeTestABI::kSubtypeTestCacheReg,
+                             sub_type_cache_index);
+    __ GenerateUnRelocatedPcRelativeCall();
+    AddPcRelativeTTSCallTypeTarget(dst_type);
+  } else {
+    GenerateIndirectTTSCall(reg_with_type, sub_type_cache_index);
+  }
+  EmitCallsiteMetadata(token_pos, deopt_id, PcDescriptorsLayout::kOther, locs);
+}
+
+// Optimize assignable type check by adding inlined tests for:
+// - non-null object -> return object (only if in null safe mode and type is
+//   non-nullable Object).
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+//
+// Inputs (preserved):
+// - TypeTestABI::kInstanceReg: object.
+// - TypeTestABI::kInstantiatorTypeArgumentsReg: instantiator type arguments.
+// - TypeTestABI::kFunctionTypeArgumentsReg: function type arguments.
+//
+// Assumes:
+// - Destination type is not a top type.
+// - Object to check is not null, unless in null safe mode and destination type
+//   is not a nullable type.
+//
+// Outputs:
+// - TypeTestABI::kDstTypeReg: destination type
+// Additional output if dst_type is a TypeParameter:
+// - TypeTestABI::kScratchReg: type on which to call TTS stub.
+//
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
+void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     CompileType* receiver_type,
     const AbstractType& dst_type,
-    const String& dst_name,
-    const Register dst_type_reg_to_call,
-    const Register scratch_reg,
     compiler::Label* done) {
-#if defined(TARGET_ARCH_IA32)
-  // ia32 does not have support for TypeTestingStubs.
-  UNREACHABLE();
-#else
-  TypeUsageInfo* type_usage_info = thread()->type_usage_info();
-
-  // Special case: non-nullable Object.
   // Top types should be handled by the caller and cannot reach here.
   ASSERT(!dst_type.IsTopTypeForSubtyping());
+
+  // Set this to avoid marking the type testing stub for optimization.
+  bool elide_info = false;
+  // Call before any return points to set the destination type register and
+  // mark the destination type TTS as needing optimization, unless it is
+  // unlikely to be called.
+  auto output_dst_type = [&]() -> void {
+    // If we haven't handled the positive case of the type check on the call
+    // site and we'll be using the TTS of the destination type, we want an
+    // optimized type testing stub and thus record it in the [TypeUsageInfo].
+    if (!elide_info) {
+      if (auto const type_usage_info = thread()->type_usage_info()) {
+        type_usage_info->UseTypeInAssertAssignable(dst_type);
+      } else {
+        ASSERT(!FLAG_precompiled_mode);
+      }
+    }
+    __ LoadObject(TypeTestABI::kDstTypeReg, dst_type);
+  };
+
+  // We can handle certain types and checks very efficiently on the call site,
+  // meaning those need not be checked within the stubs (which may involve
+  // a runtime call).
+
   if (dst_type.IsObjectType()) {
+    // Special case: non-nullable Object.
     ASSERT(dst_type.IsNonNullable() && isolate()->null_safety());
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
     __ BranchIf(NOT_EQUAL, done);
-    // Fall back to type testing stub.
-    __ LoadObject(TypeTestABI::kDstTypeReg, dst_type);
-    return;
+    // Fall back to type testing stub in caller to throw the exception.
+    return output_dst_type();
+  }
+
+  if (dst_type.IsTypeParameter()) {
+    // Special case: Instantiate the type parameter on the caller side, invoking
+    // the TTS of the corresponding type parameter in the caller.
+    const TypeParameter& type_param = TypeParameter::Cast(dst_type);
+    if (isolate()->null_safety() && !type_param.IsNonNullable()) {
+      // If the type parameter is nullable when running in strong mode, we need
+      // to handle null before calling the TTS because the type parameter may be
+      // instantiated with a non-nullable type, where the TTS rejects null.
+      __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
+      __ BranchIf(EQUAL, done);
+    }
+    const Register kTypeArgumentsReg =
+        type_param.IsClassTypeParameter()
+            ? TypeTestABI::kInstantiatorTypeArgumentsReg
+            : TypeTestABI::kFunctionTypeArgumentsReg;
+
+    // Check if type arguments are null, i.e. equivalent to vector of dynamic.
+    // If so, then the value is guaranteed assignable as dynamic is a top type.
+    __ CompareObject(kTypeArgumentsReg, Object::null_object());
+    __ BranchIf(EQUAL, done);
+    // Put the instantiated type parameter into the scratch register, so its
+    // TTS can be called by the caller.
+    __ LoadField(
+        TypeTestABI::kScratchReg,
+        compiler::FieldAddress(kTypeArgumentsReg,
+                               compiler::target::TypeArguments::type_at_offset(
+                                   type_param.index())));
+    elide_info = true;
+    return output_dst_type();
   }
 
   // If the int type is assignable to [dst_type] we special case it on the
@@ -2339,93 +2488,34 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     is_non_smi = true;
   }
 
-  // We use two type registers iff the dst type is a type parameter.
-  // We "dereference" the type parameter for the TTS call but leave the type
-  // parameter in the TypeTestABI::kDstTypeReg for fallback into
-  // SubtypeTestCache.
-  ASSERT(dst_type_reg_to_call == kNoRegister ||
-         (dst_type.IsTypeParameter() ==
-          (TypeTestABI::kDstTypeReg != dst_type_reg_to_call)));
+  if (auto const hi = thread()->hierarchy_info()) {
+    const Class& type_class = Class::Handle(zone(), dst_type.type_class());
 
-  // We can handle certain types very efficiently on the call site (with a
-  // bailout to the normal stub, which will do a runtime call).
-  if (dst_type.IsTypeParameter()) {
-    // In NNBD strong mode we need to handle null instance before calling TTS
-    // if type parameter is nullable or legacy because type parameter can be
-    // instantiated with a non-nullable type which rejects null.
-    // In NNBD weak mode or if type parameter is non-nullable or has
-    // undetermined nullability null instance is correctly handled by TTS.
-    if (isolate()->null_safety() &&
-        (dst_type.IsNullable() || dst_type.IsLegacy())) {
-      __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
-      __ BranchIf(EQUAL, done);
-    }
-    const TypeParameter& type_param = TypeParameter::Cast(dst_type);
-    const Register kTypeArgumentsReg =
-        type_param.IsClassTypeParameter()
-            ? TypeTestABI::kInstantiatorTypeArgumentsReg
-            : TypeTestABI::kFunctionTypeArgumentsReg;
-
-    // Check if type arguments are null, i.e. equivalent to vector of dynamic.
-    __ CompareObject(kTypeArgumentsReg, Object::null_object());
-    __ BranchIf(EQUAL, done);
-    __ LoadField(
-        dst_type_reg_to_call,
-        compiler::FieldAddress(kTypeArgumentsReg,
-                               compiler::target::TypeArguments::type_at_offset(
-                                   type_param.index())));
-    __ LoadObject(TypeTestABI::kDstTypeReg, type_param);
-    if (type_usage_info != NULL) {
-      type_usage_info->UseTypeInAssertAssignable(dst_type);
-    }
-  } else {
-    HierarchyInfo* hi = Thread::Current()->hierarchy_info();
-    if (hi != NULL) {
-      const Class& type_class = Class::Handle(zone(), dst_type.type_class());
-
-      bool check_handled_at_callsite = false;
-      bool used_cid_range_check = false;
-      const bool can_use_simple_cid_range_test =
-          hi->CanUseSubtypeRangeCheckFor(dst_type);
-      if (can_use_simple_cid_range_test) {
-        const CidRangeVector& ranges = hi->SubtypeRangesForClass(
-            type_class,
-            /*include_abstract=*/false,
-            /*exclude_null=*/!Instance::NullIsAssignableTo(dst_type));
-        if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
-          if (is_non_smi) {
-            __ LoadClassId(scratch_reg, TypeTestABI::kInstanceReg);
-          } else {
-            __ LoadClassIdMayBeSmi(scratch_reg, TypeTestABI::kInstanceReg);
-          }
-          GenerateCidRangesCheck(assembler(), scratch_reg, ranges, done);
-          used_cid_range_check = true;
-          check_handled_at_callsite = true;
-        }
-      }
-
-      if (!used_cid_range_check && can_use_simple_cid_range_test &&
-          IsListClass(type_class)) {
-        __ LoadClassIdMayBeSmi(scratch_reg, TypeTestABI::kInstanceReg);
-        GenerateListTypeCheck(scratch_reg, done);
-        used_cid_range_check = true;
-      }
-
-      // If we haven't handled the positive case of the type check on the
-      // call-site, we want an optimized type testing stub and therefore record
-      // it in the [TypeUsageInfo].
-      if (!check_handled_at_callsite) {
-        if (type_usage_info != NULL) {
-          type_usage_info->UseTypeInAssertAssignable(dst_type);
+    if (hi->CanUseSubtypeRangeCheckFor(dst_type)) {
+      const CidRangeVector& ranges = hi->SubtypeRangesForClass(
+          type_class,
+          /*include_abstract=*/false,
+          /*exclude_null=*/!Instance::NullIsAssignableTo(dst_type));
+      if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
+        if (is_non_smi) {
+          __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kInstanceReg);
         } else {
-          ASSERT(!FLAG_precompiled_mode);
+          __ LoadClassIdMayBeSmi(TypeTestABI::kScratchReg,
+                                 TypeTestABI::kInstanceReg);
         }
+        GenerateCidRangesCheck(assembler(), TypeTestABI::kScratchReg, ranges,
+                               done);
+        elide_info = true;
+      } else if (IsListClass(type_class)) {
+        __ LoadClassIdMayBeSmi(TypeTestABI::kScratchReg,
+                               TypeTestABI::kInstanceReg);
+        GenerateListTypeCheck(TypeTestABI::kScratchReg, done);
       }
     }
-    __ LoadObject(TypeTestABI::kDstTypeReg, dst_type);
   }
-#endif  // defined(TARGET_ARCH_IA32)
+  output_dst_type();
 }
+#endif  // !defined(TARGET_ARCH_IA32)
 
 #undef __
 

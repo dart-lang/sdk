@@ -344,12 +344,14 @@ void Assembler::LoadPoolPointer(Register pp) {
   set_constant_pool_allowed(pp == PP);
 }
 
-void Assembler::LoadWordFromPoolOffset(Register dst,
-                                       uint32_t offset,
-                                       Register pp) {
+void Assembler::LoadWordFromPoolIndex(Register dst,
+                                      intptr_t index,
+                                      Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
   ASSERT(dst != pp);
   Operand op;
+  // PP is _un_tagged on ARM64.
+  const uint32_t offset = target::ObjectPool::element_offset(index);
   const uint32_t upper20 = offset & 0xfffff000;
   if (Address::CanHoldOffset(offset)) {
     ldr(dst, Address(pp, offset));
@@ -370,10 +372,12 @@ void Assembler::LoadWordFromPoolOffset(Register dst,
   }
 }
 
-void Assembler::LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset) {
+void Assembler::LoadWordFromPoolIndexFixed(Register dst, intptr_t index) {
   ASSERT(constant_pool_allowed());
   ASSERT(dst != PP);
   Operand op;
+  // PP is _un_tagged on ARM64.
+  const uint32_t offset = target::ObjectPool::element_offset(index);
   const uint32_t upper20 = offset & 0xfffff000;
   const uint32_t lower12 = offset & 0x00000fff;
   const Operand::OperandType ot =
@@ -384,16 +388,18 @@ void Assembler::LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset) {
   ldr(dst, Address(dst, lower12));
 }
 
-void Assembler::LoadDoubleWordFromPoolOffset(Register lower,
-                                             Register upper,
-                                             uint32_t offset) {
+void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
+                                            Register upper,
+                                            intptr_t index) {
   // This implementation needs to be kept in sync with
   // [InstructionPattern::DecodeLoadDoubleWordFromPool].
   ASSERT(constant_pool_allowed());
   ASSERT(lower != PP && upper != PP);
-  ASSERT(offset < (1 << 24));
 
   Operand op;
+  // PP is _un_tagged on ARM64.
+  const uint32_t offset = target::ObjectPool::element_offset(index);
+  ASSERT(offset < (1 << 24));
   const uint32_t upper20 = offset & 0xfffff000;
   const uint32_t lower12 = offset & 0x00000fff;
   if (Address::CanHoldOffset(offset, Address::PairOffset)) {
@@ -450,9 +456,9 @@ void Assembler::LoadNativeEntry(
     Register dst,
     const ExternalLabel* label,
     ObjectPoolBuilderEntry::Patchability patchable) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindNativeFunction(label, patchable));
-  LoadWordFromPoolOffset(dst, offset);
+  const intptr_t index =
+      object_pool_builder().FindNativeFunction(label, patchable);
+  LoadWordFromPoolIndex(dst, index);
 }
 
 void Assembler::LoadIsolate(Register dst) {
@@ -485,10 +491,9 @@ void Assembler::LoadObjectHelper(Register dst,
     }
   }
   if (CanLoadFromObjectPool(object)) {
-    const int32_t offset = target::ObjectPool::element_offset(
-        is_unique ? object_pool_builder().AddObject(object)
-                  : object_pool_builder().FindObject(object));
-    LoadWordFromPoolOffset(dst, offset);
+    const intptr_t index = is_unique ? object_pool_builder().AddObject(object)
+                                     : object_pool_builder().FindObject(object);
+    LoadWordFromPoolIndex(dst, index);
     return;
   }
   ASSERT(target::IsSmi(object));
@@ -570,9 +575,8 @@ void Assembler::LoadImmediate(Register reg, int64_t imm) {
 
   // Use constant pool if allowed, unless we can load imm with 2 instructions.
   if ((w1 != 0) && constant_pool_allowed()) {
-    const int32_t offset =
-        target::ObjectPool::element_offset(FindImmediate(imm));
-    LoadWordFromPoolOffset(reg, offset);
+    const intptr_t index = FindImmediate(imm);
+    LoadWordFromPoolIndex(reg, index);
     return;
   }
 
@@ -617,9 +621,9 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
 void Assembler::Branch(const Code& target,
                        Register pp,
                        ObjectPoolBuilderEntry::Patchability patchable) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset, pp);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), patchable);
+  LoadWordFromPoolIndex(CODE_REG, index, pp);
   ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   br(TMP);
 }
@@ -627,9 +631,9 @@ void Assembler::Branch(const Code& target,
 void Assembler::BranchLink(const Code& target,
                            ObjectPoolBuilderEntry::Patchability patchable,
                            CodeEntryKind entry_kind) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), patchable);
+  LoadWordFromPoolIndex(CODE_REG, index);
   ldr(TMP,
       FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blr(TMP);
@@ -643,9 +647,9 @@ void Assembler::BranchLinkToRuntime() {
 void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence,
                                           CodeEntryKind entry_kind) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), equivalence));
-  LoadWordFromPoolOffset(CODE_REG, offset);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), equivalence);
+  LoadWordFromPoolIndex(CODE_REG, index);
   ldr(TMP,
       FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blr(TMP);

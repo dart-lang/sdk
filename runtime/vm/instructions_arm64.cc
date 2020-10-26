@@ -556,11 +556,12 @@ bool PcRelativeTrampolineJumpPattern::IsValid() const {
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Calls to the type testing stubs look like:
   //   ldr R9, ...
-  //   ldr R3, [PP+idx]
+  //   ldr Rn, [PP+idx]
   //   blr R9
   // or
-  //   ldr R3, [PP+idx]
+  //   ldr Rn, [PP+idx]
   //   blr pc+<offset>
+  // where Rn = TypeTestABI::kSubtypeTestCacheReg.
 
   // Ensure the caller of the type testing stub (whose return address is [pc_])
   // branched via `blr R9` or a pc-relative call.
@@ -576,7 +577,7 @@ intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   Register reg;
   intptr_t pool_index = -1;
   InstructionPattern::DecodeLoadWordFromPool(load_instr_end, &reg, &pool_index);
-  ASSERT(reg == R3);
+  ASSERT_EQUAL(reg, TypeTestABI::kSubtypeTestCacheReg);
   return pool_index;
 }
 

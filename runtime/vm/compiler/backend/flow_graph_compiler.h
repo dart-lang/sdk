@@ -588,19 +588,21 @@ class FlowGraphCompiler : public ValueObject {
                                 const String& dst_name,
                                 LocationSummary* locs);
 
-  void GenerateAssertAssignableViaTypeTestingStub(CompileType* receiver_type,
-                                                  TokenPosition token_pos,
-                                                  intptr_t deopt_id,
-                                                  const String& dst_name,
-                                                  LocationSummary* locs);
+#if !defined(TARGET_ARCH_IA32)
+  void GenerateCallerChecksForAssertAssignable(CompileType* receiver_type,
+                                               const AbstractType& dst_type,
+                                               compiler::Label* done);
 
-  void GenerateAssertAssignableViaTypeTestingStub(
-      CompileType* receiver_type,
-      const AbstractType& dst_type,
-      const String& dst_name,
-      const Register dst_type_reg_to_call,
-      const Register scratch_reg,
-      compiler::Label* done);
+  void GenerateTTSCall(TokenPosition token_pos,
+                       intptr_t deopt_id,
+                       Register reg_with_type,
+                       const AbstractType& dst_type,
+                       const String& dst_name,
+                       LocationSummary* locs);
+
+  void GenerateIndirectTTSCall(Register reg_with_type,
+                               intptr_t sub_type_cache_index);
+#endif
 
   void GenerateRuntimeCall(TokenPosition token_pos,
                            intptr_t deopt_id,

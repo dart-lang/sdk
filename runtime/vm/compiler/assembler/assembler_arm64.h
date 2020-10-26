@@ -1598,11 +1598,11 @@ class Assembler : public AssemblerBase {
   // InstructionPattern::DecodeLoadWordFromPool can decode.
   //
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+  void LoadWordFromPoolIndex(Register dst, intptr_t index, Register pp = PP);
 
-  void LoadDoubleWordFromPoolOffset(Register lower,
-                                    Register upper,
-                                    uint32_t offset);
+  void LoadDoubleWordFromPoolIndex(Register lower,
+                                   Register upper,
+                                   intptr_t index);
 
   void PushObject(const Object& object) {
     if (IsSameObject(compiler::NullObject(), object)) {
@@ -1840,7 +1840,7 @@ class Assembler : public AssemblerBase {
 
   bool constant_pool_allowed_;
 
-  void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
+  void LoadWordFromPoolIndexFixed(Register dst, intptr_t index);
 
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);

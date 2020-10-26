@@ -1514,12 +1514,15 @@ intptr_t Assembler::FindImmediate(int32_t imm) {
 }
 
 // Uses a code sequence that can easily be decoded.
-void Assembler::LoadWordFromPoolOffset(Register rd,
-                                       int32_t offset,
-                                       Register pp,
-                                       Condition cond) {
+void Assembler::LoadWordFromPoolIndex(Register rd,
+                                      intptr_t index,
+                                      Register pp,
+                                      Condition cond) {
   ASSERT((pp != PP) || constant_pool_allowed());
   ASSERT(rd != pp);
+  // PP is tagged on ARM.
+  const int32_t offset =
+      target::ObjectPool::element_offset(index) - kHeapObjectTag;
   int32_t offset_mask = 0;
   if (Address::CanHoldLoadOffset(kWord, offset, &offset_mask)) {
     ldr(rd, Address(pp, offset), cond);
@@ -1632,8 +1635,7 @@ void Assembler::LoadObjectHelper(Register rd,
   // object pool.
   const auto index = is_unique ? object_pool_builder().AddObject(object)
                                : object_pool_builder().FindObject(object);
-  const int32_t offset = target::ObjectPool::element_offset(index);
-  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
+  LoadWordFromPoolIndex(rd, index, pp, cond);
 }
 
 void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
@@ -1650,9 +1652,9 @@ void Assembler::LoadNativeEntry(Register rd,
                                 const ExternalLabel* label,
                                 ObjectPoolBuilderEntry::Patchability patchable,
                                 Condition cond) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindNativeFunction(label, patchable));
-  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
+  const intptr_t index =
+      object_pool_builder().FindNativeFunction(label, patchable);
+  LoadWordFromPoolIndex(rd, index, PP, cond);
 }
 
 void Assembler::PushObject(const Object& object) {
@@ -2581,9 +2583,9 @@ void Assembler::Branch(const Code& target,
                        ObjectPoolBuilderEntry::Patchability patchable,
                        Register pp,
                        Condition cond) {
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), patchable);
+  LoadWordFromPoolIndex(CODE_REG, index, pp, cond);
   Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()), cond);
 }
 
@@ -2598,9 +2600,9 @@ void Assembler::BranchLink(const Code& target,
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), patchable));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), patchable);
+  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
   ldr(LR, FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
@@ -2622,9 +2624,9 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
-  const int32_t offset = target::ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(target), equivalence));
-  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
+  const intptr_t index =
+      object_pool_builder().FindObject(ToObject(target), equivalence);
+  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
   ldr(LR, FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
