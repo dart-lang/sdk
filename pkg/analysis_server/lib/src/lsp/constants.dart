@@ -16,7 +16,11 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 ///
 ///     myLongFunctionName();
 ///     print(myLong^)
-const dartCompletionCommitCharacters = ['.', '('];
+///
+/// The `.` is not included because it falsely triggers whenver typing a
+/// cascade (`..`), inserting the very first completion instead of just a second
+/// period.
+const dartCompletionCommitCharacters = ['('];
 
 /// Set the characters that will cause the editor to automatically
 /// trigger completion.
