@@ -99,6 +99,7 @@ abstract class DartCodeActionKind {
     CodeActionKind.SourceOrganizeImports,
     SortMembers,
     CodeActionKind.QuickFix,
+    CodeActionKind.Refactor,
   ];
   static const SortMembers = CodeActionKind('source.sortMembers');
 }
