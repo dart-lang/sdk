@@ -69,10 +69,14 @@ class UBIB extends core::Object implements self::UBI {
     return [@vm.inferred-type.metadata=int] self::smiOrMint;
 }
 [@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* kTrue = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(1) ?{core::bool*} true : false;
+[@vm.inferred-type.metadata=int?]static field dynamic usedObject;
 [@vm.unboxing-info.metadata=()->i]static get mint() → core::int*
   return -6144092014192636707;
 [@vm.unboxing-info.metadata=()->i]static get smiOrMint() → core::int*
   return [@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{core::int*} 1 : [@vm.inferred-type.metadata=int] self::mint;
+static method use([@vm.inferred-type.metadata=int?] dynamic object) → void {
+  [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=int?] self::usedObject.{core::Object::==}(null) ?{dynamic} self::usedObject = object : null;
+}
 static method main() → dynamic {
   final self::BI1A* bi1a = new self::BI1A::•([@vm.inferred-type.metadata=int] self::smiOrMint);
   final self::BI1B* bi1b = new self::BI1B::•();
@@ -88,4 +92,3 @@ static method main() → dynamic {
   final self::UBIB* ubib = new self::UBIB::•();
   self::use([@vm.inferred-type.metadata=int]([@vm.inferred-type.metadata=dart.core::bool?] self::kTrue ?{self::UBI*} ubia : ubib).{self::UBI::value});
 }
-static method use([@vm.inferred-type.metadata=int?] dynamic object) → void {}

@@ -1535,13 +1535,12 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   Args<Type> argumentTypes(Member member) => _summaries[member]?.argumentTypes;
 
+  Type argumentType(Member member, VariableDeclaration memberParam) {
+    return _summaries[member]?.argumentType(member, memberParam);
+  }
+
   List<VariableDeclaration> uncheckedParameters(Member member) =>
       _summaries[member]?.uncheckedParameters;
-
-  // The set of optional and named parameters to this procedure which
-  // are passed at all call-sites.
-  Set<String> alwaysPassedOptionalParameters(Member member) =>
-      _summaries[member]?.alwaysPassedOptionalParameters() ?? const {};
 
   bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
 
@@ -1564,6 +1563,12 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   bool isCalledNotViaThis(Member member) =>
       _methodsAndSettersCalledDynamically.contains(member) ||
       _calledViaInterfaceSelector.contains(member);
+
+  /// Update the summary parameters to reflect a signature change with moved
+  /// and/or removed parameters.
+  void adjustFunctionParameters(Member member) {
+    _summaries[member]?.adjustFunctionParameters(member);
+  }
 
   /// ---- Implementation of [CallHandler] interface. ----
 
@@ -1647,5 +1652,10 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   @override
   void recordMemberCalledViaThis(Member target) {
     _calledViaThis.add(target);
+  }
+
+  @override
+  void recordTearOff(Procedure target) {
+    _tearOffTaken.add(target);
   }
 }

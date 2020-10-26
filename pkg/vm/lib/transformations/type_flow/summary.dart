@@ -74,9 +74,6 @@ class Parameter extends Statement {
   Type defaultValue;
   Type _argumentType = const EmptyType();
 
-  // Whether this parameter is passed at all call-sites.
-  bool isAlwaysPassed = true;
-
   Parameter(this.name, this.staticTypeForNarrowing);
 
   @override
@@ -108,7 +105,6 @@ class Parameter extends Statement {
   }
 
   Type _observeNotPassed(TypeHierarchy typeHierarchy) {
-    isAlwaysPassed = false;
     final Type argType = defaultValue.specialize(typeHierarchy);
     _observeArgumentType(argType, typeHierarchy);
     return argType;
@@ -590,9 +586,9 @@ class TypeCheck extends Statement {
 /// Summary is a linear sequence of statements representing a type flow in
 /// one member, function or initializer.
 class Summary {
-  final int parameterCount;
-  final int positionalParameterCount;
-  final int requiredParameterCount;
+  int parameterCount;
+  int positionalParameterCount;
+  int requiredParameterCount;
 
   List<Statement> _statements = <Statement>[];
   TypeExpr result = null;
@@ -642,12 +638,6 @@ class Summary {
     // The first `parameterCount` statements are Parameters.
 
     List<Type> types = new List<Type>(_statements.length);
-
-    if (arguments.unknownArity) {
-      for (int i = 0; i < parameterCount; ++i) {
-        (_statements[i] as Parameter).isAlwaysPassed = false;
-      }
-    }
 
     for (int i = 0; i < positionalArgCount; i++) {
       final Parameter param = _statements[i] as Parameter;
@@ -726,6 +716,26 @@ class Summary {
     return new Args<Type>(argTypes, names: argNames);
   }
 
+  Type argumentType(Member member, VariableDeclaration memberParam) {
+    final int firstParamIndex =
+        numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
+    final positional = member.function.positionalParameters;
+    for (int i = 0; i < positional.length; i++) {
+      if (positional[i] == memberParam) {
+        final Parameter param = _statements[firstParamIndex + i] as Parameter;
+        assert(param.name == memberParam.name);
+        return param.argumentType;
+      }
+    }
+    for (int i = positionalParameterCount; i < parameterCount; i++) {
+      final Parameter param = _statements[i] as Parameter;
+      if (param.name == memberParam.name) {
+        return param.argumentType;
+      }
+    }
+    throw "Could not find argument type of parameter ${memberParam.name}";
+  }
+
   List<VariableDeclaration> get uncheckedParameters {
     final params = List<VariableDeclaration>();
     for (Statement statement in _statements) {
@@ -738,14 +748,29 @@ class Summary {
     return params;
   }
 
-  Set<String> alwaysPassedOptionalParameters() {
-    final params = Set<String>();
-    for (int i = requiredParameterCount; i < parameterCount; ++i) {
-      final Parameter p = _statements[i] as Parameter;
-      if (p.isAlwaysPassed) {
-        params.add(p.name);
-      }
+  /// Update the summary parameters to reflect a signature change with moved
+  /// and/or removed parameters.
+  void adjustFunctionParameters(Member member) {
+    // Just keep the parameters part of the summary, assuming that the rest is
+    // not used in later phases. The index values in the statements will be
+    // incorrect, but those are assumed to be not used either.
+    final int implicit =
+        (hasReceiverArg(member) ? 1 : 0) + numTypeParams(member);
+    final Map<String, Parameter> paramsByName = {};
+    for (int i = implicit; i < parameterCount; i++) {
+      final Parameter param = statements[i];
+      paramsByName[param.name] = param;
     }
-    return params;
+    FunctionNode function = member.function;
+    statements.length = implicit;
+    for (VariableDeclaration param in function.positionalParameters) {
+      statements.add(paramsByName[param.name]);
+    }
+    positionalParameterCount = statements.length;
+    for (VariableDeclaration param in function.namedParameters) {
+      statements.add(paramsByName[param.name]);
+    }
+    parameterCount = statements.length;
+    requiredParameterCount = implicit + function.requiredParameterCount;
   }
 }

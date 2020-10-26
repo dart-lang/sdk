@@ -20,11 +20,11 @@ class B extends core::Object /*isEnum*/  {
 [@vm.unboxing-info.metadata=(i)->b]static method test0([@vm.inferred-type.metadata=dart.core::_Smi (value: 40)] core::int* arg) → void {
   core::print(arg);
 }
-static method test1([[@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] core::int* arg = #C1]) → void {
-  core::print(arg);
+static method test1() → void {
+  core::print(#C1);
 }
-static method test2({[@vm.inferred-type.metadata=dart.core::_Smi (value: 43)] core::int* arg = #C2}) → void {
-  core::print(arg);
+static method test2() → void {
+  core::print(#C2);
 }
 [@vm.unboxing-info.metadata=()->d]static get getD() → dynamic
   return 100.0;
@@ -45,9 +45,9 @@ static method testPassEnum2([@vm.inferred-type.metadata=#lib::B (value: const #l
 }
 static method getList() → dynamic
   return #C6;
-static method testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[1, 2, 3])] dynamic arg1, [[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[4, 5])] dynamic arg2 = #C9]) → void {
+static method testList([@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[1, 2, 3])] dynamic arg1) → void {
   core::print(arg1);
-  core::print(arg2);
+  core::print(#C9);
 }
 static method main() → dynamic {
   self::test0(40);

@@ -32,6 +32,9 @@ abstract class EntryPointsListener {
 
   /// Record the fact that given member is called from this.
   void recordMemberCalledViaThis(Member target);
+
+  /// Record the fact that given method is torn off.
+  void recordTearOff(Procedure target) {}
 }
 
 class PragmaEntryPointsVisitor extends RecursiveVisitor {
