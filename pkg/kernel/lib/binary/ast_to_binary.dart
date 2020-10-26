@@ -10,6 +10,7 @@ import 'dart:io' show BytesBuilder;
 import 'dart:typed_data';
 
 import '../ast.dart';
+import 'ast_from_binary.dart' show mergeCompilationModeOrThrow;
 import 'tag.dart';
 
 /// Writes to a binary file.
@@ -29,6 +30,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final List<bool> _sourcesUsedInLibrary = new List<bool>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
+  NonNullableByDefaultCompiledMode compilationMode;
 
   List<_MetadataSubsection> _metadataSubsections;
 
@@ -534,6 +536,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeComponentFile(Component component) {
     Timeline.timeSync("BinaryPrinter.writeComponentFile", () {
+      compilationMode = component.mode;
       computeCanonicalNames(component);
       final componentOffset = getBufferOffset();
       writeUInt32(Tag.ComponentFile);
@@ -954,6 +957,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     libraryOffsets.add(getBufferOffset());
     writeByte(node.flags);
+
+    assert(
+        mergeCompilationModeOrThrow(
+                compilationMode, node.nonNullableByDefaultCompiledMode) ==
+            compilationMode,
+        "Cannot have ${node.nonNullableByDefaultCompiledMode} "
+        "in component with mode $compilationMode");
 
     writeUInt30(node.languageVersion.major);
     writeUInt30(node.languageVersion.minor);

@@ -126,7 +126,7 @@ Future<CompilerResult> generateKernelInternal(
       trimmedSummaryComponent.uriToSource.addAll(summaryComponent.uriToSource);
 
       NonNullableByDefaultCompiledMode compiledMode =
-          NonNullableByDefaultCompiledMode.Disabled;
+          NonNullableByDefaultCompiledMode.Weak;
       switch (options.nnbdMode) {
         case NnbdMode.Weak:
           compiledMode = NonNullableByDefaultCompiledMode.Weak;

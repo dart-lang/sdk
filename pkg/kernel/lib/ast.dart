@@ -342,7 +342,7 @@ class Reference {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-enum NonNullableByDefaultCompiledMode { Disabled, Weak, Strong, Agnostic }
+enum NonNullableByDefaultCompiledMode { Weak, Strong, Agnostic }
 
 class Library extends NamedNode
     implements Annotatable, Comparable<Library>, FileUriNode {
@@ -394,16 +394,15 @@ class Library extends NamedNode
     if (weak && strong) return NonNullableByDefaultCompiledMode.Agnostic;
     if (strong) return NonNullableByDefaultCompiledMode.Strong;
     if (weak) return NonNullableByDefaultCompiledMode.Weak;
-    return NonNullableByDefaultCompiledMode.Disabled;
+    // Nothing set is implicitly weak.
+    return NonNullableByDefaultCompiledMode.Weak;
   }
 
   void set nonNullableByDefaultCompiledMode(
       NonNullableByDefaultCompiledMode mode) {
+    // Technically we could but the isNonNullableByDefault flag in here as it's
+    // only allowed when we're weak.
     switch (mode) {
-      case NonNullableByDefaultCompiledMode.Disabled:
-        flags = (flags & ~NonNullableByDefaultModeBit1Weak) &
-            ~NonNullableByDefaultModeBit2Strong;
-        break;
       case NonNullableByDefaultCompiledMode.Weak:
         flags = (flags | NonNullableByDefaultModeBit1Weak) &
             ~NonNullableByDefaultModeBit2Strong;
@@ -9246,7 +9245,7 @@ class Component extends TreeNode {
   Reference get mainMethodName => _mainMethodName;
   NonNullableByDefaultCompiledMode _mode;
   NonNullableByDefaultCompiledMode get mode {
-    return _mode ?? NonNullableByDefaultCompiledMode.Disabled;
+    return _mode ?? NonNullableByDefaultCompiledMode.Weak;
   }
 
   NonNullableByDefaultCompiledMode get modeRaw => _mode;

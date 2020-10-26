@@ -755,32 +755,8 @@ class BinaryBuilder {
     if (compilationMode == null) {
       compilationMode = component.modeRaw;
     }
-    if (compilationMode == null) {
-      compilationMode = index.compiledMode;
-    } else if (compilationMode != index.compiledMode) {
-      if (compilationMode == NonNullableByDefaultCompiledMode.Agnostic) {
-        compilationMode = index.compiledMode;
-      } else if (index.compiledMode ==
-          NonNullableByDefaultCompiledMode.Agnostic) {
-        // Keep as-is.
-      } else {
-        if ((compilationMode == NonNullableByDefaultCompiledMode.Disabled ||
-                index.compiledMode ==
-                    NonNullableByDefaultCompiledMode.Disabled) &&
-            (compilationMode == NonNullableByDefaultCompiledMode.Weak ||
-                index.compiledMode == NonNullableByDefaultCompiledMode.Weak)) {
-          // One is disabled and one is weak.
-          // => We allow that and "merge" them as disabled.
-          compilationMode = NonNullableByDefaultCompiledMode.Disabled;
-        } else {
-          // Mixed mode where agnostic isn't involved and it's not
-          // disabled + weak.
-          throw new CompilationModeError(
-              "Mixed compilation mode found: $compilationMode "
-              "and ${index.compiledMode}.");
-        }
-      }
-    }
+    compilationMode =
+        mergeCompilationModeOrThrow(compilationMode, index.compiledMode);
 
     _byteOffset = index.binaryOffsetForStringTable;
     readStringTable(_stringTable);
@@ -1013,6 +989,13 @@ class BinaryBuilder {
     library.name = name;
     library.fileUri = fileUri;
     library.problemsAsJson = problemsAsJson;
+
+    assert(
+        mergeCompilationModeOrThrow(
+                compilationMode, library.nonNullableByDefaultCompiledMode) ==
+            compilationMode,
+        "Cannot load ${library.nonNullableByDefaultCompiledMode} "
+        "into component with mode $compilationMode");
 
     assert(() {
       debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
@@ -2652,4 +2635,22 @@ class _MetadataSubsection {
   final Map<int, int> mapping;
 
   _MetadataSubsection(this.repository, this.mapping);
+}
+
+/// Merges two compilation modes or throws if they are not compatible.
+NonNullableByDefaultCompiledMode mergeCompilationModeOrThrow(
+    NonNullableByDefaultCompiledMode a, NonNullableByDefaultCompiledMode b) {
+  if (a == null || a == b) {
+    return b;
+  }
+  if (a == NonNullableByDefaultCompiledMode.Agnostic) {
+    return b;
+  }
+  if (b == NonNullableByDefaultCompiledMode.Agnostic) {
+    // Keep as-is.
+    return a;
+  }
+
+  // Mixed mode where agnostic isn't involved.
+  throw new CompilationModeError("Mixed compilation mode found: $a and $b");
 }

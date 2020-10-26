@@ -393,7 +393,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     } else {
       library.nonNullableByDefaultCompiledMode =
-          NonNullableByDefaultCompiledMode.Disabled;
+          NonNullableByDefaultCompiledMode.Weak;
     }
   }
 

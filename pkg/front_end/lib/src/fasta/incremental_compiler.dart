@@ -8,6 +8,7 @@ import 'dart:async' show Future;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
@@ -17,7 +18,8 @@ import 'package:kernel/binary/ast_from_binary.dart'
         CompilationModeError,
         InvalidKernelSdkVersionError,
         InvalidKernelVersionError,
-        SubComponentView;
+        SubComponentView,
+        mergeCompilationModeOrThrow;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
@@ -1561,8 +1563,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             .readComponent(data.component,
                 checkCanonicalNames: true, createView: true);
 
+        // Compute "output nnbd mode".
+        NonNullableByDefaultCompiledMode compiledMode;
+        if (c.options
+            .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+          switch (c.options.nnbdMode) {
+            case NnbdMode.Weak:
+              compiledMode = NonNullableByDefaultCompiledMode.Weak;
+              break;
+            case NnbdMode.Strong:
+              compiledMode = NonNullableByDefaultCompiledMode.Strong;
+              break;
+            case NnbdMode.Agnostic:
+              compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
+              break;
+          }
+        } else {
+          compiledMode = NonNullableByDefaultCompiledMode.Weak;
+        }
+
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
+        // Also verify NNBD settings.
         for (Library lib in data.component.libraries) {
           if (lib.importUri.scheme == "package" &&
               uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
@@ -1572,6 +1594,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // TODO(jensj): Anything that doesn't depend on it can be kept.
             // For now just don't initialize from this dill.
             throw const PackageChangedError();
+          }
+          if (compiledMode !=
+              mergeCompilationModeOrThrow(
+                  compiledMode, lib.nonNullableByDefaultCompiledMode)) {
+            throw new CompilationModeError(
+                "Can't compile to $compiledMode with library with mode "
+                "${lib.nonNullableByDefaultCompiledMode}.");
           }
         }
 
