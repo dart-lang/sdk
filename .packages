@@ -79,7 +79,6 @@ pool:third_party/pkg/pool/lib
 protobuf:third_party/pkg/protobuf/protobuf/lib
 pub:third_party/pkg/pub/lib
 pub_semver:third_party/pkg/pub_semver/lib
-quiver:third_party/pkg/quiver/lib
 resource:third_party/pkg/resource/lib
 sdk_library_metadata:sdk/lib/_internal/sdk_library_metadata/lib
 shelf:third_party/pkg/shelf/lib
