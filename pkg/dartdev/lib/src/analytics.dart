@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -50,43 +51,43 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
     return _instance;
   }
 
-  // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
-  // handled here.
-  // Also, stdout.hasTerminal is checked, if there is no terminal we infer that
-  // a machine is running dartdev so we return analytics shouldn't be set.
-  if (disableAnalytics) {
+  if (Platform.environment['_DARTDEV_LOG_ANALYTICS'] != null) {
+    // Used for testing what analytics messages are sent.
+    print('Logging analytics');
+    _instance = _LoggingAnalytics();
+  } else if (disableAnalytics) {
+    // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
+    // handled here.
+    // Also, stdout.hasTerminal is checked, if there is no terminal we infer that
+    // a machine is running dartdev so we return analytics shouldn't be set.
     _instance = DisabledAnalytics(_trackingId, _appName);
-    return _instance;
-  }
-
-  var settingsDir = getDartStorageDirectory();
-  if (settingsDir == null) {
-    // Some systems don't support user home directories; for those, fail
-    // gracefully by returning a disabled analytics object.
-    _instance = DisabledAnalytics(_trackingId, _appName);
-    return _instance;
-  }
-
-  if (!settingsDir.existsSync()) {
-    try {
-      settingsDir.createSync();
-    } catch (e) {
-      // If we can't create the directory for the analytics settings, fail
+  } else {
+    var settingsDir = getDartStorageDirectory();
+    if (settingsDir == null) {
+      // Some systems don't support user home directories; for those, fail
       // gracefully by returning a disabled analytics object.
       _instance = DisabledAnalytics(_trackingId, _appName);
-      return _instance;
+    } else if (!settingsDir.existsSync()) {
+      try {
+        settingsDir.createSync();
+      } catch (e) {
+        // If we can't create the directory for the analytics settings, fail
+        // gracefully by returning a disabled analytics object.
+        _instance = DisabledAnalytics(_trackingId, _appName);
+      }
+    } else {
+      var readmeFile =
+          File('${settingsDir.absolute.path}${path.separator}$_readmeFileName');
+      if (!readmeFile.existsSync()) {
+        readmeFile.createSync();
+        readmeFile.writeAsStringSync(_readmeFileContents);
+      }
+
+      var settingsFile = File(path.join(settingsDir.path, _settingsFileName));
+      _instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
     }
   }
 
-  var readmeFile =
-      File('${settingsDir.absolute.path}${path.separator}$_readmeFileName');
-  if (!readmeFile.existsSync()) {
-    readmeFile.createSync();
-    readmeFile.writeAsStringSync(_readmeFileContents);
-  }
-
-  var settingsFile = File(path.join(settingsDir.path, _settingsFileName));
-  _instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
   return _instance;
 }
 
@@ -152,4 +153,52 @@ class DisabledAnalytics extends AnalyticsMock {
 
   @override
   bool get firstRun => false;
+}
+
+class _LoggingAnalytics extends AnalyticsMock {
+  _LoggingAnalytics() {
+    onSend.listen((event) {
+      stderr.writeln('[analytics]${json.encode(event)}');
+    });
+  }
+
+  @override
+  bool get firstRun => false;
+
+  @override
+  Future sendScreenView(String viewName, {Map<String, String> parameters}) {
+    parameters ??= <String, String>{};
+    parameters['viewName'] = viewName;
+    return _log('screenView', parameters);
+  }
+
+  @override
+  Future sendEvent(String category, String action,
+      {String label, int value, Map<String, String> parameters}) {
+    parameters ??= <String, String>{};
+    return _log(
+        'event',
+        {'category': category, 'action': action, 'label': label, 'value': value}
+          ..addAll(parameters));
+  }
+
+  @override
+  Future sendSocial(String network, String action, String target) =>
+      _log('social', {'network': network, 'action': action, 'target': target});
+
+  @override
+  Future sendTiming(String variableName, int time,
+      {String category, String label}) {
+    return _log('timing', {
+      'variableName': variableName,
+      'time': time,
+      'category': category,
+      'label': label
+    });
+  }
+
+  Future<void> _log(String hitType, Map message) async {
+    final encoded = json.encode({'hitType': hitType, 'message': message});
+    stderr.writeln('[analytics]: $encoded');
+  }
 }

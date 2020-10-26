@@ -16,8 +16,12 @@ const Timeout longTimeout = Timeout(Duration(minutes: 5));
 /// version:
 const String dartVersionFilePrefix2_9 = '// @dart = 2.9\n';
 
-TestProject project({String mainSrc, String analysisOptions}) =>
-    TestProject(mainSrc: mainSrc, analysisOptions: analysisOptions);
+TestProject project(
+        {String mainSrc, String analysisOptions, bool logAnalytics = false}) =>
+    TestProject(
+        mainSrc: mainSrc,
+        analysisOptions: analysisOptions,
+        logAnalytics: logAnalytics);
 
 class TestProject {
   static String get defaultProjectName => 'dartdev_temp';
@@ -30,7 +34,13 @@ class TestProject {
 
   String get relativeFilePath => 'lib/main.dart';
 
-  TestProject({String mainSrc, String analysisOptions}) {
+  final bool logAnalytics;
+
+  TestProject({
+    String mainSrc,
+    String analysisOptions,
+    this.logAnalytics = false,
+  }) {
     dir = Directory.systemTemp.createTempSync('dartdev');
     file('pubspec.yaml', 'name: $name\ndev_dependencies:\n  test: any\n');
     if (analysisOptions != null) {
@@ -67,11 +77,9 @@ class TestProject {
     ];
 
     arguments.add('--disable-dartdev-analytics');
-    return Process.runSync(
-      Platform.resolvedExecutable,
-      arguments,
-      workingDirectory: workingDir ?? dir.path,
-    );
+    return Process.runSync(Platform.resolvedExecutable, arguments,
+        workingDirectory: workingDir ?? dir.path,
+        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
   }
 
   String _sdkRootPath;
