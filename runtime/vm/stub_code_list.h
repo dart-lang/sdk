@@ -95,6 +95,8 @@ namespace dart {
   V(AsynchronousGapMarker)                                                     \
   V(NotLoaded)                                                                 \
   V(DispatchTableNullError)                                                    \
+  V(LateInitializationErrorSharedWithFPURegs)                                  \
+  V(LateInitializationErrorSharedWithoutFPURegs)                               \
   V(NullErrorSharedWithFPURegs)                                                \
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(NullArgErrorSharedWithFPURegs)                                             \

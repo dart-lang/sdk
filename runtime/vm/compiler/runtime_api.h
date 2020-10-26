@@ -1069,6 +1069,8 @@ class Thread : public AllStatic {
   static word invoke_dart_code_stub_offset();
   static word interpret_call_entry_point_offset();
   static word invoke_dart_code_from_bytecode_stub_offset();
+  static word late_initialization_error_shared_without_fpu_regs_stub_offset();
+  static word late_initialization_error_shared_with_fpu_regs_stub_offset();
   static word null_error_shared_without_fpu_regs_stub_offset();
   static word null_error_shared_with_fpu_regs_stub_offset();
   static word null_arg_error_shared_without_fpu_regs_stub_offset();

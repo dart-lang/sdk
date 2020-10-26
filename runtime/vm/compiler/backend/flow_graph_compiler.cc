@@ -2514,8 +2514,11 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   const bool use_shared_stub =
       instruction()->UseSharedSlowPathStub(compiler->is_optimizing());
+  ASSERT(use_shared_stub == instruction()->locs()->call_on_shared_slow_path());
   const bool live_fpu_registers =
       instruction()->locs()->live_registers()->FpuRegisterCount() > 0;
+  const intptr_t num_args =
+      use_shared_stub ? 0 : GetNumberOfArgumentsForRuntimeCall();
   __ Bind(entry_label());
   EmitCodeAtSlowPathEntry(compiler);
   LocationSummary* locs = instruction()->locs();
@@ -2524,26 +2527,19 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitSharedStubCall(compiler, live_fpu_registers);
   } else {
     compiler->SaveLiveRegisters(locs);
-    intptr_t i = 0;
-    if (num_args_ % 2 != 0) {
-      __ PushRegister(locs->in(i).reg());
-      ++i;
-    }
-    for (; i < num_args_; i += 2) {
-      __ PushRegisterPair(locs->in(i + 1).reg(), locs->in(i).reg());
-    }
-    __ CallRuntime(runtime_entry_, num_args_);
+    PushArgumentsForRuntimeCall(compiler);
+    __ CallRuntime(runtime_entry_, num_args);
   }
   const intptr_t deopt_id = instruction()->deopt_id();
   compiler->AddDescriptor(PcDescriptorsLayout::kOther,
                           compiler->assembler()->CodeSize(), deopt_id,
                           instruction()->token_pos(), try_index_);
   AddMetadataForRuntimeCall(compiler);
-  compiler->RecordSafepoint(locs, num_args_);
+  compiler->RecordSafepoint(locs, num_args);
   if ((try_index_ != kInvalidTryIndex) ||
       (compiler->CurrentTryIndex() != kInvalidTryIndex)) {
     Environment* env =
-        compiler->SlowPathEnvironmentFor(instruction(), num_args_);
+        compiler->SlowPathEnvironmentFor(instruction(), num_args);
     if (FLAG_precompiled_mode) {
       compiler->RecordCatchEntryMoves(env, try_index_);
     } else if (env != nullptr) {
@@ -2609,6 +2605,42 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
   const auto& stub =
       Code::ZoneHandle(compiler->zone(),
                        GetStub(compiler, exception_type(), save_fpu_registers));
+  compiler->EmitCallToStub(stub);
+#endif
+}
+
+void RangeErrorSlowPath::PushArgumentsForRuntimeCall(
+    FlowGraphCompiler* compiler) {
+  LocationSummary* locs = instruction()->locs();
+  __ PushRegisterPair(locs->in(CheckBoundBase::kIndexPos).reg(),
+                      locs->in(CheckBoundBase::kLengthPos).reg());
+}
+
+void LateInitializationErrorSlowPath::PushArgumentsForRuntimeCall(
+    FlowGraphCompiler* compiler) {
+  const Field& original_field = Field::ZoneHandle(
+      instruction()->AsLoadField()->slot().field().Original());
+  __ PushObject(original_field);
+}
+
+void LateInitializationErrorSlowPath::EmitSharedStubCall(
+    FlowGraphCompiler* compiler,
+    bool save_fpu_registers) {
+#if defined(TARGET_ARCH_IA32)
+  UNREACHABLE();
+#else
+  ASSERT(instruction()->locs()->temp(0).reg() ==
+         LateInitializationErrorABI::kFieldReg);
+  const Field& original_field = Field::ZoneHandle(
+      instruction()->AsLoadField()->slot().field().Original());
+  __ LoadObject(LateInitializationErrorABI::kFieldReg, original_field);
+  auto object_store = compiler->isolate()->object_store();
+  const auto& stub = Code::ZoneHandle(
+      compiler->zone(),
+      save_fpu_registers
+          ? object_store->late_initialization_error_stub_with_fpu_regs_stub()
+          : object_store
+                ->late_initialization_error_stub_without_fpu_regs_stub());
   compiler->EmitCallToStub(stub);
 #endif
 }

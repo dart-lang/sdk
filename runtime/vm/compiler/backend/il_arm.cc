@@ -3199,35 +3199,17 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-
-  const intptr_t kNumTemps =
-      (slot().representation() != kTagged)
-          ? 0
-          : ((IsUnboxedDartFieldLoad() && opt)
-                 ? (FLAG_precompiled_mode ? 0 : 1)
-                 : (IsPotentialUnboxedDartFieldLoad() ? 3 : 0));
-
-  const auto contains_call =
-      (slot().representation() != kTagged)
-          ? LocationSummary::kNoCall
-          : ((IsUnboxedDartFieldLoad() && opt)
-                 ? LocationSummary::kNoCall
-                 : (IsPotentialUnboxedDartFieldLoad()
-                        ? LocationSummary::kCallOnSlowPath
-                        : (calls_initializer() ? LocationSummary::kCall
-                                               : LocationSummary::kNoCall)));
-
-  LocationSummary* locs =
-      new (zone) LocationSummary(zone, kNumInputs, kNumTemps, contains_call);
-
-  locs->set_in(0, calls_initializer() ? Location::RegisterLocation(
-                                            InitInstanceFieldABI::kInstanceReg)
-                                      : Location::RequiresRegister());
-
+  LocationSummary* locs = nullptr;
   if (slot().representation() != kTagged) {
+    ASSERT(!calls_initializer());
     ASSERT(RepresentationUtils::IsUnboxedInteger(slot().representation()));
     const size_t value_size =
         RepresentationUtils::ValueSize(slot().representation());
+
+    const intptr_t kNumTemps = 0;
+    locs = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresRegister());
     if (value_size <= compiler::target::kWordSize) {
       locs->set_out(0, Location::RequiresRegister());
     } else {
@@ -3235,23 +3217,60 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
       locs->set_out(0, Location::Pair(Location::RequiresRegister(),
                                       Location::RequiresRegister()));
     }
+
   } else if (IsUnboxedDartFieldLoad() && opt) {
     ASSERT(!calls_initializer());
+    ASSERT(!slot().field().is_non_nullable_integer());
+
+    const intptr_t kNumTemps = FLAG_precompiled_mode ? 0 : 1;
+    locs = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresRegister());
     if (!FLAG_precompiled_mode) {
       locs->set_temp(0, Location::RequiresRegister());
     }
     locs->set_out(0, Location::RequiresFpuRegister());
+
   } else if (IsPotentialUnboxedDartFieldLoad()) {
     ASSERT(!calls_initializer());
+    const intptr_t kNumTemps = 3;
+    locs = new (zone) LocationSummary(zone, kNumInputs, kNumTemps,
+                                      LocationSummary::kCallOnSlowPath);
+    locs->set_in(0, Location::RequiresRegister());
     locs->set_temp(0, opt ? Location::RequiresFpuRegister()
                           : Location::FpuRegisterLocation(Q1));
     locs->set_temp(1, Location::RequiresRegister());
     locs->set_temp(2, Location::RequiresRegister());
     locs->set_out(0, Location::RequiresRegister());
+
   } else if (calls_initializer()) {
-    locs->set_out(0,
-                  Location::RegisterLocation(InitInstanceFieldABI::kResultReg));
+    if (throw_exception_on_initialization()) {
+      const bool using_shared_stub = UseSharedSlowPathStub(opt);
+      const intptr_t kNumTemps = using_shared_stub ? 1 : 0;
+      locs = new (zone) LocationSummary(
+          zone, kNumInputs, kNumTemps,
+          using_shared_stub ? LocationSummary::kCallOnSharedSlowPath
+                            : LocationSummary::kCallOnSlowPath);
+      if (using_shared_stub) {
+        locs->set_temp(0, Location::RegisterLocation(
+                              LateInitializationErrorABI::kFieldReg));
+      }
+      locs->set_in(0, Location::RequiresRegister());
+      locs->set_out(0, Location::RequiresRegister());
+    } else {
+      const intptr_t kNumTemps = 0;
+      locs = new (zone)
+          LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+      locs->set_in(
+          0, Location::RegisterLocation(InitInstanceFieldABI::kInstanceReg));
+      locs->set_out(
+          0, Location::RegisterLocation(InitInstanceFieldABI::kResultReg));
+    }
   } else {
+    const intptr_t kNumTemps = 0;
+    locs = new (zone)
+        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresRegister());
     locs->set_out(0, Location::RequiresRegister());
   }
   return locs;
@@ -6924,12 +6943,9 @@ static void EmitShiftUint32ByRegister(FlowGraphCompiler* compiler,
 
 class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  static const intptr_t kNumberOfArguments = 0;
-
   ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction, intptr_t try_index)
       : ThrowErrorSlowPathCode(instruction,
                                kArgumentErrorUnboxedInt64RuntimeEntry,
-                               kNumberOfArguments,
                                try_index) {}
 
   const char* name() override { return "int64 shift"; }
@@ -7087,12 +7103,9 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  static const intptr_t kNumberOfArguments = 0;
-
   ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction, intptr_t try_index)
       : ThrowErrorSlowPathCode(instruction,
                                kArgumentErrorUnboxedInt64RuntimeEntry,
-                               kNumberOfArguments,
                                try_index) {}
 
   const char* name() override { return "uint32 shift"; }

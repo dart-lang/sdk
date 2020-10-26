@@ -6447,10 +6447,17 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
       : TemplateDefinition(deopt_id),
         slot_(slot),
         token_pos_(token_pos),
-        calls_initializer_(calls_initializer) {
+        calls_initializer_(calls_initializer),
+        throw_exception_on_initialization_(false) {
     ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
     ASSERT(!calls_initializer || slot.IsDartField());
     SetInputAt(0, instance);
+    if (calls_initializer_) {
+      const Field& field = slot.field();
+      throw_exception_on_initialization_ = !field.needs_load_guard() &&
+                                           field.is_late() &&
+                                           !field.has_initializer();
+    }
   }
 
   Value* instance() const { return inputs_[0]; }
@@ -6460,6 +6467,15 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
 
   bool calls_initializer() const { return calls_initializer_; }
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
+
+  bool throw_exception_on_initialization() const {
+    return throw_exception_on_initialization_;
+  }
+
+  // Slow path is used if load throws exception on initialization.
+  virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
+    return SlowPathSharingSupported(is_optimizing);
+  }
 
   virtual Representation representation() const;
 
@@ -6478,11 +6494,7 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
 
   virtual bool HasUnknownSideEffects() const {
-    if (calls_initializer()) {
-      const Field& field = slot().field();
-      return field.needs_load_guard() || field.has_initializer();
-    }
-    return false;
+    return calls_initializer() && !throw_exception_on_initialization();
   }
 
   virtual bool CanTriggerGC() const { return calls_initializer(); }
@@ -6530,6 +6542,7 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   const Slot& slot_;
   const TokenPosition token_pos_;
   bool calls_initializer_;
+  bool throw_exception_on_initialization_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };

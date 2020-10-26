@@ -298,61 +298,36 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 #endif
 }
 
-void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateSharedStubGeneric(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    std::function<void()> perform_runtime_call) {
   // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateSharedStub(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    const RuntimeEntry* target,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    bool store_runtime_result_in_result_register) {
+  // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
+void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
+                                          bool with_fpu_regs) {
+  // Only used in AOT.
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
+void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
     Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  // TODO(sjindel): implement.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
-    Assembler* assembler) {
-  // TODO(sjindel): implement.
+  // Only used in AOT.
   __ Breakpoint();
 }
 

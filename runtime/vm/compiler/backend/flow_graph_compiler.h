@@ -283,11 +283,9 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:
   ThrowErrorSlowPathCode(Instruction* instruction,
                          const RuntimeEntry& runtime_entry,
-                         intptr_t num_args,
                          intptr_t try_index)
       : TemplateSlowPathCode(instruction),
         runtime_entry_(runtime_entry),
-        num_args_(num_args),
         try_index_(try_index) {}
 
   // This name appears in disassembly.
@@ -296,6 +294,10 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
   // Subclasses can override these methods to customize slow path code.
   virtual void EmitCodeAtSlowPathEntry(FlowGraphCompiler* compiler) {}
   virtual void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) {}
+  virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler) {}
+
+  // Returns number of arguments for runtime call (if shared stub is not used).
+  virtual intptr_t GetNumberOfArgumentsForRuntimeCall() { return 0; }
 
   virtual void EmitSharedStubCall(FlowGraphCompiler* compiler,
                                   bool save_fpu_registers) {
@@ -306,18 +308,14 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
 
  private:
   const RuntimeEntry& runtime_entry_;
-  const intptr_t num_args_;
   const intptr_t try_index_;
 };
 
 class NullErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
-  static const intptr_t kNumberOfArguments = 0;
-
   NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
       : ThrowErrorSlowPathCode(instruction,
                                GetRuntimeEntry(instruction->exception_type()),
-                               kNumberOfArguments,
                                try_index) {}
 
   CheckNullInstr::ExceptionType exception_type() const {
@@ -345,16 +343,38 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
 
 class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
-  static const intptr_t kNumberOfArguments = 0;
-
   RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
       : ThrowErrorSlowPathCode(instruction,
                                kRangeErrorRuntimeEntry,
-                               kNumberOfArguments,
                                try_index) {}
   virtual const char* name() { return "check bound"; }
 
-  virtual void EmitSharedStubCall(FlowGraphCompiler* compielr,
+  virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
+    return 2;  // length and index
+  }
+
+  virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler);
+
+  virtual void EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                  bool save_fpu_registers);
+};
+
+class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  LateInitializationErrorSlowPath(LoadFieldInstr* instruction,
+                                  intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kLateInitializationErrorRuntimeEntry,
+                               try_index) {}
+  virtual const char* name() { return "late initialization error"; }
+
+  virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
+    return 1;  // field
+  }
+
+  virtual void PushArgumentsForRuntimeCall(FlowGraphCompiler* compiler);
+
+  virtual void EmitSharedStubCall(FlowGraphCompiler* compiler,
                                   bool save_fpu_registers);
 };
 

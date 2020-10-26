@@ -222,6 +222,8 @@
   FIELD(Thread, switchable_call_miss_entry_offset)                             \
   FIELD(Thread, switchable_call_miss_stub_offset)                              \
   FIELD(Thread, no_scope_native_wrapper_entry_point_offset)                    \
+  FIELD(Thread, late_initialization_error_shared_with_fpu_regs_stub_offset)    \
+  FIELD(Thread, late_initialization_error_shared_without_fpu_regs_stub_offset) \
   FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset)                   \
   FIELD(Thread, null_error_shared_without_fpu_regs_stub_offset)                \
   FIELD(Thread, null_arg_error_shared_with_fpu_regs_stub_offset)               \

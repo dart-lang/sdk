@@ -4321,6 +4321,18 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void LoadFieldInstr::EmitNativeCodeForInitializerCall(
     FlowGraphCompiler* compiler) {
   ASSERT(calls_initializer());
+
+  if (throw_exception_on_initialization()) {
+    ThrowErrorSlowPathCode* slow_path =
+        new LateInitializationErrorSlowPath(this, compiler->CurrentTryIndex());
+    compiler->AddSlowPathCode(slow_path);
+
+    const Register result_reg = locs()->out(0).reg();
+    __ CompareObject(result_reg, Object::sentinel());
+    __ BranchIf(EQUAL, slow_path->entry_label());
+    return;
+  }
+
   ASSERT(locs()->in(0).reg() == InitInstanceFieldABI::kInstanceReg);
   ASSERT(locs()->out(0).reg() == InitInstanceFieldABI::kResultReg);
   ASSERT(slot().IsDartField());
@@ -5373,7 +5385,9 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSharedSlowPath);
+      zone, kNumInputs, kNumTemps,
+      UseSharedSlowPathStub(opt) ? LocationSummary::kCallOnSharedSlowPath
+                                 : LocationSummary::kCallOnSlowPath);
   locs->set_in(kLengthPos,
                Location::RegisterLocation(RangeErrorABI::kLengthReg));
   locs->set_in(kIndexPos, Location::RegisterLocation(RangeErrorABI::kIndexReg));

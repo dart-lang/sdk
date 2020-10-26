@@ -164,7 +164,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
-static void GenerateSharedStubGeneric(
+void StubCodeCompiler::GenerateSharedStubGeneric(
     Assembler* assembler,
     bool save_fpu_registers,
     intptr_t self_code_stub_offset_from_thread,
@@ -202,22 +202,23 @@ static void GenerateSharedStubGeneric(
   __ ret();
 }
 
-static void GenerateSharedStub(Assembler* assembler,
-                               bool save_fpu_registers,
-                               const RuntimeEntry* target,
-                               intptr_t self_code_stub_offset_from_thread,
-                               bool allow_return,
-                               bool store_runtime_result_in_rax = false) {
+void StubCodeCompiler::GenerateSharedStub(
+    Assembler* assembler,
+    bool save_fpu_registers,
+    const RuntimeEntry* target,
+    intptr_t self_code_stub_offset_from_thread,
+    bool allow_return,
+    bool store_runtime_result_in_result_register) {
   auto perform_runtime_call = [&]() {
-    if (store_runtime_result_in_rax) {
+    if (store_runtime_result_in_result_register) {
       __ PushImmediate(Immediate(0));
     }
     __ CallRuntime(*target, /*argument_count=*/0);
-    if (store_runtime_result_in_rax) {
+    if (store_runtime_result_in_result_register) {
       __ PopRegister(RAX);
-      __ movq(Address(RBP,
-                      target::kWordSize *
-                          StubCodeCompiler::WordOffsetFromFpToCpuRegister(RAX)),
+      __ movq(Address(RBP, target::kWordSize *
+                               StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+                                   SharedSlowPathStubABI::kResultReg)),
               RAX);
     }
   };
@@ -492,55 +493,8 @@ void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kNullErrorRuntimeEntry,
-      target::Thread::null_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
-      target::Thread::null_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
-      target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
-      target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kNullCastErrorRuntimeEntry,
-      target::Thread::null_cast_error_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kNullCastErrorRuntimeEntry,
-      target::Thread::null_cast_error_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/false);
-}
-
-static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs) {
+void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
+                                          bool with_fpu_regs) {
   auto perform_runtime_call = [&]() {
     // If the generated code has unboxed index/length we need to box them before
     // calling the runtime entry.
@@ -587,32 +541,6 @@ static void GenerateRangeError(Assembler* assembler, bool with_fpu_regs) {
           ? target::Thread::range_error_shared_with_fpu_regs_stub_offset()
           : target::Thread::range_error_shared_without_fpu_regs_stub_offset(),
       /*allow_return=*/false, perform_runtime_call);
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateRangeError(assembler, /*with_fpu_regs=*/false);
-}
-
-void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateRangeError(assembler, /*with_fpu_regs=*/true);
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
-      target::Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
-      /*allow_return=*/true);
-}
-
-void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
-    Assembler* assembler) {
-  GenerateSharedStub(
-      assembler, /*save_fpu_registers=*/true, &kStackOverflowRuntimeEntry,
-      target::Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
-      /*allow_return=*/true);
 }
 
 // Input parameters:
@@ -1258,12 +1186,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub(
 
     __ Bind(&slow_case);
   }
-  COMPILE_ASSERT(AllocateMintABI::kResultReg == RAX);
+  COMPILE_ASSERT(AllocateMintABI::kResultReg ==
+                 SharedSlowPathStubABI::kResultReg);
   GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
                      &kAllocateMintRuntimeEntry,
                      target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
                      /*allow_return=*/true,
-                     /*store_runtime_result_in_rax=*/true);
+                     /*store_runtime_result_in_result_register=*/true);
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
@@ -1277,12 +1206,13 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 
     __ Bind(&slow_case);
   }
-  COMPILE_ASSERT(AllocateMintABI::kResultReg == RAX);
+  COMPILE_ASSERT(AllocateMintABI::kResultReg ==
+                 SharedSlowPathStubABI::kResultReg);
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
       target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
       /*allow_return=*/true,
-      /*store_runtime_result_in_rax=*/true);
+      /*store_runtime_result_in_result_register=*/true);
 }
 
 // Called when invoking Dart code from C++ (VM code).

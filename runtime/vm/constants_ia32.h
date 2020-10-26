@@ -91,6 +91,11 @@ const Register kWriteBarrierSlotReg = EDI;
 // ABI for allocation stubs.
 const Register kAllocationStubTypeArgumentsReg = EDX;
 
+// Common ABI for shared slow path stubs.
+struct SharedSlowPathStubABI {
+  static const Register kResultReg = EAX;
+};
+
 // ABI for instantiation stubs.
 struct InstantiationABI {
   static const Register kUninstantiatedTypeArgumentsReg = EBX;
@@ -148,6 +153,11 @@ struct InitLateInstanceFieldInternalRegs {
   static const Register kFunctionReg = EAX;
   static const Register kAddressReg = ECX;
   static const Register kScratchReg = EDI;
+};
+
+// ABI for LateInitializationError stubs.
+struct LateInitializationErrorABI {
+  static const Register kFieldReg = EDI;
 };
 
 // ABI for ThrowStub.
