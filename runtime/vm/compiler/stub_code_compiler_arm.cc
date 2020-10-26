@@ -3361,6 +3361,8 @@ void StubCodeCompiler::GenerateGetCStackPointerStub(Assembler* assembler) {
 // R2: frame_pointer.
 // R3: thread.
 // Does not return.
+//
+// Notice: We need to keep this in sync with `Simulator::JumpToFrame()`.
 void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);

@@ -3652,6 +3652,8 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // in the previous C++ frames.
   StackResource::Unwind(thread);
 
+  // Keep the following code in sync with `StubCode::JumpToFrameStub()`.
+
   // Unwind the C++ stack and continue simulation in the target frame.
   set_register(PC, static_cast<int32_t>(pc));
   set_register(SP, static_cast<int32_t>(sp));
@@ -3671,6 +3673,10 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
 
   set_register(CODE_REG, code);
   set_register(PP, pp);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    set_register(DISPATCH_TABLE_REG,
+                 reinterpret_cast<int32_t>(thread->dispatch_table_array()));
+  }
   buf->Longjmp();
 }
 
