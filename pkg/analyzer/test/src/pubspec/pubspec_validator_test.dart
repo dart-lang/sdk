@@ -49,7 +49,7 @@ class PubspecValidatorTest with ResourceProviderMixin {
     validator = PubspecValidator(resourceProvider, source);
   }
 
-  test_assetDirectoryDoesExists_noError() {
+  test_assetDirectoryDoesExist_noError() {
     newFolder('/sample/assets/logos');
     assertNoErrors('''
 name: sample
@@ -208,17 +208,21 @@ dependencies:
 ''');
   }
 
-  test_dependencyPathDoesNotExist_path_error() {
+  test_dependencyPath_pubspecDoesNotExist() {
+    newFolder('/foo');
     assertErrors('''
 name: sample
 dependencies:
   foo:
-    path: does/not/exist
-''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
+    path: /foo
+''', [PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST]);
   }
 
-  test_dependencyPathExists() {
+  test_dependencyPath_pubspecExists() {
     newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
     assertNoErrors('''
 name: sample
 dependencies:
@@ -227,14 +231,39 @@ dependencies:
 ''');
   }
 
-  test_dependencyPathRelativeExists() {
+  test_dependencyPath_valid_absolute() {
     newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: /foo
+''');
+  }
+
+  test_dependencyPath_valid_relative() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
     assertNoErrors('''
 name: sample
 dependencies:
   foo:
     path: ../foo
 ''');
+  }
+
+  test_dependencyPathDoesNotExist_path_error() {
+    assertErrors('''
+name: sample
+dependencies:
+  foo:
+    path: does/not/exist
+''', [PubspecWarningCode.PATH_DOES_NOT_EXIST]);
   }
 
   test_devDependenciesField_empty() {
@@ -270,6 +299,9 @@ dev_dependencies:
 
   test_devDependencyPathExists() {
     newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
     assertNoErrors('''
 name: sample
 dev_dependencies:
