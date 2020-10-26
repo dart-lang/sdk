@@ -4,10 +4,19 @@
 
 class Super {
   bool get property => true;
+
+  Super(bool value);
 }
 
 class Class extends Super {
-  Class() : assert(property);
+  bool field;
+
+  Class(bool value)
+      : assert(property),
+        this.field = property,
+        super(property);
+
+  Class.redirect() : this(property);
 }
 
 main() {}
