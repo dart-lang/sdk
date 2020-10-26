@@ -27,7 +27,6 @@ namespace dart {
   V(Function_apply, 2)                                                         \
   V(Closure_equals, 2)                                                         \
   V(Closure_computeHash, 1)                                                    \
-  V(Closure_clone, 1)                                                          \
   V(AbstractType_toString, 1)                                                  \
   V(Type_getHashCode, 1)                                                       \
   V(Type_equality, 2)                                                          \

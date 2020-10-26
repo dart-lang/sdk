@@ -19,8 +19,6 @@ class _Closure implements Function {
 
   _Closure get call => this;
 
-  _Closure _clone() native "Closure_clone";
-
   int _computeHash() native "Closure_computeHash";
 
   // No instance fields should be declared before the following fields whose
