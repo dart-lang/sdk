@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.40.0';
+const String vmServiceVersion = '3.41.0';
 
 /// @optional
 const String optional = 'optional';
@@ -157,6 +157,7 @@ Map<String, Function> _typeFactories = {
   'Null': NullVal.parse,
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
+  'PortList': PortList.parse,
   'ProfileFunction': ProfileFunction.parse,
   'ProtocolList': ProtocolList.parse,
   'Protocol': Protocol.parse,
@@ -209,6 +210,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'getIsolateGroupMemoryUsage': const ['MemoryUsage'],
   'getScripts': const ['ScriptList'],
   'getObject': const ['Obj'],
+  'getPorts': const ['PortList'],
   'getRetainingPath': const ['RetainingPath'],
   'getProcessMemoryUsage': const ['ProcessMemoryUsage'],
   'getStack': const ['Stack'],
@@ -687,6 +689,12 @@ abstract class VmServiceInterface {
     int offset,
     int count,
   });
+
+  /// The `getPorts` RPC is used to retrieve the list of `ReceivePort` instances
+  /// for a given isolate.
+  ///
+  /// See [PortList].
+  Future<PortList> getPorts(String isolateId);
 
   /// The `getRetainingPath` RPC is used to lookup a path from an object
   /// specified by `targetId` to a GC root (i.e., the object which is preventing
@@ -1318,6 +1326,11 @@ class VmServerConnection {
             count: params['count'],
           );
           break;
+        case 'getPorts':
+          response = await _serviceImplementation.getPorts(
+            params['isolateId'],
+          );
+          break;
         case 'getRetainingPath':
           response = await _serviceImplementation.getRetainingPath(
             params['isolateId'],
@@ -1769,6 +1782,10 @@ class VmService implements VmServiceInterface {
         if (offset != null) 'offset': offset,
         if (count != null) 'count': count,
       });
+
+  @override
+  Future<PortList> getPorts(String isolateId) =>
+      _call('getPorts', {'isolateId': isolateId});
 
   @override
   Future<RetainingPath> getRetainingPath(
@@ -2432,6 +2449,9 @@ class InstanceKind {
 
   /// An instance of the Dart class BoundedType.
   static const String kBoundedType = 'BoundedType';
+
+  /// An instance of the Dart class ReceivePort.
+  static const String kReceivePort = 'ReceivePort';
 }
 
 /// A `SentinelKind` is used to distinguish different kinds of `Sentinel`
@@ -4239,6 +4259,27 @@ class InstanceRef extends ObjRef {
   @optional
   ContextRef closureContext;
 
+  /// The port ID for a ReceivePort.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  int portId;
+
+  /// The stack trace associated with the allocation of a ReceivePort.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  InstanceRef allocationLocation;
+
+  /// A name associated with a ReceivePort used for debugging purposes.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  String debugName;
+
   InstanceRef({
     @required this.kind,
     @required this.classRef,
@@ -4252,6 +4293,9 @@ class InstanceRef extends ObjRef {
     this.pattern,
     this.closureFunction,
     this.closureContext,
+    this.portId,
+    this.allocationLocation,
+    this.debugName,
   }) : super(id: id);
 
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -4269,6 +4313,10 @@ class InstanceRef extends ObjRef {
         createServiceObject(json['closureFunction'], const ['FuncRef']);
     closureContext =
         createServiceObject(json['closureContext'], const ['ContextRef']);
+    portId = json['portId'];
+    allocationLocation =
+        createServiceObject(json['allocationLocation'], const ['InstanceRef']);
+    debugName = json['debugName'];
   }
 
   @override
@@ -4288,6 +4336,9 @@ class InstanceRef extends ObjRef {
     _setIfNotNull(json, 'pattern', pattern?.toJson());
     _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
     _setIfNotNull(json, 'closureContext', closureContext?.toJson());
+    _setIfNotNull(json, 'portId', portId);
+    _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
+    _setIfNotNull(json, 'debugName', debugName);
     return json;
   }
 
@@ -4318,6 +4369,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - Double (suitable for passing to Double.parse())
   ///  - Int (suitable for passing to int.parse())
   ///  - String (value may be truncated)
+  ///  - StackTrace
   @optional
   String valueAsString;
 
@@ -4554,6 +4606,27 @@ class Instance extends Obj implements InstanceRef {
   @optional
   InstanceRef bound;
 
+  /// The port ID for a ReceivePort.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  int portId;
+
+  /// The stack trace associated with the allocation of a ReceivePort.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  InstanceRef allocationLocation;
+
+  /// A name associated with a ReceivePort used for debugging purposes.
+  ///
+  /// Provided for instance kinds:
+  ///  - ReceivePort
+  @optional
+  String debugName;
+
   Instance({
     @required this.kind,
     @required this.classRef,
@@ -4582,6 +4655,9 @@ class Instance extends Obj implements InstanceRef {
     this.parameterIndex,
     this.targetType,
     this.bound,
+    this.portId,
+    this.allocationLocation,
+    this.debugName,
   }) : super(id: id);
 
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -4627,6 +4703,10 @@ class Instance extends Obj implements InstanceRef {
     parameterIndex = json['parameterIndex'];
     targetType = createServiceObject(json['targetType'], const ['InstanceRef']);
     bound = createServiceObject(json['bound'], const ['InstanceRef']);
+    portId = json['portId'];
+    allocationLocation =
+        createServiceObject(json['allocationLocation'], const ['InstanceRef']);
+    debugName = json['debugName'];
   }
 
   @override
@@ -4663,6 +4743,9 @@ class Instance extends Obj implements InstanceRef {
     _setIfNotNull(json, 'parameterIndex', parameterIndex);
     _setIfNotNull(json, 'targetType', targetType?.toJson());
     _setIfNotNull(json, 'bound', bound?.toJson());
+    _setIfNotNull(json, 'portId', portId);
+    _setIfNotNull(json, 'allocationLocation', allocationLocation?.toJson());
+    _setIfNotNull(json, 'debugName', debugName);
     return json;
   }
 
@@ -5741,6 +5824,37 @@ class Obj extends Response implements ObjRef {
   operator ==(other) => other is Obj && id == other.id;
 
   String toString() => '[Obj type: ${type}, id: ${id}]';
+}
+
+/// A `PortList` contains a list of ports associated with some isolate.
+///
+/// See [getPort].
+class PortList extends Response {
+  static PortList parse(Map<String, dynamic> json) =>
+      json == null ? null : PortList._fromJson(json);
+
+  List<InstanceRef> ports;
+
+  PortList({
+    @required this.ports,
+  });
+
+  PortList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    ports = List<InstanceRef>.from(
+        createServiceObject(json['ports'], const ['InstanceRef']) ?? []);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'PortList';
+    json.addAll({
+      'ports': ports.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[PortList type: ${type}, ports: ${ports}]';
 }
 
 /// A `ProfileFunction` contains profiling information about a Dart or native

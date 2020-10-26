@@ -192,6 +192,7 @@ String assertInstanceKind(String obj) {
   if (obj == "MirrorReference") return obj;
   if (obj == "Null") return obj;
   if (obj == "PlainInstance") return obj;
+  if (obj == "ReceivePort") return obj;
   if (obj == "RegExp") return obj;
   if (obj == "StackTrace") return obj;
   if (obj == "String") return obj;
@@ -909,6 +910,13 @@ vms.Obj assertObj(vms.Obj obj) {
   assertNotNull(obj);
   assertString(obj.type);
   assertString(obj.id);
+  return obj;
+}
+
+vms.PortList assertPortList(vms.PortList obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertListOfInstanceRef(obj.ports);
   return obj;
 }
 
