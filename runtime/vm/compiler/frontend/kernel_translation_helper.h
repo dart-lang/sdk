@@ -800,7 +800,8 @@ class LibraryHelper {
     if (weak && strong) return NNBDCompiledMode::kAgnostic;
     if (strong) return NNBDCompiledMode::kStrong;
     if (weak) return NNBDCompiledMode::kWeak;
-    return NNBDCompiledMode::kDisabled;
+    // Nothing set is implicitly weak.
+    return NNBDCompiledMode::kWeak;
   }
 
   uint8_t flags_ = 0;

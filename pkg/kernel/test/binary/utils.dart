@@ -14,7 +14,8 @@ Library libRoundTrip(Library lib) {
 
 List<Library> serializationRoundTrip(List<Library> libraries) {
   Component c = new Component(libraries: libraries)
-    ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
+    ..setMainMethodAndMode(
+        null, false, libraries.first.nonNullableByDefaultCompiledMode);
   List<int> bytes = serializeComponent(c);
   Component c2 = loadComponentFromBytes(bytes);
   return c2.libraries;

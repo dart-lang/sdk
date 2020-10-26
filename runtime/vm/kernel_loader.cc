@@ -1054,8 +1054,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
         "requires --sound-null-safety option at runtime",
         String::Handle(library.url()).ToCString());
   }
-  if (I->null_safety() && (mode == NNBDCompiledMode::kWeak ||
-                           mode == NNBDCompiledMode::kDisabled)) {
+  if (I->null_safety() && (mode == NNBDCompiledMode::kWeak)) {
     H.ReportError(
         "Library '%s' was compiled without sound null safety (in weak mode) "
         "and it "

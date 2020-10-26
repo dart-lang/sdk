@@ -439,7 +439,7 @@ class KernelTarget extends TargetImplementation {
           break;
       }
     } else {
-      compiledMode = NonNullableByDefaultCompiledMode.Disabled;
+      compiledMode = NonNullableByDefaultCompiledMode.Weak;
     }
 
     Reference mainReference;

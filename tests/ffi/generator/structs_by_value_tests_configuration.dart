@@ -11,11 +11,19 @@ Smallest struct with data.
   FunctionType(List.filled(10, struct3bytesInt), int64, """
 Not a multiple of word size, not a power of two.
 10 struct arguments will exhaust available registers."""),
+  FunctionType(List.filled(10, struct3bytesInt2), int64, """
+Not a multiple of word size, not a power of two.
+With alignment rules taken into account size is 4 bytes.
+10 struct arguments will exhaust available registers."""),
   FunctionType(List.filled(10, struct4bytesInt), int64, """
 Exactly word size on 32-bit architectures.
 10 struct arguments will exhaust available registers."""),
   FunctionType(List.filled(10, struct7bytesInt), int64, """
 Sub word size on 64 bit architectures.
+10 struct arguments will exhaust available registers."""),
+  FunctionType(List.filled(10, struct7bytesInt2), int64, """
+Sub word size on 64 bit architectures.
+With alignment rules taken into account size is 8 bytes.
 10 struct arguments will exhaust available registers."""),
   FunctionType(List.filled(10, struct8bytesInt), int64, """
 Exactly word size struct on 64bit architectures.
@@ -29,12 +37,13 @@ On x64, arguments go in int registers because it is not only float.
   FunctionType(List.filled(10, struct9bytesInt), int64, """
 Argument is a single byte over a multiple of word size.
 10 struct arguments will exhaust available registers.
+Struct only has 1-byte aligned fields to test struct alignment itself.
 Tests upper bytes in the integer registers that are partly filled.
 Tests stack alignment of non word size stack arguments."""),
   FunctionType(List.filled(10, struct9bytesInt2), int64, """
 Argument is a single byte over a multiple of word size.
+With alignment rules taken into account size is 12 or 16 bytes.
 10 struct arguments will exhaust available registers.
-Struct only has 1-byte aligned fields to test struct alignment itself.
 """),
   FunctionType(List.filled(6, struct12bytesFloat), float, """
 Arguments in FPU registers on arm hardfp and arm64.
@@ -198,10 +207,16 @@ Test alignment and padding of 64 byte int within struct."""),
 Smallest struct with data."""),
   FunctionType(struct3bytesInt.memberTypes, struct3bytesInt, """
 Smaller than word size return value on all architectures."""),
+  FunctionType(struct3bytesInt2.memberTypes, struct3bytesInt2, """
+Smaller than word size return value on all architectures.
+With alignment rules taken into account size is 4 bytes."""),
   FunctionType(struct4bytesInt.memberTypes, struct4bytesInt, """
 Word size return value on 32 bit architectures.."""),
   FunctionType(struct7bytesInt.memberTypes, struct7bytesInt, """
 Non-wordsize return value."""),
+  FunctionType(struct7bytesInt2.memberTypes, struct7bytesInt2, """
+Non-wordsize return value.
+With alignment rules taken into account size is 8 bytes."""),
   FunctionType(struct8bytesInt.memberTypes, struct8bytesInt, """
 Return value in integer registers on many architectures."""),
   FunctionType(struct8bytesFloat.memberTypes, struct8bytesFloat, """
@@ -209,12 +224,12 @@ Return value in FP registers on many architectures."""),
   FunctionType(struct8BytesMixed.memberTypes, struct8BytesMixed, """
 Return value split over FP and integer register in x64."""),
   FunctionType(struct9bytesInt.memberTypes, struct9bytesInt, """
-Return value in two integer registers on x64.
-The second register only contains a single byte."""),
-  FunctionType(struct9bytesInt2.memberTypes, struct9bytesInt2, """
 The minimum alignment of this struct is only 1 byte based on its fields.
 Test that the memory backing these structs is the right size and that
 dart:ffi trampolines do not write outside this size."""),
+  FunctionType(struct9bytesInt2.memberTypes, struct9bytesInt2, """
+Return value in two integer registers on x64.
+With alignment rules taken into account size is 12 or 16 bytes."""),
   FunctionType(struct12bytesFloat.memberTypes, struct12bytesFloat, """
 Return value in FPU registers, but does not use all registers on arm hardfp
 and arm64."""),
@@ -297,8 +312,10 @@ final structs = [
   struct0bytes,
   struct1byteInt,
   struct3bytesInt,
+  struct3bytesInt2,
   struct4bytesInt,
   struct7bytesInt,
+  struct7bytesInt2,
   struct8bytesInt,
   struct8bytesFloat,
   struct8BytesMixed,
@@ -324,14 +341,18 @@ final structs = [
 final struct0bytes = StructType([]);
 
 final struct1byteInt = StructType([int8]);
-final struct3bytesInt = StructType([int16, int8]);
+final struct3bytesInt = StructType(List.filled(3, uint8));
+final struct3bytesInt2 = StructType.disambiguate([int16, int8], "2ByteAligned");
 final struct4bytesInt = StructType([int16, int16]);
-final struct7bytesInt = StructType([int32, int16, int8]);
+final struct7bytesInt = StructType(List.filled(7, uint8));
+final struct7bytesInt2 =
+    StructType.disambiguate([int32, int16, int8], "4ByteAligned");
 final struct8bytesInt = StructType([int16, int16, int32]);
 final struct8bytesFloat = StructType([float, float]);
 final struct8BytesMixed = StructType([float, int16, int16]);
-final struct9bytesInt = StructType([int64, int8]);
-final struct9bytesInt2 = StructType.disambiguate(List.filled(9, uint8), "2");
+final struct9bytesInt = StructType(List.filled(9, uint8));
+final struct9bytesInt2 =
+    StructType.disambiguate([int64, int8], "4Or8ByteAligned");
 final struct12bytesFloat = StructType([float, float, float]);
 
 /// The largest homogenous float that goes into FPU registers on softfp and

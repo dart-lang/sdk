@@ -21,14 +21,16 @@ final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 void main() {
   for (int i = 0; i < 10; ++i) {
     testPassStruct1ByteIntx10();
-    testPassStruct3BytesIntx10();
+    testPassStruct3BytesHomogeneousUint8x10();
+    testPassStruct3BytesInt2ByteAlignedx10();
     testPassStruct4BytesHomogeneousInt16x10();
-    testPassStruct7BytesIntx10();
+    testPassStruct7BytesHomogeneousUint8x10();
+    testPassStruct7BytesInt4ByteAlignedx10();
     testPassStruct8BytesIntx10();
     testPassStruct8BytesHomogeneousFloatx10();
     testPassStruct8BytesMixedx10();
-    testPassStruct9BytesIntx10();
-    testPassStruct9BytesHomogeneousUint82x10();
+    testPassStruct9BytesHomogeneousUint8x10();
+    testPassStruct9BytesInt4Or8ByteAlignedx10();
     testPassStruct12BytesHomogeneousFloatx6();
     testPassStruct16BytesHomogeneousFloatx5();
     testPassStruct16BytesMixedx10();
@@ -50,14 +52,16 @@ void main() {
     testPassStructAlignmentInt32();
     testPassStructAlignmentInt64();
     testReturnStruct1ByteInt();
-    testReturnStruct3BytesInt();
+    testReturnStruct3BytesHomogeneousUint8();
+    testReturnStruct3BytesInt2ByteAligned();
     testReturnStruct4BytesHomogeneousInt16();
-    testReturnStruct7BytesInt();
+    testReturnStruct7BytesHomogeneousUint8();
+    testReturnStruct7BytesInt4ByteAligned();
     testReturnStruct8BytesInt();
     testReturnStruct8BytesHomogeneousFloat();
     testReturnStruct8BytesMixed();
-    testReturnStruct9BytesInt();
-    testReturnStruct9BytesHomogeneousUint82();
+    testReturnStruct9BytesHomogeneousUint8();
+    testReturnStruct9BytesInt4Or8ByteAligned();
     testReturnStruct12BytesHomogeneousFloat();
     testReturnStruct16BytesHomogeneousFloat();
     testReturnStruct16BytesMixed();
@@ -91,7 +95,20 @@ class Struct1ByteInt extends Struct {
   String toString() => "(${a0})";
 }
 
-class Struct3BytesInt extends Struct {
+class Struct3BytesHomogeneousUint8 extends Struct {
+  @Uint8()
+  external int a0;
+
+  @Uint8()
+  external int a1;
+
+  @Uint8()
+  external int a2;
+
+  String toString() => "(${a0}, ${a1}, ${a2})";
+}
+
+class Struct3BytesInt2ByteAligned extends Struct {
   @Int16()
   external int a0;
 
@@ -111,7 +128,32 @@ class Struct4BytesHomogeneousInt16 extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
-class Struct7BytesInt extends Struct {
+class Struct7BytesHomogeneousUint8 extends Struct {
+  @Uint8()
+  external int a0;
+
+  @Uint8()
+  external int a1;
+
+  @Uint8()
+  external int a2;
+
+  @Uint8()
+  external int a3;
+
+  @Uint8()
+  external int a4;
+
+  @Uint8()
+  external int a5;
+
+  @Uint8()
+  external int a6;
+
+  String toString() => "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})";
+}
+
+class Struct7BytesInt4ByteAligned extends Struct {
   @Int32()
   external int a0;
 
@@ -160,17 +202,7 @@ class Struct8BytesMixed extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
-class Struct9BytesInt extends Struct {
-  @Int64()
-  external int a0;
-
-  @Int8()
-  external int a1;
-
-  String toString() => "(${a0}, ${a1})";
-}
-
-class Struct9BytesHomogeneousUint82 extends Struct {
+class Struct9BytesHomogeneousUint8 extends Struct {
   @Uint8()
   external int a0;
 
@@ -200,6 +232,16 @@ class Struct9BytesHomogeneousUint82 extends Struct {
 
   String toString() =>
       "(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})";
+}
+
+class Struct9BytesInt4Or8ByteAligned extends Struct {
+  @Int64()
+  external int a0;
+
+  @Int8()
+  external int a1;
+
+  String toString() => "(${a0}, ${a1})";
 }
 
 class Struct12BytesHomogeneousFloat extends Struct {
@@ -900,43 +942,142 @@ void testPassStruct1ByteIntx10() {
   free(a9.addressOf);
 }
 
-final passStruct3BytesIntx10 = ffiTestFunctions.lookupFunction<
+final passStruct3BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
     Int64 Function(
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt),
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8),
     int Function(
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt,
-        Struct3BytesInt)>("PassStruct3BytesIntx10");
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8,
+        Struct3BytesHomogeneousUint8)>("PassStruct3BytesHomogeneousUint8x10");
 
 /// Not a multiple of word size, not a power of two.
 /// 10 struct arguments will exhaust available registers.
-void testPassStruct3BytesIntx10() {
-  Struct3BytesInt a0 = allocate<Struct3BytesInt>().ref;
-  Struct3BytesInt a1 = allocate<Struct3BytesInt>().ref;
-  Struct3BytesInt a2 = allocate<Struct3BytesInt>().ref;
-  Struct3BytesInt a3 = allocate<Struct3BytesInt>().ref;
-  Struct3BytesInt a4 = allocate<Struct3BytesInt>().ref;
-  Struct3BytesInt a5 = allocate<Struct3BytesInt>().ref;
-  Struct3BytesInt a6 = allocate<Struct3BytesInt>().ref;
-  Struct3BytesInt a7 = allocate<Struct3BytesInt>().ref;
-  Struct3BytesInt a8 = allocate<Struct3BytesInt>().ref;
-  Struct3BytesInt a9 = allocate<Struct3BytesInt>().ref;
+void testPassStruct3BytesHomogeneousUint8x10() {
+  Struct3BytesHomogeneousUint8 a0 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+  Struct3BytesHomogeneousUint8 a1 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+  Struct3BytesHomogeneousUint8 a2 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+  Struct3BytesHomogeneousUint8 a3 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+  Struct3BytesHomogeneousUint8 a4 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+  Struct3BytesHomogeneousUint8 a5 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+  Struct3BytesHomogeneousUint8 a6 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+  Struct3BytesHomogeneousUint8 a7 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+  Struct3BytesHomogeneousUint8 a8 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+  Struct3BytesHomogeneousUint8 a9 =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a1.a0 = 4;
+  a1.a1 = 5;
+  a1.a2 = 6;
+  a2.a0 = 7;
+  a2.a1 = 8;
+  a2.a2 = 9;
+  a3.a0 = 10;
+  a3.a1 = 11;
+  a3.a2 = 12;
+  a4.a0 = 13;
+  a4.a1 = 14;
+  a4.a2 = 15;
+  a5.a0 = 16;
+  a5.a1 = 17;
+  a5.a2 = 18;
+  a6.a0 = 19;
+  a6.a1 = 20;
+  a6.a2 = 21;
+  a7.a0 = 22;
+  a7.a1 = 23;
+  a7.a2 = 24;
+  a8.a0 = 25;
+  a8.a1 = 26;
+  a8.a2 = 27;
+  a9.a0 = 28;
+  a9.a1 = 29;
+  a9.a2 = 30;
+
+  final result = passStruct3BytesHomogeneousUint8x10(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.equals(465, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+  free(a2.addressOf);
+  free(a3.addressOf);
+  free(a4.addressOf);
+  free(a5.addressOf);
+  free(a6.addressOf);
+  free(a7.addressOf);
+  free(a8.addressOf);
+  free(a9.addressOf);
+}
+
+final passStruct3BytesInt2ByteAlignedx10 = ffiTestFunctions.lookupFunction<
+    Int64 Function(
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned),
+    int Function(
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned,
+        Struct3BytesInt2ByteAligned)>("PassStruct3BytesInt2ByteAlignedx10");
+
+/// Not a multiple of word size, not a power of two.
+/// With alignment rules taken into account size is 4 bytes.
+/// 10 struct arguments will exhaust available registers.
+void testPassStruct3BytesInt2ByteAlignedx10() {
+  Struct3BytesInt2ByteAligned a0 = allocate<Struct3BytesInt2ByteAligned>().ref;
+  Struct3BytesInt2ByteAligned a1 = allocate<Struct3BytesInt2ByteAligned>().ref;
+  Struct3BytesInt2ByteAligned a2 = allocate<Struct3BytesInt2ByteAligned>().ref;
+  Struct3BytesInt2ByteAligned a3 = allocate<Struct3BytesInt2ByteAligned>().ref;
+  Struct3BytesInt2ByteAligned a4 = allocate<Struct3BytesInt2ByteAligned>().ref;
+  Struct3BytesInt2ByteAligned a5 = allocate<Struct3BytesInt2ByteAligned>().ref;
+  Struct3BytesInt2ByteAligned a6 = allocate<Struct3BytesInt2ByteAligned>().ref;
+  Struct3BytesInt2ByteAligned a7 = allocate<Struct3BytesInt2ByteAligned>().ref;
+  Struct3BytesInt2ByteAligned a8 = allocate<Struct3BytesInt2ByteAligned>().ref;
+  Struct3BytesInt2ByteAligned a9 = allocate<Struct3BytesInt2ByteAligned>().ref;
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -959,7 +1100,8 @@ void testPassStruct3BytesIntx10() {
   a9.a0 = -19;
   a9.a1 = 20;
 
-  final result = passStruct3BytesIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct3BytesInt2ByteAlignedx10(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 
   print("result = $result");
 
@@ -1065,43 +1207,182 @@ void testPassStruct4BytesHomogeneousInt16x10() {
   free(a9.addressOf);
 }
 
-final passStruct7BytesIntx10 = ffiTestFunctions.lookupFunction<
+final passStruct7BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
     Int64 Function(
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt),
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8),
     int Function(
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt,
-        Struct7BytesInt)>("PassStruct7BytesIntx10");
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8,
+        Struct7BytesHomogeneousUint8)>("PassStruct7BytesHomogeneousUint8x10");
 
 /// Sub word size on 64 bit architectures.
 /// 10 struct arguments will exhaust available registers.
-void testPassStruct7BytesIntx10() {
-  Struct7BytesInt a0 = allocate<Struct7BytesInt>().ref;
-  Struct7BytesInt a1 = allocate<Struct7BytesInt>().ref;
-  Struct7BytesInt a2 = allocate<Struct7BytesInt>().ref;
-  Struct7BytesInt a3 = allocate<Struct7BytesInt>().ref;
-  Struct7BytesInt a4 = allocate<Struct7BytesInt>().ref;
-  Struct7BytesInt a5 = allocate<Struct7BytesInt>().ref;
-  Struct7BytesInt a6 = allocate<Struct7BytesInt>().ref;
-  Struct7BytesInt a7 = allocate<Struct7BytesInt>().ref;
-  Struct7BytesInt a8 = allocate<Struct7BytesInt>().ref;
-  Struct7BytesInt a9 = allocate<Struct7BytesInt>().ref;
+void testPassStruct7BytesHomogeneousUint8x10() {
+  Struct7BytesHomogeneousUint8 a0 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+  Struct7BytesHomogeneousUint8 a1 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+  Struct7BytesHomogeneousUint8 a2 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+  Struct7BytesHomogeneousUint8 a3 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+  Struct7BytesHomogeneousUint8 a4 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+  Struct7BytesHomogeneousUint8 a5 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+  Struct7BytesHomogeneousUint8 a6 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+  Struct7BytesHomogeneousUint8 a7 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+  Struct7BytesHomogeneousUint8 a8 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+  Struct7BytesHomogeneousUint8 a9 =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a0.a3 = 4;
+  a0.a4 = 5;
+  a0.a5 = 6;
+  a0.a6 = 7;
+  a1.a0 = 8;
+  a1.a1 = 9;
+  a1.a2 = 10;
+  a1.a3 = 11;
+  a1.a4 = 12;
+  a1.a5 = 13;
+  a1.a6 = 14;
+  a2.a0 = 15;
+  a2.a1 = 16;
+  a2.a2 = 17;
+  a2.a3 = 18;
+  a2.a4 = 19;
+  a2.a5 = 20;
+  a2.a6 = 21;
+  a3.a0 = 22;
+  a3.a1 = 23;
+  a3.a2 = 24;
+  a3.a3 = 25;
+  a3.a4 = 26;
+  a3.a5 = 27;
+  a3.a6 = 28;
+  a4.a0 = 29;
+  a4.a1 = 30;
+  a4.a2 = 31;
+  a4.a3 = 32;
+  a4.a4 = 33;
+  a4.a5 = 34;
+  a4.a6 = 35;
+  a5.a0 = 36;
+  a5.a1 = 37;
+  a5.a2 = 38;
+  a5.a3 = 39;
+  a5.a4 = 40;
+  a5.a5 = 41;
+  a5.a6 = 42;
+  a6.a0 = 43;
+  a6.a1 = 44;
+  a6.a2 = 45;
+  a6.a3 = 46;
+  a6.a4 = 47;
+  a6.a5 = 48;
+  a6.a6 = 49;
+  a7.a0 = 50;
+  a7.a1 = 51;
+  a7.a2 = 52;
+  a7.a3 = 53;
+  a7.a4 = 54;
+  a7.a5 = 55;
+  a7.a6 = 56;
+  a8.a0 = 57;
+  a8.a1 = 58;
+  a8.a2 = 59;
+  a8.a3 = 60;
+  a8.a4 = 61;
+  a8.a5 = 62;
+  a8.a6 = 63;
+  a9.a0 = 64;
+  a9.a1 = 65;
+  a9.a2 = 66;
+  a9.a3 = 67;
+  a9.a4 = 68;
+  a9.a5 = 69;
+  a9.a6 = 70;
+
+  final result = passStruct7BytesHomogeneousUint8x10(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.equals(2485, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+  free(a2.addressOf);
+  free(a3.addressOf);
+  free(a4.addressOf);
+  free(a5.addressOf);
+  free(a6.addressOf);
+  free(a7.addressOf);
+  free(a8.addressOf);
+  free(a9.addressOf);
+}
+
+final passStruct7BytesInt4ByteAlignedx10 = ffiTestFunctions.lookupFunction<
+    Int64 Function(
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned),
+    int Function(
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned,
+        Struct7BytesInt4ByteAligned)>("PassStruct7BytesInt4ByteAlignedx10");
+
+/// Sub word size on 64 bit architectures.
+/// With alignment rules taken into account size is 8 bytes.
+/// 10 struct arguments will exhaust available registers.
+void testPassStruct7BytesInt4ByteAlignedx10() {
+  Struct7BytesInt4ByteAligned a0 = allocate<Struct7BytesInt4ByteAligned>().ref;
+  Struct7BytesInt4ByteAligned a1 = allocate<Struct7BytesInt4ByteAligned>().ref;
+  Struct7BytesInt4ByteAligned a2 = allocate<Struct7BytesInt4ByteAligned>().ref;
+  Struct7BytesInt4ByteAligned a3 = allocate<Struct7BytesInt4ByteAligned>().ref;
+  Struct7BytesInt4ByteAligned a4 = allocate<Struct7BytesInt4ByteAligned>().ref;
+  Struct7BytesInt4ByteAligned a5 = allocate<Struct7BytesInt4ByteAligned>().ref;
+  Struct7BytesInt4ByteAligned a6 = allocate<Struct7BytesInt4ByteAligned>().ref;
+  Struct7BytesInt4ByteAligned a7 = allocate<Struct7BytesInt4ByteAligned>().ref;
+  Struct7BytesInt4ByteAligned a8 = allocate<Struct7BytesInt4ByteAligned>().ref;
+  Struct7BytesInt4ByteAligned a9 = allocate<Struct7BytesInt4ByteAligned>().ref;
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -1134,7 +1415,8 @@ void testPassStruct7BytesIntx10() {
   a9.a1 = -29;
   a9.a2 = 30;
 
-  final result = passStruct7BytesIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  final result = passStruct7BytesInt4ByteAlignedx10(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 
   print("result = $result");
 
@@ -1415,134 +1697,56 @@ void testPassStruct8BytesMixedx10() {
   free(a9.addressOf);
 }
 
-final passStruct9BytesIntx10 = ffiTestFunctions.lookupFunction<
+final passStruct9BytesHomogeneousUint8x10 = ffiTestFunctions.lookupFunction<
     Int64 Function(
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt),
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8),
     int Function(
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt,
-        Struct9BytesInt)>("PassStruct9BytesIntx10");
-
-/// Argument is a single byte over a multiple of word size.
-/// 10 struct arguments will exhaust available registers.
-/// Tests upper bytes in the integer registers that are partly filled.
-/// Tests stack alignment of non word size stack arguments.
-void testPassStruct9BytesIntx10() {
-  Struct9BytesInt a0 = allocate<Struct9BytesInt>().ref;
-  Struct9BytesInt a1 = allocate<Struct9BytesInt>().ref;
-  Struct9BytesInt a2 = allocate<Struct9BytesInt>().ref;
-  Struct9BytesInt a3 = allocate<Struct9BytesInt>().ref;
-  Struct9BytesInt a4 = allocate<Struct9BytesInt>().ref;
-  Struct9BytesInt a5 = allocate<Struct9BytesInt>().ref;
-  Struct9BytesInt a6 = allocate<Struct9BytesInt>().ref;
-  Struct9BytesInt a7 = allocate<Struct9BytesInt>().ref;
-  Struct9BytesInt a8 = allocate<Struct9BytesInt>().ref;
-  Struct9BytesInt a9 = allocate<Struct9BytesInt>().ref;
-
-  a0.a0 = -1;
-  a0.a1 = 2;
-  a1.a0 = -3;
-  a1.a1 = 4;
-  a2.a0 = -5;
-  a2.a1 = 6;
-  a3.a0 = -7;
-  a3.a1 = 8;
-  a4.a0 = -9;
-  a4.a1 = 10;
-  a5.a0 = -11;
-  a5.a1 = 12;
-  a6.a0 = -13;
-  a6.a1 = 14;
-  a7.a0 = -15;
-  a7.a1 = 16;
-  a8.a0 = -17;
-  a8.a1 = 18;
-  a9.a0 = -19;
-  a9.a1 = 20;
-
-  final result = passStruct9BytesIntx10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
-
-  print("result = $result");
-
-  Expect.equals(10, result);
-
-  free(a0.addressOf);
-  free(a1.addressOf);
-  free(a2.addressOf);
-  free(a3.addressOf);
-  free(a4.addressOf);
-  free(a5.addressOf);
-  free(a6.addressOf);
-  free(a7.addressOf);
-  free(a8.addressOf);
-  free(a9.addressOf);
-}
-
-final passStruct9BytesHomogeneousUint82x10 = ffiTestFunctions.lookupFunction<
-    Int64 Function(
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82),
-    int Function(
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82,
-        Struct9BytesHomogeneousUint82)>("PassStruct9BytesHomogeneousUint82x10");
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8,
+        Struct9BytesHomogeneousUint8)>("PassStruct9BytesHomogeneousUint8x10");
 
 /// Argument is a single byte over a multiple of word size.
 /// 10 struct arguments will exhaust available registers.
 /// Struct only has 1-byte aligned fields to test struct alignment itself.
-///
-void testPassStruct9BytesHomogeneousUint82x10() {
-  Struct9BytesHomogeneousUint82 a0 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
-  Struct9BytesHomogeneousUint82 a1 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
-  Struct9BytesHomogeneousUint82 a2 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
-  Struct9BytesHomogeneousUint82 a3 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
-  Struct9BytesHomogeneousUint82 a4 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
-  Struct9BytesHomogeneousUint82 a5 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
-  Struct9BytesHomogeneousUint82 a6 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
-  Struct9BytesHomogeneousUint82 a7 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
-  Struct9BytesHomogeneousUint82 a8 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
-  Struct9BytesHomogeneousUint82 a9 =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
+/// Tests upper bytes in the integer registers that are partly filled.
+/// Tests stack alignment of non word size stack arguments.
+void testPassStruct9BytesHomogeneousUint8x10() {
+  Struct9BytesHomogeneousUint8 a0 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
+  Struct9BytesHomogeneousUint8 a1 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
+  Struct9BytesHomogeneousUint8 a2 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
+  Struct9BytesHomogeneousUint8 a3 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
+  Struct9BytesHomogeneousUint8 a4 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
+  Struct9BytesHomogeneousUint8 a5 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
+  Struct9BytesHomogeneousUint8 a6 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
+  Struct9BytesHomogeneousUint8 a7 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
+  Struct9BytesHomogeneousUint8 a8 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
+  Struct9BytesHomogeneousUint8 a9 =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
 
   a0.a0 = 1;
   a0.a1 = 2;
@@ -1635,12 +1839,103 @@ void testPassStruct9BytesHomogeneousUint82x10() {
   a9.a7 = 89;
   a9.a8 = 90;
 
-  final result = passStruct9BytesHomogeneousUint82x10(
+  final result = passStruct9BytesHomogeneousUint8x10(
       a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 
   print("result = $result");
 
   Expect.equals(4095, result);
+
+  free(a0.addressOf);
+  free(a1.addressOf);
+  free(a2.addressOf);
+  free(a3.addressOf);
+  free(a4.addressOf);
+  free(a5.addressOf);
+  free(a6.addressOf);
+  free(a7.addressOf);
+  free(a8.addressOf);
+  free(a9.addressOf);
+}
+
+final passStruct9BytesInt4Or8ByteAlignedx10 = ffiTestFunctions.lookupFunction<
+        Int64 Function(
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned),
+        int Function(
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned,
+            Struct9BytesInt4Or8ByteAligned)>(
+    "PassStruct9BytesInt4Or8ByteAlignedx10");
+
+/// Argument is a single byte over a multiple of word size.
+/// With alignment rules taken into account size is 12 or 16 bytes.
+/// 10 struct arguments will exhaust available registers.
+///
+void testPassStruct9BytesInt4Or8ByteAlignedx10() {
+  Struct9BytesInt4Or8ByteAligned a0 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+  Struct9BytesInt4Or8ByteAligned a1 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+  Struct9BytesInt4Or8ByteAligned a2 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+  Struct9BytesInt4Or8ByteAligned a3 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+  Struct9BytesInt4Or8ByteAligned a4 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+  Struct9BytesInt4Or8ByteAligned a5 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+  Struct9BytesInt4Or8ByteAligned a6 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+  Struct9BytesInt4Or8ByteAligned a7 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+  Struct9BytesInt4Or8ByteAligned a8 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+  Struct9BytesInt4Or8ByteAligned a9 =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+  a2.a0 = -5;
+  a2.a1 = 6;
+  a3.a0 = -7;
+  a3.a1 = 8;
+  a4.a0 = -9;
+  a4.a1 = 10;
+  a5.a0 = -11;
+  a5.a1 = 12;
+  a6.a0 = -13;
+  a6.a1 = 14;
+  a7.a0 = -15;
+  a7.a1 = 16;
+  a8.a0 = -17;
+  a8.a1 = 18;
+  a9.a0 = -19;
+  a9.a1 = 20;
+
+  final result = passStruct9BytesInt4Or8ByteAlignedx10(
+      a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  print("result = $result");
+
+  Expect.equals(10, result);
 
   free(a0.addressOf);
   free(a1.addressOf);
@@ -3142,19 +3437,45 @@ void testReturnStruct1ByteInt() {
   Expect.equals(a0, result.a0);
 }
 
-final returnStruct3BytesInt = ffiTestFunctions.lookupFunction<
-    Struct3BytesInt Function(Int16, Int8),
-    Struct3BytesInt Function(int, int)>("ReturnStruct3BytesInt");
+final returnStruct3BytesHomogeneousUint8 = ffiTestFunctions.lookupFunction<
+    Struct3BytesHomogeneousUint8 Function(Uint8, Uint8, Uint8),
+    Struct3BytesHomogeneousUint8 Function(
+        int, int, int)>("ReturnStruct3BytesHomogeneousUint8");
 
 /// Smaller than word size return value on all architectures.
-void testReturnStruct3BytesInt() {
+void testReturnStruct3BytesHomogeneousUint8() {
+  int a0;
+  int a1;
+  int a2;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+
+  final result = returnStruct3BytesHomogeneousUint8(a0, a1, a2);
+
+  print("result = $result");
+
+  Expect.equals(a0, result.a0);
+  Expect.equals(a1, result.a1);
+  Expect.equals(a2, result.a2);
+}
+
+final returnStruct3BytesInt2ByteAligned = ffiTestFunctions.lookupFunction<
+    Struct3BytesInt2ByteAligned Function(Int16, Int8),
+    Struct3BytesInt2ByteAligned Function(
+        int, int)>("ReturnStruct3BytesInt2ByteAligned");
+
+/// Smaller than word size return value on all architectures.
+/// With alignment rules taken into account size is 4 bytes.
+void testReturnStruct3BytesInt2ByteAligned() {
   int a0;
   int a1;
 
   a0 = -1;
   a1 = 2;
 
-  final result = returnStruct3BytesInt(a0, a1);
+  final result = returnStruct3BytesInt2ByteAligned(a0, a1);
 
   print("result = $result");
 
@@ -3183,12 +3504,51 @@ void testReturnStruct4BytesHomogeneousInt16() {
   Expect.equals(a1, result.a1);
 }
 
-final returnStruct7BytesInt = ffiTestFunctions.lookupFunction<
-    Struct7BytesInt Function(Int32, Int16, Int8),
-    Struct7BytesInt Function(int, int, int)>("ReturnStruct7BytesInt");
+final returnStruct7BytesHomogeneousUint8 = ffiTestFunctions.lookupFunction<
+    Struct7BytesHomogeneousUint8 Function(
+        Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8),
+    Struct7BytesHomogeneousUint8 Function(int, int, int, int, int, int,
+        int)>("ReturnStruct7BytesHomogeneousUint8");
 
 /// Non-wordsize return value.
-void testReturnStruct7BytesInt() {
+void testReturnStruct7BytesHomogeneousUint8() {
+  int a0;
+  int a1;
+  int a2;
+  int a3;
+  int a4;
+  int a5;
+  int a6;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+  a3 = 4;
+  a4 = 5;
+  a5 = 6;
+  a6 = 7;
+
+  final result = returnStruct7BytesHomogeneousUint8(a0, a1, a2, a3, a4, a5, a6);
+
+  print("result = $result");
+
+  Expect.equals(a0, result.a0);
+  Expect.equals(a1, result.a1);
+  Expect.equals(a2, result.a2);
+  Expect.equals(a3, result.a3);
+  Expect.equals(a4, result.a4);
+  Expect.equals(a5, result.a5);
+  Expect.equals(a6, result.a6);
+}
+
+final returnStruct7BytesInt4ByteAligned = ffiTestFunctions.lookupFunction<
+    Struct7BytesInt4ByteAligned Function(Int32, Int16, Int8),
+    Struct7BytesInt4ByteAligned Function(
+        int, int, int)>("ReturnStruct7BytesInt4ByteAligned");
+
+/// Non-wordsize return value.
+/// With alignment rules taken into account size is 8 bytes.
+void testReturnStruct7BytesInt4ByteAligned() {
   int a0;
   int a1;
   int a2;
@@ -3197,7 +3557,7 @@ void testReturnStruct7BytesInt() {
   a1 = 2;
   a2 = -3;
 
-  final result = returnStruct7BytesInt(a0, a1, a2);
+  final result = returnStruct7BytesInt4ByteAligned(a0, a1, a2);
 
   print("result = $result");
 
@@ -3273,37 +3633,16 @@ void testReturnStruct8BytesMixed() {
   Expect.equals(a2, result.a2);
 }
 
-final returnStruct9BytesInt = ffiTestFunctions.lookupFunction<
-    Struct9BytesInt Function(Int64, Int8),
-    Struct9BytesInt Function(int, int)>("ReturnStruct9BytesInt");
-
-/// Return value in two integer registers on x64.
-/// The second register only contains a single byte.
-void testReturnStruct9BytesInt() {
-  int a0;
-  int a1;
-
-  a0 = -1;
-  a1 = 2;
-
-  final result = returnStruct9BytesInt(a0, a1);
-
-  print("result = $result");
-
-  Expect.equals(a0, result.a0);
-  Expect.equals(a1, result.a1);
-}
-
-final returnStruct9BytesHomogeneousUint82 = ffiTestFunctions.lookupFunction<
-    Struct9BytesHomogeneousUint82 Function(
+final returnStruct9BytesHomogeneousUint8 = ffiTestFunctions.lookupFunction<
+    Struct9BytesHomogeneousUint8 Function(
         Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8),
-    Struct9BytesHomogeneousUint82 Function(int, int, int, int, int, int, int,
-        int, int)>("ReturnStruct9BytesHomogeneousUint82");
+    Struct9BytesHomogeneousUint8 Function(int, int, int, int, int, int, int,
+        int, int)>("ReturnStruct9BytesHomogeneousUint8");
 
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
 /// dart:ffi trampolines do not write outside this size.
-void testReturnStruct9BytesHomogeneousUint82() {
+void testReturnStruct9BytesHomogeneousUint8() {
   int a0;
   int a1;
   int a2;
@@ -3325,7 +3664,7 @@ void testReturnStruct9BytesHomogeneousUint82() {
   a8 = 9;
 
   final result =
-      returnStruct9BytesHomogeneousUint82(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+      returnStruct9BytesHomogeneousUint8(a0, a1, a2, a3, a4, a5, a6, a7, a8);
 
   print("result = $result");
 
@@ -3338,6 +3677,28 @@ void testReturnStruct9BytesHomogeneousUint82() {
   Expect.equals(a6, result.a6);
   Expect.equals(a7, result.a7);
   Expect.equals(a8, result.a8);
+}
+
+final returnStruct9BytesInt4Or8ByteAligned = ffiTestFunctions.lookupFunction<
+    Struct9BytesInt4Or8ByteAligned Function(Int64, Int8),
+    Struct9BytesInt4Or8ByteAligned Function(
+        int, int)>("ReturnStruct9BytesInt4Or8ByteAligned");
+
+/// Return value in two integer registers on x64.
+/// With alignment rules taken into account size is 12 or 16 bytes.
+void testReturnStruct9BytesInt4Or8ByteAligned() {
+  int a0;
+  int a1;
+
+  a0 = -1;
+  a1 = 2;
+
+  final result = returnStruct9BytesInt4Or8ByteAligned(a0, a1);
+
+  print("result = $result");
+
+  Expect.equals(a0, result.a0);
+  Expect.equals(a1, result.a1);
 }
 
 final returnStruct12BytesHomogeneousFloat = ffiTestFunctions.lookupFunction<

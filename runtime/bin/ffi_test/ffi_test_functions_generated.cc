@@ -40,7 +40,13 @@ struct Struct1ByteInt {
   int8_t a0;
 };
 
-struct Struct3BytesInt {
+struct Struct3BytesHomogeneousUint8 {
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+};
+
+struct Struct3BytesInt2ByteAligned {
   int16_t a0;
   int8_t a1;
 };
@@ -50,7 +56,17 @@ struct Struct4BytesHomogeneousInt16 {
   int16_t a1;
 };
 
-struct Struct7BytesInt {
+struct Struct7BytesHomogeneousUint8 {
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+  uint8_t a5;
+  uint8_t a6;
+};
+
+struct Struct7BytesInt4ByteAligned {
   int32_t a0;
   int16_t a1;
   int8_t a2;
@@ -73,12 +89,7 @@ struct Struct8BytesMixed {
   int16_t a2;
 };
 
-struct Struct9BytesInt {
-  int64_t a0;
-  int8_t a1;
-};
-
-struct Struct9BytesHomogeneousUint82 {
+struct Struct9BytesHomogeneousUint8 {
   uint8_t a0;
   uint8_t a1;
   uint8_t a2;
@@ -88,6 +99,11 @@ struct Struct9BytesHomogeneousUint82 {
   uint8_t a6;
   uint8_t a7;
   uint8_t a8;
+};
+
+struct Struct9BytesInt4Or8ByteAligned {
+  int64_t a0;
+  int8_t a1;
 };
 
 struct Struct12BytesHomogeneousFloat {
@@ -367,17 +383,95 @@ DART_EXPORT int64_t PassStruct1ByteIntx10(Struct1ByteInt a0,
 // Used for testing structs by value.
 // Not a multiple of word size, not a power of two.
 // 10 struct arguments will exhaust available registers.
-DART_EXPORT int64_t PassStruct3BytesIntx10(Struct3BytesInt a0,
-                                           Struct3BytesInt a1,
-                                           Struct3BytesInt a2,
-                                           Struct3BytesInt a3,
-                                           Struct3BytesInt a4,
-                                           Struct3BytesInt a5,
-                                           Struct3BytesInt a6,
-                                           Struct3BytesInt a7,
-                                           Struct3BytesInt a8,
-                                           Struct3BytesInt a9) {
-  std::cout << "PassStruct3BytesIntx10"
+DART_EXPORT int64_t
+PassStruct3BytesHomogeneousUint8x10(Struct3BytesHomogeneousUint8 a0,
+                                    Struct3BytesHomogeneousUint8 a1,
+                                    Struct3BytesHomogeneousUint8 a2,
+                                    Struct3BytesHomogeneousUint8 a3,
+                                    Struct3BytesHomogeneousUint8 a4,
+                                    Struct3BytesHomogeneousUint8 a5,
+                                    Struct3BytesHomogeneousUint8 a6,
+                                    Struct3BytesHomogeneousUint8 a7,
+                                    Struct3BytesHomogeneousUint8 a8,
+                                    Struct3BytesHomogeneousUint8 a9) {
+  std::cout << "PassStruct3BytesHomogeneousUint8x10"
+            << "((" << static_cast<int>(a0.a0) << ", "
+            << static_cast<int>(a0.a1) << ", " << static_cast<int>(a0.a2)
+            << "), (" << static_cast<int>(a1.a0) << ", "
+            << static_cast<int>(a1.a1) << ", " << static_cast<int>(a1.a2)
+            << "), (" << static_cast<int>(a2.a0) << ", "
+            << static_cast<int>(a2.a1) << ", " << static_cast<int>(a2.a2)
+            << "), (" << static_cast<int>(a3.a0) << ", "
+            << static_cast<int>(a3.a1) << ", " << static_cast<int>(a3.a2)
+            << "), (" << static_cast<int>(a4.a0) << ", "
+            << static_cast<int>(a4.a1) << ", " << static_cast<int>(a4.a2)
+            << "), (" << static_cast<int>(a5.a0) << ", "
+            << static_cast<int>(a5.a1) << ", " << static_cast<int>(a5.a2)
+            << "), (" << static_cast<int>(a6.a0) << ", "
+            << static_cast<int>(a6.a1) << ", " << static_cast<int>(a6.a2)
+            << "), (" << static_cast<int>(a7.a0) << ", "
+            << static_cast<int>(a7.a1) << ", " << static_cast<int>(a7.a2)
+            << "), (" << static_cast<int>(a8.a0) << ", "
+            << static_cast<int>(a8.a1) << ", " << static_cast<int>(a8.a2)
+            << "), (" << static_cast<int>(a9.a0) << ", "
+            << static_cast<int>(a9.a1) << ", " << static_cast<int>(a9.a2)
+            << "))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0;
+  result += a0.a1;
+  result += a0.a2;
+  result += a1.a0;
+  result += a1.a1;
+  result += a1.a2;
+  result += a2.a0;
+  result += a2.a1;
+  result += a2.a2;
+  result += a3.a0;
+  result += a3.a1;
+  result += a3.a2;
+  result += a4.a0;
+  result += a4.a1;
+  result += a4.a2;
+  result += a5.a0;
+  result += a5.a1;
+  result += a5.a2;
+  result += a6.a0;
+  result += a6.a1;
+  result += a6.a2;
+  result += a7.a0;
+  result += a7.a1;
+  result += a7.a2;
+  result += a8.a0;
+  result += a8.a1;
+  result += a8.a2;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Not a multiple of word size, not a power of two.
+// With alignment rules taken into account size is 4 bytes.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT int64_t
+PassStruct3BytesInt2ByteAlignedx10(Struct3BytesInt2ByteAligned a0,
+                                   Struct3BytesInt2ByteAligned a1,
+                                   Struct3BytesInt2ByteAligned a2,
+                                   Struct3BytesInt2ByteAligned a3,
+                                   Struct3BytesInt2ByteAligned a4,
+                                   Struct3BytesInt2ByteAligned a5,
+                                   Struct3BytesInt2ByteAligned a6,
+                                   Struct3BytesInt2ByteAligned a7,
+                                   Struct3BytesInt2ByteAligned a8,
+                                   Struct3BytesInt2ByteAligned a9) {
+  std::cout << "PassStruct3BytesInt2ByteAlignedx10"
             << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "), ("
             << a1.a0 << ", " << static_cast<int>(a1.a1) << "), (" << a2.a0
             << ", " << static_cast<int>(a2.a1) << "), (" << a3.a0 << ", "
@@ -472,17 +566,151 @@ PassStruct4BytesHomogeneousInt16x10(Struct4BytesHomogeneousInt16 a0,
 // Used for testing structs by value.
 // Sub word size on 64 bit architectures.
 // 10 struct arguments will exhaust available registers.
-DART_EXPORT int64_t PassStruct7BytesIntx10(Struct7BytesInt a0,
-                                           Struct7BytesInt a1,
-                                           Struct7BytesInt a2,
-                                           Struct7BytesInt a3,
-                                           Struct7BytesInt a4,
-                                           Struct7BytesInt a5,
-                                           Struct7BytesInt a6,
-                                           Struct7BytesInt a7,
-                                           Struct7BytesInt a8,
-                                           Struct7BytesInt a9) {
-  std::cout << "PassStruct7BytesIntx10"
+DART_EXPORT int64_t
+PassStruct7BytesHomogeneousUint8x10(Struct7BytesHomogeneousUint8 a0,
+                                    Struct7BytesHomogeneousUint8 a1,
+                                    Struct7BytesHomogeneousUint8 a2,
+                                    Struct7BytesHomogeneousUint8 a3,
+                                    Struct7BytesHomogeneousUint8 a4,
+                                    Struct7BytesHomogeneousUint8 a5,
+                                    Struct7BytesHomogeneousUint8 a6,
+                                    Struct7BytesHomogeneousUint8 a7,
+                                    Struct7BytesHomogeneousUint8 a8,
+                                    Struct7BytesHomogeneousUint8 a9) {
+  std::cout
+      << "PassStruct7BytesHomogeneousUint8x10"
+      << "((" << static_cast<int>(a0.a0) << ", " << static_cast<int>(a0.a1)
+      << ", " << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
+      << ", " << static_cast<int>(a0.a4) << ", " << static_cast<int>(a0.a5)
+      << ", " << static_cast<int>(a0.a6) << "), (" << static_cast<int>(a1.a0)
+      << ", " << static_cast<int>(a1.a1) << ", " << static_cast<int>(a1.a2)
+      << ", " << static_cast<int>(a1.a3) << ", " << static_cast<int>(a1.a4)
+      << ", " << static_cast<int>(a1.a5) << ", " << static_cast<int>(a1.a6)
+      << "), (" << static_cast<int>(a2.a0) << ", " << static_cast<int>(a2.a1)
+      << ", " << static_cast<int>(a2.a2) << ", " << static_cast<int>(a2.a3)
+      << ", " << static_cast<int>(a2.a4) << ", " << static_cast<int>(a2.a5)
+      << ", " << static_cast<int>(a2.a6) << "), (" << static_cast<int>(a3.a0)
+      << ", " << static_cast<int>(a3.a1) << ", " << static_cast<int>(a3.a2)
+      << ", " << static_cast<int>(a3.a3) << ", " << static_cast<int>(a3.a4)
+      << ", " << static_cast<int>(a3.a5) << ", " << static_cast<int>(a3.a6)
+      << "), (" << static_cast<int>(a4.a0) << ", " << static_cast<int>(a4.a1)
+      << ", " << static_cast<int>(a4.a2) << ", " << static_cast<int>(a4.a3)
+      << ", " << static_cast<int>(a4.a4) << ", " << static_cast<int>(a4.a5)
+      << ", " << static_cast<int>(a4.a6) << "), (" << static_cast<int>(a5.a0)
+      << ", " << static_cast<int>(a5.a1) << ", " << static_cast<int>(a5.a2)
+      << ", " << static_cast<int>(a5.a3) << ", " << static_cast<int>(a5.a4)
+      << ", " << static_cast<int>(a5.a5) << ", " << static_cast<int>(a5.a6)
+      << "), (" << static_cast<int>(a6.a0) << ", " << static_cast<int>(a6.a1)
+      << ", " << static_cast<int>(a6.a2) << ", " << static_cast<int>(a6.a3)
+      << ", " << static_cast<int>(a6.a4) << ", " << static_cast<int>(a6.a5)
+      << ", " << static_cast<int>(a6.a6) << "), (" << static_cast<int>(a7.a0)
+      << ", " << static_cast<int>(a7.a1) << ", " << static_cast<int>(a7.a2)
+      << ", " << static_cast<int>(a7.a3) << ", " << static_cast<int>(a7.a4)
+      << ", " << static_cast<int>(a7.a5) << ", " << static_cast<int>(a7.a6)
+      << "), (" << static_cast<int>(a8.a0) << ", " << static_cast<int>(a8.a1)
+      << ", " << static_cast<int>(a8.a2) << ", " << static_cast<int>(a8.a3)
+      << ", " << static_cast<int>(a8.a4) << ", " << static_cast<int>(a8.a5)
+      << ", " << static_cast<int>(a8.a6) << "), (" << static_cast<int>(a9.a0)
+      << ", " << static_cast<int>(a9.a1) << ", " << static_cast<int>(a9.a2)
+      << ", " << static_cast<int>(a9.a3) << ", " << static_cast<int>(a9.a4)
+      << ", " << static_cast<int>(a9.a5) << ", " << static_cast<int>(a9.a6)
+      << "))"
+      << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0;
+  result += a0.a1;
+  result += a0.a2;
+  result += a0.a3;
+  result += a0.a4;
+  result += a0.a5;
+  result += a0.a6;
+  result += a1.a0;
+  result += a1.a1;
+  result += a1.a2;
+  result += a1.a3;
+  result += a1.a4;
+  result += a1.a5;
+  result += a1.a6;
+  result += a2.a0;
+  result += a2.a1;
+  result += a2.a2;
+  result += a2.a3;
+  result += a2.a4;
+  result += a2.a5;
+  result += a2.a6;
+  result += a3.a0;
+  result += a3.a1;
+  result += a3.a2;
+  result += a3.a3;
+  result += a3.a4;
+  result += a3.a5;
+  result += a3.a6;
+  result += a4.a0;
+  result += a4.a1;
+  result += a4.a2;
+  result += a4.a3;
+  result += a4.a4;
+  result += a4.a5;
+  result += a4.a6;
+  result += a5.a0;
+  result += a5.a1;
+  result += a5.a2;
+  result += a5.a3;
+  result += a5.a4;
+  result += a5.a5;
+  result += a5.a6;
+  result += a6.a0;
+  result += a6.a1;
+  result += a6.a2;
+  result += a6.a3;
+  result += a6.a4;
+  result += a6.a5;
+  result += a6.a6;
+  result += a7.a0;
+  result += a7.a1;
+  result += a7.a2;
+  result += a7.a3;
+  result += a7.a4;
+  result += a7.a5;
+  result += a7.a6;
+  result += a8.a0;
+  result += a8.a1;
+  result += a8.a2;
+  result += a8.a3;
+  result += a8.a4;
+  result += a8.a5;
+  result += a8.a6;
+  result += a9.a0;
+  result += a9.a1;
+  result += a9.a2;
+  result += a9.a3;
+  result += a9.a4;
+  result += a9.a5;
+  result += a9.a6;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Sub word size on 64 bit architectures.
+// With alignment rules taken into account size is 8 bytes.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT int64_t
+PassStruct7BytesInt4ByteAlignedx10(Struct7BytesInt4ByteAligned a0,
+                                   Struct7BytesInt4ByteAligned a1,
+                                   Struct7BytesInt4ByteAligned a2,
+                                   Struct7BytesInt4ByteAligned a3,
+                                   Struct7BytesInt4ByteAligned a4,
+                                   Struct7BytesInt4ByteAligned a5,
+                                   Struct7BytesInt4ByteAligned a6,
+                                   Struct7BytesInt4ByteAligned a7,
+                                   Struct7BytesInt4ByteAligned a8,
+                                   Struct7BytesInt4ByteAligned a9) {
+  std::cout << "PassStruct7BytesInt4ByteAlignedx10"
             << "((" << a0.a0 << ", " << a0.a1 << ", " << static_cast<int>(a0.a2)
             << "), (" << a1.a0 << ", " << a1.a1 << ", "
             << static_cast<int>(a1.a2) << "), (" << a2.a0 << ", " << a2.a1
@@ -715,77 +943,22 @@ DART_EXPORT float PassStruct8BytesMixedx10(Struct8BytesMixed a0,
 // Used for testing structs by value.
 // Argument is a single byte over a multiple of word size.
 // 10 struct arguments will exhaust available registers.
+// Struct only has 1-byte aligned fields to test struct alignment itself.
 // Tests upper bytes in the integer registers that are partly filled.
 // Tests stack alignment of non word size stack arguments.
-DART_EXPORT int64_t PassStruct9BytesIntx10(Struct9BytesInt a0,
-                                           Struct9BytesInt a1,
-                                           Struct9BytesInt a2,
-                                           Struct9BytesInt a3,
-                                           Struct9BytesInt a4,
-                                           Struct9BytesInt a5,
-                                           Struct9BytesInt a6,
-                                           Struct9BytesInt a7,
-                                           Struct9BytesInt a8,
-                                           Struct9BytesInt a9) {
-  std::cout << "PassStruct9BytesIntx10"
-            << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "), ("
-            << a1.a0 << ", " << static_cast<int>(a1.a1) << "), (" << a2.a0
-            << ", " << static_cast<int>(a2.a1) << "), (" << a3.a0 << ", "
-            << static_cast<int>(a3.a1) << "), (" << a4.a0 << ", "
-            << static_cast<int>(a4.a1) << "), (" << a5.a0 << ", "
-            << static_cast<int>(a5.a1) << "), (" << a6.a0 << ", "
-            << static_cast<int>(a6.a1) << "), (" << a7.a0 << ", "
-            << static_cast<int>(a7.a1) << "), (" << a8.a0 << ", "
-            << static_cast<int>(a8.a1) << "), (" << a9.a0 << ", "
-            << static_cast<int>(a9.a1) << "))"
-            << "\n";
-
-  int64_t result = 0;
-
-  result += a0.a0;
-  result += a0.a1;
-  result += a1.a0;
-  result += a1.a1;
-  result += a2.a0;
-  result += a2.a1;
-  result += a3.a0;
-  result += a3.a1;
-  result += a4.a0;
-  result += a4.a1;
-  result += a5.a0;
-  result += a5.a1;
-  result += a6.a0;
-  result += a6.a1;
-  result += a7.a0;
-  result += a7.a1;
-  result += a8.a0;
-  result += a8.a1;
-  result += a9.a0;
-  result += a9.a1;
-
-  std::cout << "result = " << result << "\n";
-
-  return result;
-}
-
-// Used for testing structs by value.
-// Argument is a single byte over a multiple of word size.
-// 10 struct arguments will exhaust available registers.
-// Struct only has 1-byte aligned fields to test struct alignment itself.
-//
 DART_EXPORT int64_t
-PassStruct9BytesHomogeneousUint82x10(Struct9BytesHomogeneousUint82 a0,
-                                     Struct9BytesHomogeneousUint82 a1,
-                                     Struct9BytesHomogeneousUint82 a2,
-                                     Struct9BytesHomogeneousUint82 a3,
-                                     Struct9BytesHomogeneousUint82 a4,
-                                     Struct9BytesHomogeneousUint82 a5,
-                                     Struct9BytesHomogeneousUint82 a6,
-                                     Struct9BytesHomogeneousUint82 a7,
-                                     Struct9BytesHomogeneousUint82 a8,
-                                     Struct9BytesHomogeneousUint82 a9) {
+PassStruct9BytesHomogeneousUint8x10(Struct9BytesHomogeneousUint8 a0,
+                                    Struct9BytesHomogeneousUint8 a1,
+                                    Struct9BytesHomogeneousUint8 a2,
+                                    Struct9BytesHomogeneousUint8 a3,
+                                    Struct9BytesHomogeneousUint8 a4,
+                                    Struct9BytesHomogeneousUint8 a5,
+                                    Struct9BytesHomogeneousUint8 a6,
+                                    Struct9BytesHomogeneousUint8 a7,
+                                    Struct9BytesHomogeneousUint8 a8,
+                                    Struct9BytesHomogeneousUint8 a9) {
   std::cout
-      << "PassStruct9BytesHomogeneousUint82x10"
+      << "PassStruct9BytesHomogeneousUint8x10"
       << "((" << static_cast<int>(a0.a0) << ", " << static_cast<int>(a0.a1)
       << ", " << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
       << ", " << static_cast<int>(a0.a4) << ", " << static_cast<int>(a0.a5)
@@ -926,6 +1099,63 @@ PassStruct9BytesHomogeneousUint82x10(Struct9BytesHomogeneousUint82 a0,
   result += a9.a6;
   result += a9.a7;
   result += a9.a8;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Argument is a single byte over a multiple of word size.
+// With alignment rules taken into account size is 12 or 16 bytes.
+// 10 struct arguments will exhaust available registers.
+//
+DART_EXPORT int64_t
+PassStruct9BytesInt4Or8ByteAlignedx10(Struct9BytesInt4Or8ByteAligned a0,
+                                      Struct9BytesInt4Or8ByteAligned a1,
+                                      Struct9BytesInt4Or8ByteAligned a2,
+                                      Struct9BytesInt4Or8ByteAligned a3,
+                                      Struct9BytesInt4Or8ByteAligned a4,
+                                      Struct9BytesInt4Or8ByteAligned a5,
+                                      Struct9BytesInt4Or8ByteAligned a6,
+                                      Struct9BytesInt4Or8ByteAligned a7,
+                                      Struct9BytesInt4Or8ByteAligned a8,
+                                      Struct9BytesInt4Or8ByteAligned a9) {
+  std::cout << "PassStruct9BytesInt4Or8ByteAlignedx10"
+            << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "), ("
+            << a1.a0 << ", " << static_cast<int>(a1.a1) << "), (" << a2.a0
+            << ", " << static_cast<int>(a2.a1) << "), (" << a3.a0 << ", "
+            << static_cast<int>(a3.a1) << "), (" << a4.a0 << ", "
+            << static_cast<int>(a4.a1) << "), (" << a5.a0 << ", "
+            << static_cast<int>(a5.a1) << "), (" << a6.a0 << ", "
+            << static_cast<int>(a6.a1) << "), (" << a7.a0 << ", "
+            << static_cast<int>(a7.a1) << "), (" << a8.a0 << ", "
+            << static_cast<int>(a8.a1) << "), (" << a9.a0 << ", "
+            << static_cast<int>(a9.a1) << "))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a0;
+  result += a0.a1;
+  result += a1.a0;
+  result += a1.a1;
+  result += a2.a0;
+  result += a2.a1;
+  result += a3.a0;
+  result += a3.a1;
+  result += a4.a0;
+  result += a4.a1;
+  result += a5.a0;
+  result += a5.a1;
+  result += a6.a0;
+  result += a6.a1;
+  result += a7.a0;
+  result += a7.a1;
+  result += a8.a0;
+  result += a8.a1;
+  result += a9.a0;
+  result += a9.a1;
 
   std::cout << "result = " << result << "\n";
 
@@ -2233,12 +2463,38 @@ DART_EXPORT Struct1ByteInt ReturnStruct1ByteInt(int8_t a0) {
 
 // Used for testing structs by value.
 // Smaller than word size return value on all architectures.
-DART_EXPORT Struct3BytesInt ReturnStruct3BytesInt(int16_t a0, int8_t a1) {
-  std::cout << "ReturnStruct3BytesInt"
+DART_EXPORT Struct3BytesHomogeneousUint8
+ReturnStruct3BytesHomogeneousUint8(uint8_t a0, uint8_t a1, uint8_t a2) {
+  std::cout << "ReturnStruct3BytesHomogeneousUint8"
+            << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
+            << ", " << static_cast<int>(a2) << ")"
+            << "\n";
+
+  Struct3BytesHomogeneousUint8 result;
+
+  result.a0 = a0;
+  result.a1 = a1;
+  result.a2 = a2;
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", "
+            << static_cast<int>(result.a1) << ", "
+            << static_cast<int>(result.a2) << ")"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Smaller than word size return value on all architectures.
+// With alignment rules taken into account size is 4 bytes.
+DART_EXPORT Struct3BytesInt2ByteAligned
+ReturnStruct3BytesInt2ByteAligned(int16_t a0, int8_t a1) {
+  std::cout << "ReturnStruct3BytesInt2ByteAligned"
             << "(" << a0 << ", " << static_cast<int>(a1) << ")"
             << "\n";
 
-  Struct3BytesInt result;
+  Struct3BytesInt2ByteAligned result;
 
   result.a0 = a0;
   result.a1 = a1;
@@ -2272,14 +2528,54 @@ ReturnStruct4BytesHomogeneousInt16(int16_t a0, int16_t a1) {
 
 // Used for testing structs by value.
 // Non-wordsize return value.
-DART_EXPORT Struct7BytesInt ReturnStruct7BytesInt(int32_t a0,
-                                                  int16_t a1,
-                                                  int8_t a2) {
-  std::cout << "ReturnStruct7BytesInt"
+DART_EXPORT Struct7BytesHomogeneousUint8
+ReturnStruct7BytesHomogeneousUint8(uint8_t a0,
+                                   uint8_t a1,
+                                   uint8_t a2,
+                                   uint8_t a3,
+                                   uint8_t a4,
+                                   uint8_t a5,
+                                   uint8_t a6) {
+  std::cout << "ReturnStruct7BytesHomogeneousUint8"
+            << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
+            << ", " << static_cast<int>(a2) << ", " << static_cast<int>(a3)
+            << ", " << static_cast<int>(a4) << ", " << static_cast<int>(a5)
+            << ", " << static_cast<int>(a6) << ")"
+            << "\n";
+
+  Struct7BytesHomogeneousUint8 result;
+
+  result.a0 = a0;
+  result.a1 = a1;
+  result.a2 = a2;
+  result.a3 = a3;
+  result.a4 = a4;
+  result.a5 = a5;
+  result.a6 = a6;
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", "
+            << static_cast<int>(result.a1) << ", "
+            << static_cast<int>(result.a2) << ", "
+            << static_cast<int>(result.a3) << ", "
+            << static_cast<int>(result.a4) << ", "
+            << static_cast<int>(result.a5) << ", "
+            << static_cast<int>(result.a6) << ")"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Non-wordsize return value.
+// With alignment rules taken into account size is 8 bytes.
+DART_EXPORT Struct7BytesInt4ByteAligned
+ReturnStruct7BytesInt4ByteAligned(int32_t a0, int16_t a1, int8_t a2) {
+  std::cout << "ReturnStruct7BytesInt4ByteAligned"
             << "(" << a0 << ", " << a1 << ", " << static_cast<int>(a2) << ")"
             << "\n";
 
-  Struct7BytesInt result;
+  Struct7BytesInt4ByteAligned result;
 
   result.a0 = a0;
   result.a1 = a1;
@@ -2358,40 +2654,20 @@ DART_EXPORT Struct8BytesMixed ReturnStruct8BytesMixed(float a0,
 }
 
 // Used for testing structs by value.
-// Return value in two integer registers on x64.
-// The second register only contains a single byte.
-DART_EXPORT Struct9BytesInt ReturnStruct9BytesInt(int64_t a0, int8_t a1) {
-  std::cout << "ReturnStruct9BytesInt"
-            << "(" << a0 << ", " << static_cast<int>(a1) << ")"
-            << "\n";
-
-  Struct9BytesInt result;
-
-  result.a0 = a0;
-  result.a1 = a1;
-
-  std::cout << "result = "
-            << "(" << result.a0 << ", " << static_cast<int>(result.a1) << ")"
-            << "\n";
-
-  return result;
-}
-
-// Used for testing structs by value.
 // The minimum alignment of this struct is only 1 byte based on its fields.
 // Test that the memory backing these structs is the right size and that
 // dart:ffi trampolines do not write outside this size.
-DART_EXPORT Struct9BytesHomogeneousUint82
-ReturnStruct9BytesHomogeneousUint82(uint8_t a0,
-                                    uint8_t a1,
-                                    uint8_t a2,
-                                    uint8_t a3,
-                                    uint8_t a4,
-                                    uint8_t a5,
-                                    uint8_t a6,
-                                    uint8_t a7,
-                                    uint8_t a8) {
-  std::cout << "ReturnStruct9BytesHomogeneousUint82"
+DART_EXPORT Struct9BytesHomogeneousUint8
+ReturnStruct9BytesHomogeneousUint8(uint8_t a0,
+                                   uint8_t a1,
+                                   uint8_t a2,
+                                   uint8_t a3,
+                                   uint8_t a4,
+                                   uint8_t a5,
+                                   uint8_t a6,
+                                   uint8_t a7,
+                                   uint8_t a8) {
+  std::cout << "ReturnStruct9BytesHomogeneousUint8"
             << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
             << ", " << static_cast<int>(a2) << ", " << static_cast<int>(a3)
             << ", " << static_cast<int>(a4) << ", " << static_cast<int>(a5)
@@ -2399,7 +2675,7 @@ ReturnStruct9BytesHomogeneousUint82(uint8_t a0,
             << ", " << static_cast<int>(a8) << ")"
             << "\n";
 
-  Struct9BytesHomogeneousUint82 result;
+  Struct9BytesHomogeneousUint8 result;
 
   result.a0 = a0;
   result.a1 = a1;
@@ -2421,6 +2697,27 @@ ReturnStruct9BytesHomogeneousUint82(uint8_t a0,
             << static_cast<int>(result.a6) << ", "
             << static_cast<int>(result.a7) << ", "
             << static_cast<int>(result.a8) << ")"
+            << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Return value in two integer registers on x64.
+// With alignment rules taken into account size is 12 or 16 bytes.
+DART_EXPORT Struct9BytesInt4Or8ByteAligned
+ReturnStruct9BytesInt4Or8ByteAligned(int64_t a0, int8_t a1) {
+  std::cout << "ReturnStruct9BytesInt4Or8ByteAligned"
+            << "(" << a0 << ", " << static_cast<int>(a1) << ")"
+            << "\n";
+
+  Struct9BytesInt4Or8ByteAligned result;
+
+  result.a0 = a0;
+  result.a1 = a1;
+
+  std::cout << "result = "
+            << "(" << result.a0 << ", " << static_cast<int>(result.a1) << ")"
             << "\n";
 
   return result;
@@ -3345,28 +3642,133 @@ DART_EXPORT intptr_t TestPassStruct1ByteIntx10(
 // Used for testing structs by value.
 // Not a multiple of word size, not a power of two.
 // 10 struct arguments will exhaust available registers.
-DART_EXPORT intptr_t TestPassStruct3BytesIntx10(
+DART_EXPORT intptr_t TestPassStruct3BytesHomogeneousUint8x10(
     // NOLINTNEXTLINE(whitespace/parens)
-    int64_t (*f)(Struct3BytesInt a0,
-                 Struct3BytesInt a1,
-                 Struct3BytesInt a2,
-                 Struct3BytesInt a3,
-                 Struct3BytesInt a4,
-                 Struct3BytesInt a5,
-                 Struct3BytesInt a6,
-                 Struct3BytesInt a7,
-                 Struct3BytesInt a8,
-                 Struct3BytesInt a9)) {
-  Struct3BytesInt a0;
-  Struct3BytesInt a1;
-  Struct3BytesInt a2;
-  Struct3BytesInt a3;
-  Struct3BytesInt a4;
-  Struct3BytesInt a5;
-  Struct3BytesInt a6;
-  Struct3BytesInt a7;
-  Struct3BytesInt a8;
-  Struct3BytesInt a9;
+    int64_t (*f)(Struct3BytesHomogeneousUint8 a0,
+                 Struct3BytesHomogeneousUint8 a1,
+                 Struct3BytesHomogeneousUint8 a2,
+                 Struct3BytesHomogeneousUint8 a3,
+                 Struct3BytesHomogeneousUint8 a4,
+                 Struct3BytesHomogeneousUint8 a5,
+                 Struct3BytesHomogeneousUint8 a6,
+                 Struct3BytesHomogeneousUint8 a7,
+                 Struct3BytesHomogeneousUint8 a8,
+                 Struct3BytesHomogeneousUint8 a9)) {
+  Struct3BytesHomogeneousUint8 a0;
+  Struct3BytesHomogeneousUint8 a1;
+  Struct3BytesHomogeneousUint8 a2;
+  Struct3BytesHomogeneousUint8 a3;
+  Struct3BytesHomogeneousUint8 a4;
+  Struct3BytesHomogeneousUint8 a5;
+  Struct3BytesHomogeneousUint8 a6;
+  Struct3BytesHomogeneousUint8 a7;
+  Struct3BytesHomogeneousUint8 a8;
+  Struct3BytesHomogeneousUint8 a9;
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a1.a0 = 4;
+  a1.a1 = 5;
+  a1.a2 = 6;
+  a2.a0 = 7;
+  a2.a1 = 8;
+  a2.a2 = 9;
+  a3.a0 = 10;
+  a3.a1 = 11;
+  a3.a2 = 12;
+  a4.a0 = 13;
+  a4.a1 = 14;
+  a4.a2 = 15;
+  a5.a0 = 16;
+  a5.a1 = 17;
+  a5.a2 = 18;
+  a6.a0 = 19;
+  a6.a1 = 20;
+  a6.a2 = 21;
+  a7.a0 = 22;
+  a7.a1 = 23;
+  a7.a2 = 24;
+  a8.a0 = 25;
+  a8.a1 = 26;
+  a8.a2 = 27;
+  a9.a0 = 28;
+  a9.a1 = 29;
+  a9.a2 = 30;
+
+  std::cout << "Calling TestPassStruct3BytesHomogeneousUint8x10("
+            << "((" << static_cast<int>(a0.a0) << ", "
+            << static_cast<int>(a0.a1) << ", " << static_cast<int>(a0.a2)
+            << "), (" << static_cast<int>(a1.a0) << ", "
+            << static_cast<int>(a1.a1) << ", " << static_cast<int>(a1.a2)
+            << "), (" << static_cast<int>(a2.a0) << ", "
+            << static_cast<int>(a2.a1) << ", " << static_cast<int>(a2.a2)
+            << "), (" << static_cast<int>(a3.a0) << ", "
+            << static_cast<int>(a3.a1) << ", " << static_cast<int>(a3.a2)
+            << "), (" << static_cast<int>(a4.a0) << ", "
+            << static_cast<int>(a4.a1) << ", " << static_cast<int>(a4.a2)
+            << "), (" << static_cast<int>(a5.a0) << ", "
+            << static_cast<int>(a5.a1) << ", " << static_cast<int>(a5.a2)
+            << "), (" << static_cast<int>(a6.a0) << ", "
+            << static_cast<int>(a6.a1) << ", " << static_cast<int>(a6.a2)
+            << "), (" << static_cast<int>(a7.a0) << ", "
+            << static_cast<int>(a7.a1) << ", " << static_cast<int>(a7.a2)
+            << "), (" << static_cast<int>(a8.a0) << ", "
+            << static_cast<int>(a8.a1) << ", " << static_cast<int>(a8.a2)
+            << "), (" << static_cast<int>(a9.a0) << ", "
+            << static_cast<int>(a9.a1) << ", " << static_cast<int>(a9.a2)
+            << "))"
+            << ")\n";
+
+  int64_t result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(465, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Not a multiple of word size, not a power of two.
+// With alignment rules taken into account size is 4 bytes.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT intptr_t TestPassStruct3BytesInt2ByteAlignedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct3BytesInt2ByteAligned a0,
+                 Struct3BytesInt2ByteAligned a1,
+                 Struct3BytesInt2ByteAligned a2,
+                 Struct3BytesInt2ByteAligned a3,
+                 Struct3BytesInt2ByteAligned a4,
+                 Struct3BytesInt2ByteAligned a5,
+                 Struct3BytesInt2ByteAligned a6,
+                 Struct3BytesInt2ByteAligned a7,
+                 Struct3BytesInt2ByteAligned a8,
+                 Struct3BytesInt2ByteAligned a9)) {
+  Struct3BytesInt2ByteAligned a0;
+  Struct3BytesInt2ByteAligned a1;
+  Struct3BytesInt2ByteAligned a2;
+  Struct3BytesInt2ByteAligned a3;
+  Struct3BytesInt2ByteAligned a4;
+  Struct3BytesInt2ByteAligned a5;
+  Struct3BytesInt2ByteAligned a6;
+  Struct3BytesInt2ByteAligned a7;
+  Struct3BytesInt2ByteAligned a8;
+  Struct3BytesInt2ByteAligned a9;
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -3389,7 +3791,7 @@ DART_EXPORT intptr_t TestPassStruct3BytesIntx10(
   a9.a0 = -19;
   a9.a1 = 20;
 
-  std::cout << "Calling TestPassStruct3BytesIntx10("
+  std::cout << "Calling TestPassStruct3BytesInt2ByteAlignedx10("
             << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "), ("
             << a1.a0 << ", " << static_cast<int>(a1.a1) << "), (" << a2.a0
             << ", " << static_cast<int>(a2.a1) << "), (" << a3.a0 << ", "
@@ -3507,28 +3909,189 @@ DART_EXPORT intptr_t TestPassStruct4BytesHomogeneousInt16x10(
 // Used for testing structs by value.
 // Sub word size on 64 bit architectures.
 // 10 struct arguments will exhaust available registers.
-DART_EXPORT intptr_t TestPassStruct7BytesIntx10(
+DART_EXPORT intptr_t TestPassStruct7BytesHomogeneousUint8x10(
     // NOLINTNEXTLINE(whitespace/parens)
-    int64_t (*f)(Struct7BytesInt a0,
-                 Struct7BytesInt a1,
-                 Struct7BytesInt a2,
-                 Struct7BytesInt a3,
-                 Struct7BytesInt a4,
-                 Struct7BytesInt a5,
-                 Struct7BytesInt a6,
-                 Struct7BytesInt a7,
-                 Struct7BytesInt a8,
-                 Struct7BytesInt a9)) {
-  Struct7BytesInt a0;
-  Struct7BytesInt a1;
-  Struct7BytesInt a2;
-  Struct7BytesInt a3;
-  Struct7BytesInt a4;
-  Struct7BytesInt a5;
-  Struct7BytesInt a6;
-  Struct7BytesInt a7;
-  Struct7BytesInt a8;
-  Struct7BytesInt a9;
+    int64_t (*f)(Struct7BytesHomogeneousUint8 a0,
+                 Struct7BytesHomogeneousUint8 a1,
+                 Struct7BytesHomogeneousUint8 a2,
+                 Struct7BytesHomogeneousUint8 a3,
+                 Struct7BytesHomogeneousUint8 a4,
+                 Struct7BytesHomogeneousUint8 a5,
+                 Struct7BytesHomogeneousUint8 a6,
+                 Struct7BytesHomogeneousUint8 a7,
+                 Struct7BytesHomogeneousUint8 a8,
+                 Struct7BytesHomogeneousUint8 a9)) {
+  Struct7BytesHomogeneousUint8 a0;
+  Struct7BytesHomogeneousUint8 a1;
+  Struct7BytesHomogeneousUint8 a2;
+  Struct7BytesHomogeneousUint8 a3;
+  Struct7BytesHomogeneousUint8 a4;
+  Struct7BytesHomogeneousUint8 a5;
+  Struct7BytesHomogeneousUint8 a6;
+  Struct7BytesHomogeneousUint8 a7;
+  Struct7BytesHomogeneousUint8 a8;
+  Struct7BytesHomogeneousUint8 a9;
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a0.a3 = 4;
+  a0.a4 = 5;
+  a0.a5 = 6;
+  a0.a6 = 7;
+  a1.a0 = 8;
+  a1.a1 = 9;
+  a1.a2 = 10;
+  a1.a3 = 11;
+  a1.a4 = 12;
+  a1.a5 = 13;
+  a1.a6 = 14;
+  a2.a0 = 15;
+  a2.a1 = 16;
+  a2.a2 = 17;
+  a2.a3 = 18;
+  a2.a4 = 19;
+  a2.a5 = 20;
+  a2.a6 = 21;
+  a3.a0 = 22;
+  a3.a1 = 23;
+  a3.a2 = 24;
+  a3.a3 = 25;
+  a3.a4 = 26;
+  a3.a5 = 27;
+  a3.a6 = 28;
+  a4.a0 = 29;
+  a4.a1 = 30;
+  a4.a2 = 31;
+  a4.a3 = 32;
+  a4.a4 = 33;
+  a4.a5 = 34;
+  a4.a6 = 35;
+  a5.a0 = 36;
+  a5.a1 = 37;
+  a5.a2 = 38;
+  a5.a3 = 39;
+  a5.a4 = 40;
+  a5.a5 = 41;
+  a5.a6 = 42;
+  a6.a0 = 43;
+  a6.a1 = 44;
+  a6.a2 = 45;
+  a6.a3 = 46;
+  a6.a4 = 47;
+  a6.a5 = 48;
+  a6.a6 = 49;
+  a7.a0 = 50;
+  a7.a1 = 51;
+  a7.a2 = 52;
+  a7.a3 = 53;
+  a7.a4 = 54;
+  a7.a5 = 55;
+  a7.a6 = 56;
+  a8.a0 = 57;
+  a8.a1 = 58;
+  a8.a2 = 59;
+  a8.a3 = 60;
+  a8.a4 = 61;
+  a8.a5 = 62;
+  a8.a6 = 63;
+  a9.a0 = 64;
+  a9.a1 = 65;
+  a9.a2 = 66;
+  a9.a3 = 67;
+  a9.a4 = 68;
+  a9.a5 = 69;
+  a9.a6 = 70;
+
+  std::cout
+      << "Calling TestPassStruct7BytesHomogeneousUint8x10("
+      << "((" << static_cast<int>(a0.a0) << ", " << static_cast<int>(a0.a1)
+      << ", " << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
+      << ", " << static_cast<int>(a0.a4) << ", " << static_cast<int>(a0.a5)
+      << ", " << static_cast<int>(a0.a6) << "), (" << static_cast<int>(a1.a0)
+      << ", " << static_cast<int>(a1.a1) << ", " << static_cast<int>(a1.a2)
+      << ", " << static_cast<int>(a1.a3) << ", " << static_cast<int>(a1.a4)
+      << ", " << static_cast<int>(a1.a5) << ", " << static_cast<int>(a1.a6)
+      << "), (" << static_cast<int>(a2.a0) << ", " << static_cast<int>(a2.a1)
+      << ", " << static_cast<int>(a2.a2) << ", " << static_cast<int>(a2.a3)
+      << ", " << static_cast<int>(a2.a4) << ", " << static_cast<int>(a2.a5)
+      << ", " << static_cast<int>(a2.a6) << "), (" << static_cast<int>(a3.a0)
+      << ", " << static_cast<int>(a3.a1) << ", " << static_cast<int>(a3.a2)
+      << ", " << static_cast<int>(a3.a3) << ", " << static_cast<int>(a3.a4)
+      << ", " << static_cast<int>(a3.a5) << ", " << static_cast<int>(a3.a6)
+      << "), (" << static_cast<int>(a4.a0) << ", " << static_cast<int>(a4.a1)
+      << ", " << static_cast<int>(a4.a2) << ", " << static_cast<int>(a4.a3)
+      << ", " << static_cast<int>(a4.a4) << ", " << static_cast<int>(a4.a5)
+      << ", " << static_cast<int>(a4.a6) << "), (" << static_cast<int>(a5.a0)
+      << ", " << static_cast<int>(a5.a1) << ", " << static_cast<int>(a5.a2)
+      << ", " << static_cast<int>(a5.a3) << ", " << static_cast<int>(a5.a4)
+      << ", " << static_cast<int>(a5.a5) << ", " << static_cast<int>(a5.a6)
+      << "), (" << static_cast<int>(a6.a0) << ", " << static_cast<int>(a6.a1)
+      << ", " << static_cast<int>(a6.a2) << ", " << static_cast<int>(a6.a3)
+      << ", " << static_cast<int>(a6.a4) << ", " << static_cast<int>(a6.a5)
+      << ", " << static_cast<int>(a6.a6) << "), (" << static_cast<int>(a7.a0)
+      << ", " << static_cast<int>(a7.a1) << ", " << static_cast<int>(a7.a2)
+      << ", " << static_cast<int>(a7.a3) << ", " << static_cast<int>(a7.a4)
+      << ", " << static_cast<int>(a7.a5) << ", " << static_cast<int>(a7.a6)
+      << "), (" << static_cast<int>(a8.a0) << ", " << static_cast<int>(a8.a1)
+      << ", " << static_cast<int>(a8.a2) << ", " << static_cast<int>(a8.a3)
+      << ", " << static_cast<int>(a8.a4) << ", " << static_cast<int>(a8.a5)
+      << ", " << static_cast<int>(a8.a6) << "), (" << static_cast<int>(a9.a0)
+      << ", " << static_cast<int>(a9.a1) << ", " << static_cast<int>(a9.a2)
+      << ", " << static_cast<int>(a9.a3) << ", " << static_cast<int>(a9.a4)
+      << ", " << static_cast<int>(a9.a5) << ", " << static_cast<int>(a9.a6)
+      << "))"
+      << ")\n";
+
+  int64_t result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(2485, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Sub word size on 64 bit architectures.
+// With alignment rules taken into account size is 8 bytes.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT intptr_t TestPassStruct7BytesInt4ByteAlignedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct7BytesInt4ByteAligned a0,
+                 Struct7BytesInt4ByteAligned a1,
+                 Struct7BytesInt4ByteAligned a2,
+                 Struct7BytesInt4ByteAligned a3,
+                 Struct7BytesInt4ByteAligned a4,
+                 Struct7BytesInt4ByteAligned a5,
+                 Struct7BytesInt4ByteAligned a6,
+                 Struct7BytesInt4ByteAligned a7,
+                 Struct7BytesInt4ByteAligned a8,
+                 Struct7BytesInt4ByteAligned a9)) {
+  Struct7BytesInt4ByteAligned a0;
+  Struct7BytesInt4ByteAligned a1;
+  Struct7BytesInt4ByteAligned a2;
+  Struct7BytesInt4ByteAligned a3;
+  Struct7BytesInt4ByteAligned a4;
+  Struct7BytesInt4ByteAligned a5;
+  Struct7BytesInt4ByteAligned a6;
+  Struct7BytesInt4ByteAligned a7;
+  Struct7BytesInt4ByteAligned a8;
+  Struct7BytesInt4ByteAligned a9;
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -3561,7 +4124,7 @@ DART_EXPORT intptr_t TestPassStruct7BytesIntx10(
   a9.a1 = -29;
   a9.a2 = 30;
 
-  std::cout << "Calling TestPassStruct7BytesIntx10("
+  std::cout << "Calling TestPassStruct7BytesInt4ByteAlignedx10("
             << "((" << a0.a0 << ", " << a0.a1 << ", " << static_cast<int>(a0.a2)
             << "), (" << a1.a0 << ", " << a1.a1 << ", "
             << static_cast<int>(a1.a2) << "), (" << a2.a0 << ", " << a2.a1
@@ -3865,115 +4428,31 @@ DART_EXPORT intptr_t TestPassStruct8BytesMixedx10(
 // Used for testing structs by value.
 // Argument is a single byte over a multiple of word size.
 // 10 struct arguments will exhaust available registers.
+// Struct only has 1-byte aligned fields to test struct alignment itself.
 // Tests upper bytes in the integer registers that are partly filled.
 // Tests stack alignment of non word size stack arguments.
-DART_EXPORT intptr_t TestPassStruct9BytesIntx10(
+DART_EXPORT intptr_t TestPassStruct9BytesHomogeneousUint8x10(
     // NOLINTNEXTLINE(whitespace/parens)
-    int64_t (*f)(Struct9BytesInt a0,
-                 Struct9BytesInt a1,
-                 Struct9BytesInt a2,
-                 Struct9BytesInt a3,
-                 Struct9BytesInt a4,
-                 Struct9BytesInt a5,
-                 Struct9BytesInt a6,
-                 Struct9BytesInt a7,
-                 Struct9BytesInt a8,
-                 Struct9BytesInt a9)) {
-  Struct9BytesInt a0;
-  Struct9BytesInt a1;
-  Struct9BytesInt a2;
-  Struct9BytesInt a3;
-  Struct9BytesInt a4;
-  Struct9BytesInt a5;
-  Struct9BytesInt a6;
-  Struct9BytesInt a7;
-  Struct9BytesInt a8;
-  Struct9BytesInt a9;
-
-  a0.a0 = -1;
-  a0.a1 = 2;
-  a1.a0 = -3;
-  a1.a1 = 4;
-  a2.a0 = -5;
-  a2.a1 = 6;
-  a3.a0 = -7;
-  a3.a1 = 8;
-  a4.a0 = -9;
-  a4.a1 = 10;
-  a5.a0 = -11;
-  a5.a1 = 12;
-  a6.a0 = -13;
-  a6.a1 = 14;
-  a7.a0 = -15;
-  a7.a1 = 16;
-  a8.a0 = -17;
-  a8.a1 = 18;
-  a9.a0 = -19;
-  a9.a1 = 20;
-
-  std::cout << "Calling TestPassStruct9BytesIntx10("
-            << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "), ("
-            << a1.a0 << ", " << static_cast<int>(a1.a1) << "), (" << a2.a0
-            << ", " << static_cast<int>(a2.a1) << "), (" << a3.a0 << ", "
-            << static_cast<int>(a3.a1) << "), (" << a4.a0 << ", "
-            << static_cast<int>(a4.a1) << "), (" << a5.a0 << ", "
-            << static_cast<int>(a5.a1) << "), (" << a6.a0 << ", "
-            << static_cast<int>(a6.a1) << "), (" << a7.a0 << ", "
-            << static_cast<int>(a7.a1) << "), (" << a8.a0 << ", "
-            << static_cast<int>(a8.a1) << "), (" << a9.a0 << ", "
-            << static_cast<int>(a9.a1) << "))"
-            << ")\n";
-
-  int64_t result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
-
-  std::cout << "result = " << result << "\n";
-
-  CHECK_EQ(10, result);
-
-  // Pass argument that will make the Dart callback throw.
-  a0.a0 = 42;
-
-  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
-
-  CHECK_EQ(0, result);
-
-  // Pass argument that will make the Dart callback return null.
-  a0.a0 = 84;
-
-  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
-
-  CHECK_EQ(0, result);
-
-  return 0;
-}
-
-// Used for testing structs by value.
-// Argument is a single byte over a multiple of word size.
-// 10 struct arguments will exhaust available registers.
-// Struct only has 1-byte aligned fields to test struct alignment itself.
-//
-DART_EXPORT intptr_t TestPassStruct9BytesHomogeneousUint82x10(
-    // NOLINTNEXTLINE(whitespace/parens)
-    int64_t (*f)(Struct9BytesHomogeneousUint82 a0,
-                 Struct9BytesHomogeneousUint82 a1,
-                 Struct9BytesHomogeneousUint82 a2,
-                 Struct9BytesHomogeneousUint82 a3,
-                 Struct9BytesHomogeneousUint82 a4,
-                 Struct9BytesHomogeneousUint82 a5,
-                 Struct9BytesHomogeneousUint82 a6,
-                 Struct9BytesHomogeneousUint82 a7,
-                 Struct9BytesHomogeneousUint82 a8,
-                 Struct9BytesHomogeneousUint82 a9)) {
-  Struct9BytesHomogeneousUint82 a0;
-  Struct9BytesHomogeneousUint82 a1;
-  Struct9BytesHomogeneousUint82 a2;
-  Struct9BytesHomogeneousUint82 a3;
-  Struct9BytesHomogeneousUint82 a4;
-  Struct9BytesHomogeneousUint82 a5;
-  Struct9BytesHomogeneousUint82 a6;
-  Struct9BytesHomogeneousUint82 a7;
-  Struct9BytesHomogeneousUint82 a8;
-  Struct9BytesHomogeneousUint82 a9;
+    int64_t (*f)(Struct9BytesHomogeneousUint8 a0,
+                 Struct9BytesHomogeneousUint8 a1,
+                 Struct9BytesHomogeneousUint8 a2,
+                 Struct9BytesHomogeneousUint8 a3,
+                 Struct9BytesHomogeneousUint8 a4,
+                 Struct9BytesHomogeneousUint8 a5,
+                 Struct9BytesHomogeneousUint8 a6,
+                 Struct9BytesHomogeneousUint8 a7,
+                 Struct9BytesHomogeneousUint8 a8,
+                 Struct9BytesHomogeneousUint8 a9)) {
+  Struct9BytesHomogeneousUint8 a0;
+  Struct9BytesHomogeneousUint8 a1;
+  Struct9BytesHomogeneousUint8 a2;
+  Struct9BytesHomogeneousUint8 a3;
+  Struct9BytesHomogeneousUint8 a4;
+  Struct9BytesHomogeneousUint8 a5;
+  Struct9BytesHomogeneousUint8 a6;
+  Struct9BytesHomogeneousUint8 a7;
+  Struct9BytesHomogeneousUint8 a8;
+  Struct9BytesHomogeneousUint8 a9;
 
   a0.a0 = 1;
   a0.a1 = 2;
@@ -4067,7 +4546,7 @@ DART_EXPORT intptr_t TestPassStruct9BytesHomogeneousUint82x10(
   a9.a8 = 90;
 
   std::cout
-      << "Calling TestPassStruct9BytesHomogeneousUint82x10("
+      << "Calling TestPassStruct9BytesHomogeneousUint8x10("
       << "((" << static_cast<int>(a0.a0) << ", " << static_cast<int>(a0.a1)
       << ", " << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
       << ", " << static_cast<int>(a0.a4) << ", " << static_cast<int>(a0.a5)
@@ -4121,6 +4600,91 @@ DART_EXPORT intptr_t TestPassStruct9BytesHomogeneousUint82x10(
   std::cout << "result = " << result << "\n";
 
   CHECK_EQ(4095, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0.a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0.a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Argument is a single byte over a multiple of word size.
+// With alignment rules taken into account size is 12 or 16 bytes.
+// 10 struct arguments will exhaust available registers.
+//
+DART_EXPORT intptr_t TestPassStruct9BytesInt4Or8ByteAlignedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(Struct9BytesInt4Or8ByteAligned a0,
+                 Struct9BytesInt4Or8ByteAligned a1,
+                 Struct9BytesInt4Or8ByteAligned a2,
+                 Struct9BytesInt4Or8ByteAligned a3,
+                 Struct9BytesInt4Or8ByteAligned a4,
+                 Struct9BytesInt4Or8ByteAligned a5,
+                 Struct9BytesInt4Or8ByteAligned a6,
+                 Struct9BytesInt4Or8ByteAligned a7,
+                 Struct9BytesInt4Or8ByteAligned a8,
+                 Struct9BytesInt4Or8ByteAligned a9)) {
+  Struct9BytesInt4Or8ByteAligned a0;
+  Struct9BytesInt4Or8ByteAligned a1;
+  Struct9BytesInt4Or8ByteAligned a2;
+  Struct9BytesInt4Or8ByteAligned a3;
+  Struct9BytesInt4Or8ByteAligned a4;
+  Struct9BytesInt4Or8ByteAligned a5;
+  Struct9BytesInt4Or8ByteAligned a6;
+  Struct9BytesInt4Or8ByteAligned a7;
+  Struct9BytesInt4Or8ByteAligned a8;
+  Struct9BytesInt4Or8ByteAligned a9;
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+  a2.a0 = -5;
+  a2.a1 = 6;
+  a3.a0 = -7;
+  a3.a1 = 8;
+  a4.a0 = -9;
+  a4.a1 = 10;
+  a5.a0 = -11;
+  a5.a1 = 12;
+  a6.a0 = -13;
+  a6.a1 = 14;
+  a7.a0 = -15;
+  a7.a1 = 16;
+  a8.a0 = -17;
+  a8.a1 = 18;
+  a9.a0 = -19;
+  a9.a1 = 20;
+
+  std::cout << "Calling TestPassStruct9BytesInt4Or8ByteAlignedx10("
+            << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "), ("
+            << a1.a0 << ", " << static_cast<int>(a1.a1) << "), (" << a2.a0
+            << ", " << static_cast<int>(a2.a1) << "), (" << a3.a0 << ", "
+            << static_cast<int>(a3.a1) << "), (" << a4.a0 << ", "
+            << static_cast<int>(a4.a1) << "), (" << a5.a0 << ", "
+            << static_cast<int>(a5.a1) << "), (" << a6.a0 << ", "
+            << static_cast<int>(a6.a1) << "), (" << a7.a0 << ", "
+            << static_cast<int>(a7.a1) << "), (" << a8.a0 << ", "
+            << static_cast<int>(a8.a1) << "), (" << a9.a0 << ", "
+            << static_cast<int>(a9.a1) << "))"
+            << ")\n";
+
+  int64_t result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(10, result);
 
   // Pass argument that will make the Dart callback throw.
   a0.a0 = 42;
@@ -5950,20 +6514,72 @@ DART_EXPORT intptr_t TestReturnStruct1ByteInt(
 
 // Used for testing structs by value.
 // Smaller than word size return value on all architectures.
-DART_EXPORT intptr_t TestReturnStruct3BytesInt(
+DART_EXPORT intptr_t TestReturnStruct3BytesHomogeneousUint8(
     // NOLINTNEXTLINE(whitespace/parens)
-    Struct3BytesInt (*f)(int16_t a0, int8_t a1)) {
+    Struct3BytesHomogeneousUint8 (*f)(uint8_t a0, uint8_t a1, uint8_t a2)) {
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+
+  std::cout << "Calling TestReturnStruct3BytesHomogeneousUint8("
+            << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
+            << ", " << static_cast<int>(a2) << ")"
+            << ")\n";
+
+  Struct3BytesHomogeneousUint8 result = f(a0, a1, a2);
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", "
+            << static_cast<int>(result.a1) << ", "
+            << static_cast<int>(result.a2) << ")"
+            << "\n";
+
+  CHECK_EQ(a0, result.a0);
+  CHECK_EQ(a1, result.a1);
+  CHECK_EQ(a2, result.a2);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
+  CHECK_EQ(0, result.a2);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
+  CHECK_EQ(0, result.a2);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Smaller than word size return value on all architectures.
+// With alignment rules taken into account size is 4 bytes.
+DART_EXPORT intptr_t TestReturnStruct3BytesInt2ByteAligned(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct3BytesInt2ByteAligned (*f)(int16_t a0, int8_t a1)) {
   int16_t a0;
   int8_t a1;
 
   a0 = -1;
   a1 = 2;
 
-  std::cout << "Calling TestReturnStruct3BytesInt("
+  std::cout << "Calling TestReturnStruct3BytesInt2ByteAligned("
             << "(" << a0 << ", " << static_cast<int>(a1) << ")"
             << ")\n";
 
-  Struct3BytesInt result = f(a0, a1);
+  Struct3BytesInt2ByteAligned result = f(a0, a1);
 
   std::cout << "result = "
             << "(" << result.a0 << ", " << static_cast<int>(result.a1) << ")"
@@ -6036,9 +6652,93 @@ DART_EXPORT intptr_t TestReturnStruct4BytesHomogeneousInt16(
 
 // Used for testing structs by value.
 // Non-wordsize return value.
-DART_EXPORT intptr_t TestReturnStruct7BytesInt(
+DART_EXPORT intptr_t TestReturnStruct7BytesHomogeneousUint8(
     // NOLINTNEXTLINE(whitespace/parens)
-    Struct7BytesInt (*f)(int32_t a0, int16_t a1, int8_t a2)) {
+    Struct7BytesHomogeneousUint8 (*f)(uint8_t a0,
+                                      uint8_t a1,
+                                      uint8_t a2,
+                                      uint8_t a3,
+                                      uint8_t a4,
+                                      uint8_t a5,
+                                      uint8_t a6)) {
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+  uint8_t a5;
+  uint8_t a6;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+  a3 = 4;
+  a4 = 5;
+  a5 = 6;
+  a6 = 7;
+
+  std::cout << "Calling TestReturnStruct7BytesHomogeneousUint8("
+            << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
+            << ", " << static_cast<int>(a2) << ", " << static_cast<int>(a3)
+            << ", " << static_cast<int>(a4) << ", " << static_cast<int>(a5)
+            << ", " << static_cast<int>(a6) << ")"
+            << ")\n";
+
+  Struct7BytesHomogeneousUint8 result = f(a0, a1, a2, a3, a4, a5, a6);
+
+  std::cout << "result = "
+            << "(" << static_cast<int>(result.a0) << ", "
+            << static_cast<int>(result.a1) << ", "
+            << static_cast<int>(result.a2) << ", "
+            << static_cast<int>(result.a3) << ", "
+            << static_cast<int>(result.a4) << ", "
+            << static_cast<int>(result.a5) << ", "
+            << static_cast<int>(result.a6) << ")"
+            << "\n";
+
+  CHECK_EQ(a0, result.a0);
+  CHECK_EQ(a1, result.a1);
+  CHECK_EQ(a2, result.a2);
+  CHECK_EQ(a3, result.a3);
+  CHECK_EQ(a4, result.a4);
+  CHECK_EQ(a5, result.a5);
+  CHECK_EQ(a6, result.a6);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
+  CHECK_EQ(0, result.a2);
+  CHECK_EQ(0, result.a3);
+  CHECK_EQ(0, result.a4);
+  CHECK_EQ(0, result.a5);
+  CHECK_EQ(0, result.a6);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
+  CHECK_EQ(0, result.a2);
+  CHECK_EQ(0, result.a3);
+  CHECK_EQ(0, result.a4);
+  CHECK_EQ(0, result.a5);
+  CHECK_EQ(0, result.a6);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Non-wordsize return value.
+// With alignment rules taken into account size is 8 bytes.
+DART_EXPORT intptr_t TestReturnStruct7BytesInt4ByteAligned(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct7BytesInt4ByteAligned (*f)(int32_t a0, int16_t a1, int8_t a2)) {
   int32_t a0;
   int16_t a1;
   int8_t a2;
@@ -6047,11 +6747,11 @@ DART_EXPORT intptr_t TestReturnStruct7BytesInt(
   a1 = 2;
   a2 = -3;
 
-  std::cout << "Calling TestReturnStruct7BytesInt("
+  std::cout << "Calling TestReturnStruct7BytesInt4ByteAligned("
             << "(" << a0 << ", " << a1 << ", " << static_cast<int>(a2) << ")"
             << ")\n";
 
-  Struct7BytesInt result = f(a0, a1, a2);
+  Struct7BytesInt4ByteAligned result = f(a0, a1, a2);
 
   std::cout << "result = "
             << "(" << result.a0 << ", " << result.a1 << ", "
@@ -6223,64 +6923,20 @@ DART_EXPORT intptr_t TestReturnStruct8BytesMixed(
 }
 
 // Used for testing structs by value.
-// Return value in two integer registers on x64.
-// The second register only contains a single byte.
-DART_EXPORT intptr_t TestReturnStruct9BytesInt(
-    // NOLINTNEXTLINE(whitespace/parens)
-    Struct9BytesInt (*f)(int64_t a0, int8_t a1)) {
-  int64_t a0;
-  int8_t a1;
-
-  a0 = -1;
-  a1 = 2;
-
-  std::cout << "Calling TestReturnStruct9BytesInt("
-            << "(" << a0 << ", " << static_cast<int>(a1) << ")"
-            << ")\n";
-
-  Struct9BytesInt result = f(a0, a1);
-
-  std::cout << "result = "
-            << "(" << result.a0 << ", " << static_cast<int>(result.a1) << ")"
-            << "\n";
-
-  CHECK_EQ(a0, result.a0);
-  CHECK_EQ(a1, result.a1);
-
-  // Pass argument that will make the Dart callback throw.
-  a0 = 42;
-
-  result = f(a0, a1);
-
-  CHECK_EQ(0, result.a0);
-  CHECK_EQ(0, result.a1);
-
-  // Pass argument that will make the Dart callback return null.
-  a0 = 84;
-
-  result = f(a0, a1);
-
-  CHECK_EQ(0, result.a0);
-  CHECK_EQ(0, result.a1);
-
-  return 0;
-}
-
-// Used for testing structs by value.
 // The minimum alignment of this struct is only 1 byte based on its fields.
 // Test that the memory backing these structs is the right size and that
 // dart:ffi trampolines do not write outside this size.
-DART_EXPORT intptr_t TestReturnStruct9BytesHomogeneousUint82(
+DART_EXPORT intptr_t TestReturnStruct9BytesHomogeneousUint8(
     // NOLINTNEXTLINE(whitespace/parens)
-    Struct9BytesHomogeneousUint82 (*f)(uint8_t a0,
-                                       uint8_t a1,
-                                       uint8_t a2,
-                                       uint8_t a3,
-                                       uint8_t a4,
-                                       uint8_t a5,
-                                       uint8_t a6,
-                                       uint8_t a7,
-                                       uint8_t a8)) {
+    Struct9BytesHomogeneousUint8 (*f)(uint8_t a0,
+                                      uint8_t a1,
+                                      uint8_t a2,
+                                      uint8_t a3,
+                                      uint8_t a4,
+                                      uint8_t a5,
+                                      uint8_t a6,
+                                      uint8_t a7,
+                                      uint8_t a8)) {
   uint8_t a0;
   uint8_t a1;
   uint8_t a2;
@@ -6301,7 +6957,7 @@ DART_EXPORT intptr_t TestReturnStruct9BytesHomogeneousUint82(
   a7 = 8;
   a8 = 9;
 
-  std::cout << "Calling TestReturnStruct9BytesHomogeneousUint82("
+  std::cout << "Calling TestReturnStruct9BytesHomogeneousUint8("
             << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
             << ", " << static_cast<int>(a2) << ", " << static_cast<int>(a3)
             << ", " << static_cast<int>(a4) << ", " << static_cast<int>(a5)
@@ -6309,7 +6965,7 @@ DART_EXPORT intptr_t TestReturnStruct9BytesHomogeneousUint82(
             << ", " << static_cast<int>(a8) << ")"
             << ")\n";
 
-  Struct9BytesHomogeneousUint82 result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+  Struct9BytesHomogeneousUint8 result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8);
 
   std::cout << "result = "
             << "(" << static_cast<int>(result.a0) << ", "
@@ -6362,6 +7018,50 @@ DART_EXPORT intptr_t TestReturnStruct9BytesHomogeneousUint82(
   CHECK_EQ(0, result.a6);
   CHECK_EQ(0, result.a7);
   CHECK_EQ(0, result.a8);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Return value in two integer registers on x64.
+// With alignment rules taken into account size is 12 or 16 bytes.
+DART_EXPORT intptr_t TestReturnStruct9BytesInt4Or8ByteAligned(
+    // NOLINTNEXTLINE(whitespace/parens)
+    Struct9BytesInt4Or8ByteAligned (*f)(int64_t a0, int8_t a1)) {
+  int64_t a0;
+  int8_t a1;
+
+  a0 = -1;
+  a1 = 2;
+
+  std::cout << "Calling TestReturnStruct9BytesInt4Or8ByteAligned("
+            << "(" << a0 << ", " << static_cast<int>(a1) << ")"
+            << ")\n";
+
+  Struct9BytesInt4Or8ByteAligned result = f(a0, a1);
+
+  std::cout << "result = "
+            << "(" << result.a0 << ", " << static_cast<int>(result.a1) << ")"
+            << "\n";
+
+  CHECK_EQ(a0, result.a0);
+  CHECK_EQ(a1, result.a1);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1);
+
+  CHECK_EQ(0, result.a0);
+  CHECK_EQ(0, result.a1);
 
   return 0;
 }

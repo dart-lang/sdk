@@ -1,0 +1,38 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile without NNBD. Compile with (strong) NNBD (trying to load from dill).
+# Loading from dill should not complete (and all output libraries should be
+# strong or agnostic).
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        main() {
+          libMethod();
+        }
+      lib.dart: |
+        void libMethod() {}
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    experiments: non-nullable
+    nnbdMode: strong
+    expectInitializeFromDill: false # loading the dill should fail because of mismatching NNBD settings
+    checkInvalidatedFiles: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        main() {
+          libMethod();
+          print("done");
+        }
+      lib.dart: |
+        void libMethod() {}
+    expectedLibraryCount: 2

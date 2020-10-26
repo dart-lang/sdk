@@ -47,6 +47,7 @@ import 'package:front_end/src/fasta/incremental_serializer.dart'
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
@@ -125,6 +126,7 @@ const Expectation LibraryCountMismatch =
     const Expectation.fail("LibraryCountMismatch");
 const Expectation InitializedFromDillMismatch =
     const Expectation.fail("InitializedFromDillMismatch");
+const Expectation NNBDModeMismatch = const Expectation.fail("NNBDModeMismatch");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
@@ -698,6 +700,9 @@ class NewWorldTest {
           world, data, compiler.neededDillLibraries, base);
       if (result != null) return result;
 
+      Result nnbdCheck = checkNNBDSettings(component);
+      if (nnbdCheck != null) return nnbdCheck.copyWithOutput(data);
+
       if (!noFullComponent) {
         Set<Library> allLibraries = new Set<Library>();
         for (Library lib in component.libraries) {
@@ -1058,6 +1063,38 @@ class NewWorldTest {
     }
     return new Result<TestData>.pass(data);
   }
+}
+
+Result checkNNBDSettings(Component component) {
+  NonNullableByDefaultCompiledMode mode = component.mode;
+  for (Library lib in component.libraries) {
+    if (mode == lib.nonNullableByDefaultCompiledMode) continue;
+
+    if (mode == NonNullableByDefaultCompiledMode.Agnostic) {
+      // Component says agnostic but the library isn't => Error!
+      return new Result(
+          null,
+          NNBDModeMismatch,
+          "Component mode was agnostic but ${lib.importUri} had mode "
+          "${lib.nonNullableByDefaultCompiledMode}.");
+    }
+
+    // Agnostic can be mixed with everything.
+    if (lib.nonNullableByDefaultCompiledMode ==
+        NonNullableByDefaultCompiledMode.Agnostic) continue;
+
+    if (mode == NonNullableByDefaultCompiledMode.Strong ||
+        lib.nonNullableByDefaultCompiledMode ==
+            NonNullableByDefaultCompiledMode.Strong) {
+      // Non agnostic and one (but not both) are strong => error.
+      return new Result(
+          null,
+          NNBDModeMismatch,
+          "Component mode was $mode but ${lib.importUri} had mode "
+          "${lib.nonNullableByDefaultCompiledMode}.");
+    }
+  }
+  return null;
 }
 
 Result<TestData> checkExpectFile(TestData data, int worldNum,

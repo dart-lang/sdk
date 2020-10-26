@@ -15,9 +15,11 @@ import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
+import 'package:front_end/src/api_unstable/bazel_worker.dart';
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -248,12 +250,19 @@ main() {
           null);
       Component c = await compiler.computeDelta();
       c.setMainMethodAndMode(
-          null, false, NonNullableByDefaultCompiledMode.Disabled);
+          null, false, NonNullableByDefaultCompiledMode.Weak);
       mixedPart1 = serializeComponent(c);
     }
 
     List<int> mixedPart2;
     {
+      Map<ExperimentalFlag, bool> prevTesting =
+          options.defaultExperimentFlagsForTesting;
+      options.defaultExperimentFlagsForTesting = {
+        ExperimentalFlag.nonNullable: true
+      };
+      NnbdMode prevNnbd = options.nnbdMode;
+      options.nnbdMode = NnbdMode.Strong;
       compiler = new IncrementalCompiler(
           new CompilerContext(
               new ProcessedOptions(options: options, inputs: [helperFile])),
@@ -262,6 +271,8 @@ main() {
       c.setMainMethodAndMode(
           null, false, NonNullableByDefaultCompiledMode.Strong);
       mixedPart2 = serializeComponent(c);
+      options.defaultExperimentFlagsForTesting = prevTesting;
+      options.nnbdMode = prevNnbd;
     }
 
     List<int> mixed = [];
