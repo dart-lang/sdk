@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.class_hierarchy_builder;
-
 import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
@@ -23,6 +21,7 @@ import '../problems.dart' show unhandled;
 import '../source/source_class_builder.dart';
 
 import 'class_hierarchy_builder.dart';
+import 'member_covariance.dart';
 
 /// Class used for computing and inspecting the combined member signature for
 /// a set of overridden/inherited members.
@@ -66,6 +65,8 @@ abstract class CombinedMemberSignatureBase<T> {
   /// Cache for the types of [members] as inherited into [classBuilder].
   List<DartType> _memberTypes;
 
+  List<Covariance> _memberCovariances;
+
   /// Cache for the this type of [classBuilder].
   DartType _thisType;
 
@@ -80,9 +81,19 @@ abstract class CombinedMemberSignatureBase<T> {
   /// If the combined member signature type is undefined this is set to `null`.
   DartType _combinedMemberSignatureType;
 
-  /// Accumulated result for [neededLegacyErasure]. This is fully computed when
-  /// [combinedMemberSignatureType] has been computed.
-  bool _neededLegacyErasure = false;
+  /// The indices for the members whose type needed legacy erasure.
+  ///
+  /// This is fully computed when [combinedMemberSignatureType] has been
+  /// computed.
+  Set<int> _neededLegacyErasureIndices;
+
+  bool _neededNnbdTopMerge = false;
+
+  bool _needsCovarianceMerging = false;
+
+  bool _isCombinedMemberSignatureCovarianceComputed = false;
+
+  Covariance _combinedMemberSignatureCovariance;
 
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
   /// defined.
@@ -201,7 +212,25 @@ abstract class CombinedMemberSignatureBase<T> {
   /// different type.
   bool get neededLegacyErasure {
     _ensureCombinedMemberSignatureType();
-    return _neededLegacyErasure;
+    return _neededLegacyErasureIndices?.contains(canonicalMemberIndex) ?? false;
+  }
+
+  /// Returns `true` if nnbd top merge and normalization was needed to compute
+  /// the combined member signature type.
+  bool get neededNnbdTopMerge {
+    _ensureCombinedMemberSignatureType();
+    return _neededNnbdTopMerge;
+  }
+
+  /// Returns `true` if the covariance of the combined member signature is
+  /// different from the covariance of the overridden member in the superclass.
+  ///
+  /// If `true` a concrete forwarding stub that checks the covariance must
+  /// be generated.
+  // TODO(johnniwinther): This is imprecise. It assumes that the 0th member is
+  // from the superclass which might not be the case.
+  bool get needsSuperImpl {
+    return _getMemberCovariance(0) != combinedMemberSignatureCovariance;
   }
 
   /// The this type of [classBuilder].
@@ -209,6 +238,18 @@ abstract class CombinedMemberSignatureBase<T> {
     return _thisType ??= _coreTypes.thisInterfaceType(
         classBuilder.cls, classBuilder.library.nonNullable);
   }
+
+  /// Returns `true` if the canonical member is declared in [classBuilder].
+  bool get isCanonicalMemberDeclared {
+    return _canonicalMemberIndex != null &&
+        _getMember(_canonicalMemberIndex).enclosingClass == classBuilder.cls;
+  }
+
+  /// Returns `true` if the canonical member is the 0th.
+  // TODO(johnniwinther): This is currently used under the assumption that the
+  // 0th member is either from the superclass or the one found if looked up
+  // the class hierarchy. This is a very brittle assumption.
+  bool get isCanonicalMemberFirst => _canonicalMemberIndex == 0;
 
   /// Returns type of the [index]th member in [members] as inherited in
   /// [classBuilder].
@@ -223,7 +264,8 @@ abstract class CombinedMemberSignatureBase<T> {
       if (!classBuilder.library.isNonNullableByDefault) {
         DartType legacyErasure = rawLegacyErasure(_coreTypes, candidateType);
         if (legacyErasure != null) {
-          _neededLegacyErasure = true;
+          _neededLegacyErasureIndices ??= {};
+          _neededLegacyErasureIndices.add(index);
           candidateType = legacyErasure;
         }
       }
@@ -239,7 +281,8 @@ abstract class CombinedMemberSignatureBase<T> {
         return null;
       }
       if (classBuilder.library.isNonNullableByDefault) {
-        _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex);
+        DartType canonicalMemberType =
+            _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex);
         if (_mutualSubtypes != null) {
           _combinedMemberSignatureType =
               norm(_coreTypes, _combinedMemberSignatureType);
@@ -251,6 +294,8 @@ abstract class CombinedMemberSignatureBase<T> {
                   norm(_coreTypes, getMemberType(index)));
             }
           }
+          _neededNnbdTopMerge =
+              canonicalMemberType != _combinedMemberSignatureType;
         }
       } else {
         _combinedMemberSignatureType = getMemberType(_canonicalMemberIndex);
@@ -262,6 +307,56 @@ abstract class CombinedMemberSignatureBase<T> {
   DartType get combinedMemberSignatureType {
     _ensureCombinedMemberSignatureType();
     return _combinedMemberSignatureType;
+  }
+
+  Covariance _getMemberCovariance(int index) {
+    _memberCovariances ??= new List<Covariance>(members.length);
+    Covariance covariance = _memberCovariances[index];
+    if (covariance == null) {
+      Member member = _getMember(index);
+      _memberCovariances[index] =
+          covariance = new Covariance.fromMember(member, forSetter: forSetter);
+    }
+    return covariance;
+  }
+
+  void _ensureCombinedMemberSignatureCovariance() {
+    if (!_isCombinedMemberSignatureCovarianceComputed) {
+      _isCombinedMemberSignatureCovarianceComputed = true;
+      if (canonicalMemberIndex == null) {
+        return;
+      }
+      Covariance canonicalMemberCovariance =
+          _combinedMemberSignatureCovariance =
+              _getMemberCovariance(canonicalMemberIndex);
+      if (members.length == 1) {
+        return;
+      }
+      for (int index = 0; index < members.length; index++) {
+        if (index != canonicalMemberIndex) {
+          _combinedMemberSignatureCovariance =
+              _combinedMemberSignatureCovariance
+                  .merge(_getMemberCovariance(index));
+        }
+      }
+      _needsCovarianceMerging =
+          canonicalMemberCovariance != _combinedMemberSignatureCovariance;
+    }
+  }
+
+  // Returns `true` if the covariance of [members] needs to be merged into
+  // the combined member signature.
+  bool get needsCovarianceMerging {
+    if (members.length != 1) {
+      _ensureCombinedMemberSignatureCovariance();
+    }
+    return _needsCovarianceMerging;
+  }
+
+  /// Returns [Covariance] for the combined member signature.
+  Covariance get combinedMemberSignatureCovariance {
+    _ensureCombinedMemberSignatureCovariance();
+    return _combinedMemberSignatureCovariance;
   }
 
   /// Returns the type of the combined member signature, if defined, with
@@ -316,25 +411,30 @@ abstract class CombinedMemberSignatureBase<T> {
       return null;
     }
     Member member = _getMember(canonicalMemberIndex);
+    Procedure combinedMemberSignature;
     if (member is Procedure) {
       switch (member.kind) {
         case ProcedureKind.Getter:
-          return _createGetterMemberSignature(
+          combinedMemberSignature = _createGetterMemberSignature(
               member, combinedMemberSignatureType,
               copyLocation: copyLocation);
+          break;
         case ProcedureKind.Setter:
           VariableDeclaration parameter =
               member.function.positionalParameters.first;
-          return _createSetterMemberSignature(
+          combinedMemberSignature = _createSetterMemberSignature(
               member, combinedMemberSignatureType,
               isGenericCovariantImpl: parameter.isGenericCovariantImpl,
               isCovariant: parameter.isCovariant,
               parameterName: parameter.name,
               copyLocation: copyLocation);
+          break;
         case ProcedureKind.Method:
         case ProcedureKind.Operator:
-          return _createMethodSignature(member, combinedMemberSignatureType,
+          combinedMemberSignature = _createMethodSignature(
+              member, combinedMemberSignatureType,
               copyLocation: copyLocation);
+          break;
         case ProcedureKind.Factory:
         default:
           throw new UnsupportedError(
@@ -342,18 +442,22 @@ abstract class CombinedMemberSignatureBase<T> {
       }
     } else if (member is Field) {
       if (forSetter) {
-        return _createSetterMemberSignature(member, combinedMemberSignatureType,
+        combinedMemberSignature = _createSetterMemberSignature(
+            member, combinedMemberSignatureType,
             isGenericCovariantImpl: member.isGenericCovariantImpl,
             isCovariant: member.isCovariant,
             copyLocation: copyLocation);
       } else {
-        return _createGetterMemberSignature(member, combinedMemberSignatureType,
+        combinedMemberSignature = _createGetterMemberSignature(
+            member, combinedMemberSignatureType,
             copyLocation: copyLocation);
       }
     } else {
       throw new UnsupportedError(
           'Unexpected canonical member $member (${member.runtimeType})');
     }
+    combinedMemberSignatureCovariance.applyCovariance(combinedMemberSignature);
+    return combinedMemberSignature;
   }
 
   /// Creates a getter member signature for [member] with the given
@@ -377,17 +481,22 @@ abstract class CombinedMemberSignatureBase<T> {
       fileOffset = member.fileOffset;
     } else {
       fileUri = enclosingClass.fileUri;
-      startFileOffset = fileOffset = enclosingClass.fileOffset;
+      fileOffset = startFileOffset = enclosingClass.fileOffset;
     }
-    return new Procedure(member.name, ProcedureKind.Getter,
-        new FunctionNode(null, returnType: type),
-        isAbstract: true,
-        isMemberSignature: true,
-        fileUri: fileUri,
-        memberSignatureOrigin: member.memberSignatureOrigin ?? member,
-        reference: referenceFrom?.reference)
+    return new Procedure(
+      member.name,
+      ProcedureKind.Getter,
+      new FunctionNode(null, returnType: type),
+      isAbstract: true,
+      isMemberSignature: true,
+      fileUri: fileUri,
+      memberSignatureOrigin: member.memberSignatureOrigin ?? member,
+      reference: referenceFrom?.reference,
+    )
       ..startFileOffset = startFileOffset
       ..fileOffset = fileOffset
+      ..isNonNullableByDefault =
+          enclosingClass.enclosingLibrary.isNonNullableByDefault
       ..parent = enclosingClass;
   }
 
@@ -418,7 +527,7 @@ abstract class CombinedMemberSignatureBase<T> {
       fileOffset = member.fileOffset;
     } else {
       fileUri = enclosingClass.fileUri;
-      startFileOffset = fileOffset = enclosingClass.fileOffset;
+      fileOffset = startFileOffset = enclosingClass.fileOffset;
     }
     return new Procedure(
         member.name,
@@ -437,6 +546,8 @@ abstract class CombinedMemberSignatureBase<T> {
         reference: referenceFrom?.reference)
       ..startFileOffset = startFileOffset
       ..fileOffset = fileOffset
+      ..isNonNullableByDefault =
+          enclosingClass.enclosingLibrary.isNonNullableByDefault
       ..parent = enclosingClass;
   }
 
@@ -458,7 +569,7 @@ abstract class CombinedMemberSignatureBase<T> {
       fileOffset = procedure.fileOffset;
     } else {
       fileUri = enclosingClass.fileUri;
-      startFileOffset = fileOffset = enclosingClass.fileOffset;
+      fileOffset = startFileOffset = enclosingClass.fileOffset;
     }
     FunctionNode function = procedure.function;
     List<VariableDeclaration> positionalParameters = [];
@@ -511,6 +622,8 @@ abstract class CombinedMemberSignatureBase<T> {
         reference: referenceFrom?.reference)
       ..startFileOffset = startFileOffset
       ..fileOffset = fileOffset
+      ..isNonNullableByDefault =
+          enclosingClass.enclosingLibrary.isNonNullableByDefault
       ..parent = enclosingClass;
   }
 

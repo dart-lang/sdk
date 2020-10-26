@@ -1,0 +1,247 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "nsm_covariance_lib.dart" as nsm;
+
+import "org-dartlang-testcase:///nsm_covariance_lib.dart";
+
+abstract class D1 extends core::Object implements nsm::A<core::int*>, nsm::B {
+  synthetic constructor •() → self::D1*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract forwarding-stub method _method1(core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d) → void;
+  abstract forwarding-stub method _method2({core::int* a = #C1, covariant core::int* b = #C1, generic-covariant-impl core::int* c = #C1, covariant generic-covariant-impl core::int* d = #C1}) → void;
+  abstract forwarding-stub method _method3(covariant core::int* a, generic-covariant-impl core::int* b) → void;
+  abstract forwarding-stub method _method4({covariant core::int* a = #C1, generic-covariant-impl core::int* b = #C1}) → void;
+}
+abstract class D2 extends core::Object implements nsm::B, nsm::A<core::int*> {
+  synthetic constructor •() → self::D2*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract forwarding-stub method _method1(core::int* x, covariant core::int* y, generic-covariant-impl core::int* z, covariant generic-covariant-impl core::int* w) → void;
+  abstract forwarding-stub method _method2({core::int* a = #C1, covariant core::int* b = #C1, generic-covariant-impl core::int* c = #C1, covariant generic-covariant-impl core::int* d = #C1}) → void;
+  abstract forwarding-stub method _method3(covariant core::int* x, generic-covariant-impl core::int* y) → void;
+  abstract forwarding-stub method _method4({covariant core::int* a = #C1, generic-covariant-impl core::int* b = #C1}) → void;
+}
+class D3 extends core::Object implements nsm::A<core::int*>, nsm::B {
+  synthetic constructor •() → self::D3*
+    : super core::Object::•()
+    ;
+  @#C2
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder method _method1(core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d) → void
+    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#C3, 0, #C4, core::List::unmodifiable<dynamic>(<dynamic>[a, b, c, d]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6)));
+  no-such-method-forwarder method _method2({core::int* a = #C1, covariant core::int* b = #C1, generic-covariant-impl core::int* c = #C1, covariant generic-covariant-impl core::int* d = #C1}) → void
+    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C4, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C8: a, #C9: b, #C10: c, #C11: d})));
+  no-such-method-forwarder method _method3(covariant core::int* a, generic-covariant-impl core::int* b) → void
+    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#C12, 0, #C4, core::List::unmodifiable<dynamic>(<dynamic>[a, b]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6)));
+  no-such-method-forwarder method _method4({covariant core::int* a = #C1, generic-covariant-impl core::int* b = #C1}) → void
+    return this.{self::D3::noSuchMethod}(new core::_InvocationMirror::_withType(#C13, 0, #C4, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C8: a, #C9: b})));
+}
+class D4 extends core::Object implements nsm::B, nsm::A<core::int*> {
+  synthetic constructor •() → self::D4*
+    : super core::Object::•()
+    ;
+  @#C2
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder method _method1(core::int* x, covariant core::int* y, generic-covariant-impl core::int* z, covariant generic-covariant-impl core::int* w) → void
+    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#C3, 0, #C4, core::List::unmodifiable<dynamic>(<dynamic>[x, y, z, w]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6)));
+  no-such-method-forwarder method _method2({core::int* a = #C1, covariant core::int* b = #C1, generic-covariant-impl core::int* c = #C1, covariant generic-covariant-impl core::int* d = #C1}) → void
+    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C4, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C8: a, #C9: b, #C10: c, #C11: d})));
+  no-such-method-forwarder method _method3(covariant core::int* x, generic-covariant-impl core::int* y) → void
+    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#C12, 0, #C4, core::List::unmodifiable<dynamic>(<dynamic>[x, y]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6)));
+  no-such-method-forwarder method _method4({covariant core::int* a = #C1, generic-covariant-impl core::int* b = #C1}) → void
+    return this.{self::D4::noSuchMethod}(new core::_InvocationMirror::_withType(#C13, 0, #C4, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C8: a, #C9: b})));
+}
+static method main() → dynamic {}
+
+library;
+import self as nsm;
+import "dart:core" as core;
+
+abstract class A<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → nsm::A<nsm::A::T*>*
+    : super core::Object::•()
+    ;
+  abstract method _method1(core::int* a, core::int* b, generic-covariant-impl nsm::A::T* c, generic-covariant-impl nsm::A::T* d) → void;
+  abstract method _method2({core::int* a = #C1, core::int* b = #C1, generic-covariant-impl nsm::A::T* c = #C1, generic-covariant-impl nsm::A::T* d = #C1}) → void;
+  abstract method _method3(core::int* a, generic-covariant-impl nsm::A::T* b) → void;
+  abstract method _method4({core::int* a = #C1, generic-covariant-impl nsm::A::T* b = #C1}) → void;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → nsm::B*
+    : super core::Object::•()
+    ;
+  abstract method _method1(core::int* x, covariant core::int* y, core::int* z, covariant core::int* w) → void;
+  abstract method _method2({core::int* a = #C1, covariant core::int* b = #C1, core::int* c = #C1, covariant core::int* d = #C1}) → void;
+  abstract method _method3(covariant core::int* x, core::int* y) → void;
+  abstract method _method4({covariant core::int* a = #C1, core::int* b = #C1}) → void;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class C1 extends core::Object implements nsm::A<core::int*>, nsm::B {
+  synthetic constructor •() → nsm::C1*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract forwarding-stub method _method1(core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d) → void;
+  abstract forwarding-stub method _method2({core::int* a = #C1, covariant core::int* b = #C1, generic-covariant-impl core::int* c = #C1, covariant generic-covariant-impl core::int* d = #C1}) → void;
+  abstract forwarding-stub method _method3(covariant core::int* a, generic-covariant-impl core::int* b) → void;
+  abstract forwarding-stub method _method4({covariant core::int* a = #C1, generic-covariant-impl core::int* b = #C1}) → void;
+}
+abstract class C2 extends core::Object implements nsm::B, nsm::A<core::int*> {
+  synthetic constructor •() → nsm::C2*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract forwarding-stub method _method1(core::int* x, covariant core::int* y, generic-covariant-impl core::int* z, covariant generic-covariant-impl core::int* w) → void;
+  abstract forwarding-stub method _method2({core::int* a = #C1, covariant core::int* b = #C1, generic-covariant-impl core::int* c = #C1, covariant generic-covariant-impl core::int* d = #C1}) → void;
+  abstract forwarding-stub method _method3(covariant core::int* x, generic-covariant-impl core::int* y) → void;
+  abstract forwarding-stub method _method4({covariant core::int* a = #C1, generic-covariant-impl core::int* b = #C1}) → void;
+}
+class C3 extends core::Object implements nsm::A<core::int*>, nsm::B {
+  synthetic constructor •() → nsm::C3*
+    : super core::Object::•()
+    ;
+  @#C2
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder method _method1(core::int* a, covariant core::int* b, generic-covariant-impl core::int* c, covariant generic-covariant-impl core::int* d) → void
+    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#C14, 0, #C4, core::List::unmodifiable<dynamic>(<dynamic>[a, b, c, d]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6)));
+  no-such-method-forwarder method _method2({core::int* a = #C1, covariant core::int* b = #C1, generic-covariant-impl core::int* c = #C1, covariant generic-covariant-impl core::int* d = #C1}) → void
+    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#C15, 0, #C4, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C8: a, #C9: b, #C10: c, #C11: d})));
+  no-such-method-forwarder method _method3(covariant core::int* a, generic-covariant-impl core::int* b) → void
+    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#C16, 0, #C4, core::List::unmodifiable<dynamic>(<dynamic>[a, b]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6)));
+  no-such-method-forwarder method _method4({covariant core::int* a = #C1, generic-covariant-impl core::int* b = #C1}) → void
+    return this.{nsm::C3::noSuchMethod}(new core::_InvocationMirror::_withType(#C17, 0, #C4, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C8: a, #C9: b})));
+}
+class C4 extends core::Object implements nsm::B, nsm::A<core::int*> {
+  synthetic constructor •() → nsm::C4*
+    : super core::Object::•()
+    ;
+  @#C2
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder method _method1(core::int* x, covariant core::int* y, generic-covariant-impl core::int* z, covariant generic-covariant-impl core::int* w) → void
+    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#C14, 0, #C4, core::List::unmodifiable<dynamic>(<dynamic>[x, y, z, w]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6)));
+  no-such-method-forwarder method _method2({core::int* a = #C1, covariant core::int* b = #C1, generic-covariant-impl core::int* c = #C1, covariant generic-covariant-impl core::int* d = #C1}) → void
+    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#C15, 0, #C4, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C8: a, #C9: b, #C10: c, #C11: d})));
+  no-such-method-forwarder method _method3(covariant core::int* x, generic-covariant-impl core::int* y) → void
+    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#C16, 0, #C4, core::List::unmodifiable<dynamic>(<dynamic>[x, y]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6)));
+  no-such-method-forwarder method _method4({covariant core::int* a = #C1, generic-covariant-impl core::int* b = #C1}) → void
+    return this.{nsm::C4::noSuchMethod}(new core::_InvocationMirror::_withType(#C17, 0, #C4, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C8: a, #C9: b})));
+}
+
+constants  {
+  #C1 = null
+  #C2 = core::_Override {}
+  #C3 = #org-dartlang-testcase:///nsm_covariance.dart::_method1
+  #C4 = <core::Type*>[]
+  #C5 = <dynamic>[]
+  #C6 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C5}
+  #C7 = #org-dartlang-testcase:///nsm_covariance.dart::_method2
+  #C8 = #a
+  #C9 = #b
+  #C10 = #c
+  #C11 = #d
+  #C12 = #org-dartlang-testcase:///nsm_covariance.dart::_method3
+  #C13 = #org-dartlang-testcase:///nsm_covariance.dart::_method4
+  #C14 = #org-dartlang-testcase:///nsm_covariance_lib.dart::_method1
+  #C15 = #org-dartlang-testcase:///nsm_covariance_lib.dart::_method2
+  #C16 = #org-dartlang-testcase:///nsm_covariance_lib.dart::_method3
+  #C17 = #org-dartlang-testcase:///nsm_covariance_lib.dart::_method4
+}

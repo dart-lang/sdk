@@ -3368,7 +3368,12 @@ class InterfaceConflict extends DelayedMember {
           "$declarations, $kind)");
       Member stub =
           new ForwardingNode(combinedMemberSignature, kind).finalize();
-      if (classBuilder.cls == stub.enclosingClass) {
+      /*assert(
+          !(combinedMemberSignature.neededCovarianceMerging &&
+              stub.enclosingClass != classBuilder.cls),
+          "Members $declarations needed covariance merging into "
+          "${classBuilder.cls}");*/
+      if (stub != null && classBuilder.cls == stub.enclosingClass) {
         classBuilder.cls.addMember(stub);
         SourceLibraryBuilder library = classBuilder.library;
         Member bestMemberSoFar =

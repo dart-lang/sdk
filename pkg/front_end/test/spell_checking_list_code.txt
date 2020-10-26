@@ -241,6 +241,7 @@ corrected
 corrections
 cosmetic
 counters
+covariances
 cr
 creator
 criterion
@@ -515,6 +516,7 @@ implementers
 imply
 implying
 importantly
+imprecise
 inapplicable
 inc
 incomparable
@@ -635,6 +637,7 @@ mangled
 manipulation
 markdown
 masking
+masks
 master
 mb
 mc

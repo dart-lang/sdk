@@ -26,7 +26,7 @@ abstract class _Class&Object&Mixin1&Mixin2<T extends core::Object* = dynamic> = 
   synthetic constructor •() → self::_Class&Object&Mixin1&Mixin2<self::_Class&Object&Mixin1&Mixin2::T*>*
     : super self::_Class&Object&Mixin1::•()
     ;
-  abstract member-signature set field((dynamic) →* core::Type* _) → void; -> mai::Mixin2::field
+  abstract member-signature set field((dynamic) →* core::Type* value) → void; -> mai::Mixin2::field
   abstract member-signature get field() → (dynamic) →* core::Type*; -> mai::Mixin2::field
   abstract member-signature method method1() → (dynamic) →* core::Type*; -> mai::Mixin2::method1
   abstract member-signature method method2((dynamic) →* core::Type* t) → void; -> mai::Mixin2::method2

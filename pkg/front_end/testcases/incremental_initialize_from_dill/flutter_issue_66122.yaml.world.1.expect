@@ -65,7 +65,7 @@ library from "org-dartlang-test:///main.dart" as main {
       : super fra::State::•()
       ;
     abstract member-signature get _widget() → main::HotReloadIssue*; -> fra::State::_widget
-    abstract member-signature set _widget(generic-covariant-impl main::HotReloadIssue* _) → void; -> fra::State::_widget
+    abstract member-signature set _widget(generic-covariant-impl main::HotReloadIssue* value) → void; -> fra::State::_widget
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
