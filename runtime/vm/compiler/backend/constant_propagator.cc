@@ -1056,8 +1056,11 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsInstr* instr) {
   const auto& type_arguments_obj =
       instr->type_arguments()->definition()->constant_value();
-  ASSERT(!type_arguments_obj.IsNull());
   if (IsUnknown(type_arguments_obj)) {
+    return;
+  }
+  if (type_arguments_obj.IsNull()) {
+    SetValue(instr, type_arguments_obj);
     return;
   }
   if (!type_arguments_obj.IsTypeArguments()) {
@@ -1078,14 +1081,13 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
     if (IsUnknown(instantiator_type_args_obj)) {
       return;
     }
-    if (!instantiator_type_args_obj.IsTypeArguments()) {
+    if (!instantiator_type_args_obj.IsNull() &&
+        !instantiator_type_args_obj.IsTypeArguments()) {
       SetValue(instr, non_constant_);
       return;
     }
     instantiator_type_args ^= instantiator_type_args_obj.raw();
-    ASSERT(!instr->instantiator_class().IsNull());
-    if (type_arguments.CanShareInstantiatorTypeArguments(
-            instr->instantiator_class())) {
+    if (instr->CanShareInstantiatorTypeArguments()) {
       SetValue(instr, instantiator_type_args);
       return;
     }
@@ -1098,13 +1100,13 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
     if (IsUnknown(function_type_args_obj)) {
       return;
     }
-    if (!function_type_args_obj.IsTypeArguments()) {
+    if (!function_type_args_obj.IsNull() &&
+        !function_type_args_obj.IsTypeArguments()) {
       SetValue(instr, non_constant_);
       return;
     }
     function_type_args ^= function_type_args_obj.raw();
-    ASSERT(!instr->function().IsNull());
-    if (type_arguments.CanShareFunctionTypeArguments(instr->function())) {
+    if (instr->CanShareFunctionTypeArguments()) {
       SetValue(instr, function_type_args);
       return;
     }
@@ -1421,6 +1423,11 @@ void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
 
 void ConstantPropagator::VisitBox(BoxInstr* instr) {
   // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitBoxUint8(BoxUint8Instr* instr) {
+  // TODO(kmillikin): Handle box operation.
   SetValue(instr, non_constant_);
 }
 

@@ -1207,6 +1207,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
   ASSERT(zero_array_->IsArray());
+  ASSERT(!empty_type_arguments_->IsSmi());
+  ASSERT(empty_type_arguments_->IsTypeArguments());
   ASSERT(!empty_context_scope_->IsSmi());
   ASSERT(empty_context_scope_->IsContextScope());
   ASSERT(!empty_compressed_stackmaps_->IsSmi());
@@ -6035,6 +6037,19 @@ void TypeArguments::PrintSubvectorName(
   printer->AddString(">");
 }
 
+void TypeArguments::PrintTo(BaseTextBuffer* buffer) const {
+  buffer->AddString("TypeArguments: ");
+  if (IsNull()) {
+    return buffer->AddString("null");
+  }
+  buffer->Printf("(H%" Px ")", Smi::Value(raw_ptr()->hash_));
+  auto& type_at = AbstractType::Handle();
+  for (intptr_t i = 0; i < Length(); i++) {
+    type_at = TypeAt(i);
+    buffer->Printf(" [%s]", type_at.IsNull() ? "null" : type_at.ToCString());
+  }
+}
+
 bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
                                           intptr_t from_index,
                                           intptr_t len,
@@ -6546,7 +6561,9 @@ TypeArgumentsPtr TypeArguments::Canonicalize(Thread* thread,
     return this->raw();
   }
   const intptr_t num_types = Length();
-  if (IsRaw(0, num_types)) {
+  if (num_types == 0) {
+    return TypeArguments::empty_type_arguments().raw();
+  } else if (IsRaw(0, num_types)) {
     return TypeArguments::null();
   }
   Zone* zone = thread->zone();
@@ -6624,18 +6641,11 @@ void TypeArguments::EnumerateURIs(URIs* uris) const {
 
 const char* TypeArguments::ToCString() const {
   if (IsNull()) {
-    return "TypeArguments: null";
+    return "TypeArguments: null";  // Optimizing the frequent case.
   }
-  Zone* zone = Thread::Current()->zone();
-  const char* prev_cstr = OS::SCreate(zone, "TypeArguments: (H%" Px ")",
-                                      Smi::Value(raw_ptr()->hash_));
-  for (int i = 0; i < Length(); i++) {
-    const AbstractType& type_at = AbstractType::Handle(zone, TypeAt(i));
-    const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
-    char* chars = OS::SCreate(zone, "%s [%s]", prev_cstr, type_cstr);
-    prev_cstr = chars;
-  }
-  return prev_cstr;
+  ZoneTextBuffer buffer(Thread::Current()->zone());
+  PrintTo(&buffer);
+  return buffer.buffer();
 }
 
 const char* PatchClass::ToCString() const {
@@ -7037,10 +7047,121 @@ void Function::set_parent_function(const Function& value) const {
   }
 }
 
-TypeArgumentsPtr Function::InstantiateToBounds(Thread* thread) const {
-  const auto& type_params =
-      TypeArguments::Handle(thread->zone(), type_parameters());
-  return InstantiateTypeArgumentsToBounds(thread, type_params);
+TypeArgumentsPtr Function::InstantiateToBounds(
+    Thread* thread,
+    DefaultTypeArgumentsKind* kind_out) const {
+  if (CachesDefaultTypeArguments()) {
+    // Always use the cached version, even if the type parameters are null,
+    // to catch cases where the cache isn't properly initialized.
+    return default_type_arguments(kind_out);
+  }
+  // No cached version, so just retrieve from the type parameters and return
+  // a canonicalized version..
+  if (type_parameters() == TypeArguments::null()) {
+    if (kind_out != nullptr) {
+      *kind_out = DefaultTypeArgumentsKind::kIsInstantiated;
+    }
+    return Object::empty_type_arguments().raw();
+  }
+  auto& result = TypeArguments::Handle(thread->zone(), type_parameters());
+  result = InstantiateTypeArgumentsToBounds(thread, result);
+  if (kind_out != nullptr) {
+    // We just return is/is not instantiated if the value isn't cached, as
+    // the other checks may be more overhead at runtime than just doing the
+    // instantiation.
+    *kind_out = result.IsNull() || result.IsInstantiated()
+                    ? DefaultTypeArgumentsKind::kIsInstantiated
+                    : DefaultTypeArgumentsKind::kNeedsInstantiation;
+  }
+  return result.raw();
+}
+
+void Function::UpdateCachedDefaultTypeArguments(Thread* thread) const {
+  auto const zone = thread->zone();
+  auto& closure_function = Function::Handle(zone);
+  if (HasImplicitClosureFunction()) {
+    closure_function = ImplicitClosureFunction();
+  }
+  if (CachesDefaultTypeArguments()) {
+    auto defaults = &Object::empty_type_arguments();
+    if (NumTypeParameters(thread) > 0) {
+      const auto& params = TypeArguments::Handle(zone, type_parameters());
+      const intptr_t num_params = params.Length();
+      auto& new_defaults = TypeArguments::Handle(
+          zone, TypeArguments::New(num_params, Heap::kNew));
+      // Only canonicalize the result if all the default arguments have been
+      // canonicalized, to avoid premature canonicalization of the arguments.
+      bool all_canonical = true;
+      auto& type = AbstractType::Handle(zone);
+      for (intptr_t i = 0; i < num_params; i++) {
+        type = params.TypeAt(i);
+        type = TypeParameter::Cast(type).default_argument();
+        if (!type.IsCanonical()) {
+          all_canonical = false;
+        }
+        new_defaults.SetTypeAt(i, type);
+      }
+      if (all_canonical) {
+        new_defaults = new_defaults.Canonicalize(thread);
+      }
+      defaults = &new_defaults;
+    }
+    set_default_type_arguments(*defaults);
+    if (!closure_function.IsNull()) {
+      closure_function.set_default_type_arguments(*defaults);
+    }
+  } else if (!closure_function.IsNull()) {
+    closure_function.UpdateCachedDefaultTypeArguments(thread);
+  }
+}
+
+TypeArgumentsPtr Function::default_type_arguments(
+    DefaultTypeArgumentsKind* kind_out) const {
+  if (!CachesDefaultTypeArguments()) {
+    UNREACHABLE();
+  }
+  const auto& closure_data =
+      ClosureData::Handle(ClosureData::RawCast(raw_ptr()->data_));
+  ASSERT(!closure_data.IsNull());
+  if (kind_out != nullptr) {
+    *kind_out = DefaultTypeArgumentsKindField::decode(
+        closure_data.default_type_arguments_info());
+  }
+  return closure_data.default_type_arguments();
+}
+
+void Function::set_default_type_arguments(const TypeArguments& value) const {
+  if (!CachesDefaultTypeArguments()) {
+    UNREACHABLE();
+  }
+  const auto& closure_data =
+      ClosureData::Handle(ClosureData::RawCast(raw_ptr()->data_));
+  ASSERT(!closure_data.IsNull());
+  auto kind = DefaultTypeArgumentsKindFor(value);
+  ASSERT(kind != DefaultTypeArgumentsKind::kInvalid);
+  const intptr_t num_parent_type_params = NumParentTypeParameters();
+  const intptr_t default_type_args_info =
+      DefaultTypeArgumentsKindField::encode(kind) |
+      NumParentTypeParametersField::encode(num_parent_type_params);
+  closure_data.set_default_type_arguments_info(default_type_args_info);
+  // We could just store null for the ksharesFunction/kSharesInstantiator cases,
+  // assuming all clients retrieve the DefaultTypeArgumentsKind to distinguish.
+  closure_data.set_default_type_arguments(value);
+}
+
+Function::DefaultTypeArgumentsKind Function::DefaultTypeArgumentsKindFor(
+    const TypeArguments& value) const {
+  if (value.IsNull() || value.IsInstantiated()) {
+    return DefaultTypeArgumentsKind::kIsInstantiated;
+  }
+  if (value.CanShareFunctionTypeArguments(*this)) {
+    return DefaultTypeArgumentsKind::kSharesFunctionTypeArguments;
+  }
+  const auto& cls = Class::Handle(Owner());
+  if (value.CanShareInstantiatorTypeArguments(cls)) {
+    return DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments;
+  }
+  return DefaultTypeArgumentsKind::kNeedsInstantiation;
 }
 
 FunctionPtr Function::GetGeneratedClosure() const {
@@ -7958,48 +8079,6 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
   return true;
 }
 
-// Checks each supplied function type argument is a subtype of the corresponding
-// bound. Also takes the number of type arguments to skip over because they
-// belong to parent functions and are not included in the type parameters.
-// Returns null if all checks succeed, otherwise returns a non-null Error for
-// one of the failures.
-static ObjectPtr TypeArgumentsAreBoundSubtypes(
-    Zone* zone,
-    const TokenPosition& token_pos,
-    const TypeArguments& type_parameters,
-    intptr_t num_parent_type_args,
-    const TypeArguments& instantiator_type_arguments,
-    const TypeArguments& function_type_arguments) {
-  ASSERT(!type_parameters.IsNull());
-  const intptr_t kNumTypeArgs = type_parameters.Length() + num_parent_type_args;
-  ASSERT(function_type_arguments.HasCount(kNumTypeArgs));
-
-  // Don't bother allocating handles, there's nothing to check.
-  if (kNumTypeArgs - num_parent_type_args == 0) return Error::null();
-
-  auto& type = AbstractType::Handle(zone);
-  auto& bound = AbstractType::Handle(zone);
-  auto& name = String::Handle(zone);
-  for (intptr_t i = num_parent_type_args; i < kNumTypeArgs; i++) {
-    type = type_parameters.TypeAt(i - num_parent_type_args);
-    ASSERT(type.IsTypeParameter());
-    const auto& parameter = TypeParameter::Cast(type);
-    bound = parameter.bound();
-    name = parameter.name();
-    // Only perform non-covariant checks where the bound is not the top type.
-    if (parameter.IsGenericCovariantImpl() || bound.IsTopTypeForSubtyping()) {
-      continue;
-    }
-    if (!AbstractType::InstantiateAndTestSubtype(&type, &bound,
-                                                 instantiator_type_arguments,
-                                                 function_type_arguments)) {
-      return Error::RawCast(ThrowTypeError(token_pos, type, bound, name));
-    }
-  }
-
-  return Error::null();
-}
-
 // Retrieves the function type arguments, if any. This could be explicitly
 // passed type from the arguments array, delayed type arguments in closures,
 // or instantiated bounds for the type parameters if no other source for
@@ -8055,8 +8134,28 @@ static TypeArgumentsPtr RetrieveFunctionTypeArguments(
     function_type_args ^= args.At(0);
   } else if (!has_delayed_type_args) {
     // We have no explicitly provided function type arguments, so instantiate
-    // the type parameters to bounds.
-    function_type_args = function.InstantiateToBounds(thread);
+    // the type parameters to bounds or replace as appropriate.
+    Function::DefaultTypeArgumentsKind kind;
+    function_type_args = function.InstantiateToBounds(thread, &kind);
+    switch (kind) {
+      case Function::DefaultTypeArgumentsKind::kInvalid:
+        // We shouldn't hit the invalid case.
+        UNREACHABLE();
+        break;
+      case Function::DefaultTypeArgumentsKind::kIsInstantiated:
+        // Nothing left to do.
+        break;
+      case Function::DefaultTypeArgumentsKind::kNeedsInstantiation:
+        function_type_args = function_type_args.InstantiateAndCanonicalizeFrom(
+            instantiator_type_args, parent_type_args);
+        break;
+      case Function::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments:
+        function_type_args = instantiator_type_args.raw();
+        break;
+      case Function::DefaultTypeArgumentsKind::kSharesFunctionTypeArguments:
+        function_type_args = parent_type_args.raw();
+        break;
+    }
   }
 
   return function_type_args.Prepend(zone, parent_type_args, kNumParentTypeArgs,
@@ -8131,16 +8230,26 @@ ObjectPtr Function::DoArgumentTypesMatch(
   // arguments to make sure they are appropriate subtypes of the bounds.
   const intptr_t kNumLocalTypeArgs = NumTypeParameters(thread);
   if (kNumLocalTypeArgs > 0) {
-    const intptr_t kNumParentTypeArgs = NumParentTypeParameters();
     ASSERT(function_type_arguments.HasCount(kNumLocalTypeArgs +
-                                            kNumParentTypeArgs));
+                                            NumParentTypeParameters()));
     const auto& params = TypeArguments::Handle(zone, type_parameters());
-    const auto& result = Object::Handle(
-        zone, TypeArgumentsAreBoundSubtypes(
-                  zone, token_pos(), params, kNumParentTypeArgs,
-                  instantiator_type_arguments, function_type_arguments));
-    if (result.IsError()) {
-      return result.raw();
+    auto& parameter = TypeParameter::Handle(zone);
+    auto& type = AbstractType::Handle(zone);
+    auto& bound = AbstractType::Handle(zone);
+    for (intptr_t i = 0; i < kNumLocalTypeArgs; i++) {
+      parameter ^= params.TypeAt(i);
+      type = parameter.raw();
+      bound = parameter.bound();
+      // Only perform non-covariant checks where the bound is not the top type.
+      if (parameter.IsGenericCovariantImpl() || bound.IsTopTypeForSubtyping()) {
+        continue;
+      }
+      if (!AbstractType::InstantiateAndTestSubtype(&type, &bound,
+                                                   instantiator_type_arguments,
+                                                   function_type_arguments)) {
+        const auto& name = String::Handle(zone, parameter.name());
+        return Error::RawCast(ThrowTypeError(token_pos(), type, bound, name));
+      }
     }
   } else {
     ASSERT(function_type_arguments.HasCount(NumParentTypeParameters()));
@@ -8700,6 +8809,11 @@ FunctionPtr Function::New(const String& name,
     // in new space.
     ASSERT(space == Heap::kOld);
   }
+  if (result.CachesDefaultTypeArguments()) {
+    // Make sure the default type arguments are set consistently with the
+    // function type parameters (currently null).
+    result.set_default_type_arguments(Object::empty_type_arguments());
+  }
 
   // Force-optimized functions are not debuggable because they cannot
   // deoptimize.
@@ -8833,8 +8947,9 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   }
 
   // Set closure function's type parameters.
-  closure_function.set_type_parameters(
-      TypeArguments::Handle(zone, type_parameters()));
+  auto& type_args_handle = TypeArguments::Handle(zone, type_parameters());
+  closure_function.set_type_parameters(type_args_handle);
+  closure_function.UpdateCachedDefaultTypeArguments(thread);
 
   // Set closure function's result type to this result type.
   closure_function.set_result_type(AbstractType::Handle(zone, result_type()));
@@ -9733,7 +9848,8 @@ bool Function::PrologueNeedsArgumentsDescriptor() const {
 
 bool Function::MayHaveUncheckedEntryPoint() const {
   return FLAG_enable_multiple_entrypoints &&
-         (NeedsArgumentTypeChecks() || IsImplicitClosureFunction());
+         (NeedsTypeArgumentTypeChecks() || NeedsArgumentTypeChecks() ||
+          IsImplicitClosureFunction());
 }
 
 const char* Function::ToCString() const {
@@ -9827,6 +9943,19 @@ void ClosureData::set_signature_type(const Type& value) const {
   StorePointer(&raw_ptr()->signature_type_, value.raw());
 }
 
+void ClosureData::set_default_type_arguments(const TypeArguments& value) const {
+  StorePointer(&raw_ptr()->default_type_arguments_, value.raw());
+}
+
+intptr_t ClosureData::default_type_arguments_info() const {
+  return Smi::Value(raw_ptr()->default_type_arguments_info_);
+}
+
+void ClosureData::set_default_type_arguments_info(intptr_t value) const {
+  ASSERT(Smi::IsValid(value));
+  StorePointer(&raw_ptr()->default_type_arguments_info_, Smi::New(value));
+}
+
 ClosureDataPtr ClosureData::New() {
   ASSERT(Object::closure_data_class() != Class::null());
   ObjectPtr raw = Object::Allocate(ClosureData::kClassId,
@@ -9838,16 +9967,32 @@ const char* ClosureData::ToCString() const {
   if (IsNull()) {
     return "ClosureData: null";
   }
-  const Function& parent = Function::Handle(parent_function());
-  const Type& type = Type::Handle(signature_type());
-  return OS::SCreate(Thread::Current()->zone(),
-                     "ClosureData: context_scope: 0x%" Px
-                     " parent_function: %s signature_type: %s"
-                     " implicit_static_closure: 0x%" Px,
-                     static_cast<uword>(context_scope()),
-                     parent.IsNull() ? "null" : parent.ToCString(),
-                     type.IsNull() ? "null" : type.ToCString(),
-                     static_cast<uword>(implicit_static_closure()));
+  auto const zone = Thread::Current()->zone();
+  ZoneTextBuffer buffer(zone);
+  buffer.Printf("ClosureData: context_scope: 0x%" Px "",
+                static_cast<uword>(context_scope()));
+  buffer.AddString(" parent_function: ");
+  if (parent_function() == Function::null()) {
+    buffer.AddString("null");
+  } else {
+    buffer.AddString(Function::Handle(zone, parent_function()).ToCString());
+  }
+  buffer.AddString(" signature_type: ");
+  if (signature_type() == Type::null()) {
+    buffer.AddString("null");
+  } else {
+    buffer.AddString(Type::Handle(zone, signature_type()).ToCString());
+  }
+  buffer.Printf(" implicit_static_closure: 0x%" Px "",
+                static_cast<uword>(implicit_static_closure()));
+  buffer.AddString(" default_type_arguments: ");
+  if (default_type_arguments() == TypeArguments::null()) {
+    buffer.AddString("null");
+  } else {
+    buffer.AddString(
+        TypeArguments::Handle(zone, default_type_arguments()).ToCString());
+  }
+  return buffer.buffer();
 }
 
 void SignatureData::set_parent_function(const Function& value) const {
@@ -18985,6 +19130,8 @@ intptr_t Instance::ElementSizeFor(intptr_t cid) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::kBytesPerElement;
+    case kTypeArgumentsCid:
+      return TypeArguments::ArrayTraits::kElementSize;
     case kOneByteStringCid:
       return OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
@@ -19011,6 +19158,8 @@ intptr_t Instance::DataOffsetFor(intptr_t cid) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::data_offset();
+    case kTypeArgumentsCid:
+      return TypeArguments::types_offset();
     case kOneByteStringCid:
       return OneByteString::data_offset();
     case kTwoByteStringCid:
@@ -24250,16 +24399,18 @@ intptr_t Closure::NumTypeParameters(Thread* thread) const {
 }
 
 const char* Closure::ToCString() const {
-  Zone* zone = Thread::Current()->zone();
+  auto const thread = Thread::Current();
+  auto const zone = thread->zone();
+  ZoneTextBuffer buffer(zone);
+  buffer.AddString("Closure: ");
   const Function& fun = Function::Handle(zone, function());
-  const bool is_implicit_closure = fun.IsImplicitClosureFunction();
   const Function& sig_fun =
       Function::Handle(zone, GetInstantiatedSignature(zone));
-  const char* fun_sig =
-      String::Handle(zone, sig_fun.UserVisibleSignature()).ToCString();
-  const char* from = is_implicit_closure ? " from " : "";
-  const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
-  return OS::SCreate(zone, "Closure: %s%s%s", fun_sig, from, fun_desc);
+  sig_fun.PrintSignature(NameVisibility::kUserVisibleName, &buffer);
+  if (fun.IsImplicitClosureFunction()) {
+    buffer.Printf(" from %s", fun.ToCString());
+  }
+  return buffer.buffer();
 }
 
 int64_t Closure::ComputeHash() const {

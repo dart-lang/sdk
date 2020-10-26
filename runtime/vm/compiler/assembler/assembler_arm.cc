@@ -2207,6 +2207,7 @@ OperandSize Address::OperandSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kTypeArgumentsCid:
       return kWord;
     case kOneByteStringCid:
     case kExternalOneByteStringCid:

@@ -2470,14 +2470,16 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
     rep = kTagged;
   }
   ASSERT(!is_optimizing());
-  ASSERT((rep == kTagged) || (rep == kUntagged) || (rep == kUnboxedUint32));
+  ASSERT((rep == kTagged) || (rep == kUntagged) || (rep == kUnboxedUint32) ||
+         (rep == kUnboxedUint8));
   ASSERT(rep != kUntagged || flow_graph_.IsIrregexpFunction());
   const auto& function = flow_graph_.parsed_function().function();
-  // Currently, we only allow unboxed uint32 on the stack in unoptimized code
-  // when building a dynamic closure call dispatcher, where any unboxed values
-  // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
+  // Currently, we only allow unboxed uint8 and uint32 on the stack in
+  // unoptimized code  when building a dynamic closure call dispatcher, where
+  // any unboxed values on the stack are consumed before possible
+  // FrameStateIsSafeToCall() checks.
   // See FlowGraphBuilder::BuildDynamicCallVarsInit().
-  ASSERT(rep != kUnboxedUint32 ||
+  ASSERT((rep != kUnboxedUint32 && rep != kUnboxedUint8) ||
          function.IsDynamicClosureCallDispatcher(thread()));
   frame_state_.Add(rep);
 }

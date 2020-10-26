@@ -347,6 +347,9 @@ ParsedFunction::EnsureDynamicClosureCallVars() {
   if (dynamic_closure_call_vars_ != nullptr) return dynamic_closure_call_vars_;
   dynamic_closure_call_vars_ = new (zone()) DynamicClosureCallVars();
 
+  const auto& type_Dynamic = Object::dynamic_type();
+  const auto& type_Function =
+      Type::ZoneHandle(zone(), Type::DartFunctionType());
   const auto& type_Smi = Type::ZoneHandle(zone(), Type::SmiType());
 #define INIT_FIELD(Name, TypeName, Symbol)                                     \
   dynamic_closure_call_vars_->Name = new (zone())                              \

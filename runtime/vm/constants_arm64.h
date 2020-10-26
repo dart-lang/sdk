@@ -169,6 +169,23 @@ struct TypeTestABI {
   static const Register kResultReg = R0;
 };
 
+// Calling convention when calling AssertSubtypeStub.
+struct AssertSubtypeABI {
+  static const Register kSubTypeReg = R0;
+  static const Register kSuperTypeReg = R8;
+  static const Register kInstantiatorTypeArgumentsReg = R2;
+  static const Register kFunctionTypeArgumentsReg = R1;
+  static const Register kDstNameReg = R3;
+
+  static const intptr_t kAbiRegisters =
+      (1 << kSubTypeReg) | (1 << kSuperTypeReg) |
+      (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
+      (1 << kDstNameReg);
+
+  // No result register, as AssertSubtype is only run for side effect
+  // (throws if the subtype check fails).
+};
+
 // Registers used inside the implementation of type testing stubs.
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = R7;

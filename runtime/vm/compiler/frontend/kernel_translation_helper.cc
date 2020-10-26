@@ -3356,8 +3356,11 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       default_arg = &BuildTypeWithoutFinalization();
     }
     parameter.set_default_argument(*default_arg);
-
     helper.Finish();
+  }
+
+  if (set_on.IsFunction()) {
+    Function::Cast(set_on).UpdateCachedDefaultTypeArguments(Thread::Current());
   }
 
   // Fix bounds and default arguments in all derived type parameters (with

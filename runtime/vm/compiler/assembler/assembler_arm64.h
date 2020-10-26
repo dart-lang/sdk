@@ -266,6 +266,7 @@ class Address : public ValueObject {
     switch (cid) {
       case kArrayCid:
       case kImmutableArrayCid:
+      case kTypeArgumentsCid:
         return kWord;
       case kOneByteStringCid:
       case kExternalOneByteStringCid:

@@ -480,6 +480,10 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   ASSERT(!subtype.IsNull() && !subtype.IsTypeRef());
   ASSERT(!supertype.IsNull() && !supertype.IsTypeRef());
 
+  // Now that AssertSubtype may be checking types only available at runtime,
+  // we can't guarantee the supertype isn't the top type.
+  if (supertype.IsTopTypeForSubtyping()) return;
+
   // The supertype or subtype may not be instantiated.
   if (AbstractType::InstantiateAndTestSubtype(
           &subtype, &supertype, instantiator_type_args, function_type_args)) {
@@ -557,7 +561,7 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
 }
 
 // Check that arguments are valid for the given closure.
-// Arg0: function
+// Arg0: closure
 // Arg1: arguments descriptor
 // Return value: whether the arguments are valid
 DEFINE_RUNTIME_ENTRY(ClosureArgumentsValid, 2) {

@@ -179,6 +179,9 @@ const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
     case kImmutableArrayCid:
       return GetNativeSlot(Kind::kArray_length);
 
+    case kTypeArgumentsCid:
+      return GetNativeSlot(Kind::kTypeArguments_length);
+
     default:
       UNREACHABLE();
       return GetNativeSlot(Kind::kArray_length);

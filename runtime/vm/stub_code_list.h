@@ -76,6 +76,7 @@ namespace dart {
   V(ZeroArgsUnoptimizedStaticCall)                                             \
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
+  V(AssertSubtype)                                                             \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype4TestCache)                                                         \

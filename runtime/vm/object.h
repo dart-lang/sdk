@@ -2771,9 +2771,65 @@ class Function : public Object {
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
+  enum class DefaultTypeArgumentsKind : uint8_t {
+    // Only here to make sure it's explicitly set appropriately.
+    kInvalid = 0,
+    // Must instantiate the default type arguments before use.
+    kNeedsInstantiation,
+    // The default type arguments are already instantiated.
+    kIsInstantiated,
+    // Use the instantiator type arguments that would be used to instantiate
+    // the default type arguments, as instantiating produces the same result.
+    kSharesInstantiatorTypeArguments,
+    // Use the function type arguments that would be used to instantiate
+    // the default type arguments, as instantiating produces the same result.
+    kSharesFunctionTypeArguments,
+  };
+  static constexpr intptr_t kDefaultTypeArgumentsKindFieldSize = 3;
+  static_assert(static_cast<uint8_t>(
+                    DefaultTypeArgumentsKind::kSharesFunctionTypeArguments) <
+                    (1 << kDefaultTypeArgumentsKindFieldSize),
+                "Wrong bit size chosen for default TAV kind field");
+
+  // Fields encoded in an integer stored alongside a default TAV.
+  using DefaultTypeArgumentsKindField =
+      BitField<intptr_t,
+               DefaultTypeArgumentsKind,
+               0,
+               kDefaultTypeArgumentsKindFieldSize>;
+  // If more space is needed, we can almost certainly reduce the size of this
+  // field.
+  using NumParentTypeParametersField =
+      BitField<intptr_t,
+               uint16_t,
+               DefaultTypeArgumentsKindField::kNextBit,
+               kBitsPerByte * sizeof(uint16_t)>;
+
+  static_assert(NumParentTypeParametersField::kNextBit <=
+                    compiler::target::kSmiBits,
+                "Default TAV info does not fit in a target Smi");
+
   // Returns a canonicalized vector of the type parameters instantiated
   // to bounds. If non-generic, the empty type arguments vector is returned.
-  TypeArgumentsPtr InstantiateToBounds(Thread* thread) const;
+  TypeArgumentsPtr InstantiateToBounds(
+      Thread* thread,
+      DefaultTypeArgumentsKind* kind_out = nullptr) const;
+
+  // Whether this function should have a cached type arguments vector for the
+  // instantiated-to-bounds version of the type parameters.
+  bool CachesDefaultTypeArguments() const { return IsClosureFunction(); }
+
+  // Updates the cached default type arguments vector for this function if it
+  // caches and for its implicit closure function if it has one. If the
+  // default arguments are all canonical, the cached default type arguments
+  // vector is canonicalized. Should be run any time the type parameters vector
+  // is changed or if the default arguments of any type parameters are updated.
+  void UpdateCachedDefaultTypeArguments(Thread* thread) const;
+
+  // These are only usable for functions that cache the default type arguments.
+  TypeArgumentsPtr default_type_arguments(
+      DefaultTypeArgumentsKind* kind_out = nullptr) const;
+  void set_default_type_arguments(const TypeArguments& value) const;
 
   // Enclosed generated closure function of this local function.
   // This will only work after the closure function has been allocated in the
@@ -2889,7 +2945,11 @@ class Function : public Object {
     return (kind() == FunctionLayout::kConstructor) && is_static();
   }
 
-  static bool ClosureBodiesContainNonCovariantChecks() {
+  static bool ClosureBodiesContainNonCovariantTypeArgumentChecks() {
+    return FLAG_enable_interpreter;
+  }
+
+  static bool ClosureBodiesContainNonCovariantArgumentChecks() {
     return FLAG_precompiled_mode || FLAG_lazy_dispatchers;
   }
 
@@ -2961,7 +3021,14 @@ class Function : public Object {
   bool IsInFactoryScope() const;
 
   bool NeedsArgumentTypeChecks() const {
-    return (IsClosureFunction() && ClosureBodiesContainNonCovariantChecks()) ||
+    return (IsClosureFunction() &&
+            ClosureBodiesContainNonCovariantArgumentChecks()) ||
+           !(is_static() || (kind() == FunctionLayout::kConstructor));
+  }
+
+  bool NeedsTypeArgumentTypeChecks() const {
+    return (IsClosureFunction() &&
+            ClosureBodiesContainNonCovariantTypeArgumentChecks()) ||
            !(is_static() || (kind() == FunctionLayout::kConstructor));
   }
 
@@ -3713,6 +3780,12 @@ class Function : public Object {
 
   void SetWasExecuted(bool value) const { SetWasExecutedBit(value); }
 
+  static intptr_t data_offset() { return OFFSET_OF(FunctionLayout, data_); }
+
+  static intptr_t kind_tag_offset() {
+    return OFFSET_OF(FunctionLayout, kind_tag_);
+  }
+
   // static: Considered during class-side or top-level resolution rather than
   //         instance-side resolution.
   // const: Valid target of a const constructor call.
@@ -3787,11 +3860,6 @@ class Function : public Object {
         value, raw_ptr()->packed_fields_));
   }
 
- private:
-  void set_parameter_names(const Array& value) const;
-  void set_ic_data_array(const Array& value) const;
-  void SetInstructionsSafe(const Code& value) const;
-
   enum KindTagBits {
     kKindTagPos = 0,
     kKindTagSize = 5,
@@ -3810,8 +3878,7 @@ class Function : public Object {
   COMPILE_ASSERT(MethodRecognizer::kNumRecognizedMethods <
                  (1 << kRecognizedTagSize));
   COMPILE_ASSERT(kNumTagBits <=
-                 (kBitsPerByte *
-                  sizeof(static_cast<FunctionLayout*>(nullptr)->kind_tag_)));
+                 (kBitsPerByte * sizeof(decltype(FunctionLayout::kind_tag_))));
 
   class KindBits : public BitField<uint32_t,
                                    FunctionLayout::Kind,
@@ -3832,6 +3899,15 @@ class Function : public Object {
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT
 
+ private:
+  // Given the provided defaults type arguments, determines which
+  // DefaultTypeArgumentsKind applies.
+  DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
+      const TypeArguments& defaults) const;
+
+  void set_parameter_names(const Array& value) const;
+  void set_ic_data_array(const Array& value) const;
+  void SetInstructionsSafe(const Code& value) const;
   void set_name(const String& value) const;
   void set_kind(FunctionLayout::Kind value) const;
   void set_parent_function(const Function& value) const;
@@ -3882,6 +3958,13 @@ class ClosureData : public Object {
     return RoundedAllocationSize(sizeof(ClosureDataLayout));
   }
 
+  static intptr_t default_type_arguments_offset() {
+    return OFFSET_OF(ClosureDataLayout, default_type_arguments_);
+  }
+  static intptr_t default_type_arguments_info_offset() {
+    return OFFSET_OF(ClosureDataLayout, default_type_arguments_info_);
+  }
+
  private:
   ContextScopePtr context_scope() const { return raw_ptr()->context_scope_; }
   void set_context_scope(const ContextScope& value) const;
@@ -3896,6 +3979,14 @@ class ClosureData : public Object {
 
   InstancePtr implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
+
+  TypeArgumentsPtr default_type_arguments() const {
+    return raw_ptr()->default_type_arguments_;
+  }
+  void set_default_type_arguments(const TypeArguments& value) const;
+
+  intptr_t default_type_arguments_info() const;
+  void set_default_type_arguments_info(intptr_t value) const;
 
   static ClosureDataPtr New();
 
@@ -7702,15 +7793,17 @@ class TypeArguments : public Instance {
   intptr_t Length() const;
   AbstractTypePtr TypeAt(intptr_t index) const;
   AbstractTypePtr TypeAtNullSafe(intptr_t index) const;
+  static intptr_t types_offset() {
+    return OFFSET_OF_RETURNED_VALUE(TypeArgumentsLayout, types);
+  }
   static intptr_t type_at_offset(intptr_t index) {
-    return OFFSET_OF_RETURNED_VALUE(TypeArgumentsLayout, types) +
-           index * kWordSize;
+    return types_offset() + index * kWordSize;
   }
   void SetTypeAt(intptr_t index, const AbstractType& value) const;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
-      return TypeArguments::type_at_offset(0);
+      return TypeArguments::types_offset();
     }
 
     static constexpr intptr_t kElementSize = kWordSize;
@@ -7756,6 +7849,7 @@ class TypeArguments : public Instance {
       NameVisibility name_visibility,
       BaseTextBuffer* printer,
       NameDisambiguation name_disambiguation = NameDisambiguation::kNo) const;
+  void PrintTo(BaseTextBuffer* printer) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
@@ -8485,6 +8579,9 @@ class TypeParameter : public AbstractType {
   }
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const { return false; }
+  static intptr_t flags_offset() {
+    return OFFSET_OF(TypeParameterLayout, flags_);
+  }
   bool IsGenericCovariantImpl() const {
     return TypeParameterLayout::GenericCovariantImplBit::decode(
         raw_ptr()->flags_);
@@ -8520,6 +8617,9 @@ class TypeParameter : public AbstractType {
   }
 
   StringPtr name() const { return raw_ptr()->name_; }
+  static intptr_t name_offset() {
+    return OFFSET_OF(TypeParameterLayout, name_);
+  }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
   AbstractTypePtr bound() const { return raw_ptr()->bound_; }
@@ -8528,6 +8628,9 @@ class TypeParameter : public AbstractType {
     return raw_ptr()->default_argument_;
   }
   void set_default_argument(const AbstractType& value) const;
+  static intptr_t bound_offset() {
+    return OFFSET_OF(TypeParameterLayout, bound_);
+  }
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
                               intptr_t num_free_fun_type_params = kAllFree,

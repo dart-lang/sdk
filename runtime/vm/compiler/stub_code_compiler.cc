@@ -166,6 +166,19 @@ void StubCodeCompiler::GenerateAssertBooleanStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
+void StubCodeCompiler::GenerateAssertSubtypeStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ PushRegister(AssertSubtypeABI::kInstantiatorTypeArgumentsReg);
+  __ PushRegister(AssertSubtypeABI::kFunctionTypeArgumentsReg);
+  __ PushRegister(AssertSubtypeABI::kSubTypeReg);
+  __ PushRegister(AssertSubtypeABI::kSuperTypeReg);
+  __ PushRegister(AssertSubtypeABI::kDstNameReg);
+  __ CallRuntime(kSubtypeCheckRuntimeEntry, /*argument_count=*/5);
+  __ Drop(5);  // Drop unused result as well as arguments.
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for the result.

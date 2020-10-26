@@ -1417,7 +1417,7 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
 
   LoadStackSlots(5);
 
-  const String& dst_name = String::Cast(PopConstant().value());
+  Value* dst_name = Pop();
   Value* super_type = Pop();
   Value* sub_type = Pop();
   Value* function_type_args = Pop();

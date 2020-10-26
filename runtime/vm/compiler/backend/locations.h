@@ -27,6 +27,7 @@ class Value;
 // All unboxed integer representations.
 // Format: (representation name, is unsigned, value type)
 #define FOR_EACH_INTEGER_REPRESENTATION_KIND(M)                                \
+  M(UnboxedUint8, true, uint8_t)                                               \
   M(UnboxedInt32, false, int32_t)                                              \
   M(UnboxedUint32, true, uint32_t)                                             \
   M(UnboxedInt64, false, int64_t)

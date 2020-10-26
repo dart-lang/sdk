@@ -116,6 +116,20 @@ struct TypeTestABI {
   static const Register kResultReg = kNoRegister;
 };
 
+// Calling convention when calling kSubtypeCheckRuntimeEntry, to match other
+// architectures. We don't generate a call to the AssertSubtypeStub because we
+// need CODE_REG to store a fifth argument.
+struct AssertSubtypeABI {
+  static const Register kSubTypeReg = EAX;
+  static const Register kSuperTypeReg = EBX;
+  static const Register kInstantiatorTypeArgumentsReg = EDX;
+  static const Register kFunctionTypeArgumentsReg = ECX;
+  static const Register kDstNameReg = EDI;  /// On ia32 we don't use CODE_REG.
+
+  // No result register, as AssertSubtype is only run for side effect
+  // (throws if the subtype check fails).
+};
+
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
   static const Register kFieldReg = EAX;
