@@ -85,9 +85,7 @@ class ForwardingNode {
       Procedure stub = _combinedMemberSignature.createMemberFromSignature(
           copyLocation: false);
       if (_combinedMemberSignature.needsCovarianceMerging ||
-          // TODO(johnniwinther): It should not be marked as a forwarding stub i
-          // if there are no covariance changes.
-          cannotReuseExistingMember) {
+          _combinedMemberSignature.needsSuperImpl) {
         // This is a forward stub.
         Member finalTarget;
         if (interfaceMember is Procedure && interfaceMember.isForwardingStub) {
@@ -100,10 +98,10 @@ class ForwardingNode {
         stub.memberSignatureOrigin = null;
         stub.isForwardingStub = true;
         stub.forwardingStubInterfaceTarget = finalTarget;
-      }
-      if (_combinedMemberSignature.needsSuperImpl) {
-        _createForwardingImplIfNeeded(
-            stub.function, stub.name, classBuilder.cls);
+        if (_combinedMemberSignature.needsSuperImpl) {
+          _createForwardingImplIfNeeded(
+              stub.function, stub.name, classBuilder.cls);
+        }
       }
       return stub;
     } else {

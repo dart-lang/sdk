@@ -14,13 +14,13 @@ abstract class _C&Object&A&B = self::_C&Object&A with baz2::B /*isAnonymousMixin
   const synthetic constructor •() → self::_C&Object&A&B*
     : super self::_C&Object&A::•()
     ;
-  abstract forwarding-stub method toString({core::String* s = #C1}) → core::String*;
+  abstract member-signature method toString({core::String* s = #C1}) → core::String*; -> baz2::A::toString
 }
 class C extends self::_C&Object&A&B {
   synthetic constructor •() → self::C*
     : super self::_C&Object&A&B::•()
     ;
-  abstract forwarding-stub method toString({core::String* s = #C1}) → core::String*;
+  abstract member-signature method toString({core::String* s = #C1}) → core::String*; -> baz2::A::toString
 }
 static method main() → void {
   core::print(new baz2::B::•());

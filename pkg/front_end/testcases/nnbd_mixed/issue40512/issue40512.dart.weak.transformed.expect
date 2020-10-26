@@ -25,7 +25,7 @@ abstract class _C&Object&A&B extends self::_C&Object&A implements baz2::B /*isAn
   const synthetic constructor •() → self::_C&Object&A&B*
     : super self::_C&Object&A::•()
     ;
-  abstract forwarding-stub method toString({core::String* s = #C1}) → core::String*;
+  abstract member-signature method toString({core::String* s = #C1}) → core::String*; -> baz2::A::toString
   abstract member-signature get /* from org-dartlang-testcase:///issue40512_lib.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method /* from org-dartlang-testcase:///issue40512_lib.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method /* from org-dartlang-testcase:///issue40512_lib.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -40,7 +40,7 @@ class C extends self::_C&Object&A&B {
   synthetic constructor •() → self::C*
     : super self::_C&Object&A&B::•()
     ;
-  abstract forwarding-stub method toString({core::String* s = #C1}) → core::String*;
+  abstract member-signature method toString({core::String* s = #C1}) → core::String*; -> baz2::A::toString
 }
 static method main() → void {
   core::print(new baz2::B::•());
