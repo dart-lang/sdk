@@ -33,20 +33,30 @@ final testCases = [
       Pointer.fromFunction<PassStruct1ByteIntx10Type>(passStruct1ByteIntx10, 0),
       passStruct1ByteIntx10AfterCallback),
   CallbackTest.withCheck(
-      "PassStruct3BytesIntx10",
-      Pointer.fromFunction<PassStruct3BytesIntx10Type>(
-          passStruct3BytesIntx10, 0),
-      passStruct3BytesIntx10AfterCallback),
+      "PassStruct3BytesHomogeneousUint8x10",
+      Pointer.fromFunction<PassStruct3BytesHomogeneousUint8x10Type>(
+          passStruct3BytesHomogeneousUint8x10, 0),
+      passStruct3BytesHomogeneousUint8x10AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct3BytesInt2ByteAlignedx10",
+      Pointer.fromFunction<PassStruct3BytesInt2ByteAlignedx10Type>(
+          passStruct3BytesInt2ByteAlignedx10, 0),
+      passStruct3BytesInt2ByteAlignedx10AfterCallback),
   CallbackTest.withCheck(
       "PassStruct4BytesHomogeneousInt16x10",
       Pointer.fromFunction<PassStruct4BytesHomogeneousInt16x10Type>(
           passStruct4BytesHomogeneousInt16x10, 0),
       passStruct4BytesHomogeneousInt16x10AfterCallback),
   CallbackTest.withCheck(
-      "PassStruct7BytesIntx10",
-      Pointer.fromFunction<PassStruct7BytesIntx10Type>(
-          passStruct7BytesIntx10, 0),
-      passStruct7BytesIntx10AfterCallback),
+      "PassStruct7BytesHomogeneousUint8x10",
+      Pointer.fromFunction<PassStruct7BytesHomogeneousUint8x10Type>(
+          passStruct7BytesHomogeneousUint8x10, 0),
+      passStruct7BytesHomogeneousUint8x10AfterCallback),
+  CallbackTest.withCheck(
+      "PassStruct7BytesInt4ByteAlignedx10",
+      Pointer.fromFunction<PassStruct7BytesInt4ByteAlignedx10Type>(
+          passStruct7BytesInt4ByteAlignedx10, 0),
+      passStruct7BytesInt4ByteAlignedx10AfterCallback),
   CallbackTest.withCheck(
       "PassStruct8BytesIntx10",
       Pointer.fromFunction<PassStruct8BytesIntx10Type>(
@@ -63,15 +73,15 @@ final testCases = [
           passStruct8BytesMixedx10, 0.0),
       passStruct8BytesMixedx10AfterCallback),
   CallbackTest.withCheck(
-      "PassStruct9BytesIntx10",
-      Pointer.fromFunction<PassStruct9BytesIntx10Type>(
-          passStruct9BytesIntx10, 0),
-      passStruct9BytesIntx10AfterCallback),
+      "PassStruct9BytesHomogeneousUint8x10",
+      Pointer.fromFunction<PassStruct9BytesHomogeneousUint8x10Type>(
+          passStruct9BytesHomogeneousUint8x10, 0),
+      passStruct9BytesHomogeneousUint8x10AfterCallback),
   CallbackTest.withCheck(
-      "PassStruct9BytesHomogeneousUint82x10",
-      Pointer.fromFunction<PassStruct9BytesHomogeneousUint82x10Type>(
-          passStruct9BytesHomogeneousUint82x10, 0),
-      passStruct9BytesHomogeneousUint82x10AfterCallback),
+      "PassStruct9BytesInt4Or8ByteAlignedx10",
+      Pointer.fromFunction<PassStruct9BytesInt4Or8ByteAlignedx10Type>(
+          passStruct9BytesInt4Or8ByteAlignedx10, 0),
+      passStruct9BytesInt4Or8ByteAlignedx10AfterCallback),
   CallbackTest.withCheck(
       "PassStruct12BytesHomogeneousFloatx6",
       Pointer.fromFunction<PassStruct12BytesHomogeneousFloatx6Type>(
@@ -181,18 +191,30 @@ final testCases = [
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
   CallbackTest.withCheck(
-      "ReturnStruct3BytesInt",
-      Pointer.fromFunction<ReturnStruct3BytesIntType>(returnStruct3BytesInt),
-      returnStruct3BytesIntAfterCallback),
+      "ReturnStruct3BytesHomogeneousUint8",
+      Pointer.fromFunction<ReturnStruct3BytesHomogeneousUint8Type>(
+          returnStruct3BytesHomogeneousUint8),
+      returnStruct3BytesHomogeneousUint8AfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct3BytesInt2ByteAligned",
+      Pointer.fromFunction<ReturnStruct3BytesInt2ByteAlignedType>(
+          returnStruct3BytesInt2ByteAligned),
+      returnStruct3BytesInt2ByteAlignedAfterCallback),
   CallbackTest.withCheck(
       "ReturnStruct4BytesHomogeneousInt16",
       Pointer.fromFunction<ReturnStruct4BytesHomogeneousInt16Type>(
           returnStruct4BytesHomogeneousInt16),
       returnStruct4BytesHomogeneousInt16AfterCallback),
   CallbackTest.withCheck(
-      "ReturnStruct7BytesInt",
-      Pointer.fromFunction<ReturnStruct7BytesIntType>(returnStruct7BytesInt),
-      returnStruct7BytesIntAfterCallback),
+      "ReturnStruct7BytesHomogeneousUint8",
+      Pointer.fromFunction<ReturnStruct7BytesHomogeneousUint8Type>(
+          returnStruct7BytesHomogeneousUint8),
+      returnStruct7BytesHomogeneousUint8AfterCallback),
+  CallbackTest.withCheck(
+      "ReturnStruct7BytesInt4ByteAligned",
+      Pointer.fromFunction<ReturnStruct7BytesInt4ByteAlignedType>(
+          returnStruct7BytesInt4ByteAligned),
+      returnStruct7BytesInt4ByteAlignedAfterCallback),
   CallbackTest.withCheck(
       "ReturnStruct8BytesInt",
       Pointer.fromFunction<ReturnStruct8BytesIntType>(returnStruct8BytesInt),
@@ -208,14 +230,15 @@ final testCases = [
           returnStruct8BytesMixed),
       returnStruct8BytesMixedAfterCallback),
   CallbackTest.withCheck(
-      "ReturnStruct9BytesInt",
-      Pointer.fromFunction<ReturnStruct9BytesIntType>(returnStruct9BytesInt),
-      returnStruct9BytesIntAfterCallback),
+      "ReturnStruct9BytesHomogeneousUint8",
+      Pointer.fromFunction<ReturnStruct9BytesHomogeneousUint8Type>(
+          returnStruct9BytesHomogeneousUint8),
+      returnStruct9BytesHomogeneousUint8AfterCallback),
   CallbackTest.withCheck(
-      "ReturnStruct9BytesHomogeneousUint82",
-      Pointer.fromFunction<ReturnStruct9BytesHomogeneousUint82Type>(
-          returnStruct9BytesHomogeneousUint82),
-      returnStruct9BytesHomogeneousUint82AfterCallback),
+      "ReturnStruct9BytesInt4Or8ByteAligned",
+      Pointer.fromFunction<ReturnStruct9BytesInt4Or8ByteAlignedType>(
+          returnStruct9BytesInt4Or8ByteAligned),
+      returnStruct9BytesInt4Or8ByteAlignedAfterCallback),
   CallbackTest.withCheck(
       "ReturnStruct12BytesHomogeneousFloat",
       Pointer.fromFunction<ReturnStruct12BytesHomogeneousFloatType>(
@@ -414,77 +437,97 @@ void passStruct1ByteIntx10AfterCallback() {
   Expect.equals(5, result);
 }
 
-typedef PassStruct3BytesIntx10Type = Int64 Function(
-    Struct3BytesInt,
-    Struct3BytesInt,
-    Struct3BytesInt,
-    Struct3BytesInt,
-    Struct3BytesInt,
-    Struct3BytesInt,
-    Struct3BytesInt,
-    Struct3BytesInt,
-    Struct3BytesInt,
-    Struct3BytesInt);
+typedef PassStruct3BytesHomogeneousUint8x10Type = Int64 Function(
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8,
+    Struct3BytesHomogeneousUint8);
 
 // Global variables to be able to test inputs after callback returned.
-Struct3BytesInt passStruct3BytesIntx10_a0 = Struct3BytesInt();
-Struct3BytesInt passStruct3BytesIntx10_a1 = Struct3BytesInt();
-Struct3BytesInt passStruct3BytesIntx10_a2 = Struct3BytesInt();
-Struct3BytesInt passStruct3BytesIntx10_a3 = Struct3BytesInt();
-Struct3BytesInt passStruct3BytesIntx10_a4 = Struct3BytesInt();
-Struct3BytesInt passStruct3BytesIntx10_a5 = Struct3BytesInt();
-Struct3BytesInt passStruct3BytesIntx10_a6 = Struct3BytesInt();
-Struct3BytesInt passStruct3BytesIntx10_a7 = Struct3BytesInt();
-Struct3BytesInt passStruct3BytesIntx10_a8 = Struct3BytesInt();
-Struct3BytesInt passStruct3BytesIntx10_a9 = Struct3BytesInt();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a0 =
+    Struct3BytesHomogeneousUint8();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a1 =
+    Struct3BytesHomogeneousUint8();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a2 =
+    Struct3BytesHomogeneousUint8();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a3 =
+    Struct3BytesHomogeneousUint8();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a4 =
+    Struct3BytesHomogeneousUint8();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a5 =
+    Struct3BytesHomogeneousUint8();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a6 =
+    Struct3BytesHomogeneousUint8();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a7 =
+    Struct3BytesHomogeneousUint8();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a8 =
+    Struct3BytesHomogeneousUint8();
+Struct3BytesHomogeneousUint8 passStruct3BytesHomogeneousUint8x10_a9 =
+    Struct3BytesHomogeneousUint8();
 
 // Result variable also global, so we can delete it after the callback.
-int passStruct3BytesIntx10Result = 0;
+int passStruct3BytesHomogeneousUint8x10Result = 0;
 
-int passStruct3BytesIntx10CalculateResult() {
+int passStruct3BytesHomogeneousUint8x10CalculateResult() {
   int result = 0;
 
-  result += passStruct3BytesIntx10_a0.a0;
-  result += passStruct3BytesIntx10_a0.a1;
-  result += passStruct3BytesIntx10_a1.a0;
-  result += passStruct3BytesIntx10_a1.a1;
-  result += passStruct3BytesIntx10_a2.a0;
-  result += passStruct3BytesIntx10_a2.a1;
-  result += passStruct3BytesIntx10_a3.a0;
-  result += passStruct3BytesIntx10_a3.a1;
-  result += passStruct3BytesIntx10_a4.a0;
-  result += passStruct3BytesIntx10_a4.a1;
-  result += passStruct3BytesIntx10_a5.a0;
-  result += passStruct3BytesIntx10_a5.a1;
-  result += passStruct3BytesIntx10_a6.a0;
-  result += passStruct3BytesIntx10_a6.a1;
-  result += passStruct3BytesIntx10_a7.a0;
-  result += passStruct3BytesIntx10_a7.a1;
-  result += passStruct3BytesIntx10_a8.a0;
-  result += passStruct3BytesIntx10_a8.a1;
-  result += passStruct3BytesIntx10_a9.a0;
-  result += passStruct3BytesIntx10_a9.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a0.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a0.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a0.a2;
+  result += passStruct3BytesHomogeneousUint8x10_a1.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a1.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a1.a2;
+  result += passStruct3BytesHomogeneousUint8x10_a2.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a2.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a2.a2;
+  result += passStruct3BytesHomogeneousUint8x10_a3.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a3.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a3.a2;
+  result += passStruct3BytesHomogeneousUint8x10_a4.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a4.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a4.a2;
+  result += passStruct3BytesHomogeneousUint8x10_a5.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a5.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a5.a2;
+  result += passStruct3BytesHomogeneousUint8x10_a6.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a6.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a6.a2;
+  result += passStruct3BytesHomogeneousUint8x10_a7.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a7.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a7.a2;
+  result += passStruct3BytesHomogeneousUint8x10_a8.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a8.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a8.a2;
+  result += passStruct3BytesHomogeneousUint8x10_a9.a0;
+  result += passStruct3BytesHomogeneousUint8x10_a9.a1;
+  result += passStruct3BytesHomogeneousUint8x10_a9.a2;
 
-  passStruct3BytesIntx10Result = result;
+  passStruct3BytesHomogeneousUint8x10Result = result;
 
   return result;
 }
 
 /// Not a multiple of word size, not a power of two.
 /// 10 struct arguments will exhaust available registers.
-int passStruct3BytesIntx10(
-    Struct3BytesInt a0,
-    Struct3BytesInt a1,
-    Struct3BytesInt a2,
-    Struct3BytesInt a3,
-    Struct3BytesInt a4,
-    Struct3BytesInt a5,
-    Struct3BytesInt a6,
-    Struct3BytesInt a7,
-    Struct3BytesInt a8,
-    Struct3BytesInt a9) {
+int passStruct3BytesHomogeneousUint8x10(
+    Struct3BytesHomogeneousUint8 a0,
+    Struct3BytesHomogeneousUint8 a1,
+    Struct3BytesHomogeneousUint8 a2,
+    Struct3BytesHomogeneousUint8 a3,
+    Struct3BytesHomogeneousUint8 a4,
+    Struct3BytesHomogeneousUint8 a5,
+    Struct3BytesHomogeneousUint8 a6,
+    Struct3BytesHomogeneousUint8 a7,
+    Struct3BytesHomogeneousUint8 a8,
+    Struct3BytesHomogeneousUint8 a9) {
   print(
-      "passStruct3BytesIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+      "passStruct3BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
   // In legacy mode, possibly return null.
   if (a0.a0 == 84) {
@@ -495,29 +538,150 @@ int passStruct3BytesIntx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct3BytesIntx10 throwing on purpuse!");
+    throw Exception("PassStruct3BytesHomogeneousUint8x10 throwing on purpuse!");
   }
 
-  passStruct3BytesIntx10_a0 = a0;
-  passStruct3BytesIntx10_a1 = a1;
-  passStruct3BytesIntx10_a2 = a2;
-  passStruct3BytesIntx10_a3 = a3;
-  passStruct3BytesIntx10_a4 = a4;
-  passStruct3BytesIntx10_a5 = a5;
-  passStruct3BytesIntx10_a6 = a6;
-  passStruct3BytesIntx10_a7 = a7;
-  passStruct3BytesIntx10_a8 = a8;
-  passStruct3BytesIntx10_a9 = a9;
+  passStruct3BytesHomogeneousUint8x10_a0 = a0;
+  passStruct3BytesHomogeneousUint8x10_a1 = a1;
+  passStruct3BytesHomogeneousUint8x10_a2 = a2;
+  passStruct3BytesHomogeneousUint8x10_a3 = a3;
+  passStruct3BytesHomogeneousUint8x10_a4 = a4;
+  passStruct3BytesHomogeneousUint8x10_a5 = a5;
+  passStruct3BytesHomogeneousUint8x10_a6 = a6;
+  passStruct3BytesHomogeneousUint8x10_a7 = a7;
+  passStruct3BytesHomogeneousUint8x10_a8 = a8;
+  passStruct3BytesHomogeneousUint8x10_a9 = a9;
 
-  final result = passStruct3BytesIntx10CalculateResult();
+  final result = passStruct3BytesHomogeneousUint8x10CalculateResult();
 
   print("result = $result");
 
   return result;
 }
 
-void passStruct3BytesIntx10AfterCallback() {
-  final result = passStruct3BytesIntx10CalculateResult();
+void passStruct3BytesHomogeneousUint8x10AfterCallback() {
+  final result = passStruct3BytesHomogeneousUint8x10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(465, result);
+}
+
+typedef PassStruct3BytesInt2ByteAlignedx10Type = Int64 Function(
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned,
+    Struct3BytesInt2ByteAligned);
+
+// Global variables to be able to test inputs after callback returned.
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a0 =
+    Struct3BytesInt2ByteAligned();
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a1 =
+    Struct3BytesInt2ByteAligned();
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a2 =
+    Struct3BytesInt2ByteAligned();
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a3 =
+    Struct3BytesInt2ByteAligned();
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a4 =
+    Struct3BytesInt2ByteAligned();
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a5 =
+    Struct3BytesInt2ByteAligned();
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a6 =
+    Struct3BytesInt2ByteAligned();
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a7 =
+    Struct3BytesInt2ByteAligned();
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a8 =
+    Struct3BytesInt2ByteAligned();
+Struct3BytesInt2ByteAligned passStruct3BytesInt2ByteAlignedx10_a9 =
+    Struct3BytesInt2ByteAligned();
+
+// Result variable also global, so we can delete it after the callback.
+int passStruct3BytesInt2ByteAlignedx10Result = 0;
+
+int passStruct3BytesInt2ByteAlignedx10CalculateResult() {
+  int result = 0;
+
+  result += passStruct3BytesInt2ByteAlignedx10_a0.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a0.a1;
+  result += passStruct3BytesInt2ByteAlignedx10_a1.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a1.a1;
+  result += passStruct3BytesInt2ByteAlignedx10_a2.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a2.a1;
+  result += passStruct3BytesInt2ByteAlignedx10_a3.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a3.a1;
+  result += passStruct3BytesInt2ByteAlignedx10_a4.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a4.a1;
+  result += passStruct3BytesInt2ByteAlignedx10_a5.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a5.a1;
+  result += passStruct3BytesInt2ByteAlignedx10_a6.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a6.a1;
+  result += passStruct3BytesInt2ByteAlignedx10_a7.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a7.a1;
+  result += passStruct3BytesInt2ByteAlignedx10_a8.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a8.a1;
+  result += passStruct3BytesInt2ByteAlignedx10_a9.a0;
+  result += passStruct3BytesInt2ByteAlignedx10_a9.a1;
+
+  passStruct3BytesInt2ByteAlignedx10Result = result;
+
+  return result;
+}
+
+/// Not a multiple of word size, not a power of two.
+/// With alignment rules taken into account size is 4 bytes.
+/// 10 struct arguments will exhaust available registers.
+int passStruct3BytesInt2ByteAlignedx10(
+    Struct3BytesInt2ByteAligned a0,
+    Struct3BytesInt2ByteAligned a1,
+    Struct3BytesInt2ByteAligned a2,
+    Struct3BytesInt2ByteAligned a3,
+    Struct3BytesInt2ByteAligned a4,
+    Struct3BytesInt2ByteAligned a5,
+    Struct3BytesInt2ByteAligned a6,
+    Struct3BytesInt2ByteAligned a7,
+    Struct3BytesInt2ByteAligned a8,
+    Struct3BytesInt2ByteAligned a9) {
+  print(
+      "passStruct3BytesInt2ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct3BytesInt2ByteAlignedx10 throwing on purpuse!");
+  }
+
+  passStruct3BytesInt2ByteAlignedx10_a0 = a0;
+  passStruct3BytesInt2ByteAlignedx10_a1 = a1;
+  passStruct3BytesInt2ByteAlignedx10_a2 = a2;
+  passStruct3BytesInt2ByteAlignedx10_a3 = a3;
+  passStruct3BytesInt2ByteAlignedx10_a4 = a4;
+  passStruct3BytesInt2ByteAlignedx10_a5 = a5;
+  passStruct3BytesInt2ByteAlignedx10_a6 = a6;
+  passStruct3BytesInt2ByteAlignedx10_a7 = a7;
+  passStruct3BytesInt2ByteAlignedx10_a8 = a8;
+  passStruct3BytesInt2ByteAlignedx10_a9 = a9;
+
+  final result = passStruct3BytesInt2ByteAlignedx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct3BytesInt2ByteAlignedx10AfterCallback() {
+  final result = passStruct3BytesInt2ByteAlignedx10CalculateResult();
 
   print("after callback result = $result");
 
@@ -644,87 +808,137 @@ void passStruct4BytesHomogeneousInt16x10AfterCallback() {
   Expect.equals(10, result);
 }
 
-typedef PassStruct7BytesIntx10Type = Int64 Function(
-    Struct7BytesInt,
-    Struct7BytesInt,
-    Struct7BytesInt,
-    Struct7BytesInt,
-    Struct7BytesInt,
-    Struct7BytesInt,
-    Struct7BytesInt,
-    Struct7BytesInt,
-    Struct7BytesInt,
-    Struct7BytesInt);
+typedef PassStruct7BytesHomogeneousUint8x10Type = Int64 Function(
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8,
+    Struct7BytesHomogeneousUint8);
 
 // Global variables to be able to test inputs after callback returned.
-Struct7BytesInt passStruct7BytesIntx10_a0 = Struct7BytesInt();
-Struct7BytesInt passStruct7BytesIntx10_a1 = Struct7BytesInt();
-Struct7BytesInt passStruct7BytesIntx10_a2 = Struct7BytesInt();
-Struct7BytesInt passStruct7BytesIntx10_a3 = Struct7BytesInt();
-Struct7BytesInt passStruct7BytesIntx10_a4 = Struct7BytesInt();
-Struct7BytesInt passStruct7BytesIntx10_a5 = Struct7BytesInt();
-Struct7BytesInt passStruct7BytesIntx10_a6 = Struct7BytesInt();
-Struct7BytesInt passStruct7BytesIntx10_a7 = Struct7BytesInt();
-Struct7BytesInt passStruct7BytesIntx10_a8 = Struct7BytesInt();
-Struct7BytesInt passStruct7BytesIntx10_a9 = Struct7BytesInt();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a0 =
+    Struct7BytesHomogeneousUint8();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a1 =
+    Struct7BytesHomogeneousUint8();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a2 =
+    Struct7BytesHomogeneousUint8();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a3 =
+    Struct7BytesHomogeneousUint8();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a4 =
+    Struct7BytesHomogeneousUint8();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a5 =
+    Struct7BytesHomogeneousUint8();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a6 =
+    Struct7BytesHomogeneousUint8();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a7 =
+    Struct7BytesHomogeneousUint8();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a8 =
+    Struct7BytesHomogeneousUint8();
+Struct7BytesHomogeneousUint8 passStruct7BytesHomogeneousUint8x10_a9 =
+    Struct7BytesHomogeneousUint8();
 
 // Result variable also global, so we can delete it after the callback.
-int passStruct7BytesIntx10Result = 0;
+int passStruct7BytesHomogeneousUint8x10Result = 0;
 
-int passStruct7BytesIntx10CalculateResult() {
+int passStruct7BytesHomogeneousUint8x10CalculateResult() {
   int result = 0;
 
-  result += passStruct7BytesIntx10_a0.a0;
-  result += passStruct7BytesIntx10_a0.a1;
-  result += passStruct7BytesIntx10_a0.a2;
-  result += passStruct7BytesIntx10_a1.a0;
-  result += passStruct7BytesIntx10_a1.a1;
-  result += passStruct7BytesIntx10_a1.a2;
-  result += passStruct7BytesIntx10_a2.a0;
-  result += passStruct7BytesIntx10_a2.a1;
-  result += passStruct7BytesIntx10_a2.a2;
-  result += passStruct7BytesIntx10_a3.a0;
-  result += passStruct7BytesIntx10_a3.a1;
-  result += passStruct7BytesIntx10_a3.a2;
-  result += passStruct7BytesIntx10_a4.a0;
-  result += passStruct7BytesIntx10_a4.a1;
-  result += passStruct7BytesIntx10_a4.a2;
-  result += passStruct7BytesIntx10_a5.a0;
-  result += passStruct7BytesIntx10_a5.a1;
-  result += passStruct7BytesIntx10_a5.a2;
-  result += passStruct7BytesIntx10_a6.a0;
-  result += passStruct7BytesIntx10_a6.a1;
-  result += passStruct7BytesIntx10_a6.a2;
-  result += passStruct7BytesIntx10_a7.a0;
-  result += passStruct7BytesIntx10_a7.a1;
-  result += passStruct7BytesIntx10_a7.a2;
-  result += passStruct7BytesIntx10_a8.a0;
-  result += passStruct7BytesIntx10_a8.a1;
-  result += passStruct7BytesIntx10_a8.a2;
-  result += passStruct7BytesIntx10_a9.a0;
-  result += passStruct7BytesIntx10_a9.a1;
-  result += passStruct7BytesIntx10_a9.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a0.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a0.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a0.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a0.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a0.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a0.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a0.a6;
+  result += passStruct7BytesHomogeneousUint8x10_a1.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a1.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a1.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a1.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a1.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a1.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a1.a6;
+  result += passStruct7BytesHomogeneousUint8x10_a2.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a2.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a2.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a2.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a2.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a2.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a2.a6;
+  result += passStruct7BytesHomogeneousUint8x10_a3.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a3.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a3.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a3.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a3.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a3.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a3.a6;
+  result += passStruct7BytesHomogeneousUint8x10_a4.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a4.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a4.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a4.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a4.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a4.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a4.a6;
+  result += passStruct7BytesHomogeneousUint8x10_a5.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a5.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a5.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a5.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a5.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a5.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a5.a6;
+  result += passStruct7BytesHomogeneousUint8x10_a6.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a6.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a6.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a6.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a6.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a6.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a6.a6;
+  result += passStruct7BytesHomogeneousUint8x10_a7.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a7.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a7.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a7.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a7.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a7.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a7.a6;
+  result += passStruct7BytesHomogeneousUint8x10_a8.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a8.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a8.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a8.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a8.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a8.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a8.a6;
+  result += passStruct7BytesHomogeneousUint8x10_a9.a0;
+  result += passStruct7BytesHomogeneousUint8x10_a9.a1;
+  result += passStruct7BytesHomogeneousUint8x10_a9.a2;
+  result += passStruct7BytesHomogeneousUint8x10_a9.a3;
+  result += passStruct7BytesHomogeneousUint8x10_a9.a4;
+  result += passStruct7BytesHomogeneousUint8x10_a9.a5;
+  result += passStruct7BytesHomogeneousUint8x10_a9.a6;
 
-  passStruct7BytesIntx10Result = result;
+  passStruct7BytesHomogeneousUint8x10Result = result;
 
   return result;
 }
 
 /// Sub word size on 64 bit architectures.
 /// 10 struct arguments will exhaust available registers.
-int passStruct7BytesIntx10(
-    Struct7BytesInt a0,
-    Struct7BytesInt a1,
-    Struct7BytesInt a2,
-    Struct7BytesInt a3,
-    Struct7BytesInt a4,
-    Struct7BytesInt a5,
-    Struct7BytesInt a6,
-    Struct7BytesInt a7,
-    Struct7BytesInt a8,
-    Struct7BytesInt a9) {
+int passStruct7BytesHomogeneousUint8x10(
+    Struct7BytesHomogeneousUint8 a0,
+    Struct7BytesHomogeneousUint8 a1,
+    Struct7BytesHomogeneousUint8 a2,
+    Struct7BytesHomogeneousUint8 a3,
+    Struct7BytesHomogeneousUint8 a4,
+    Struct7BytesHomogeneousUint8 a5,
+    Struct7BytesHomogeneousUint8 a6,
+    Struct7BytesHomogeneousUint8 a7,
+    Struct7BytesHomogeneousUint8 a8,
+    Struct7BytesHomogeneousUint8 a9) {
   print(
-      "passStruct7BytesIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+      "passStruct7BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
   // In legacy mode, possibly return null.
   if (a0.a0 == 84) {
@@ -735,29 +949,160 @@ int passStruct7BytesIntx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct7BytesIntx10 throwing on purpuse!");
+    throw Exception("PassStruct7BytesHomogeneousUint8x10 throwing on purpuse!");
   }
 
-  passStruct7BytesIntx10_a0 = a0;
-  passStruct7BytesIntx10_a1 = a1;
-  passStruct7BytesIntx10_a2 = a2;
-  passStruct7BytesIntx10_a3 = a3;
-  passStruct7BytesIntx10_a4 = a4;
-  passStruct7BytesIntx10_a5 = a5;
-  passStruct7BytesIntx10_a6 = a6;
-  passStruct7BytesIntx10_a7 = a7;
-  passStruct7BytesIntx10_a8 = a8;
-  passStruct7BytesIntx10_a9 = a9;
+  passStruct7BytesHomogeneousUint8x10_a0 = a0;
+  passStruct7BytesHomogeneousUint8x10_a1 = a1;
+  passStruct7BytesHomogeneousUint8x10_a2 = a2;
+  passStruct7BytesHomogeneousUint8x10_a3 = a3;
+  passStruct7BytesHomogeneousUint8x10_a4 = a4;
+  passStruct7BytesHomogeneousUint8x10_a5 = a5;
+  passStruct7BytesHomogeneousUint8x10_a6 = a6;
+  passStruct7BytesHomogeneousUint8x10_a7 = a7;
+  passStruct7BytesHomogeneousUint8x10_a8 = a8;
+  passStruct7BytesHomogeneousUint8x10_a9 = a9;
 
-  final result = passStruct7BytesIntx10CalculateResult();
+  final result = passStruct7BytesHomogeneousUint8x10CalculateResult();
 
   print("result = $result");
 
   return result;
 }
 
-void passStruct7BytesIntx10AfterCallback() {
-  final result = passStruct7BytesIntx10CalculateResult();
+void passStruct7BytesHomogeneousUint8x10AfterCallback() {
+  final result = passStruct7BytesHomogeneousUint8x10CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(2485, result);
+}
+
+typedef PassStruct7BytesInt4ByteAlignedx10Type = Int64 Function(
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned,
+    Struct7BytesInt4ByteAligned);
+
+// Global variables to be able to test inputs after callback returned.
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a0 =
+    Struct7BytesInt4ByteAligned();
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a1 =
+    Struct7BytesInt4ByteAligned();
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a2 =
+    Struct7BytesInt4ByteAligned();
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a3 =
+    Struct7BytesInt4ByteAligned();
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a4 =
+    Struct7BytesInt4ByteAligned();
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a5 =
+    Struct7BytesInt4ByteAligned();
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a6 =
+    Struct7BytesInt4ByteAligned();
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a7 =
+    Struct7BytesInt4ByteAligned();
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a8 =
+    Struct7BytesInt4ByteAligned();
+Struct7BytesInt4ByteAligned passStruct7BytesInt4ByteAlignedx10_a9 =
+    Struct7BytesInt4ByteAligned();
+
+// Result variable also global, so we can delete it after the callback.
+int passStruct7BytesInt4ByteAlignedx10Result = 0;
+
+int passStruct7BytesInt4ByteAlignedx10CalculateResult() {
+  int result = 0;
+
+  result += passStruct7BytesInt4ByteAlignedx10_a0.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a0.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a0.a2;
+  result += passStruct7BytesInt4ByteAlignedx10_a1.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a1.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a1.a2;
+  result += passStruct7BytesInt4ByteAlignedx10_a2.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a2.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a2.a2;
+  result += passStruct7BytesInt4ByteAlignedx10_a3.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a3.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a3.a2;
+  result += passStruct7BytesInt4ByteAlignedx10_a4.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a4.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a4.a2;
+  result += passStruct7BytesInt4ByteAlignedx10_a5.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a5.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a5.a2;
+  result += passStruct7BytesInt4ByteAlignedx10_a6.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a6.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a6.a2;
+  result += passStruct7BytesInt4ByteAlignedx10_a7.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a7.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a7.a2;
+  result += passStruct7BytesInt4ByteAlignedx10_a8.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a8.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a8.a2;
+  result += passStruct7BytesInt4ByteAlignedx10_a9.a0;
+  result += passStruct7BytesInt4ByteAlignedx10_a9.a1;
+  result += passStruct7BytesInt4ByteAlignedx10_a9.a2;
+
+  passStruct7BytesInt4ByteAlignedx10Result = result;
+
+  return result;
+}
+
+/// Sub word size on 64 bit architectures.
+/// With alignment rules taken into account size is 8 bytes.
+/// 10 struct arguments will exhaust available registers.
+int passStruct7BytesInt4ByteAlignedx10(
+    Struct7BytesInt4ByteAligned a0,
+    Struct7BytesInt4ByteAligned a1,
+    Struct7BytesInt4ByteAligned a2,
+    Struct7BytesInt4ByteAligned a3,
+    Struct7BytesInt4ByteAligned a4,
+    Struct7BytesInt4ByteAligned a5,
+    Struct7BytesInt4ByteAligned a6,
+    Struct7BytesInt4ByteAligned a7,
+    Struct7BytesInt4ByteAligned a8,
+    Struct7BytesInt4ByteAligned a9) {
+  print(
+      "passStruct7BytesInt4ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+
+  // In legacy mode, possibly return null.
+  if (a0.a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0.a0 == 42 || a0.a0 == 84) {
+    print("throwing!");
+    throw Exception("PassStruct7BytesInt4ByteAlignedx10 throwing on purpuse!");
+  }
+
+  passStruct7BytesInt4ByteAlignedx10_a0 = a0;
+  passStruct7BytesInt4ByteAlignedx10_a1 = a1;
+  passStruct7BytesInt4ByteAlignedx10_a2 = a2;
+  passStruct7BytesInt4ByteAlignedx10_a3 = a3;
+  passStruct7BytesInt4ByteAlignedx10_a4 = a4;
+  passStruct7BytesInt4ByteAlignedx10_a5 = a5;
+  passStruct7BytesInt4ByteAlignedx10_a6 = a6;
+  passStruct7BytesInt4ByteAlignedx10_a7 = a7;
+  passStruct7BytesInt4ByteAlignedx10_a8 = a8;
+  passStruct7BytesInt4ByteAlignedx10_a9 = a9;
+
+  final result = passStruct7BytesInt4ByteAlignedx10CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passStruct7BytesInt4ByteAlignedx10AfterCallback() {
+  final result = passStruct7BytesInt4ByteAlignedx10CalculateResult();
 
   print("after callback result = $result");
 
@@ -1124,79 +1469,160 @@ void passStruct8BytesMixedx10AfterCallback() {
   Expect.approxEquals(15.0, result);
 }
 
-typedef PassStruct9BytesIntx10Type = Int64 Function(
-    Struct9BytesInt,
-    Struct9BytesInt,
-    Struct9BytesInt,
-    Struct9BytesInt,
-    Struct9BytesInt,
-    Struct9BytesInt,
-    Struct9BytesInt,
-    Struct9BytesInt,
-    Struct9BytesInt,
-    Struct9BytesInt);
+typedef PassStruct9BytesHomogeneousUint8x10Type = Int64 Function(
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8,
+    Struct9BytesHomogeneousUint8);
 
 // Global variables to be able to test inputs after callback returned.
-Struct9BytesInt passStruct9BytesIntx10_a0 = Struct9BytesInt();
-Struct9BytesInt passStruct9BytesIntx10_a1 = Struct9BytesInt();
-Struct9BytesInt passStruct9BytesIntx10_a2 = Struct9BytesInt();
-Struct9BytesInt passStruct9BytesIntx10_a3 = Struct9BytesInt();
-Struct9BytesInt passStruct9BytesIntx10_a4 = Struct9BytesInt();
-Struct9BytesInt passStruct9BytesIntx10_a5 = Struct9BytesInt();
-Struct9BytesInt passStruct9BytesIntx10_a6 = Struct9BytesInt();
-Struct9BytesInt passStruct9BytesIntx10_a7 = Struct9BytesInt();
-Struct9BytesInt passStruct9BytesIntx10_a8 = Struct9BytesInt();
-Struct9BytesInt passStruct9BytesIntx10_a9 = Struct9BytesInt();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a0 =
+    Struct9BytesHomogeneousUint8();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a1 =
+    Struct9BytesHomogeneousUint8();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a2 =
+    Struct9BytesHomogeneousUint8();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a3 =
+    Struct9BytesHomogeneousUint8();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a4 =
+    Struct9BytesHomogeneousUint8();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a5 =
+    Struct9BytesHomogeneousUint8();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a6 =
+    Struct9BytesHomogeneousUint8();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a7 =
+    Struct9BytesHomogeneousUint8();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a8 =
+    Struct9BytesHomogeneousUint8();
+Struct9BytesHomogeneousUint8 passStruct9BytesHomogeneousUint8x10_a9 =
+    Struct9BytesHomogeneousUint8();
 
 // Result variable also global, so we can delete it after the callback.
-int passStruct9BytesIntx10Result = 0;
+int passStruct9BytesHomogeneousUint8x10Result = 0;
 
-int passStruct9BytesIntx10CalculateResult() {
+int passStruct9BytesHomogeneousUint8x10CalculateResult() {
   int result = 0;
 
-  result += passStruct9BytesIntx10_a0.a0;
-  result += passStruct9BytesIntx10_a0.a1;
-  result += passStruct9BytesIntx10_a1.a0;
-  result += passStruct9BytesIntx10_a1.a1;
-  result += passStruct9BytesIntx10_a2.a0;
-  result += passStruct9BytesIntx10_a2.a1;
-  result += passStruct9BytesIntx10_a3.a0;
-  result += passStruct9BytesIntx10_a3.a1;
-  result += passStruct9BytesIntx10_a4.a0;
-  result += passStruct9BytesIntx10_a4.a1;
-  result += passStruct9BytesIntx10_a5.a0;
-  result += passStruct9BytesIntx10_a5.a1;
-  result += passStruct9BytesIntx10_a6.a0;
-  result += passStruct9BytesIntx10_a6.a1;
-  result += passStruct9BytesIntx10_a7.a0;
-  result += passStruct9BytesIntx10_a7.a1;
-  result += passStruct9BytesIntx10_a8.a0;
-  result += passStruct9BytesIntx10_a8.a1;
-  result += passStruct9BytesIntx10_a9.a0;
-  result += passStruct9BytesIntx10_a9.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a0.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a0.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a0.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a0.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a0.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a0.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a0.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a0.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a0.a8;
+  result += passStruct9BytesHomogeneousUint8x10_a1.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a1.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a1.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a1.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a1.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a1.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a1.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a1.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a1.a8;
+  result += passStruct9BytesHomogeneousUint8x10_a2.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a2.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a2.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a2.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a2.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a2.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a2.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a2.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a2.a8;
+  result += passStruct9BytesHomogeneousUint8x10_a3.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a3.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a3.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a3.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a3.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a3.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a3.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a3.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a3.a8;
+  result += passStruct9BytesHomogeneousUint8x10_a4.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a4.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a4.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a4.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a4.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a4.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a4.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a4.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a4.a8;
+  result += passStruct9BytesHomogeneousUint8x10_a5.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a5.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a5.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a5.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a5.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a5.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a5.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a5.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a5.a8;
+  result += passStruct9BytesHomogeneousUint8x10_a6.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a6.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a6.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a6.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a6.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a6.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a6.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a6.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a6.a8;
+  result += passStruct9BytesHomogeneousUint8x10_a7.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a7.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a7.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a7.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a7.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a7.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a7.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a7.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a7.a8;
+  result += passStruct9BytesHomogeneousUint8x10_a8.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a8.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a8.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a8.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a8.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a8.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a8.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a8.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a8.a8;
+  result += passStruct9BytesHomogeneousUint8x10_a9.a0;
+  result += passStruct9BytesHomogeneousUint8x10_a9.a1;
+  result += passStruct9BytesHomogeneousUint8x10_a9.a2;
+  result += passStruct9BytesHomogeneousUint8x10_a9.a3;
+  result += passStruct9BytesHomogeneousUint8x10_a9.a4;
+  result += passStruct9BytesHomogeneousUint8x10_a9.a5;
+  result += passStruct9BytesHomogeneousUint8x10_a9.a6;
+  result += passStruct9BytesHomogeneousUint8x10_a9.a7;
+  result += passStruct9BytesHomogeneousUint8x10_a9.a8;
 
-  passStruct9BytesIntx10Result = result;
+  passStruct9BytesHomogeneousUint8x10Result = result;
 
   return result;
 }
 
 /// Argument is a single byte over a multiple of word size.
 /// 10 struct arguments will exhaust available registers.
+/// Struct only has 1-byte aligned fields to test struct alignment itself.
 /// Tests upper bytes in the integer registers that are partly filled.
 /// Tests stack alignment of non word size stack arguments.
-int passStruct9BytesIntx10(
-    Struct9BytesInt a0,
-    Struct9BytesInt a1,
-    Struct9BytesInt a2,
-    Struct9BytesInt a3,
-    Struct9BytesInt a4,
-    Struct9BytesInt a5,
-    Struct9BytesInt a6,
-    Struct9BytesInt a7,
-    Struct9BytesInt a8,
-    Struct9BytesInt a9) {
+int passStruct9BytesHomogeneousUint8x10(
+    Struct9BytesHomogeneousUint8 a0,
+    Struct9BytesHomogeneousUint8 a1,
+    Struct9BytesHomogeneousUint8 a2,
+    Struct9BytesHomogeneousUint8 a3,
+    Struct9BytesHomogeneousUint8 a4,
+    Struct9BytesHomogeneousUint8 a5,
+    Struct9BytesHomogeneousUint8 a6,
+    Struct9BytesHomogeneousUint8 a7,
+    Struct9BytesHomogeneousUint8 a8,
+    Struct9BytesHomogeneousUint8 a9) {
   print(
-      "passStruct9BytesIntx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+      "passStruct9BytesHomogeneousUint8x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
   // In legacy mode, possibly return null.
   if (a0.a0 == 84) {
@@ -1207,188 +1633,118 @@ int passStruct9BytesIntx10(
   // In both nnbd and legacy mode, possibly throw.
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
-    throw Exception("PassStruct9BytesIntx10 throwing on purpuse!");
+    throw Exception("PassStruct9BytesHomogeneousUint8x10 throwing on purpuse!");
   }
 
-  passStruct9BytesIntx10_a0 = a0;
-  passStruct9BytesIntx10_a1 = a1;
-  passStruct9BytesIntx10_a2 = a2;
-  passStruct9BytesIntx10_a3 = a3;
-  passStruct9BytesIntx10_a4 = a4;
-  passStruct9BytesIntx10_a5 = a5;
-  passStruct9BytesIntx10_a6 = a6;
-  passStruct9BytesIntx10_a7 = a7;
-  passStruct9BytesIntx10_a8 = a8;
-  passStruct9BytesIntx10_a9 = a9;
+  passStruct9BytesHomogeneousUint8x10_a0 = a0;
+  passStruct9BytesHomogeneousUint8x10_a1 = a1;
+  passStruct9BytesHomogeneousUint8x10_a2 = a2;
+  passStruct9BytesHomogeneousUint8x10_a3 = a3;
+  passStruct9BytesHomogeneousUint8x10_a4 = a4;
+  passStruct9BytesHomogeneousUint8x10_a5 = a5;
+  passStruct9BytesHomogeneousUint8x10_a6 = a6;
+  passStruct9BytesHomogeneousUint8x10_a7 = a7;
+  passStruct9BytesHomogeneousUint8x10_a8 = a8;
+  passStruct9BytesHomogeneousUint8x10_a9 = a9;
 
-  final result = passStruct9BytesIntx10CalculateResult();
+  final result = passStruct9BytesHomogeneousUint8x10CalculateResult();
 
   print("result = $result");
 
   return result;
 }
 
-void passStruct9BytesIntx10AfterCallback() {
-  final result = passStruct9BytesIntx10CalculateResult();
+void passStruct9BytesHomogeneousUint8x10AfterCallback() {
+  final result = passStruct9BytesHomogeneousUint8x10CalculateResult();
 
   print("after callback result = $result");
 
-  Expect.equals(10, result);
+  Expect.equals(4095, result);
 }
 
-typedef PassStruct9BytesHomogeneousUint82x10Type = Int64 Function(
-    Struct9BytesHomogeneousUint82,
-    Struct9BytesHomogeneousUint82,
-    Struct9BytesHomogeneousUint82,
-    Struct9BytesHomogeneousUint82,
-    Struct9BytesHomogeneousUint82,
-    Struct9BytesHomogeneousUint82,
-    Struct9BytesHomogeneousUint82,
-    Struct9BytesHomogeneousUint82,
-    Struct9BytesHomogeneousUint82,
-    Struct9BytesHomogeneousUint82);
+typedef PassStruct9BytesInt4Or8ByteAlignedx10Type = Int64 Function(
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned,
+    Struct9BytesInt4Or8ByteAligned);
 
 // Global variables to be able to test inputs after callback returned.
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a0 =
-    Struct9BytesHomogeneousUint82();
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a1 =
-    Struct9BytesHomogeneousUint82();
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a2 =
-    Struct9BytesHomogeneousUint82();
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a3 =
-    Struct9BytesHomogeneousUint82();
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a4 =
-    Struct9BytesHomogeneousUint82();
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a5 =
-    Struct9BytesHomogeneousUint82();
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a6 =
-    Struct9BytesHomogeneousUint82();
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a7 =
-    Struct9BytesHomogeneousUint82();
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a8 =
-    Struct9BytesHomogeneousUint82();
-Struct9BytesHomogeneousUint82 passStruct9BytesHomogeneousUint82x10_a9 =
-    Struct9BytesHomogeneousUint82();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a0 =
+    Struct9BytesInt4Or8ByteAligned();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a1 =
+    Struct9BytesInt4Or8ByteAligned();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a2 =
+    Struct9BytesInt4Or8ByteAligned();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a3 =
+    Struct9BytesInt4Or8ByteAligned();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a4 =
+    Struct9BytesInt4Or8ByteAligned();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a5 =
+    Struct9BytesInt4Or8ByteAligned();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a6 =
+    Struct9BytesInt4Or8ByteAligned();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a7 =
+    Struct9BytesInt4Or8ByteAligned();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a8 =
+    Struct9BytesInt4Or8ByteAligned();
+Struct9BytesInt4Or8ByteAligned passStruct9BytesInt4Or8ByteAlignedx10_a9 =
+    Struct9BytesInt4Or8ByteAligned();
 
 // Result variable also global, so we can delete it after the callback.
-int passStruct9BytesHomogeneousUint82x10Result = 0;
+int passStruct9BytesInt4Or8ByteAlignedx10Result = 0;
 
-int passStruct9BytesHomogeneousUint82x10CalculateResult() {
+int passStruct9BytesInt4Or8ByteAlignedx10CalculateResult() {
   int result = 0;
 
-  result += passStruct9BytesHomogeneousUint82x10_a0.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a0.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a0.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a0.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a0.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a0.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a0.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a0.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a0.a8;
-  result += passStruct9BytesHomogeneousUint82x10_a1.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a1.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a1.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a1.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a1.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a1.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a1.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a1.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a1.a8;
-  result += passStruct9BytesHomogeneousUint82x10_a2.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a2.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a2.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a2.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a2.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a2.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a2.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a2.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a2.a8;
-  result += passStruct9BytesHomogeneousUint82x10_a3.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a3.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a3.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a3.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a3.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a3.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a3.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a3.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a3.a8;
-  result += passStruct9BytesHomogeneousUint82x10_a4.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a4.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a4.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a4.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a4.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a4.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a4.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a4.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a4.a8;
-  result += passStruct9BytesHomogeneousUint82x10_a5.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a5.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a5.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a5.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a5.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a5.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a5.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a5.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a5.a8;
-  result += passStruct9BytesHomogeneousUint82x10_a6.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a6.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a6.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a6.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a6.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a6.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a6.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a6.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a6.a8;
-  result += passStruct9BytesHomogeneousUint82x10_a7.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a7.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a7.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a7.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a7.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a7.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a7.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a7.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a7.a8;
-  result += passStruct9BytesHomogeneousUint82x10_a8.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a8.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a8.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a8.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a8.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a8.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a8.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a8.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a8.a8;
-  result += passStruct9BytesHomogeneousUint82x10_a9.a0;
-  result += passStruct9BytesHomogeneousUint82x10_a9.a1;
-  result += passStruct9BytesHomogeneousUint82x10_a9.a2;
-  result += passStruct9BytesHomogeneousUint82x10_a9.a3;
-  result += passStruct9BytesHomogeneousUint82x10_a9.a4;
-  result += passStruct9BytesHomogeneousUint82x10_a9.a5;
-  result += passStruct9BytesHomogeneousUint82x10_a9.a6;
-  result += passStruct9BytesHomogeneousUint82x10_a9.a7;
-  result += passStruct9BytesHomogeneousUint82x10_a9.a8;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a0.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a0.a1;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a1.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a1.a1;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a2.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a2.a1;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a3.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a3.a1;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a4.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a4.a1;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a5.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a5.a1;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a6.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a6.a1;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a7.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a7.a1;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a8.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a8.a1;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a9.a0;
+  result += passStruct9BytesInt4Or8ByteAlignedx10_a9.a1;
 
-  passStruct9BytesHomogeneousUint82x10Result = result;
+  passStruct9BytesInt4Or8ByteAlignedx10Result = result;
 
   return result;
 }
 
 /// Argument is a single byte over a multiple of word size.
+/// With alignment rules taken into account size is 12 or 16 bytes.
 /// 10 struct arguments will exhaust available registers.
-/// Struct only has 1-byte aligned fields to test struct alignment itself.
 ///
-int passStruct9BytesHomogeneousUint82x10(
-    Struct9BytesHomogeneousUint82 a0,
-    Struct9BytesHomogeneousUint82 a1,
-    Struct9BytesHomogeneousUint82 a2,
-    Struct9BytesHomogeneousUint82 a3,
-    Struct9BytesHomogeneousUint82 a4,
-    Struct9BytesHomogeneousUint82 a5,
-    Struct9BytesHomogeneousUint82 a6,
-    Struct9BytesHomogeneousUint82 a7,
-    Struct9BytesHomogeneousUint82 a8,
-    Struct9BytesHomogeneousUint82 a9) {
+int passStruct9BytesInt4Or8ByteAlignedx10(
+    Struct9BytesInt4Or8ByteAligned a0,
+    Struct9BytesInt4Or8ByteAligned a1,
+    Struct9BytesInt4Or8ByteAligned a2,
+    Struct9BytesInt4Or8ByteAligned a3,
+    Struct9BytesInt4Or8ByteAligned a4,
+    Struct9BytesInt4Or8ByteAligned a5,
+    Struct9BytesInt4Or8ByteAligned a6,
+    Struct9BytesInt4Or8ByteAligned a7,
+    Struct9BytesInt4Or8ByteAligned a8,
+    Struct9BytesInt4Or8ByteAligned a9) {
   print(
-      "passStruct9BytesHomogeneousUint82x10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
+      "passStruct9BytesInt4Or8ByteAlignedx10(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9})");
 
   // In legacy mode, possibly return null.
   if (a0.a0 == 84) {
@@ -1400,33 +1756,33 @@ int passStruct9BytesHomogeneousUint82x10(
   if (a0.a0 == 42 || a0.a0 == 84) {
     print("throwing!");
     throw Exception(
-        "PassStruct9BytesHomogeneousUint82x10 throwing on purpuse!");
+        "PassStruct9BytesInt4Or8ByteAlignedx10 throwing on purpuse!");
   }
 
-  passStruct9BytesHomogeneousUint82x10_a0 = a0;
-  passStruct9BytesHomogeneousUint82x10_a1 = a1;
-  passStruct9BytesHomogeneousUint82x10_a2 = a2;
-  passStruct9BytesHomogeneousUint82x10_a3 = a3;
-  passStruct9BytesHomogeneousUint82x10_a4 = a4;
-  passStruct9BytesHomogeneousUint82x10_a5 = a5;
-  passStruct9BytesHomogeneousUint82x10_a6 = a6;
-  passStruct9BytesHomogeneousUint82x10_a7 = a7;
-  passStruct9BytesHomogeneousUint82x10_a8 = a8;
-  passStruct9BytesHomogeneousUint82x10_a9 = a9;
+  passStruct9BytesInt4Or8ByteAlignedx10_a0 = a0;
+  passStruct9BytesInt4Or8ByteAlignedx10_a1 = a1;
+  passStruct9BytesInt4Or8ByteAlignedx10_a2 = a2;
+  passStruct9BytesInt4Or8ByteAlignedx10_a3 = a3;
+  passStruct9BytesInt4Or8ByteAlignedx10_a4 = a4;
+  passStruct9BytesInt4Or8ByteAlignedx10_a5 = a5;
+  passStruct9BytesInt4Or8ByteAlignedx10_a6 = a6;
+  passStruct9BytesInt4Or8ByteAlignedx10_a7 = a7;
+  passStruct9BytesInt4Or8ByteAlignedx10_a8 = a8;
+  passStruct9BytesInt4Or8ByteAlignedx10_a9 = a9;
 
-  final result = passStruct9BytesHomogeneousUint82x10CalculateResult();
+  final result = passStruct9BytesInt4Or8ByteAlignedx10CalculateResult();
 
   print("result = $result");
 
   return result;
 }
 
-void passStruct9BytesHomogeneousUint82x10AfterCallback() {
-  final result = passStruct9BytesHomogeneousUint82x10CalculateResult();
+void passStruct9BytesInt4Or8ByteAlignedx10AfterCallback() {
+  final result = passStruct9BytesInt4Or8ByteAlignedx10CalculateResult();
 
   print("after callback result = $result");
 
-  Expect.equals(4095, result);
+  Expect.equals(10, result);
 }
 
 typedef PassStruct12BytesHomogeneousFloatx6Type = Float Function(
@@ -3672,29 +4028,36 @@ void returnStruct1ByteIntAfterCallback() {
   free(returnStruct1ByteIntResult.addressOf);
 }
 
-typedef ReturnStruct3BytesIntType = Struct3BytesInt Function(Int16, Int8);
+typedef ReturnStruct3BytesHomogeneousUint8Type = Struct3BytesHomogeneousUint8
+    Function(Uint8, Uint8, Uint8);
 
 // Global variables to be able to test inputs after callback returned.
-int returnStruct3BytesInt_a0 = 0;
-int returnStruct3BytesInt_a1 = 0;
+int returnStruct3BytesHomogeneousUint8_a0 = 0;
+int returnStruct3BytesHomogeneousUint8_a1 = 0;
+int returnStruct3BytesHomogeneousUint8_a2 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct3BytesInt returnStruct3BytesIntResult = Struct3BytesInt();
+Struct3BytesHomogeneousUint8 returnStruct3BytesHomogeneousUint8Result =
+    Struct3BytesHomogeneousUint8();
 
-Struct3BytesInt returnStruct3BytesIntCalculateResult() {
-  Struct3BytesInt result = allocate<Struct3BytesInt>().ref;
+Struct3BytesHomogeneousUint8
+    returnStruct3BytesHomogeneousUint8CalculateResult() {
+  Struct3BytesHomogeneousUint8 result =
+      allocate<Struct3BytesHomogeneousUint8>().ref;
 
-  result.a0 = returnStruct3BytesInt_a0;
-  result.a1 = returnStruct3BytesInt_a1;
+  result.a0 = returnStruct3BytesHomogeneousUint8_a0;
+  result.a1 = returnStruct3BytesHomogeneousUint8_a1;
+  result.a2 = returnStruct3BytesHomogeneousUint8_a2;
 
-  returnStruct3BytesIntResult = result;
+  returnStruct3BytesHomogeneousUint8Result = result;
 
   return result;
 }
 
 /// Smaller than word size return value on all architectures.
-Struct3BytesInt returnStruct3BytesInt(int a0, int a1) {
-  print("returnStruct3BytesInt(${a0}, ${a1})");
+Struct3BytesHomogeneousUint8 returnStruct3BytesHomogeneousUint8(
+    int a0, int a1, int a2) {
+  print("returnStruct3BytesHomogeneousUint8(${a0}, ${a1}, ${a2})");
 
   // In legacy mode, possibly return null.
   if (a0 == 84) {
@@ -3705,27 +4068,88 @@ Struct3BytesInt returnStruct3BytesInt(int a0, int a1) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct3BytesInt throwing on purpuse!");
+    throw Exception("ReturnStruct3BytesHomogeneousUint8 throwing on purpuse!");
   }
 
-  returnStruct3BytesInt_a0 = a0;
-  returnStruct3BytesInt_a1 = a1;
+  returnStruct3BytesHomogeneousUint8_a0 = a0;
+  returnStruct3BytesHomogeneousUint8_a1 = a1;
+  returnStruct3BytesHomogeneousUint8_a2 = a2;
 
-  final result = returnStruct3BytesIntCalculateResult();
+  final result = returnStruct3BytesHomogeneousUint8CalculateResult();
 
   print("result = $result");
 
   return result;
 }
 
-void returnStruct3BytesIntAfterCallback() {
-  free(returnStruct3BytesIntResult.addressOf);
+void returnStruct3BytesHomogeneousUint8AfterCallback() {
+  free(returnStruct3BytesHomogeneousUint8Result.addressOf);
 
-  final result = returnStruct3BytesIntCalculateResult();
+  final result = returnStruct3BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct3BytesIntResult.addressOf);
+  free(returnStruct3BytesHomogeneousUint8Result.addressOf);
+}
+
+typedef ReturnStruct3BytesInt2ByteAlignedType = Struct3BytesInt2ByteAligned
+    Function(Int16, Int8);
+
+// Global variables to be able to test inputs after callback returned.
+int returnStruct3BytesInt2ByteAligned_a0 = 0;
+int returnStruct3BytesInt2ByteAligned_a1 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAlignedResult =
+    Struct3BytesInt2ByteAligned();
+
+Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAlignedCalculateResult() {
+  Struct3BytesInt2ByteAligned result =
+      allocate<Struct3BytesInt2ByteAligned>().ref;
+
+  result.a0 = returnStruct3BytesInt2ByteAligned_a0;
+  result.a1 = returnStruct3BytesInt2ByteAligned_a1;
+
+  returnStruct3BytesInt2ByteAlignedResult = result;
+
+  return result;
+}
+
+/// Smaller than word size return value on all architectures.
+/// With alignment rules taken into account size is 4 bytes.
+Struct3BytesInt2ByteAligned returnStruct3BytesInt2ByteAligned(int a0, int a1) {
+  print("returnStruct3BytesInt2ByteAligned(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct3BytesInt2ByteAligned throwing on purpuse!");
+  }
+
+  returnStruct3BytesInt2ByteAligned_a0 = a0;
+  returnStruct3BytesInt2ByteAligned_a1 = a1;
+
+  final result = returnStruct3BytesInt2ByteAlignedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct3BytesInt2ByteAlignedAfterCallback() {
+  free(returnStruct3BytesInt2ByteAlignedResult.addressOf);
+
+  final result = returnStruct3BytesInt2ByteAlignedCalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStruct3BytesInt2ByteAlignedResult.addressOf);
 }
 
 typedef ReturnStruct4BytesHomogeneousInt16Type = Struct4BytesHomogeneousInt16
@@ -3789,32 +4213,45 @@ void returnStruct4BytesHomogeneousInt16AfterCallback() {
   free(returnStruct4BytesHomogeneousInt16Result.addressOf);
 }
 
-typedef ReturnStruct7BytesIntType = Struct7BytesInt Function(
-    Int32, Int16, Int8);
+typedef ReturnStruct7BytesHomogeneousUint8Type = Struct7BytesHomogeneousUint8
+    Function(Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8);
 
 // Global variables to be able to test inputs after callback returned.
-int returnStruct7BytesInt_a0 = 0;
-int returnStruct7BytesInt_a1 = 0;
-int returnStruct7BytesInt_a2 = 0;
+int returnStruct7BytesHomogeneousUint8_a0 = 0;
+int returnStruct7BytesHomogeneousUint8_a1 = 0;
+int returnStruct7BytesHomogeneousUint8_a2 = 0;
+int returnStruct7BytesHomogeneousUint8_a3 = 0;
+int returnStruct7BytesHomogeneousUint8_a4 = 0;
+int returnStruct7BytesHomogeneousUint8_a5 = 0;
+int returnStruct7BytesHomogeneousUint8_a6 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct7BytesInt returnStruct7BytesIntResult = Struct7BytesInt();
+Struct7BytesHomogeneousUint8 returnStruct7BytesHomogeneousUint8Result =
+    Struct7BytesHomogeneousUint8();
 
-Struct7BytesInt returnStruct7BytesIntCalculateResult() {
-  Struct7BytesInt result = allocate<Struct7BytesInt>().ref;
+Struct7BytesHomogeneousUint8
+    returnStruct7BytesHomogeneousUint8CalculateResult() {
+  Struct7BytesHomogeneousUint8 result =
+      allocate<Struct7BytesHomogeneousUint8>().ref;
 
-  result.a0 = returnStruct7BytesInt_a0;
-  result.a1 = returnStruct7BytesInt_a1;
-  result.a2 = returnStruct7BytesInt_a2;
+  result.a0 = returnStruct7BytesHomogeneousUint8_a0;
+  result.a1 = returnStruct7BytesHomogeneousUint8_a1;
+  result.a2 = returnStruct7BytesHomogeneousUint8_a2;
+  result.a3 = returnStruct7BytesHomogeneousUint8_a3;
+  result.a4 = returnStruct7BytesHomogeneousUint8_a4;
+  result.a5 = returnStruct7BytesHomogeneousUint8_a5;
+  result.a6 = returnStruct7BytesHomogeneousUint8_a6;
 
-  returnStruct7BytesIntResult = result;
+  returnStruct7BytesHomogeneousUint8Result = result;
 
   return result;
 }
 
 /// Non-wordsize return value.
-Struct7BytesInt returnStruct7BytesInt(int a0, int a1, int a2) {
-  print("returnStruct7BytesInt(${a0}, ${a1}, ${a2})");
+Struct7BytesHomogeneousUint8 returnStruct7BytesHomogeneousUint8(
+    int a0, int a1, int a2, int a3, int a4, int a5, int a6) {
+  print(
+      "returnStruct7BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6})");
 
   // In legacy mode, possibly return null.
   if (a0 == 84) {
@@ -3825,28 +4262,96 @@ Struct7BytesInt returnStruct7BytesInt(int a0, int a1, int a2) {
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct7BytesInt throwing on purpuse!");
+    throw Exception("ReturnStruct7BytesHomogeneousUint8 throwing on purpuse!");
   }
 
-  returnStruct7BytesInt_a0 = a0;
-  returnStruct7BytesInt_a1 = a1;
-  returnStruct7BytesInt_a2 = a2;
+  returnStruct7BytesHomogeneousUint8_a0 = a0;
+  returnStruct7BytesHomogeneousUint8_a1 = a1;
+  returnStruct7BytesHomogeneousUint8_a2 = a2;
+  returnStruct7BytesHomogeneousUint8_a3 = a3;
+  returnStruct7BytesHomogeneousUint8_a4 = a4;
+  returnStruct7BytesHomogeneousUint8_a5 = a5;
+  returnStruct7BytesHomogeneousUint8_a6 = a6;
 
-  final result = returnStruct7BytesIntCalculateResult();
+  final result = returnStruct7BytesHomogeneousUint8CalculateResult();
 
   print("result = $result");
 
   return result;
 }
 
-void returnStruct7BytesIntAfterCallback() {
-  free(returnStruct7BytesIntResult.addressOf);
+void returnStruct7BytesHomogeneousUint8AfterCallback() {
+  free(returnStruct7BytesHomogeneousUint8Result.addressOf);
 
-  final result = returnStruct7BytesIntCalculateResult();
+  final result = returnStruct7BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct7BytesIntResult.addressOf);
+  free(returnStruct7BytesHomogeneousUint8Result.addressOf);
+}
+
+typedef ReturnStruct7BytesInt4ByteAlignedType = Struct7BytesInt4ByteAligned
+    Function(Int32, Int16, Int8);
+
+// Global variables to be able to test inputs after callback returned.
+int returnStruct7BytesInt4ByteAligned_a0 = 0;
+int returnStruct7BytesInt4ByteAligned_a1 = 0;
+int returnStruct7BytesInt4ByteAligned_a2 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAlignedResult =
+    Struct7BytesInt4ByteAligned();
+
+Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAlignedCalculateResult() {
+  Struct7BytesInt4ByteAligned result =
+      allocate<Struct7BytesInt4ByteAligned>().ref;
+
+  result.a0 = returnStruct7BytesInt4ByteAligned_a0;
+  result.a1 = returnStruct7BytesInt4ByteAligned_a1;
+  result.a2 = returnStruct7BytesInt4ByteAligned_a2;
+
+  returnStruct7BytesInt4ByteAlignedResult = result;
+
+  return result;
+}
+
+/// Non-wordsize return value.
+/// With alignment rules taken into account size is 8 bytes.
+Struct7BytesInt4ByteAligned returnStruct7BytesInt4ByteAligned(
+    int a0, int a1, int a2) {
+  print("returnStruct7BytesInt4ByteAligned(${a0}, ${a1}, ${a2})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception("ReturnStruct7BytesInt4ByteAligned throwing on purpuse!");
+  }
+
+  returnStruct7BytesInt4ByteAligned_a0 = a0;
+  returnStruct7BytesInt4ByteAligned_a1 = a1;
+  returnStruct7BytesInt4ByteAligned_a2 = a2;
+
+  final result = returnStruct7BytesInt4ByteAlignedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct7BytesInt4ByteAlignedAfterCallback() {
+  free(returnStruct7BytesInt4ByteAlignedResult.addressOf);
+
+  final result = returnStruct7BytesInt4ByteAlignedCalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStruct7BytesInt4ByteAlignedResult.addressOf);
 }
 
 typedef ReturnStruct8BytesIntType = Struct8BytesInt Function(
@@ -4030,97 +4535,40 @@ void returnStruct8BytesMixedAfterCallback() {
   free(returnStruct8BytesMixedResult.addressOf);
 }
 
-typedef ReturnStruct9BytesIntType = Struct9BytesInt Function(Int64, Int8);
-
-// Global variables to be able to test inputs after callback returned.
-int returnStruct9BytesInt_a0 = 0;
-int returnStruct9BytesInt_a1 = 0;
-
-// Result variable also global, so we can delete it after the callback.
-Struct9BytesInt returnStruct9BytesIntResult = Struct9BytesInt();
-
-Struct9BytesInt returnStruct9BytesIntCalculateResult() {
-  Struct9BytesInt result = allocate<Struct9BytesInt>().ref;
-
-  result.a0 = returnStruct9BytesInt_a0;
-  result.a1 = returnStruct9BytesInt_a1;
-
-  returnStruct9BytesIntResult = result;
-
-  return result;
-}
-
-/// Return value in two integer registers on x64.
-/// The second register only contains a single byte.
-Struct9BytesInt returnStruct9BytesInt(int a0, int a1) {
-  print("returnStruct9BytesInt(${a0}, ${a1})");
-
-  // In legacy mode, possibly return null.
-  if (a0 == 84) {
-    print("returning null!");
-    return null;
-  }
-
-  // In both nnbd and legacy mode, possibly throw.
-  if (a0 == 42 || a0 == 84) {
-    print("throwing!");
-    throw Exception("ReturnStruct9BytesInt throwing on purpuse!");
-  }
-
-  returnStruct9BytesInt_a0 = a0;
-  returnStruct9BytesInt_a1 = a1;
-
-  final result = returnStruct9BytesIntCalculateResult();
-
-  print("result = $result");
-
-  return result;
-}
-
-void returnStruct9BytesIntAfterCallback() {
-  free(returnStruct9BytesIntResult.addressOf);
-
-  final result = returnStruct9BytesIntCalculateResult();
-
-  print("after callback result = $result");
-
-  free(returnStruct9BytesIntResult.addressOf);
-}
-
-typedef ReturnStruct9BytesHomogeneousUint82Type = Struct9BytesHomogeneousUint82
+typedef ReturnStruct9BytesHomogeneousUint8Type = Struct9BytesHomogeneousUint8
     Function(Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8);
 
 // Global variables to be able to test inputs after callback returned.
-int returnStruct9BytesHomogeneousUint82_a0 = 0;
-int returnStruct9BytesHomogeneousUint82_a1 = 0;
-int returnStruct9BytesHomogeneousUint82_a2 = 0;
-int returnStruct9BytesHomogeneousUint82_a3 = 0;
-int returnStruct9BytesHomogeneousUint82_a4 = 0;
-int returnStruct9BytesHomogeneousUint82_a5 = 0;
-int returnStruct9BytesHomogeneousUint82_a6 = 0;
-int returnStruct9BytesHomogeneousUint82_a7 = 0;
-int returnStruct9BytesHomogeneousUint82_a8 = 0;
+int returnStruct9BytesHomogeneousUint8_a0 = 0;
+int returnStruct9BytesHomogeneousUint8_a1 = 0;
+int returnStruct9BytesHomogeneousUint8_a2 = 0;
+int returnStruct9BytesHomogeneousUint8_a3 = 0;
+int returnStruct9BytesHomogeneousUint8_a4 = 0;
+int returnStruct9BytesHomogeneousUint8_a5 = 0;
+int returnStruct9BytesHomogeneousUint8_a6 = 0;
+int returnStruct9BytesHomogeneousUint8_a7 = 0;
+int returnStruct9BytesHomogeneousUint8_a8 = 0;
 
 // Result variable also global, so we can delete it after the callback.
-Struct9BytesHomogeneousUint82 returnStruct9BytesHomogeneousUint82Result =
-    Struct9BytesHomogeneousUint82();
+Struct9BytesHomogeneousUint8 returnStruct9BytesHomogeneousUint8Result =
+    Struct9BytesHomogeneousUint8();
 
-Struct9BytesHomogeneousUint82
-    returnStruct9BytesHomogeneousUint82CalculateResult() {
-  Struct9BytesHomogeneousUint82 result =
-      allocate<Struct9BytesHomogeneousUint82>().ref;
+Struct9BytesHomogeneousUint8
+    returnStruct9BytesHomogeneousUint8CalculateResult() {
+  Struct9BytesHomogeneousUint8 result =
+      allocate<Struct9BytesHomogeneousUint8>().ref;
 
-  result.a0 = returnStruct9BytesHomogeneousUint82_a0;
-  result.a1 = returnStruct9BytesHomogeneousUint82_a1;
-  result.a2 = returnStruct9BytesHomogeneousUint82_a2;
-  result.a3 = returnStruct9BytesHomogeneousUint82_a3;
-  result.a4 = returnStruct9BytesHomogeneousUint82_a4;
-  result.a5 = returnStruct9BytesHomogeneousUint82_a5;
-  result.a6 = returnStruct9BytesHomogeneousUint82_a6;
-  result.a7 = returnStruct9BytesHomogeneousUint82_a7;
-  result.a8 = returnStruct9BytesHomogeneousUint82_a8;
+  result.a0 = returnStruct9BytesHomogeneousUint8_a0;
+  result.a1 = returnStruct9BytesHomogeneousUint8_a1;
+  result.a2 = returnStruct9BytesHomogeneousUint8_a2;
+  result.a3 = returnStruct9BytesHomogeneousUint8_a3;
+  result.a4 = returnStruct9BytesHomogeneousUint8_a4;
+  result.a5 = returnStruct9BytesHomogeneousUint8_a5;
+  result.a6 = returnStruct9BytesHomogeneousUint8_a6;
+  result.a7 = returnStruct9BytesHomogeneousUint8_a7;
+  result.a8 = returnStruct9BytesHomogeneousUint8_a8;
 
-  returnStruct9BytesHomogeneousUint82Result = result;
+  returnStruct9BytesHomogeneousUint8Result = result;
 
   return result;
 }
@@ -4128,10 +4576,10 @@ Struct9BytesHomogeneousUint82
 /// The minimum alignment of this struct is only 1 byte based on its fields.
 /// Test that the memory backing these structs is the right size and that
 /// dart:ffi trampolines do not write outside this size.
-Struct9BytesHomogeneousUint82 returnStruct9BytesHomogeneousUint82(
+Struct9BytesHomogeneousUint8 returnStruct9BytesHomogeneousUint8(
     int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8) {
   print(
-      "returnStruct9BytesHomogeneousUint82(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
+      "returnStruct9BytesHomogeneousUint8(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
   // In legacy mode, possibly return null.
   if (a0 == 84) {
@@ -4142,34 +4590,97 @@ Struct9BytesHomogeneousUint82 returnStruct9BytesHomogeneousUint82(
   // In both nnbd and legacy mode, possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
-    throw Exception("ReturnStruct9BytesHomogeneousUint82 throwing on purpuse!");
+    throw Exception("ReturnStruct9BytesHomogeneousUint8 throwing on purpuse!");
   }
 
-  returnStruct9BytesHomogeneousUint82_a0 = a0;
-  returnStruct9BytesHomogeneousUint82_a1 = a1;
-  returnStruct9BytesHomogeneousUint82_a2 = a2;
-  returnStruct9BytesHomogeneousUint82_a3 = a3;
-  returnStruct9BytesHomogeneousUint82_a4 = a4;
-  returnStruct9BytesHomogeneousUint82_a5 = a5;
-  returnStruct9BytesHomogeneousUint82_a6 = a6;
-  returnStruct9BytesHomogeneousUint82_a7 = a7;
-  returnStruct9BytesHomogeneousUint82_a8 = a8;
+  returnStruct9BytesHomogeneousUint8_a0 = a0;
+  returnStruct9BytesHomogeneousUint8_a1 = a1;
+  returnStruct9BytesHomogeneousUint8_a2 = a2;
+  returnStruct9BytesHomogeneousUint8_a3 = a3;
+  returnStruct9BytesHomogeneousUint8_a4 = a4;
+  returnStruct9BytesHomogeneousUint8_a5 = a5;
+  returnStruct9BytesHomogeneousUint8_a6 = a6;
+  returnStruct9BytesHomogeneousUint8_a7 = a7;
+  returnStruct9BytesHomogeneousUint8_a8 = a8;
 
-  final result = returnStruct9BytesHomogeneousUint82CalculateResult();
+  final result = returnStruct9BytesHomogeneousUint8CalculateResult();
 
   print("result = $result");
 
   return result;
 }
 
-void returnStruct9BytesHomogeneousUint82AfterCallback() {
-  free(returnStruct9BytesHomogeneousUint82Result.addressOf);
+void returnStruct9BytesHomogeneousUint8AfterCallback() {
+  free(returnStruct9BytesHomogeneousUint8Result.addressOf);
 
-  final result = returnStruct9BytesHomogeneousUint82CalculateResult();
+  final result = returnStruct9BytesHomogeneousUint8CalculateResult();
 
   print("after callback result = $result");
 
-  free(returnStruct9BytesHomogeneousUint82Result.addressOf);
+  free(returnStruct9BytesHomogeneousUint8Result.addressOf);
+}
+
+typedef ReturnStruct9BytesInt4Or8ByteAlignedType
+    = Struct9BytesInt4Or8ByteAligned Function(Int64, Int8);
+
+// Global variables to be able to test inputs after callback returned.
+int returnStruct9BytesInt4Or8ByteAligned_a0 = 0;
+int returnStruct9BytesInt4Or8ByteAligned_a1 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+Struct9BytesInt4Or8ByteAligned returnStruct9BytesInt4Or8ByteAlignedResult =
+    Struct9BytesInt4Or8ByteAligned();
+
+Struct9BytesInt4Or8ByteAligned
+    returnStruct9BytesInt4Or8ByteAlignedCalculateResult() {
+  Struct9BytesInt4Or8ByteAligned result =
+      allocate<Struct9BytesInt4Or8ByteAligned>().ref;
+
+  result.a0 = returnStruct9BytesInt4Or8ByteAligned_a0;
+  result.a1 = returnStruct9BytesInt4Or8ByteAligned_a1;
+
+  returnStruct9BytesInt4Or8ByteAlignedResult = result;
+
+  return result;
+}
+
+/// Return value in two integer registers on x64.
+/// With alignment rules taken into account size is 12 or 16 bytes.
+Struct9BytesInt4Or8ByteAligned returnStruct9BytesInt4Or8ByteAligned(
+    int a0, int a1) {
+  print("returnStruct9BytesInt4Or8ByteAligned(${a0}, ${a1})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "ReturnStruct9BytesInt4Or8ByteAligned throwing on purpuse!");
+  }
+
+  returnStruct9BytesInt4Or8ByteAligned_a0 = a0;
+  returnStruct9BytesInt4Or8ByteAligned_a1 = a1;
+
+  final result = returnStruct9BytesInt4Or8ByteAlignedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void returnStruct9BytesInt4Or8ByteAlignedAfterCallback() {
+  free(returnStruct9BytesInt4Or8ByteAlignedResult.addressOf);
+
+  final result = returnStruct9BytesInt4Or8ByteAlignedCalculateResult();
+
+  print("after callback result = $result");
+
+  free(returnStruct9BytesInt4Or8ByteAlignedResult.addressOf);
 }
 
 typedef ReturnStruct12BytesHomogeneousFloatType = Struct12BytesHomogeneousFloat

@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'c_types.dart';
-import 'structs_by_value_tests_confguration.dart';
+import 'structs_by_value_tests_configuration.dart';
 import 'utils.dart';
 
 /// The test type determines how to convert the arguments into return values
