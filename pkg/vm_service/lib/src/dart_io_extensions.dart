@@ -237,12 +237,12 @@ class SocketProfile extends Response {
 }
 
 /// A [Response] containing the enabled state of a service extension.
-abstract class State extends Response {
-  State({@required this.enabled});
+abstract class _State extends Response {
+  _State({@required this.enabled});
 
   // TODO(bkonyi): make this part of the vm_service.dart library so we can
   // call super._fromJson.
-  State._fromJson(Map<String, dynamic> json) : enabled = json['enabled'] {
+  _State._fromJson(Map<String, dynamic> json) : enabled = json['enabled'] {
     type = json['type'];
   }
 
@@ -251,7 +251,7 @@ abstract class State extends Response {
 
 /// A [HttpTimelineLoggingState] provides information about the current state of HTTP
 /// request logging for a given isolate.
-class HttpTimelineLoggingState extends State {
+class HttpTimelineLoggingState extends _State {
   static HttpTimelineLoggingState parse(Map json) =>
       json == null ? null : HttpTimelineLoggingState._fromJson(json);
 
@@ -263,7 +263,7 @@ class HttpTimelineLoggingState extends State {
 
 /// A [SocketProfilingState] provides information about the current state of
 /// socket profiling for a given isolate.
-class SocketProfilingState extends State {
+class SocketProfilingState extends _State {
   static SocketProfilingState parse(Map json) =>
       json == null ? null : SocketProfilingState._fromJson(json);
 

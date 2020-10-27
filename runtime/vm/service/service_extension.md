@@ -216,11 +216,13 @@ A _OpenFile_ contains information about reads and writes to a currently opened f
 ### HttpTimelineLoggingState
 
 ```
-class HttpTimelineLoggingState extends State {
+class HttpTimelineLoggingState extends Response {
+  // Whether Http timeline logging is enabled.
+  bool enabled;
 }
 ```
 
-See [httpEnableTimelineLogging](#httpenabletimelinelogging) and [State](#state).
+See [httpEnableTimelineLogging](#httpenabletimelinelogging).
 
 ### OpenFileList
 
@@ -234,11 +236,13 @@ class OpenFileList extends Response {
 ### SocketProfilingState
 
 ```
-class SocketProfilingState extends State {
+class SocketProfilingState extends Response {
+  // Whether socket profiling is enabled.
+  bool enabled;
 }
 ```
 
-See [socketProfilingEnabled](#socketProfilingEnabled) and [State](#state)
+See [socketProfilingEnabled](#socketProfilingEnabled).
 
 ### SpawnedProcess
 
@@ -357,16 +361,6 @@ class Success extends Response {
 ```
 
 The _Success_ type is used to indicate that an operation completed successfully.
-
-### State
-
-```
-class State extends Response {
-  bool enabled;
-}
-```
-
-The _State_ type is used to represent a response to a state request.
 
 ### Version
 

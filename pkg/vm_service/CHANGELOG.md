@@ -1,10 +1,11 @@
 # Changelog
-## 5.4.0
+## 5.3.1
+- Rename `State` class to `_State` to avoid class name conflicts with Flutter.
+
+## 5.3.0
 - Added support for `dart:io` extensions version 1.5.
 - Added combination getter/setter `socketProfilingEnabled`.
 - Deprecated `startSocketProfiling` and `pauseSocketProfiling`.
-
-## 5.3.0
 - Added support for `dart:io` extensions version 1.4.
 - Update to version `3.40.0` of the spec.
 - Added `IsolateFlag` class.
