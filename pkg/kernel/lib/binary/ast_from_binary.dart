@@ -1149,9 +1149,7 @@ class BinaryBuilder {
       node = null;
     }
     if (node == null) {
-      node = new Class(reference: reference)
-        ..level = ClassLevel.Temporary
-        ..dirty = false;
+      node = new Class(reference: reference)..dirty = false;
     }
 
     var fileUri = readUriReference();
@@ -1159,12 +1157,7 @@ class BinaryBuilder {
     node.fileOffset = readOffset();
     node.fileEndOffset = readOffset();
     int flags = readByte();
-    node.flags = flags & ~Class.LevelMask;
-    int levelIndex = flags & Class.LevelMask;
-    var level = ClassLevel.values[levelIndex + 1];
-    if (level.index >= node.level.index) {
-      node.level = level;
-    }
+    node.flags = flags;
     var name = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     assert(() {

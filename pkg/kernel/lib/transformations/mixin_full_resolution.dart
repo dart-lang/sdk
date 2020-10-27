@@ -83,8 +83,7 @@ class MixinFullResolution {
     }
 
     // Ensure super classes have been transformed before this class.
-    if (class_.superclass != null &&
-        class_.superclass.level.index >= ClassLevel.Mixin.index) {
+    if (class_.superclass != null) {
       transformClass(librariesToBeTransformed, processedClasses,
           transformedClasses, class_.superclass, referenceFromIndex);
     }
@@ -93,12 +92,6 @@ class MixinFullResolution {
     // constructors in this class.
     if (!class_.isMixinApplication) return;
     assert(librariesToBeTransformed.contains(enclosingLibrary));
-
-    if (class_.mixedInClass.level.index < ClassLevel.Mixin.index) {
-      throw new Exception(
-          'Class "${class_.name}" mixes in "${class_.mixedInClass.name}" from'
-          ' an external library.  Did you forget --link?');
-    }
 
     transformedClasses.add(class_);
 

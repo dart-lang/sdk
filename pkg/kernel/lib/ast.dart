@@ -366,10 +366,10 @@ class Library extends NamedNode
     _languageVersion = languageVersion;
   }
 
-  static const int SyntheticFlag = 1 << 1;
-  static const int NonNullableByDefaultFlag = 1 << 2;
-  static const int NonNullableByDefaultModeBit1 = 1 << 3;
-  static const int NonNullableByDefaultModeBit2 = 1 << 4;
+  static const int SyntheticFlag = 1 << 0;
+  static const int NonNullableByDefaultFlag = 1 << 1;
+  static const int NonNullableByDefaultModeBit1 = 1 << 2;
+  static const int NonNullableByDefaultModeBit2 = 1 << 3;
 
   int flags = 0;
 
@@ -872,53 +872,6 @@ class Typedef extends NamedNode implements FileUriNode {
   }
 }
 
-/// The degree to which the contents of a class have been loaded into memory.
-///
-/// Each level imply the requirements of the previous ones.
-enum ClassLevel {
-  /// Temporary loading level for internal use by IR producers.  Consumers of
-  /// kernel code should not expect to see classes at this level.
-  Temporary,
-
-  /// The class may be used as a type, and it may contain members that are
-  /// referenced from this build unit.
-  ///
-  /// The type parameters and their bounds are present.
-  ///
-  /// There is no guarantee that all members are present.
-  ///
-  /// All supertypes of this class are at [Type] level or higher.
-  Type,
-
-  /// All instance members of the class are present.
-  ///
-  /// All supertypes of this class are at [Hierarchy] level or higher.
-  ///
-  /// This level exists so supertypes of a fully loaded class contain all the
-  /// members needed to detect override constraints.
-  Hierarchy,
-
-  /// All instance members of the class have their body loaded, and their
-  /// annotations are present.
-  ///
-  /// All supertypes of this class are at [Hierarchy] level or higher.
-  ///
-  /// If this class is a mixin application, then its mixin is loaded at [Mixin]
-  /// level or higher.
-  ///
-  /// This level exists so the contents of a mixin can be cloned into a
-  /// mixin application.
-  Mixin,
-
-  /// All members of the class are fully loaded and are in the correct order.
-  ///
-  /// Annotations are present on classes and members.
-  ///
-  /// All supertypes of this class are at [Hierarchy] level or higher,
-  /// not necessarily at [Body] level.
-  Body,
-}
-
 /// List-wrapper that marks the parent-class as dirty if the list is modified.
 ///
 /// The idea being, that for non-dirty classes (classes just loaded from dill)
@@ -975,9 +928,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
 
-  /// The degree to which the contents of the class have been loaded.
-  ClassLevel level = ClassLevel.Body;
-
   /// List of metadata annotations on the class.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
@@ -994,13 +944,12 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   String name;
 
   // Must match serialized bit positions.
-  static const int LevelMask = 0x3; // Bits 0 and 1.
-  static const int FlagAbstract = 1 << 2;
-  static const int FlagEnum = 1 << 3;
-  static const int FlagAnonymousMixin = 1 << 4;
-  static const int FlagEliminatedMixin = 1 << 5;
-  static const int FlagMixinDeclaration = 1 << 6;
-  static const int FlagHasConstConstructor = 1 << 7;
+  static const int FlagAbstract = 1 << 0;
+  static const int FlagEnum = 1 << 1;
+  static const int FlagAnonymousMixin = 1 << 2;
+  static const int FlagEliminatedMixin = 1 << 3;
+  static const int FlagMixinDeclaration = 1 << 4;
+  static const int FlagHasConstConstructor = 1 << 5;
 
   int flags = 0;
 

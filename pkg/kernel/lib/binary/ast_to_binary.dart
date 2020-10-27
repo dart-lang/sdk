@@ -1113,20 +1113,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  int _encodeClassFlags(int flags, ClassLevel level) {
-    assert((flags & Class.LevelMask) == 0);
-    final levelIndex = level.index - 1;
-    assert((levelIndex & Class.LevelMask) == levelIndex);
-    return flags | levelIndex;
-  }
-
   @override
   void visitClass(Class node) {
     classOffsets.add(getBufferOffset());
 
     if (node.isAnonymousMixin) _currentlyInNonimplementation = true;
 
-    int flags = _encodeClassFlags(node.flags, node.level);
     if (node.canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
@@ -1137,7 +1129,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
 
-    writeByte(flags);
+    writeByte(node.flags);
     writeStringReference(node.name ?? '');
 
     enterScope(memberScope: true);

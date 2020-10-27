@@ -1040,8 +1040,6 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   Library& library =
       Library::Handle(Z, LookupLibrary(library_helper.canonical_name_));
 
-  // The Kernel library is external implies that it is already loaded.
-  ASSERT(!library_helper.IsExternal() || library.Loaded());
   if (library.Loaded()) return library.raw();
 
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());

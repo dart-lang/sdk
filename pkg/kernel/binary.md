@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 48;
+  UInt32 formatVersion = 49;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -230,8 +230,7 @@ type Name {
 }
 
 type Library {
-  Byte flags (_unused_, isSynthetic, isNonNullableByDefault,
-              nnbdModeBit1, nnbdModeBit2);
+  Byte flags (isSynthetic, isNonNullableByDefault, nnbdModeBit1, nnbdModeBit2);
   UInt languageVersionMajor;
   UInt languageVersionMinor;
   CanonicalNameReference canonicalName;
@@ -301,16 +300,6 @@ abstract type Node {
   Byte tag;
 }
 
-enum ClassLevel { Type = 0, Hierarchy = 1, Mixin = 2, Body = 3, }
-
-// A class can be represented at one of three levels: type, hierarchy, or body.
-//
-// If the enclosing library is external, a class is either at type or
-// hierarchy level, depending on its isTypeLevel flag.
-// If the enclosing library is not external, a class is always at body level.
-//
-// See ClassLevel in ast.dart for the details of each loading level.
-
 type Class extends Node {
   Byte tag = 2;
   CanonicalNameReference canonicalName;
@@ -319,9 +308,8 @@ type Class extends Node {
   FileOffset startFileOffset; // Offset of the start of the class including any annotations.
   FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
-  Byte flags (levelBit0, levelBit1, isAbstract, isEnum, isAnonymousMixin,
-              isEliminatedMixin, isMixinDeclaration,
-              hasConstConstructor); // Where level is index into ClassLevel
+  Byte flags (isAbstract, isEnum, isAnonymousMixin, isEliminatedMixin,
+              isMixinDeclaration, hasConstConstructor);
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;

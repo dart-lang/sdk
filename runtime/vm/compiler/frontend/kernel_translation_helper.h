@@ -689,12 +689,12 @@ class ClassHelper {
   };
 
   enum Flag {
-    kIsAbstract = 1 << 2,
-    kIsEnumClass = 1 << 3,
-    kIsAnonymousMixin = 1 << 4,
-    kIsEliminatedMixin = 1 << 5,
-    kFlagMixinDeclaration = 1 << 6,
-    kHasConstConstructor = 1 << 7,
+    kIsAbstract = 1 << 0,
+    kIsEnumClass = 1 << 1,
+    kIsAnonymousMixin = 1 << 2,
+    kIsEliminatedMixin = 1 << 3,
+    kFlagMixinDeclaration = 1 << 4,
+    kHasConstConstructor = 1 << 5,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -770,11 +770,10 @@ class LibraryHelper {
   };
 
   enum Flag {
-    kExternal = 1 << 0,
-    kSynthetic = 1 << 1,
-    kIsNonNullableByDefault = 1 << 2,
-    kNonNullableByDefaultCompiledModeBit1 = 1 << 3,
-    kNonNullableByDefaultCompiledModeBit2 = 1 << 4,
+    kSynthetic = 1 << 0,
+    kIsNonNullableByDefault = 1 << 1,
+    kNonNullableByDefaultCompiledModeBit1 = 1 << 2,
+    kNonNullableByDefaultCompiledModeBit2 = 1 << 3,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
@@ -789,7 +788,6 @@ class LibraryHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
   bool IsNonNullableByDefault() const {
     return (flags_ & kIsNonNullableByDefault) != 0;
