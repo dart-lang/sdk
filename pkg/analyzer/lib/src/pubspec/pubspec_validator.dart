@@ -5,6 +5,7 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:path/path.dart' as path;
@@ -204,6 +205,12 @@ class PubspecValidator {
   }
 
   /// Validate that `path` entries reference valid paths.
+  ///
+  /// Valid paths are directories that:
+  ///
+  /// 1. exist,
+  /// 2. contain a pubspec.yaml file, and
+  /// 3. `lib` dir
   void _validatePathEntries(ErrorReporter reporter, YamlNode dependency) {
     if (dependency is YamlMap) {
       for (var node in dependency.nodes.entries) {
@@ -214,9 +221,18 @@ class PubspecValidator {
           var packageRoot = context.dirname(source.fullName);
           var dependencyPath =
               path.canonicalize(context.join(packageRoot, normalizedPath));
-          if (!provider.getFolder(dependencyPath).exists) {
+          var packageFolder = provider.getFolder(dependencyPath);
+          if (!packageFolder.exists) {
             _reportErrorForNode(reporter, node.value,
                 PubspecWarningCode.PATH_DOES_NOT_EXIST, [pathEntry]);
+          } else {
+            if (!packageFolder
+                .getChild(AnalysisEngine.PUBSPEC_YAML_FILE)
+                .exists) {
+              _reportErrorForNode(reporter, node.value,
+                  PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST, [pathEntry]);
+            }
+            // todo (pq): test for presence of a lib dir.
           }
         }
       }

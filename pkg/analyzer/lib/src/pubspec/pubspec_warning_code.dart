@@ -72,6 +72,17 @@ class PubspecWarningCode extends ErrorCode {
       correction:
           "Try creating the referenced path or using a path that exists.");
 
+  /// A code indicating that a specified path dependency points to a directory
+  /// that does not contain a pubspec.
+  ///
+  /// Parameters:
+  /// 0: the path to the dependency as given in the file.
+  static const PubspecWarningCode PATH_PUBSPEC_DOES_NOT_EXIST = PubspecWarningCode(
+      'PATH_PUBSPEC_DOES_NOT_EXIST',
+      "The directory {0} does not contain a pubspec.",
+      correction:
+          "Try creating a pubspec in the referenced directory or using a path that has a pubspec.");
+
   /// A code indicating that a package listed as a dev dependency is also listed
   /// as a normal dependency.
   ///

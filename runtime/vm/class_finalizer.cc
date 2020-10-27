@@ -847,6 +847,7 @@ void ClassFinalizer::FinalizeSignature(const Function& function,
         type_param.set_default_argument(finalized_type);
       }
     }
+    function.UpdateCachedDefaultTypeArguments(Thread::Current());
   }
   // Finalize result type.
   type = function.result_type();

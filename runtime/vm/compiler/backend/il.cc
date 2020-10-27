@@ -2719,6 +2719,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:
     case Slot::Kind::kArgumentsDescriptor_size:
+    case Slot::Kind::kArrayElement:
     case Slot::Kind::kTypeArguments:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
     case Slot::Kind::kTypedDataView_data:
@@ -2730,8 +2731,12 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
     case Slot::Kind::kClosure_hash:
+    case Slot::Kind::kClosureData_default_type_arguments:
+    case Slot::Kind::kClosureData_default_type_arguments_info:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
+    case Slot::Kind::kFunction_data:
+    case Slot::Kind::kFunction_kind_tag:
     case Slot::Kind::kFunction_packed_fields:
     case Slot::Kind::kFunction_parameter_names:
     case Slot::Kind::kFunction_parameter_types:
@@ -2739,7 +2744,9 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
-    case Slot::Kind::kArrayElement:
+    case Slot::Kind::kTypeParameter_bound:
+    case Slot::Kind::kTypeParameter_flags:
+    case Slot::Kind::kTypeParameter_name:
     case Slot::Kind::kUnhandledException_exception:
     case Slot::Kind::kUnhandledException_stacktrace:
       return false;
@@ -2756,6 +2763,7 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kTypeArgumentsCid:
       return true;
     default:
       return false;
@@ -3779,6 +3787,9 @@ bool CheckNullInstr::AttributesEqual(Instruction* other) const {
 
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
+    case kUnboxedUint8:
+      return new BoxUint8Instr(value);
+
     case kUnboxedInt32:
       return new BoxInt32Instr(value);
 
@@ -4310,6 +4321,18 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void LoadFieldInstr::EmitNativeCodeForInitializerCall(
     FlowGraphCompiler* compiler) {
   ASSERT(calls_initializer());
+
+  if (throw_exception_on_initialization()) {
+    ThrowErrorSlowPathCode* slow_path =
+        new LateInitializationErrorSlowPath(this, compiler->CurrentTryIndex());
+    compiler->AddSlowPathCode(slow_path);
+
+    const Register result_reg = locs()->out(0).reg();
+    __ CompareObject(result_reg, Object::sentinel());
+    __ BranchIf(EQUAL, slow_path->entry_label());
+    return;
+  }
+
   ASSERT(locs()->in(0).reg() == InitInstanceFieldABI::kInstanceReg);
   ASSERT(locs()->out(0).reg() == InitInstanceFieldABI::kResultReg);
   ASSERT(slot().IsDartField());
@@ -5267,36 +5290,40 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
-  if (!sub_type()->BindsToConstant() || !super_type()->BindsToConstant()) {
-    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
-    UNREACHABLE();
-  }
-  const intptr_t kNumInputs = 4;
+  const intptr_t kNumInputs = 5;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(
-                         TypeTestABI::kInstantiatorTypeArgumentsReg));
+  summary->set_in(kInstantiatorTAVPos,
+                  Location::RegisterLocation(
+                      AssertSubtypeABI::kInstantiatorTypeArgumentsReg));
   summary->set_in(
-      1, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
-  summary->set_in(2,
-                  Location::Constant(sub_type()->definition()->AsConstant()));
-  summary->set_in(3,
-                  Location::Constant(super_type()->definition()->AsConstant()));
+      kFunctionTAVPos,
+      Location::RegisterLocation(AssertSubtypeABI::kFunctionTypeArgumentsReg));
+  summary->set_in(kSubTypePos,
+                  Location::RegisterLocation(AssertSubtypeABI::kSubTypeReg));
+  summary->set_in(kSuperTypePos,
+                  Location::RegisterLocation(AssertSubtypeABI::kSuperTypeReg));
+  summary->set_in(kDstNamePos,
+                  Location::RegisterLocation(AssertSubtypeABI::kDstNameReg));
   return summary;
 }
 
 void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ PushRegister(locs()->in(0).reg());
-  __ PushRegister(locs()->in(1).reg());
-  __ PushObject(locs()->in(2).constant());
-  __ PushObject(locs()->in(3).constant());
-  __ PushObject(dst_name());
-
+#if defined(TARGET_ARCH_IA32)
+  __ PushRegister(AssertSubtypeABI::kInstantiatorTypeArgumentsReg);
+  __ PushRegister(AssertSubtypeABI::kFunctionTypeArgumentsReg);
+  __ PushRegister(AssertSubtypeABI::kSubTypeReg);
+  __ PushRegister(AssertSubtypeABI::kSuperTypeReg);
+  __ PushRegister(AssertSubtypeABI::kDstNameReg);
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
                                 kSubtypeCheckRuntimeEntry, 5, locs());
 
   __ Drop(5);
+#else
+  compiler->GenerateStubCall(token_pos(), StubCode::AssertSubtype(),
+                             PcDescriptorsLayout::kOther, locs());
+#endif
 }
 
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
@@ -5358,7 +5385,9 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSharedSlowPath);
+      zone, kNumInputs, kNumTemps,
+      UseSharedSlowPathStub(opt) ? LocationSummary::kCallOnSharedSlowPath
+                                 : LocationSummary::kCallOnSlowPath);
   locs->set_in(kLengthPos,
                Location::RegisterLocation(RangeErrorABI::kLengthReg));
   locs->set_in(kIndexPos, Location::RegisterLocation(RangeErrorABI::kIndexReg));

@@ -109,7 +109,9 @@ class ObjectPointerVisitor;
   V(Dynamic, "dynamic")                                                        \
   V(DynamicCall, "dyn:call")                                                   \
   V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
+  V(DynamicCallCurrentFunctionVar, ":dyn_call_current_function")               \
   V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
+  V(DynamicCallFunctionTypeArgsVar, ":dyn_call_function_type_args")            \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \
@@ -447,6 +449,7 @@ class ObjectPointerVisitor;
   V(_handleMessage, "_handleMessage")                                          \
   V(_instanceOf, "_instanceOf")                                                \
   V(_lookupHandler, "_lookupHandler")                                          \
+  V(_lookupOpenPorts, "_lookupOpenPorts")                                      \
   V(_name, "_name")                                                            \
   V(_onData, "_onData")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \

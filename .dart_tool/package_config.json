@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-10-20T23:33:25.579167",
+  "generated": "2020-10-26T09:42:07.748397",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -149,6 +149,12 @@
       "rootUri": "../third_party/pkg/cli_util",
       "packageUri": "lib/",
       "languageVersion": "2.0"
+    },
+    {
+      "name": "clock",
+      "rootUri": "../third_party/pkg/clock",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
     },
     {
       "name": "collection",
@@ -332,7 +338,7 @@
       "name": "intl",
       "rootUri": "../third_party/pkg/intl",
       "packageUri": "lib/",
-      "languageVersion": "2.5"
+      "languageVersion": "2.11"
     },
     {
       "name": "js",
@@ -506,12 +512,6 @@
     {
       "name": "pub_semver",
       "rootUri": "../third_party/pkg/pub_semver",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
-    },
-    {
-      "name": "quiver",
-      "rootUri": "../third_party/pkg/quiver",
       "packageUri": "lib/",
       "languageVersion": "2.0"
     },

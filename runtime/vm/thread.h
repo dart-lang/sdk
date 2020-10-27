@@ -101,6 +101,10 @@ class Thread;
   V(CodePtr, invoke_dart_code_from_bytecode_stub_,                             \
     StubCode::InvokeDartCodeFromBytecode().raw(), nullptr)                     \
   V(CodePtr, call_to_runtime_stub_, StubCode::CallToRuntime().raw(), nullptr)  \
+  V(CodePtr, late_initialization_error_shared_without_fpu_regs_stub_,          \
+    StubCode::LateInitializationErrorSharedWithoutFPURegs().raw(), nullptr)    \
+  V(CodePtr, late_initialization_error_shared_with_fpu_regs_stub_,             \
+    StubCode::LateInitializationErrorSharedWithFPURegs().raw(), nullptr)       \
   V(CodePtr, null_error_shared_without_fpu_regs_stub_,                         \
     StubCode::NullErrorSharedWithoutFPURegs().raw(), nullptr)                  \
   V(CodePtr, null_error_shared_with_fpu_regs_stub_,                            \

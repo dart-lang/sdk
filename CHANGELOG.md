@@ -4,8 +4,14 @@
 
 #### `dart:io`
 
-*   `HttpRequest` will now correctly follow HTTP 308 redirects
-    (`HttpStatus.permanentRedirect`).
+* `HttpRequest` will now correctly follow HTTP 308 redirects
+  (`HttpStatus.permanentRedirect`).
+
+#### `dart:isolate`
+
+* Added `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
+  constructors, a name which can be associated with the port and displayed in
+  tooling.
 
 ### Dart VM
 

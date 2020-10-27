@@ -11,7 +11,7 @@ dependencies:
   build_integration:
     path: ../build_integration
   crypto: any
-  front_end: ^0.1.6
+  front_end: any
   kernel: ^0.3.6
   meta: any
   package_config: any
@@ -23,3 +23,7 @@ dev_dependencies:
   path: any
   test: any
   web_socket_channel: any
+
+dependency_overrides:
+  front_end:
+    path: ../front_end

@@ -525,7 +525,7 @@ void RegisterTypeArgumentsUse(const Function& function,
   //
   //   Case b)
   //      type_arguments <- InstantiateTypeArguments(ita, fta, uta)
-  //      (where uta may or may not be a constant TypeArguments object)
+  //      (where uta may not be a constant non-null TypeArguments object)
   //
   //   Case c)
   //      type_arguments <- LoadField(vx)
@@ -544,11 +544,12 @@ void RegisterTypeArgumentsUse(const Function& function,
     type_usage_info->UseTypeArgumentsInInstanceCreation(klass, type_arguments);
   } else if (InstantiateTypeArgumentsInstr* instantiate =
                  type_arguments->AsInstantiateTypeArguments()) {
-    ASSERT(instantiate->type_arguments()->BindsToConstant());
-    ASSERT(!instantiate->type_arguments()->BoundConstant().IsNull());
-    const auto& ta =
-        TypeArguments::Cast(instantiate->type_arguments()->BoundConstant());
-    type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
+    if (instantiate->type_arguments()->BindsToConstant() &&
+        !instantiate->type_arguments()->BoundConstant().IsNull()) {
+      const auto& ta =
+          TypeArguments::Cast(instantiate->type_arguments()->BoundConstant());
+      type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
+    }
   } else if (LoadFieldInstr* load_field = type_arguments->AsLoadField()) {
     Definition* instance = load_field->instance()->definition();
     intptr_t cid = instance->Type()->ToNullableCid();

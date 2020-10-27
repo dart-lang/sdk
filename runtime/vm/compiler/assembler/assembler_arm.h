@@ -835,10 +835,10 @@ class Assembler : public AssemblerBase {
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.
-  void LoadWordFromPoolOffset(Register rd,
-                              int32_t offset,
-                              Register pp,
-                              Condition cond = AL);
+  void LoadWordFromPoolIndex(Register rd,
+                             intptr_t index,
+                             Register pp = PP,
+                             Condition cond = AL);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);

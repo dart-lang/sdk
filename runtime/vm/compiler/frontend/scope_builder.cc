@@ -15,11 +15,10 @@ namespace kernel {
 #define T (type_translator_)
 #define I Isolate::Current()
 
-// Returns true if the given method can skip type checks for all arguments
+// Returns true if the given method can skip type checks for all type arguments
 // that are not covariant or generic covariant in its implementation.
-bool MethodCanSkipTypeChecksForNonCovariantArguments(
-    const Function& method,
-    const ProcedureAttributesMetadata& attrs) {
+bool MethodCanSkipTypeChecksForNonCovariantTypeArguments(
+    const Function& method) {
   // Dart 2 type system at non-dynamic call sites statically guarantees that
   // argument values match declarated parameter types for all non-covariant
   // and non-generic-covariant parameters. The same applies to type parameters
@@ -35,7 +34,28 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
   // been fully moved out of closures.
   return !method.CanReceiveDynamicInvocation() &&
          !(method.IsClosureFunction() &&
-           Function::ClosureBodiesContainNonCovariantChecks());
+           Function::ClosureBodiesContainNonCovariantTypeArgumentChecks());
+}
+
+// Returns true if the given method can skip type checks for all arguments
+// that are not covariant or generic covariant in its implementation.
+bool MethodCanSkipTypeChecksForNonCovariantArguments(const Function& method) {
+  // Dart 2 type system at non-dynamic call sites statically guarantees that
+  // argument values match declarated parameter types for all non-covariant
+  // and non-generic-covariant parameters. The same applies to type parameters
+  // bounds for type parameters of generic functions.
+  //
+  // Normally dynamic call sites will call dyn:* forwarders which perform type
+  // checks.
+  //
+  // Though for some kinds of methods (e.g. ffi trampolines called from native
+  // code) we do have to perform type checks for all parameters.
+  //
+  // TODO(dartbug.com/40813): Remove the closure case when argument checks have
+  // been fully moved out of closures.
+  return !method.CanReceiveDynamicInvocation() &&
+         !(method.IsClosureFunction() &&
+           Function::ClosureBodiesContainNonCovariantArgumentChecks());
 }
 
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
@@ -229,8 +249,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       } else if (function.IsNonImplicitClosureFunction()) {
         type_check_mode = kTypeCheckAllParameters;
       } else if (function.IsImplicitClosureFunction()) {
-        if (MethodCanSkipTypeChecksForNonCovariantArguments(
-                Function::Handle(Z, function.parent_function()), attrs)) {
+        if (MethodCanSkipTypeChecksForNonCovariantTypeArguments(
+                Function::Handle(Z, function.parent_function())) &&
+            MethodCanSkipTypeChecksForNonCovariantArguments(
+                Function::Handle(Z, function.parent_function()))) {
           // This is a tear-off of an instance method that can not be reached
           // from any dynamic invocation. The method would not check any
           // parameters except covariant ones and those annotated with
@@ -243,8 +265,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         if (function.is_static()) {
           // In static functions we don't check anything.
           type_check_mode = kTypeCheckForStaticFunction;
-        } else if (MethodCanSkipTypeChecksForNonCovariantArguments(function,
-                                                                   attrs)) {
+        } else if (MethodCanSkipTypeChecksForNonCovariantTypeArguments(
+                       function) &&
+                   MethodCanSkipTypeChecksForNonCovariantArguments(function)) {
           // If the current function is never a target of a dynamic invocation
           // and this parameter is not marked with generic-covariant-impl
           // (which means that among all super-interfaces no type parameters
@@ -319,7 +342,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         scope_->InsertParameterAt(pos++, result_->setter_value);
 
         if (is_method &&
-            MethodCanSkipTypeChecksForNonCovariantArguments(function, attrs)) {
+            MethodCanSkipTypeChecksForNonCovariantTypeArguments(function) &&
+            MethodCanSkipTypeChecksForNonCovariantArguments(function)) {
           if (field.is_covariant()) {
             result_->setter_value->set_is_explicit_covariant_parameter();
           } else if (!field.is_generic_covariant_impl() ||

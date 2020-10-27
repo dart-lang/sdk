@@ -1815,6 +1815,10 @@ CompileType LoadIndexedInstr::ComputeType() const {
       }
       return ComputeArrayElementType(array());
 
+    case kTypeArgumentsCid:
+      return CompileType::FromAbstractType(Object::dynamic_type(),
+                                           /*is_nullable=*/false);
+
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return CompileType::FromCid(kDoubleCid);

@@ -166,6 +166,19 @@ void StubCodeCompiler::GenerateAssertBooleanStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
+void StubCodeCompiler::GenerateAssertSubtypeStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ PushRegister(AssertSubtypeABI::kInstantiatorTypeArgumentsReg);
+  __ PushRegister(AssertSubtypeABI::kFunctionTypeArgumentsReg);
+  __ PushRegister(AssertSubtypeABI::kSubTypeReg);
+  __ PushRegister(AssertSubtypeABI::kSuperTypeReg);
+  __ PushRegister(AssertSubtypeABI::kDstNameReg);
+  __ CallRuntime(kSubtypeCheckRuntimeEntry, /*argument_count=*/5);
+  __ Drop(5);  // Drop unused result as well as arguments.
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for the result.
@@ -203,6 +216,106 @@ void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(
   }
 CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATION_STUB)
 #undef TYPED_DATA_ALLOCATION_STUB
+
+void StubCodeCompiler::GenerateLateInitializationError(Assembler* assembler,
+                                                       bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+    __ PushRegister(LateInitializationErrorABI::kFieldReg);
+    __ CallRuntime(kLateInitializationErrorRuntimeEntry, /*argument_count=*/1);
+  };
+  GenerateSharedStubGeneric(
+      assembler, /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::
+                late_initialization_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::
+                late_initialization_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
+}
+
+void StubCodeCompiler::GenerateLateInitializationErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateLateInitializationError(assembler, /*with_fpu_regs=*/false);
+}
+
+void StubCodeCompiler::GenerateLateInitializationErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateLateInitializationError(assembler, /*with_fpu_regs=*/true);
+}
+
+void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kNullErrorRuntimeEntry,
+      target::Thread::null_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
+      target::Thread::null_error_shared_with_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
+      target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
+      target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullCastErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kNullCastErrorRuntimeEntry,
+      target::Thread::null_cast_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullCastErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/true, &kNullCastErrorRuntimeEntry,
+      target::Thread::null_cast_error_shared_with_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kStackOverflowRuntimeEntry,
+      target::Thread::stack_overflow_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/true);
+}
+
+void StubCodeCompiler::GenerateStackOverflowSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/true, &kStackOverflowRuntimeEntry,
+      target::Thread::stack_overflow_shared_with_fpu_regs_stub_offset(),
+      /*allow_return=*/true);
+}
+
+void StubCodeCompiler::GenerateRangeErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateRangeError(assembler, /*with_fpu_regs=*/false);
+}
+
+void StubCodeCompiler::GenerateRangeErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateRangeError(assembler, /*with_fpu_regs=*/true);
+}
 
 }  // namespace compiler
 

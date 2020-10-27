@@ -215,7 +215,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Regress43786) {
         final root = List<dynamic>.filled(128, null);
         List<dynamic> last = root;
         for (int i = 0; i < 10 * 1024; ++i) {
-          final nc = List(128);
+          final nc = List<dynamic>.filled(128, null);
           last[0] = nc;
           last = nc;
         }

@@ -56,6 +56,8 @@ class ParsedFunction;
   V(Closure, ClosureLayout, instantiator_type_arguments, TypeArguments, FINAL) \
   V(Closure, ClosureLayout, delayed_type_arguments, TypeArguments, FINAL)      \
   V(Closure, ClosureLayout, function_type_arguments, TypeArguments, FINAL)     \
+  V(ClosureData, ClosureDataLayout, default_type_arguments, TypeArguments,     \
+    FINAL)                                                                     \
   V(Function, FunctionLayout, type_parameters, TypeArguments, FINAL)           \
   V(Type, TypeLayout, arguments, TypeArguments, FINAL)
 
@@ -77,6 +79,8 @@ class ParsedFunction;
   V(Closure, ClosureLayout, function, Function, FINAL)                         \
   V(Closure, ClosureLayout, context, Context, FINAL)                           \
   V(Closure, ClosureLayout, hash, Context, VAR)                                \
+  V(ClosureData, ClosureDataLayout, default_type_arguments_info, Smi, FINAL)   \
+  V(Function, FunctionLayout, data, Dynamic, FINAL)                            \
   V(Function, FunctionLayout, parameter_names, Array, FINAL)                   \
   V(Function, FunctionLayout, parameter_types, Array, FINAL)                   \
   V(GrowableObjectArray, GrowableObjectArrayLayout, length, Smi, VAR)          \
@@ -96,6 +100,8 @@ class ParsedFunction;
   V(ArgumentsDescriptor, ArrayLayout, size, Smi, FINAL)                        \
   V(PointerBase, PointerBaseLayout, data_field, Dynamic, FINAL)                \
   V(TypeArguments, TypeArgumentsLayout, length, Smi, FINAL)                    \
+  V(TypeParameter, TypeParameterLayout, bound, Dynamic, FINAL)                 \
+  V(TypeParameter, TypeParameterLayout, name, Dynamic, FINAL)                  \
   V(UnhandledException, UnhandledExceptionLayout, exception, Dynamic, FINAL)   \
   V(UnhandledException, UnhandledExceptionLayout, stacktrace, Dynamic, FINAL)
 
@@ -115,7 +121,9 @@ class ParsedFunction;
 //
 // Note: As the underlying field is unboxed, these slots cannot be nullable.
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
-  V(Function, FunctionLayout, packed_fields, Uint32, FINAL)
+  V(Function, FunctionLayout, kind_tag, Uint32, FINAL)                         \
+  V(Function, FunctionLayout, packed_fields, Uint32, FINAL)                    \
+  V(TypeParameter, TypeParameterLayout, flags, Uint8, FINAL)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
 // or whether a boxed native slot is nullable. (Generally, such users only need

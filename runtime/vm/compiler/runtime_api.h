@@ -492,7 +492,9 @@ class Instance : public AllStatic {
 class Function : public AllStatic {
  public:
   static word code_offset();
+  static word data_offset();
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
+  static word kind_tag_offset();
   static word packed_fields_offset();
   static word parameter_names_offset();
   static word parameter_types_offset();
@@ -899,6 +901,9 @@ class Bool : public AllStatic {
 
 class TypeParameter : public AllStatic {
  public:
+  static word bound_offset();
+  static word flags_offset();
+  static word name_offset();
   static word InstanceSize();
   static word NextFieldOffset();
   static word parameterized_class_id_offset();
@@ -1064,6 +1069,8 @@ class Thread : public AllStatic {
   static word invoke_dart_code_stub_offset();
   static word interpret_call_entry_point_offset();
   static word invoke_dart_code_from_bytecode_stub_offset();
+  static word late_initialization_error_shared_without_fpu_regs_stub_offset();
+  static word late_initialization_error_shared_with_fpu_regs_stub_offset();
   static word null_error_shared_without_fpu_regs_stub_offset();
   static word null_error_shared_with_fpu_regs_stub_offset();
   static word null_arg_error_shared_without_fpu_regs_stub_offset();
@@ -1252,6 +1259,8 @@ class Closure : public AllStatic {
 
 class ClosureData : public AllStatic {
  public:
+  static word default_type_arguments_offset();
+  static word default_type_arguments_info_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };
@@ -1326,8 +1335,11 @@ class TypeArguments : public AllStatic {
   static word length_offset();
   static word nullability_offset();
   static word type_at_offset(intptr_t i);
+  static word types_offset();
   static word InstanceSize();
   static word NextFieldOffset();
+
+  static const word kMaxElements;
 };
 
 class FreeListElement : public AllStatic {

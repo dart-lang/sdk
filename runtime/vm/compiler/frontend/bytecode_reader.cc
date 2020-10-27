@@ -674,6 +674,7 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     // Do not set type parameters for factories, as VM uses class type
     // parameters instead.
     parameterized_function.set_type_parameters(type_parameters);
+    parameterized_function.UpdateCachedDefaultTypeArguments(thread_);
     if (parameterized_function.IsSignatureFunction()) {
       if (function_type_type_parameters_ == nullptr) {
         function_type_type_parameters_ = &type_parameters;
@@ -3136,6 +3137,7 @@ void BytecodeReaderHelper::ParseForwarderFunction(
         type = type_args.TypeAt(i);
         param.set_default_argument(type);
       }
+      function.UpdateCachedDefaultTypeArguments(thread_);
     }
   }
 

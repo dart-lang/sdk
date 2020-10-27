@@ -1033,7 +1033,7 @@ class Assembler : public AssemblerBase {
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
-  void LoadWordFromPoolOffset(Register dst, int32_t offset);
+  void LoadWordFromPoolIndex(Register dst, intptr_t index);
 
   void AluL(uint8_t modrm_opcode, Register dst, const Immediate& imm);
   void AluB(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);

@@ -289,7 +289,7 @@ class ClassSerializationCluster : public SerializationCluster {
 
 class ClassDeserializationCluster : public DeserializationCluster {
  public:
-  ClassDeserializationCluster() {}
+  ClassDeserializationCluster() : DeserializationCluster("Class") {}
   ~ClassDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -463,7 +463,8 @@ class TypeArgumentsSerializationCluster : public SerializationCluster {
 
 class TypeArgumentsDeserializationCluster : public DeserializationCluster {
  public:
-  TypeArgumentsDeserializationCluster() {}
+  TypeArgumentsDeserializationCluster()
+      : DeserializationCluster("TypeArguments") {}
   ~TypeArgumentsDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -556,7 +557,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
 
 class PatchClassDeserializationCluster : public DeserializationCluster {
  public:
-  PatchClassDeserializationCluster() {}
+  PatchClassDeserializationCluster() : DeserializationCluster("PatchClass") {}
   ~PatchClassDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -671,7 +672,7 @@ class FunctionSerializationCluster : public SerializationCluster {
 
 class FunctionDeserializationCluster : public DeserializationCluster {
  public:
-  FunctionDeserializationCluster() {}
+  FunctionDeserializationCluster() : DeserializationCluster("Function") {}
   ~FunctionDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -790,6 +791,8 @@ class ClosureDataSerializationCluster : public SerializationCluster {
     s->Push(data->ptr()->parent_function_);
     s->Push(data->ptr()->signature_type_);
     s->Push(data->ptr()->closure_);
+    s->Push(data->ptr()->default_type_arguments_);
+    s->Push(data->ptr()->default_type_arguments_info_);
   }
 
   void WriteAlloc(Serializer* s) {
@@ -813,6 +816,8 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       WriteField(data, parent_function_);
       WriteField(data, signature_type_);
       WriteField(data, closure_);
+      WriteField(data, default_type_arguments_);
+      WriteField(data, default_type_arguments_info_);
     }
   }
 
@@ -823,7 +828,7 @@ class ClosureDataSerializationCluster : public SerializationCluster {
 
 class ClosureDataDeserializationCluster : public DeserializationCluster {
  public:
-  ClosureDataDeserializationCluster() {}
+  ClosureDataDeserializationCluster() : DeserializationCluster("ClosureData") {}
   ~ClosureDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -851,6 +856,10 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       data->ptr()->parent_function_ = static_cast<FunctionPtr>(d->ReadRef());
       data->ptr()->signature_type_ = static_cast<TypePtr>(d->ReadRef());
       data->ptr()->closure_ = static_cast<InstancePtr>(d->ReadRef());
+      data->ptr()->default_type_arguments_ =
+          static_cast<TypeArgumentsPtr>(d->ReadRef());
+      data->ptr()->default_type_arguments_info_ =
+          static_cast<SmiPtr>(d->ReadRef());
     }
   }
 };
@@ -893,7 +902,8 @@ class SignatureDataSerializationCluster : public SerializationCluster {
 
 class SignatureDataDeserializationCluster : public DeserializationCluster {
  public:
-  SignatureDataDeserializationCluster() {}
+  SignatureDataDeserializationCluster()
+      : DeserializationCluster("SignatureData") {}
   ~SignatureDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -962,7 +972,8 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
 
 class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
  public:
-  FfiTrampolineDataDeserializationCluster() {}
+  FfiTrampolineDataDeserializationCluster()
+      : DeserializationCluster("FfiTrampolineData") {}
   ~FfiTrampolineDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1027,7 +1038,8 @@ class RedirectionDataSerializationCluster : public SerializationCluster {
 
 class RedirectionDataDeserializationCluster : public DeserializationCluster {
  public:
-  RedirectionDataDeserializationCluster() {}
+  RedirectionDataDeserializationCluster()
+      : DeserializationCluster("RedirectionData") {}
   ~RedirectionDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1164,7 +1176,7 @@ class FieldSerializationCluster : public SerializationCluster {
 
 class FieldDeserializationCluster : public DeserializationCluster {
  public:
-  FieldDeserializationCluster() {}
+  FieldDeserializationCluster() : DeserializationCluster("Field") {}
   ~FieldDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1286,7 +1298,7 @@ class ScriptSerializationCluster : public SerializationCluster {
 
 class ScriptDeserializationCluster : public DeserializationCluster {
  public:
-  ScriptDeserializationCluster() {}
+  ScriptDeserializationCluster() : DeserializationCluster("Script") {}
   ~ScriptDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1359,7 +1371,7 @@ class LibrarySerializationCluster : public SerializationCluster {
 
 class LibraryDeserializationCluster : public DeserializationCluster {
  public:
-  LibraryDeserializationCluster() {}
+  LibraryDeserializationCluster() : DeserializationCluster("Library") {}
   ~LibraryDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1431,7 +1443,7 @@ class NamespaceSerializationCluster : public SerializationCluster {
 
 class NamespaceDeserializationCluster : public DeserializationCluster {
  public:
-  NamespaceDeserializationCluster() {}
+  NamespaceDeserializationCluster() : DeserializationCluster("Namespace") {}
   ~NamespaceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1496,7 +1508,8 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
 // one will never need to read them from a full AOT snapshot.
 class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
  public:
-  KernelProgramInfoDeserializationCluster() {}
+  KernelProgramInfoDeserializationCluster()
+      : DeserializationCluster("KernelProgramInfo") {}
   ~KernelProgramInfoDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -1857,7 +1870,7 @@ class CodeSerializationCluster : public SerializationCluster {
 
 class CodeDeserializationCluster : public DeserializationCluster {
  public:
-  CodeDeserializationCluster() {}
+  CodeDeserializationCluster() : DeserializationCluster("Code") {}
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2009,7 +2022,7 @@ class BytecodeSerializationCluster : public SerializationCluster {
 
 class BytecodeDeserializationCluster : public DeserializationCluster {
  public:
-  BytecodeDeserializationCluster() {}
+  BytecodeDeserializationCluster() : DeserializationCluster("Bytecode") {}
   virtual ~BytecodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2147,7 +2160,7 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
 
 class ObjectPoolDeserializationCluster : public DeserializationCluster {
  public:
-  ObjectPoolDeserializationCluster() {}
+  ObjectPoolDeserializationCluster() : DeserializationCluster("ObjectPool") {}
   ~ObjectPoolDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2311,7 +2324,8 @@ class WeakSerializationReferenceSerializationCluster
 class WeakSerializationReferenceDeserializationCluster
     : public DeserializationCluster {
  public:
-  WeakSerializationReferenceDeserializationCluster() {}
+  WeakSerializationReferenceDeserializationCluster()
+      : DeserializationCluster("WeakSerializationReference") {}
   ~WeakSerializationReferenceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2383,7 +2397,8 @@ class PcDescriptorsSerializationCluster : public SerializationCluster {
 
 class PcDescriptorsDeserializationCluster : public DeserializationCluster {
  public:
-  PcDescriptorsDeserializationCluster() {}
+  PcDescriptorsDeserializationCluster()
+      : DeserializationCluster("PcDescriptors") {}
   ~PcDescriptorsDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2476,7 +2491,7 @@ class RODataSerializationCluster : public SerializationCluster {
 
 class RODataDeserializationCluster : public DeserializationCluster {
  public:
-  RODataDeserializationCluster() {}
+  RODataDeserializationCluster() : DeserializationCluster("ROData") {}
   ~RODataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2546,7 +2561,8 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
 
 class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
  public:
-  ExceptionHandlersDeserializationCluster() {}
+  ExceptionHandlersDeserializationCluster()
+      : DeserializationCluster("ExceptionHandlers") {}
   ~ExceptionHandlersDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2634,7 +2650,7 @@ class ContextSerializationCluster : public SerializationCluster {
 
 class ContextDeserializationCluster : public DeserializationCluster {
  public:
-  ContextDeserializationCluster() {}
+  ContextDeserializationCluster() : DeserializationCluster("Context") {}
   ~ContextDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2710,7 +2726,8 @@ class ContextScopeSerializationCluster : public SerializationCluster {
 
 class ContextScopeDeserializationCluster : public DeserializationCluster {
  public:
-  ContextScopeDeserializationCluster() {}
+  ContextScopeDeserializationCluster()
+      : DeserializationCluster("ContextScope") {}
   ~ContextScopeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2777,7 +2794,8 @@ class ParameterTypeCheckSerializationCluster : public SerializationCluster {
 
 class ParameterTypeCheckDeserializationCluster : public DeserializationCluster {
  public:
-  ParameterTypeCheckDeserializationCluster() {}
+  ParameterTypeCheckDeserializationCluster()
+      : DeserializationCluster("ParameterTypeCheck") {}
   ~ParameterTypeCheckDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2842,7 +2860,8 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
 
 class UnlinkedCallDeserializationCluster : public DeserializationCluster {
  public:
-  UnlinkedCallDeserializationCluster() {}
+  UnlinkedCallDeserializationCluster()
+      : DeserializationCluster("UnlinkedCall") {}
   ~UnlinkedCallDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2910,7 +2929,7 @@ class ICDataSerializationCluster : public SerializationCluster {
 
 class ICDataDeserializationCluster : public DeserializationCluster {
  public:
-  ICDataDeserializationCluster() {}
+  ICDataDeserializationCluster() : DeserializationCluster("ICData") {}
   ~ICDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -2974,7 +2993,8 @@ class MegamorphicCacheSerializationCluster : public SerializationCluster {
 
 class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
  public:
-  MegamorphicCacheDeserializationCluster() {}
+  MegamorphicCacheDeserializationCluster()
+      : DeserializationCluster("MegamorphicCache") {}
   ~MegamorphicCacheDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3064,7 +3084,8 @@ class SubtypeTestCacheSerializationCluster : public SerializationCluster {
 
 class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
  public:
-  SubtypeTestCacheDeserializationCluster() {}
+  SubtypeTestCacheDeserializationCluster()
+      : DeserializationCluster("SubtypeTestCache") {}
   ~SubtypeTestCacheDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3127,7 +3148,7 @@ class LoadingUnitSerializationCluster : public SerializationCluster {
 
 class LoadingUnitDeserializationCluster : public DeserializationCluster {
  public:
-  LoadingUnitDeserializationCluster() {}
+  LoadingUnitDeserializationCluster() : DeserializationCluster("LoadingUnit") {}
   ~LoadingUnitDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3196,7 +3217,8 @@ class LanguageErrorSerializationCluster : public SerializationCluster {
 
 class LanguageErrorDeserializationCluster : public DeserializationCluster {
  public:
-  LanguageErrorDeserializationCluster() {}
+  LanguageErrorDeserializationCluster()
+      : DeserializationCluster("LanguageError") {}
   ~LanguageErrorDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3262,7 +3284,8 @@ class UnhandledExceptionSerializationCluster : public SerializationCluster {
 
 class UnhandledExceptionDeserializationCluster : public DeserializationCluster {
  public:
-  UnhandledExceptionDeserializationCluster() {}
+  UnhandledExceptionDeserializationCluster()
+      : DeserializationCluster("UnhandledException") {}
   ~UnhandledExceptionDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3386,7 +3409,8 @@ class InstanceSerializationCluster : public SerializationCluster {
 
 class InstanceDeserializationCluster : public DeserializationCluster {
  public:
-  explicit InstanceDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit InstanceDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("Instance"), cid_(cid) {}
   ~InstanceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3483,7 +3507,8 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
 
 class LibraryPrefixDeserializationCluster : public DeserializationCluster {
  public:
-  LibraryPrefixDeserializationCluster() {}
+  LibraryPrefixDeserializationCluster()
+      : DeserializationCluster("LibraryPrefix") {}
   ~LibraryPrefixDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3577,7 +3602,7 @@ class TypeSerializationCluster : public SerializationCluster {
 
 class TypeDeserializationCluster : public DeserializationCluster {
  public:
-  TypeDeserializationCluster() {}
+  TypeDeserializationCluster() : DeserializationCluster("Type") {}
   ~TypeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3676,7 +3701,7 @@ class TypeRefSerializationCluster : public SerializationCluster {
 
 class TypeRefDeserializationCluster : public DeserializationCluster {
  public:
-  TypeRefDeserializationCluster() {}
+  TypeRefDeserializationCluster() : DeserializationCluster("TypeRef") {}
   ~TypeRefDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3774,7 +3799,8 @@ class TypeParameterSerializationCluster : public SerializationCluster {
 
 class TypeParameterDeserializationCluster : public DeserializationCluster {
  public:
-  TypeParameterDeserializationCluster() {}
+  TypeParameterDeserializationCluster()
+      : DeserializationCluster("TypeParameter") {}
   ~TypeParameterDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3878,7 +3904,7 @@ class ClosureSerializationCluster : public SerializationCluster {
 
 class ClosureDeserializationCluster : public DeserializationCluster {
  public:
-  ClosureDeserializationCluster() {}
+  ClosureDeserializationCluster() : DeserializationCluster("Closure") {}
   ~ClosureDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -3945,7 +3971,7 @@ class MintSerializationCluster : public SerializationCluster {
 
 class MintDeserializationCluster : public DeserializationCluster {
  public:
-  MintDeserializationCluster() {}
+  MintDeserializationCluster() : DeserializationCluster("int") {}
   ~MintDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4025,7 +4051,7 @@ class DoubleSerializationCluster : public SerializationCluster {
 
 class DoubleDeserializationCluster : public DeserializationCluster {
  public:
-  DoubleDeserializationCluster() {}
+  DoubleDeserializationCluster() : DeserializationCluster("double") {}
   ~DoubleDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4088,7 +4114,8 @@ class GrowableObjectArraySerializationCluster : public SerializationCluster {
 class GrowableObjectArrayDeserializationCluster
     : public DeserializationCluster {
  public:
-  GrowableObjectArrayDeserializationCluster() {}
+  GrowableObjectArrayDeserializationCluster()
+      : DeserializationCluster("GrowableObjectArray") {}
   ~GrowableObjectArrayDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4160,7 +4187,8 @@ class TypedDataSerializationCluster : public SerializationCluster {
 
 class TypedDataDeserializationCluster : public DeserializationCluster {
  public:
-  explicit TypedDataDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit TypedDataDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("TypedData"), cid_(cid) {}
   ~TypedDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4237,7 +4265,8 @@ class TypedDataViewSerializationCluster : public SerializationCluster {
 
 class TypedDataViewDeserializationCluster : public DeserializationCluster {
  public:
-  explicit TypedDataViewDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit TypedDataViewDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("TypedDataView"), cid_(cid) {}
   ~TypedDataViewDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4316,7 +4345,8 @@ class ExternalTypedDataSerializationCluster : public SerializationCluster {
 
 class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
  public:
-  explicit ExternalTypedDataDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit ExternalTypedDataDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("ExternalTypedData"), cid_(cid) {}
   ~ExternalTypedDataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4388,7 +4418,7 @@ class StackTraceSerializationCluster : public SerializationCluster {
 
 class StackTraceDeserializationCluster : public DeserializationCluster {
  public:
-  StackTraceDeserializationCluster() {}
+  StackTraceDeserializationCluster() : DeserializationCluster("StackTrace") {}
   ~StackTraceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4453,7 +4483,7 @@ class RegExpSerializationCluster : public SerializationCluster {
 
 class RegExpDeserializationCluster : public DeserializationCluster {
  public:
-  RegExpDeserializationCluster() {}
+  RegExpDeserializationCluster() : DeserializationCluster("RegExp") {}
   ~RegExpDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4517,7 +4547,8 @@ class WeakPropertySerializationCluster : public SerializationCluster {
 
 class WeakPropertyDeserializationCluster : public DeserializationCluster {
  public:
-  WeakPropertyDeserializationCluster() {}
+  WeakPropertyDeserializationCluster()
+      : DeserializationCluster("WeakProperty") {}
   ~WeakPropertyDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4611,7 +4642,8 @@ class LinkedHashMapSerializationCluster : public SerializationCluster {
 
 class LinkedHashMapDeserializationCluster : public DeserializationCluster {
  public:
-  LinkedHashMapDeserializationCluster() {}
+  LinkedHashMapDeserializationCluster()
+      : DeserializationCluster("LinkedHashMap") {}
   ~LinkedHashMapDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4716,7 +4748,8 @@ class ArraySerializationCluster : public SerializationCluster {
 
 class ArrayDeserializationCluster : public DeserializationCluster {
  public:
-  explicit ArrayDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  explicit ArrayDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("Array"), cid_(cid) {}
   ~ArrayDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4793,7 +4826,8 @@ class OneByteStringSerializationCluster : public SerializationCluster {
 
 class OneByteStringDeserializationCluster : public DeserializationCluster {
  public:
-  OneByteStringDeserializationCluster() {}
+  OneByteStringDeserializationCluster()
+      : DeserializationCluster("OneByteString") {}
   ~OneByteStringDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
@@ -4885,7 +4919,8 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
 
 class TwoByteStringDeserializationCluster : public DeserializationCluster {
  public:
-  TwoByteStringDeserializationCluster() {}
+  TwoByteStringDeserializationCluster()
+      : DeserializationCluster("TwoByteString") {}
   ~TwoByteStringDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {

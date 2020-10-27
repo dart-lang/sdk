@@ -542,12 +542,8 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
       prologue += IntConstant(dart_function.NumTypeParameters() +
                               dart_function.NumParentTypeParameters());
 
-      const Library& dart_internal =
-          Library::Handle(Z, Library::InternalLibrary());
-      const Function& prepend_function =
-          Function::ZoneHandle(Z, dart_internal.LookupFunctionAllowPrivate(
-                                      Symbols::PrependTypeArguments()));
-      ASSERT(!prepend_function.IsNull());
+      const auto& prepend_function =
+          flow_graph_builder_->PrependTypeArgumentsFunction();
 
       prologue += StaticCall(TokenPosition::kNoSource, prepend_function, 4,
                              ICData::kStatic);
@@ -738,20 +734,17 @@ void StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
     Fragment* explicit_checks,
     Fragment* implicit_checks,
     Fragment* implicit_redefinitions) {
-  if (!dart_function.NeedsArgumentTypeChecks()) return;
-
-  // Check if parent function was annotated with no-dynamic-invocations.
-  const ProcedureAttributesMetadata attrs =
-      procedure_attributes_metadata_helper_.GetProcedureAttributes(
-          dart_function.kernel_offset());
-
-  AlternativeReadingScope _(&reader_);
-  SetOffset(type_parameters_offset);
-  B->BuildArgumentTypeChecks(
-      MethodCanSkipTypeChecksForNonCovariantArguments(dart_function, attrs)
-          ? TypeChecksToBuild::kCheckCovariantTypeParameterBounds
-          : TypeChecksToBuild::kCheckAllTypeParameterBounds,
-      explicit_checks, implicit_checks, implicit_redefinitions);
+  if (dart_function.NeedsTypeArgumentTypeChecks()) {
+    B->BuildTypeArgumentTypeChecks(
+        MethodCanSkipTypeChecksForNonCovariantTypeArguments(dart_function)
+            ? TypeChecksToBuild::kCheckCovariantTypeParameterBounds
+            : TypeChecksToBuild::kCheckAllTypeParameterBounds,
+        implicit_checks);
+  }
+  if (dart_function.NeedsArgumentTypeChecks()) {
+    B->BuildArgumentTypeChecks(explicit_checks, implicit_checks,
+                               implicit_redefinitions);
+  }
 }
 
 Fragment StreamingFlowGraphBuilder::ShortcutForUserDefinedEquals(

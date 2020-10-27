@@ -1115,7 +1115,11 @@ class ClosureDataLayout : public ObjectLayout {
   FunctionPtr parent_function_;  // Enclosing function of this local function.
   TypePtr signature_type_;
   InstancePtr closure_;  // Closure object for static implicit closures.
-  VISIT_TO(ObjectPtr, closure_);
+  // Instantiate-to-bounds TAV for use when no TAV is provided.
+  TypeArgumentsPtr default_type_arguments_;
+  // Additional information about the instantiate-to-bounds TAV.
+  SmiPtr default_type_arguments_info_;
+  VISIT_TO(ObjectPtr, default_type_arguments_info_);
 
   friend class Function;
 };
@@ -2302,6 +2306,7 @@ class TypeParameterLayout : public AbstractTypeLayout {
   uint8_t flags_;
   int8_t nullability_;
 
+ public:
   using FinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
   using GenericCovariantImplBit =
       BitField<decltype(flags_), bool, FinalizedBit::kNextBit, 1>;
@@ -2309,6 +2314,7 @@ class TypeParameterLayout : public AbstractTypeLayout {
       BitField<decltype(flags_), bool, GenericCovariantImplBit::kNextBit, 1>;
   static constexpr intptr_t kFlagsBitSize = DeclarationBit::kNextBit;
 
+ private:
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class CidRewriteVisitor;
@@ -2782,6 +2788,8 @@ class ReceivePortLayout : public InstanceLayout {
   VISIT_FROM(ObjectPtr, send_port_)
   SendPortPtr send_port_;
   InstancePtr handler_;
+  StringPtr debug_name_;
+  StackTracePtr allocation_location_;
   VISIT_TO(ObjectPtr, handler_)
 };
 

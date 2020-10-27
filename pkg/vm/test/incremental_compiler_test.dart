@@ -642,7 +642,7 @@ main() {
           "}\n");
 
       var fileBar = new File('${mytest.path}/bar.dart')..createSync();
-      fileBar.writeAsStringSync("class A<T> { int _a; }\n");
+      fileBar.writeAsStringSync("class A<T> { int _a = 0; }\n");
 
       var fileBaz = new File('${mytest.path}/baz.dart')..createSync();
       fileBaz.writeAsStringSync("import 'dart:isolate';\n"
@@ -703,7 +703,7 @@ main() {
       expect(reloadResult['details']['loadedLibraryCount'], equals(0));
 
       // Introduce a change that force VM to reject the change.
-      fileBar.writeAsStringSync("class A<T,U> { int _a; }\n");
+      fileBar.writeAsStringSync("class A<T,U> { int _a = 0; }\n");
       compiler.invalidate(fileBar.uri);
       component = await compiler.compile();
       await _writeProgramToFile(component, outputFile);
@@ -711,7 +711,7 @@ main() {
       expect(reloadResult['success'], isFalse);
 
       // Fix a change so VM is happy to accept the change.
-      fileBar.writeAsStringSync("class A<T> { int _a; hi() => _a; }\n");
+      fileBar.writeAsStringSync("class A<T> { int _a = 0; hi() => _a; }\n");
       compiler.invalidate(fileBar.uri);
       component = await compiler.compile();
       await _writeProgramToFile(component, outputFile);
@@ -1057,7 +1057,7 @@ main() {
         import 'dart:async';
         import 'helper.dart';
         main() {
-          int latestReloadTime;
+          int latestReloadTime = -1;
           int noChangeCount = 0;
           int numChanges = 0;
           new Timer.periodic(new Duration(milliseconds: 5), (timer) async {

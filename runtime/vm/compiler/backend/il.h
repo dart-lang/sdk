@@ -504,6 +504,7 @@ struct InstrAttrs {
   M(UnboxUint32, kNoGC)                                                        \
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
+  M(BoxUint8, _)                                                               \
   M(IntConverter, _)                                                           \
   M(BitCast, _)                                                                \
   M(Deoptimize, kNoGC)                                                         \
@@ -3549,34 +3550,42 @@ class UnboxedConstantInstr : public ConstantInstr {
 // Checks that one type is a subtype of another (e.g. for type parameter bounds
 // checking). Throws a TypeError otherwise. Both types are instantiated at
 // runtime as necessary.
-class AssertSubtypeInstr : public TemplateInstruction<4, Throws, Pure> {
+class AssertSubtypeInstr : public TemplateInstruction<5, Throws, Pure> {
  public:
+  enum {
+    kInstantiatorTAVPos = 0,
+    kFunctionTAVPos = 1,
+    kSubTypePos = 2,
+    kSuperTypePos = 3,
+    kDstNamePos = 4,
+  };
+
   AssertSubtypeInstr(TokenPosition token_pos,
                      Value* instantiator_type_arguments,
                      Value* function_type_arguments,
                      Value* sub_type,
                      Value* super_type,
-                     const String& dst_name,
+                     Value* dst_name,
                      intptr_t deopt_id)
-      : TemplateInstruction(deopt_id),
-        token_pos_(token_pos),
-        dst_name_(String::ZoneHandle(dst_name.raw())) {
-    ASSERT(!dst_name.IsNull());
-    SetInputAt(0, instantiator_type_arguments);
-    SetInputAt(1, function_type_arguments);
-    SetInputAt(2, sub_type);
-    SetInputAt(3, super_type);
+      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
+    SetInputAt(kInstantiatorTAVPos, instantiator_type_arguments);
+    SetInputAt(kFunctionTAVPos, function_type_arguments);
+    SetInputAt(kSubTypePos, sub_type);
+    SetInputAt(kSuperTypePos, super_type);
+    SetInputAt(kDstNamePos, dst_name);
   }
 
   DECLARE_INSTRUCTION(AssertSubtype);
 
-  Value* instantiator_type_arguments() const { return inputs_[0]; }
-  Value* function_type_arguments() const { return inputs_[1]; }
-  Value* sub_type() const { return inputs_[2]; }
-  Value* super_type() const { return inputs_[3]; }
+  Value* instantiator_type_arguments() const {
+    return inputs_[kInstantiatorTAVPos];
+  }
+  Value* function_type_arguments() const { return inputs_[kFunctionTAVPos]; }
+  Value* sub_type() const { return inputs_[kSubTypePos]; }
+  Value* super_type() const { return inputs_[kSuperTypePos]; }
+  Value* dst_name() const { return inputs_[kDstNamePos]; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-  const String& dst_name() const { return dst_name_; }
 
   virtual bool ComputeCanDeoptimize() const {
     return !CompilerState::Current().is_aot();
@@ -3592,7 +3601,6 @@ class AssertSubtypeInstr : public TemplateInstruction<4, Throws, Pure> {
 
  private:
   const TokenPosition token_pos_;
-  const String& dst_name_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertSubtypeInstr);
 };
@@ -6439,10 +6447,17 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
       : TemplateDefinition(deopt_id),
         slot_(slot),
         token_pos_(token_pos),
-        calls_initializer_(calls_initializer) {
+        calls_initializer_(calls_initializer),
+        throw_exception_on_initialization_(false) {
     ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
     ASSERT(!calls_initializer || slot.IsDartField());
     SetInputAt(0, instance);
+    if (calls_initializer_) {
+      const Field& field = slot.field();
+      throw_exception_on_initialization_ = !field.needs_load_guard() &&
+                                           field.is_late() &&
+                                           !field.has_initializer();
+    }
   }
 
   Value* instance() const { return inputs_[0]; }
@@ -6452,6 +6467,15 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
 
   bool calls_initializer() const { return calls_initializer_; }
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
+
+  bool throw_exception_on_initialization() const {
+    return throw_exception_on_initialization_;
+  }
+
+  // Slow path is used if load throws exception on initialization.
+  virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
+    return SlowPathSharingSupported(is_optimizing);
+  }
 
   virtual Representation representation() const;
 
@@ -6470,11 +6494,7 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   virtual bool ComputeCanDeoptimize() const { return calls_initializer(); }
 
   virtual bool HasUnknownSideEffects() const {
-    if (calls_initializer()) {
-      const Field& field = slot().field();
-      return field.needs_load_guard() || field.has_initializer();
-    }
-    return false;
+    return calls_initializer() && !throw_exception_on_initialization();
   }
 
   virtual bool CanTriggerGC() const { return calls_initializer(); }
@@ -6522,6 +6542,7 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   const Slot& slot_;
   const TokenPosition token_pos_;
   bool calls_initializer_;
+  bool throw_exception_on_initialization_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -6574,15 +6595,9 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
         token_pos_(token_pos),
         instantiator_class_(instantiator_class),
         function_(function) {
-    // These asserts hold for current uses.
-    ASSERT(type_arguments->BindsToConstant());
-    // Note: Non-dynamic uses never provide a null TypeArguments value.
-    ASSERT(!type_arguments->BoundConstant().IsNull());
-    ASSERT(type_arguments->BoundConstant().IsTypeArguments());
-    ASSERT(instantiator_class.IsZoneHandle());
-    ASSERT(!instantiator_class.IsNull());
-    ASSERT(function.IsZoneHandle());
-    ASSERT(!function.IsNull());
+    ASSERT(instantiator_class.IsReadOnlyHandle() ||
+           instantiator_class.IsZoneHandle());
+    ASSERT(function.IsReadOnlyHandle() || function.IsZoneHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
     SetInputAt(2, type_arguments);
@@ -6605,20 +6620,35 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  const Code& GetStub() const {
-    bool with_runtime_check;
-    ASSERT(!instantiator_class().IsNull());
-    ASSERT(!function().IsNull());
-    ASSERT(type_arguments()->BindsToConstant());
-    ASSERT(type_arguments()->BoundConstant().IsTypeArguments());
+  bool CanShareInstantiatorTypeArguments(
+      bool* with_runtime_check = nullptr) const {
+    if (instantiator_class().IsNull() || !type_arguments()->BindsToConstant() ||
+        !type_arguments()->BoundConstant().IsTypeArguments()) {
+      return false;
+    }
     const auto& type_args =
         TypeArguments::Cast(type_arguments()->BoundConstant());
-    if (type_args.CanShareInstantiatorTypeArguments(instantiator_class(),
-                                                    &with_runtime_check)) {
+    return type_args.CanShareInstantiatorTypeArguments(instantiator_class(),
+                                                       with_runtime_check);
+  }
+
+  bool CanShareFunctionTypeArguments(bool* with_runtime_check = nullptr) const {
+    if (function().IsNull() || !type_arguments()->BindsToConstant() ||
+        !type_arguments()->BoundConstant().IsTypeArguments()) {
+      return false;
+    }
+    const auto& type_args =
+        TypeArguments::Cast(type_arguments()->BoundConstant());
+    return type_args.CanShareFunctionTypeArguments(function(),
+                                                   with_runtime_check);
+  }
+
+  const Code& GetStub() const {
+    bool with_runtime_check;
+    if (CanShareInstantiatorTypeArguments(&with_runtime_check)) {
       ASSERT(with_runtime_check);
       return StubCode::InstantiateTypeArgumentsMayShareInstantiatorTA();
-    } else if (type_args.CanShareFunctionTypeArguments(function(),
-                                                       &with_runtime_check)) {
+    } else if (CanShareFunctionTypeArguments(&with_runtime_check)) {
       ASSERT(with_runtime_check);
       return StubCode::InstantiateTypeArgumentsMayShareFunctionTA();
     }
@@ -6816,6 +6846,18 @@ class BoxIntegerInstr : public BoxInstr {
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
 };
 
+class BoxUint8Instr : public BoxIntegerInstr {
+ public:
+  explicit BoxUint8Instr(Value* value)
+      : BoxIntegerInstr(kUnboxedUint8, value) {}
+
+  virtual bool ValueFitsSmi() const { return true; }
+
+  DECLARE_INSTRUCTION(BoxUint8)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxUint8Instr);
+};
 class BoxInteger32Instr : public BoxIntegerInstr {
  public:
   BoxInteger32Instr(Representation representation, Value* value)

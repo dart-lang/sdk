@@ -6,7 +6,7 @@ part of dart.io;
 
 // TODO(bkonyi): refactor into io_resource_info.dart
 const int _versionMajor = 1;
-const int _versionMinor = 4;
+const int _versionMinor = 5;
 
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
@@ -25,7 +25,11 @@ abstract class _NetworkProfiling {
   // Socket relative RPCs
   static const _kClearSocketProfileRPC = 'ext.dart.io.clearSocketProfile';
   static const _kGetSocketProfileRPC = 'ext.dart.io.getSocketProfile';
+  static const _kSocketProfilingEnabledRPC =
+      'ext.dart.io.socketProfilingEnabled';
+  @Deprecated('Use socketProfilingEnabled instead')
   static const _kPauseSocketProfilingRPC = 'ext.dart.io.pauseSocketProfiling';
+  @Deprecated('Use socketProfilingEnabled instead')
   static const _kStartSocketProfilingRPC = 'ext.dart.io.startSocketProfiling';
 
   // TODO(zichangguo): This version number represents the version of service
@@ -41,6 +45,7 @@ abstract class _NetworkProfiling {
     registerExtension(_kGetSocketProfileRPC, _serviceExtensionHandler);
     registerExtension(_kStartSocketProfilingRPC, _serviceExtensionHandler);
     registerExtension(_kPauseSocketProfilingRPC, _serviceExtensionHandler);
+    registerExtension(_kSocketProfilingEnabledRPC, _serviceExtensionHandler);
     registerExtension(_kClearSocketProfileRPC, _serviceExtensionHandler);
     registerExtension(_kGetVersionRPC, _serviceExtensionHandler);
   }
@@ -72,6 +77,9 @@ abstract class _NetworkProfiling {
           break;
         case _kGetSocketProfileRPC:
           responseJson = _SocketProfile.toJson();
+          break;
+        case _kSocketProfilingEnabledRPC:
+          responseJson = _socketProfilingEnabled(parameters);
           break;
         case _kStartSocketProfilingRPC:
           responseJson = _SocketProfile.start();
@@ -131,8 +139,35 @@ String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
   return _success();
 }
 
+String _socketProfilingEnabled(Map<String, String> parameters) {
+  const String kEnabled = 'enabled';
+  if (parameters.containsKey(kEnabled)) {
+    final enable = parameters[kEnabled]!.toLowerCase();
+    if (enable != 'true' && enable != 'false') {
+      throw _invalidArgument(kEnabled, enable);
+    }
+    enable == 'true' ? _SocketProfile.start() : _SocketProfile.pause();
+  }
+  return json.encode({
+    'type': 'SocketProfilingState',
+    'enabled': _SocketProfile.enableSocketProfiling,
+  });
+}
+
 abstract class _SocketProfile {
   static const _kType = 'SocketProfile';
+  static set enableSocketProfiling(bool enabled) {
+    if (enabled != _enableSocketProfiling) {
+      postEvent('SocketProfilingStateChange', {
+        'isolateId': Service.getIsolateID(Isolate.current),
+        'enabled': enabled,
+      });
+      _enableSocketProfiling = enabled;
+    }
+  }
+
+  static bool get enableSocketProfiling => _enableSocketProfiling;
+
   static bool _enableSocketProfiling = false;
   static Map<int, _SocketStatistic> _idToSocketStatistic = {};
 
@@ -194,12 +229,12 @@ abstract class _SocketProfile {
   }
 
   static String start() {
-    _enableSocketProfiling = true;
+    enableSocketProfiling = true;
     return _success();
   }
 
   static String pause() {
-    _enableSocketProfiling = false;
+    enableSocketProfiling = false;
     return _success();
   }
 

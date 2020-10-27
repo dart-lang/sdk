@@ -76,6 +76,7 @@ namespace dart {
   V(ZeroArgsUnoptimizedStaticCall)                                             \
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
+  V(AssertSubtype)                                                             \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype4TestCache)                                                         \
@@ -94,6 +95,8 @@ namespace dart {
   V(AsynchronousGapMarker)                                                     \
   V(NotLoaded)                                                                 \
   V(DispatchTableNullError)                                                    \
+  V(LateInitializationErrorSharedWithFPURegs)                                  \
+  V(LateInitializationErrorSharedWithoutFPURegs)                               \
   V(NullErrorSharedWithFPURegs)                                                \
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(NullArgErrorSharedWithFPURegs)                                             \

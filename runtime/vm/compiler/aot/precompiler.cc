@@ -796,6 +796,14 @@ void Precompiler::AddTypesOf(const Function& function) {
     type = function.ParameterTypeAt(i);
     AddType(type);
   }
+  // At this point, ensure any cached default type arguments are canonicalized.
+  function.UpdateCachedDefaultTypeArguments(thread());
+  if (function.CachesDefaultTypeArguments()) {
+    const auto& defaults = TypeArguments::Handle(
+        Z, function.default_type_arguments(/*kind_out=*/nullptr));
+    ASSERT(defaults.IsCanonical());
+    AddTypeArguments(defaults);
+  }
   Code& code = Code::Handle(Z, function.CurrentCode());
   if (code.IsNull()) {
     ASSERT(function.kind() == FunctionLayout::kSignatureFunction);
@@ -834,18 +842,17 @@ void Precompiler::AddType(const AbstractType& abstype) {
   if (abstype.IsNull()) return;
 
   if (abstype.IsTypeParameter()) {
-    if (typeparams_to_retain_.HasKey(&TypeParameter::Cast(abstype))) return;
-    typeparams_to_retain_.Insert(
-        &TypeParameter::ZoneHandle(Z, TypeParameter::Cast(abstype).raw()));
+    const auto& param = TypeParameter::Cast(abstype);
+    if (typeparams_to_retain_.HasKey(&param)) return;
+    typeparams_to_retain_.Insert(&TypeParameter::ZoneHandle(Z, param.raw()));
 
-    const AbstractType& type =
-        AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
+    auto& type = AbstractType::Handle(Z, param.bound());
     AddType(type);
-    const auto& function = Function::Handle(
-        Z, TypeParameter::Cast(abstype).parameterized_function());
+    type = param.default_argument();
+    AddType(type);
+    const auto& function = Function::Handle(Z, param.parameterized_function());
     AddTypesOf(function);
-    const Class& cls =
-        Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
+    const Class& cls = Class::Handle(Z, param.parameterized_class());
     AddTypesOf(cls);
     return;
   }
