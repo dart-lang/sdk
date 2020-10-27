@@ -20,7 +20,7 @@ class AddNotNullAssertTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.ADD_NOT_NULL_ASSERT;
 
   Future<void> test_function_expressionBody_noAssert() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int double(int x) => x * 2;
 ''');
     // todo (pq): support expression bodies.
@@ -28,7 +28,7 @@ int double(int x) => x * 2;
   }
 
   Future<void> test_function_noAssert() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(int x) {
 }
 ''');
@@ -40,7 +40,7 @@ foo(int x) {
   }
 
   Future<void> test_function_withAssert() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(int x) {
   assert(x != null);
 }
@@ -49,7 +49,7 @@ foo(int x) {
   }
 
   Future<void> test_function_withAssert2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(int x) {
   print('foo');
   assert(x != null);
@@ -59,7 +59,7 @@ foo(int x) {
   }
 
   Future<void> test_method_noAssert() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   foo(int x) {
   }

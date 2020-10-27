@@ -19,7 +19,7 @@ class ReplaceWithTearOffTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unnecessary_lambdas;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Function f() => (name) {
   print(name);
 };

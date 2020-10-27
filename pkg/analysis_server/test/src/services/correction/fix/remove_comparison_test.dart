@@ -21,7 +21,7 @@ class RemoveComparisonTest extends FixProcessorTest with WithNullSafetyMixin {
   FixKind get kind => DartFixKind.REMOVE_COMPARISON;
 
   Future<void> test_assertInitializer_first() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String t;
   C(String s) : assert(s != null), t = s;
@@ -36,7 +36,7 @@ class C {
   }
 
   Future<void> test_assertInitializer_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String t;
   C(String s) : t = s, assert(s != null);
@@ -51,7 +51,7 @@ class C {
   }
 
   Future<void> test_assertInitializer_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String t;
   String u;
@@ -68,7 +68,7 @@ class C {
   }
 
   Future<void> test_assertInitializer_only() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   C(String s) : assert(s != null);
 }
@@ -81,7 +81,7 @@ class C {
   }
 
   Future<void> test_assertStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   assert(s != null);
   print(s);
@@ -95,7 +95,7 @@ void f(String s) {
   }
 
   Future<void> test_binaryExpression_and_left() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   print(s != null && s.isNotEmpty);
 }
@@ -108,7 +108,7 @@ void f(String s) {
   }
 
   Future<void> test_binaryExpression_and_right() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   print(s.isNotEmpty && s != null);
 }
@@ -121,7 +121,7 @@ void f(String s) {
   }
 
   Future<void> test_binaryExpression_or_left() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   print(s == null || s.isEmpty);
 }
@@ -134,7 +134,7 @@ void f(String s) {
   }
 
   Future<void> test_binaryExpression_or_right() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   print(s.isEmpty || s == null);
 }
@@ -147,7 +147,7 @@ void f(String s) {
   }
 
   Future<void> test_ifStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   if (s != null) {
     print(s);

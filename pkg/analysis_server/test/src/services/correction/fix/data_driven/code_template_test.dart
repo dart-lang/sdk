@@ -66,7 +66,7 @@ class CodeTemplateTest extends DataDrivenFixProcessorTest {
 
   Future<void> _assertTemplateResult(
       String expectedResult, List<TemplateComponent> components) async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   g(0, 1);
 }

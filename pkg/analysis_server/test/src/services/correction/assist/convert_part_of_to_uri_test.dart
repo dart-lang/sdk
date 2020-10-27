@@ -31,7 +31,7 @@ part of foo;
 ''');
 
     await analyzeTestPackageFiles();
-    await resolveTestUnit2();
+    await resolveTestFile();
     await assertHasAssistAt('foo', '''
 part of '../foo.dart';
 ''');
@@ -49,7 +49,7 @@ part of foo;
 ''');
 
     await analyzeTestPackageFiles();
-    await resolveTestUnit2();
+    await resolveTestFile();
     await assertHasAssistAt('foo', '''
 part of 'foo.dart';
 ''');

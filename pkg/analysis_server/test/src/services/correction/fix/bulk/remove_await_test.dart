@@ -19,7 +19,7 @@ class RemoveAwaitTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.await_only_futures;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() async {
   print(await 23);
 }

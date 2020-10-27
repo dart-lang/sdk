@@ -20,7 +20,7 @@ class QualifyReferenceTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.QUALIFY_REFERENCE;
 
   Future<void> test_class_direct() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   static void m() {}
 }
@@ -48,7 +48,7 @@ class A {
   static void m() {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'a.dart';
 class B extends A {
   void f() {
@@ -65,7 +65,7 @@ class A {
   static void m() {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'a.dart' as a;
 class B extends a.A {
   void f() {
@@ -77,7 +77,7 @@ class B extends a.A {
   }
 
   Future<void> test_class_indirect() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static void m() {}
 }
@@ -113,7 +113,7 @@ class A {
 import 'a.dart';
 class B extends A {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'b.dart';
 class C extends B {
   void f() {
@@ -125,7 +125,7 @@ class C extends B {
   }
 
   Future<void> test_extension_direct() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   static void m() {}
 }
@@ -153,7 +153,7 @@ class A {
   static void m() {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'a.dart';
 extension E on A {
   void f() {
@@ -170,7 +170,7 @@ class A {
   static void m() {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'a.dart' as a;
 extension E on a.A {
   void f() {
@@ -182,7 +182,7 @@ extension E on a.A {
   }
 
   Future<void> test_extension_indirect() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static void m() {}
 }
@@ -218,7 +218,7 @@ class A {
 import 'a.dart';
 class B extends A {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'b.dart';
 extension E on B {
   void f() {

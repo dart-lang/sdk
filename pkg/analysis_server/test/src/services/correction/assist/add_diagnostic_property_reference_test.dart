@@ -29,7 +29,7 @@ class AddDiagnosticPropertyReferenceTest extends AssistProcessorTest {
 
   /// Full coverage in fix/add_diagnostic_property_reference_test.dart
   Future<void> test_boolField_debugFillProperties() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -58,7 +58,7 @@ class W extends Widget {
 
   Future<void> test_notAvailable_mixin() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin MyMixin {
   String get foo/*caret*/() {}
 }
@@ -67,7 +67,7 @@ mixin MyMixin {
   }
 
   Future<void> test_notAvailable_outsideDiagnosticable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String get f/*caret*/ => null;
 }

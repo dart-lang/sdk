@@ -19,7 +19,7 @@ class InlineInvocationTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_inlined_adds;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = []..add('a')..add('b');
 var l2 = ['a', 'b']..add('c');
 var l3 = ['a']..addAll(['b', 'c']);

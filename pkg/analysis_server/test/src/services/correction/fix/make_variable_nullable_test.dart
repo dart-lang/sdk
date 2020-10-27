@@ -22,7 +22,7 @@ class MakeVariableNullableTest extends FixProcessorTest
   FixKind get kind => DartFixKind.MAKE_VARIABLE_NULLABLE;
 
   Future<void> test_lhsNotIdentifier() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(C c) {
   c.s = null;
 }
@@ -34,7 +34,7 @@ class C {
   }
 
   Future<void> test_lhsNotLocalVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var s = '';
 void f() {
   s = null;
@@ -45,7 +45,7 @@ void f() {
   }
 
   Future<void> test_multipleVariables() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   var s = '', t = '';
   s = null;
@@ -57,7 +57,7 @@ void f() {
   }
 
   Future<void> test_noKeywordOrType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   late var s = '';
   s = null;
@@ -74,7 +74,7 @@ void f() {
   }
 
   Future<void> test_type() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   String s = '';
   s = null;
@@ -91,7 +91,7 @@ void f() {
   }
 
   Future<void> test_var() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   var s = '';
   s = null;

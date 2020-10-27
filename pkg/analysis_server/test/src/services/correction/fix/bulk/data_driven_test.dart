@@ -53,7 +53,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class A extends Old {}
 class B extends Old {}
@@ -81,7 +81,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class A extends Old {}
 class B extends Old {}
@@ -127,7 +127,7 @@ transforms:
     - kind: 'removeParameter'
       index: 1
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void g() {
   f(0, f(1, 2));
@@ -164,7 +164,7 @@ transforms:
     - kind: 'removeParameter'
       index: 1
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void g() {
   f(0, f(1, 2));
@@ -199,7 +199,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class A implements Old {}
 class B implements Old {}
@@ -227,7 +227,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class A implements Old {}
 class B implements Old {}
@@ -267,7 +267,7 @@ transforms:
       argumentValue:
         expression: '0'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class A extends C {
   @override
@@ -313,7 +313,7 @@ transforms:
       argumentValue:
         expression: 'int'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class A extends C {
   @override
@@ -358,7 +358,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class A with Old {}
 class B with Old {}
@@ -386,7 +386,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class A with Old {}
 class B with Old {}
@@ -422,7 +422,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 C c() => C(C());
 ''');
@@ -451,7 +451,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 C c() => C(C());
 ''');
@@ -483,7 +483,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class A extends Old {}
 class B extends Old {}
@@ -514,7 +514,7 @@ transforms:
       argumentValue:
         expression: '0'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void g() {
   f(f(0));
@@ -550,7 +550,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 class D extends C {
   @override
@@ -595,7 +595,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(Old a, Old b) {}
 ''');
@@ -621,7 +621,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(Old a, Old b) {}
 ''');
@@ -652,7 +652,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f() {
   old(old(0));
@@ -682,7 +682,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f() {
   old(old(0));
@@ -720,7 +720,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(C a, C b) {
   a.old + b.old;
@@ -753,7 +753,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(C a, C b) {
   a.old + b.old;
@@ -788,7 +788,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f() {
   old + old;
@@ -818,7 +818,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f() {
   old + old;
@@ -856,7 +856,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(C a, C b) {
   a.old(b.old(0));
@@ -889,7 +889,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(C a, C b) {
   a.old(b.old(0));
@@ -927,7 +927,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(C a, C b) {
   a.old = b.old = 1;
@@ -960,7 +960,7 @@ transforms:
     - kind: 'rename'
       newName: 'new'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(C a, C b) {
   a.old = b.old = 1;
@@ -998,7 +998,7 @@ transforms:
       argumentValue:
         expression: 'int'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 C f() => C<String>.c(C<String>.c());
 ''');
@@ -1032,7 +1032,7 @@ transforms:
       argumentValue:
         expression: 'int'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(String s) {
   E<String>(s).m(E<String>(s).m(0));
@@ -1071,7 +1071,7 @@ transforms:
       argumentValue:
         expression: 'int'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(C c) {
   c.m<String>(c.m<String>(0));
@@ -1107,7 +1107,7 @@ transforms:
       argumentValue:
         expression: 'int'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 void f(C<String> c) {}
 ''');
@@ -1138,7 +1138,7 @@ transforms:
       argumentValue:
         expression: 'int'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 C f() => C<String>(C<String>());
 ''');

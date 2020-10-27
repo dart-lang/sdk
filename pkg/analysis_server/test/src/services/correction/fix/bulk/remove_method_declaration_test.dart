@@ -19,7 +19,7 @@ class RemoveMethodDeclarationTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unnecessary_overrides;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int foo;
   int bar() => 0;

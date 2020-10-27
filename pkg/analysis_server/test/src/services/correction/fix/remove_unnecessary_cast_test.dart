@@ -21,7 +21,7 @@ class RemoveUnnecessaryCastTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CAST;
 
   Future<void> test_assignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(Object p) {
   if (p is String) {
     String v = ((p as String));
@@ -40,7 +40,7 @@ main(Object p) {
   }
 
   Future<void> test_assignment_all() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(Object p, Object q) {
   if (p is String) {
     String v = ((p as String));

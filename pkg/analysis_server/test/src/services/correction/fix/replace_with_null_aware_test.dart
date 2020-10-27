@@ -20,7 +20,7 @@ class ReplaceWithNullAwareTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
 
   Future<void> test_chain() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(x) {
   x?.a.b.c;
 }
@@ -33,7 +33,7 @@ main(x) {
   }
 
   Future<void> test_methodInvocation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(x) {
   x?.a.b();
 }
@@ -46,7 +46,7 @@ main(x) {
   }
 
   Future<void> test_propertyAccess() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(x) {
   x?.a().b;
 }

@@ -19,7 +19,7 @@ class ConvertToSpreadTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_spread_collections;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   var ints = [1, 2, 3];
   print(['a']..addAll(ints.map((i) => i.toString()))..addAll(['c']));

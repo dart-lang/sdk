@@ -20,7 +20,7 @@ class SurroundWithBlockTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.SURROUND_WITH_BLOCK;
 
   Future<void> test_notStatementInBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   while (true)
 // start
@@ -32,7 +32,7 @@ main() {
   }
 
   Future<void> test_twoStatements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
 // start
   print(0);

@@ -28,7 +28,7 @@ class FlutterWrapContainerTest extends AssistProcessorTest {
   }
 
   Future<void> test_aroundContainer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 main() {
   return /*caret*/Container();
@@ -38,7 +38,7 @@ main() {
   }
 
   Future<void> test_aroundText() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 main() {
   /*caret*/Text('a');

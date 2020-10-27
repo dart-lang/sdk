@@ -28,7 +28,7 @@ class ConvertFlutterChildTest extends FixProcessorTest {
   }
 
   Future<void> test_hasList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return Container(
@@ -57,7 +57,7 @@ build() {
   }
 
   Future<void> test_hasTypedList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return new Container(
@@ -86,7 +86,7 @@ build() {
   }
 
   Future<void> test_listNotWidget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return new Container(
@@ -103,7 +103,7 @@ build() {
   }
 
   Future<void> test_multiLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
@@ -134,7 +134,7 @@ build() {
   }
 
   Future<void> test_widgetVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   var text = new Text('foo');

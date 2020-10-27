@@ -21,21 +21,21 @@ class ReplaceWithFilledTest extends FixProcessorTest with WithNullSafetyMixin {
   FixKind get kind => DartFixKind.REPLACE_WITH_FILLED;
 
   Future<void> test_nonNullableElements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = new List<int>(3);
 ''');
     await assertNoFix();
   }
 
   Future<void> test_nonNullableElements_inferred() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List<int> l = List(3);
 ''');
     await assertNoFix();
   }
 
   Future<void> test_nullableElements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = new List<int?>(3);
 ''');
     await assertHasFix('''
@@ -44,7 +44,7 @@ var l = new List<int?>.filled(3, null, growable: false);
   }
 
   Future<void> test_nullableElements_inferred() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List<int?> l = List(5);
 ''');
     await assertHasFix('''
@@ -53,7 +53,7 @@ List<int?> l = List.filled(5, null, growable: false);
   }
 
   Future<void> test_trailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = List<int?>(3,);
 ''');
     await assertHasFix('''

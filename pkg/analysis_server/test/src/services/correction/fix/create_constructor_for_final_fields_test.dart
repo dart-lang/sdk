@@ -23,7 +23,7 @@ class CreateConstructorForFinalFieldsTest extends FixProcessorTest {
 
   Future<void> test_flutter() async {
     writeTestPackageConfig(flutter: true);
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -49,7 +49,7 @@ class MyWidget extends StatelessWidget {
 
   Future<void> test_flutter_childLast() async {
     writeTestPackageConfig(flutter: true);
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -75,7 +75,7 @@ class MyWidget extends StatelessWidget {
 
   Future<void> test_flutter_childrenLast() async {
     writeTestPackageConfig(flutter: true);
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -100,7 +100,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_inTopLevelMethod() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   final int v;
   print(v);
@@ -110,7 +110,7 @@ main() {
   }
 
   Future<void> test_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   final int a;
   final int b = 2;
@@ -131,7 +131,7 @@ class Test {
   }
 
   Future<void> test_topLevelField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 final int v;
 ''');
     await assertNoFix();
@@ -145,7 +145,7 @@ class CreateConstructorForFinalFieldsWithNullSafetyTest extends FixProcessorTest
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
 
   Future<void> test_excludesLate() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   final int a;
   late final int b;

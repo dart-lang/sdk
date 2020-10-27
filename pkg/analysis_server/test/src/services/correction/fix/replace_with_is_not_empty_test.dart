@@ -24,7 +24,7 @@ class ReplaceWithIsNotEmptyTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_is_empty;
 
   Future<void> test_constantOnLeft_lessThanOrEqual() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(List c) {
   if (1 <= c.length) {}
 }
@@ -37,7 +37,7 @@ f(List c) {
   }
 
   Future<void> test_constantOnLeft_notEqual() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(List c) {
   if (0 != c.length) {}
 }
@@ -50,7 +50,7 @@ f(List c) {
   }
 
   Future<void> test_constantOnRight_greaterThanOrEqual() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(List c) {
   if (c.length >= 1) {}
 }
@@ -63,7 +63,7 @@ f(List c) {
   }
 
   Future<void> test_constantOnRight_notEqual() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(List c) {
   if (c.length != 0) {}
 }

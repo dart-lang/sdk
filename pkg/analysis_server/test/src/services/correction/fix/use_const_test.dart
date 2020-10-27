@@ -20,7 +20,7 @@ class UseConstTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.USE_CONST;
 
   Future<void> test_explicitNew() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   const A();
 }

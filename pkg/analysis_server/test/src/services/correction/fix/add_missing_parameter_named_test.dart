@@ -20,7 +20,7 @@ class AddMissingParameterNamedTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_MISSING_PARAMETER_NAMED;
 
   Future<void> test_constructor_hasNamed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A(int a, {int b}) {}
 }
@@ -41,7 +41,7 @@ main() {
   }
 
   Future<void> test_constructor_hasRequired() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A(int a) {}
 }
@@ -62,7 +62,7 @@ main() {
   }
 
   Future<void> test_constructor_noParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A() {}
 }
@@ -83,7 +83,7 @@ main() {
   }
 
   Future<void> test_constructor_noParameters_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A.aaa() {}
 }
@@ -104,7 +104,7 @@ main() {
   }
 
   Future<void> test_function_hasNamed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 test(int a, {int b: 0}) {}
 
 main() {
@@ -121,7 +121,7 @@ main() {
   }
 
   Future<void> test_function_hasRequired() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 test(int a) {}
 
 main() {
@@ -138,7 +138,7 @@ main() {
   }
 
   Future<void> test_function_noParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 test() {}
 
 main() {
@@ -155,7 +155,7 @@ main() {
   }
 
   Future<void> test_method_hasNamed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   test(int a, {int b: 0}) {}
 
@@ -176,7 +176,7 @@ class A {
   }
 
   Future<void> test_method_hasOptionalPositional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   test(int a, [int b]) {}
 
@@ -189,7 +189,7 @@ class A {
   }
 
   Future<void> test_method_hasRequired() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   test(int a) {}
 
@@ -210,7 +210,7 @@ class A {
   }
 
   Future<void> test_method_noParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   test() {}
 

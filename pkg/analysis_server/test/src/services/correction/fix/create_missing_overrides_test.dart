@@ -23,7 +23,7 @@ class CreateMissingOverridesTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
 
   Future<void> test_field_untyped() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   var f;
 }
@@ -44,7 +44,7 @@ class B implements A {
   }
 
   Future<void> test_functionTypeAlias() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef int Binary(int left, int right);
 
 abstract class Emulator {
@@ -71,7 +71,7 @@ class MyEmulator extends Emulator {
   }
 
   Future<void> test_functionTypedParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   void forEach(int f(double p1, String p2));
 }
@@ -94,7 +94,7 @@ class B extends A {
   }
 
   Future<void> test_generics_typeArguments() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Iterator<T> {
 }
 
@@ -122,7 +122,7 @@ class Test extends IterableMixin<int> {
   }
 
   Future<void> test_generics_typeParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class ItemProvider<T> {
   List<T> getItems();
 }
@@ -146,7 +146,7 @@ class Test<V> extends ItemProvider<V> {
   }
 
   Future<void> test_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   get g1;
   int get g2;
@@ -174,7 +174,7 @@ class B extends A {
   }
 
   Future<void> test_importPrefix() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async' as aaa;
 abstract class A {
   Map<aaa.Future, List<aaa.Future>> g(aaa.Future p);
@@ -200,7 +200,7 @@ class B extends A {
   }
 
   Future<void> test_mergeToField_getterSetter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int ma;
   void mb() {}
@@ -233,7 +233,7 @@ class B implements A {
   }
 
   Future<void> test_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   void m1();
   int m2();
@@ -311,7 +311,7 @@ class B extends A {
   }
 
   Future<void> test_method_emptyClassBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   void foo();
 }
@@ -333,7 +333,7 @@ class B extends A {
   }
 
   Future<void> test_method_generic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C<T> {}
 class V<E> {}
 
@@ -364,7 +364,7 @@ class B implements A {
 
   Future<void> test_method_generic_withBounds() async {
     // https://github.com/dart-lang/sdk/issues/31199
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A<K, V> {
   List<T> foo<T extends V>(K key);
 }
@@ -388,7 +388,7 @@ class B<K, V> implements A<K, V> {
   }
 
   Future<void> test_method_genericClass2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A<R> {
   R foo(int a) => null;
 }
@@ -426,7 +426,7 @@ class X implements B<bool> {
   }
 
   Future<void> test_method_namedParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   foo({int i});
 }
@@ -453,7 +453,7 @@ class B extends A {
   }
 
   Future<void> test_method_notEmptyClassBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   void foo();
 }
@@ -482,7 +482,7 @@ class B extends A {
   Future<void> test_method_withTypedef() async {
     // This fails because the element representing `Base.closure` has a return
     // type that has forgotten that it was declared using the typedef `Closure`.
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef Closure = T Function<T>(T input);
 
 abstract class Base {
@@ -508,7 +508,7 @@ class Concrete extends Base {
   }
 
   Future<void> test_methods_reverseOrder() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   foo(int i);
   bar(String bar);
@@ -542,7 +542,7 @@ class B extends A {
   }
 
   Future<void> test_operator() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   int operator [](int index);
   void operator []=(int index, String value);
@@ -573,7 +573,7 @@ class B extends A {
   }
 
   Future<void> test_setter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 abstract class A {
   set s1(x);
   set s2(int x);
@@ -618,7 +618,7 @@ class CreateMissingOverridesWithNullSafetyTest extends FixProcessorTest
 
   Future<void> test_method_generic_nullable_dynamic() async {
     // https://github.com/dart-lang/sdk/issues/43535
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void doSomething(Map<String, dynamic>? m) {}
 }
@@ -641,7 +641,7 @@ class B implements A {
 
   Future<void> test_method_generic_nullable_Never() async {
     // https://github.com/dart-lang/sdk/issues/43535
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void doSomething(Map<String, Never>? m) {}
 }

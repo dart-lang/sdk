@@ -20,7 +20,7 @@ class CreateConstructorSuperTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_SUPER;
 
   Future<void> test_fieldInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int _field;
   A(this._field);
@@ -59,7 +59,7 @@ class B {
   B(A a);
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/b.dart';
 
 class C extends B {
@@ -76,7 +76,7 @@ class C extends B {
   }
 
   Future<void> test_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A.named(p1, int p2);
 }
@@ -101,7 +101,7 @@ class B extends A {
   }
 
   Future<void> test_optional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A(p1, int p2, List<String> p3, [int p4]);
 }
@@ -126,7 +126,7 @@ class B extends A {
   }
 
   Future<void> test_private() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A._named(p);
 }
@@ -137,7 +137,7 @@ class B extends A {
   }
 
   Future<void> test_typeArgument() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C<T> {
   final T x;
   C(this.x);

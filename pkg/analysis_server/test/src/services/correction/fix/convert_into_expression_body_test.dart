@@ -25,7 +25,7 @@ class ConvertIntoExpressionBodyTest extends FixProcessorLintTest {
 
   /// More coverage in the `convert_into_expression_body_test.dart` assist test.
   Future<void> test_async() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   mmm() async { 
     return 42;

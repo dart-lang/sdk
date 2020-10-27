@@ -26,7 +26,7 @@ class AddCurlyBracesTest extends FixProcessorLintTest {
   // More coverage in the `use_curly_braces_test.dart` assist test.
 
   Future<void> test_do_block() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   do print(0); while (true);
 }

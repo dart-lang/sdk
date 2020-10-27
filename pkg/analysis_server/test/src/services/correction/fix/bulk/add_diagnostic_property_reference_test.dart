@@ -20,7 +20,7 @@ class AddDiagnosticPropertyReferenceTest extends BulkFixProcessorTest {
 
   Future<void> test_singleFile() async {
     writeTestPackageConfig(flutter: true);
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 

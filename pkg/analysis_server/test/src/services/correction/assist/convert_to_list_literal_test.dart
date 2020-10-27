@@ -20,7 +20,7 @@ class ConvertToListLiteralTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_LIST_LITERAL;
 
   Future<void> test_default_declaredType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List l = Li/*caret*/st();
 ''');
     await assertHasAssist('''
@@ -29,7 +29,7 @@ List l = [];
   }
 
   Future<void> test_default_minimal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = Li/*caret*/st();
 ''');
     await assertHasAssist('''
@@ -38,7 +38,7 @@ var l = [];
   }
 
   Future<void> test_default_newKeyword() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = new Li/*caret*/st();
 ''');
     await assertHasAssist('''
@@ -47,14 +47,14 @@ var l = [];
   }
 
   Future<void> test_default_tooManyArguments() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = Li/*caret*/st(5);
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_default_typeArg() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = Li/*caret*/st<int>();
 ''');
     await assertHasAssist('''

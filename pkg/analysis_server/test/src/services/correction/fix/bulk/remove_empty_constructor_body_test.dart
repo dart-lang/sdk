@@ -19,7 +19,7 @@ class RemoveEmptyConstructorBodyTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.empty_constructor_bodies;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   C() {}
 }

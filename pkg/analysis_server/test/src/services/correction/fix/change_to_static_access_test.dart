@@ -20,7 +20,7 @@ class ChangeToStaticAccessTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CHANGE_TO_STATIC_ACCESS;
 
   Future<void> test_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static foo() {}
 }
@@ -39,7 +39,7 @@ main(A a) {
   }
 
   Future<void> test_method_extension() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on int {
   static void foo() {}
 }
@@ -68,7 +68,7 @@ import 'package:test/a.dart';
 
 class B extends A {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/b.dart';
 
 main(B b) {
@@ -86,7 +86,7 @@ main(B b) {
   }
 
   Future<void> test_method_prefixLibrary() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async' as pref;
 main(pref.Future f) {
   f.wait([]);
@@ -101,7 +101,7 @@ main(pref.Future f) {
   }
 
   Future<void> test_property() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static get foo => 42;
 }
@@ -121,7 +121,7 @@ main(A a) {
 
   @failingTest
   Future<void> test_property_extension() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on int {
   static int get foo => 42;
 }
@@ -150,7 +150,7 @@ import 'package:test/a.dart';
 
 class B extends A {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/b.dart';
 
 main(B b) {

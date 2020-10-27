@@ -24,7 +24,7 @@ class RemoveOperatorTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_adjacent_string_concatenation;
 
   Future<void> test_plus() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var s = 'a' + 'b';
 ''');
     await assertHasFix('''

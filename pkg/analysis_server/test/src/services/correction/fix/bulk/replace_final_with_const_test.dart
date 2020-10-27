@@ -19,7 +19,7 @@ class ReplaceFinalWithConstTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_const_declarations;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 final int a = 1;
 final b = 1;
 ''');

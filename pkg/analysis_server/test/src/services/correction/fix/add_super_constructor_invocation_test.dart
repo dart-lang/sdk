@@ -20,7 +20,7 @@ class AddSuperConstructorInvocationTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION;
 
   Future<void> test_hasInitializers() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A(int p);
 }
@@ -41,7 +41,7 @@ class B extends A {
   }
 
   Future<void> test_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A.named(int p);
 }
@@ -60,7 +60,7 @@ class B extends A {
   }
 
   Future<void> test_named_private() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A._named(int p);
 }
@@ -72,7 +72,7 @@ class B extends A {
   }
 
   Future<void> test_requiredAndNamed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A(bool p1, int p2, double p3, String p4, {p5});
 }
@@ -91,7 +91,7 @@ class B extends A {
   }
 
   Future<void> test_typeArgument() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A<T> {
   A(T p);
 }

@@ -24,7 +24,7 @@ class ReplaceWithVarTest extends FixProcessorLintTest {
   String get lintCode => LintNames.omit_local_variable_types;
 
   Future<void> test_for() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> list) {
   for (int i = 0; i < list.length; i++) {
     print(i);
@@ -41,7 +41,7 @@ void f(List<int> list) {
   }
 
   Future<void> test_forEach() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> list) {
   for (int i in list) {
     print(i);
@@ -58,7 +58,7 @@ void f(List<int> list) {
   }
 
   Future<void> test_forEach_final() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> list) {
   for (final int i in list) {
     print(i);
@@ -75,7 +75,7 @@ void f(List<int> list) {
   }
 
   Future<void> test_generic_instanceCreation_withArguments() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 C<int> f() {
   C<int> c = C<int>();
   return c;
@@ -92,7 +92,7 @@ class C<T> {}
   }
 
   Future<void> test_generic_instanceCreation_withoutArguments() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 C<int> f() {
   C<int> c = C();
   return c;
@@ -109,7 +109,7 @@ class C<T> {}
   }
 
   Future<void> test_generic_listLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List f() {
   List<int> l = [];
   return l;
@@ -124,7 +124,7 @@ List f() {
   }
 
   Future<void> test_generic_listLiteral_const() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f() {
   const List<String> values = const ['a'];
   return values[0];
@@ -139,7 +139,7 @@ String f() {
   }
 
   Future<void> test_generic_mapLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Map f() {
   Map<String, int> m = {};
   return m;
@@ -154,7 +154,7 @@ Map f() {
   }
 
   Future<void> test_generic_mapLiteral_const() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Map f() {
   const Map<String, int> m = const {};
   return m;
@@ -169,7 +169,7 @@ Map f() {
   }
 
   Future<void> test_generic_setLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Set f() {
   Set<int> s = {};
   return s;
@@ -184,7 +184,7 @@ Set f() {
   }
 
   Future<void> test_generic_setLiteral_ambiguous() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Set f() {
   Set s = {};
   return s;
@@ -194,7 +194,7 @@ Set f() {
   }
 
   Future<void> test_generic_setLiteral_const() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f() {
   const Set<String> s = const {'a'};
   return s.first;
@@ -209,7 +209,7 @@ String f() {
   }
 
   Future<void> test_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f() {
   String s = '';
   return s;
@@ -224,7 +224,7 @@ String f() {
   }
 
   Future<void> test_simple_const() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f() {
   const String s = '';
   return s;
@@ -239,7 +239,7 @@ String f() {
   }
 
   Future<void> test_simple_final() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f() {
   final String s = '';
   return s;

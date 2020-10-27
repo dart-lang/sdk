@@ -30,7 +30,7 @@ class AddMissingRequiredArgumentTest extends FixProcessorTest {
   }
 
   Future<void> test_constructor_flutter_children() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -57,7 +57,7 @@ build() {
   }
 
   Future<void> test_constructor_flutter_hasTrailingComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -84,7 +84,7 @@ build() {
   }
 
   Future<void> test_constructor_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 class A {
@@ -118,7 +118,7 @@ class A {
   A({@required int a}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -146,7 +146,7 @@ class A {
   A({@required VoidCallback onPressed}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -174,7 +174,7 @@ class A {
   A({@required Callback callback}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -202,7 +202,7 @@ class A {
   A({@required Callback callback}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -230,7 +230,7 @@ class A {
   A({@required Callback callback}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -256,7 +256,7 @@ class A {
   A({@required List<String> names}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -275,7 +275,7 @@ main() {
   }
 
   Future<void> test_multiple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
@@ -294,7 +294,7 @@ main() {
   }
 
   Future<void> test_multiple_1of2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
@@ -313,7 +313,7 @@ main() {
   }
 
   Future<void> test_multiple_2of2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
@@ -332,7 +332,7 @@ main() {
   }
 
   Future<void> test_param_child() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -364,7 +364,7 @@ build() {
   }
 
   Future<void> test_param_children() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -396,7 +396,7 @@ build() {
   }
 
   Future<void> test_single() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@required int abc}) {}
@@ -416,7 +416,7 @@ main() {
   }
 
   Future<void> test_single_normal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test(String x, {@required int abc}) {}
@@ -435,7 +435,7 @@ main() {
   }
 
   Future<void> test_single_with_details() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 test({@Required("Really who doesn't need an abc?") int abc}) {}
@@ -473,7 +473,7 @@ class A {
   A({@required Callback callback}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -502,7 +502,7 @@ class A {
   A({@required Callback callback}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:test/a.dart';
 
 main() {
@@ -530,7 +530,7 @@ class A {
   A({@required Callback callback}) {}
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 // @dart = 2.8
 import 'package:test/a.dart';
 
@@ -551,7 +551,7 @@ main() {
   }
 
   Future<void> test_nonNullable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f({required int x}) {}
 void g() {
   f();
@@ -566,7 +566,7 @@ void g() {
   }
 
   Future<void> test_nullable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f({required int? x}) {}
 void g() {
   f();

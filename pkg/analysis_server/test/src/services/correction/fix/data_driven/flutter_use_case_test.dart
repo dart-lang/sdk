@@ -43,7 +43,7 @@ transforms:
         oldName: 'child'
         newName: 'content'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -84,7 +84,7 @@ transforms:
         oldName: 'child'
         newName: 'content'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -124,7 +124,7 @@ transforms:
       - kind: 'rename'
         newName: 'CupertinoPopupSurface'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -160,7 +160,7 @@ transforms:
       - kind: 'rename'
         newName: 'CupertinoPopupSurface'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -203,7 +203,7 @@ transforms:
       - kind: 'removeParameter'
         name: 'brightness'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(CupertinoTextThemeData data) {
@@ -245,7 +245,7 @@ transforms:
       - kind: 'removeParameter'
         name: 'brightness'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(CupertinoTextThemeData data) {
@@ -288,7 +288,7 @@ transforms:
       - kind: 'removeParameter'
         name: 'brightness'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -331,7 +331,7 @@ transforms:
       - kind: 'removeParameter'
         name: 'brightness'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -371,7 +371,7 @@ transforms:
       - kind: 'rename'
         newName: 'fromMouseEvent'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(PointerHoverEvent event) {
@@ -408,7 +408,7 @@ transforms:
       - kind: 'rename'
         newName: 'fromMouseEvent'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(PointerHoverEvent event) {
@@ -448,7 +448,7 @@ transforms:
       - kind: 'rename'
         newName: 'fromMouseEvent'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(PointerHoverEvent event) {
@@ -485,7 +485,7 @@ transforms:
       - kind: 'rename'
         newName: 'fromMouseEvent'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(PointerHoverEvent event) {
@@ -523,7 +523,7 @@ transforms:
       - kind: 'rename'
         newName: 'resizeToAvoidBottomInset'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Scaffold scaffold) {
@@ -559,7 +559,7 @@ transforms:
       - kind: 'rename'
         newName: 'resizeToAvoidBottomInset'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Scaffold scaffold) {
@@ -609,7 +609,7 @@ transforms:
       - kind: 'removeParameter'
         name: 'child'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Widget widget) {
@@ -659,7 +659,7 @@ transforms:
       - kind: 'removeParameter'
         name: 'child'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Widget widget) {
@@ -696,7 +696,7 @@ transforms:
       - kind: 'rename'
         newName: 'headline1'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(TextTheme theme) {
@@ -731,7 +731,7 @@ transforms:
       - kind: 'rename'
         newName: 'headline1'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(TextTheme theme) {
@@ -768,7 +768,7 @@ transforms:
       - kind: 'rename'
         newName: 'material2014'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -803,7 +803,7 @@ transforms:
       - kind: 'rename'
         newName: 'material2014'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -852,7 +852,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(BuildContext context) {
@@ -899,7 +899,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(BuildContext context) {
@@ -948,7 +948,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(BuildContext context) {
@@ -995,7 +995,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(BuildContext context) {
@@ -1032,7 +1032,7 @@ transforms:
       - kind: 'rename'
         newName: 'dependOnInheritedElement'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(BuildContext context) {
@@ -1067,7 +1067,7 @@ transforms:
       - kind: 'rename'
         newName: 'dependOnInheritedElement'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(BuildContext context) {
@@ -1116,7 +1116,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(BuildContext context) {
@@ -1163,7 +1163,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(BuildContext context) {
@@ -1212,7 +1212,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Element element) {
@@ -1259,7 +1259,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Element element) {
@@ -1308,7 +1308,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Element element) {
@@ -1354,7 +1354,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Element element) {
@@ -1391,7 +1391,7 @@ transforms:
       - kind: 'rename'
         newName: 'dependOnInheritedElement'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Element element) {
@@ -1426,7 +1426,7 @@ transforms:
       - kind: 'rename'
         newName: 'dependOnInheritedElement'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Element element) {
@@ -1475,7 +1475,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Element element) {
@@ -1522,7 +1522,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Element element) {
@@ -1560,7 +1560,7 @@ transforms:
       - kind: 'rename'
         newName: 'jumpTo'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(ScrollPosition position) {
@@ -1596,7 +1596,7 @@ transforms:
       - kind: 'rename'
         newName: 'jumpTo'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(ScrollPosition position) {
@@ -1634,7 +1634,7 @@ transforms:
       - kind: 'rename'
         newName: 'dependOnInheritedElement'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(StatefulElement element) {
@@ -1669,7 +1669,7 @@ transforms:
       - kind: 'rename'
         newName: 'dependOnInheritedElement'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(StatefulElement element) {
@@ -1707,7 +1707,7 @@ transforms:
       - kind: 'rename'
         newName: 'allowFirstFrame'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(WidgetsBinding binding) {
@@ -1743,7 +1743,7 @@ transforms:
       - kind: 'rename'
         newName: 'allowFirstFrame'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(WidgetsBinding binding) {
@@ -1781,7 +1781,7 @@ transforms:
       - kind: 'rename'
         newName: 'deferFirstFrame'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(WidgetsBinding binding) {
@@ -1817,7 +1817,7 @@ transforms:
       - kind: 'rename'
         newName: 'deferFirstFrame'
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(WidgetsBinding binding) {

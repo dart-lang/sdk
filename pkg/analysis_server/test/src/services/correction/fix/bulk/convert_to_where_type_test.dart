@@ -19,7 +19,7 @@ class ConvertToWhereTypeTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_iterable_whereType;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Iterable<C> f(List<Object> list) {
   return list.where((e) => e is C);
 }

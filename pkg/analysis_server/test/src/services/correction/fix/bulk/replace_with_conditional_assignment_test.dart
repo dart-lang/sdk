@@ -19,7 +19,7 @@ class ReplaceWithConditionalAssignmentTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_conditional_assignment;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Person {
   String _fullName;
   void foo() {

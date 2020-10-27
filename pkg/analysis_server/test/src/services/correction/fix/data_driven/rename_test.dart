@@ -40,7 +40,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -63,7 +63,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -90,7 +90,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -113,7 +113,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -136,7 +136,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C extends Old {}
@@ -153,7 +153,7 @@ class C extends New {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C extends Old {}
@@ -172,7 +172,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C implements Old {}
@@ -189,7 +189,7 @@ class C implements New {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C implements Old {}
@@ -208,7 +208,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 extension E on Old {}
@@ -225,7 +225,7 @@ extension E on New {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 extension E on Old {}
@@ -244,7 +244,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Old o) {}
@@ -261,7 +261,7 @@ void f(New o) {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Old o) {}
@@ -280,7 +280,7 @@ class Old {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C with Old {}
@@ -297,7 +297,7 @@ class C with New {}
 class New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C with Old {}
@@ -320,7 +320,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var s = Old.empty;
@@ -339,7 +339,7 @@ class New {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var s = Old.empty;
@@ -366,7 +366,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -389,7 +389,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -414,7 +414,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], ''));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -437,7 +437,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], ''));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -462,7 +462,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', ''], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -485,7 +485,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', ''], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -518,7 +518,7 @@ extension New on String {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var l = Old('a').double;
@@ -537,7 +537,7 @@ extension New on String {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var l = Old('a').double;
@@ -560,7 +560,7 @@ extension New on String {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var s = Old.empty;
@@ -579,7 +579,7 @@ extension New on String {
 }
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 var s = Old.empty;
@@ -606,7 +606,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -629,7 +629,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -654,7 +654,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -677,7 +677,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -702,7 +702,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -725,7 +725,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -760,7 +760,7 @@ class D {
 }
 ''');
     setPackageData(_rename(['C', 'a'], 'b'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(D d) {
@@ -782,7 +782,7 @@ class D {
 }
 ''');
     setPackageData(_rename(['C', 'a'], 'b'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 D d = D(a: 2);
@@ -799,7 +799,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -822,7 +822,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -850,7 +850,7 @@ class D {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(D d) {
@@ -876,7 +876,7 @@ class D {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(D d) {
@@ -899,7 +899,7 @@ int get old => 0;
 int get new => 1;
 ''');
     setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -920,7 +920,7 @@ void f() {
 int get new => 1;
 ''');
     setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -952,7 +952,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class D extends C {
@@ -977,7 +977,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class D extends C {
@@ -1004,7 +1004,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -1027,7 +1027,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -1052,7 +1052,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -1075,7 +1075,7 @@ class C {
 }
 ''');
     setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -1104,7 +1104,7 @@ mixin Old {}
 mixin New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C with Old {}
@@ -1121,7 +1121,7 @@ class C with New {}
 mixin New {}
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class C with Old {}
@@ -1146,7 +1146,7 @@ int old() {}
 int new() {}
 ''');
     setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -1167,7 +1167,7 @@ void f() {
 int new() {}
 ''');
     setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f() {
@@ -1196,7 +1196,7 @@ typedef Old = int Function(int);
 typedef New = int Function(int);
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Old o) {}
@@ -1213,7 +1213,7 @@ void f(New o) {}
 typedef New = int Function(int);
 ''');
     setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(Old o) {}

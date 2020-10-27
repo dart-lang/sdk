@@ -76,7 +76,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
     code = code.replaceFirst(key, '', offset);
 
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit(code);
+    await resolveTestCode(code);
 
     var context = PostfixCompletionContext(testAnalysisResult, offset, key);
     processor = PostfixCompletionProcessor(context);

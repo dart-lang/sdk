@@ -25,7 +25,7 @@ class AddConstTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_const_constructors;
 
   Future<void> test_new() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   const C();
 }
@@ -39,7 +39,7 @@ main() {
   }
 
   Future<void> test_noKeyword() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   const C();
 }
@@ -77,7 +77,7 @@ class AddConstToImmutableConstructorTest extends FixProcessorLintTest {
   }
 
   Future<void> test_constConstructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 @immutable
@@ -96,7 +96,7 @@ class A {
   }
 
   Future<void> test_constConstructorWithComment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 @immutable

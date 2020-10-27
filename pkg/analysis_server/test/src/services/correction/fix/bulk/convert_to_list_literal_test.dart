@@ -19,7 +19,7 @@ class ConvertToListLiteralTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_collection_literals;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List l = List();
 var l2 = List<int>();
 ''');

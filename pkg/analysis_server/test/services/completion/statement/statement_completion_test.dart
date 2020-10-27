@@ -80,7 +80,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
 
   Future<void> _prepareCompletionAt(int offset, String sourceCode) async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit(sourceCode);
+    await resolveTestCode(sourceCode);
     await _computeCompletion(offset);
   }
 }

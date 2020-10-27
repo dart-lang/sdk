@@ -20,7 +20,7 @@ class ConvertIntoFinalFieldTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
 
   Future<void> test_blockBody_onlyReturnStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo {
     return 1 + 2;
@@ -35,7 +35,7 @@ class A {
   }
 
   Future<void> test_hasOverride() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const myAnnotation = const Object();
 class A {
   @myAnnotation
@@ -52,7 +52,7 @@ class A {
   }
 
   Future<void> test_hasSetter_inSuper() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void set foo(_) {}
 }
@@ -71,7 +71,7 @@ class B extends A {
   }
 
   Future<void> test_hasSetter_inThisClass() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo => null;
   void set foo(_) {}
@@ -81,7 +81,7 @@ class A {
   }
 
   Future<void> test_noReturnType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   get foo => 42;
 }
@@ -94,7 +94,7 @@ class A {
   }
 
   Future<void> test_noReturnType_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static get foo => 42;
 }
@@ -107,7 +107,7 @@ class A {
   }
 
   Future<void> test_notExpressionBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo {
     int v = 1 + 2;
@@ -119,7 +119,7 @@ class A {
   }
 
   Future<void> test_notGetter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int foo() => 42;
 }
@@ -128,7 +128,7 @@ class A {
   }
 
   Future<void> test_notNull() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo => 1 + 2;
 }
@@ -141,7 +141,7 @@ class A {
   }
 
   Future<void> test_null() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo => null;
 }
@@ -154,7 +154,7 @@ class A {
   }
 
   Future<void> test_onName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo => 42;
 }
@@ -167,7 +167,7 @@ class A {
   }
 
   Future<void> test_onReturnType_parameterized() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   List<int> get foo => null;
 }
@@ -180,7 +180,7 @@ class A {
   }
 
   Future<void> test_onReturnType_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int get foo => 42;
 }

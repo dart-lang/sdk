@@ -21,7 +21,7 @@ class ConvertIntoIsNotEmptyTest extends AssistProcessorTest {
 
   Future<void> test_noBang() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(String str) {
   ~str.isEmpty;
 }
@@ -30,7 +30,7 @@ main(String str) {
   }
 
   Future<void> test_noIsNotEmpty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   bool get isEmpty => false;
 }
@@ -42,7 +42,7 @@ main(A a) {
   }
 
   Future<void> test_notInPrefixExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(String str) {
   str.isEmpty;
 }
@@ -51,7 +51,7 @@ main(String str) {
   }
 
   Future<void> test_notIsEmpty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int p) {
   !p.isEven;
 }
@@ -60,7 +60,7 @@ main(int p) {
   }
 
   Future<void> test_on_isEmpty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(String str) {
   !str.isEmpty;
 }
@@ -73,7 +73,7 @@ main(String str) {
   }
 
   Future<void> test_on_str() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(String str) {
   !str.isEmpty;
 }
@@ -86,7 +86,7 @@ main(String str) {
   }
 
   Future<void> test_propertyAccess() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(String str) {
   !'text'.isEmpty;
 }

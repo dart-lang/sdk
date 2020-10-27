@@ -28,7 +28,7 @@ class FlutterWrapStreamBuilderTest extends AssistProcessorTest {
   }
 
   Future<void> test_aroundStreamBuilder() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -42,7 +42,7 @@ main() {
   }
 
   Future<void> test_aroundText() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {

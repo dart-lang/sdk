@@ -26,7 +26,7 @@ class AddRequiredTest extends FixProcessorLintTest {
   String get lintCode => LintNames.always_require_non_null_named_parameters;
 
   Future<void> test_withAssert() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void function({String param}) {
   assert(param != null);
 }
@@ -46,7 +46,7 @@ class AddRequiredWithNullSafetyTest extends FixProcessorTest
   FixKind get kind => DartFixKind.ADD_REQUIRED2;
 
   Future<void> test_withAssert() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void function({String param}) {}
 ''');
     await assertHasFix('''

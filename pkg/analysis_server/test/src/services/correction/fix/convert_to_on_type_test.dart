@@ -24,7 +24,7 @@ class ConvertToOnTypeTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_types_as_parameter_names;
 
   Future<void> test_withOnType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   try {
   } on ArgumentError catch (Object) {
@@ -39,7 +39,7 @@ void f() {
   }
 
   Future<void> test_withoutStackTrace() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   try {
   } catch (ArgumentError) {
@@ -56,7 +56,7 @@ void f() {
   }
 
   Future<void> test_withStackTrace() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   try {
   } catch (ArgumentError, st) {

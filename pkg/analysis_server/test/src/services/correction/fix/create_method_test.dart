@@ -27,7 +27,7 @@ class AddMissingHashOrEqualsTest extends FixProcessorLintTest {
   String get lintCode => LintNames.hash_and_equals;
 
   Future<void> test_equals() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   @override
   int get hashCode => 13;
@@ -49,7 +49,7 @@ class C {
 
   /// See: https://github.com/dart-lang/sdk/issues/43867
   Future<void> test_equals_fieldHashCode() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   @override
   int hashCode = 13;
@@ -70,7 +70,7 @@ class C {
   }
 
   Future<void> test_hashCode() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   @override
   bool operator ==(Object other) => false;
@@ -96,7 +96,7 @@ class CreateMethodMixinTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_METHOD;
 
   Future<void> test_createQualified_instance() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin M {}
 
 main(M m) {
@@ -115,7 +115,7 @@ main(M m) {
   }
 
   Future<void> test_createQualified_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin M {}
 
 main() {
@@ -134,7 +134,7 @@ main() {
   }
 
   Future<void> test_createUnqualified() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin M {
   main() {
     myUndefinedMethod();
@@ -153,7 +153,7 @@ mixin M {
   }
 
   Future<void> test_functionType_method_enclosingMixin_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin M {
   static foo() {
     useFunction(test);
@@ -177,7 +177,7 @@ useFunction(int g(double a, String b)) {}
   }
 
   Future<void> test_functionType_method_targetMixin() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(M m) {
   useFunction(m.test);
 }
@@ -208,7 +208,7 @@ class CreateMethodTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_METHOD;
 
   Future<void> test_createQualified_emptyClassBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 main() {
   A.myUndefinedMethod();
@@ -225,7 +225,7 @@ main() {
   }
 
   Future<void> test_createQualified_fromClass() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
 }
 main() {
@@ -243,7 +243,7 @@ main() {
   }
 
   Future<void> test_createQualified_fromClass_hasOtherMember() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   foo() {}
 }
@@ -264,7 +264,7 @@ main() {
   }
 
   Future<void> test_createQualified_fromInstance() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
 }
 main(A a) {
@@ -282,7 +282,7 @@ main(A a) {
   }
 
   Future<void> test_createQualified_targetIsFunctionType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef A();
 main() {
   A.myUndefinedMethod();
@@ -292,7 +292,7 @@ main() {
   }
 
   Future<void> test_createQualified_targetIsUnresolved() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   NoSuchClass.myUndefinedMethod();
 }
@@ -301,7 +301,7 @@ main() {
   }
 
   Future<void> test_createUnqualified_duplicateArgumentNames() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int x;
 }
@@ -326,7 +326,7 @@ class D {
   }
 
   Future<void> test_createUnqualified_parameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   main() {
     myUndefinedMethod(0, 1.0, '3');
@@ -369,7 +369,7 @@ class A {
   }
 
   Future<void> test_createUnqualified_parameters_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   main() {
     myUndefinedMethod(0, bbb: 1.0, ccc: '2');
@@ -410,7 +410,7 @@ class A {
   }
 
   Future<void> test_createUnqualified_returnType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   main() {
     int v = myUndefinedMethod();
@@ -435,7 +435,7 @@ class A {
   }
 
   Future<void> test_createUnqualified_staticFromField() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static var f = myUndefinedMethod();
 }
@@ -450,7 +450,7 @@ class A {
   }
 
   Future<void> test_createUnqualified_staticFromMethod() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static main() {
     myUndefinedMethod();
@@ -469,7 +469,7 @@ class A {
   }
 
   Future<void> test_functionType_method_enclosingClass_instance() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   void m1() {
     m2(m3);
@@ -493,7 +493,7 @@ class C {
   }
 
   Future<void> test_functionType_method_enclosingClass_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static foo() {
     useFunction(test);
@@ -515,7 +515,7 @@ useFunction(int g(double a, String b)) {}
   }
 
   Future<void> test_functionType_method_enclosingClass_static2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   var f;
   A() : f = useFunction(test);
@@ -535,7 +535,7 @@ useFunction(int g(double a, String b)) {}
   }
 
   Future<void> test_functionType_method_targetClass() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(A a) {
   useFunction(a.test);
 }
@@ -556,7 +556,7 @@ useFunction(int g(double a, String b)) {}
   }
 
   Future<void> test_functionType_method_targetClass_hasOtherMember() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(A a) {
   useFunction(a.test);
 }
@@ -580,7 +580,7 @@ useFunction(int g(double a, String b)) {}
   }
 
   Future<void> test_functionType_notFunctionType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(A a) {
   useFunction(a.test);
 }
@@ -591,7 +591,7 @@ useFunction(g) {}
   }
 
   Future<void> test_functionType_unknownTarget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(A a) {
   useFunction(a.test);
 }
@@ -603,7 +603,7 @@ useFunction(g) {}
   }
 
   Future<void> test_generic_argumentType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A<T> {
   B b;
   Map<int, T> items;
@@ -631,7 +631,7 @@ class B {
   }
 
   Future<void> test_generic_literal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   B b;
   List<int> items;
@@ -658,7 +658,7 @@ class B {
   }
 
   Future<void> test_generic_local() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A<T> {
   List<T> items;
   main() {
@@ -679,7 +679,7 @@ class A<T> {
   }
 
   Future<void> test_generic_returnType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A<T> {
   main() {
     T t = new B().compute();
@@ -705,7 +705,7 @@ class B {
   }
 
   Future<void> test_hint_createQualified_fromInstance() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
 }
 main() {
@@ -725,7 +725,7 @@ main() {
   }
 
   Future<void> test_inSDK() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   List.foo();
 }
@@ -734,7 +734,7 @@ main() {
   }
 
   Future<void> test_internal_instance() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {
   int m() => n();
 }
@@ -749,7 +749,7 @@ extension E on String {
   }
 
   Future<void> test_internal_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {
   static int m() => n();
 }
@@ -764,7 +764,7 @@ extension E on String {
   }
 
   Future<void> test_override() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {}
 
 void f() {
@@ -797,7 +797,7 @@ library test3;
 class E {}
 ''');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'test2.dart' as aaa;
 
 main(aaa.D d, aaa.E e) {
@@ -823,7 +823,7 @@ class D {
 class E {}
 ''');
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'test2.dart' as test2;
 
 main(test2.D d, test2.E e) {
@@ -841,7 +841,7 @@ class E {}
   }
 
   Future<void> test_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on String {}
 
 void f() {
@@ -860,7 +860,7 @@ void f() {
   }
 
   Future<void> test_targetIsEnum() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 enum MyEnum {A, B}
 main() {
   MyEnum.foo();

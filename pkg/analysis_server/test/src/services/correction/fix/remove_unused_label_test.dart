@@ -20,7 +20,7 @@ class RemoveUnusedLabelTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_UNUSED_LABEL;
 
   Future<void> test_unused_onWhile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   x:
   while (true) {
@@ -38,7 +38,7 @@ f() {
   }
 
   Future<void> test_unused_onWhile_sameLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   x: while (true) {
     break;

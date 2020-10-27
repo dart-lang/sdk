@@ -28,7 +28,7 @@ class FlutterSwapWithParentTest extends AssistProcessorTest {
   }
 
   Future<void> test_inCenter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(
@@ -67,7 +67,7 @@ startResize() {}
   }
 
   Future<void> test_notFormatted() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 class Foo extends StatefulWidget {
@@ -117,7 +117,7 @@ class _State extends State<Foo> {
   }
 
   Future<void> test_outerIsInChildren() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(

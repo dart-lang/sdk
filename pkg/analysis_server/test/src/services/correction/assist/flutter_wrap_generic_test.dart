@@ -28,14 +28,14 @@ class FlutterWrapGenericTest extends AssistProcessorTest {
   }
 
   Future<void> test_minimal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 /*caret*/x(){}
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_multiLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return Container(
@@ -72,7 +72,7 @@ build() {
   Future<void> test_multiLine_inListLiteral() async {
     verifyNoTestUnitErrors = false;
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return Container(
@@ -92,7 +92,7 @@ build() {
   }
 
   Future<void> test_multiLines() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -131,7 +131,7 @@ class FakeFlutter {
   }
 
   Future<void> test_multiLines_eol2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
   main() {\r
@@ -170,7 +170,7 @@ class FakeFlutter {\r
   }
 
   Future<void> test_prefixedIdentifier_identifier() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
@@ -195,7 +195,7 @@ main(Foo foo) {
   }
 
   Future<void> test_prefixedIdentifier_prefix() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
@@ -220,7 +220,7 @@ main(Foo foo) {
   }
 
   Future<void> test_singleLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -233,7 +233,7 @@ class FakeFlutter {
   }
 
   Future<void> test_singleLine1() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -252,7 +252,7 @@ class FakeFlutter {
   }
 
   Future<void> test_singleLine2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -271,7 +271,7 @@ class FakeFlutter {
   }
 
   Future<void> test_variable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {

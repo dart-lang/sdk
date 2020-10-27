@@ -28,7 +28,7 @@ class FlutterConvertToStatefulWidgetTest extends AssistProcessorTest {
   }
 
   Future<void> test_empty() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
 class /*caret*/MyWidget extends StatelessWidget {
@@ -56,7 +56,7 @@ class _MyWidgetState extends State<MyWidget> {
   }
 
   Future<void> test_empty_typeParam() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
 class /*caret*/MyWidget<T> extends StatelessWidget {
@@ -84,7 +84,7 @@ class _MyWidgetState<T> extends State<MyWidget<T>> {
   }
 
   Future<void> test_fields() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
 class /*caret*/MyWidget extends StatelessWidget {
@@ -164,7 +164,7 @@ class _MyWidgetState extends State<MyWidget> {
   }
 
   Future<void> test_getters() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
 class /*caret*/MyWidget extends StatelessWidget {
@@ -222,7 +222,7 @@ class _MyWidgetState extends State<MyWidget> {
   }
 
   Future<void> test_methods() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
 class /*caret*/MyWidget extends StatelessWidget {
@@ -311,7 +311,7 @@ class _MyWidgetState extends State<MyWidget> {
   }
 
   Future<void> test_notClass() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 /*caret*/main() {}
 ''');
@@ -319,7 +319,7 @@ import 'package:flutter/material.dart';
   }
 
   Future<void> test_notStatelessWidget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 class /*caret*/MyWidget extends Text {
   MyWidget() : super('');
@@ -329,7 +329,7 @@ class /*caret*/MyWidget extends Text {
   }
 
   Future<void> test_notWidget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 class /*caret*/MyWidget {}
 ''');
@@ -337,7 +337,7 @@ class /*caret*/MyWidget {}
   }
 
   Future<void> test_simple() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
 class /*caret*/MyWidget extends StatelessWidget {
@@ -389,7 +389,7 @@ class _MyWidgetState extends State<MyWidget> {
   }
 
   Future<void> test_tail() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
 class /*caret*/MyWidget extends StatelessWidget {

@@ -29,7 +29,7 @@ class FlutterConvertToChildrenTest extends AssistProcessorTest {
 
   Future<void> test_childUnresolved() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   return Row(
@@ -41,7 +41,7 @@ build() {
   }
 
   Future<void> test_multiLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(
@@ -76,7 +76,7 @@ build() {
   Future<void> test_newlineChild() async {
     // This case could occur with deeply nested constructors, common in Flutter.
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(
@@ -110,7 +110,7 @@ build() {
   }
 
   Future<void> test_notOnChild() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(
@@ -124,7 +124,7 @@ build() {
   }
 
   Future<void> test_singleLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 build() {
   return Scaffold(

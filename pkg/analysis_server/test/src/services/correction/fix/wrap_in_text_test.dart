@@ -28,7 +28,7 @@ class WrapInTextTest extends FixProcessorTest {
   }
 
   Future<void> test_literal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 Widget f() => Center(child: 'aaa');
 ''');
@@ -39,7 +39,7 @@ Widget f() => Center(child: Text('aaa'));
   }
 
   Future<void> test_notString() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 Widget center(int i) => Center(child: i);
 ''');
@@ -47,7 +47,7 @@ Widget center(int i) => Center(child: i);
   }
 
   Future<void> test_parameterType_notClass() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef F = void Function();
 
 void foo({F a}) {}
@@ -60,7 +60,7 @@ void bar() {
   }
 
   Future<void> test_parameterType_notWidget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(int i) {
   f('a');
 }
@@ -69,7 +69,7 @@ void f(int i) {
   }
 
   Future<void> test_variable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 Widget center(String s) => Center(child: s);
 ''');

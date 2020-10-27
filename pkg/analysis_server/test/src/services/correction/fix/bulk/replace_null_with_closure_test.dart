@@ -19,7 +19,7 @@ class ReplaceNullWithClosureTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.null_closures;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(List<int> l) {
   l.firstWhere((e) => e.isEven, orElse: null);
 }

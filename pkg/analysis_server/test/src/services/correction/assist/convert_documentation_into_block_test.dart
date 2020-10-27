@@ -20,7 +20,7 @@ class ConvertDocumentationIntoBlockTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK;
 
   Future<void> test_alreadyBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 /**
  * AAAAAAA
  */
@@ -30,7 +30,7 @@ class A {}
   }
 
   Future<void> test_noSpaceBeforeText() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   /// AAAAA
   ///BBBBB
@@ -53,7 +53,7 @@ class A {
   }
 
   Future<void> test_notDocumentation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 // AAAA
 class A {}
 ''');
@@ -61,7 +61,7 @@ class A {}
   }
 
   Future<void> test_onReference() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 /// AAAAAAA [int] AAAAAAA
 class A {}
 ''');
@@ -74,7 +74,7 @@ class A {}
   }
 
   Future<void> test_onText() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   /// AAAAAAA [int] AAAAAAA
   /// BBBBBBBB BBBB BBBB

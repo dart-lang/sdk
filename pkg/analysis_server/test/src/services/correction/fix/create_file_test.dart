@@ -21,7 +21,7 @@ class CreateFileTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_FILE;
 
   Future<void> test_forImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'my_file.dart';
 ''');
     await assertHasFixWithoutApplying();
@@ -39,14 +39,14 @@ import 'my_file.dart';
   }
 
   Future<void> test_forImport_BAD_notDart() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'my_file.txt';
 ''');
     await assertNoFix();
   }
 
   Future<void> test_forImport_inPackage_lib() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'a/bb/my_lib.dart';
 ''');
     await assertHasFixWithoutApplying();
@@ -65,7 +65,7 @@ import 'a/bb/my_lib.dart';
 
   Future<void> test_forImport_inPackage_test() async {
     testFile = convertPath('/home/test/test/test.dart');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'a/bb/my_lib.dart';
 ''');
     await assertHasFixWithoutApplying();
@@ -83,7 +83,7 @@ import 'a/bb/my_lib.dart';
   }
 
   Future<void> test_forPart() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 library my.lib;
 part 'my_part.dart';
 ''');

@@ -20,7 +20,7 @@ class AddMissingParameterPositionalTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL;
 
   Future<void> test_function_hasNamed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 test({int a}) {}
 main() {
   test(1);
@@ -30,7 +30,7 @@ main() {
   }
 
   Future<void> test_function_hasZero() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 test() {}
 main() {
   test(1);
@@ -45,7 +45,7 @@ main() {
   }
 
   Future<void> test_method_hasOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   test(int a) {}
   main() {

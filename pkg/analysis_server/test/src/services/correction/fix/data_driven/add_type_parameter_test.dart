@@ -33,7 +33,7 @@ class C<S, T> {
 }
 ''');
     setPackageData(_add(0, components: ['C', 'C']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 C f() {
@@ -54,7 +54,7 @@ C f() {
 class A<S, T> {}
 ''');
     setPackageData(_add(0, components: ['A']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class B extends A<int> {}
@@ -71,7 +71,7 @@ class B extends A<String, int> {}
 class A<S, T> {}
 ''');
     setPackageData(_add(0, components: ['A']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class B implements A<int> {}
@@ -88,7 +88,7 @@ class B implements A<String, int> {}
 class A<S, T> {}
 ''');
     setPackageData(_add(0, components: ['A']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 extension E on A<int> {}
@@ -105,7 +105,7 @@ extension E on A<String, int> {}
 class C<S, T> {}
 ''');
     setPackageData(_add(0, components: ['C']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C<int> c) {}
@@ -122,7 +122,7 @@ void f(C<String, int> c) {}
 class A<S, T> {}
 ''');
     setPackageData(_add(0, components: ['A']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class B with A<int> {}
@@ -148,7 +148,7 @@ extension E<S, T> on C {
 }
 ''');
     setPackageData(_add(0, components: ['E']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -178,7 +178,7 @@ class C {
 }
 ''');
     setPackageData(_add(0));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -201,7 +201,7 @@ class C {
 }
 ''');
     setPackageData(_add(0));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -225,7 +225,7 @@ class C {
 }
 ''');
     setPackageData(_add(2));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -249,7 +249,7 @@ class C {
 }
 ''');
     setPackageData(_add(1));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -273,7 +273,7 @@ class C {
 }
 ''');
     setPackageData(_add(0));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -296,7 +296,7 @@ class C {
 }
 ''');
     setPackageData(_add(0, extendedType: 'num'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class D extends C {
@@ -321,7 +321,7 @@ class C {
 }
 ''');
     setPackageData(_add(0));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class D extends C {
@@ -350,7 +350,7 @@ class AddTypeParameterToMixinTest extends _AddTypeParameterChange {
 mixin M<S, T> {}
 ''');
     setPackageData(_add(0, components: ['M']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 class B with M<int> {}
@@ -374,7 +374,7 @@ class AddTypeParameterToTopLevelFunctionTest extends _AddTypeParameterChange {
 void f() {}
 ''');
     setPackageData(_add(0, components: ['f']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void g() {
@@ -409,7 +409,7 @@ class AddTypeParameterToTypedefTest extends _AddTypeParameterChange {
 typedef F = T Function<S, T>();
 ''');
     setPackageData(_add(0, components: ['F']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void g(F f) {
@@ -430,7 +430,7 @@ void g(F f) {
 typedef F<S, T> = T Function();
 ''');
     setPackageData(_add(0, components: ['F']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void g(F<int> f) {
@@ -455,7 +455,7 @@ void g(F<String, int> f) {
 typedef F<T> = T Function();
 ''');
     setPackageData(_add(0, components: ['F']));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void g(F f) {

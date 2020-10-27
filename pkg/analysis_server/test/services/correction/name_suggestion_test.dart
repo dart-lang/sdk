@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class VariableNameSuggestionTest extends AbstractSingleUnitTest {
   Future<void> test_forExpression_cast() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var sortedNodes;
   var res = sortedNodes as String;
@@ -31,7 +31,7 @@ main() {
   }
 
   Future<void> test_forExpression_expectedType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class TreeNode {}
 main() {
   TreeNode node = null;
@@ -47,7 +47,7 @@ main() {
   }
 
   Future<void> test_forExpression_expectedType_double() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   double res = 0.0;
 }
@@ -67,7 +67,7 @@ main() {
   }
 
   Future<void> test_forExpression_expectedType_int() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int res = 0;
 }
@@ -87,7 +87,7 @@ main() {
   }
 
   Future<void> test_forExpression_expectedType_String() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   String res = 'abc';
 }
@@ -102,7 +102,7 @@ main() {
   }
 
   Future<void> test_forExpression_inBuildMethod() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void build() {
     List l = new List();
@@ -122,7 +122,7 @@ class A {
   }
 
   Future<void> test_forExpression_indexExpression_endsWithE() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var topNodes = [0, 1, 2];
   print(topNodes[0]);
@@ -136,7 +136,7 @@ main() {
 
   Future<void> test_forExpression_instanceCreation() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' as p;
 main(p) {
   new NoSuchClass();
@@ -164,7 +164,7 @@ main(p) {
   }
 
   Future<void> test_forExpression_invocationArgument_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo({a, b, c}) {}
 main() {
   foo(a: 111, c: 333, b: 222);
@@ -189,7 +189,7 @@ main() {
   }
 
   Future<void> test_forExpression_invocationArgument_optional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(a, [b = 2, c = 3]) {}
 main() {
   foo(111, 222, 333);
@@ -214,7 +214,7 @@ main() {
   }
 
   Future<void> test_forExpression_invocationArgument_positional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(a, b) {}
 main() {
   foo(111, 222);
@@ -234,7 +234,7 @@ main() {
   }
 
   Future<void> test_forExpression_methodInvocation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   var res = p.getSortedNodes();
 }
@@ -246,7 +246,7 @@ main(p) {
   }
 
   Future<void> test_forExpression_methodInvocation_noPrefix() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   var res = p.sortedNodes();
 }
@@ -258,7 +258,7 @@ main(p) {
   }
 
   Future<void> test_forExpression_name_get() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   var res = p.get();
 }
@@ -270,7 +270,7 @@ main(p) {
   }
 
   Future<void> test_forExpression_prefixedIdentifier() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   var res = p.sortedNodes;
 }
@@ -285,7 +285,7 @@ main(p) {
   }
 
   Future<void> test_forExpression_privateName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   p._name;
   p._computeSuffix();
@@ -307,7 +307,7 @@ main(p) {
   }
 
   Future<void> test_forExpression_propertyAccess() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   var res = p.q.sortedNodes;
 }
@@ -320,7 +320,7 @@ main(p) {
   }
 
   Future<void> test_forExpression_simpleName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   var sortedNodes = null;
   var res = sortedNodes;
@@ -333,7 +333,7 @@ main(p) {
   }
 
   Future<void> test_forExpression_unqualifiedInvocation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 getSortedNodes() => [];
 main(p) {
   var res = getSortedNodes();

@@ -28,7 +28,7 @@ class FlutterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_getWidgetPresentationText_icon() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 var w = const Icon(Icons.book);
 ''');
@@ -38,7 +38,7 @@ var w = const Icon(Icons.book);
 
   Future<void> test_getWidgetPresentationText_icon_withoutArguments() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 var w = const Icon();
 ''');
@@ -47,7 +47,7 @@ var w = const Icon();
   }
 
   Future<void> test_getWidgetPresentationText_notWidget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 var w = new Object();
 ''');
@@ -56,7 +56,7 @@ var w = new Object();
   }
 
   Future<void> test_getWidgetPresentationText_text() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 var w = const Text('foo');
 ''');
@@ -65,7 +65,7 @@ var w = const Text('foo');
   }
 
   Future<void> test_getWidgetPresentationText_text_longText() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 var w = const Text('${'abc' * 100}');
 ''');
@@ -78,7 +78,7 @@ var w = const Text('${'abc' * 100}');
 
   Future<void> test_getWidgetPresentationText_text_withoutArguments() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 var w = const Text();
 ''');
@@ -88,7 +88,7 @@ var w = const Text();
 
   Future<void> test_getWidgetPresentationText_unresolved() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 var w = new Foo();
 ''');
@@ -97,7 +97,7 @@ var w = new Foo();
   }
 
   Future<void> test_identifyWidgetExpression_node_instanceCreation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -153,7 +153,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_identifyWidgetExpression_node_invocation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -186,7 +186,7 @@ Text createText(String txt) => new Text(txt);
   }
 
   Future<void> test_identifyWidgetExpression_node_namedExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -201,7 +201,7 @@ Text createEmptyText() => new Text('');
 
   Future<void>
       test_identifyWidgetExpression_node_prefixedIdentifier_identifier() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
@@ -218,7 +218,7 @@ main(Foo foo) {
 
   Future<void>
       test_identifyWidgetExpression_node_prefixedIdentifier_prefix() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
@@ -234,7 +234,7 @@ main(Foo foo) {
   }
 
   Future<void> test_identifyWidgetExpression_node_simpleIdentifier() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main(Widget widget) {
@@ -246,7 +246,7 @@ main(Widget widget) {
   }
 
   Future<void> test_identifyWidgetExpression_null() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -269,7 +269,7 @@ Text createEmptyText() => new Text('');
   }
 
   Future<void> test_identifyWidgetExpression_parent_argumentList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -285,7 +285,7 @@ void useWidget(Widget w) {}
 
   Future<void>
       test_identifyWidgetExpression_parent_assignmentExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -316,7 +316,7 @@ void useWidget(Widget w) {}
 
   Future<void>
       test_identifyWidgetExpression_parent_conditionalExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main(bool condition, Widget w1, Widget w2) {
@@ -332,7 +332,7 @@ main(bool condition, Widget w1, Widget w2) {
 
   Future<void>
       test_identifyWidgetExpression_parent_expressionFunctionBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main(Widget widget) => widget; // ref
@@ -343,7 +343,7 @@ main(Widget widget) => widget; // ref
 
   Future<void>
       test_identifyWidgetExpression_parent_expressionStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main(Widget widget) {
@@ -355,7 +355,7 @@ main(Widget widget) {
   }
 
   Future<void> test_identifyWidgetExpression_parent_forElement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main(bool b) {
@@ -371,7 +371,7 @@ void useWidget(Widget w) {}
   }
 
   Future<void> test_identifyWidgetExpression_parent_ifElement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main(bool b) {
@@ -393,7 +393,7 @@ void useWidget(Widget w) {}
   }
 
   Future<void> test_identifyWidgetExpression_parent_listLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main(Widget widget) {
@@ -405,7 +405,7 @@ main(Widget widget) {
   }
 
   Future<void> test_identifyWidgetExpression_parent_namedExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -420,7 +420,7 @@ void useWidget({Widget child}) {}
   }
 
   Future<void> test_identifyWidgetExpression_parent_returnStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main(Widget widget) {
@@ -432,7 +432,7 @@ main(Widget widget) {
   }
 
   Future<void> test_isWidget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyStatelessWidget extends StatelessWidget {}
@@ -458,7 +458,7 @@ class NotWidget extends State {}
   }
 
   Future<void> test_isWidgetCreation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 var a = new Object();
@@ -474,7 +474,7 @@ var b = new Text('bbb');
   }
 
   Future<void> test_isWidgetExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {

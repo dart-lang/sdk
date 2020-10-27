@@ -28,7 +28,7 @@ class FlutterWrapCenterTest extends AssistProcessorTest {
   }
 
   Future<void> test_aroundCenter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -40,7 +40,7 @@ class FakeFlutter {
   }
 
   Future<void> test_aroundContainer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -59,7 +59,7 @@ class FakeFlutter {
   }
 
   Future<void> test_aroundNamedConstructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
@@ -88,7 +88,7 @@ main() {
   }
 
   Future<void> test_assignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 main() {
@@ -107,7 +107,7 @@ main() {
   }
 
   Future<void> test_expressionFunctionBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() => /*caret*/Container();

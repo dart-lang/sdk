@@ -20,7 +20,7 @@ class PreferFinalFieldsTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_final_fields;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   int _f = 2;
   var _f2 = 2;
@@ -45,7 +45,7 @@ class PreferFinalLocalsTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_final_locals;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   var x = 0;
   var y = x;

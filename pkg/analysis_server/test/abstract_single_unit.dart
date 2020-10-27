@@ -130,12 +130,12 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return super.newFile(path, content: content);
   }
 
-  Future<void> resolveTestUnit(String code) async {
+  Future<void> resolveTestCode(String code) async {
     addTestSource(code);
-    await resolveTestUnit2();
+    await resolveTestFile();
   }
 
-  Future<void> resolveTestUnit2() async {
+  Future<void> resolveTestFile() async {
     testAnalysisResult = await session.getResolvedUnit(testFile);
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {

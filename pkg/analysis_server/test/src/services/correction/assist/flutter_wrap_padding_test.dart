@@ -28,7 +28,7 @@ class FlutterWrapPaddingTest extends AssistProcessorTest {
   }
 
   Future<void> test_aroundContainer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -50,7 +50,7 @@ class FakeFlutter {
   }
 
   Future<void> test_aroundPadding() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
@@ -65,7 +65,7 @@ class FakeFlutter {
   }
 
   Future<void> test_inConstantContext() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   Widget build() {

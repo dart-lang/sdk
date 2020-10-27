@@ -19,7 +19,7 @@ class ConvertToMapLiteralTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_collection_literals;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Map m = Map();
 var m2 = Map<String, int>();
 ''');

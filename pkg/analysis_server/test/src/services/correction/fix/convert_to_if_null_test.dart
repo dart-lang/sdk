@@ -25,7 +25,7 @@ class ConvertToIfNullTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_if_null_operators;
 
   Future<void> test_equalEqual() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   print(s == null ? 'default' : s);
 }
@@ -38,7 +38,7 @@ void f(String s) {
   }
 
   Future<void> test_malformed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s, bool b) {
   print(b ? s != null ? s : : null);
 }
@@ -52,7 +52,7 @@ void f(String s, bool b) {
 
   Future<void> test_malformed_parentheses() async {
     // https://github.com/dart-lang/sdk/issues/43432
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s, bool b) {
   print(b ? (s != null ? s : ) : null);
 }
@@ -65,7 +65,7 @@ void f(String s, bool b) {
   }
 
   Future<void> test_notEqual() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(String s) {
   print(s != null ? s : 'default');
 }

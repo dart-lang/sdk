@@ -28,7 +28,7 @@ class FlutterWrapRowTest extends AssistProcessorTest {
   }
 
   Future<void> test_twoWidgets() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class FakeFlutter {

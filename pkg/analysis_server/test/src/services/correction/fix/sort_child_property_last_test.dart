@@ -33,7 +33,7 @@ class SortChildPropertyLastTest extends FixProcessorLintTest {
 
   /// More coverage in the `sort_child_properties_last_test.dart` assist test.
   Future<void> test_sort() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
