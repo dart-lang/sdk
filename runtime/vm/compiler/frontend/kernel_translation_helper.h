@@ -773,8 +773,8 @@ class LibraryHelper {
     kExternal = 1 << 0,
     kSynthetic = 1 << 1,
     kIsNonNullableByDefault = 1 << 2,
-    kNonNullableByDefaultCompiledModeBit1Weak = 1 << 3,
-    kNonNullableByDefaultCompiledModeBit2Strong = 1 << 4,
+    kNonNullableByDefaultCompiledModeBit1 = 1 << 3,
+    kNonNullableByDefaultCompiledModeBit2 = 1 << 4,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
@@ -795,13 +795,13 @@ class LibraryHelper {
     return (flags_ & kIsNonNullableByDefault) != 0;
   }
   NNBDCompiledMode GetNonNullableByDefaultCompiledMode() const {
-    bool weak = (flags_ & kNonNullableByDefaultCompiledModeBit1Weak) != 0;
-    bool strong = (flags_ & kNonNullableByDefaultCompiledModeBit2Strong) != 0;
-    if (weak && strong) return NNBDCompiledMode::kAgnostic;
-    if (strong) return NNBDCompiledMode::kStrong;
-    if (weak) return NNBDCompiledMode::kWeak;
-    // Nothing set is implicitly weak.
-    return NNBDCompiledMode::kWeak;
+    bool bit1 = (flags_ & kNonNullableByDefaultCompiledModeBit1) != 0;
+    bool bit2 = (flags_ & kNonNullableByDefaultCompiledModeBit2) != 0;
+    if (!bit1 && !bit2) return NNBDCompiledMode::kWeak;
+    if (bit1 && !bit2) return NNBDCompiledMode::kStrong;
+    if (bit1 && bit2) return NNBDCompiledMode::kAgnostic;
+    // !bit1 && bit2 is unused.
+    UNREACHABLE();
   }
 
   uint8_t flags_ = 0;

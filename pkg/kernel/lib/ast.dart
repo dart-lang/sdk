@@ -368,8 +368,8 @@ class Library extends NamedNode
 
   static const int SyntheticFlag = 1 << 1;
   static const int NonNullableByDefaultFlag = 1 << 2;
-  static const int NonNullableByDefaultModeBit1Weak = 1 << 3;
-  static const int NonNullableByDefaultModeBit2Strong = 1 << 4;
+  static const int NonNullableByDefaultModeBit1 = 1 << 3;
+  static const int NonNullableByDefaultModeBit2 = 1 << 4;
 
   int flags = 0;
 
@@ -388,32 +388,29 @@ class Library extends NamedNode
   }
 
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode {
-    bool weak = (flags & NonNullableByDefaultModeBit1Weak) != 0;
-    bool strong = (flags & NonNullableByDefaultModeBit2Strong) != 0;
-
-    if (weak && strong) return NonNullableByDefaultCompiledMode.Agnostic;
-    if (strong) return NonNullableByDefaultCompiledMode.Strong;
-    if (weak) return NonNullableByDefaultCompiledMode.Weak;
-    // Nothing set is implicitly weak.
-    return NonNullableByDefaultCompiledMode.Weak;
+    bool bit1 = (flags & NonNullableByDefaultModeBit1) != 0;
+    bool bit2 = (flags & NonNullableByDefaultModeBit2) != 0;
+    if (!bit1 && !bit2) return NonNullableByDefaultCompiledMode.Weak;
+    if (bit1 && !bit2) return NonNullableByDefaultCompiledMode.Strong;
+    if (bit1 && bit2) return NonNullableByDefaultCompiledMode.Agnostic;
+    // !bit1 && bit2 is unused.
+    throw new StateError("Unused bit-pattern for compilation mode");
   }
 
   void set nonNullableByDefaultCompiledMode(
       NonNullableByDefaultCompiledMode mode) {
-    // Technically we could but the isNonNullableByDefault flag in here as it's
-    // only allowed when we're weak.
     switch (mode) {
       case NonNullableByDefaultCompiledMode.Weak:
-        flags = (flags | NonNullableByDefaultModeBit1Weak) &
-            ~NonNullableByDefaultModeBit2Strong;
+        flags = (flags & ~NonNullableByDefaultModeBit1) &
+            ~NonNullableByDefaultModeBit2;
         break;
       case NonNullableByDefaultCompiledMode.Strong:
-        flags = (flags & ~NonNullableByDefaultModeBit1Weak) |
-            NonNullableByDefaultModeBit2Strong;
+        flags = (flags | NonNullableByDefaultModeBit1) &
+            ~NonNullableByDefaultModeBit2;
         break;
       case NonNullableByDefaultCompiledMode.Agnostic:
-        flags = (flags | NonNullableByDefaultModeBit1Weak) |
-            NonNullableByDefaultModeBit2Strong;
+        flags = (flags | NonNullableByDefaultModeBit1) |
+            NonNullableByDefaultModeBit2;
         break;
     }
   }
