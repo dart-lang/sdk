@@ -151,7 +151,7 @@ class CodeFragmentParser {
       return index + 4;
     } else {
       errorReporter.reportErrorForOffset(TransformSetErrorCode.unknownAccessor,
-          token.offset, token.length, [identifier]);
+          token.offset + delta, token.length, [identifier]);
       return tokens.length;
     }
   }

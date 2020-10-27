@@ -949,7 +949,7 @@ transforms:
       - kind: 'removeParameter'
         index: 0
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(BuildContext context) {
