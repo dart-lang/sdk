@@ -857,9 +857,13 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // ValidateReload mutates the direct subclass information and does
     // not remove dead subclasses.  Rebuild the direct subclass
     // information from scratch.
-    ForEachIsolate([&](Isolate* isolate) {
-      isolate->reload_context()->RebuildDirectSubclasses();
-    });
+    {
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      ForEachIsolate([&](Isolate* isolate) {
+        isolate->reload_context()->RebuildDirectSubclasses();
+      });
+    }
     const intptr_t final_library_count =
         GrowableObjectArray::Handle(Z,
                                     first_isolate_->object_store()->libraries())

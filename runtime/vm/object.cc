@@ -5030,6 +5030,7 @@ void Class::set_interfaces(const Array& value) const {
 
 void Class::AddDirectImplementor(const Class& implementor,
                                  bool is_mixin) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(is_implemented());
   ASSERT(!implementor.IsNull());
   GrowableObjectArray& direct_implementors =
@@ -5054,10 +5055,12 @@ void Class::AddDirectImplementor(const Class& implementor,
 }
 
 void Class::ClearDirectImplementors() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   StorePointer(&raw_ptr()->direct_implementors_, GrowableObjectArray::null());
 }
 
 void Class::AddDirectSubclass(const Class& subclass) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!subclass.IsNull());
   ASSERT(subclass.SuperClass() == raw());
   // Do not keep track of the direct subclasses of class Object.
@@ -5078,6 +5081,7 @@ void Class::AddDirectSubclass(const Class& subclass) const {
 }
 
 void Class::ClearDirectSubclasses() const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   StorePointer(&raw_ptr()->direct_subclasses_, GrowableObjectArray::null());
 }
 
