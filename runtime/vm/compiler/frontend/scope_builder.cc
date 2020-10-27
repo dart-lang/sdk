@@ -236,15 +236,15 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
 
       ParameterTypeCheckMode type_check_mode = kTypeCheckAllParameters;
-      if (function.IsSyncYielding()) {
+      if (function.IsSyncGenClosure()) {
         // Don't type check the parameter of sync-yielding since these calls are
         // all synthetic and types should always match.
         ASSERT((function.NumParameters() - function.NumImplicitParameters()) ==
-               1);
+               3);
         ASSERT(
             Class::Handle(
                 AbstractType::Handle(function.ParameterTypeAt(1)).type_class())
-                .Name() == Symbols::_SyncIterator().raw());
+                .ScrubbedName() == Symbols::_SyncIterator().raw());
         type_check_mode = kTypeCheckForStaticFunction;
       } else if (function.IsNonImplicitClosureFunction()) {
         type_check_mode = kTypeCheckAllParameters;
@@ -613,10 +613,12 @@ void ScopeBuilder::VisitFunctionNode() {
     scope_->AddVariable(asyncStackTraceVar);
   }
 
+  // The :sync_op and :async_op continuations are called multiple times. So we
+  // don't want the parameters from the first invocation to get stored in the
+  // context and reused on later invocations with different parameters.
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    intptr_t offset = function.num_fixed_parameters();
-    for (intptr_t i = 0; i < function.NumOptionalPositionalParameters(); i++) {
-      parsed_function_->ParameterVariable(offset + i)->set_is_forced_stack();
+    for (intptr_t i = 0; i < function.NumParameters(); i++) {
+      parsed_function_->ParameterVariable(i)->set_is_forced_stack();
     }
   }
 

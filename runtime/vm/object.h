@@ -3582,35 +3582,56 @@ class Function : public Object {
     return kind == MethodRecognizer::kUtf8DecoderScan;
   }
 
+  // Recognise async functions like:
+  //   user_func async {
+  //     // ...
+  //   }
   bool IsAsyncFunction() const { return modifier() == FunctionLayout::kAsync; }
 
+  // Recognise synthetic sync-yielding functions like the inner-most:
+  //   user_func /* was async */ {
+  //      :async_op(..) yielding {
+  //        // ...
+  //      }
+  //   }
   bool IsAsyncClosure() const {
     return is_generated_body() &&
            Function::Handle(parent_function()).IsAsyncFunction();
   }
 
-  bool IsGenerator() const {
-    return (modifier() & FunctionLayout::kGeneratorBit) != 0;
-  }
-
+  // Recognise sync* functions like:
+  //   user_func sync* {
+  //     // ...
+  //   }
   bool IsSyncGenerator() const {
     return modifier() == FunctionLayout::kSyncGen;
   }
 
-  bool IsSyncGenClosure() const {
+  // Recognise synthetic :sync_op_gen()s like:
+  //   user_func /* was sync* */ {
+  //     :sync_op_gen() {
+  //        // ...
+  //      }
+  //   }
+  bool IsSyncGenClosureMaker() const {
     return is_generated_body() &&
            Function::Handle(parent_function()).IsSyncGenerator();
   }
 
-  bool IsGeneratorClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsGenerator();
-  }
-
+  // Recognise async* functions like:
+  //   user_func async* {
+  //     // ...
+  //   }
   bool IsAsyncGenerator() const {
     return modifier() == FunctionLayout::kAsyncGen;
   }
 
+  // Recognise synthetic sync-yielding functions like the inner-most:
+  //   user_func /* originally async* */ {
+  //      :async_op(..) yielding {
+  //        // ...
+  //      }
+  //   }
   bool IsAsyncGenClosure() const {
     return is_generated_body() &&
            Function::Handle(parent_function()).IsAsyncGenerator();
@@ -3623,15 +3644,14 @@ class Function : public Object {
   // Recognise synthetic sync-yielding functions like the inner-most:
   //   user_func /* was sync* */ {
   //     :sync_op_gen() {
-  //        :sync_op() yielding {
+  //        :sync_op(..) yielding {
   //          // ...
   //        }
   //      }
   //   }
-  bool IsSyncYielding() const {
-    return (parent_function() != Function::null())
-               ? Function::Handle(parent_function()).IsSyncGenClosure()
-               : false;
+  bool IsSyncGenClosure() const {
+    return (parent_function() != Function::null()) &&
+           Function::Handle(parent_function()).IsSyncGenClosureMaker();
   }
 
   bool IsTypedDataViewFactory() const {
