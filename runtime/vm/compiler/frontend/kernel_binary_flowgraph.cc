@@ -4843,13 +4843,19 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
 
   Fragment continuation(instructions.entry, anchor);
 
-  if (parsed_function()->function().IsAsyncClosure() ||
-      parsed_function()->function().IsAsyncGenClosure()) {
-    // If function is async closure or async gen closure it takes three
+  RELEASE_ASSERT(parsed_function()->function().IsAsyncClosure() ||
+                 parsed_function()->function().IsAsyncGenClosure() ||
+                 parsed_function()->function().IsSyncGenClosure());
+
+  // TODO(43900): Only emit this when needed.
+  {
+    // If function is {async, async gen, sync yielding} closure it takes three
     // parameters where the second and the third are exception and stack_trace.
     // Check if exception is non-null and rethrow it.
     //
-    //   :async_op([:result, :exception, :stack_trace]) {
+    //   :sync_op(:iterator, [:exception, :stack_trace]) {
+    // or:
+    //   :async_op(:result, [:exception, :stack_trace]) {
     //     ...
     //     Continuation<index>:
     //       if (:exception != null) rethrow(:exception, :stack_trace);
@@ -4868,13 +4874,15 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
     continuation += LoadLocal(exception_var);
     continuation += BranchIfNull(&no_error, &error);
 
-    Fragment rethrow(error);
+    Fragment rethrow(/*instruction=*/error);
     rethrow += LoadLocal(exception_var);
     rethrow += LoadLocal(stack_trace_var);
+
     rethrow += RethrowException(position, kInvalidTryIndex);
     Drop();
 
-    continuation = Fragment(continuation.entry, no_error);
+    // Set current to the end of the no_error branch.
+    continuation = Fragment(/*entry=*/continuation.entry, /*current=*/no_error);
   }
 
   return continuation;
@@ -5005,6 +5013,16 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       }
       function.set_is_generated_body(function_node_helper.async_marker_ ==
                                      FunctionNodeHelper::kSyncYielding);
+      // sync* functions contain two nested synthetic functions, the first of
+      // which (sync_op_gen) is a regular sync function so we need to manually
+      // label it generated:
+      if (function.parent_function() != Function::null()) {
+        const auto& parent = Function::Handle(function.parent_function());
+        if (parent.IsSyncGenerator()) {
+          function.set_is_generated_body(true);
+        }
+      }
+      // Note: Is..() methods use the modifiers set above, so order matters.
       if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
         function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                   !FLAG_lazy_async_stacks);

@@ -4831,10 +4831,6 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
           }
           continue;
         } else {
-          // func was just compiled.
-          // The local function of a function we just compiled cannot
-          // be compiled already.
-          ASSERT(!inner_function.HasCode());
           if (FLAG_verbose_debug) {
             OS::PrintErr(
                 "Pending breakpoint remains unresolved in "
