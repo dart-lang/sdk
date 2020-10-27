@@ -234,12 +234,9 @@ class MigrateCommand extends Command<dynamic> {
 
   final bool verbose;
 
-  @override
-  final bool hidden;
-
   ArgParser _argParser;
 
-  MigrateCommand({this.verbose = false, this.hidden = false}) {
+  MigrateCommand({this.verbose = false}) {
     MigrationCli._defineOptions(argParser, !verbose);
   }
 

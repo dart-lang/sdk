@@ -24,7 +24,6 @@ import 'src/commands/test.dart';
 import 'src/core.dart';
 import 'src/events.dart';
 import 'src/experiments.dart';
-import 'src/sdk.dart';
 import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
 
@@ -224,10 +223,7 @@ class DartdevRunner extends CommandRunner {
     addCommand(CompileCommand());
     addCommand(FixCommand());
     addCommand(FormatCommand(verbose: verbose));
-    addCommand(MigrateCommand(
-      verbose: verbose,
-      hidden: Runtime.runtime.stableChannel,
-    ));
+    addCommand(MigrateCommand(verbose: verbose));
     addCommand(PubCommand());
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
