@@ -2395,9 +2395,8 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     args.SetAt(2, Instance::Handle(state->BuildArgs(thread)));
     args.SetAt(3, Instance::Handle(state->BuildMessage(thread)));
     args.SetAt(4, is_spawn_uri ? Bool::True() : Bool::False());
-    args.SetAt(5, ReceivePort::Handle(
-                      ReceivePort::New(isolate->main_port(), String::Handle(),
-                                       true /* control port */)));
+    args.SetAt(5, ReceivePort::Handle(ReceivePort::New(
+                      isolate->main_port(), true /* control port */)));
     args.SetAt(6, capabilities);
 
     const Library& lib = Library::Handle(Library::IsolateLibrary());
