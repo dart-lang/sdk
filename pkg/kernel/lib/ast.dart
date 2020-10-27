@@ -533,11 +533,11 @@ class Library extends NamedNode
     }
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
-      canonicalName.getChildFromMember(field).bindTo(field.reference);
+      canonicalName.getChildFromField(field).bindTo(field.reference);
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName.getChildFromProcedure(member).bindTo(member.reference);
     }
     for (int i = 0; i < classes.length; ++i) {
       Class class_ = classes[i];
@@ -1228,19 +1228,21 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName.getChildFromField(member).bindTo(member.reference);
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName.getChildFromProcedure(member).bindTo(member.reference);
     }
     for (int i = 0; i < constructors.length; ++i) {
       Constructor member = constructors[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName.getChildFromConstructor(member).bindTo(member.reference);
     }
     for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
       RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName
+          .getChildFromRedirectingFactoryConstructor(member)
+          .bindTo(member.reference);
     }
     dirty = false;
   }
