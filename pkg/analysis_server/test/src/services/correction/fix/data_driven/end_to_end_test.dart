@@ -38,8 +38,8 @@ transforms:
         expression: '{% y %}'
         variables:
           y:
-            kind: 'argument'
-            index: 0
+            kind: 'fragment'
+            value: 'arguments[0]'
 ''');
     await resolveTestUnit('''
 import '$importUri';
@@ -81,8 +81,8 @@ transforms:
         expression: '{% t %}'
         variables:
           t:
-            kind: 'argument'
-            index: 0
+            kind: 'fragment'
+            value: 'arguments[0]'
 ''');
     await resolveTestUnit('''
 import '$importUri';

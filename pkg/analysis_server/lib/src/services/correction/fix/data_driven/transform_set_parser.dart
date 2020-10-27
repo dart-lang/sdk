@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_fragment_parser.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
@@ -68,6 +68,7 @@ class TransformSetParser {
   static const String _transformsKey = 'transforms';
   static const String _typedefKey = 'typedef';
   static const String _urisKey = 'uris';
+  static const String _valueKey = 'value';
   static const String _variableKey = 'variable';
   static const String _variablesKey = 'variables';
   static const String _versionKey = 'version';
@@ -85,7 +86,7 @@ class TransformSetParser {
 
   static const String _addParameterKind = 'addParameter';
   static const String _addTypeParameterKind = 'addTypeParameter';
-  static const String _argumentKind = 'argument';
+  static const String _fragmentKind = 'fragment';
   static const String _importKind = 'import';
   static const String _removeParameterKind = 'removeParameter';
   static const String _renameKind = 'rename';
@@ -190,6 +191,15 @@ class TransformSetParser {
     }
     // We shouldn't get here.
     return node.runtimeType.toString();
+  }
+
+  /// Return the offset of the first character in the [string], exclusive of any
+  /// surrounding quotes.
+  int _offsetOfString(YamlScalar string) {
+    // TODO(brianwilkerson) We add 1 to account for the quotes around the
+    //  string, but quotes aren't required, so we need to use the style of the
+    //  [string] is to get the right offset.
+    return string.span.start.offset + 1;
   }
 
   /// Return the result of parsing the file [content] into a YAML node.
@@ -349,37 +359,6 @@ class TransformSetParser {
         argumentValue: argumentValue);
   }
 
-  /// Translate the [node] into a value extractor. Return the resulting
-  /// extractor, or `null` if the [node] does not represent a valid value
-  /// extractor.
-  ValueGenerator _translateArgumentExtractor(YamlMap node) {
-    var indexNode = node.valueAt(_indexKey);
-    if (indexNode != null) {
-      _reportUnsupportedKeys(node, const {_indexKey, _kindKey});
-      var index = _translateInteger(
-          indexNode, ErrorContext(key: _indexKey, parentNode: node));
-      if (index == null) {
-        // The error has already been reported.
-        return null;
-      }
-      return CodeFragment(
-          [ArgumentAccessor(PositionalParameterReference(index))]);
-    }
-    var nameNode = node.valueAt(_nameKey);
-    if (nameNode != null) {
-      _reportUnsupportedKeys(node, const {_nameKey, _kindKey});
-      var name = _translateString(
-          nameNode, ErrorContext(key: _nameKey, parentNode: node));
-      if (name == null) {
-        // The error has already been reported.
-        return null;
-      }
-      return CodeFragment([ArgumentAccessor(NamedParameterReference(name))]);
-    }
-    // TODO(brianwilkerson) Report the missing YAML.
-    return null;
-  }
-
   /// Translate the [node] into a bool. Return the resulting bool, or `null`
   /// if the [node] does not represent a valid bool. If the [node] is not
   /// valid, use the [context] to report the error.
@@ -433,6 +412,27 @@ class TransformSetParser {
     }
   }
 
+  /// Translate the [node] into a value generator. Return the resulting
+  /// generator, or `null` if the [node] does not represent a valid value
+  /// extractor.
+  ValueGenerator _translateCodeFragment(YamlMap node) {
+    _reportUnsupportedKeys(node, const {_kindKey, _valueKey});
+    var valueNode = node.valueAt(_valueKey);
+    var value = _translateString(
+        valueNode, ErrorContext(key: _valueKey, parentNode: node));
+    if (value == null) {
+      // The error has already been reported.
+      return null;
+    }
+    var accessors = CodeFragmentParser(errorReporter)
+        .parse(value, _offsetOfString(valueNode));
+    if (accessors == null) {
+      // The error has already been reported.
+      return null;
+    }
+    return CodeFragment(accessors);
+  }
+
   /// Translate the [node] into a code template. Return the resulting template,
   /// or `null` if the [node] does not represent a valid code template. If the
   /// [node] is not valid, use the [context] to report the error.
@@ -446,10 +446,7 @@ class TransformSetParser {
       if (expressionNode != null) {
         _reportUnsupportedKeys(node, const {_expressionKey, _variablesKey});
         kind = CodeTemplateKind.expression;
-        // TODO(brianwilkerson) We add 1 to account for the quotes around the
-        //  string, but quotes aren't required, so we need to find out what
-        //  style of node [expressionNode] is to get the right offset.
-        templateOffset = expressionNode.span.start.offset + 1;
+        templateOffset = _offsetOfString(expressionNode);
         template = _translateString(expressionNode,
             ErrorContext(key: _expressionKey, parentNode: node));
       } else {
@@ -457,10 +454,7 @@ class TransformSetParser {
         if (statementsNode != null) {
           _reportUnsupportedKeys(node, const {_statementsKey, _variablesKey});
           kind = CodeTemplateKind.statements;
-          // TODO(brianwilkerson) We add 1 to account for the quotes around the
-          //  string, but quotes aren't required, so we need to find out what
-          //  style of node [expressionNode] is to get the right offset.
-          templateOffset = statementsNode.span.start.offset + 1;
+          templateOffset = _offsetOfString(statementsNode);
           template = _translateString(statementsNode,
               ErrorContext(key: _statementsKey, parentNode: node));
         } else {
@@ -569,8 +563,8 @@ class TransformSetParser {
     }
   }
 
-  /// Translate the [node] into a value extractor. Return the resulting
-  /// extractor, or `null` if the [node] does not represent a valid value
+  /// Translate the [node] into a value generator. Return the resulting
+  /// generator, or `null` if the [node] does not represent a valid value
   /// extractor.
   ValueGenerator _translateImportValue(YamlMap node) {
     _reportUnsupportedKeys(node, const {_kindKey, _nameKey, _urisKey});
@@ -843,13 +837,13 @@ class TransformSetParser {
           ErrorContext(key: _kindKey, parentNode: node));
       if (kind == null) {
         return null;
-      } else if (kind == _argumentKind) {
-        return _translateArgumentExtractor(node);
+      } else if (kind == _fragmentKind) {
+        return _translateCodeFragment(node);
       } else if (kind == _importKind) {
         return _translateImportValue(node);
       }
       return _reportInvalidValueOneOf(node, context, [
-        _argumentKind,
+        _fragmentKind,
         _importKind,
       ]);
     } else if (node == null) {

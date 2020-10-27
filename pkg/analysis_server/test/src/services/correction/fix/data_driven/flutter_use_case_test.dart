@@ -847,8 +847,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -894,8 +894,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -943,8 +943,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -990,8 +990,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -1111,8 +1111,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -1158,8 +1158,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -1207,8 +1207,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -1254,8 +1254,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -1303,8 +1303,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -1349,8 +1349,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -1470,8 +1470,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');
@@ -1517,8 +1517,8 @@ transforms:
           expression: '{% type %}'
           variables:
             type:
-              kind: 'argument'
-              index: 0
+              kind: 'fragment'
+              value: 'arguments[0]'
       - kind: 'removeParameter'
         index: 0
 ''');

@@ -10,6 +10,13 @@ import 'package:analyzer/error/error.dart';
 class TransformSetErrorCode extends ErrorCode {
   /**
    * Parameters:
+   * 0: the character that is invalid
+   */
+  static const TransformSetErrorCode invalidCharacter =
+      TransformSetErrorCode('invalid_character', "Invalid character '{0}'.");
+
+  /**
+   * Parameters:
    * 0: the key with which the value is associated
    * 1: the expected type of the value
    * 0: the actual type of the value
@@ -42,6 +49,13 @@ class TransformSetErrorCode extends ErrorCode {
 
   /**
    * Parameters:
+   * 0: a description of the expected kinds of tokens
+   */
+  static const TransformSetErrorCode missingToken =
+      TransformSetErrorCode('missing_token', "Expected to find {0}.");
+
+  /**
+   * Parameters:
    * 0: the missing key
    */
   static const TransformSetErrorCode undefinedVariable = TransformSetErrorCode(
@@ -49,10 +63,25 @@ class TransformSetErrorCode extends ErrorCode {
 
   /**
    * Parameters:
+   * 0: a description of the expected kind of token
+   */
+  static const TransformSetErrorCode unknownAccessor = TransformSetErrorCode(
+      'unknown_accessor', "The accessor '{0}' is invalid.");
+
+  /**
+   * Parameters:
    * 0: the unsupported key
    */
   static const TransformSetErrorCode unsupportedKey = TransformSetErrorCode(
       'unsupported_key', "The key '{0}' isn't supported.");
+
+  /**
+   * Parameters:
+   * 0: a description of the expected kind of token
+   * 1: a description of the actial kind of token
+   */
+  static const TransformSetErrorCode wrongToken = TransformSetErrorCode(
+      'wrong_token', "Expected to find {0}, but found {1}.");
 
   /**
    * Parameters:
