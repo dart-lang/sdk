@@ -366,10 +366,10 @@ class Library extends NamedNode
     _languageVersion = languageVersion;
   }
 
-  static const int SyntheticFlag = 1 << 1;
-  static const int NonNullableByDefaultFlag = 1 << 2;
-  static const int NonNullableByDefaultModeBit1Weak = 1 << 3;
-  static const int NonNullableByDefaultModeBit2Strong = 1 << 4;
+  static const int SyntheticFlag = 1 << 0;
+  static const int NonNullableByDefaultFlag = 1 << 1;
+  static const int NonNullableByDefaultModeBit1 = 1 << 2;
+  static const int NonNullableByDefaultModeBit2 = 1 << 3;
 
   int flags = 0;
 
@@ -388,32 +388,29 @@ class Library extends NamedNode
   }
 
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode {
-    bool weak = (flags & NonNullableByDefaultModeBit1Weak) != 0;
-    bool strong = (flags & NonNullableByDefaultModeBit2Strong) != 0;
-
-    if (weak && strong) return NonNullableByDefaultCompiledMode.Agnostic;
-    if (strong) return NonNullableByDefaultCompiledMode.Strong;
-    if (weak) return NonNullableByDefaultCompiledMode.Weak;
-    // Nothing set is implicitly weak.
-    return NonNullableByDefaultCompiledMode.Weak;
+    bool bit1 = (flags & NonNullableByDefaultModeBit1) != 0;
+    bool bit2 = (flags & NonNullableByDefaultModeBit2) != 0;
+    if (!bit1 && !bit2) return NonNullableByDefaultCompiledMode.Weak;
+    if (bit1 && !bit2) return NonNullableByDefaultCompiledMode.Strong;
+    if (bit1 && bit2) return NonNullableByDefaultCompiledMode.Agnostic;
+    // !bit1 && bit2 is unused.
+    throw new StateError("Unused bit-pattern for compilation mode");
   }
 
   void set nonNullableByDefaultCompiledMode(
       NonNullableByDefaultCompiledMode mode) {
-    // Technically we could but the isNonNullableByDefault flag in here as it's
-    // only allowed when we're weak.
     switch (mode) {
       case NonNullableByDefaultCompiledMode.Weak:
-        flags = (flags | NonNullableByDefaultModeBit1Weak) &
-            ~NonNullableByDefaultModeBit2Strong;
+        flags = (flags & ~NonNullableByDefaultModeBit1) &
+            ~NonNullableByDefaultModeBit2;
         break;
       case NonNullableByDefaultCompiledMode.Strong:
-        flags = (flags & ~NonNullableByDefaultModeBit1Weak) |
-            NonNullableByDefaultModeBit2Strong;
+        flags = (flags | NonNullableByDefaultModeBit1) &
+            ~NonNullableByDefaultModeBit2;
         break;
       case NonNullableByDefaultCompiledMode.Agnostic:
-        flags = (flags | NonNullableByDefaultModeBit1Weak) |
-            NonNullableByDefaultModeBit2Strong;
+        flags = (flags | NonNullableByDefaultModeBit1) |
+            NonNullableByDefaultModeBit2;
         break;
     }
   }
@@ -498,17 +495,6 @@ class Library extends NamedNode
   Iterable<Member> get members =>
       <Iterable<Member>>[fields, procedures].expand((x) => x);
 
-  void addMember(Member member) {
-    member.parent = this;
-    if (member is Procedure) {
-      procedures.add(member);
-    } else if (member is Field) {
-      fields.add(member);
-    } else {
-      throw new ArgumentError(member);
-    }
-  }
-
   void addAnnotation(Expression node) {
     node.parent = this;
     annotations.add(node);
@@ -547,11 +533,11 @@ class Library extends NamedNode
     }
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
-      canonicalName.getChildFromMember(field).bindTo(field.reference);
+      canonicalName.getChildFromField(field).bindTo(field.reference);
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName.getChildFromProcedure(member).bindTo(member.reference);
     }
     for (int i = 0; i < classes.length; ++i) {
       Class class_ = classes[i];
@@ -886,53 +872,6 @@ class Typedef extends NamedNode implements FileUriNode {
   }
 }
 
-/// The degree to which the contents of a class have been loaded into memory.
-///
-/// Each level imply the requirements of the previous ones.
-enum ClassLevel {
-  /// Temporary loading level for internal use by IR producers.  Consumers of
-  /// kernel code should not expect to see classes at this level.
-  Temporary,
-
-  /// The class may be used as a type, and it may contain members that are
-  /// referenced from this build unit.
-  ///
-  /// The type parameters and their bounds are present.
-  ///
-  /// There is no guarantee that all members are present.
-  ///
-  /// All supertypes of this class are at [Type] level or higher.
-  Type,
-
-  /// All instance members of the class are present.
-  ///
-  /// All supertypes of this class are at [Hierarchy] level or higher.
-  ///
-  /// This level exists so supertypes of a fully loaded class contain all the
-  /// members needed to detect override constraints.
-  Hierarchy,
-
-  /// All instance members of the class have their body loaded, and their
-  /// annotations are present.
-  ///
-  /// All supertypes of this class are at [Hierarchy] level or higher.
-  ///
-  /// If this class is a mixin application, then its mixin is loaded at [Mixin]
-  /// level or higher.
-  ///
-  /// This level exists so the contents of a mixin can be cloned into a
-  /// mixin application.
-  Mixin,
-
-  /// All members of the class are fully loaded and are in the correct order.
-  ///
-  /// Annotations are present on classes and members.
-  ///
-  /// All supertypes of this class are at [Hierarchy] level or higher,
-  /// not necessarily at [Body] level.
-  Body,
-}
-
 /// List-wrapper that marks the parent-class as dirty if the list is modified.
 ///
 /// The idea being, that for non-dirty classes (classes just loaded from dill)
@@ -989,9 +928,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
 
-  /// The degree to which the contents of the class have been loaded.
-  ClassLevel level = ClassLevel.Body;
-
   /// List of metadata annotations on the class.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
@@ -1008,13 +944,12 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   String name;
 
   // Must match serialized bit positions.
-  static const int LevelMask = 0x3; // Bits 0 and 1.
-  static const int FlagAbstract = 1 << 2;
-  static const int FlagEnum = 1 << 3;
-  static const int FlagAnonymousMixin = 1 << 4;
-  static const int FlagEliminatedMixin = 1 << 5;
-  static const int FlagMixinDeclaration = 1 << 6;
-  static const int FlagHasConstConstructor = 1 << 7;
+  static const int FlagAbstract = 1 << 0;
+  static const int FlagEnum = 1 << 1;
+  static const int FlagAnonymousMixin = 1 << 2;
+  static const int FlagEliminatedMixin = 1 << 3;
+  static const int FlagMixinDeclaration = 1 << 4;
+  static const int FlagHasConstConstructor = 1 << 5;
 
   int flags = 0;
 
@@ -1242,19 +1177,21 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName.getChildFromField(member).bindTo(member.reference);
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName.getChildFromProcedure(member).bindTo(member.reference);
     }
     for (int i = 0; i < constructors.length; ++i) {
       Constructor member = constructors[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName.getChildFromConstructor(member).bindTo(member.reference);
     }
     for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
       RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
-      canonicalName.getChildFromMember(member).bindTo(member.reference);
+      canonicalName
+          .getChildFromRedirectingFactoryConstructor(member)
+          .bindTo(member.reference);
     }
     dirty = false;
   }
@@ -1347,24 +1284,33 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// if false we can skip it.
   bool dirty = true;
 
-  /// Adds a member to this class.
-  ///
-  /// Throws an error if attempting to add a field or procedure to a mixin
-  /// application.
-  void addMember(Member member) {
+  /// Adds a constructor to this class.
+  void addConstructor(Constructor constructor) {
     dirty = true;
-    member.parent = this;
-    if (member is Constructor) {
-      constructorsInternal.add(member);
-    } else if (member is Procedure) {
-      proceduresInternal.add(member);
-    } else if (member is Field) {
-      fieldsInternal.add(member);
-    } else if (member is RedirectingFactoryConstructor) {
-      redirectingFactoryConstructorsInternal.add(member);
-    } else {
-      throw new ArgumentError(member);
-    }
+    constructor.parent = this;
+    constructorsInternal.add(constructor);
+  }
+
+  /// Adds a procedure to this class.
+  void addProcedure(Procedure procedure) {
+    dirty = true;
+    procedure.parent = this;
+    proceduresInternal.add(procedure);
+  }
+
+  /// Adds a field to this class.
+  void addField(Field field) {
+    dirty = true;
+    field.parent = this;
+    fieldsInternal.add(field);
+  }
+
+  /// Adds a field to this class.
+  void addRedirectingFactoryConstructor(
+      RedirectingFactoryConstructor redirectingFactoryConstructor) {
+    dirty = true;
+    redirectingFactoryConstructor.parent = this;
+    redirectingFactoryConstructorsInternal.add(redirectingFactoryConstructor);
   }
 
   void addAnnotation(Expression node) {
@@ -2176,7 +2122,7 @@ class Procedure extends Member {
   /// set).
   int startFileOffset = TreeNode.noOffset;
 
-  ProcedureKind kind;
+  final ProcedureKind kind;
   int flags = 0;
   // function is null if and only if abstract, external.
   FunctionNode function;
@@ -2257,7 +2203,8 @@ class Procedure extends Member {
       this.forwardingStubSuperTargetReference,
       this.forwardingStubInterfaceTargetReference,
       this.memberSignatureOriginReference})
-      : super(name, fileUri, reference) {
+      : assert(kind != null),
+        super(name, fileUri, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;

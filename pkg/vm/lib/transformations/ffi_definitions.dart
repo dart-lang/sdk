@@ -286,7 +286,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       ..fileOffset = node.fileOffset
       ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
     _makeEntryPoint(ctor);
-    node.addMember(ctor);
+    node.addConstructor(ctor);
   }
 
   /// Computes the field offsets (for all ABIs) in the struct and replaces the
@@ -349,7 +349,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           .map((Abi abi, SizeAndOffsets v) => MapEntry(abi, v.offsets[i]));
       final methods = _generateMethodsForField(
           fields[i], types[i], fieldOffsets, indexedClass);
-      methods.forEach((p) => node.addMember(p));
+      methods.forEach((p) => node.addProcedure(p));
     }
 
     for (final Field f in fields.values) {
@@ -537,7 +537,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         reference: indexedClass?.lookupField(name.text)?.reference)
       ..fileOffset = struct.fileOffset;
     _makeEntryPoint(sizeOf);
-    struct.addMember(sizeOf);
+    struct.addField(sizeOf);
   }
 
   int _sizeInBytes(NativeType type, Abi abi) {

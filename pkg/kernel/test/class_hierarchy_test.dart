@@ -167,7 +167,7 @@ class B extends self::A {
         hierarchy.getDispatchTargets(a), unorderedEquals([methodA1, methodA2]));
 
     // Add a member to A, but only update A.
-    a.addMember(methodA3);
+    a.addProcedure(methodA3);
     hierarchy.applyMemberChanges([a]);
     expect(hierarchy.getDispatchTargets(b),
         unorderedEquals([methodA1, methodA2, methodB1]));

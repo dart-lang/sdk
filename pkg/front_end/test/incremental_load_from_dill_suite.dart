@@ -1911,7 +1911,7 @@ void doSimulateTransformer(Component c) {
         reference: lib.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
             ?.reference);
-    lib.addMember(field);
+    lib.addField(field);
     for (Class c in lib.classes) {
       if (c.fields
           .where((f) => f.name.text == "unique_SimulateTransformer")
@@ -1923,7 +1923,7 @@ void doSimulateTransformer(Component c) {
           reference: c.reference.canonicalName
               ?.getChildFromFieldWithName(fieldName)
               ?.reference);
-      c.addMember(field);
+      c.addField(field);
     }
   }
 }

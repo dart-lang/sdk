@@ -382,7 +382,7 @@ class WidgetCreatorTracker {
         reference: clazz.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
             ?.reference);
-    clazz.addMember(locationField);
+    clazz.addField(locationField);
 
     final Set<Constructor> _handledConstructors =
         new Set<Constructor>.identity();

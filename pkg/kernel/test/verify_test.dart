@@ -292,7 +292,7 @@ main() {
           new FunctionNode(new EmptyStatement(),
               positionalParameters: [new VariableDeclaration('p')]),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(
           StaticInvocation(method, new Arguments([new NullLiteral()])));
     },
@@ -303,7 +303,7 @@ main() {
       var method = new Procedure(new Name('bar'), ProcedureKind.Method,
           new FunctionNode(new EmptyStatement()),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(
           StaticInvocation(method, new Arguments([new NullLiteral()])));
       return method;
@@ -320,7 +320,7 @@ main() {
           new FunctionNode(new EmptyStatement(),
               positionalParameters: [new VariableDeclaration('p')]),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(StaticInvocation(method, new Arguments.empty()));
       return method;
     },
@@ -332,7 +332,7 @@ main() {
       var method = new Procedure(new Name('bar'), ProcedureKind.Method,
           new FunctionNode(new EmptyStatement()),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(StaticInvocation(
           method,
           new Arguments([],
@@ -351,7 +351,7 @@ main() {
           new FunctionNode(new EmptyStatement(),
               typeParameters: [test.makeTypeParameter()]),
           isStatic: true);
-      test.enclosingClass.addMember(method);
+      test.enclosingClass.addProcedure(method);
       test.addNode(StaticInvocation(method, new Arguments.empty()));
       return method;
     },
@@ -363,7 +363,7 @@ main() {
     (TestHarness test) {
       var constructor = new Constructor(new FunctionNode(new EmptyStatement()),
           name: new Name('foo'));
-      test.enclosingClass.addMember(constructor);
+      test.enclosingClass.addConstructor(constructor);
       test.addNode(ConstructorInvocation(constructor, new Arguments.empty()));
       return constructor;
     },
@@ -424,7 +424,7 @@ main() {
       var field = new Field(new Name('field'),
           type: new TypedefType(typedef_, Nullability.legacy), isStatic: true);
       test.enclosingLibrary.addTypedef(typedef_);
-      test.enclosingLibrary.addMember(field);
+      test.enclosingLibrary.addField(field);
     },
   );
   negative1Test(
@@ -635,7 +635,7 @@ main() {
       var field =
           new Field(new Name('field'), type: typedefType, isStatic: true);
       test.enclosingLibrary.addTypedef(foo);
-      test.enclosingLibrary.addMember(field);
+      test.enclosingLibrary.addField(field);
       return typedefType;
     },
     (Node typedefType) =>
@@ -648,7 +648,7 @@ main() {
       var foo = new Typedef('Foo', test.otherLegacyRawType, typeParameters: []);
       var field = new Field(new Name('field'),
           type: new TypedefType(foo, Nullability.legacy, []), isStatic: true);
-      test.enclosingLibrary.addMember(field);
+      test.enclosingLibrary.addField(field);
       return foo;
     },
     (Node foo) => "Dangling reference to '$foo', parent is: 'null'",
@@ -657,7 +657,7 @@ main() {
     'Non-static top-level field',
     (TestHarness test) {
       var field = new Field(new Name('field'));
-      test.enclosingLibrary.addMember(field);
+      test.enclosingLibrary.addField(field);
       return null;
     },
     (Node node) => "The top-level field 'field' should be static",
@@ -715,11 +715,27 @@ class TestHarness {
   }
 
   void addClassMember(Member node) {
-    enclosingClass.addMember(node);
+    if (node is Procedure) {
+      enclosingClass.addProcedure(node);
+    } else if (node is Field) {
+      enclosingClass.addField(node);
+    } else if (node is Constructor) {
+      enclosingClass.addConstructor(node);
+    } else if (node is RedirectingFactoryConstructor) {
+      enclosingClass.addRedirectingFactoryConstructor(node);
+    } else {
+      throw "Unexpected class member: ${node.runtimeType}";
+    }
   }
 
   void addTopLevelMember(Member node) {
-    enclosingLibrary.addMember(node);
+    if (node is Procedure) {
+      enclosingLibrary.addProcedure(node);
+    } else if (node is Field) {
+      enclosingLibrary.addField(node);
+    } else {
+      throw "Unexpected top level member: ${node.runtimeType}";
+    }
   }
 
   void addClass(Class node) {
@@ -762,7 +778,7 @@ class TestHarness {
     enclosingLibrary.addClass(enclosingClass);
     enclosingMember = new Procedure(new Name('test'), ProcedureKind.Method,
         new FunctionNode(new EmptyStatement()));
-    enclosingClass.addMember(enclosingMember);
+    enclosingClass.addProcedure(enclosingMember);
     otherClass = new Class(
         name: 'OtherClass',
         typeParameters: [makeTypeParameter('OtherT')],

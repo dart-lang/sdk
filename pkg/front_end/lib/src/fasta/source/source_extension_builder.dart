@@ -146,7 +146,14 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
                   break;
               }
               assert(kind != null);
-              libraryBuilder.library.addMember(member);
+              if (member is Field) {
+                libraryBuilder.library.addField(member);
+              } else if (member is Procedure) {
+                libraryBuilder.library.addProcedure(member);
+              } else {
+                unhandled("${member.runtimeType}", "buildBuilders",
+                    member.fileOffset, member.fileUri);
+              }
               extension.members.add(new ExtensionMemberDescriptor(
                   name: new Name(memberBuilder.name, libraryBuilder.library),
                   member: member.reference,

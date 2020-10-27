@@ -208,7 +208,8 @@ class DillConstructorBuilder extends DillMemberBuilder {
   DillConstructorBuilder(this.constructor, Builder parent)
       : super(constructor, parent);
 
-  Member get member => constructor;
+  @override
+  Constructor get member => constructor;
 
   @override
   Member get readTarget => null;
@@ -217,7 +218,7 @@ class DillConstructorBuilder extends DillMemberBuilder {
   Member get writeTarget => null;
 
   @override
-  Member get invokeTarget => constructor;
+  Constructor get invokeTarget => constructor;
 }
 
 class DillClassMember extends BuilderClassMember {

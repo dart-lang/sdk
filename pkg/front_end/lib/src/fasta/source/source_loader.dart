@@ -474,7 +474,8 @@ class SourceLoader extends Loader {
         -1,
         null,
         null,
-        AsyncMarker.Sync)
+        AsyncMarker.Sync,
+        /* isExtensionInstanceMember = */ false)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,

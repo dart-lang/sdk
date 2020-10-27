@@ -91,7 +91,7 @@ Component createComponent(int literal) {
       new Name("method"),
       ProcedureKind.Method,
       new FunctionNode(libProcedureBody, returnType: new DynamicType()));
-  lib.addMember(libProcedure);
+  lib.addProcedure(libProcedure);
 
   final Library main = new Library(Uri.parse('org-dartlang:///main.dart'));
   final Block mainProcedureBody = new Block([
@@ -102,7 +102,7 @@ Component createComponent(int literal) {
       new Name("method"),
       ProcedureKind.Method,
       new FunctionNode(mainProcedureBody, returnType: new DynamicType()));
-  main.addMember(mainProcedure);
+  main.addProcedure(mainProcedure);
   return new Component(libraries: [main, lib])
     ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
 }

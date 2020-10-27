@@ -1149,9 +1149,7 @@ class BinaryBuilder {
       node = null;
     }
     if (node == null) {
-      node = new Class(reference: reference)
-        ..level = ClassLevel.Temporary
-        ..dirty = false;
+      node = new Class(reference: reference)..dirty = false;
     }
 
     var fileUri = readUriReference();
@@ -1159,12 +1157,7 @@ class BinaryBuilder {
     node.fileOffset = readOffset();
     node.fileEndOffset = readOffset();
     int flags = readByte();
-    node.flags = flags & ~Class.LevelMask;
-    int levelIndex = flags & Class.LevelMask;
-    var level = ClassLevel.values[levelIndex + 1];
-    if (level.index >= node.level.index) {
-      node.level = level;
-    }
+    node.flags = flags;
     var name = readStringOrNullIfEmpty();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -1378,15 +1371,17 @@ class BinaryBuilder {
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    if (node == null) {
-      node = new Procedure(null, null, null, reference: reference);
-    }
     var fileUri = readUriReference();
     var startFileOffset = readOffset();
     var fileOffset = readOffset();
     var fileEndOffset = readOffset();
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
+    if (node == null) {
+      node = new Procedure(null, kind, null, reference: reference);
+    } else {
+      assert(node.kind == kind);
+    }
     var flags = readUInt();
     var name = readName();
     var annotations = readAnnotationList(node);
@@ -1410,7 +1405,6 @@ class BinaryBuilder {
     node.startFileOffset = startFileOffset;
     node.fileOffset = fileOffset;
     node.fileEndOffset = fileEndOffset;
-    node.kind = kind;
     node.flags = flags;
     node.name = name;
     node.fileUri = fileUri;

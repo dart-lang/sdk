@@ -1617,8 +1617,8 @@ class LibraryTagger implements Tagger<Library> {
 const Map<int, String> libraryFlagToName = const {
   Library.SyntheticFlag: "synthetic",
   Library.NonNullableByDefaultFlag: "nnbd",
-  Library.NonNullableByDefaultModeBit1Weak: "nnbd-weak",
-  Library.NonNullableByDefaultModeBit2Strong: "nnbd-strong",
+  Library.NonNullableByDefaultModeBit1: "nnbd-bit1",
+  Library.NonNullableByDefaultModeBit2: "nnbd-bit2",
 };
 
 class LibraryFlagTagger implements Tagger<int> {

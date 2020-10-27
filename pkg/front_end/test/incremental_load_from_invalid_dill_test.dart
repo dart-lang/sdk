@@ -244,6 +244,14 @@ main() {
     // Should be ok, but we shouldn't actually initialize from dill.
     List<int> mixedPart1;
     {
+      // Create a component that is compiled without NNBD.
+      Map<ExperimentalFlag, bool> prevTesting =
+          options.defaultExperimentFlagsForTesting;
+      options.defaultExperimentFlagsForTesting = {
+        ExperimentalFlag.nonNullable: false
+      };
+      NnbdMode prevNnbd = options.nnbdMode;
+      options.nnbdMode = NnbdMode.Weak;
       compiler = new IncrementalCompiler(
           new CompilerContext(
               new ProcessedOptions(options: options, inputs: [helper2File])),
@@ -252,10 +260,13 @@ main() {
       c.setMainMethodAndMode(
           null, false, NonNullableByDefaultCompiledMode.Weak);
       mixedPart1 = serializeComponent(c);
+      options.defaultExperimentFlagsForTesting = prevTesting;
+      options.nnbdMode = prevNnbd;
     }
 
     List<int> mixedPart2;
     {
+      // Create a component that is compiled with strong NNBD.
       Map<ExperimentalFlag, bool> prevTesting =
           options.defaultExperimentFlagsForTesting;
       options.defaultExperimentFlagsForTesting = {
@@ -275,6 +286,9 @@ main() {
       options.nnbdMode = prevNnbd;
     }
 
+    // Now mix the two components together and try to initialize from them.
+    // We expect the compilation to be OK but that the dill is not actually
+    // used to initialize from (as it's invalid because of the mixed mode).
     List<int> mixed = [];
     mixed.addAll(mixedPart1);
     mixed.addAll(mixedPart2);
