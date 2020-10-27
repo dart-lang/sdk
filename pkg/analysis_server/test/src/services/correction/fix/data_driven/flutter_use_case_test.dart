@@ -916,6 +916,56 @@ void f(BuildContext context) {
   }
 
   Future<void>
+      test_widgets_BuildContext_ancestorStateOfType_deprecated() async {
+    setPackageContent('''
+class BuildContext {
+  @deprecated
+  void ancestorStateOfType(TypeMatcher matcher) {}
+  void findAncestorStateOfType<T>() {}
+}
+class TypeMatcher<T> {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename to findAncestorStateOfType'
+    date: 2020-09-14
+    element:
+      uris: ['$importUri']
+      method: 'ancestorStateOfType'
+      inClass: 'BuildContext'
+    changes:
+      - kind: 'rename'
+        newName: 'findAncestorStateOfType'
+      - kind: 'addTypeParameter'
+        index: 0
+        name: 'T'
+        argumentValue:
+          expression: '{% type %}'
+          variables:
+            type:
+              kind: 'fragment'
+              value: 'arguments[0].typeArguments[0]'
+      - kind: 'removeParameter'
+        index: 0
+''');
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(BuildContext context) {
+  context.ancestorStateOfType(TypeMatcher<String>());
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(BuildContext context) {
+  context.findAncestorStateOfType<String>();
+}
+''');
+  }
+
+  Future<void>
       test_widgets_BuildContext_ancestorWidgetOfExactType_deprecated() async {
     setPackageContent('''
 class BuildContext {

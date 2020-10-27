@@ -142,13 +142,12 @@ class CodeFragmentParser {
         return tokens.length;
       }
       var argumentIndex = int.parse(token.lexeme);
-      var reference = PositionalParameterReference(argumentIndex);
       token = _expect(index + 3, [_TokenKind.closeSquareBracket]);
       if (token == null) {
         // The error has already been reported.
         return tokens.length;
       }
-      accessors.add(ArgumentAccessor(reference));
+      accessors.add(TypeArgumentAccessor(argumentIndex));
       return index + 4;
     } else {
       errorReporter.reportErrorForOffset(TransformSetErrorCode.unknownAccessor,
