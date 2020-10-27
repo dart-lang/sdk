@@ -46,8 +46,8 @@ transforms:
         expression: '{% p %}'
         variables:
           p:
-            kind: 'argument'
-            index: 1
+            kind: 'fragment'
+            value: 'arguments[1]'
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
@@ -117,8 +117,8 @@ transforms:
         expression: '{% p %}'
         variables:
           p:
-            kind: 'argument'
-            index: 1
+            kind: 'fragment'
+            value: 'arguments[1]'
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
@@ -158,8 +158,8 @@ transforms:
         expression: '{% p %}'
         variables:
           p:
-            kind: 'argument'
-            index: 1
+            kind: 'fragment'
+            value: 'arguments[1]'
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
@@ -199,11 +199,11 @@ transforms:
         expression: '{% a %}({% b %})'
         variables:
           a:
-            kind: 'argument'
-            index: 1
+            kind: 'fragment'
+            value: 'arguments[1]'
           b:
-            kind: 'argument'
-            index: 2
+            kind: 'fragment'
+            value: 'arguments[2]'
 ''');
     var transforms = _transforms('f');
     expect(transforms, hasLength(1));
@@ -285,8 +285,8 @@ transforms:
         expression: '{% t %}'
         variables:
           t:
-            kind: 'argument'
-            name: 'p'
+            kind: 'fragment'
+            value: 'arguments[p]'
 ''');
     var transforms = _transforms('A');
     expect(transforms, hasLength(1));
@@ -325,8 +325,8 @@ transforms:
         expression: '{% t %}'
         variables:
           t:
-            kind: 'argument'
-            index: 2
+            kind: 'fragment'
+            value: 'arguments[2]'
 ''');
     var transforms = _transforms('A');
     expect(transforms, hasLength(1));
