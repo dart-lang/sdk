@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -119,11 +118,8 @@ void f(String s) {
 }
 
 @reflectiveTest
-class ReplaceCascadeWithDotWithNullSafetyTest
-    extends ReplaceCascadeWithDotTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class ReplaceCascadeWithDotWithNullSafetyTest extends ReplaceCascadeWithDotTest
+    with WithNullSafetyLintMixin {
   Future<void> test_assignment_index_nullAwareCascade() async {
     await resolveTestUnit('''
 void f(List<int>? l) {

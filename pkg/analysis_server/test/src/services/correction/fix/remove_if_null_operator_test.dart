@@ -4,10 +4,10 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -18,10 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class DeadNullAwareExpressionTest extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class DeadNullAwareExpressionTest extends FixProcessorTest
+    with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 

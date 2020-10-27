@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'bulk_fix_processor.dart';
@@ -1155,12 +1156,17 @@ class _DataDrivenTest extends BulkFixProcessorTest {
   /// Add the file containing the data used by the data-driven fix with the
   /// given [content].
   void addPackageDataFile(String content) {
-    addPackageFile('p', TransformSetManager.dataFileName, content);
+    newFile('$workspaceRootPath/p/lib/${TransformSetManager.dataFileName}',
+        content: content);
   }
 
   /// Set the content of the library that defines the element referenced by the
   /// data on which this test is based.
   void setPackageContent(String content) {
-    addPackageFile('p', 'lib.dart', content);
+    newFile('$workspaceRootPath/p/lib/lib.dart', content: content);
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+    );
   }
 }

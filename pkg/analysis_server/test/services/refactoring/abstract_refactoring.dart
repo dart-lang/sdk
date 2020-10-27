@@ -136,10 +136,12 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   }
 
   @override
-  void setUp() {
-    super.setUp();
+  void verifyCreatedCollection() {
+    super.verifyCreatedCollection();
     // TODO(dantup): Get these tests passing with either line ending and change this to true.
     useLineEndingsForPlatform = false;
-    searchEngine = SearchEngineImpl([driver]);
+    searchEngine = SearchEngineImpl([
+      driverFor(testPackageRootPath),
+    ]);
   }
 }

@@ -768,26 +768,26 @@ main() {
 
   Future<void> test_suggestionSets_enumValuesAlreadyImported() async {
     newFile(
-      join(projectFolderPath, 'source_file.dart'),
+      join(projectFolderPath, 'lib', 'source_file.dart'),
       content: '''
       enum MyExportedEnum { One, Two }
       ''',
     );
     newFile(
-      join(projectFolderPath, 'reexport1.dart'),
+      join(projectFolderPath, 'lib', 'reexport1.dart'),
       content: '''
       export 'source_file.dart';
       ''',
     );
     newFile(
-      join(projectFolderPath, 'reexport2.dart'),
+      join(projectFolderPath, 'lib', 'reexport2.dart'),
       content: '''
       export 'source_file.dart';
       ''',
     );
 
     final content = '''
-import '../reexport1.dart';
+import 'reexport1.dart';
 
 main() {
   var a = MyExported^
@@ -812,26 +812,26 @@ main() {
 
   Future<void> test_suggestionSets_filtersOutAlreadyImportedSymbols() async {
     newFile(
-      join(projectFolderPath, 'source_file.dart'),
+      join(projectFolderPath, 'lib', 'source_file.dart'),
       content: '''
       class MyExportedClass {}
       ''',
     );
     newFile(
-      join(projectFolderPath, 'reexport1.dart'),
+      join(projectFolderPath, 'lib', 'reexport1.dart'),
       content: '''
       export 'source_file.dart';
       ''',
     );
     newFile(
-      join(projectFolderPath, 'reexport2.dart'),
+      join(projectFolderPath, 'lib', 'reexport2.dart'),
       content: '''
       export 'source_file.dart';
       ''',
     );
 
     final content = '''
-import '../reexport1.dart';
+import 'reexport1.dart';
 
 main() {
   MyExported^

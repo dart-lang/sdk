@@ -27,7 +27,9 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    addFlutterPackage();
+    writeTestPackageConfig(
+      flutter: true,
+    );
   }
 
   Future<void> test_boolField() async {
@@ -380,7 +382,10 @@ class C extends Widget with DiagnosticableMixin {
   }
 
   Future<void> test_matrix4Field() async {
-    addVectorMathPackage();
+    writeTestPackageConfig(
+      flutter: true,
+      vector_math: true,
+    );
     await resolveTestUnit('''
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';

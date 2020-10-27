@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -74,6 +75,8 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   int completionOffset;
   int replacementOffset;
   int replacementLength;
+
+  ResolvedUnitResult result;
 
   /// The Dartdoc information passed to requests.
   final DartdocDirectiveInfo dartdocInfo = DartdocDirectiveInfo();
@@ -547,9 +550,9 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       DartCompletionRequest request);
 
   Future computeSuggestions({int times = 200}) async {
-    var resolveResult = await session.getResolvedUnit(testFile);
-    var baseRequest = CompletionRequestImpl(resolveResult, completionOffset,
-        useNewRelevance, CompletionPerformance());
+    result = await session.getResolvedUnit(testFile);
+    var baseRequest = CompletionRequestImpl(
+        result, completionOffset, useNewRelevance, CompletionPerformance());
 
     return await baseRequest.performance.runRequestOperation(
       (performance) async {

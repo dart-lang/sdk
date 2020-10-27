@@ -7,6 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../services/refactoring/abstract_rename.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -65,7 +66,13 @@ void f() {
   }
 
   Future<void> test_lib() async {
-    addPackageFile('my_pkg', 'a.dart', 'class Test {}');
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: 'class Test {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
@@ -89,11 +96,17 @@ main() {
   }
 
   Future<void> test_lib_extension() async {
-    addPackageFile('my_pkg', 'a.dart', '''
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: '''
 extension E on int {
   static String m() => '';
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
@@ -115,7 +128,13 @@ f() {
   }
 
   Future<void> test_lib_src() async {
-    addPackageFile('my_pkg', 'src/a.dart', 'class Test {}');
+    newFile('/.pub-cache/my_pkg/lib/src/a.dart', content: 'class Test {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
@@ -594,8 +613,14 @@ class ImportLibraryProject2Test extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2;
 
   Future<void> test_lib() async {
-    addPackageFile('my_pkg', 'a.dart', "export 'b.dart';");
-    addPackageFile('my_pkg', 'b.dart', 'class Test {}');
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: "export 'b.dart';");
+    newFile('/.pub-cache/my_pkg/lib/b.dart', content: 'class Test {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
@@ -617,8 +642,14 @@ main() {
   }
 
   Future<void> test_lib_src() async {
-    addPackageFile('my_pkg', 'a.dart', "export 'src/b.dart';");
-    addPackageFile('my_pkg', 'src/b.dart', 'class Test {}');
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: "export 'src/b.dart';");
+    newFile('/.pub-cache/my_pkg/lib/src/b.dart', content: 'class Test {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
@@ -640,12 +671,18 @@ main() {
   }
 
   Future<void> test_lib_src_extension() async {
-    addPackageFile('my_pkg', 'a.dart', "export 'src/b.dart';");
-    addPackageFile('my_pkg', 'src/b.dart', '''
+    newFile('/.pub-cache/my_pkg/lib/a.dart', content: "export 'src/b.dart';");
+    newFile('/.pub-cache/my_pkg/lib/src/b.dart', content: '''
 extension E on int {
   static String m() => '';
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_pkg', rootPath: '/.pub-cache/my_pkg'),
+    );
+
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
@@ -671,11 +708,17 @@ class ImportLibraryProject3Test extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3;
 
   Future<void> test_inLibSrc_differentContextRoot() async {
-    addPackageFile('bbb', 'b1.dart', r'''
+    newFile('/.pub-cache/bbb/lib/b1.dart', content: r'''
 import 'src/b2.dart';
 class A {}
 ''');
-    addPackageFile('bbb', 'src/b2.dart', 'class Test {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootPath: '/.pub-cache/bbb'),
+    );
+
+    newFile('/.pub-cache/bbb/lib/src/b2.dart', content: 'class Test {}');
     await resolveTestUnit('''
 import 'package:bbb/b1.dart';
 main() {

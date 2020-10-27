@@ -147,13 +147,13 @@ main() {
   }
 
   Future<void> test_withImport() async {
-    addPackageFile('pkg', 'a/a.dart', '''
+    newFile('$workspaceRootPath/pkg/lib/a/a.dart', content: '''
 class A {}
 ''');
-    addPackageFile('pkg', 'b/b.dart', '''
+    newFile('$workspaceRootPath/pkg/lib/b/b.dart', content: '''
 class B {}
 ''');
-    addPackageFile('pkg', 'c/c.dart', '''
+    newFile('$workspaceRootPath/pkg/lib/c/c.dart', content: '''
 import 'package:pkg/a/a.dart';
 import 'package:pkg/b/b.dart';
 
@@ -161,6 +161,11 @@ class C {
   C(A a, B b);
 }
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+    );
 
     await resolveTestUnit('''
 import 'package:pkg/a/a.dart';

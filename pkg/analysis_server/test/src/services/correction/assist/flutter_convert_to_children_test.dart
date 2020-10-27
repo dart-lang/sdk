@@ -19,8 +19,15 @@ class FlutterConvertToChildrenTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_childUnresolved() async {
-    addFlutterPackage();
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -34,7 +41,6 @@ build() {
   }
 
   Future<void> test_multiLine() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
@@ -69,7 +75,7 @@ build() {
 
   Future<void> test_newlineChild() async {
     // This case could occur with deeply nested constructors, common in Flutter.
-    addFlutterPackage();
+
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
@@ -104,7 +110,6 @@ build() {
   }
 
   Future<void> test_notOnChild() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
@@ -119,7 +124,6 @@ build() {
   }
 
   Future<void> test_singleLine() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {

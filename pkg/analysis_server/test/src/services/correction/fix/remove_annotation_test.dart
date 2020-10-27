@@ -22,7 +22,7 @@ class RemoveAnnotationTest extends FixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
   }
 
   Future<void> test_factory() async {

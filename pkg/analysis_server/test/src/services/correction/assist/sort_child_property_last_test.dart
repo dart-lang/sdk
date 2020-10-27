@@ -20,8 +20,15 @@ class SortChildPropertyLastTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SORT_CHILD_PROPERTY_LAST;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_already_sorted() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
@@ -39,7 +46,6 @@ main() {
   }
 
   Future<void> test_already_sorted_one_prop() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
@@ -56,7 +62,6 @@ main() {
   }
 
   Future<void> test_no_children() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
@@ -69,7 +74,6 @@ main() {
   }
 
   Future<void> test_sort() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {
@@ -100,7 +104,6 @@ main() {
   }
 
   Future<void> test_sort_noAssistWithLint() async {
-    addFlutterPackage();
     createAnalysisOptionsFile(lints: [LintNames.sort_child_properties_last]);
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''

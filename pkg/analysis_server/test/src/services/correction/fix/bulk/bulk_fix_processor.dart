@@ -62,9 +62,10 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// Computes fixes for the given [error] in [testUnit].
   Future<SourceChange> _computeFixes() async {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    tracker.addContext(driver.analysisContext);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
     var changeBuilder =
-        await BulkFixProcessor(workspace).fixErrors([driver.analysisContext]);
+        await BulkFixProcessor(workspace).fixErrors([analysisContext]);
     return changeBuilder.sourceChange;
   }
 

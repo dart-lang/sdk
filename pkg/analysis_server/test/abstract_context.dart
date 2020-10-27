@@ -4,18 +4,21 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
@@ -41,92 +44,64 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 typedef _ElementVisitorFunction = void Function(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
-  OverlayResourceProvider overlayResourceProvider;
+  static bool _lintRulesAreRegistered = false;
 
+  final ByteStore _byteStore = MemoryByteStore();
+
+  final Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
-  AnalysisDriver _driver;
 
   /// The file system specific `/home/test/analysis_options.yaml` path.
   String get analysisOptionsPath =>
       convertPath('/home/test/analysis_options.yaml');
 
-  AnalysisDriver get driver => _driver;
+  List<String> get collectionIncludedPaths => [workspaceRootPath];
 
-  AnalysisSession get session => driver.currentSession;
+  @deprecated
+  AnalysisDriver get driver {
+    throw 0;
+  }
+
+  String get latestLanguageVersion =>
+      '${ExperimentStatus.currentVersion.major}.'
+      '${ExperimentStatus.currentVersion.minor}';
+
+  AnalysisSession get session => contextFor('/home/test').currentSession;
+
+  String get testPackageLanguageVersion => '2.9';
+
+  String get testPackageLibPath => '$testPackageRootPath/lib';
+
+  String get testPackageRootPath => '$workspaceRootPath/test';
 
   /// The file system specific `/home/test/pubspec.yaml` path.
   String get testPubspecPath => convertPath('/home/test/pubspec.yaml');
 
-  void addFlutterPackage() {
-    addMetaPackage();
-
-    addTestPackageDependency(
-      'ui',
-      MockPackages.instance.addUI(resourceProvider).parent.path,
-    );
-
-    addTestPackageDependency(
-      'flutter',
-      MockPackages.instance.addFlutter(resourceProvider).parent.path,
-    );
-  }
-
-  void addMetaPackage() {
-    var libFolder = MockPackages.instance.addMeta(resourceProvider);
-    addTestPackageDependency('meta', libFolder.parent.path);
-  }
-
-  /// Add a new file with the given [pathInLib] to the package with the
-  /// given [packageName].  Then ensure that the test package depends on the
-  /// [packageName].
-  File addPackageFile(String packageName, String pathInLib, String content) {
-    var packagePath = '/.pub-cache/$packageName';
-    addTestPackageDependency(packageName, packagePath);
-    return newFile('$packagePath/lib/$pathInLib', content: content);
-  }
+  String get workspaceRootPath => '/home';
 
   Source addSource(String path, String content, [Uri uri]) {
     var file = newFile(path, content: content);
-    var source = file.createSource(uri);
-    driver.addFile(file.path);
-    driver.changeFile(file.path);
-    return source;
+    return file.createSource(uri);
   }
 
-  void addTestPackageDependency(String name, String rootPath) {
-    var packagesFile = getFile('/home/test/.packages');
-    var packagesContent =
-        packagesFile.exists ? packagesFile.readAsStringSync() : '';
-
-    // Ignore if there is already the same package dependency.
-    if (packagesContent.contains('$name:file://')) {
-      return;
+  Future<void> analyzeTestPackageFiles() async {
+    var analysisContext = contextFor(testPackageRootPath);
+    var files = analysisContext.contextRoot.analyzedFiles().toList();
+    for (var path in files) {
+      await analysisContext.currentSession.getResolvedUnit(path);
     }
-
-    rootPath = convertPath(rootPath);
-    packagesContent += '$name:${toUri('$rootPath/lib')}\n';
-
-    packagesFile.writeAsStringSync(packagesContent);
-
-    createAnalysisContexts();
   }
 
-  void addVectorMathPackage() {
-    var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
-    addTestPackageDependency('vector_math', libFolder.parent.path);
+  void changeFile(String path) {
+    path = convertPath(path);
+    driverFor(path).changeFile(path);
   }
 
-  /// Create all analysis contexts in `/home`.
-  void createAnalysisContexts() {
-    _analysisContextCollection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath('/home')],
-      enableIndex: true,
-      resourceProvider: overlayResourceProvider,
-      sdkPath: convertPath('/sdk'),
-    );
+  AnalysisContext contextFor(String path) {
+    _createAnalysisContexts();
 
-    var testPath = convertPath('/home/test');
-    _driver = getDriver(testPath);
+    path = convertPath(path);
+    return _analysisContextCollection.contextFor(path);
   }
 
   /// Create an analysis options file based on the given arguments.
@@ -162,9 +137,11 @@ class AbstractContextTest with ResourceProviderMixin {
     }
 
     newFile(analysisOptionsPath, content: buffer.toString());
-    if (_driver != null) {
-      createAnalysisContexts();
-    }
+  }
+
+  AnalysisDriver driverFor(String path) {
+    var context = contextFor(path) as DriverBasedAnalysisContext;
+    return context.driver;
   }
 
   /// Return the existing analysis context that should be used to analyze the
@@ -183,26 +160,33 @@ class AbstractContextTest with ResourceProviderMixin {
     return context.driver;
   }
 
-  Future<CompilationUnit> resolveLibraryUnit(Source source) async {
-    var resolveResult = await session.getResolvedUnit(source.fullName);
-    return resolveResult.unit;
+  @override
+  File newFile(String path, {String content = ''}) {
+    if (_analysisContextCollection != null && !path.endsWith('.dart')) {
+      throw StateError('Only dart files can be changed after analysis.');
+    }
+
+    return super.newFile(path, content: content);
+  }
+
+  Future<ResolvedUnitResult> resolveFile(String path) async {
+    return contextFor(path).currentSession.getResolvedUnit(path);
   }
 
   @mustCallSuper
   void setUp() {
-    registerLintRules();
+    if (!_lintRulesAreRegistered) {
+      registerLintRules();
+      _lintRulesAreRegistered = true;
+    }
 
     setupResourceProvider();
-    overlayResourceProvider = OverlayResourceProvider(resourceProvider);
 
-    MockSdk(resourceProvider: resourceProvider);
+    MockSdk(
+      resourceProvider: resourceProvider,
+    );
 
-    newFolder('/home/test');
-    newFile('/home/test/.packages', content: '''
-test:${toUriStr('/home/test/lib')}
-''');
-
-    createAnalysisContexts();
+    writeTestPackageConfig();
   }
 
   void setupResourceProvider() {}
@@ -214,7 +198,95 @@ test:${toUriStr('/home/test/lib')}
   /// Update `/home/test/pubspec.yaml` and create the driver.
   void updateTestPubspecFile(String content) {
     newFile(testPubspecPath, content: content);
-    createAnalysisContexts();
+  }
+
+  void verifyCreatedCollection() {}
+
+  void writePackageConfig(String path, PackageConfigFileBuilder config) {
+    newFile(path, content: config.toContent(toUriStr: toUriStr));
+  }
+
+  void writeTestPackageConfig({
+    PackageConfigFileBuilder config,
+    String languageVersion,
+    bool flutter = false,
+    bool meta = false,
+    bool vector_math = false,
+  }) {
+    if (config == null) {
+      config = PackageConfigFileBuilder();
+    } else {
+      config = config.copy();
+    }
+
+    config.add(
+      name: 'test',
+      rootPath: testPackageRootPath,
+      languageVersion: languageVersion ?? testPackageLanguageVersion,
+    );
+
+    if (meta || flutter) {
+      var libFolder = MockPackages.instance.addMeta(resourceProvider);
+      config.add(name: 'meta', rootPath: libFolder.parent.path);
+    }
+
+    if (flutter) {
+      {
+        var libFolder = MockPackages.instance.addUI(resourceProvider);
+        config.add(name: 'ui', rootPath: libFolder.parent.path);
+      }
+      {
+        var libFolder = MockPackages.instance.addFlutter(resourceProvider);
+        config.add(name: 'flutter', rootPath: libFolder.parent.path);
+      }
+    }
+
+    if (vector_math) {
+      var libFolder = MockPackages.instance.addVectorMath(resourceProvider);
+      config.add(name: 'vector_math', rootPath: libFolder.parent.path);
+    }
+
+    var path = '$testPackageRootPath/.dart_tool/package_config.json';
+    writePackageConfig(path, config);
+  }
+
+  /// Create all analysis contexts in [collectionIncludedPaths].
+  void _createAnalysisContexts() {
+    if (_analysisContextCollection != null) {
+      return;
+    }
+
+    _analysisContextCollection = AnalysisContextCollectionImpl(
+      byteStore: _byteStore,
+      declaredVariables: _declaredVariables,
+      enableIndex: true,
+      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
+      resourceProvider: resourceProvider,
+      sdkPath: convertPath('/sdk'),
+    );
+
+    verifyCreatedCollection();
+  }
+}
+
+mixin WithNullSafetyMixin on AbstractContextTest {
+  @override
+  String get testPackageLanguageVersion =>
+      Feature.non_nullable.isEnabledByDefault ? '2.12' : '2.11';
+
+  bool get withPackageMeta => false;
+
+  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
+  /// Remove when Null Safety is enabled by default.
+  @nonVirtual
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      languageVersion: testPackageLanguageVersion,
+      meta: withPackageMeta,
+    );
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
   }
 }
 

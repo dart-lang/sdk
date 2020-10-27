@@ -19,8 +19,15 @@ class FlutterSwapWithParentTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_SWAP_WITH_PARENT;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_inCenter() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 build() {
@@ -60,7 +67,6 @@ startResize() {}
   }
 
   Future<void> test_notFormatted() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -111,7 +117,6 @@ class _State extends State<Foo> {
   }
 
   Future<void> test_outerIsInChildren() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {

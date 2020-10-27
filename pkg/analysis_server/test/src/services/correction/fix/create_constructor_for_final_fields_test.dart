@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -22,7 +22,7 @@ class CreateConstructorForFinalFieldsTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
 
   Future<void> test_flutter() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
@@ -48,7 +48,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_flutter_childLast() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
@@ -74,7 +74,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_flutter_childrenLast() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
@@ -139,11 +139,8 @@ final int v;
 }
 
 @reflectiveTest
-class CreateConstructorForFinalFieldsWithNullSafetyTest
-    extends FixProcessorTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class CreateConstructorForFinalFieldsWithNullSafetyTest extends FixProcessorTest
+    with WithNullSafetyMixin {
   @override
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
 

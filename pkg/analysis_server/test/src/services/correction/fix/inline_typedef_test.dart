@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -137,10 +136,8 @@ void g(Function<T>(T) f) {}
 }
 
 @reflectiveTest
-class InlineTypedefWithNullSafetyTest extends InlineTypedefTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class InlineTypedefWithNullSafetyTest extends InlineTypedefTest
+    with WithNullSafetyLintMixin {
   Future<void> test_generic_parameter_requiredNamed() async {
     await resolveTestUnit('''
 typedef _F = Function({required int i});

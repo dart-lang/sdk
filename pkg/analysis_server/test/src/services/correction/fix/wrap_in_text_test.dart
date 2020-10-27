@@ -22,7 +22,9 @@ class WrapInTextTest extends FixProcessorTest {
   @override
   void setUp() {
     super.setUp();
-    addFlutterPackage();
+    writeTestPackageConfig(
+      flutter: true,
+    );
   }
 
   Future<void> test_literal() async {

@@ -201,17 +201,17 @@ library my_app;
 import 'my_lib.dart';
 part 'test.dart';
 ''';
-    var partCode = r'''
+    addTestSource(r'''
 part of my_app;
 main() {
   var /*caret*/v = getMap();
 }
-''';
+''');
 
     var appPath = convertPath('/home/test/lib/app.dart');
     addSource(appPath, appCode);
-    addSource(testFile, partCode);
-    await resolveTestUnit(partCode);
+    await analyzeTestPackageFiles();
+    await resolveTestUnit2();
 
     await assertHasAssist('''
 part of my_app;
