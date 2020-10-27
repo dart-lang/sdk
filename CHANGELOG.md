@@ -50,6 +50,27 @@ Updated the Linter to `0.1.121`, which includes:
 * Fixed `unawaited_futures` to handle `Future` subtypes.
 * New lint: `avoid_type_to_string`.
 
+## 2.10.3 - 2020-10-29
+
+This is a patch release that fixes the following issues:
+* breaking changes in Chrome 86 that affect DDC (issues [#43750][] and
+  [#43193][]).
+* compiler error causing incorrect use of positional parameters when named
+  parameters should be used instead (issues [flutter/flutter#65324][] and
+  [flutter/flutter#68092][]).
+* crashes and/or undefined behavor in AOT compiled code (issues [#43770][] and
+  [#43786][]).
+* AOT compilation of classes with more than 64 unboxed fields
+  (issue [flutter/flutter#67803][]).
+
+[#43750]: https://github.com/dart-lang/sdk/issues/43750
+[#43193]: https://github.com/dart-lang/sdk/issues/43193
+[flutter/flutter#65324]: https://github.com/flutter/flutter/issues/65324
+[flutter/flutter#68092]: https://github.com/flutter/flutter/issues/68092
+[#43770]: https://github.com/dart-lang/sdk/issues/43770
+[#43786]: https://github.com/dart-lang/sdk/issues/43786
+[flutter/flutter#67803]: https://github.com/flutter/flutter/issues/67803
+
 ## 2.10.2 - 2020-10-15
 
 This is a patch release that fixes a DDC compiler crash (issue [#43589]).
