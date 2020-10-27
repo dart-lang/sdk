@@ -51,12 +51,11 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 0, 2) {
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 0, 1) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(1));
   Dart_Port port_id = PortMap::CreatePort(isolate->message_handler());
-  return ReceivePort::New(port_id, debug_name, false /* not control port */);
+  return ReceivePort::New(port_id, false /* not control port */);
 }
 
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_id, 0, 1) {

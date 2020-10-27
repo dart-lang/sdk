@@ -671,12 +671,9 @@ abstract class ReceivePort implements Stream<dynamic> {
    * receive messages. See [Stream.asBroadcastStream] for transforming the port
    * to a broadcast stream.
    *
-   * The optional `debugName` parameter can be set to associate a name with
-   * this port that can be displayed in tooling.
-   *
    * A receive port is closed by canceling its subscription.
    */
-  external factory ReceivePort([String debugName = '']);
+  external factory ReceivePort();
 
   /**
    * Creates a [ReceivePort] from a [RawReceivePort].
@@ -721,12 +718,8 @@ abstract class RawReceivePort {
    * A [RawReceivePort] is low level and does not work with [Zone]s. It
    * can not be paused. The data-handler must be set before the first
    * event is received.
-   *
-   * The optional `debugName` parameter can be set to associate a name with
-   * this port that can be displayed in tooling.
-   *
    */
-  external factory RawReceivePort([Function? handler, String debugName = '']);
+  external factory RawReceivePort([Function? handler]);
 
   /**
    * Sets the handler that is invoked for every incoming message.

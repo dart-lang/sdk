@@ -21,9 +21,6 @@ const StackTrace& GetCurrentStackTrace(int skip_frames);
 // Creates a StackTrace object to be attached to an exception.
 StackTracePtr GetStackTraceForException();
 
-// Returns false if there is no Dart stack available.
-bool HasStack();
-
 }  // namespace dart
 
 #endif  // RUNTIME_LIB_STACKTRACE_H_
