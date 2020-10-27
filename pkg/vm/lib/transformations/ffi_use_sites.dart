@@ -347,7 +347,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         fileUri: currentLibrary.fileUri,
         reference: currentLibraryIndex?.lookupField(name.text)?.reference)
       ..fileOffset = node.fileOffset;
-    currentLibrary.addMember(field);
+    currentLibrary.addField(field);
     return StaticGet(field);
   }
 

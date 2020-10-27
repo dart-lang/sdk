@@ -22,8 +22,8 @@ main() {
   Procedure p2 = new Procedure(new Name("p2"), ProcedureKind.Method,
       new FunctionNode(new ReturnStatement()))
     ..fileUri = uri1;
-  library1.addMember(p1);
-  library2.addMember(p2);
+  library1.addProcedure(p1);
+  library2.addProcedure(p2);
 
   Component component = new Component(libraries: [library1, library2])
     ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);

@@ -147,7 +147,18 @@ class SourceClassBuilder extends ClassBuilderImpl
               (Member member, BuiltMemberKind memberKind) {
             member.parent = cls;
             if (!memberBuilder.isPatch && !memberBuilder.isDuplicate) {
-              cls.addMember(member);
+              if (member is Procedure) {
+                cls.addProcedure(member);
+              } else if (member is Field) {
+                cls.addField(member);
+              } else if (member is Constructor) {
+                cls.addConstructor(member);
+              } else if (member is RedirectingFactoryConstructor) {
+                cls.addRedirectingFactoryConstructor(member);
+              } else {
+                unhandled("${member.runtimeType}", "getMember",
+                    member.fileOffset, member.fileUri);
+              }
             }
           });
         } else {
@@ -545,7 +556,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     constructorScopeBuilder.addMember(name, constructorBuilder);
     // Synthetic constructors are created after the component has been built
     // so we need to add the constructor to the class.
-    cls.addMember(constructorBuilder.member);
+    cls.addConstructor(constructorBuilder.member);
     if (constructorBuilder.isConst) {
       cls.hasConstConstructor = true;
     }
@@ -851,7 +862,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           fileUri: cls.fileUri,
           reference: referenceFrom?.reference)
         ..fileOffset = cls.fileOffset;
-      cls.addMember(field);
+      cls.addField(field);
       constructorsField = new DillFieldBuilder(field, this);
       origin.scope
           .addLocalMember(redirectingName, constructorsField, setter: false);

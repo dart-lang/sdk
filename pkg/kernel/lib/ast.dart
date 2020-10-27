@@ -498,17 +498,6 @@ class Library extends NamedNode
   Iterable<Member> get members =>
       <Iterable<Member>>[fields, procedures].expand((x) => x);
 
-  void addMember(Member member) {
-    member.parent = this;
-    if (member is Procedure) {
-      procedures.add(member);
-    } else if (member is Field) {
-      fields.add(member);
-    } else {
-      throw new ArgumentError(member);
-    }
-  }
-
   void addAnnotation(Expression node) {
     node.parent = this;
     annotations.add(node);
@@ -1347,24 +1336,33 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// if false we can skip it.
   bool dirty = true;
 
-  /// Adds a member to this class.
-  ///
-  /// Throws an error if attempting to add a field or procedure to a mixin
-  /// application.
-  void addMember(Member member) {
+  /// Adds a constructor to this class.
+  void addConstructor(Constructor constructor) {
     dirty = true;
-    member.parent = this;
-    if (member is Constructor) {
-      constructorsInternal.add(member);
-    } else if (member is Procedure) {
-      proceduresInternal.add(member);
-    } else if (member is Field) {
-      fieldsInternal.add(member);
-    } else if (member is RedirectingFactoryConstructor) {
-      redirectingFactoryConstructorsInternal.add(member);
-    } else {
-      throw new ArgumentError(member);
-    }
+    constructor.parent = this;
+    constructorsInternal.add(constructor);
+  }
+
+  /// Adds a procedure to this class.
+  void addProcedure(Procedure procedure) {
+    dirty = true;
+    procedure.parent = this;
+    proceduresInternal.add(procedure);
+  }
+
+  /// Adds a field to this class.
+  void addField(Field field) {
+    dirty = true;
+    field.parent = this;
+    fieldsInternal.add(field);
+  }
+
+  /// Adds a field to this class.
+  void addRedirectingFactoryConstructor(
+      RedirectingFactoryConstructor redirectingFactoryConstructor) {
+    dirty = true;
+    redirectingFactoryConstructor.parent = this;
+    redirectingFactoryConstructorsInternal.add(redirectingFactoryConstructor);
   }
 
   void addAnnotation(Expression node) {

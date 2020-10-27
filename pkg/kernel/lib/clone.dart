@@ -640,7 +640,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  cloneProcedure(Procedure node, Procedure referenceFrom) {
+  Procedure cloneProcedure(Procedure node, Procedure referenceFrom) {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
 
@@ -664,7 +664,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  cloneField(Field node, Field referenceFrom) {
+  Field cloneField(Field node, Field referenceFrom) {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;
 
@@ -692,7 +692,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  cloneRedirectingFactoryConstructor(RedirectingFactoryConstructor node,
+  RedirectingFactoryConstructor cloneRedirectingFactoryConstructor(
+      RedirectingFactoryConstructor node,
       RedirectingFactoryConstructor referenceFrom) {
     final Uri activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri ?? _activeFileUri;

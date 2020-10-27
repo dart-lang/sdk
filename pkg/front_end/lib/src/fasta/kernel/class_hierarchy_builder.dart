@@ -61,6 +61,7 @@ import '../messages.dart'
 
 import '../names.dart' show noSuchMethodName;
 
+import '../problems.dart';
 import '../scope.dart' show Scope;
 
 import '../source/source_class_builder.dart';
@@ -3168,7 +3169,18 @@ class InterfaceConflict extends DelayedMember {
       Member stub =
           new ForwardingNode(combinedMemberSignature, kind).finalize();
       if (stub != null && classBuilder.cls == stub.enclosingClass) {
-        classBuilder.cls.addMember(stub);
+        if (stub is Procedure) {
+          classBuilder.cls.addProcedure(stub);
+        } else if (stub is Field) {
+          classBuilder.cls.addField(stub);
+        } else if (stub is Constructor) {
+          classBuilder.cls.addConstructor(stub);
+        } else if (stub is RedirectingFactoryConstructor) {
+          classBuilder.cls.addRedirectingFactoryConstructor(stub);
+        } else {
+          unhandled("${stub.runtimeType}", "getMember", stub.fileOffset,
+              stub.fileUri);
+        }
         SourceLibraryBuilder library = classBuilder.library;
         Member bestMemberSoFar =
             combinedMemberSignature.canonicalMember.getMember(hierarchy);

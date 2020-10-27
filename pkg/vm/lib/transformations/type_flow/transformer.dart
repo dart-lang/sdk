@@ -695,7 +695,7 @@ class FieldMorpher {
           isAbstract: true, fileUri: field.fileUri);
     }
     accessor.fileOffset = field.fileOffset;
-    field.enclosingClass.addMember(accessor);
+    field.enclosingClass.addProcedure(accessor);
     _removedFields[accessor] = field;
     shaker.addUsedMember(accessor);
     return accessor;

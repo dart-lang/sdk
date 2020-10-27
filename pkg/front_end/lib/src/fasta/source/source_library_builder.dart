@@ -972,7 +972,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     if (unserializableExports != null) {
       Field referenceFrom = referencesFromIndexed?.lookupField("_exports#");
-      library.addMember(new Field(new Name("_exports#", library),
+      library.addField(new Field(new Name("_exports#", library),
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
@@ -2608,11 +2608,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           (Member member, BuiltMemberKind memberKind) {
         if (member is Field) {
           member.isStatic = true;
+          if (!declaration.isPatch && !declaration.isDuplicate) {
+            library.addField(member);
+          }
         } else if (member is Procedure) {
           member.isStatic = true;
-        }
-        if (!declaration.isPatch && !declaration.isDuplicate) {
-          library.addMember(member);
+          if (!declaration.isPatch && !declaration.isDuplicate) {
+            library.addProcedure(member);
+          }
+        } else {
+          unhandled("${member.runtimeType}:${memberKind}", "buildBuilder",
+              declaration.charOffset, declaration.fileUri);
         }
       });
     } else if (declaration is SourceTypeAliasBuilder) {
@@ -2807,7 +2813,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (Import import in imports) {
       if (import.deferred) {
         Procedure tearoff = import.prefixBuilder.loadLibraryBuilder.tearoff;
-        if (tearoff != null) library.addMember(tearoff);
+        if (tearoff != null) library.addProcedure(tearoff);
         total++;
       }
     }

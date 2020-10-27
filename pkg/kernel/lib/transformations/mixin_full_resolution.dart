@@ -134,7 +134,7 @@ class MixinFullResolution {
         clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
       }
       nonSetters.remove(field.name);
-      class_.addMember(clone);
+      class_.addField(clone);
     }
     class_.procedures.clear();
     class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
@@ -208,7 +208,7 @@ class MixinFullResolution {
 
         class_.procedures[originalIndex] = clone;
       } else {
-        class_.addMember(clone);
+        class_.addProcedure(clone);
       }
     }
     assert(class_.constructors.isNotEmpty);

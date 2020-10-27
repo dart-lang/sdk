@@ -436,7 +436,7 @@ class KClassEnvImpl implements KClassEnv {
               typeSubstitution: getSubstitutionMap(cls.mixedInType));
           // TODO(jensj): Provide a "referenceFrom" if we need to support
           // the incremental compiler.
-          cls.addMember(cloneVisitor.cloneField(field, null));
+          cls.addField(cloneVisitor.cloneField(field, null));
           continue;
         }
         addField(field, includeStatic: false);
@@ -448,7 +448,7 @@ class KClassEnvImpl implements KClassEnv {
               typeSubstitution: getSubstitutionMap(cls.mixedInType));
           // TODO(jensj): Provide a "referenceFrom" if we need to support
           // the incremental compiler.
-          cls.addMember(cloneVisitor.cloneProcedure(procedure, null));
+          cls.addProcedure(cloneVisitor.cloneProcedure(procedure, null));
           continue;
         }
         addProcedure(procedure,
@@ -486,7 +486,7 @@ class KClassEnvImpl implements KClassEnv {
       for (var superclassConstructor in cls.superclass.constructors) {
         var forwardingConstructor = _buildForwardingConstructor(
             superclassCloner, superclassConstructor);
-        cls.addMember(forwardingConstructor);
+        cls.addConstructor(forwardingConstructor);
         _constructorMap[forwardingConstructor.name.text] =
             forwardingConstructor;
       }
