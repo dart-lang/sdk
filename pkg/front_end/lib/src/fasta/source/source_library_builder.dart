@@ -2282,7 +2282,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       String nativeMethodName,
       AsyncMarker asyncModifier,
-      {bool isTopLevel}) {
+      {bool isTopLevel,
+      bool isExtensionInstanceMember}) {
+    assert(isTopLevel != null);
+    assert(isExtensionInstanceMember != null);
+
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     if (returnType == null) {
       if (kind == ProcedureKind.Operator &&
@@ -2357,6 +2361,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         referenceFrom,
         tearOffReferenceFrom,
         asyncModifier,
+        isExtensionInstanceMember,
         nativeMethodName);
     metadataCollector?.setDocumentationComment(
         procedureBuilder.procedure, documentationComment);
@@ -2443,6 +2448,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           referenceFrom,
           null,
           asyncModifier,
+          /* isExtensionInstanceMember = */ false,
           nativeMethodName);
     }
 

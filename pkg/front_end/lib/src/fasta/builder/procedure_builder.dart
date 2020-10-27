@@ -82,6 +82,8 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
   @override
   Procedure get actualProcedure => _procedure;
 
+  final bool isExtensionInstanceMember;
+
   ProcedureBuilderImpl(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -96,8 +98,10 @@ abstract class ProcedureBuilderImpl extends FunctionBuilderImpl
       this.charOpenParenOffset,
       int charEndOffset,
       Procedure referenceFrom,
+      this.isExtensionInstanceMember,
       [String nativeMethodName])
-      : _procedure = new Procedure(null, kind, null,
+      : _procedure = new Procedure(
+            null, isExtensionInstanceMember ? ProcedureKind.Method : kind, null,
             fileUri: compilationUnit.fileUri,
             reference: referenceFrom?.reference)
           ..startFileOffset = startCharOffset
@@ -228,6 +232,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       Procedure referenceFrom,
       this._tearOffReferenceFrom,
       AsyncMarker asyncModifier,
+      bool isExtensionInstanceMember,
       [String nativeMethodName])
       : super(
             metadata,
@@ -243,6 +248,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
             charOpenParenOffset,
             charEndOffset,
             referenceFrom,
+            isExtensionInstanceMember,
             nativeMethodName) {
     this.asyncModifier = asyncModifier;
   }
@@ -366,7 +372,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
         _procedure.isExtensionMember = true;
         _procedure.isStatic = true;
         if (isExtensionInstanceMember) {
-          _procedure.kind = ProcedureKind.Method;
+          assert(_procedure.kind == ProcedureKind.Method);
         }
         _procedure.name = new Name(
             createProcedureName(true, !isExtensionInstanceMember, kind,
@@ -674,6 +680,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             charOpenParenOffset,
             charEndOffset,
             referenceFrom,
+            /* isExtensionInstanceMember = */ false,
             nativeMethodName);
 
   @override

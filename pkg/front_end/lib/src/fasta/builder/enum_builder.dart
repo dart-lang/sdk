@@ -264,7 +264,8 @@ class EnumBuilder extends SourceClassBuilder {
         charEndOffset,
         toStringReference,
         null,
-        AsyncMarker.Sync);
+        AsyncMarker.Sync,
+        /* isExtensionInstanceMember = */ false);
     members["toString"] = toStringBuilder;
     String className = name;
     if (enumConstantInfos != null) {

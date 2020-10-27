@@ -2122,7 +2122,7 @@ class Procedure extends Member {
   /// set).
   int startFileOffset = TreeNode.noOffset;
 
-  ProcedureKind kind;
+  final ProcedureKind kind;
   int flags = 0;
   // function is null if and only if abstract, external.
   FunctionNode function;
@@ -2203,7 +2203,8 @@ class Procedure extends Member {
       this.forwardingStubSuperTargetReference,
       this.forwardingStubInterfaceTargetReference,
       this.memberSignatureOriginReference})
-      : super(name, fileUri, reference) {
+      : assert(kind != null),
+        super(name, fileUri, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
