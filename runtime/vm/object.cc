@@ -2926,8 +2926,7 @@ void Class::InitEmptyFields() {
   StorePointer(&raw_ptr()->constants_, Object::null_array().raw());
   set_functions(Object::empty_array());
   set_fields(Object::empty_array());
-  StorePointer(&raw_ptr()->invocation_dispatcher_cache_,
-               Object::empty_array().raw());
+  set_invocation_dispatcher_cache(Object::empty_array());
 }
 
 ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
@@ -3182,6 +3181,13 @@ void Class::set_fields(const Array& value) const {
   // is visible.
   StorePointer<ArrayPtr, std::memory_order_release>(&raw_ptr()->fields_,
                                                     value.raw());
+}
+
+void Class::set_invocation_dispatcher_cache(const Array& cache) const {
+  // Ensure all writes to the cache are visible by the time the array
+  // is visible.
+  StorePointer<ArrayPtr, std::memory_order_release>(
+      &raw_ptr()->invocation_dispatcher_cache_, cache.raw());
 }
 
 intptr_t Class::NumTypeParameters(Thread* thread) const {
@@ -3493,7 +3499,11 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
 void Class::AddInvocationDispatcher(const String& target_name,
                                     const Array& args_desc,
                                     const Function& dispatcher) const {
-  auto& cache = Array::Handle(invocation_dispatcher_cache());
+  auto thread = Thread::Current();
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+
+  auto zone = thread->zone();
+  auto& cache = Array::Handle(zone, invocation_dispatcher_cache());
   InvocationDispatcherTable dispatchers(cache);
   intptr_t i = 0;
   for (auto dispatcher : dispatchers) {
@@ -3510,10 +3520,12 @@ void Class::AddInvocationDispatcher(const String& target_name,
     cache = Array::Grow(cache, new_len);
     set_invocation_dispatcher_cache(cache);
   }
+  // Ensure all stores are visible at the point the name is visible.
   auto entry = dispatchers[i];
-  entry.Set<Class::kInvocationDispatcherName>(target_name);
   entry.Set<Class::kInvocationDispatcherArgsDesc>(args_desc);
   entry.Set<Class::kInvocationDispatcherFunction>(dispatcher);
+  entry.Set<Class::kInvocationDispatcherName, std::memory_order_release>(
+      target_name);
 }
 
 FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
@@ -3523,30 +3535,49 @@ FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
   ASSERT(kind == FunctionLayout::kNoSuchMethodDispatcher ||
          kind == FunctionLayout::kInvokeFieldDispatcher ||
          kind == FunctionLayout::kDynamicInvocationForwarder);
-  auto Z = Thread::Current()->zone();
+  auto thread = Thread::Current();
+  auto Z = thread->zone();
   auto& function = Function::Handle(Z);
   auto& name = String::Handle(Z);
   auto& desc = Array::Handle(Z);
-  auto& cache = Array::Handle(Z, invocation_dispatcher_cache());
-  ASSERT(!cache.IsNull());
+  auto& cache = Array::Handle(Z);
 
-  InvocationDispatcherTable dispatchers(cache);
-  for (auto dispatcher : dispatchers) {
-    name = dispatcher.Get<Class::kInvocationDispatcherName>();
-    if (name.IsNull()) break;  // Reached last entry.
-    if (!name.Equals(target_name)) continue;
-    desc = dispatcher.Get<Class::kInvocationDispatcherArgsDesc>();
-    if (desc.raw() != args_desc.raw()) continue;
-    function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
-    if (function.kind() == kind) {
-      break;  // Found match.
+  auto find_entry = [&]() {
+    cache = invocation_dispatcher_cache();
+    ASSERT(!cache.IsNull());
+    InvocationDispatcherTable dispatchers(cache);
+    for (auto dispatcher : dispatchers) {
+      // Ensure all loads are done after loading the name.
+      name = dispatcher.Get<Class::kInvocationDispatcherName,
+                            std::memory_order_acquire>();
+      if (name.IsNull()) break;  // Reached last entry.
+      if (!name.Equals(target_name)) continue;
+      desc = dispatcher.Get<Class::kInvocationDispatcherArgsDesc>();
+      if (desc.raw() != args_desc.raw()) continue;
+      function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+      if (function.kind() == kind) {
+        return function.raw();
+      }
     }
+    return Function::null();
+  };
+
+  // First we'll try to find it without using locks.
+  function = find_entry();
+  if (!function.IsNull() || !create_if_absent) {
+    return function.raw();
   }
 
-  if (function.IsNull() && create_if_absent) {
-    function = CreateInvocationDispatcher(target_name, args_desc, kind);
-    AddInvocationDispatcher(target_name, args_desc, function);
-  }
+  // If we failed to find it and possibly need to create it, use a write lock.
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+
+  // Try to find it again & return if it was added in the meantime.
+  function = find_entry();
+  if (!function.IsNull()) return function.raw();
+
+  // Otherwise create it & add it.
+  function = CreateInvocationDispatcher(target_name, args_desc, kind);
+  AddInvocationDispatcher(target_name, args_desc, function);
   return function.raw();
 }
 
@@ -3802,30 +3833,40 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
 
 FunctionPtr Function::GetDynamicInvocationForwarder(
     const String& mangled_name,
-    bool allow_add /* = true */) const {
+    bool allow_add /*=true*/) const {
   ASSERT(IsDynamicInvocationForwarderName(mangled_name));
-  auto zone = Thread::Current()->zone();
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
   const Class& owner = Class::Handle(zone, Owner());
-  Function& result = Function::Handle(
-      zone,
+  Function& result = Function::Handle(zone);
+
+  // First we'll try to find it without using locks.
+  result =
       owner.GetInvocationDispatcher(mangled_name, Array::null_array(),
                                     FunctionLayout::kDynamicInvocationForwarder,
-                                    /*create_if_absent=*/false));
+                                    /*create_if_absent=*/false);
+  if (!result.IsNull()) return result.raw();
 
-  if (!result.IsNull()) {
-    return result.raw();
+  const bool needs_dyn_forwarder =
+      kernel::NeedsDynamicInvocationForwarder(*this);
+  if (!allow_add) {
+    return needs_dyn_forwarder ? Function::null() : raw();
   }
 
-  // Check if function actually needs a dynamic invocation forwarder.
-  if (!kernel::NeedsDynamicInvocationForwarder(*this)) {
-    result = raw();
-  } else if (allow_add) {
-    result = CreateDynamicInvocationForwarder(mangled_name);
-  }
+  // If we failed to find it and possibly need to create it, use a write lock.
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
-  if (allow_add) {
-    owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
-  }
+  // Try to find it again & return if it was added in the mean time.
+  result =
+      owner.GetInvocationDispatcher(mangled_name, Array::null_array(),
+                                    FunctionLayout::kDynamicInvocationForwarder,
+                                    /*create_if_absent=*/false);
+  if (!result.IsNull()) return result.raw();
+
+  // Otherwise create it & add it.
+  result = needs_dyn_forwarder ? CreateDynamicInvocationForwarder(mangled_name)
+                               : raw();
+  owner.AddInvocationDispatcher(mangled_name, Array::null_array(), result);
 
   return result.raw();
 }
@@ -3850,10 +3891,6 @@ bool AbstractType::InstantiateAndTestSubtype(
 
 ArrayPtr Class::invocation_dispatcher_cache() const {
   return raw_ptr()->invocation_dispatcher_cache_;
-}
-
-void Class::set_invocation_dispatcher_cache(const Array& cache) const {
-  StorePointer(&raw_ptr()->invocation_dispatcher_cache_, cache.raw());
 }
 
 void Class::Finalize() const {
