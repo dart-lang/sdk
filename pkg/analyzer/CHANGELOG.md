@@ -1,4 +1,4 @@
-## 0.40.5-dev
+## 0.40.5
 * Deprecated `GenericTypeAliasElement`. Use `FunctionTypeAliasElement`.
 * Read imports, exports, and parts on demand in `AnalysisDriver`.
   Specifically, `parseFileSync` will not read any referenced files.
