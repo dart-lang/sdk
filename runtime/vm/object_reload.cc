@@ -498,7 +498,7 @@ void Class::PatchFieldsAndFunctions() const {
     patch.set_library_kernel_offset(lib.kernel_offset());
   }
 
-  const Array& funcs = Array::Handle(functions());
+  const Array& funcs = Array::Handle(current_functions());
   Function& func = Function::Handle();
   Object& owner = Object::Handle();
   for (intptr_t i = 0; i < funcs.Length(); i++) {
@@ -537,7 +537,7 @@ void Class::PatchFieldsAndFunctions() const {
 
 void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
                                           const Class& new_cls) const {
-  const Array& funcs = Array::Handle(functions());
+  const Array& funcs = Array::Handle(current_functions());
   Thread* thread = Thread::Current();
   Function& old_func = Function::Handle();
   String& selector = String::Handle();

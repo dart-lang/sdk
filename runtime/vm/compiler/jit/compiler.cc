@@ -1006,7 +1006,9 @@ ErrorPtr Compiler::CompileAllFunctions(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Object& result = Object::Handle(zone);
-  Array& functions = Array::Handle(zone, cls.functions());
+  // We don't expect functions() to change as the class was finalized.
+  ASSERT(cls.is_finalized());
+  Array& functions = Array::Handle(zone, cls.current_functions());
   Function& func = Function::Handle(zone);
   // Compile all the regular functions.
   for (int i = 0; i < functions.Length(); i++) {
@@ -1030,7 +1032,7 @@ ErrorPtr Compiler::ReadAllBytecode(const Class& cls) {
   Zone* zone = thread->zone();
   Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
-  Array& functions = Array::Handle(zone, cls.functions());
+  Array& functions = Array::Handle(zone, cls.current_functions());
   Function& func = Function::Handle(zone);
   // Compile all the regular functions.
   for (int i = 0; i < functions.Length(); i++) {

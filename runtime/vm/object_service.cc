@@ -142,7 +142,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   {
     JSONArray functions_array(&jsobj, "functions");
-    const Array& function_array = Array::Handle(functions());
+    const Array& function_array = Array::Handle(current_functions());
     Function& function = Function::Handle();
     if (!function_array.IsNull()) {
       for (intptr_t i = 0; i < function_array.Length(); i++) {

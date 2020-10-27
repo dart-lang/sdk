@@ -259,7 +259,7 @@ void ObjectStore::InitKnownObjects() {
   if (FLAG_async_debugger) {
     // Disable debugging and inlining of all functions on the
     // _AsyncStarStreamController class.
-    const Array& functions = Array::Handle(zone, cls.functions());
+    const Array& functions = Array::Handle(zone, cls.current_functions());
     for (intptr_t i = 0; i < functions.Length(); i++) {
       function ^= functions.At(i);
       if (function.IsNull()) {

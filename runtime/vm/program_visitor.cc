@@ -128,7 +128,7 @@ class ProgramWalker : public ValueObject {
 
     if (!visitor_->IsFunctionVisitor()) return;
 
-    class_functions_ = cls.functions();
+    class_functions_ = cls.current_functions();
     for (intptr_t j = 0; j < class_functions_.Length(); j++) {
       class_function_ ^= class_functions_.At(j);
       AddToWorklist(class_function_);

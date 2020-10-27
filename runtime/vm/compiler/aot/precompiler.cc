@@ -1210,7 +1210,7 @@ void Precompiler::AddAnnotatedRoots() {
       }
 
       // Check for @pragma on any functions in the class.
-      members = cls.functions();
+      members = cls.current_functions();
       for (intptr_t k = 0; k < members.Length(); k++) {
         function ^= members.At(k);
         if (function.has_pragma()) {
@@ -1292,7 +1292,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
       if (!cls.is_allocated()) continue;
 
-      functions = cls.functions();
+      functions = cls.current_functions();
       for (intptr_t k = 0; k < functions.Length(); k++) {
         function ^= functions.At(k);
 
@@ -1459,7 +1459,7 @@ void Precompiler::CollectDynamicFunctionNames() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      functions = cls.functions();
+      functions = cls.current_functions();
 
       const intptr_t length = functions.Length();
       for (intptr_t j = 0; j < length; j++) {
@@ -1562,7 +1562,7 @@ void Precompiler::TraceForRetainedFunctions() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      functions = cls.functions();
+      functions = cls.current_functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
         bool retain = possibly_retained_functions_.ContainsKey(function);
@@ -2068,7 +2068,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
       if (members.Length() > 0) {
         retain = true;
       }
-      members = cls.functions();
+      members = cls.current_functions();
       if (members.Length() > 0) {
         retain = true;
       }

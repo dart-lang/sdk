@@ -57,6 +57,7 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
 
   const bool is_dyn_call = demangled.raw() != function_name.raw();
 
+  Thread* thread = Thread::Current();
   bool need_to_create_method_extractor = false;
   while (!cls.IsNull()) {
     if (is_dyn_call) {
@@ -68,7 +69,11 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
     }
     if (!function.IsNull()) return function.raw();
 
-    function = lookup(cls, demangled);
+    ASSERT(cls.is_finalized());
+    {
+      SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+      function = lookup(cls, demangled);
+    }
 #if !defined(DART_PRECOMPILED_RUNTIME)
     // In JIT we might need to lazily create a dyn:* forwarder.
     if (is_dyn_call && !function.IsNull()) {
@@ -80,6 +85,7 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
 
     // Getter invocation might actually be a method extraction.
     if (is_getter) {
+      SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
       function = lookup(cls, demangled_getter_name);
       if (!function.IsNull()) {
         if (allow_add && FLAG_lazy_dispatchers) {
@@ -159,7 +165,7 @@ FunctionPtr Resolver::ResolveFunction(Zone* zone,
   return ResolveDynamicAnyArgsWithCustomLookup(
       zone, receiver_class, function_name, /*allow_add=*/false,
       std::mem_fn(static_cast<FunctionPtr (Class::*)(const String&) const>(
-          &Class::LookupFunctionUnsafe)));
+          &Class::LookupFunctionReadLocked)));
 }
 
 FunctionPtr Resolver::ResolveDynamicFunction(Zone* zone,

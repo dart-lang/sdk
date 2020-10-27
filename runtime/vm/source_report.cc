@@ -568,7 +568,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
       }
     }
 
-    functions = cls.functions();
+    functions = cls.current_functions();
     for (int i = 0; i < functions.Length(); i++) {
       func ^= functions.At(i);
       // Skip getter functions of static const field.

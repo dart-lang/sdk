@@ -369,7 +369,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
                   &token_positions);
             }
           }
-          temp_array = klass.functions();
+          temp_array = klass.current_functions();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_function ^= temp_array.At(i);
             entry_script = temp_function.script();

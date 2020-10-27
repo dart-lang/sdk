@@ -52,7 +52,7 @@ ISOLATE_UNIT_TEST_CASE(Class) {
 
   // Class has no fields and no functions yet.
   EXPECT_EQ(Array::Handle(cls.fields()).Length(), 0);
-  EXPECT_EQ(Array::Handle(cls.functions()).Length(), 0);
+  EXPECT_EQ(Array::Handle(cls.current_functions()).Length(), 0);
 
   // Setup the interfaces in the class.
   // Normally the class finalizer is resolving super types and interfaces
@@ -306,7 +306,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
 
   // EmptyClass has no fields and no functions.
   EXPECT_EQ(Array::Handle(empty_class.fields()).Length(), 0);
-  EXPECT_EQ(Array::Handle(empty_class.functions()).Length(), 0);
+  EXPECT_EQ(Array::Handle(empty_class.current_functions()).Length(), 0);
 
   ClassFinalizer::FinalizeTypesInClass(empty_class);
   empty_class.Finalize();
@@ -321,7 +321,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
 
   // No fields, functions, or super type for the OneFieldClass.
   EXPECT_EQ(Array::Handle(empty_class.fields()).Length(), 0);
-  EXPECT_EQ(Array::Handle(empty_class.functions()).Length(), 0);
+  EXPECT_EQ(Array::Handle(empty_class.current_functions()).Length(), 0);
   EXPECT_EQ(empty_class.super_type(), AbstractType::null());
   ClassFinalizer::FinalizeTypesInClass(one_field_class);
 
@@ -4086,7 +4086,7 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   array = cls.fields();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
-  array = cls.functions();
+  array = cls.current_functions();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 
@@ -4094,7 +4094,7 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   array = cls.fields();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
-  array = cls.functions();
+  array = cls.current_functions();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 
@@ -4102,7 +4102,7 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   array = cls.fields();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
-  array = cls.functions();
+  array = cls.current_functions();
   EXPECT(!array.IsNull());
   EXPECT(array.IsArray());
 }
