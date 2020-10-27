@@ -1102,8 +1102,23 @@ bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
   BlockBuilder builder(flow_graph, normal_entry);
 
   auto receiver = builder.AddParameter(0, /*with_frame=*/false);
-  auto field_value = builder.AddDefinition(new (zone) LoadFieldInstr(
+  Definition* field_value = builder.AddDefinition(new (zone) LoadFieldInstr(
       new (zone) Value(receiver), slot, builder.TokenPos()));
+
+  // We only support cases where we do not have to create a box (whose
+  // allocation could fail).
+  ASSERT(function.HasUnboxedReturnValue() ||
+         !FlowGraphCompiler::IsUnboxedField(field));
+
+  // We might need to unbox the field value before returning.
+  if (function.HasUnboxedReturnValue() &&
+      !FlowGraphCompiler::IsUnboxedField(field)) {
+    ASSERT(FLAG_precompiled_mode);
+    field_value = builder.AddUnboxInstr(
+        FlowGraph::ReturnRepresentationOf(flow_graph->function()),
+        new Value(field_value), /*is_checked=*/true);
+  }
+
   builder.AddReturn(new (zone) Value(field_value));
   return true;
 }
@@ -1142,25 +1157,9 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
     // We do not support storing to possibly guarded fields in JIT in graph
     // intrinsics.
     ASSERT(FLAG_precompiled_mode);
-
-    Representation representation = kNoRepresentation;
-    switch (field.guarded_cid()) {
-      case kDoubleCid:
-        representation = kUnboxedDouble;
-        break;
-      case kFloat32x4Cid:
-        representation = kUnboxedFloat32x4;
-        break;
-      case kFloat64x2Cid:
-        representation = kUnboxedFloat64x2;
-        break;
-      default:
-        ASSERT(field.is_non_nullable_integer());
-        representation = kUnboxedInt64;
-        break;
-    }
-    value = builder.AddUnboxInstr(representation, new Value(value),
-                                  /*is_checked=*/true);
+    value = builder.AddUnboxInstr(
+        FlowGraph::UnboxedFieldRepresentationOf(field), new Value(value),
+        /*is_checked=*/true);
   }
 
   builder.AddInstruction(new (zone) StoreInstanceFieldInstr(

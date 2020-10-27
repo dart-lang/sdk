@@ -155,7 +155,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
-      TypeBuilder type = positionalParameters[i].accept(this);
+      TypeBuilder type = parameter.type.accept(this);
       formals[i + positionalParameters.length] = new FormalParameterBuilder(
           null, 0, type, parameter.name, null, -1, null)
         ..kind = FormalParameterKind.optionalNamed;
