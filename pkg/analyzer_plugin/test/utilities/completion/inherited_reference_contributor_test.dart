@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/completion/inherited_reference_contributor.dart';
 import 'package:test/test.dart';
@@ -25,9 +26,17 @@ class InheritedReferenceContributorTest extends DartCompletionContributorTest {
     return InheritedReferenceContributor();
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder(),
+      meta: true,
+    );
+  }
+
   /// Sanity check. Permutations tested in local_ref_contributor.
   Future<void> test_ArgDefaults_inherited_method_with_required_named() async {
-    addMetaPackage();
     resolveSource('/home/test/lib/b.dart', '''
 import 'package:meta/meta.dart';
 

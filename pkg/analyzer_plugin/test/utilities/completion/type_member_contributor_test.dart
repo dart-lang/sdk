@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
@@ -53,6 +54,16 @@ void f(Derived d) {
     return TypeMemberContributor();
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'myBar', rootPath: '$workspaceRootPath/myBar'),
+      meta: true,
+    );
+  }
+
   Future<void> test_ArgDefaults_method() async {
     addTestSource('''
 class A {
@@ -78,7 +89,6 @@ void main() {new A().a^}''');
   }
 
   Future<void> test_ArgDefaults_method_with_optional_positional() async {
-    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -93,7 +103,6 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_ArgDefaults_method_with_required_named() async {
-    addMetaPackage();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -1075,10 +1084,10 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_Block_unimported() async {
-    addPackageFile('myBar', 'bar.dart', 'class Foo2 { Foo2() { } }');
+    newFile('$workspaceRootPath/myBar/bar.dart',
+        content: 'class Foo2 { Foo2() { } }');
     addSource(
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
-    testFile = convertPath('/proj/completionTest.dart');
     addTestSource('class C {foo(){F^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);

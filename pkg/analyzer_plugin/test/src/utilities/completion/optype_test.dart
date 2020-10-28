@@ -48,7 +48,7 @@ abstract class AbstractOpTypeTest extends AbstractContextTest {
     //
     // Compute the OpType.
     //
-    var resolvedUnit = await driver.getResult(testPath);
+    var resolvedUnit = await resolveFile(testPath);
     var completionTarget =
         CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
     var opType = OpType.forCompletion(completionTarget, completionOffset);
@@ -102,7 +102,7 @@ Actual OpType does not match expected. Actual matches
   @override
   void setUp() {
     super.setUp();
-    testPath = convertPath('/completionTest.dart');
+    testPath = convertPath('$testPackageRootPath/completionTest.dart');
   }
 }
 

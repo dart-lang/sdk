@@ -72,7 +72,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     source = newFile('/foo/bar.dart').createSource();
-    testFile = convertPath('/test.dart');
+    testFile = convertPath('$testPackageRootPath/lib/test.dart');
   }
 
   void test_convertAnalysisError_contextMessages() {
@@ -200,11 +200,11 @@ class AnalyzerConverterTest extends AbstractContextTest {
   }
 
   Future<void> test_convertElement_class() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     {
       var engineElement =
           findElementInUnit(unit, '_A') as analyzer.ClassElement;
@@ -240,11 +240,11 @@ class B<K, V> {}''');
   }
 
   Future<void> test_convertElement_constructor() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     var engineElement =
         findElementInUnit(unit, 'myConstructor') as analyzer.ConstructorElement;
     // create notification Element
@@ -278,11 +278,11 @@ class A {
   }
 
   Future<void> test_convertElement_enum() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     {
       var engineElement =
           findElementInUnit(unit, '_E1') as analyzer.ClassElement;
@@ -319,11 +319,11 @@ enum E2 { three, four }''');
   }
 
   Future<void> test_convertElement_enumConstant() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     {
       var engineElement =
           findElementInUnit(unit, 'one') as analyzer.FieldElement;
@@ -410,11 +410,11 @@ enum E2 { three, four }''');
   }
 
   Future<void> test_convertElement_field() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 class A {
   static const myField = 42;
 }''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     var engineElement =
         findElementInUnit(unit, 'myField') as analyzer.FieldElement;
     // create notification Element
@@ -436,10 +436,10 @@ class A {
   }
 
   Future<void> test_convertElement_functionTypeAlias() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 typedef int F<T>(String x);
 ''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     var engineElement =
         findElementInUnit(unit, 'F') as analyzer.FunctionTypeAliasElement;
     // create notification Element
@@ -461,10 +461,10 @@ typedef int F<T>(String x);
   }
 
   Future<void> test_convertElement_genericTypeAlias_function() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 typedef F<T> = int Function(String x);
 ''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     var engineElement =
         findElementInUnit(unit, 'F') as analyzer.FunctionTypeAliasElement;
     // create notification Element
@@ -486,11 +486,11 @@ typedef F<T> = int Function(String x);
   }
 
   Future<void> test_convertElement_getter() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 class A {
   String get myGetter => 42;
 }''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     var engineElement =
         findElementInUnit(unit, 'myGetter', analyzer.ElementKind.GETTER)
             as analyzer.PropertyAccessorElement;
@@ -512,13 +512,13 @@ class A {
   }
 
   Future<void> test_convertElement_method() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 class A {
   static List<String> myMethod(int a, {String b, int c}) {
     return null;
   }
 }''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     var engineElement =
         findElementInUnit(unit, 'myMethod') as analyzer.MethodElement;
     // create notification Element
@@ -539,11 +539,11 @@ class A {
   }
 
   Future<void> test_convertElement_setter() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 class A {
   set mySetter(String x) {}
 }''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     var engineElement =
         findElementInUnit(unit, 'mySetter', analyzer.ElementKind.SETTER)
             as analyzer.PropertyAccessorElement;
@@ -615,14 +615,14 @@ class A {
   }
 
   Future<void> test_fromElement_LABEL() async {
-    var source = addSource(testFile, '''
+    addSource(testFile, '''
 main() {
 myLabel:
   while (true) {
     break myLabel;
   }
 }''');
-    var unit = await resolveLibraryUnit(source);
+    var unit = (await resolveFile(testFile))?.unit;
     var engineElement =
         findElementInUnit(unit, 'myLabel') as analyzer.LabelElement;
     // create notification Element

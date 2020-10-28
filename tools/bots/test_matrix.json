@@ -510,6 +510,12 @@
         "use-sdk": true
       }
     },
+    "dart2js-(linux|mac|win)-chrome-unsound": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
+      }
+    },
     "dart2js-weak-(linux|mac|win)-x64-d8": {
       "options": {
         "builder-tag": "dart2js-weak",
@@ -521,10 +527,23 @@
         "use-sdk": true
       }
     },
+    "dart2js-(linux|win)-firefox-unsound": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
+      }
+    },
     "dart2js-win-ie11": {
       "options": {
         "use-sdk": true,
         "babel": "{\"presets\":[\"es2015\"]}"
+      }
+    },
+    "dart2js-win-ie11-unsound": {
+      "options": {
+        "use-sdk": true,
+        "babel": "{\"presets\":[\"es2015\"]}",
+        "dart2js-options": ["--no-sound-null-safety"]
       }
     },
     "dart2js-win-edge": {
@@ -532,9 +551,21 @@
         "use-sdk": true
       }
     },
+    "dart2js-win-edge-unsound": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
+      }
+    },
     "dart2js-mac-safari": {
       "options": {
         "use-sdk": true
+      }
+    },
+    "dart2js-mac-safari-unsound": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
       }
     },
     "dart2js-minified-csp-(linux|mac|win)-chrome": {
@@ -544,10 +575,25 @@
         "use-sdk": true
       }
     },
+    "dart2js-minified-csp-(linux|mac|win)-chrome-unsound": {
+      "options": {
+        "minified": true,
+        "csp": true,
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
+      }
+    },
     "dart2js-minified-(linux|mac|win)-d8": {
       "options": {
         "minified": true,
         "use-sdk": true
+      }
+    },
+    "dart2js-minified-(linux|mac|win)-d8-unsound": {
+      "options": {
+        "minified": true,
+        "use-sdk": true,
+        "dart2js-options": ["--no-sound-null-safety"]
       }
     },
     "dart2js-production-(linux|mac|win)-d8": {
@@ -562,6 +608,12 @@
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
       "options": {
         "host-checked": true
+      }
+    },
+    "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8-unsound": {
+      "options": {
+        "host-checked": true,
+        "dart2js-options": ["--no-sound-null-safety"]
       }
     },
     "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
@@ -2139,10 +2191,9 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "-ndart2js-hostasserts-linux-ia32-d8",
+            "-ndart2js-hostasserts-linux-ia32-d8-unsound",
             "--dart2js-batch",
             "--enable-experiment=non-nullable",
-            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2212,11 +2263,10 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "-ndart2js-${system}-${runtime}",
+            "-ndart2js-${system}-${runtime}-unsound",
             "--dart2js-batch",
             "--reset-browser-configuration",
             "--enable-experiment=non-nullable",
-            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2267,10 +2317,9 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "-ndart2js-minified-linux-d8",
+            "-ndart2js-minified-linux-d8-unsound",
             "--dart2js-batch",
             "--enable-experiment=non-nullable",
-            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },
@@ -2340,11 +2389,10 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "-ndart2js-minified-csp-linux-chrome",
+            "-ndart2js-minified-csp-linux-chrome-unsound",
             "--dart2js-batch",
             "--reset-browser-configuration",
             "--enable-experiment=non-nullable",
-            "--dart2js-options=--no-sound-null-safety",
             "observatory_ui"
           ]
         },

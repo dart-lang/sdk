@@ -94,7 +94,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<void> resolveTestUnit(String code) async {
     addTestSource(code);
-    var result = await driver.getResult(testFile);
+    var result = await resolveFile(testFile);
     testUnit = (result).unit;
     if (verifyNoTestUnitErrors) {
       expect(result.errors.where((AnalysisError error) {
@@ -114,6 +114,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = convertPath('/test.dart');
+    testFile = convertPath('$testPackageRootPath/test.dart');
   }
 }
