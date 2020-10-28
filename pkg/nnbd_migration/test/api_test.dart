@@ -28,9 +28,9 @@ class _ProvisionalApiTest extends _ProvisionalApiTestBase
 
 /// Base class for provisional API tests.
 abstract class _ProvisionalApiTestBase extends AbstractContextTest {
-  bool get _usePermissiveMode;
-
   String projectPath;
+
+  bool get _usePermissiveMode;
 
   void setUp() {
     projectPath = convertPath(AbstractContextTest.testsPath);
