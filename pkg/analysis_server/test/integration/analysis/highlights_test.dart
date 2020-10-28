@@ -66,8 +66,8 @@ class Class<TypeParameter> {
     field = {2: local};
   }
 
-  Map field;
-  static int staticField;
+  Map field = {3: 4};
+  static int staticField = 0;
 
   method() {
     // End of line comment
@@ -98,7 +98,7 @@ function(dynamicType) {
   return async.Future.wait([]);
 }
 
-int topLevelVariable;
+int topLevelVariable = 0;
 ''';
     await computeHighlights(pathname, text);
     // There should be 1 error due to the fact that unresolvedIdentifier is
@@ -128,10 +128,10 @@ int topLevelVariable;
     check(HighlightRegionType.KEYWORD, ['class', 'extends', 'true', 'return']);
     check(HighlightRegionType.LITERAL_BOOLEAN, ['true']);
     check(HighlightRegionType.LITERAL_DOUBLE, ['1.0']);
-    check(HighlightRegionType.LITERAL_INTEGER, ['2', '42']);
+    check(HighlightRegionType.LITERAL_INTEGER, ['2', '3', '4', '0', '42']);
     check(HighlightRegionType.LITERAL_LIST, ['[]']);
-    check(
-        HighlightRegionType.LITERAL_MAP, ['{1.0: [].toList()}', '{2: local}']);
+    check(HighlightRegionType.LITERAL_MAP,
+        ['{1.0: [].toList()}', '{2: local}', '{3: 4}']);
     check(HighlightRegionType.LITERAL_STRING, ["'dart:async'", "'string'"]);
     //check(HighlightRegionType.LOCAL_VARIABLE, ['local']);
     //check(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, ['local']);
