@@ -6,9 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
-import 'package:vm_service/vm_service.dart';
-import 'package:vm_service/src/dart_io_extensions.dart';
+
 import 'package:test/test.dart';
+import 'package:vm_service/src/dart_io_extensions.dart';
+import 'package:vm_service/vm_service.dart';
+
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
@@ -38,9 +40,10 @@ Future<void> waitForStreamEvent(
   await service.streamListen(EventStreams.kExtension);
 
   if (useSetter) {
-    // ignore: deprecated_member_use_from_same_package
     state
+        // ignore: deprecated_member_use_from_same_package
         ? await service.startSocketProfiling(isolateId)
+        // ignore: deprecated_member_use_from_same_package
         : await service.pauseSocketProfiling(isolateId);
   } else {
     await service.socketProfilingEnabled(isolateId, state);
