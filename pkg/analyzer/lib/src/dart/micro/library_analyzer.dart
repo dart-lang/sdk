@@ -719,7 +719,15 @@ class LibraryAnalyzer {
       var enclosingExecutable = node?.thisOrAncestorMatching((e) {
         return e.parent is ClassDeclaration || e.parent is CompilationUnit;
       });
-      enclosingExecutable?.accept(resolverVisitor);
+
+      if (enclosingExecutable != null) {
+        var enclosingClass = enclosingExecutable.parent;
+        if (enclosingClass is ClassDeclaration) {
+          resolverVisitor.enclosingClass = enclosingClass.declaredElement;
+        }
+
+        enclosingExecutable?.accept(resolverVisitor);
+      }
     } else {
       unit.accept(resolverVisitor);
     }
