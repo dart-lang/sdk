@@ -2790,8 +2790,6 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.typeParameter;
     case 'TypeRef':
       return M.InstanceKind.typeRef;
-    case 'ReceivePort':
-      return M.InstanceKind.receivePort;
   }
   var message = 'Unrecognized instance kind: $s';
   Logger.root.severe(message);

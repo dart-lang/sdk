@@ -120,9 +120,6 @@ enum InstanceKind {
 
   /// An instance of the Dart class TypeRef.
   typeRef,
-
-  /// An instance of the Dart class RawReceivePort
-  receivePort,
 }
 
 bool isTypedData(InstanceKind kind) {

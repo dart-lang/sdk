@@ -7,7 +7,6 @@
 #include <memory>
 
 #include "include/dart_api.h"
-#include "lib/stacktrace.h"
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
 #include "platform/unaligned.h"
@@ -24358,7 +24357,6 @@ const char* Capability::ToCString() const {
 }
 
 ReceivePortPtr ReceivePort::New(Dart_Port id,
-                                const String& debug_name,
                                 bool is_control_port,
                                 Heap::Space space) {
   ASSERT(id != ILLEGAL_PORT);
@@ -24366,8 +24364,6 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   Zone* zone = thread->zone();
   const SendPort& send_port =
       SendPort::Handle(zone, SendPort::New(id, thread->isolate()->origin_id()));
-  const StackTrace& allocation_location_ =
-      HasStack() ? GetCurrentStackTrace(0) : StackTrace::Handle();
 
   ReceivePort& result = ReceivePort::Handle(zone);
   {
@@ -24376,9 +24372,6 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StorePointer(&result.raw_ptr()->send_port_, send_port.raw());
-    result.StorePointer(&result.raw_ptr()->debug_name_, debug_name.raw());
-    result.StorePointer(&result.raw_ptr()->allocation_location_,
-                        allocation_location_.raw());
   }
   if (is_control_port) {
     PortMap::SetPortState(id, PortMap::kControlPort);
