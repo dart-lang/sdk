@@ -1275,11 +1275,17 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (commonElements.isNamedListConstructor('generate', constructor)) {
       // We have something like `List.generate(len, generator)`.
       int length = _findLength(arguments);
-      // TODO(sra): What we really want here is the result of calling the
-      // `generator` parameter with a non-negative integer.
-      TypeInformation elementType = _types.dynamicType;
       TypeInformation baseType =
           _listBaseType(arguments, defaultGrowable: true);
+      TypeInformation closureArgumentInfo = argumentsTypes.positional[1];
+      // If the argument is an immediate closure, the element type is that
+      // returned by the closure.
+      TypeInformation elementType;
+      if (closureArgumentInfo is ClosureTypeInformation) {
+        FunctionEntity closure = closureArgumentInfo.closure;
+        elementType = _types.getInferredTypeOfMember(closure);
+      }
+      elementType ??= _types.dynamicType;
       return _inferrer.concreteTypes.putIfAbsent(
           node,
           () => _types.allocateList(
