@@ -16,6 +16,7 @@ dev_dependencies:
   analysis_tool:
     path: ../analysis_tool
   html: '>=0.13.1 <0.15.0'
+  meta: '^1.1.8'
   path: '^1.4.1'
   test_reflective_loader: ^0.1.8
   test: ^1.0.0

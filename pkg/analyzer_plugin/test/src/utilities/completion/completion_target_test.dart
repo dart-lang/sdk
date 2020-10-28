@@ -676,9 +676,9 @@ class CompletionTargetTest extends _Base {
 
   Future<void> test_MapLiteral_expression() async {
     super.setUp();
-    final experimentStatus =
-        (driver.analysisOptions as analyzer.AnalysisOptionsImpl)
-            .experimentStatus;
+    final experimentStatus = (driverFor(testPackageRootPath).analysisOptions
+            as analyzer.AnalysisOptionsImpl)
+        .experimentStatus;
     if (experimentStatus.control_flow_collections ||
         experimentStatus.spread_collections) {
       // SimpleIdentifier  MapLiteral  VariableDeclaration
@@ -974,7 +974,7 @@ class _Base extends AbstractContextTest {
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: content);
 
-    var result = await driver.getResult(path);
+    var result = await resolveFile(path);
     findElement = FindElement(result.unit);
 
     target = CompletionTarget.forOffset(result.unit, offset);
