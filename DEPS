@@ -51,6 +51,9 @@ vars = {
   "benchmarks_internal_rev": "354c978979c57e4a76f62e22cf644ed0804f4421",
   "checkout_benchmarks_internal": False,
 
+  # Checkout Android dependencies only on Mac and Linux.
+  "download_android_deps": 'host_os == "mac" or host_os == "linux"',
+
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
   # The list of revisions for these tools comes from Fuchsia, here:
@@ -491,6 +494,61 @@ deps = {
       "dep_type": "cipd",
   },
 
+  Var("dart_root") + "/third_party/android_tools/ndk": {
+      "packages": [
+          {
+            "package": "flutter/android/ndk/${{platform}}",
+            "version": "version:r21.0.6113669"
+          }
+      ],
+      "condition": "download_android_deps",
+      "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/android_tools/sdk/build-tools": {
+      "packages": [
+          {
+            "package": "flutter/android/sdk/build-tools/${{platform}}",
+            "version": "version:30.0.1"
+          }
+      ],
+      "condition": "download_android_deps",
+      "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/android_tools/sdk/platform-tools": {
+     "packages": [
+          {
+            "package": "flutter/android/sdk/platform-tools/${{platform}}",
+            "version": "version:29.0.2"
+          }
+      ],
+      "condition": "download_android_deps",
+      "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/android_tools/sdk/platforms": {
+      "packages": [
+          {
+            "package": "flutter/android/sdk/platforms",
+            "version": "version:30r3"
+          }
+      ],
+      "condition": "download_android_deps",
+      "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/android_tools/sdk/tools": {
+      "packages": [
+          {
+            "package": "flutter/android/sdk/tools/${{platform}}",
+            "version": "version:26.1.1"
+          }
+      ],
+      "condition": "download_android_deps",
+      "dep_type": "cipd",
+  },
+
   Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/rust": {
       "packages": [
           {
@@ -638,11 +696,6 @@ hooks = [
     'pattern': '.',
     'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
                '--arch', 'arm64'],
-  },
-  {
-    'name': 'download_android_tools',
-    'pattern': '.',
-    'action': ['python', 'sdk/tools/android/download_android_tools.py'],
   },
   {
     'name': 'buildtools',
