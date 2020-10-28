@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "include/dart_api.h"
+#include "lib/stacktrace.h"
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
 #include "platform/unaligned.h"
@@ -3053,7 +3054,7 @@ void Class::AddFunction(const Function& function) const {
 }
 
 FunctionPtr Class::FunctionFromIndex(intptr_t idx) const {
-  const Array& funcs = Array::Handle(functions());
+  const Array& funcs = Array::Handle(current_functions());
   if ((idx < 0) || (idx >= funcs.Length())) {
     return Function::null();
   }
@@ -3064,7 +3065,7 @@ FunctionPtr Class::FunctionFromIndex(intptr_t idx) const {
 }
 
 FunctionPtr Class::ImplicitClosureFunctionFromIndex(intptr_t idx) const {
-  const Array& funcs = Array::Handle(functions());
+  const Array& funcs = Array::Handle(current_functions());
   if ((idx < 0) || (idx >= funcs.Length())) {
     return Function::null();
   }
@@ -3089,7 +3090,7 @@ intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
   Function& function = thread->FunctionHandle();
-  funcs = functions();
+  funcs = current_functions();
   ASSERT(!funcs.IsNull());
   Function& implicit_closure = Function::Handle(thread->zone());
   const intptr_t len = funcs.Length();
@@ -3694,8 +3695,8 @@ FunctionPtr Function::GetMethodExtractor(const String& getter_name) const {
     return Function::null();
   }
   IsolateGroup* group = thread->isolate_group();
-  Function& result =
-      Function::Handle(owner.LookupDynamicFunctionUnsafe(getter_name));
+  Function& result = Function::Handle(
+      Resolver::ResolveDynamicFunction(thread->zone(), owner, getter_name));
   if (result.IsNull()) {
     SafepointWriteRwLocker ml(thread, group->program_lock());
     result = owner.LookupDynamicFunctionUnsafe(getter_name);
@@ -5347,7 +5348,7 @@ bool Class::IsPrivate() const {
 }
 
 FunctionPtr Class::LookupDynamicFunctionUnsafe(const String& name) const {
-  return LookupFunctionUnsafe(name, kInstance);
+  return LookupFunctionReadLocked(name, kInstance);
 }
 
 FunctionPtr Class::LookupDynamicFunctionAllowPrivate(const String& name) const {
@@ -5355,7 +5356,9 @@ FunctionPtr Class::LookupDynamicFunctionAllowPrivate(const String& name) const {
 }
 
 FunctionPtr Class::LookupStaticFunction(const String& name) const {
-  return LookupFunctionUnsafe(name, kStatic);
+  Thread* thread = Thread::Current();
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+  return LookupFunctionReadLocked(name, kStatic);
 }
 
 FunctionPtr Class::LookupStaticFunctionAllowPrivate(const String& name) const {
@@ -5363,7 +5366,9 @@ FunctionPtr Class::LookupStaticFunctionAllowPrivate(const String& name) const {
 }
 
 FunctionPtr Class::LookupConstructor(const String& name) const {
-  return LookupFunctionUnsafe(name, kConstructor);
+  Thread* thread = Thread::Current();
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+  return LookupFunctionReadLocked(name, kConstructor);
 }
 
 FunctionPtr Class::LookupConstructorAllowPrivate(const String& name) const {
@@ -5371,7 +5376,9 @@ FunctionPtr Class::LookupConstructorAllowPrivate(const String& name) const {
 }
 
 FunctionPtr Class::LookupFactory(const String& name) const {
-  return LookupFunctionUnsafe(name, kFactory);
+  Thread* thread = Thread::Current();
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+  return LookupFunctionReadLocked(name, kFactory);
 }
 
 FunctionPtr Class::LookupFactoryAllowPrivate(const String& name) const {
@@ -5382,8 +5389,8 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name) const {
   return LookupFunctionAllowPrivate(name, kAny);
 }
 
-FunctionPtr Class::LookupFunctionUnsafe(const String& name) const {
-  return LookupFunctionUnsafe(name, kAny);
+FunctionPtr Class::LookupFunctionReadLocked(const String& name) const {
+  return LookupFunctionReadLocked(name, kAny);
 }
 
 // Returns true if 'prefix' and 'accessor_name' match 'name'.
@@ -5435,11 +5442,16 @@ FunctionPtr Class::CheckFunctionType(const Function& func, MemberKind kind) {
   return Function::null();
 }
 
-FunctionPtr Class::LookupFunctionUnsafe(const String& name,
-                                        MemberKind kind) const {
+FunctionPtr Class::LookupFunctionReadLocked(const String& name,
+                                            MemberKind kind) const {
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   RELEASE_ASSERT(is_finalized());
+  // Caller needs to ensure they grab program_lock because this method
+  // can be invoked with either ReadRwLock or WriteRwLock.
+#if defined(DEBUG)
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadReader());
+#endif
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
@@ -5448,7 +5460,10 @@ FunctionPtr Class::LookupFunctionUnsafe(const String& name,
   const intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
   if (len >= kFunctionLookupHashTreshold) {
-    // Cache functions hash table to allow multi threaded access.
+    // TODO(dartbug.com/36097): We require currently a read lock in the resolver
+    // to avoid read-write race access to this hash table.
+    // If we want to increase resolver speed by avoiding the need for read lock,
+    // we could make change this hash table to be lock-free for the reader.
     const Array& hash_table =
         Array::Handle(thread->zone(), raw_ptr()->functions_hash_table_);
     if (!hash_table.IsNull()) {
@@ -5494,7 +5509,7 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name,
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
-  funcs = functions();
+  funcs = current_functions();
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
@@ -5530,7 +5545,7 @@ FunctionPtr Class::LookupAccessorFunction(const char* prefix,
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
-  funcs = functions();
+  funcs = current_functions();
   intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
   String& function_name = thread->StringHandle();
@@ -12482,7 +12497,7 @@ ArrayPtr Library::LoadedScripts() const {
       // are not included above, but can be referenced through a library's
       // anonymous classes. Example: dart-core:identical.dart.
       Function& func = Function::Handle();
-      Array& functions = Array::Handle(cls.functions());
+      Array& functions = Array::Handle(cls.current_functions());
       for (intptr_t j = 0; j < functions.Length(); j++) {
         func ^= functions.At(j);
         if (func.is_external()) {
@@ -24343,6 +24358,7 @@ const char* Capability::ToCString() const {
 }
 
 ReceivePortPtr ReceivePort::New(Dart_Port id,
+                                const String& debug_name,
                                 bool is_control_port,
                                 Heap::Space space) {
   ASSERT(id != ILLEGAL_PORT);
@@ -24350,6 +24366,8 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   Zone* zone = thread->zone();
   const SendPort& send_port =
       SendPort::Handle(zone, SendPort::New(id, thread->isolate()->origin_id()));
+  const StackTrace& allocation_location_ =
+      HasStack() ? GetCurrentStackTrace(0) : StackTrace::Handle();
 
   ReceivePort& result = ReceivePort::Handle(zone);
   {
@@ -24358,6 +24376,9 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StorePointer(&result.raw_ptr()->send_port_, send_port.raw());
+    result.StorePointer(&result.raw_ptr()->debug_name_, debug_name.raw());
+    result.StorePointer(&result.raw_ptr()->allocation_location_,
+                        allocation_location_.raw());
   }
   if (is_control_port) {
     PortMap::SetPortState(id, PortMap::kControlPort);

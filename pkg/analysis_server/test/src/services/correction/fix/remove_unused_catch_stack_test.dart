@@ -20,7 +20,7 @@ class RemoveUnusedCatchStackTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_UNUSED_CATCH_STACK;
 
   Future<void> test_removeUnusedCatchStack() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   try {
     throw 42;

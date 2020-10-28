@@ -21,7 +21,7 @@ class ConvertToForElementTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_FOR_ELEMENT;
 
   Future<void> test_mapFromIterable_complexKey() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (e) {
     var result = e * 2;
@@ -33,7 +33,7 @@ f(Iterable<int> i) {
   }
 
   Future<void> test_mapFromIterable_complexValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (e) => e * 2, value: (e) {
     var result = e  + 3;
@@ -46,7 +46,7 @@ f(Iterable<int> i) {
 
   Future<void>
       test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   var k = 3;
   return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => k);
@@ -65,7 +65,7 @@ f(Iterable<int> i) {
     createAnalysisOptionsFile(
         lints: [LintNames.prefer_for_elements_to_map_fromIterable]);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   var k = 3;
   return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => k);
@@ -76,7 +76,7 @@ f(Iterable<int> i) {
 
   Future<void>
       test_mapFromIterable_differentParameterNames_usedInKey_noConflictInValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => 0);
 }
@@ -90,7 +90,7 @@ f(Iterable<int> i) {
 
   Future<void>
       test_mapFromIterable_differentParameterNames_usedInKeyAndValue_conflictWithDefault() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   var e = 2;
   return Map.fromIt/*caret*/erable(i, key: (k) => k * e, value: (v) => v + e);
@@ -106,7 +106,7 @@ f(Iterable<int> i) {
 
   Future<void>
       test_mapFromIterable_differentParameterNames_usedInKeyAndValue_noConflictWithDefault() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => v + 3);
 }
@@ -120,7 +120,7 @@ f(Iterable<int> i) {
 
   Future<void>
       test_mapFromIterable_differentParameterNames_usedInValue_conflictInKey() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   int v = 0;
   return Map.fromIt/*caret*/erable(i, key: (k) => v++, value: (v) => v * 10);
@@ -136,7 +136,7 @@ f(Iterable<int> i) {
 
   Future<void>
       test_mapFromIterable_differentParameterNames_usedInValue_noConflictInKey() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   int index = 0;
   return Map.fromIt/*caret*/erable(i, key: (k) => index++, value: (v) => v * 10);
@@ -151,7 +151,7 @@ f(Iterable<int> i) {
   }
 
   Future<void> test_mapFromIterable_missingKey() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, value: (e) => e + 3);
 }
@@ -160,7 +160,7 @@ f(Iterable<int> i) {
   }
 
   Future<void> test_mapFromIterable_missingKeyAndValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i);
 }
@@ -169,7 +169,7 @@ f(Iterable<int> i) {
   }
 
   Future<void> test_mapFromIterable_missingValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (e) => e * 2);
 }
@@ -178,7 +178,7 @@ f(Iterable<int> i) {
   }
 
   Future<void> test_mapFromIterable_notMapFromIterable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   return A.fromIt/*caret*/erable(i, key: (e) => e * 2, value: (e) => e + 3);
 }
@@ -190,7 +190,7 @@ class A {
   }
 
   Future<void> test_mapFromIterable_sameParameterNames() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   return Map.fromIt/*caret*/erable(i, key: (e) => e * 2, value: (e) => e + 3);
 }
@@ -204,7 +204,7 @@ f(Iterable<int> i) {
 
   Future<void> test_undefinedConstructor() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   return new Unde/*caret*/fined();
 }

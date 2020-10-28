@@ -24,7 +24,7 @@ class ConvertToContainsTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_contains;
 
   Future<void> test_left_bangEq_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return -1 != list.indexOf(value);
 }
@@ -37,7 +37,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_left_eqEq_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return -1 == list.indexOf(value);
 }
@@ -50,7 +50,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_left_gt_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return -1 > list.indexOf(value);
 }
@@ -59,7 +59,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_left_gt_zero() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return 0 > list.indexOf(value);
 }
@@ -72,7 +72,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_left_gtEq_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return -1 >= list.indexOf(value);
 }
@@ -85,7 +85,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_left_lt_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return -1 < list.indexOf(value);
 }
@@ -98,7 +98,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_left_ltEq_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return -1 <= list.indexOf(value);
 }
@@ -107,7 +107,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_left_ltEq_zero() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return 0 <= list.indexOf(value);
 }
@@ -120,7 +120,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_right_bangEq_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return list.indexOf(value) != -1;
 }
@@ -133,7 +133,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_right_eqEq_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return list.indexOf(value) == -1;
 }
@@ -146,7 +146,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_right_gt_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return list.indexOf(value) > -1;
 }
@@ -159,7 +159,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_right_gtEq_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return list.indexOf(value) >= -1;
 }
@@ -168,7 +168,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_right_gtEq_zero() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return list.indexOf(value) >= 0;
 }
@@ -181,7 +181,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_right_lt_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return list.indexOf(value) < -1;
 }
@@ -190,7 +190,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_right_lt_zero() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return list.indexOf(value) < 0;
 }
@@ -203,7 +203,7 @@ bool f(List<int> list, int value) {
   }
 
   Future<void> test_right_ltEq_minusOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool f(List<int> list, int value) {
   return list.indexOf(value) <= -1;
 }

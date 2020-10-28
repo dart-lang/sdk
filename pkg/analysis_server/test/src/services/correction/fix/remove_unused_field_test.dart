@@ -21,7 +21,7 @@ class RemoveUnusedFieldTest extends FixProcessorTest {
 
   @FailingTest(reason: 'Unimplemented')
   Future<void> test_enumValue_notUsed_noReference() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 enum _E { a, b, c }
 bool f(_E e) => e == _E.a || e == _E.b;
 ''');
@@ -32,7 +32,7 @@ bool f(_E e) => e == _E.a || e == _E.b;
   }
 
   Future<void> test_parameter_optional_first() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   A([this._f, int x]);
@@ -46,7 +46,7 @@ class A {
   }
 
   Future<void> test_parameter_optional_first_hasRequired() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   A(int x, [this._f, int y]);
@@ -60,7 +60,7 @@ class A {
   }
 
   Future<void> test_parameter_optional_last() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   A([int x, this._f]);
@@ -74,7 +74,7 @@ class A {
   }
 
   Future<void> test_parameter_optional_middle() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   A([int x, this._f, int y]);
@@ -88,7 +88,7 @@ class A {
   }
 
   Future<void> test_parameter_optional_only() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   A([this._f]);
@@ -102,7 +102,7 @@ class A {
   }
 
   Future<void> test_parameter_optional_only_hasRequired() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   A(int x, [this._f]);
@@ -116,7 +116,7 @@ class A {
   }
 
   Future<void> test_parameter_required_beforeOptional() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   A(this._f, [int x]);
@@ -130,7 +130,7 @@ class A {
   }
 
   Future<void> test_parameter_required_first() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   int x;
@@ -146,7 +146,7 @@ class A {
   }
 
   Future<void> test_parameter_required_last() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int x;
   int _f;
@@ -162,7 +162,7 @@ class A {
   }
 
   Future<void> test_parameter_required_only() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   A(this._f);
@@ -176,7 +176,7 @@ class A {
   }
 
   Future<void> test_unusedField_notUsed_assign() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   main() {
@@ -193,7 +193,7 @@ class A {
   }
 
   Future<void> test_unusedField_notUsed_compoundAssign() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   main() {
@@ -210,7 +210,7 @@ class A {
   }
 
   Future<void> test_unusedField_notUsed_constructorFieldInitializers() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   A() : _f = 0;
@@ -224,7 +224,7 @@ class A {
   }
 
   Future<void> test_unusedField_notUsed_constructorFieldInitializers1() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   int y;
@@ -240,7 +240,7 @@ class A {
   }
 
   Future<void> test_unusedField_notUsed_constructorFieldInitializers2() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f;
   int y;
@@ -256,7 +256,7 @@ class A {
   }
 
   Future<void> test_unusedField_notUsed_declarationList_first() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int _f, x;
   A(this._f) {
@@ -275,7 +275,7 @@ class A {
   }
 
   Future<void> test_unusedField_notUsed_declarationList_last() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class A {
   int x, _f;
   A(this._f) {

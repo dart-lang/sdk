@@ -368,6 +368,33 @@ transforms:
     expect(transform.changes, isEmpty);
   }
 
+  void test_correctOffsetForPlainStrings() {
+    assertErrors('''
+version: 1
+transforms:
+- title: 'Add'
+  date: 2020-09-03
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'T'
+      extends:
+        expression: 'Object'
+      argumentValue:
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'fragment'
+            value: args
+''', [
+      error(TransformSetErrorCode.unknownAccessor, 361, 4),
+    ]);
+  }
+
   void test_date() {
     parse('''
 version: 1

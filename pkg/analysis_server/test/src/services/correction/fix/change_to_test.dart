@@ -20,7 +20,7 @@ class ChangeToTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CHANGE_TO;
 
   Future<void> test_annotation_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @MyCalss()
 void f() {}
 
@@ -42,7 +42,7 @@ class MyClass {
   Future<void> test_annotation_variable() async {
     // TODO(brianwilkerson) Add support for suggesting similar top-level
     //  variables.
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const annotation = '';
 @anontation
 void f() {}
@@ -55,7 +55,7 @@ void f() {}
   }
 
   Future<void> test_class_extends() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyClass extends BaseClssa {}
 
 class BaseClass {}
@@ -68,7 +68,7 @@ class BaseClass {}
   }
 
   Future<void> test_class_fromImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Stirng s = 'abc';
   print(s);
@@ -83,7 +83,7 @@ main() {
   }
 
   Future<void> test_class_fromThisLibrary() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyClass {}
 main() {
   MyCalss v = null;
@@ -100,7 +100,7 @@ main() {
   }
 
   Future<void> test_class_implements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyClass implements BaseClssa {}
 
 class BaseClass {}
@@ -113,7 +113,7 @@ class BaseClass {}
   }
 
   Future<void> test_class_prefixed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async' as c;
 main() {
   c.Fture v = null;
@@ -130,7 +130,7 @@ main() {
   }
 
   Future<void> test_class_with() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyClass with BaseClssa {}
 
 class BaseClass {}
@@ -143,7 +143,7 @@ class BaseClass {}
   }
 
   Future<void> test_function_fromImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   pritn(0);
 }
@@ -156,7 +156,7 @@ main() {
   }
 
   Future<void> test_function_prefixed_fromImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:core' as c;
 main() {
   c.prnt(42);
@@ -171,7 +171,7 @@ main() {
   }
 
   Future<void> test_function_prefixed_ignoreLocal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async' as c;
 main() {
   c.main();
@@ -181,7 +181,7 @@ main() {
   }
 
   Future<void> test_function_thisLibrary() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 myFunction() {}
 main() {
   myFuntcion();
@@ -196,7 +196,7 @@ main() {
   }
 
   Future<void> test_getter_hint() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int myField;
 }
@@ -217,7 +217,7 @@ main(A a) {
   }
 
   Future<void> test_getter_override() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on int {
   int get myGetter => 0;
 }
@@ -236,7 +236,7 @@ void f() {
   }
 
   Future<void> test_getter_qualified() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int myField;
 }
@@ -255,7 +255,7 @@ main(A a) {
   }
 
   Future<void> test_getter_qualified_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static int MY_NAME = 1;
 }
@@ -274,7 +274,7 @@ main() {
   }
 
   Future<void> test_getter_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on int {
   static int get myGetter => 0;
 }
@@ -293,7 +293,7 @@ void f() {
   }
 
   Future<void> test_getter_unqualified() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int myField;
   main() {
@@ -312,7 +312,7 @@ class A {
   }
 
   Future<void> test_method_ignoreOperators() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(Object object) {
   object.then();
 }
@@ -321,7 +321,7 @@ main(Object object) {
   }
 
   Future<void> test_method_override() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on int {
   int myMethod() => 0;
 }
@@ -340,7 +340,7 @@ void f() {
   }
 
   Future<void> test_method_qualified() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   myMethod() {}
 }
@@ -361,7 +361,7 @@ main() {
   }
 
   Future<void> test_method_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on int {
   static int myMethod() => 0;
 }
@@ -380,7 +380,7 @@ void f() {
   }
 
   Future<void> test_method_unqualified_superClass() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   myMethod() {}
 }
@@ -403,7 +403,7 @@ class B extends A {
   }
 
   Future<void> test_method_unqualified_thisClass() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   myMethod() {}
   main() {
@@ -422,7 +422,7 @@ class A {
   }
 
   Future<void> test_setter_hint() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int myField;
 }
@@ -443,7 +443,7 @@ main(A a) {
   }
 
   Future<void> test_setter_override() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on int {
   void set mySetter(int i) {}
 }
@@ -462,7 +462,7 @@ void f() {
   }
 
   Future<void> test_setter_qualified() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int myField;
 }
@@ -481,7 +481,7 @@ main(A a) {
   }
 
   Future<void> test_setter_static() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 extension E on int {
   static void set mySetter(int i) {}
 }
@@ -500,7 +500,7 @@ void f() {
   }
 
   Future<void> test_setter_unqualified() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int myField;
   main() {

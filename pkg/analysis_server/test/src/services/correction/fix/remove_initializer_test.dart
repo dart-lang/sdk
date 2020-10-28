@@ -24,7 +24,7 @@ class RemoveInitializerTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_init_to_null;
 
   Future<void> test_field() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class Test {
   int x = null;
 }
@@ -37,7 +37,7 @@ class Test {
   }
 
   Future<void> test_forLoop() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   for (var i = null; i != null; i++) {
   }
@@ -52,7 +52,7 @@ void f() {
   }
 
   Future<void> test_listOfVariableDeclarations() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String a = 'a', b = null, c = 'c';
 ''');
     await assertHasFix('''
@@ -61,7 +61,7 @@ String a = 'a', b, c = 'c';
   }
 
   Future<void> test_parameter_optionalNamed() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f({String s = null}) {}
 ''');
     await assertHasFix('''
@@ -70,7 +70,7 @@ void f({String s}) {}
   }
 
   Future<void> test_parameter_optionalPositional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f([String s = null]) {}
 ''');
     await assertHasFix('''
@@ -79,7 +79,7 @@ void f([String s]) {}
   }
 
   Future<void> test_topLevel() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var x = null;
 ''');
     await assertHasFix('''

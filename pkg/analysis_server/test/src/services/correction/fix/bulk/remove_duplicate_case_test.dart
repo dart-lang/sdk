@@ -19,7 +19,7 @@ class RemoveDuplicateCaseTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.no_duplicate_case_values;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void switchInt() {
   switch (2) {
     case 1:

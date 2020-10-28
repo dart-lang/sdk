@@ -28,7 +28,7 @@ class CreateLocalVariableTest extends FixProcessorTest {
   }
 
   Future<void> test_functionType_named() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef MY_FUNCTION(int p);
 foo(MY_FUNCTION f) {}
 main() {
@@ -46,7 +46,7 @@ main() {
   }
 
   Future<void> test_functionType_named_generic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef MY_FUNCTION<T>(T p);
 foo(MY_FUNCTION<int> f) {}
 main() {
@@ -64,7 +64,7 @@ main() {
   }
 
   Future<void> test_functionType_synthetic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo(f(int p)) {}
 main() {
   foo(bar);
@@ -80,7 +80,7 @@ main() {
   }
 
   Future<void> test_read_typeAssignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int a = test;
   print(a);
@@ -96,7 +96,7 @@ main() {
   }
 
   Future<void> test_read_typeCondition() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (!test) {
     print(42);
@@ -114,7 +114,7 @@ main() {
   }
 
   Future<void> test_read_typeInvocationArgument() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   f(test);
 }
@@ -132,7 +132,7 @@ f(String p) {}
   }
 
   Future<void> test_read_typeInvocationTarget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   test.add('hello');
 }
@@ -167,7 +167,7 @@ class C {
         ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:pkg/a/a.dart';
 import 'package:pkg/c/c.dart';
 
@@ -201,7 +201,7 @@ main() {
   }
 
   Future<void> test_write_assignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   test = 42;
 }
@@ -214,7 +214,7 @@ main() {
   }
 
   Future<void> test_write_assignment_compound() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   test += 42;
 }

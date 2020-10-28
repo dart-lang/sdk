@@ -20,7 +20,7 @@ class ConvertIntoBlockBodyTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_INTO_BLOCK_BODY;
 
   Future<void> test_async() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   mmm() async => 123;
 }
@@ -35,7 +35,7 @@ class A {
   }
 
   Future<void> test_closure() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 setup(x) {}
 main() {
   setup(() => 42);
@@ -53,7 +53,7 @@ main() {
   }
 
   Future<void> test_closure_voidExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 setup(x) {}
 main() {
   setup(() => print('done'));
@@ -71,7 +71,7 @@ main() {
   }
 
   Future<void> test_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A.named();
 
@@ -90,14 +90,14 @@ class A {
   }
 
   Future<void> test_inExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() => 123;
 ''');
     await assertNoAssistAt('123;');
   }
 
   Future<void> test_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   mmm() => 123;
 }
@@ -112,14 +112,14 @@ class A {
   }
 
   Future<void> test_noEnclosingFunction() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var v = 123;
 ''');
     await assertNoAssistAt('v =');
   }
 
   Future<void> test_notExpressionBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() {
   return 123;
 }
@@ -128,7 +128,7 @@ fff() {
   }
 
   Future<void> test_onArrow() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() => 123;
 ''');
     await assertHasAssistAt('=>', '''
@@ -139,7 +139,7 @@ fff() {
   }
 
   Future<void> test_onName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 fff() => 123;
 ''');
     await assertHasAssistAt('fff()', '''
@@ -150,7 +150,7 @@ fff() {
   }
 
   Future<void> test_throw() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   mmm() => throw 'error';
 }

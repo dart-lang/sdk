@@ -23,7 +23,7 @@ class AddConstToConstructorTest extends BulkFixProcessorTest {
   @failingTest
   Future<void> test_singleFile() async {
     writeTestPackageConfig(meta: true);
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class C {
   const C([C c]);
 }
@@ -46,7 +46,7 @@ class AddConstToImmutableConstructorTest extends BulkFixProcessorTest {
 
   Future<void> test_singleFile() async {
     writeTestPackageConfig(meta: true);
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';
 
 @immutable

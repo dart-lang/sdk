@@ -105,7 +105,7 @@ class ElementTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_fromElement_CLASS() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
@@ -143,7 +143,7 @@ class B<K, V> {}''');
   }
 
   Future<void> test_fromElement_CONSTRUCTOR() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
@@ -169,7 +169,7 @@ class A {
 
   Future<void> test_fromElement_CONSTRUCTOR_required_parameters_1() async {
     writeTestPackageConfig(meta: true);
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';    
 class A {
   const A.myConstructor(int a, {int b, @required int c});
@@ -185,7 +185,7 @@ class A {
   /// Verify parameter re-ordering for required params
   Future<void> test_fromElement_CONSTRUCTOR_required_parameters_2() async {
     writeTestPackageConfig(meta: true);
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';    
 class A {
   const A.myConstructor(int a, {int b, @required int d, @required int c});
@@ -203,7 +203,7 @@ class A {
   Future<void> test_fromElement_CONSTRUCTOR_required_parameters_3() async {
     writeTestPackageConfig(meta: true);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:meta/meta.dart';    
 class A {
   const A.myConstructor(int a, {int b, @required int d, @required int c, int a});
@@ -230,7 +230,7 @@ class A {
   }
 
   Future<void> test_fromElement_ENUM() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -268,7 +268,7 @@ enum E2 { three, four }''');
   }
 
   Future<void> test_fromElement_ENUM_CONSTANT() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -353,7 +353,7 @@ enum E2 { three, four }''');
   }
 
   Future<void> test_fromElement_FIELD() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static const myField = 42;
 }''');
@@ -376,7 +376,7 @@ class A {
   }
 
   Future<void> test_fromElement_FUNCTION_TYPE_ALIAS() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef int F<T>(String x);
 ''');
     engine.FunctionTypeAliasElement engineElement =
@@ -400,7 +400,7 @@ typedef int F<T>(String x);
   }
 
   Future<void> test_fromElement_FUNCTION_TYPE_ALIAS_genericTypeAlias() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef F<T> = int Function(String x);
 ''');
     engine.FunctionTypeAliasElement engineElement =
@@ -425,7 +425,7 @@ typedef F<T> = int Function(String x);
 
   Future<void> test_fromElement_GETTER() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   String get myGetter => 42;
 }''');
@@ -449,7 +449,7 @@ class A {
   }
 
   Future<void> test_fromElement_LABEL() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
 myLabel:
   while (true) {
@@ -475,7 +475,7 @@ myLabel:
   }
 
   Future<void> test_fromElement_METHOD() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static List<String> myMethod(int a, {String b, int c}) {
     return null;
@@ -501,7 +501,7 @@ class A {
   }
 
   Future<void> test_fromElement_MIXIN() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin A {}
 ''');
     {
@@ -525,7 +525,7 @@ mixin A {}
   }
 
   Future<void> test_fromElement_SETTER() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   set mySetter(String x) {}
 }''');

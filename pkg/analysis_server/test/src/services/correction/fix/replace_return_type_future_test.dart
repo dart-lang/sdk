@@ -21,7 +21,7 @@ class ReplaceReturnTypeFutureTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
 
   Future<void> test_adjacentNodes_withImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async';
 var v;int main() async => 0;
 ''');
@@ -34,7 +34,7 @@ var v;Future<int> main() async => 0;
   }
 
   Future<void> test_adjacentNodes_withoutImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var v;int main() async => 0;
 ''');
     await assertHasFix('''
@@ -43,7 +43,7 @@ var v;Future<int> main() async => 0;
   }
 
   Future<void> test_complexTypeName_withImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async';
 List<int> main() async {
 }
@@ -59,7 +59,7 @@ Future<List<int>> main() async {
 
   @failingTest
   Future<void> test_complexTypeName_withoutImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List<int> main() async {
 }
 ''');
@@ -74,7 +74,7 @@ Future<List<int>> main() async {
   }
 
   Future<void> test_importedWithPrefix() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async' as al;
 int main() async {
 }
@@ -89,7 +89,7 @@ al.Future<int> main() async {
   }
 
   Future<void> test_simpleTypeName_withImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:async';
 int main() async => 0;
 ''');
@@ -103,7 +103,7 @@ Future<int> main() async => 0;
 
   @failingTest
   Future<void> test_simpleTypeName_withoutImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int main() async => 0;
 ''');
     await assertHasFix('''
@@ -116,7 +116,7 @@ Future<int> main() async => 0;
   }
 
   Future<void> test_withLibraryDirective_withImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 library main;
 import 'dart:async';
 int main() async {
@@ -133,7 +133,7 @@ Future<int> main() async {
   }
 
   Future<void> test_withLibraryDirective_withoutImport() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 library main;
 int main() async {
 }

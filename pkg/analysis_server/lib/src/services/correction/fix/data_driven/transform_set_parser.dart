@@ -196,9 +196,9 @@ class TransformSetParser {
   /// Return the offset of the first character in the [string], exclusive of any
   /// surrounding quotes.
   int _offsetOfString(YamlScalar string) {
-    // TODO(brianwilkerson) We add 1 to account for the quotes around the
-    //  string, but quotes aren't required, so we need to use the style of the
-    //  [string] is to get the right offset.
+    if (string.style == ScalarStyle.PLAIN) {
+      return string.span.start.offset;
+    }
     return string.span.start.offset + 1;
   }
 
@@ -333,8 +333,8 @@ class TransformSetParser {
   /// resulting change, or `null` if the [node] does not represent a valid
   /// add-type-parameter change.
   AddTypeParameter _translateAddTypeParameterChange(YamlMap node) {
-    _reportUnsupportedKeys(
-        node, const {_indexKey, _kindKey, _nameKey, _argumentValueKey});
+    _reportUnsupportedKeys(node,
+        const {_extendsKey, _indexKey, _kindKey, _nameKey, _argumentValueKey});
     var index = _translateInteger(node.valueAt(_indexKey),
         ErrorContext(key: _indexKey, parentNode: node));
     var name = _translateString(

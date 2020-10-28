@@ -22,7 +22,7 @@ class AddLatePreNnbdTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_LATE;
 
   Future<void> test_withFinal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   final String s;
 }
@@ -37,7 +37,7 @@ class AddLateTest extends FixProcessorTest with WithNullSafetyMixin {
   FixKind get kind => DartFixKind.ADD_LATE;
 
   Future<void> test_withFinal() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   final String s;
 }
@@ -50,7 +50,7 @@ class C {
   }
 
   Future<void> test_withLate() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   late s;
 }
@@ -59,7 +59,7 @@ class C {
   }
 
   Future<void> test_withType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String s;
 }

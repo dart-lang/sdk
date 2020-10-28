@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class GetDescriptionTest extends WidgetDescriptionBase {
   Future<void> test_documentation_fieldFormalParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyWidget {
   /// my doc
   final int f;
@@ -35,7 +35,7 @@ void f() {
 
   Future<void> test_documentation_fieldFormalParameter_unresolvedField() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyWidget {
   MyWidget(this.f);
 }
@@ -49,7 +49,7 @@ void f() {
   }
 
   Future<void> test_kind_named_notSet() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -72,7 +72,7 @@ void main() {
   }
 
   Future<void> test_kind_named_set() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -99,7 +99,7 @@ void main() {
   }
 
   Future<void> test_kind_required() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -126,7 +126,7 @@ void main() {
   }
 
   Future<void> test_nested_notSet() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -150,7 +150,7 @@ void main() {
   }
 
   Future<void> test_nested_set() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -203,7 +203,7 @@ void main() {
   }
 
   Future<void> test_notInstanceCreation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void main() {
   42;
 }
@@ -213,7 +213,7 @@ void main() {
   }
 
   Future<void> test_type_double() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -235,7 +235,7 @@ void main() {
   }
 
   Future<void> test_type_enum() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -293,7 +293,7 @@ void main() {
   }
 
   Future<void> test_type_int() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -316,7 +316,7 @@ void main() {
 
   Future<void> test_unresolvedInstanceCreation() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void main() {
   new Foo();
 }
@@ -329,7 +329,7 @@ void main() {
 @reflectiveTest
 class SetPropertyValueSelfTest extends WidgetDescriptionBase {
   Future<void> test_expression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -353,7 +353,7 @@ void main() {
   }
 
   Future<void> test_expression_formatError() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -376,7 +376,7 @@ void main() {
   }
 
   Future<void> test_format_dontFormatOther() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void functionbefore() {
@@ -419,7 +419,7 @@ void functionAfter() {
   }
 
   Future<void> test_invalidId() async {
-    await resolveTestUnit('');
+    await resolveTestCode('');
 
     var result = await descriptions.setPropertyValue(42, null);
 
@@ -431,7 +431,7 @@ void functionAfter() {
   }
 
   Future<void> test_named_addValue_beforeChild() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -468,7 +468,7 @@ class MyWidget<T> {
   }
 
   Future<void> test_named_addValue_beforeChildren() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -505,7 +505,7 @@ class MyWidget<T> {
   }
 
   Future<void> test_named_addValue_hasComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -532,7 +532,7 @@ void main() {
   }
 
   Future<void> test_named_addValue_noComma() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -559,7 +559,7 @@ void main() {
   }
 
   Future<void> test_named_addValue_sortedByName_first() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -596,7 +596,7 @@ class MyWidget<T> {
   }
 
   Future<void> test_named_addValue_sortedByName_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -633,7 +633,7 @@ class MyWidget<T> {
   }
 
   Future<void> test_named_addValue_sortedByName_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -672,7 +672,7 @@ class MyWidget<T> {
   }
 
   Future<void> test_named_changeValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -696,7 +696,7 @@ void main() {
   }
 
   Future<void> test_named_removeValue_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -717,7 +717,7 @@ void main() {
   }
 
   Future<void> test_named_removeValue_notLast() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -738,7 +738,7 @@ void main() {
   }
 
   Future<void> test_nested_addValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -769,7 +769,7 @@ void main() {
   }
 
   Future<void> test_nested_addValue_materialize() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -800,7 +800,7 @@ void main() {
   }
 
   Future<void> test_required_changeValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -824,7 +824,7 @@ void main() {
   }
 
   Future<void> test_required_removeValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -843,7 +843,7 @@ void main() {
   }
 
   Future<void> test_type_enum_addValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 
 void main() {

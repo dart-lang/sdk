@@ -21,7 +21,7 @@ class ImportLibrarySdkTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_SDK;
 
   Future<void> test_alreadyImported_sdk() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:collection' show HashMap;
 main() {
   HashMap s = null;
@@ -33,7 +33,7 @@ main() {
   }
 
   Future<void> test_withClass_asExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   p as HashMap;
 }
@@ -48,7 +48,7 @@ main(p) {
   }
 
   Future<void> test_withClass_extends() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyCompleter extends Completer<String> {}
 ''');
     await assertHasFix('''
@@ -59,7 +59,7 @@ class MyCompleter extends Completer<String> {}
   }
 
   Future<void> test_withClass_implements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyCompleter implements Completer<String> {}
 ''');
     await assertHasFix('''
@@ -70,7 +70,7 @@ class MyCompleter implements Completer<String> {}
   }
 
   Future<void> test_withClass_instanceCreation_explicitNew() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   foo() {
     new HashMap();
@@ -90,7 +90,7 @@ class C {
 
   Future<void>
       test_withClass_instanceCreation_explicitNew_namedConstructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   foo() {
     new Completer.sync(0);
@@ -109,7 +109,7 @@ class C {
   }
 
   Future<void> test_withClass_instanceCreation_implicitNew() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   foo() {
     HashMap();
@@ -129,7 +129,7 @@ class C {
 
   Future<void>
       test_withClass_instanceCreation_implicitNew_namedConstructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   foo() {
     Completer.sync(0);
@@ -148,7 +148,7 @@ class C {
   }
 
   Future<void> test_withClass_invocationTarget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Timer.run(null);
 }
@@ -163,7 +163,7 @@ main() {
   }
 
   Future<void> test_withClass_IsExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(p) {
   p is Completer;
 }
@@ -178,7 +178,7 @@ main(p) {
   }
 
   Future<void> test_withClass_itemOfList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var a = [Completer];
   print(a);
@@ -195,7 +195,7 @@ main() {
   }
 
   Future<void> test_withClass_itemOfList_inAnnotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
@@ -216,7 +216,7 @@ main() {}
   }
 
   Future<void> test_withClass_typeAnnotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Completer f = null;
   print(f);
@@ -233,7 +233,7 @@ main() {
   }
 
   Future<void> test_withClass_typeAnnotation_PrefixedIdentifier() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Timer.run;
 }
@@ -248,7 +248,7 @@ main() {
   }
 
   Future<void> test_withClass_typeArgument() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   List<Completer> completers = [];
   print(completers);
@@ -265,7 +265,7 @@ main() {
   }
 
   Future<void> test_withClass_with() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyCompleter with Completer<String> {}
 ''');
     await assertHasFix('''
@@ -276,7 +276,7 @@ class MyCompleter with Completer<String> {}
   }
 
   Future<void> test_withTopLevelVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(pi);
 }
@@ -291,7 +291,7 @@ main() {
   }
 
   Future<void> test_withTopLevelVariable_annotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @pi
 main() {
 }

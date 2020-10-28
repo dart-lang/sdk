@@ -21,7 +21,7 @@ class AssignToLocalVariableTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
 
   Future<void> test_alreadyAssignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var vvv;
   vvv = 42;
@@ -31,7 +31,7 @@ main() {
   }
 
   Future<void> test_inClosure() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 main() {
   print(() {
     12345;
@@ -48,7 +48,7 @@ main() {
   }
 
   Future<void> test_invocation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   List<int> bytes;
   readBytes();
@@ -70,7 +70,7 @@ List<int> readBytes() => <int>[];
   }
 
   Future<void> test_invocationArgument() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 main() {
   f(12345);
 }
@@ -81,7 +81,7 @@ void f(p) {}
 
   Future<void> test_recovery_splitExpression() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Future<void> _extractDataForSite() async {
   final Map<String, Object> data = {};
   final data['table'][] //marker
@@ -91,7 +91,7 @@ Future<void> _extractDataForSite() async {
   }
 
   Future<void> test_throw() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   throw 42;
 }
@@ -100,7 +100,7 @@ main() {
   }
 
   Future<void> test_void() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   f();
 }

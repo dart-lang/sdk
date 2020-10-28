@@ -953,7 +953,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
   }
   // Finalize function signatures and check for conflicts in super classes and
   // interfaces.
-  array = cls.functions();
+  array = cls.current_functions();
   Function& function = Function::Handle(zone);
   const intptr_t num_functions = array.Length();
   for (intptr_t i = 0; i < num_functions; i++) {
@@ -1315,7 +1315,7 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
     }
   }
   THR_Print("\n");
-  const Array& functions_array = Array::Handle(cls.functions());
+  const Array& functions_array = Array::Handle(cls.current_functions());
   Function& function = Function::Handle();
   intptr_t len = functions_array.Length();
   for (intptr_t i = 0; i < len; i++) {

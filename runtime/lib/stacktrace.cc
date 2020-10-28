@@ -224,4 +224,12 @@ const StackTrace& GetCurrentStackTrace(int skip_frames) {
   return stacktrace;
 }
 
+bool HasStack() {
+  Thread* thread = Thread::Current();
+  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
+                            StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = frames.NextFrame();
+  return frame != nullptr;
+}
+
 }  // namespace dart

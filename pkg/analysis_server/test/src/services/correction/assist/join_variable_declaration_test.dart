@@ -20,7 +20,7 @@ class JoinVariableDeclarationTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.JOIN_VARIABLE_DECLARATION;
 
   Future<void> test_onAssignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   v = 1;
@@ -34,7 +34,7 @@ main() {
   }
 
   Future<void> test_onAssignment_hasInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = 1;
   v = 2;
@@ -44,7 +44,7 @@ main() {
   }
 
   Future<void> test_onAssignment_notAdjacent() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   var bar;
@@ -55,7 +55,7 @@ main() {
   }
 
   Future<void> test_onAssignment_notAssignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   v += 1;
@@ -65,7 +65,7 @@ main() {
   }
 
   Future<void> test_onAssignment_notDeclaration() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(var v) {
   v = 1;
 }
@@ -74,7 +74,7 @@ main(var v) {
   }
 
   Future<void> test_onAssignment_notLeftArgument() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   1 + v; // marker
@@ -84,7 +84,7 @@ main() {
   }
 
   Future<void> test_onAssignment_notOneVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v, v2;
   v = 1;
@@ -95,7 +95,7 @@ main() {
 
   Future<void> test_onAssignment_notResolved() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   x = 1;
@@ -105,7 +105,7 @@ main() {
   }
 
   Future<void> test_onAssignment_notSameBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   {
@@ -117,7 +117,7 @@ main() {
   }
 
   Future<void> test_onDeclaration_hasInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = 1;
   v = 2;
@@ -127,7 +127,7 @@ main() {
   }
 
   Future<void> test_onDeclaration_lastStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (true)
     var v;
@@ -137,7 +137,7 @@ main() {
   }
 
   Future<void> test_onDeclaration_nextNotAssignmentExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   42;
@@ -147,7 +147,7 @@ main() {
   }
 
   Future<void> test_onDeclaration_nextNotExpressionStatement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   if (true) return;
@@ -157,7 +157,7 @@ main() {
   }
 
   Future<void> test_onDeclaration_nextNotPureAssignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   v += 1;
@@ -167,7 +167,7 @@ main() {
   }
 
   Future<void> test_onDeclaration_notOneVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v, v2;
   v = 1;
@@ -177,7 +177,7 @@ main() {
   }
 
   Future<void> test_onDeclaration_onName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   v = 1;
@@ -191,7 +191,7 @@ main() {
   }
 
   Future<void> test_onDeclaration_onType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int v;
   v = 1;
@@ -205,7 +205,7 @@ main() {
   }
 
   Future<void> test_onDeclaration_onVar() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v;
   v = 1;

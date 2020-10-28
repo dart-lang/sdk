@@ -9,6 +9,10 @@
 // used for old nodes. Because of the way splay trees work, the engine
 // also has to deal with a lot of changes to the large tree object
 // graph.
+//
+// This file is copied into another directory and the default opt out scheme of
+// CFE using the pattern 'vm/dart_2' doesn't work, so opt it out explicitly.
+// @dart=2.9
 
 // VMOptions=
 // VMOptions=--no_concurrent_mark --no_concurrent_sweep

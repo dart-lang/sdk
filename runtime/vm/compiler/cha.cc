@@ -135,6 +135,7 @@ bool CHA::HasOverride(const Class& cls,
     return true;
   }
 
+  SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
   const GrowableObjectArray& cls_direct_subclasses =
       GrowableObjectArray::Handle(thread_->zone(), cls.direct_subclasses());
   if (cls_direct_subclasses.IsNull()) {

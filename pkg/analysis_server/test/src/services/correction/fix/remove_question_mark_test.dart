@@ -21,7 +21,7 @@ class RemoveQuestionMarkTest extends FixProcessorTest with WithNullSafetyMixin {
   FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
 
   Future<void> test_catchClause() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 void f() {
   try {
@@ -40,7 +40,7 @@ void f() {
   }
 
   Future<void> test_extendsClause() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B extends A? {}
 ''');
@@ -51,7 +51,7 @@ class B extends A {}
   }
 
   Future<void> test_implementsClause() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B implements A? {}
 ''');
@@ -62,7 +62,7 @@ class B implements A {}
   }
 
   Future<void> test_onClause_class() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 mixin B on A? {}
 ''');
@@ -73,7 +73,7 @@ mixin B on A {}
   }
 
   Future<void> test_withClause_class() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B with A? {}
 ''');
@@ -84,7 +84,7 @@ class B with A {}
   }
 
   Future<void> test_withClause_mixin() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 mixin A {}
 class B with A? {}
 ''');

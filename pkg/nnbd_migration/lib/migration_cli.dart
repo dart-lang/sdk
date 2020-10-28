@@ -229,23 +229,14 @@ class MigrateCommand extends Command<dynamic> {
   static const String migrationGuideLink =
       'See https://dart.dev/go/null-safety-migration for a migration guide.';
 
-  static const String preFlagFlipCaveat =
-      'Note: this tool is currently running on an SDK version where null '
-      'safety is not yet enabled by default. You may encounter issues in the '
-      'migration process - some aspects of the toolchain assume that they are '
-      'running on an SDK where null safety has been enabled by default.';
-
   /// Return whether the SDK has null safety on by default.
   static bool get nullSafetyOnByDefault => IsEnabledByDefault.non_nullable;
 
   final bool verbose;
 
-  @override
-  final bool hidden;
-
   ArgParser _argParser;
 
-  MigrateCommand({this.verbose = false, this.hidden = false}) {
+  MigrateCommand({this.verbose = false}) {
     MigrationCli._defineOptions(argParser, !verbose);
   }
 
@@ -258,9 +249,7 @@ class MigrateCommand extends Command<dynamic> {
   }
 
   @override
-  String get description => nullSafetyOnByDefault
-      ? '$cmdDescription\n\n$migrationGuideLink'
-      : '$cmdDescription\n\n$preFlagFlipCaveat\n\n$migrationGuideLink';
+  String get description => '$cmdDescription\n\n$migrationGuideLink';
 
   @override
   String get invocation {
@@ -717,11 +706,6 @@ class MigrationCliRunner {
 
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
-
-    if (!MigrateCommand.nullSafetyOnByDefault) {
-      logger.stdout(MigrateCommand.preFlagFlipCaveat);
-      logger.stdout('');
-    }
 
     logger.stdout(MigrateCommand.migrationGuideLink);
     logger.stdout('');
@@ -1229,14 +1213,16 @@ class _ProgressBar {
   /*late*/ bool _shouldDrawProgress;
 
   /// The width of the terminal, in terms of characters.
-  /*late*/ int _width;
+  /*late*/
+  int _width;
 
   final Logger _logger;
 
   /// The inner width of the terminal, in terms of characters.
   ///
   /// This represents the number of characters available for drawing progress.
-  /*late*/ int _innerWidth;
+  /*late*/
+  int _innerWidth;
 
   final int _totalTickCount;
 

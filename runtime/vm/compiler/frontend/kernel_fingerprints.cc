@@ -798,7 +798,7 @@ uint32_t KernelSourceFingerprintHelper::CalculateClassFingerprint(
 
   String& name = String::Handle(zone, klass.Name());
   const Array& fields = Array::Handle(zone, klass.fields());
-  const Array& functions = Array::Handle(zone, klass.functions());
+  const Array& functions = Array::Handle(zone, klass.current_functions());
   const Array& interfaces = Array::Handle(zone, klass.interfaces());
   AbstractType& type = AbstractType::Handle(zone);
 

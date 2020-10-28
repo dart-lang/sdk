@@ -24,7 +24,7 @@ class AddReturnTypeLintTest extends FixProcessorLintTest {
   String get lintCode => LintNames.always_declare_return_types;
 
   Future<void> test_localFunction_block() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void m() {
     f() {
@@ -47,7 +47,7 @@ class A {
   }
 
   Future<void> test_localFunction_expression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   void m() {
     f() => '';
@@ -66,7 +66,7 @@ class A {
   }
 
   Future<void> test_method_block_noReturn() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   m() {
   }
@@ -76,7 +76,7 @@ class A {
   }
 
   Future<void> test_method_block_returnDynamic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   m(p) {
     return p;
@@ -93,7 +93,7 @@ class A {
   }
 
   Future<void> test_method_block_returnNoValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   m() {
     return;
@@ -110,7 +110,7 @@ class A {
   }
 
   Future<void> test_method_block_singleReturn() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   m() {
     return '';
@@ -127,7 +127,7 @@ class A {
   }
 
   Future<void> test_method_expression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   m() => '';
 }
@@ -140,7 +140,7 @@ class A {
   }
 
   Future<void> test_method_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   get foo => 0;
 }
@@ -153,7 +153,7 @@ class A {
   }
 
   Future<void> test_topLevelFunction_block() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   return '';
 }
@@ -166,7 +166,7 @@ String f() {
   }
 
   Future<void> test_topLevelFunction_expression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() => '';
 ''');
     await assertHasFix('''
@@ -175,7 +175,7 @@ String f() => '';
   }
 
   Future<void> test_topLevelFunction_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 get foo => 0;
 ''');
     await assertHasFix('''

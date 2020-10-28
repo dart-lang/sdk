@@ -21,7 +21,7 @@ class ConvertToIfElementTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_IF_ELEMENT;
 
   Future<void> test_conditional_list() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return ['a', b /*caret*/? 'c' : 'd', 'e'];
 }
@@ -34,7 +34,7 @@ f(bool b) {
   }
 
   Future<void> test_conditional_list_caret_at_start_of_expression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return ['a', /*caret*/b ? 'c' : 'd', 'e'];
 }
@@ -50,7 +50,7 @@ f(bool b) {
     createAnalysisOptionsFile(
         lints: [LintNames.prefer_if_elements_to_conditional_expressions]);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return ['a', b /*caret*/? 'c' : 'd', 'e'];
 }
@@ -59,7 +59,7 @@ f(bool b) {
   }
 
   Future<void> test_conditional_list_withParentheses() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return ['a', (b /*caret*/? 'c' : 'd'), 'e'];
 }
@@ -72,7 +72,7 @@ f(bool b) {
   }
 
   Future<void> test_conditional_map() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return {'a' : 1, b /*caret*/? 'c' : 'd' : 2, 'e' : 3};
 }
@@ -81,7 +81,7 @@ f(bool b) {
   }
 
   Future<void> test_conditional_notConditional() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return {'/*caret*/a', b ? 'c' : 'd', 'e'};
 }
@@ -90,7 +90,7 @@ f(bool b) {
   }
 
   Future<void> test_conditional_notInLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return b /*caret*/? 'c' : 'd';
 }
@@ -99,7 +99,7 @@ f(bool b) {
   }
 
   Future<void> test_conditional_set() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return {'a', b /*caret*/? 'c' : 'd', 'e'};
 }
@@ -112,7 +112,7 @@ f(bool b) {
   }
 
   Future<void> test_conditional_set_withParentheses() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(bool b) {
   return {'a', ((b /*caret*/? 'c' : 'd')), 'e'};
 }

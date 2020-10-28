@@ -24,7 +24,7 @@ class ReplaceWithIdentifierTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_types_on_closure_parameters;
 
   Future<void> test_functionTypedFormalParameter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var functionWithFunction = (int f(int x)) => f(0);
 ''');
     await assertHasFix('''

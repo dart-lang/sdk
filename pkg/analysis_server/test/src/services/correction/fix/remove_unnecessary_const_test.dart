@@ -24,7 +24,7 @@ class RemoveUnnecessaryConstTest extends FixProcessorLintTest {
   String get lintCode => LintNames.unnecessary_const;
 
   Future<void> test_instanceCreation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C { const C(); }
 const c = const C();
 ''');
@@ -35,7 +35,7 @@ const c = C();
   }
 
   Future<void> test_typedLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 const list = const [];
 ''');
     await assertHasFix('''

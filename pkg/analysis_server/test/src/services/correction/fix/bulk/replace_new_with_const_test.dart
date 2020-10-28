@@ -21,7 +21,7 @@ class ReplaceNewWithConstTest extends BulkFixProcessorTest {
   /// Disabled in BulkFixProcessor.
   @failingTest
   Future<void> test_singleFile() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 class C {
   const C();
 }

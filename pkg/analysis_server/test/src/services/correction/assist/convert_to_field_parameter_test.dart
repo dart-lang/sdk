@@ -20,7 +20,7 @@ class ConvertToFieldParameterTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_FIELD_PARAMETER;
 
   Future<void> test_additionalUse() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int aaa2;
   int bbb2;
@@ -31,7 +31,7 @@ class A {
   }
 
   Future<void> test_firstInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int aaa2;
   int bbb2;
@@ -48,7 +48,7 @@ class A {
   }
 
   Future<void> test_notPureAssignment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int aaa2;
   A(int aaa) : aaa2 = aaa * 2;
@@ -58,7 +58,7 @@ class A {
   }
 
   Future<void> test_onParameterName_inInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int test2;
   A(int test) : test2 = test {
@@ -75,7 +75,7 @@ class A {
   }
 
   Future<void> test_onParameterName_inParameters() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int test;
   A(int test) : test = test {
@@ -92,7 +92,7 @@ class A {
   }
 
   Future<void> test_secondInitializer() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int aaa2;
   int bbb2;

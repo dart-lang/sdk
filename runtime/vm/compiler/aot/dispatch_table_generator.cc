@@ -445,7 +445,7 @@ void DispatchTableGenerator::NumberSelectors() {
     obj = classes_->At(cid);
     if (obj.IsClass()) {
       klass = Class::RawCast(obj.raw());
-      functions = klass.functions();
+      functions = klass.current_functions();
       if (!functions.IsNull()) {
         for (intptr_t j = 0; j < functions.Length(); j++) {
           function ^= functions.At(j);
@@ -561,7 +561,7 @@ void DispatchTableGenerator::SetupSelectorRows() {
       klass = Class::RawCast(obj.raw());
       GrowableArray<Interval>& subclasss_cid_ranges = cid_subclass_ranges[cid];
 
-      functions = klass.functions();
+      functions = klass.current_functions();
       if (!functions.IsNull()) {
         const int16_t depth = cid_depth[cid];
         for (intptr_t j = 0; j < functions.Length(); j++) {

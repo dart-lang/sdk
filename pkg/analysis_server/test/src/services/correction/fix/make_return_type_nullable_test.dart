@@ -22,7 +22,7 @@ class MakeReturnTypeNullableTest extends FixProcessorTest
   FixKind get kind => DartFixKind.MAKE_RETURN_TYPE_NULLABLE;
 
   Future<void> test_function_async() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Future<String> f(String? s) async {
   return s;
 }
@@ -35,7 +35,7 @@ Future<String?> f(String? s) async {
   }
 
   Future<void> test_function_asyncStar() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Stream<String> f(String? s) async* {
   yield s;
 }
@@ -48,7 +48,7 @@ Stream<String?> f(String? s) async* {
   }
 
   Future<void> test_function_sync() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 String f(String? s) {
   return s;
 }
@@ -61,7 +61,7 @@ String? f(String? s) {
   }
 
   Future<void> test_function_syncStar() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Iterable<String> f(String? s) sync* {
   yield s;
 }
@@ -74,7 +74,7 @@ Iterable<String?> f(String? s) sync* {
   }
 
   Future<void> test_getter_sync() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String? f;
   String get g => f;
@@ -89,7 +89,7 @@ class C {
   }
 
   Future<void> test_incompatibilityIsNotLimitedToNullability() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int f() {
   return '';
 }
@@ -98,7 +98,7 @@ int f() {
   }
 
   Future<void> test_localFunction_sync() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   String g(String? s) {
     return s;
@@ -117,7 +117,7 @@ void f() {
   }
 
   Future<void> test_method_sync() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class C {
   String m(String? s) {
     return s;
@@ -134,7 +134,7 @@ class C {
   }
 
   Future<void> test_returnTypeHasTypeArguments() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 List<String> f() {
   return null;
 }

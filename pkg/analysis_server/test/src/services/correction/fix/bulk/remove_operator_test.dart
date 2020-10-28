@@ -19,7 +19,7 @@ class RemoveOperatorTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_adjacent_string_concatenation;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var s = 'a' + 'b';
 var s1 = 'b' + 'c';
 ''');

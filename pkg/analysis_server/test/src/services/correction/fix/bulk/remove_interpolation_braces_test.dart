@@ -19,7 +19,7 @@ class RemoveInterpolationBracesTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unnecessary_brace_in_string_interps;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 main() {
   var v = 42;
   print('v: ${ v}, ${ v}');

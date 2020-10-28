@@ -21,7 +21,7 @@ class UseCurlyBracesTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.USE_CURLY_BRACES;
 
   Future<void> test_do_block() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   /*caret*/do {
     print(0);
@@ -32,7 +32,7 @@ main() {
   }
 
   Future<void> test_do_body_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   do print/*caret*/(0); while (true);
 }
@@ -47,7 +47,7 @@ main() {
   }
 
   Future<void> test_do_body_start() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   do /*caret*/print(0); while (true);
 }
@@ -62,7 +62,7 @@ main() {
   }
 
   Future<void> test_do_condition() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   do print(0); while (/*caret*/true);
 }
@@ -77,7 +77,7 @@ main() {
   }
 
   Future<void> test_do_end() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   do print(0); while (true);/*caret*/
 }
@@ -92,7 +92,7 @@ main() {
   }
 
   Future<void> test_do_keyword_do() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   /*caret*/do print(0); while (true);
 }
@@ -107,7 +107,7 @@ main() {
   }
 
   Future<void> test_do_keyword_while() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   do print(0); /*caret*/while (true);
 }
@@ -122,7 +122,7 @@ main() {
   }
 
   Future<void> test_for_body_end() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   for (;;) print(0);/*caret*/
 }
@@ -137,7 +137,7 @@ main() {
   }
 
   Future<void> test_for_body_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   for (;;) print/*caret*/(0);
 }
@@ -152,7 +152,7 @@ main() {
   }
 
   Future<void> test_for_body_start() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   for (;;) /*caret*/print(0);
 }
@@ -167,7 +167,7 @@ main() {
   }
 
   Future<void> test_for_condition() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   for (/*caret*/;;) print(0);
 }
@@ -182,7 +182,7 @@ main() {
   }
 
   Future<void> test_for_keyword() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   /*caret*/for (;;) print(0);
 }
@@ -197,7 +197,7 @@ main() {
   }
 
   Future<void> test_for_keyword_block() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   /*caret*/for (;;) {
     print(0);
@@ -208,7 +208,7 @@ main() {
   }
 
   Future<void> test_if_else_keyword() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int a) {
   if (a == 0)
     print(0);
@@ -227,7 +227,7 @@ main(int a) {
   }
 
   Future<void> test_if_else_statement() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int a) {
   if (a == 0)
     print(0);
@@ -246,7 +246,7 @@ main(int a) {
   }
 
   Future<void> test_if_keyword_blockBoth() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int a) {
   /*caret*/if (a == 0) {
     print(0);
@@ -259,7 +259,7 @@ main(int a) {
   }
 
   Future<void> test_if_keyword_blockElse() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int a) {
   /*caret*/if (a == 0) print(0);
   else {
@@ -279,7 +279,7 @@ main(int a) {
   }
 
   Future<void> test_if_keyword_blockThen() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int a) {
   /*caret*/if (a == 0) {
     print(0);
@@ -290,7 +290,7 @@ main(int a) {
   }
 
   Future<void> test_if_keyword_withElse() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int a) {
   /*caret*/if (a == 0)
     print(0);
@@ -309,7 +309,7 @@ main(int a) {
   }
 
   Future<void> test_if_keyword_withoutElse() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int a) {
   /*caret*/if (a == 0)
     print(0);
@@ -325,7 +325,7 @@ main(int a) {
   }
 
   Future<void> test_if_then_withElse() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int a) {
   if (a == 0)
     /*caret*/print(0);
@@ -342,7 +342,7 @@ main(int a) {
   }
 
   Future<void> test_if_then_withoutElse() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int a) {
   if (a == 0) /*caret*/print(0);
 }
@@ -360,7 +360,7 @@ main(int a) {
     createAnalysisOptionsFile(
         lints: [LintNames.curly_braces_in_flow_control_structures]);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   do print/*caret*/(0); while (true);
 }
@@ -369,7 +369,7 @@ main() {
   }
 
   Future<void> test_while_body_end() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   while (true) print(0);/*caret*/
 }
@@ -384,7 +384,7 @@ main() {
   }
 
   Future<void> test_while_body_middle() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   while (true) print/*caret*/(0);
 }
@@ -399,7 +399,7 @@ main() {
   }
 
   Future<void> test_while_body_start() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   while (true) /*caret*/print(0);
 }
@@ -414,7 +414,7 @@ main() {
   }
 
   Future<void> test_while_condition() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   while (/*caret*/true) print(0);
 }
@@ -429,7 +429,7 @@ main() {
   }
 
   Future<void> test_while_keyword() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   /*caret*/while (true) print(0);
 }
@@ -444,7 +444,7 @@ main() {
   }
 
   Future<void> test_while_keyword_block() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   /*caret*/while (true) {
     print(0);

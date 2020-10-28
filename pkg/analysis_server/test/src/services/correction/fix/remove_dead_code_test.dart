@@ -22,7 +22,7 @@ class RemoveDeadCodeTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_DEAD_CODE;
 
   Future<void> test_catch_afterCatchAll_catch() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   try {
   } catch (e) {
@@ -43,7 +43,7 @@ main() {
   }
 
   Future<void> test_catch_afterCatchAll_on() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   try {
   } on Object {
@@ -64,7 +64,7 @@ main() {
   }
 
   Future<void> test_catch_subtype() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {}
 class B extends A {}
 main() {
@@ -89,7 +89,7 @@ main() {
   }
 
   Future<void> test_condition() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main(int p) {
   if (true || p > 5) {
     print(1);
@@ -106,7 +106,7 @@ main(int p) {
   }
 
   Future<void> test_statements_one() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int main() {
   print(0);
   return 42;
@@ -122,7 +122,7 @@ int main() {
   }
 
   Future<void> test_statements_two() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int main() {
   print(0);
   return 42;
@@ -150,7 +150,7 @@ class RemoveDeadCodeWithNullSafetyTest extends FixProcessorTest {
   @failingTest
   Future<void> test_do_returnInBody() async {
     // https://github.com/dart-lang/sdk/issues/43511
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(bool c) {
   do {
     print(c);
@@ -168,7 +168,7 @@ void f(bool c) {
   @failingTest
   Future<void> test_for_returnInBody() async {
     // https://github.com/dart-lang/sdk/issues/43511
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   for (int i = 0; i < 2; i++) {
     print(i);

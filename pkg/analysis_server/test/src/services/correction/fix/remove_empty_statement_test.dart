@@ -24,7 +24,7 @@ class RemoveEmptyStatementTest extends FixProcessorLintTest {
   String get lintCode => LintNames.empty_statements;
 
   Future<void> test_insideBlock() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void foo() {
   while(true) {
     ;

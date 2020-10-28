@@ -20,7 +20,7 @@ class ImportAddShowTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.IMPORT_ADD_SHOW;
 
   Future<void> test_hasShow() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math' show pi;
 main() {
   pi;
@@ -30,7 +30,7 @@ main() {
   }
 
   Future<void> test_hasUnresolvedIdentifier() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math';
 main(x) {
   pi;
@@ -47,7 +47,7 @@ main(x) {
   }
 
   Future<void> test_onDirective() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math';
 main() {
   pi;
@@ -66,7 +66,7 @@ main() {
   }
 
   Future<void> test_onUri() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math';
 main() {
   pi;
@@ -88,7 +88,7 @@ main() {
     addSource('/home/test/lib/a.dart', r'''
 void set setter(int i) {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'a.dart';
 
 main() {
@@ -106,14 +106,14 @@ main() {
 
   Future<void> test_unresolvedUri() async {
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '/no/such/lib.dart';
 ''');
     await assertNoAssistAt('import ');
   }
 
   Future<void> test_unused() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'dart:math';
 ''');
     await assertNoAssistAt('import ');

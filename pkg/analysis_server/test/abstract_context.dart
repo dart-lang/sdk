@@ -170,6 +170,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   Future<ResolvedUnitResult> resolveFile(String path) async {
+    path = convertPath(path);
     return contextFor(path).currentSession.getResolvedUnit(path);
   }
 

@@ -2038,7 +2038,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
   Class& cls = Class::Handle(zone, raw_class);
   if (cls.IsNull()) return false;
   if (!cls.is_finalized()) return false;
-  if (Array::Handle(cls.functions()).IsNull()) return false;
+  if (Array::Handle(cls.current_functions()).IsNull()) return false;
 
   if (class_is_abstract_return != NULL) {
     *class_is_abstract_return = cls.is_abstract();

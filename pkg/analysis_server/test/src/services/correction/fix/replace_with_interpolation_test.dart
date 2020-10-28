@@ -24,7 +24,7 @@ class ReplaceWithInterpolationTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_interpolation_to_compose_strings;
 
   Future<void> test_stringLiteral_binaryExpression_stringConcatenation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var b = ['b', 'c'];
 var c = 'a' + b[0] + b[1];
 ''');
@@ -35,7 +35,7 @@ var c = 'a${b[0]}${b[1]}';
   }
 
   Future<void> test_stringLiteral_expression_toString() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var b = [1];
 var c = 'a' + b[0].toString();
 ''');
@@ -46,7 +46,7 @@ var c = 'a${b[0]}';
   }
 
   Future<void> test_stringLiteral_indexExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var b = ['b'];
 var c = 'a' + b[0];
 ''');
@@ -57,7 +57,7 @@ var c = 'a${b[0]}';
   }
 
   Future<void> test_stringLiteral_parenthesizedExpression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var b = ['b'];
 var c = 'a' + (b[0]);
 ''');
@@ -68,7 +68,7 @@ var c = 'a${b[0]}';
   }
 
   Future<void> test_stringLiteral_parenthesizedExpression_toString() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var a = 1;
 var b = 2;
 var c = 'a' + (a + b).toString();
@@ -81,7 +81,7 @@ var c = 'a${a + b}';
   }
 
   Future<void> test_stringLiteral_variable_notRaw_double_multi() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var b = 'b';
 var c = """a""" + b;
 ''');
@@ -92,7 +92,7 @@ var c = """a$b""";
   }
 
   Future<void> test_stringLiteral_variable_notRaw_double_notMulti() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var b = 'b';
 var c = "a" + b;
 ''');
@@ -103,7 +103,7 @@ var c = "a$b";
   }
 
   Future<void> test_stringLiteral_variable_notRaw_single_multi() async {
-    await resolveTestUnit("""
+    await resolveTestCode("""
 var b = 'b';
 var c = '''a''' + b;
 """);
@@ -114,7 +114,7 @@ var c = '''a$b''';
   }
 
   Future<void> test_stringLiteral_variable_notRaw_single_notMulti() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var b = 'b';
 var c = 'a' + b;
 ''');
@@ -125,7 +125,7 @@ var c = 'a$b';
   }
 
   Future<void> test_stringLiteral_variable_raw_single_notMulti() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var b = 'b';
 var c = r'a' + b;
 ''');
@@ -133,7 +133,7 @@ var c = r'a' + b;
   }
 
   Future<void> test_stringLiteral_variable_withEscapes() async {
-    await resolveTestUnit(r'''
+    await resolveTestCode(r'''
 var b = 'b';
 var c = '\$a' + b;
 ''');
@@ -144,7 +144,7 @@ var c = '\$a$b';
   }
 
   Future<void> test_variable_adjacentStrings() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var a = 'a';
 var c = a + 'b' 'c';
 ''');
@@ -155,7 +155,7 @@ var c = '${a}bc';
   }
 
   Future<void> test_variable_stringLiteral_noRuntogther() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var a = 'a';
 var c = a + ' b';
 ''');
@@ -166,7 +166,7 @@ var c = '$a b';
   }
 
   Future<void> test_variable_stringLiteral_runtogther() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var a = 'a';
 var c = a + 'b';
 ''');
@@ -177,7 +177,7 @@ var c = '${a}b';
   }
 
   Future<void> test_variable_stringLiteral_variable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var a = 'a';
 var z = 'z';
 var c = a + '...' + z;

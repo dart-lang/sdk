@@ -35,7 +35,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(0, 'a', false, false, null)],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -62,7 +62,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(0, 'a', false, true, codeTemplate('0'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -89,7 +89,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(0, 'a', true, false, codeTemplate('0'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -116,7 +116,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(0, 'a', true, true, codeTemplate('0'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -143,7 +143,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(1, 'b', false, false, null)],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -170,7 +170,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(1, 'b', false, true, codeTemplate('1'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -197,7 +197,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(1, 'b', true, false, codeTemplate('1'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -224,7 +224,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(1, 'b', true, true, codeTemplate('1'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -256,7 +256,7 @@ class C {
       AddParameter(2, 'c', true, true, codeTemplate('2')),
       AddParameter(4, 'e', true, true, codeTemplate('4')),
     ], newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -281,7 +281,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(0, 'a', true, true, codeTemplate('0'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -305,7 +305,7 @@ class C {
 ''');
     setPackageData(_modify(
         ['C', 'm'], [AddParameter(0, 'a', true, true, codeTemplate('0'))]));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -336,7 +336,7 @@ class C {
       RemoveParameter(PositionalParameterReference(0)),
       AddParameter(2, 'c', true, true, codeTemplate('2'))
     ], newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -367,7 +367,7 @@ class C {
       RemoveParameter(PositionalParameterReference(1)),
       AddParameter(0, 'a', true, true, codeTemplate('0'))
     ], newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -399,7 +399,7 @@ class C {
       RemoveParameter(PositionalParameterReference(1)),
       AddParameter(0, 'c', true, true, codeTemplate('2')),
     ], newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -431,7 +431,7 @@ class C {
       RemoveParameter(PositionalParameterReference(2)),
       AddParameter(1, 'd', true, true, codeTemplate('3')),
     ], newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -464,7 +464,7 @@ class C {
       RemoveParameter(PositionalParameterReference(3)),
       AddParameter(2, 'd', true, true, codeTemplate('3')),
     ], newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -491,7 +491,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(NamedParameterReference('a'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -518,7 +518,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(PositionalParameterReference(0))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -545,7 +545,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(PositionalParameterReference(0))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -572,7 +572,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(NamedParameterReference('b'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -599,7 +599,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(PositionalParameterReference(1))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -626,7 +626,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(PositionalParameterReference(1))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -651,7 +651,7 @@ class C {
 ''');
     setPackageData(
         _modify(['C', 'm'], [RemoveParameter(NamedParameterReference('b'))]));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -683,7 +683,7 @@ class C {
       RemoveParameter(PositionalParameterReference(2)),
       RemoveParameter(PositionalParameterReference(3)),
     ], newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -710,7 +710,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(NamedParameterReference('a'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -737,7 +737,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(NamedParameterReference('a'))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -764,7 +764,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(PositionalParameterReference(0))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -792,7 +792,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(PositionalParameterReference(0))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -819,7 +819,7 @@ class C {
     setPackageData(_modify(
         ['C', 'm'], [RemoveParameter(PositionalParameterReference(0))],
         newName: 'm2'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void f(C c) {
@@ -860,7 +860,7 @@ void g(int a, int b) {}
     ], [
       AddParameter(0, 'a', true, true, codeTemplate('0')),
     ], newName: 'g'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void h() {
@@ -885,7 +885,7 @@ void g(int b) {}
     setPackageData(_modify(
         ['f'], [RemoveParameter(PositionalParameterReference(0))],
         newName: 'g'));
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import '$importUri';
 
 void h() {

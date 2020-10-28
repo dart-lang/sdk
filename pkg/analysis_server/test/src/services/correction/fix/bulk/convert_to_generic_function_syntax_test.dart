@@ -19,7 +19,7 @@ class PreferGenericFunctionTypeAliasesTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_generic_function_type_aliases;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 typedef String F(int x);
 typedef F2<P, R>(P x);
 ''');

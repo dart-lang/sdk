@@ -25,7 +25,7 @@ class RemoveMethodDeclarationTest extends FixProcessorLintTest {
   String get lintCode => LintNames.unnecessary_overrides;
 
   Future<void> test_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int foo;
 }
@@ -46,7 +46,7 @@ class B extends A {
   }
 
   Future<void> test_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int foo() => 0;
 }
@@ -68,7 +68,7 @@ class B extends A {
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
   Future<void> test_method_generic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A<T> {
   T foo() {
     throw 42;
@@ -102,7 +102,7 @@ class A {
   int foo() => 0;
 }
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 // @dart = 2.7
 import 'a.dart';
 
@@ -122,7 +122,7 @@ class B extends A {
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
   Future<void> test_method_toString() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   @override
   String toString() => super.toString();
@@ -137,7 +137,7 @@ class A {
   @failingTest
   Future<void> test_setter() async {
     // The lint doesn't catch unnecessary setters.
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   int foo;
 }

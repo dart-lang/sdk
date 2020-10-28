@@ -21,7 +21,7 @@ class RemoveEmptyStatementTest extends BulkFixProcessorTest {
   Future<void> test_singleFile() async {
     // Note that ReplaceWithEmptyBrackets is not supported.
     //   for example: `if (true) ;` ...
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f() {
   while(true) {
     ;

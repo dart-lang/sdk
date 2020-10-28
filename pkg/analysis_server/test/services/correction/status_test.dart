@@ -23,7 +23,7 @@ void main() {
 @reflectiveTest
 class RefactoringLocationTest extends AbstractSingleUnitTest {
   Future<void> test_createLocation_forElement() async {
-    await resolveTestUnit('class MyClass {}');
+    await resolveTestCode('class MyClass {}');
     var element = findElement('MyClass');
     // check
     var location = newLocation_fromElement(element);
@@ -35,7 +35,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_createLocation_forMatch() async {
-    await resolveTestUnit('class MyClass {}');
+    await resolveTestCode('class MyClass {}');
     var element = findElement('MyClass');
     var sourceRange = range.elementName(element);
     SearchMatch match = SearchMatchImpl(
@@ -56,7 +56,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_createLocation_forNode() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
 }
 ''');
@@ -69,7 +69,7 @@ main() {
   }
 
   Future<void> test_createLocation_forUnit() async {
-    await resolveTestUnit('');
+    await resolveTestCode('');
     var sourceRange = SourceRange(10, 20);
     // check
     var location = newLocation_fromUnit(testUnit, sourceRange);

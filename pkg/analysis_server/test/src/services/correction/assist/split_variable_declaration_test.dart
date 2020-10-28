@@ -20,7 +20,7 @@ class SplitVariableDeclarationTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.SPLIT_VARIABLE_DECLARATION;
 
   Future<void> test_const() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   const v = 1;
 }
@@ -29,7 +29,7 @@ main() {
   }
 
   Future<void> test_final() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   final v = 1;
 }
@@ -38,7 +38,7 @@ main() {
   }
 
   Future<void> test_notOneVariable() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = 1, v2;
 }
@@ -47,7 +47,7 @@ main() {
   }
 
   Future<void> test_onName() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = 1;
 }
@@ -61,7 +61,7 @@ main() {
   }
 
   Future<void> test_onName_functionStatement_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() => 1;
 main() {
   var v = f();
@@ -77,7 +77,7 @@ main() {
   }
 
   Future<void> test_onType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   int v = 1;
 }
@@ -92,7 +92,7 @@ main() {
 
   @failingTest
   Future<void> test_onType_prefixedByComment() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   /*comment*/int v = 1;
 }
@@ -106,7 +106,7 @@ main() {
   }
 
   Future<void> test_onVar() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var v = 1;
 }

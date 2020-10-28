@@ -21,7 +21,7 @@ class ConvertToSpreadTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_SPREAD;
 
   Future<void> test_addAll_condition_const() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool condition;
 var things;
 var l = ['a']..add/*caret*/All(condition ? things : const []);
@@ -34,7 +34,7 @@ var l = ['a', if (condition) ...things];
   }
 
   Future<void> test_addAll_condition_nonConst() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bool condition;
 var things;
 var l = ['a']..add/*caret*/All(condition ? things : []);
@@ -47,7 +47,7 @@ var l = ['a', if (condition) ...things];
   }
 
   Future<void> test_addAll_expression() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   var ints = [1, 2, 3];
   print(['a']..addAl/*caret*/l(ints.map((i) => i.toString()))..addAll(['c']));
@@ -64,7 +64,7 @@ f() {
   Future<void> test_addAll_expression_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_spread_collections]);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   var ints = [1, 2, 3];
   print(['a']..addAl/*caret*/l(ints.map((i) => i.toString()))..addAll(['c']));
@@ -74,7 +74,7 @@ f() {
   }
 
   Future<void> test_addAll_expression_toEmptyList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   var ints = [1, 2, 3];
   print([]..addAl/*caret*/l(ints.map((i) => i.toString()))..addAll(['c']));
@@ -90,14 +90,14 @@ f() {
 
   Future<void> test_addAll_literal() async {
     // This case is covered by the INLINE_INVOCATION assist.
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = ['a']..add/*caret*/All(['b'])..addAll(['c']);
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_addAll_nonLiteralTarget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l1 = [];
 var l2 = l1..addAl/*caret*/l(['b'])..addAll(['c']);
 ''');
@@ -105,14 +105,14 @@ var l2 = l1..addAl/*caret*/l(['b'])..addAll(['c']);
   }
 
   Future<void> test_addAll_notFirst() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var l = ['a']..addAll(['b'])../*caret*/addAll(['c']);
 ''');
     await assertNoAssist();
   }
 
   Future<void> test_addAll_nullAware_const() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var things;
 var l = ['a']..add/*caret*/All(things ?? const []);
 ''');
@@ -123,7 +123,7 @@ var l = ['a', ...?things];
   }
 
   Future<void> test_addAll_nullAware_nonConst() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var things;
 var l = ['a']..add/*caret*/All(things ?? []);
 ''');

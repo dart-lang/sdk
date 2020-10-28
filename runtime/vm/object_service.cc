@@ -142,7 +142,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   {
     JSONArray functions_array(&jsobj, "functions");
-    const Array& function_array = Array::Handle(functions());
+    const Array& function_array = Array::Handle(current_functions());
     Function& function = Function::Handle();
     if (!function_array.IsNull()) {
       for (intptr_t i = 0; i < function_array.Length(); i++) {
@@ -1557,7 +1557,15 @@ void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void ReceivePort::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject obj(stream);
+  Instance::PrintSharedInstanceJSON(&obj, ref);
+  const StackTrace& allocation_location_ =
+      StackTrace::Handle(allocation_location());
+  const String& debug_name_ = String::Handle(debug_name());
+  obj.AddProperty("kind", "ReceivePort");
+  obj.AddProperty64("portId", Id());
+  obj.AddProperty("debugName", debug_name_.ToCString());
+  obj.AddProperty("allocationLocation", allocation_location_);
 }
 
 void SendPort::PrintJSONImpl(JSONStream* stream, bool ref) const {

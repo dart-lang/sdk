@@ -1095,7 +1095,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 0, 3) {
   const Array& fields = Array::Handle(klass.fields());
   const intptr_t num_fields = fields.Length();
 
-  const Array& functions = Array::Handle(klass.functions());
+  const Array& functions = Array::Handle(klass.current_functions());
   const intptr_t num_functions = functions.Length();
 
   Instance& member_mirror = Instance::Handle();
@@ -1140,7 +1140,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 0, 3) {
     Exceptions::PropagateError(error);
   }
 
-  const Array& functions = Array::Handle(klass.functions());
+  const Array& functions = Array::Handle(klass.current_functions());
   const intptr_t num_functions = functions.Length();
 
   Instance& constructor_mirror = Instance::Handle();

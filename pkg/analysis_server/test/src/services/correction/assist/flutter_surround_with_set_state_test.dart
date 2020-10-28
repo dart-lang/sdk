@@ -28,7 +28,7 @@ class FlutterSurroundWithSetStateTest extends AssistProcessorTest {
   }
 
   Future<void> test_outsideState() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class Stateless {
@@ -47,7 +47,7 @@ class Stateless {
   }
 
   Future<void> test_stateSubclass() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
 class MyState extends State {

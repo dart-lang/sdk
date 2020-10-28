@@ -53,25 +53,33 @@ class CodeFragmentParserTest extends AbstractCodeFragmentParserTest {
   void test_arguments_arguments_arguments() {
     var accessors = assertNoErrors('arguments[0].arguments[1].arguments[2]');
     expect(accessors, hasLength(3));
+    expect(accessors[0], isA<ArgumentAccessor>());
+    expect(accessors[1], isA<ArgumentAccessor>());
+    expect(accessors[2], isA<ArgumentAccessor>());
   }
 
   void test_arguments_named() {
     var accessors = assertNoErrors('arguments[foo]');
     expect(accessors, hasLength(1));
+    expect(accessors[0], isA<ArgumentAccessor>());
   }
 
   void test_arguments_positional() {
     var accessors = assertNoErrors('arguments[0]');
     expect(accessors, hasLength(1));
+    expect(accessors[0], isA<ArgumentAccessor>());
   }
 
   void test_arguments_typeArguments() {
     var accessors = assertNoErrors('arguments[0].typeArguments[0]');
     expect(accessors, hasLength(2));
+    expect(accessors[0], isA<ArgumentAccessor>());
+    expect(accessors[1], isA<TypeArgumentAccessor>());
   }
 
   void test_typeArguments() {
     var accessors = assertNoErrors('typeArguments[0]');
     expect(accessors, hasLength(1));
+    expect(accessors[0], isA<TypeArgumentAccessor>());
   }
 }

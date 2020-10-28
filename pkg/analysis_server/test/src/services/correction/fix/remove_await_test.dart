@@ -24,7 +24,7 @@ class RemoveAwaitTest extends FixProcessorLintTest {
   String get lintCode => LintNames.await_only_futures;
 
   Future<void> test_intLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bad() async {
   print(await 23);
 }
@@ -37,7 +37,7 @@ bad() async {
   }
 
   Future<void> test_stringLiteral() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 bad() async {
   print(await 'hola');
 }

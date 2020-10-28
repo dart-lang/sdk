@@ -26,7 +26,7 @@ class ConvertToForElementTest extends FixProcessorLintTest {
   /// More coverage in the `convert_to_for_element_line_test.dart` assist test.
   Future<void>
       test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(Iterable<int> i) {
   var k = 3;
   return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);

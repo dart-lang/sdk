@@ -28,7 +28,7 @@ class ConvertFlutterChildrenTest extends FixProcessorTest {
   }
 
   Future<void> test_undefinedParameter_multiLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return new Center(
@@ -55,7 +55,7 @@ build() {
   }
 
   Future<void> test_undefinedParameter_notWidget() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return new Center(
@@ -69,7 +69,7 @@ build() {
   }
 
   Future<void> test_undefinedParameter_singleLine() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   return new Center(
@@ -90,7 +90,7 @@ build() {
   }
 
   Future<void> test_undefinedParameter_singleLine2() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 build() {
   var text = new Text('foo');

@@ -20,7 +20,7 @@ class UseEffectiveIntegerDivisionTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION;
 
   Future<void> test_normalDivision() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var a = 5;
   var b = 2;

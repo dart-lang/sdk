@@ -20,7 +20,7 @@ class SurroundWithTryCatchTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.SURROUND_WITH_TRY_CATCH;
 
   Future<void> test_twoStatements() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
 // start
   print(0);

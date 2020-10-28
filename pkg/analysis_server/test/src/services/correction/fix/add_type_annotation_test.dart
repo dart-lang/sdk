@@ -27,7 +27,7 @@ class AddTypeAnnotationLintTest extends FixProcessorLintTest {
   // More coverage in the `add_type_annotation_test.dart` assist test.
 
   Future<void> test_do_block() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   final f = 0;
 }
@@ -47,7 +47,7 @@ class AddTypeAnnotationTest extends FixProcessorTest {
 
   Future<void> test_missingFieldType() async {
     // MISSING_CONST_FINAL_VAR_OR_TYPE
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   f = 0;
 }
@@ -61,7 +61,7 @@ class A {
 
   Future<void> test_missingStaticFieldType() async {
     // MISSING_CONST_FINAL_VAR_OR_TYPE
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   static f = 0;
 }

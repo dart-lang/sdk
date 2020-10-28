@@ -24,7 +24,7 @@ class UseIsNotEmptyTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_is_not_empty;
 
   Future<void> test_notIsEmpty() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(List<int> l) {
   if (!l.isEmpty) {}
 }

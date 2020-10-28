@@ -22,7 +22,7 @@ class CreateMixinTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_MIXIN;
 
   Future<void> test_hasUnresolvedPrefix() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   prefix.Test v = null;
   print(v);
@@ -36,7 +36,7 @@ main() {
 class A {}
 ''';
     addSource('/home/test/lib/lib.dart', libCode);
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'lib.dart' as lib;
 
 main() {
@@ -55,7 +55,7 @@ mixin Test {
   }
 
   Future<void> test_innerLocalFunction() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   g() {
     Test v = null;
@@ -80,7 +80,7 @@ mixin Test {
   }
 
   Future<void> test_instanceCreation_withNew() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   new Test();
 }
@@ -89,7 +89,7 @@ main() {
   }
 
   Future<void> test_instanceCreation_withoutNew() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test();
 }
@@ -98,7 +98,7 @@ main() {
   }
 
   Future<void> test_itemOfList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   var a = [Test];
   print(a);
@@ -117,7 +117,7 @@ mixin Test {
   }
 
   Future<void> test_itemOfList_inAnnotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
@@ -140,7 +140,7 @@ mixin Test {
   }
 
   Future<void> test_simple() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   Test v = null;
   print(v);

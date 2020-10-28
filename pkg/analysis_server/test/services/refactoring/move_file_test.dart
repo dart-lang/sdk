@@ -30,7 +30,7 @@ class MoveFileTest extends RefactoringTest {
     addSource(pathB, "import 'test.dart';");
     addSource(pathC, '');
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 library lib;
 import 'dart:math';
 import '22/c.dart';
@@ -191,7 +191,7 @@ import 'package:test/new_name.dart';
 import 'test.dart';
 ''');
     await analyzeTestPackageFiles();
-    await resolveTestUnit('');
+    await resolveTestCode('');
 
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/new_name.dart');
@@ -210,7 +210,7 @@ import '22/new_name.dart';
 import 'sub/folder/test.dart';
 ''');
     await analyzeTestPackageFiles();
-    await resolveTestUnit('');
+    await resolveTestCode('');
     // perform refactoring
     _createRefactoring('/home/test/000/new/folder/name/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -227,7 +227,7 @@ import '../new/folder/name/new_name.dart';
 import '22/test.dart';
 ''');
     await analyzeTestPackageFiles();
-    await resolveTestUnit('');
+    await resolveTestCode('');
     // perform refactoring
     _createRefactoring('/home/test/000/1111/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -252,7 +252,7 @@ part '22/test.dart';
 library lib;
 part '1111/22/test.dart';
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 part of lib;
 ''');
     // perform refactoring
@@ -280,7 +280,7 @@ part '22/test.dart';
 part of lib;
 ''');
     await analyzeTestPackageFiles();
-    await resolveTestUnit2();
+    await resolveTestFile();
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
@@ -341,7 +341,7 @@ part '22/test.dart';
 part of '../a.dart';
 ''');
     await analyzeTestPackageFiles();
-    await resolveTestUnit2();
+    await resolveTestFile();
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/33/test.dart');
     await _assertSuccessfulRefactoring();
@@ -363,7 +363,7 @@ part of '../../a.dart';
     addSource(pathA, '''
 part of 'test.dart';
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 part 'a.dart';
 ''');
     // perform refactoring
@@ -386,7 +386,7 @@ part '../a.dart';
     addSource(pathA, '''
 part of 'test.dart';
 ''');
-    await resolveTestUnit('''
+    await resolveTestCode('''
 part 'a.dart';
 ''');
     // perform refactoring
@@ -413,7 +413,7 @@ part 'test.dart';
 part of 'a.dart';
 ''');
     await analyzeTestPackageFiles();
-    await resolveTestUnit2();
+    await resolveTestFile();
     // perform refactoring
     _createRefactoring('/home/test/000/1111/22/test.dart');
     await _assertSuccessfulRefactoring();
@@ -438,7 +438,7 @@ part 'test.dart';
 part of 'a.dart';
 ''');
     await analyzeTestPackageFiles();
-    await resolveTestUnit2();
+    await resolveTestFile();
     // perform refactoring
     _createRefactoring('/home/test/000/1111/test2.dart');
     await _assertSuccessfulRefactoring();

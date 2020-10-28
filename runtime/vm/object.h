@@ -1298,10 +1298,15 @@ class Class : public Object {
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
 
-  ArrayPtr functions() const {
+  ArrayPtr current_functions() const {
     // We rely on the fact that any loads from the array are dependent loads
     // and avoid the load-acquire barrier here.
     return raw_ptr()->functions_;
+  }
+  ArrayPtr functions() const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+    return current_functions();
   }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
@@ -1309,7 +1314,7 @@ class Class : public Object {
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
-  FunctionPtr LookupFunctionUnsafe(const String& name) const;
+  FunctionPtr LookupFunctionReadLocked(const String& name) const;
   FunctionPtr LookupDynamicFunctionUnsafe(const String& name) const;
 
   FunctionPtr LookupDynamicFunctionAllowPrivate(const String& name) const;
@@ -1761,7 +1766,8 @@ class Class : public Object {
   void InitEmptyFields();
 
   static FunctionPtr CheckFunctionType(const Function& func, MemberKind kind);
-  FunctionPtr LookupFunctionUnsafe(const String& name, MemberKind kind) const;
+  FunctionPtr LookupFunctionReadLocked(const String& name,
+                                       MemberKind kind) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name,
                                          MemberKind kind) const;
   FieldPtr LookupField(const String& name, MemberKind kind) const;
@@ -10980,10 +10986,17 @@ class ReceivePort : public Instance {
   InstancePtr handler() const { return raw_ptr()->handler_; }
   void set_handler(const Instance& value) const;
 
+  StackTracePtr allocation_location() const {
+    return raw_ptr()->allocation_location_;
+  }
+
+  StringPtr debug_name() const { return raw_ptr()->debug_name_; }
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(ReceivePortLayout));
   }
   static ReceivePortPtr New(Dart_Port id,
+                            const String& debug_name,
                             bool is_control_port,
                             Heap::Space space = Heap::kNew);
 

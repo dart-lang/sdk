@@ -20,7 +20,7 @@ class JoinIfWithInnerTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.JOIN_IF_WITH_INNER;
 
   Future<void> test_conditionAndOr() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     if (2 == 2 || 3 == 3) {
@@ -39,7 +39,7 @@ main() {
   }
 
   Future<void> test_conditionInvocation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (isCheck()) {
     if (2 == 2) {
@@ -60,7 +60,7 @@ bool isCheck() => false;
   }
 
   Future<void> test_conditionOrAnd() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1 || 2 == 2) {
     if (3 == 3) {
@@ -79,7 +79,7 @@ main() {
   }
 
   Future<void> test_innerNotIf() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     print(0);
@@ -90,7 +90,7 @@ main() {
   }
 
   Future<void> test_innerWithElse() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -105,7 +105,7 @@ main() {
   }
 
   Future<void> test_onCondition() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -124,7 +124,7 @@ main() {
   }
 
   Future<void> test_simpleConditions_block_block() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -143,7 +143,7 @@ main() {
   }
 
   Future<void> test_simpleConditions_block_single() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     if (2 == 2)
@@ -161,7 +161,7 @@ main() {
   }
 
   Future<void> test_simpleConditions_single_blockMulti() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -184,7 +184,7 @@ main() {
   }
 
   Future<void> test_simpleConditions_single_blockOne() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1)
     if (2 == 2) {
@@ -202,7 +202,7 @@ main() {
   }
 
   Future<void> test_statementAfterInner() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     if (2 == 2) {
@@ -216,7 +216,7 @@ main() {
   }
 
   Future<void> test_statementBeforeInner() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     print(1);
@@ -230,7 +230,7 @@ main() {
   }
 
   Future<void> test_targetNotIf() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   print(0);
 }
@@ -239,7 +239,7 @@ main() {
   }
 
   Future<void> test_targetWithElse() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 main() {
   if (1 == 1) {
     if (2 == 2) {

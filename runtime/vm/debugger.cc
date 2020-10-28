@@ -3248,7 +3248,8 @@ void Debugger::FindCompiledFunctions(
     TokenPosition end_pos,
     GrowableObjectArray* bytecode_function_list,
     GrowableObjectArray* code_function_list) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
   Array& functions = Array::Handle(zone);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
@@ -3302,7 +3303,7 @@ void Debugger::FindCompiledFunctions(
       // Note: we need to check the functions of this class even if
       // the class is defined in a different 'script'. There could
       // be mixin functions from the given script in this class.
-      functions = cls.functions();
+      functions = cls.current_functions();
       if (!functions.IsNull()) {
         const intptr_t num_functions = functions.Length();
         for (intptr_t pos = 0; pos < num_functions; pos++) {
@@ -3441,7 +3442,7 @@ bool Debugger::FindBestFit(const Script& script,
         // is no longjump base on the stack.
         continue;
       }
-      functions = cls.functions();
+      functions = cls.current_functions();
       if (!functions.IsNull()) {
         const intptr_t num_functions = functions.Length();
         for (intptr_t pos = 0; pos < num_functions; pos++) {

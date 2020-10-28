@@ -24,7 +24,7 @@ class DeadNullAwareExpressionTest extends FixProcessorTest
   FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 
   Future<void> test_immediateChild() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int f(int a, int b) => a ?? b;
 ''');
     await assertHasFix('''
@@ -33,7 +33,7 @@ int f(int a, int b) => a;
   }
 
   Future<void> test_nestedChild() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int f(int a, int b) => a ?? b * 2 + 1;
 ''');
     await assertHasFix('''
@@ -51,7 +51,7 @@ class UnnecessaryNullInIfNullOperatorsTest extends FixProcessorLintTest {
   String get lintCode => LintNames.unnecessary_null_in_if_null_operators;
 
   Future<void> test_left() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var a = '';
 var b = null ?? a;
 ''');
@@ -62,7 +62,7 @@ var b = a;
   }
 
   Future<void> test_right() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var a = '';
 var b = a ?? null;
 ''');

@@ -29,7 +29,7 @@ class SortChildPropertyLastTest extends AssistProcessorTest {
   }
 
   Future<void> test_already_sorted() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -46,7 +46,7 @@ main() {
   }
 
   Future<void> test_already_sorted_one_prop() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -62,7 +62,7 @@ main() {
   }
 
   Future<void> test_no_children() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -74,7 +74,7 @@ main() {
   }
 
   Future<void> test_sort() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -106,7 +106,7 @@ main() {
   Future<void> test_sort_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.sort_child_properties_last]);
     verifyNoTestUnitErrors = false;
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(

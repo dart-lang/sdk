@@ -20,7 +20,7 @@ class ChangeArgumentNameTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CHANGE_ARGUMENT_NAME;
 
   Future<void> test_child_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() => new A(children: 2);
 class A {
   A({int child});
@@ -35,7 +35,7 @@ class A {
   }
 
   Future<void> test_child_function() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   g(children: 0);
 }
@@ -50,7 +50,7 @@ void g({int child}) {}
   }
 
   Future<void> test_child_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(A a) {
   a.m(children: 0);
 }
@@ -69,7 +69,7 @@ class A {
   }
 
   Future<void> test_children_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() => new A(child: 2);
 class A {
   A({int children});
@@ -84,7 +84,7 @@ class A {
   }
 
   Future<void> test_children_function() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   g(child: 0);
 }
@@ -99,7 +99,7 @@ void g({int children}) {}
   }
 
   Future<void> test_children_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(A a) {
   a.m(child: 0);
 }
@@ -118,7 +118,7 @@ class A {
   }
 
   Future<void> test_default_annotation() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 @A(boot: 2)
 f() => null;
 class A {
@@ -135,7 +135,7 @@ class A {
   }
 
   Future<void> test_default_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() => new A(boot: 2);
 class A {
   A({int boat});
@@ -150,7 +150,7 @@ class A {
   }
 
   Future<void> test_default_function() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   g(boot: 0);
 }
@@ -165,7 +165,7 @@ void g({int boat}) {}
   }
 
   Future<void> test_default_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(A a) {
   a.m(boot: 0);
 }
@@ -184,7 +184,7 @@ class A {
   }
 
   Future<void> test_default_redirectingConstructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A.one() : this.two(boot: 3);
   A.two({int boat});
@@ -199,7 +199,7 @@ class A {
   }
 
   Future<void> test_default_superConstructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 class A {
   A.a({int boat});
 }
@@ -218,7 +218,7 @@ class B extends A {
   }
 
   Future<void> test_tooDistant_constructor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() => new A(bbbbb: 2);
 class A {
   A({int aaaaaaa});
@@ -228,7 +228,7 @@ class A {
   }
 
   Future<void> test_tooDistant_function() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f() {
   g(bbbbb: 0);
 }
@@ -238,7 +238,7 @@ void g({int aaaaaaa}) {}
   }
 
   Future<void> test_tooDistant_method() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 f(A a) {
   a.m(bbbbb: 0);
 }

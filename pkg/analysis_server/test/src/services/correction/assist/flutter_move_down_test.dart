@@ -28,7 +28,7 @@ class FlutterMoveDownTest extends AssistProcessorTest {
   }
 
   Future<void> test_first() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -56,7 +56,7 @@ main() {
   }
 
   Future<void> test_last() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Column(
@@ -72,7 +72,7 @@ main() {
   }
 
   Future<void> test_notInList() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 import 'package:flutter/material.dart';
 main() {
   Center(

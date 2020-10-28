@@ -24,7 +24,7 @@ class OrganizeImportsTest extends FixProcessorLintTest {
   String get lintCode => LintNames.directives_ordering;
 
   Future<void> test_organizeImports() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 //ignore_for_file: unused_import
 import 'dart:io';
 

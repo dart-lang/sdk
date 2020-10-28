@@ -24,7 +24,7 @@ class AddAsyncTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_ASYNC;
 
   Future<void> test_asyncFor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void main(Stream<String> names) {
   await for (String name in names) {
     print(name);
@@ -41,7 +41,7 @@ Future<void> main(Stream<String> names) async {
   }
 
   Future<void> test_blockFunctionBody_function() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 main() {
   await foo();
@@ -56,7 +56,7 @@ main() async {
   }
 
   Future<void> test_blockFunctionBody_getter() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 int get foo => null;
 int f() {
   await foo;
@@ -75,7 +75,7 @@ Future<int> f() async {
   }
 
   Future<void> test_closure() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() => await 1);
@@ -90,7 +90,7 @@ void doStuff() => takeFutureCallback(() async => await 1);
   }
 
   Future<void> test_expressionFunctionBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 main() => await foo();
 ''');
@@ -101,14 +101,14 @@ main() async => await foo();
   }
 
   Future<void> test_nullFunctionBody() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 var F = await;
 ''');
     await assertNoFix();
   }
 
   Future<void> test_returnFuture_alreadyFuture() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 Future<int> main() {
   await foo();
@@ -127,7 +127,7 @@ Future<int> main() async {
   }
 
   Future<void> test_returnFuture_dynamic() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 dynamic main() {
   await foo();
@@ -144,7 +144,7 @@ dynamic main() async {
   }
 
   Future<void> test_returnFuture_nonFuture() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 int main() {
   await foo();
@@ -161,7 +161,7 @@ Future<int> main() async {
   }
 
   Future<void> test_returnFuture_noType() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 foo() {}
 main() {
   await foo();
@@ -187,7 +187,7 @@ class AvoidReturningNullForFutureTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_returning_null_for_future;
 
   Future<void> test_asyncFor() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 Future<String> f() {
   return null;
 }

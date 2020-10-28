@@ -19,7 +19,7 @@ class RemoveUnnecessaryElseTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.avoid_empty_else;
 
   Future<void> test_singleFile() async {
-    await resolveTestUnit('''
+    await resolveTestCode('''
 void f(bool cond) {
   if (cond) {
     //
