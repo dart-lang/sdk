@@ -219,8 +219,9 @@ class PubspecValidator {
           var context = provider.pathContext;
           var normalizedPath = context.joinAll(path.posix.split(pathEntry));
           var packageRoot = context.dirname(source.fullName);
-          var dependencyPath =
-              path.canonicalize(context.join(packageRoot, normalizedPath));
+          var dependencyPath = context.join(packageRoot, normalizedPath);
+          dependencyPath = context.absolute(dependencyPath);
+          dependencyPath = context.normalize(dependencyPath);
           var packageFolder = provider.getFolder(dependencyPath);
           if (!packageFolder.exists) {
             _reportErrorForNode(reporter, node.value,

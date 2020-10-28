@@ -282,8 +282,10 @@ class ContextLocatorImpl implements ContextLocator {
                 for (String excludedPath in excludeList) {
                   Context context = resourceProvider.pathContext;
                   if (context.isRelative(excludedPath)) {
-                    excludedPath =
-                        context.join(optionsFile.parent.path, excludedPath);
+                    excludedPath = posix.joinAll([
+                      ...context.split(optionsFile.parent.path),
+                      ...posix.split(excludedPath),
+                    ]);
                   }
                   patterns.add(Glob(excludedPath, context: context));
                 }
