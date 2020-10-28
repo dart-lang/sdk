@@ -924,7 +924,7 @@ int c;
 
   Future<void> _parseTestUnit(String code) async {
     addTestSource(code);
-    var result = session.getParsedUnit(testSource.fullName);
+    var result = session.getParsedUnit(testFile);
     testUnit = result.unit;
   }
 }

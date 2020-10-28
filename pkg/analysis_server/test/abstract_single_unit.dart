@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:test/test.dart';
@@ -27,7 +26,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   String testCode;
   String testFile;
-  Source testSource;
   ResolvedUnitResult testAnalysisResult;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
@@ -35,19 +33,19 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   FindNode findNode;
 
   @override
-  Source addSource(String path, String content, [Uri uri]) {
+  void addSource(String path, String content) {
     if (useLineEndingsForPlatform) {
       content = normalizeNewlinesForPlatform(content);
     }
-    return super.addSource(path, content, uri);
+    super.addSource(path, content);
   }
 
-  void addTestSource(String code, [Uri uri]) {
+  void addTestSource(String code) {
     if (useLineEndingsForPlatform) {
       code = normalizeNewlinesForPlatform(code);
     }
     testCode = code;
-    testSource = addSource(testFile, code, uri);
+    addSource(testFile, code);
   }
 
   Element findElement(String name, [ElementKind kind]) {

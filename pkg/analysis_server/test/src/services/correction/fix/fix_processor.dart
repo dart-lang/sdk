@@ -29,9 +29,6 @@ export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 /// A base class defining support for writing fix processor tests that are
 /// specific to fixes associated with lints that use the FixKind.
 abstract class FixProcessorLintTest extends FixProcessorTest {
-  /// The offset of the lint marker in the code being analyzed.
-  int lintOffset = -1;
-
   /// Return the lint code being tested.
   String get lintCode;
 
@@ -44,21 +41,6 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   @override
   void _createAnalysisOptionsFile() {
     createAnalysisOptionsFile(experiments: experiments, lints: [lintCode]);
-  }
-
-  /// Find the error that is to be fixed by computing the errors in the file,
-  /// using the [errorFilter] to filter out errors that should be ignored, and
-  /// expecting that there is a single remaining error. The error filter should
-  /// return `true` if the error should not be ignored.
-  @override
-  Future<AnalysisError> _findErrorToFix(
-      bool Function(AnalysisError) errorFilter,
-      {int length}) async {
-    if (lintOffset < 0) {
-      return super._findErrorToFix(errorFilter, length: 0);
-    }
-    return AnalysisError(
-        testSource, lintOffset, length ?? 0, LintCode(lintCode, '<ignored>'));
   }
 }
 
