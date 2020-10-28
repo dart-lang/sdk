@@ -639,7 +639,7 @@ void Assembler::TransitionNativeToGenerated(Register addr,
   }
 
   // Mark that the thread is executing Dart code.
-  LoadImmediate(state, target::Thread::vm_tag_compiled_id());
+  LoadImmediate(state, target::Thread::vm_tag_dart_id());
   StoreToOffset(kWord, state, THR, target::Thread::vm_tag_offset());
   LoadImmediate(state, target::Thread::generated_execution_state());
   StoreToOffset(kWord, state, THR, target::Thread::execution_state_offset());

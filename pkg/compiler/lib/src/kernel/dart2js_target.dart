@@ -114,6 +114,7 @@ class Dart2jsTarget extends Target {
       ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
       JsInteropChecks(
+              coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }

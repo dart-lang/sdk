@@ -807,12 +807,6 @@ class KernelProgramInfo : public AllStatic {
   static word NextFieldOffset();
 };
 
-class Bytecode : public AllStatic {
- public:
-  static word InstanceSize();
-  static word NextFieldOffset();
-};
-
 class PcDescriptors : public AllStatic {
  public:
   static word HeaderSize();
@@ -850,12 +844,6 @@ class ExceptionHandlers : public AllStatic {
 };
 
 class ContextScope : public AllStatic {
- public:
-  static word InstanceSize();
-  static word NextFieldOffset();
-};
-
-class ParameterTypeCheck : public AllStatic {
  public:
   static word InstanceSize();
   static word NextFieldOffset();
@@ -1037,7 +1025,7 @@ class Thread : public AllStatic {
   static word slow_type_test_entry_point_offset();
   static word write_barrier_entry_point_offset();
   static word vm_tag_offset();
-  static uword vm_tag_compiled_id();
+  static uword vm_tag_dart_id();
 
   static word safepoint_state_offset();
   static uword safepoint_state_unacquired();
@@ -1067,8 +1055,6 @@ class Thread : public AllStatic {
   static word slow_type_test_stub_offset();
   static word call_to_runtime_stub_offset();
   static word invoke_dart_code_stub_offset();
-  static word interpret_call_entry_point_offset();
-  static word invoke_dart_code_from_bytecode_stub_offset();
   static word late_initialization_error_shared_without_fpu_regs_stub_offset();
   static word late_initialization_error_shared_with_fpu_regs_stub_offset();
   static word null_error_shared_without_fpu_regs_stub_offset();

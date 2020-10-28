@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.41
+# Dart VM Service Protocol 3.40
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.41_ of the Dart VM Service Protocol. This
+This document describes of _version 3.40_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -47,7 +47,6 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getIsolateGroup](#getisolategroup)
   - [getMemoryUsage](#getmemoryusage)
   - [getObject](#getobject)
-  - [getPorts](#getports)
   - [getProcessMemoryUsage](#getprocessmemoryusage)
   - [getRetainingPath](#getretainingpath)
   - [getScripts](#getscripts)
@@ -114,7 +113,6 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [NativeFunction](#nativefunction)
   - [Null](#null)
   - [Object](#object)
-  - [PortList](#portlist)
   - [ReloadReport](#reloadreport)
   - [Response](#response)
   - [RetainingObject](#retainingobject)
@@ -937,17 +935,6 @@ Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
 Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
 ignored.
-
-### getPorts
-
-```
-PortList getPorts(string isolateId)
-```
-
-The _getPorts_ RPC is used to retrieve the list of `ReceivePort` instances for a
-given isolate.
-
-See [PortList](#portlist).
 
 ### getRetainingPath
 
@@ -2439,24 +2426,6 @@ class @Instance extends @Object {
   // Provided for instance kinds:
   //   Closure
   @Context closureContext [optional];
-
-  // The port ID for a ReceivePort.
-  //
-  // Provided for instance kinds:
-  //   ReceivePort
-  int portId [optional];
-
-  // The stack trace associated with the allocation of a ReceivePort.
-  //
-  // Provided for instance kinds:
-  //   ReceivePort
-  @Instance allocationLocation [optional];
-
-  // A name associated with a ReceivePort used for debugging purposes.
-  //
-  // Provided for instance kinds:
-  //   ReceivePort
-  string debugName [optional];
 }
 ```
 
@@ -2477,7 +2446,6 @@ class Instance extends Object {
   //   Double (suitable for passing to Double.parse())
   //   Int (suitable for passing to int.parse())
   //   String (value may be truncated)
-  //   StackTrace
   string valueAsString [optional];
 
   // The valueAsString for String references may be truncated. If so,
@@ -2690,24 +2658,6 @@ class Instance extends Object {
   //   BoundedType
   //   TypeParameter
   @Instance bound [optional];
-
-  // The port ID for a ReceivePort.
-  //
-  // Provided for instance kinds:
-  //   ReceivePort
-  int portId [optional];
-
-  // The stack trace associated with the allocation of a ReceivePort.
-  //
-  // Provided for instance kinds:
-  //   ReceivePort
-  @Instance allocationLocation [optional];
-
-  // A name associated with a ReceivePort used for debugging purposes.
-  //
-  // Provided for instance kinds:
-  //   ReceivePort
-  string debugName [optional];
 }
 ```
 
@@ -2792,9 +2742,6 @@ enum InstanceKind {
 
   // An instance of the Dart class BoundedType.
   BoundedType,
-
-  // An instance of the Dart class ReceivePort.
-  ReceivePort,
 }
 ```
 
@@ -3236,18 +3183,6 @@ class Object extends Response {
 ```
 
 An _Object_ is a  persistent object that is owned by some isolate.
-
-### PortList
-
-```
-class PortList extends Response {
-  @Instance[] ports;
-}
-```
-
-A _PortList_ contains a list of ports associated with some isolate.
-
-See [getPort](#getPort).
 
 ### ProfileFunction
 
@@ -3920,6 +3855,5 @@ version | comments
 3.38 | Added `isSystemIsolate` property to `@Isolate` and `Isolate`, `isSystemIsolateGroup` property to `@IsolateGroup` and `IsolateGroup`, and properties `systemIsolates` and `systemIsolateGroups` to `VM`.
 3.39 | Removed the following deprecated RPCs and objects: `getClientName`, `getWebSocketTarget`, `setClientName`, `requireResumeApproval`, `ClientName`, and `WebSocketTarget`.
 3.40 | Added `IsolateFlag` object and `isolateFlags` property to `Isolate`.
-3.41 | Added `PortList` object, `ReceivePort` `InstanceKind`, and `getPorts` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -171,7 +171,6 @@ class NativeEntryData : public ValueObject {
 
   const TypedData& data_;
 
-  friend class Interpreter;
   friend class ObjectPoolSerializationCluster;
   DISALLOW_COPY_AND_ASSIGN(NativeEntryData);
 };

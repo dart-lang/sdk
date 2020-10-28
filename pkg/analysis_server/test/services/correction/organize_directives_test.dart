@@ -581,7 +581,7 @@ import 'package:b/a.dart';''');
 
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
-    var result = await session.getResolvedUnit(testSource.fullName);
+    var result = await session.getResolvedUnit(testFile);
     testUnit = result.unit;
     testErrors = result.errors;
   }

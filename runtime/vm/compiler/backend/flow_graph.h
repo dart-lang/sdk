@@ -162,10 +162,6 @@ class FlowGraph : public ZoneAllocated {
   }
 
   intptr_t CurrentContextEnvIndex() const {
-    if (function().HasBytecode()) {
-      return -1;
-    }
-
     return EnvIndex(parsed_function().current_context_var());
   }
 

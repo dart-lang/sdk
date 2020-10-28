@@ -727,8 +727,8 @@ uword Thread::vm_execution_state() {
   return dart::Thread::ExecutionState::kThreadInVM;
 }
 
-uword Thread::vm_tag_compiled_id() {
-  return dart::VMTag::kDartCompiledTagId;
+uword Thread::vm_tag_dart_id() {
+  return dart::VMTag::kDartTagId;
 }
 
 uword Thread::exit_through_runtime_call() {
@@ -998,10 +998,6 @@ word KernelProgramInfo::NextFieldOffset() {
   return -kWordSize;
 }
 
-word Bytecode::NextFieldOffset() {
-  return -kWordSize;
-}
-
 word PcDescriptors::NextFieldOffset() {
   return -kWordSize;
 }
@@ -1023,10 +1019,6 @@ word ExceptionHandlers::NextFieldOffset() {
 }
 
 word ContextScope::NextFieldOffset() {
-  return -kWordSize;
-}
-
-word ParameterTypeCheck::NextFieldOffset() {
   return -kWordSize;
 }
 

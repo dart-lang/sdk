@@ -71,8 +71,7 @@ class StackTraceUtils : public AllStatic {
  public:
   // Find the async_op closure from the stack frame.
   static ClosurePtr FindClosureInFrame(ObjectPtr* last_object_in_caller,
-                                       const Function& function,
-                                       bool is_interpreted);
+                                       const Function& function);
 
   /// Collects all frames on the current stack until an async/async* frame is
   /// hit which has yielded before (i.e. is not in sync-async case).
@@ -141,7 +140,7 @@ class StackTraceUtils : public AllStatic {
   //   _AsyncAwaitCompleter.start               (2)
   //   <async_function>                         (3)
   //
-  // Alternatively, for bytecode or optimized frames, we may see:
+  // Alternatively, for optimized frames, we may see:
   //   <async function>__<anonymous_closure>    (0)
   //   _AsyncAwaitCompleter.start               (1)
   //   <async_function>                         (2)

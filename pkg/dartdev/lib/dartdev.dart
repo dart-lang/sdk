@@ -11,6 +11,7 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
 import 'package:nnbd_migration/migration_cli.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:usage/usage.dart';
 
 import 'src/analytics.dart';
@@ -32,7 +33,7 @@ import 'src/vm_interop_handler.dart';
 /// [io.exit(code)] directly.
 Future<void> runDartdev(List<String> args, SendPort port) async {
   VmInteropHandler.initialize(port);
-  final stopwatch = Stopwatch();
+
   int result;
 
   // The exit code for the dartdev process; null indicates that it has not been
@@ -77,10 +78,7 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     io.exit(0);
   }
 
-  String commandName;
-
   try {
-    stopwatch.start();
     final runner = DartdevRunner(args);
 
     // Run can't be called with the '--disable-dartdev-analytics' flag; remove
@@ -106,16 +104,6 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
       args = PubUtils.modifyArgs(args);
     }
 
-    // For the commands format and migrate, dartdev itself sends the
-    // sendScreenView notification to analytics; for all other dartdev commands
-    // (instances of DartdevCommand) the commands send it to analytics.
-    commandName = ArgParserUtils.getCommandStr(args);
-    if (analytics.enabled &&
-        (commandName == formatCmdName || commandName == migrateCmdName)) {
-      // ignore: unawaited_futures
-      analytics.sendScreenView(commandName);
-    }
-
     // Finally, call the runner to execute the command; see DartdevRunner.
     result = await runner.run(args);
   } catch (e, st) {
@@ -131,41 +119,18 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
       exitCode = 1;
     }
   } finally {
-    stopwatch.stop();
-
     // Set the exitCode, if it wasn't set in the catch block above.
     exitCode ??= result ?? 0;
 
     // Send analytics before exiting
     if (analytics.enabled) {
-      // For commands that are not DartdevCommand instances, we manually create
-      // and send the UsageEvent from here:
-      if (commandName == formatCmdName) {
-        // ignore: unawaited_futures
-        FormatUsageEvent(
-          exitCode: exitCode,
-          args: args,
-        ).send(analyticsInstance);
-      } else if (commandName == migrateCmdName) {
-        // TODO(devoncarew): Remove this special casing once the migrate command
-        // subclasses DartdevCommand.
-        // ignore: unawaited_futures
-        MigrateUsageEvent(
-          exitCode: exitCode,
-          args: args,
-        ).send(analyticsInstance);
-      }
-
-      // ignore: unawaited_futures
-      analytics.sendTiming(commandName, stopwatch.elapsedMilliseconds,
-          category: 'commands');
-
       // And now send the exceptions and events to Google Analytics:
       if (exception != null) {
-        // ignore: unawaited_futures
-        analytics.sendException(
-            '${exception.runtimeType}\n${sanitizeStacktrace(stackTrace)}',
-            fatal: true);
+        unawaited(
+          analytics.sendException(
+              '${exception.runtimeType}\n${sanitizeStacktrace(stackTrace)}',
+              fatal: true),
+        );
       }
 
       await analytics.waitForLastPing(
@@ -259,6 +224,7 @@ class DartdevRunner extends CommandRunner {
 
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
+    final stopwatch = Stopwatch()..start();
     assert(!topLevelResults.arguments.contains('--disable-dartdev-analytics'));
 
     if (topLevelResults.command == null &&
@@ -292,6 +258,60 @@ class DartdevRunner extends CommandRunner {
       }
     }
 
-    return await super.runCommand(topLevelResults);
+    var command = topLevelResults.command;
+    final commandNames = [];
+    while (command != null) {
+      commandNames.add(command.name);
+      if (command.command == null) break;
+      command = command.command;
+    }
+
+    final path = commandNames.join('/');
+    // Send the screen view to analytics
+    unawaited(
+      analyticsInstance.sendScreenView(path),
+    );
+
+    final topLevelCommand = topLevelResults.command == null
+        ? null
+        : commands[topLevelResults.command.name];
+
+    try {
+      final exitCode = await super.runCommand(topLevelResults);
+
+      if (path != null &&
+          analyticsInstance != null &&
+          analyticsInstance.enabled) {
+        // Send the event to analytics
+        unawaited(
+          sendUsageEvent(
+            analyticsInstance,
+            path,
+            exitCode: exitCode,
+            commandFlags:
+                // This finds the options that where explicitly given to the command
+                // (and not for an eventual subcommand) without including the actual
+                // value.
+                //
+                // Note that this will also conflate short-options and long-options.
+                command?.options?.where(command.wasParsed)?.toList(),
+            specifiedExperiments: topLevelCommand?.specifiedExperiments,
+          ),
+        );
+      }
+
+      return exitCode;
+    } finally {
+      stopwatch.stop();
+      if (analyticsInstance.enabled) {
+        unawaited(
+          analyticsInstance.sendTiming(
+            path ?? '',
+            stopwatch.elapsedMilliseconds,
+            category: 'commands',
+          ),
+        );
+      }
+    }
   }
 }

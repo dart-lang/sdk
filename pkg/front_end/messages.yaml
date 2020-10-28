@@ -4371,6 +4371,10 @@ JsInteropAnonymousFactoryPositionalParameters:
   template: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
   tip: "Try replacing them with named parameters instead."
 
+JsInteropDartClassExtendsJSClass:
+  template: "Dart class '#name' cannot extend JS interop class '#name2'."
+  tip: "Try adding the JS interop annotation or removing it from the parent class."
+
 JsInteropEnclosingClassJSAnnotation:
   template: "Member has a JS interop annotation but the enclosing class does not."
   tip: "Try adding the annotation to the enclosing class."
@@ -4382,6 +4386,10 @@ JsInteropEnclosingClassJSAnnotationContext:
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
+
+JsInteropJSClassExtendsDartClass:
+  template: "JS interop class '#name' cannot extend Dart class '#name2'."
+  tip: "Try removing the JS interop annotation or adding it to the parent class."
 
 JsInteropNamedParameters:
   template: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."

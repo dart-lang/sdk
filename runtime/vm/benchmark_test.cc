@@ -313,7 +313,6 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
     TransitionNativeToVM transition(thread);
     const int kNumIterations = 100;
     Code& code = Code::Handle(thread->zone());
-    Bytecode& bytecode = Bytecode::Handle(thread->zone());
     for (int i = 0; i < kNumIterations; i++) {
       StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
                                 StackFrameIterator::kNoCrossThreadIteration);
@@ -323,13 +322,8 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
           code = frame->LookupDartCode();
           EXPECT(code.function() == Function::null());
         } else if (frame->IsDartFrame()) {
-          if (frame->is_interpreted()) {
-            bytecode = frame->LookupDartBytecode();
-            EXPECT(bytecode.function() != Function::null());
-          } else {
-            code = frame->LookupDartCode();
-            EXPECT(code.function() != Function::null());
-          }
+          code = frame->LookupDartCode();
+          EXPECT(code.function() != Function::null());
         }
         frame = frames.NextFrame();
       }

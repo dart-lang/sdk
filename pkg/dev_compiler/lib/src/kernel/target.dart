@@ -152,6 +152,7 @@ class DevCompilerTarget extends Target {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       JsInteropChecks(
+              coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }

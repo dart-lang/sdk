@@ -111,23 +111,6 @@ main() => new A();
 ''',
       warnings: const [MessageKind.ABSTRACT_GETTER],
       skipForKernel: true),
-  const Test('Js-interop class that extends a regular class.', '''
-@JS()
-library test;
-
-import 'package:js/js.dart';
-
-abstract class A {
-  method();
-}
-
-@JS()
-class B extends A {
-  external method();
-}
-
-main() => new B();
-''', errors: const [MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS]),
   const Test('Js-interop class that extends a js-interop class.', '''
 @JS()
 library test;

@@ -58,8 +58,8 @@ extension DartIOExtension on VmService {
 
   /// The `getSocketProfile` RPC is used to retrieve socket statistics collected
   /// by the socket profiler. Only samples collected after the initial
-  /// [startSocketProfiling] or the last call to [clearSocketProfiling] will be
-  /// reported.
+  /// [socketProfilingEnabled] call or the last call to [clearSocketProfile]
+  /// will be reported.
   Future<SocketProfile> getSocketProfile(String isolateId) =>
       _callHelper('ext.dart.io.getSocketProfile', isolateId);
 

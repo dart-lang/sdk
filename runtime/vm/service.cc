@@ -1986,10 +1986,6 @@ static ObjectPtr LookupHeapObjectCode(Isolate* isolate,
   if (!code.IsNull()) {
     return code.raw();
   }
-  Bytecode& bytecode = Bytecode::Handle(Bytecode::FindCode(pc));
-  if (!bytecode.IsNull()) {
-    return bytecode.raw();
-  }
 
   // Not found.
   return Object::sentinel().raw();
@@ -3141,30 +3137,6 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
     JSONArray samples(&jsobj, "instances");
     for (int i = 0; (i < limit) && (i < count); i++) {
       samples.AddValue(storage.At(i));
-    }
-  }
-  return true;
-}
-
-static const MethodParameter* get_ports_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER,
-    NULL,
-};
-
-static bool GetPorts(Thread* thread, JSONStream* js) {
-  // Ensure the array and handles created below are promptly destroyed.
-  StackZone zone(thread);
-  HANDLESCOPE(thread);
-  const GrowableObjectArray& ports = GrowableObjectArray::Handle(
-      GrowableObjectArray::RawCast(DartLibraryCalls::LookupOpenPorts()));
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "PortList");
-  {
-    Instance& port = Instance::Handle(zone.GetZone());
-    JSONArray arr(&jsobj, "ports");
-    for (int i = 0; i < ports.Length(); ++i) {
-      port ^= ports.At(i);
-      arr.AddValue(port);
     }
   }
   return true;
@@ -4417,12 +4389,12 @@ static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* get_ports_private_params[] = {
+static const MethodParameter* get_ports_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
 };
 
-static bool GetPortsPrivate(Thread* thread, JSONStream* js) {
+static bool GetPorts(Thread* thread, JSONStream* js) {
   MessageHandler* message_handler = thread->isolate()->message_handler();
   PortMap::PrintPortsForMessageHandler(message_handler, js);
   return true;
@@ -5082,8 +5054,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_inbound_references_params },
   { "getInstances", GetInstances,
     get_instances_params },
-  { "getPorts", GetPorts,
-    get_ports_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
   { "_getIsolateObjectStore", GetIsolateObjectStore,
@@ -5104,8 +5074,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_object_store_params },
   { "_getPersistentHandles", GetPersistentHandles,
       get_persistent_handles_params, },
-  { "_getPorts", GetPortsPrivate,
-    get_ports_private_params },
+  { "_getPorts", GetPorts,
+    get_ports_params },
   { "getProcessMemoryUsage", GetProcessMemoryUsage,
     get_process_memory_usage_params },
   { "_getReachableSize", GetReachableSize,

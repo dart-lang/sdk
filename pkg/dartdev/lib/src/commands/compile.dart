@@ -6,11 +6,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart2native/generate.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
-import '../events.dart';
 import '../sdk.dart';
 import '../vm_interop_handler.dart';
 
@@ -66,7 +64,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
   String get invocation => '${super.invocation} <dart entry point>';
 
   @override
-  FutureOr<int> runImpl() async {
+  FutureOr<int> run() async {
     if (!Sdk.checkArtifactExists(sdk.dart2jsSnapshot)) {
       return 255;
     }
@@ -127,7 +125,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
   String get invocation => '${super.invocation} <dart entry point>';
 
   @override
-  FutureOr<int> runImpl() async {
+  FutureOr<int> run() async {
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
       // This throws.
@@ -203,7 +201,7 @@ Remove debugging information from the output and save it separately to the speci
   String get invocation => '${super.invocation} <dart entry point>';
 
   @override
-  FutureOr<int> runImpl() async {
+  FutureOr<int> run() async {
     if (!Sdk.checkArtifactExists(genKernel) ||
         !Sdk.checkArtifactExists(genSnapshot)) {
       return 255;
@@ -243,13 +241,6 @@ abstract class CompileSubcommandCommand extends DartdevCommand {
   CompileSubcommandCommand(String name, String description,
       {bool hidden = false})
       : super(name, description, hidden: hidden);
-
-  @override
-  UsageEvent createUsageEvent(int exitCode) => CompileUsageEvent(
-        usagePath,
-        exitCode: exitCode,
-        args: argResults.arguments,
-      );
 }
 
 class CompileCommand extends DartdevCommand {
@@ -280,23 +271,4 @@ class CompileCommand extends DartdevCommand {
       format: 'aot',
     ));
   }
-
-  @override
-  UsageEvent createUsageEvent(int exitCode) => null;
-
-  @override
-  FutureOr<int> runImpl() {
-    // do nothing, this command is never run
-    return 0;
-  }
-}
-
-/// The [UsageEvent] for all compile commands, we could have each compile
-/// event be its own class instance, but for the time being [usagePath] takes
-/// care of the only difference.
-class CompileUsageEvent extends UsageEvent {
-  CompileUsageEvent(String usagePath,
-      {String label, @required int exitCode, @required List<String> args})
-      : super(CompileCommand.cmdName, usagePath,
-            label: label, exitCode: exitCode, args: args);
 }

@@ -465,7 +465,6 @@ class BaseFlowGraphBuilder {
   const Array& saved_args_desc_array_;
 
   friend class StreamingFlowGraphBuilder;
-  friend class BytecodeFlowGraphBuilder;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseFlowGraphBuilder);

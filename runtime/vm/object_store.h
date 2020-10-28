@@ -160,7 +160,6 @@ class ObjectPointerVisitor;
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
   RW(Function, lookup_port_handler)                                            \
-  RW(Function, lookup_open_ports)                                              \
   RW(Function, handle_message_function)                                        \
   RW(Function, growable_list_factory)                                          \
   RW(Function, simple_instance_of_function)                                    \
@@ -171,7 +170,6 @@ class ObjectPointerVisitor;
   RW(Function, async_star_move_next_helper)                                    \
   RW(Function, complete_on_async_return)                                       \
   RW(Class, async_star_stream_controller)                                      \
-  RW(Array, bytecode_attributes)                                               \
   RW(GrowableObjectArray, llvm_constant_pool)                                  \
   RW(GrowableObjectArray, llvm_function_pool)                                  \
   RW(Array, llvm_constant_hash_table)                                          \

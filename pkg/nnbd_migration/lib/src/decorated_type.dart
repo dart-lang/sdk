@@ -420,8 +420,21 @@ class DecoratedType implements DecoratedTypeInfo {
           var typeFormal = typeFormals[i];
           var oldDecoratedBound =
               DecoratedTypeParameterBounds.current.get(typeFormal);
-          var newDecoratedBound = oldDecoratedBound._substitute(substitution,
-              undecoratedResult.typeFormals[i].bound ?? oldDecoratedBound.type);
+          var undecoratedResult2 = undecoratedResult.typeFormals[i].bound;
+          if (undecoratedResult2 == null) {
+            if (oldDecoratedBound == null) {
+              assert(
+                  false, 'Could not find old decorated bound for type formal');
+              // Recover the best we can by assuming a bound of `dynamic`.
+              oldDecoratedBound = DecoratedType(
+                  DynamicTypeImpl.instance,
+                  NullabilityNode.forInferredType(
+                      NullabilityNodeTarget.text('Type parameter bound')));
+            }
+            undecoratedResult2 = oldDecoratedBound.type;
+          }
+          var newDecoratedBound =
+              oldDecoratedBound._substitute(substitution, undecoratedResult2);
           if (identical(typeFormal, undecoratedResult.typeFormals[i])) {
             assert(oldDecoratedBound == newDecoratedBound);
           } else {

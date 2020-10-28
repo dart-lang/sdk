@@ -8,11 +8,9 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../core.dart';
-import '../events.dart';
 import '../experiments.dart';
 import '../sdk.dart';
 import '../utils.dart';
@@ -36,10 +34,7 @@ class RunCommand extends DartdevCommand {
     );
   }
 
-  @override
-  final bool verbose;
-
-  RunCommand({this.verbose = false})
+  RunCommand({bool verbose = false})
       : super(
           cmdName,
           'Run a Dart program.',
@@ -156,7 +151,7 @@ class RunCommand extends DartdevCommand {
   String get invocation => '${super.invocation} <dart file | package target>';
 
   @override
-  FutureOr<int> runImpl() async {
+  FutureOr<int> run() async {
     // The command line arguments after 'run'
     var args = argResults.arguments.toList();
     // --launch-dds is provided by the VM if the VM service is to be enabled. In
@@ -261,14 +256,6 @@ class RunCommand extends DartdevCommand {
     VmInteropHandler.run(path, runArgs);
     return 0;
   }
-
-  @override
-  UsageEvent createUsageEvent(int exitCode) => RunUsageEvent(
-        usagePath,
-        exitCode: exitCode,
-        specifiedExperiments: specifiedExperiments,
-        args: argResults.arguments,
-      );
 }
 
 class _DebuggingSession {
@@ -316,18 +303,4 @@ class _DebuggingSession {
       return false;
     }
   }
-}
-
-/// The [UsageEvent] for the run command.
-class RunUsageEvent extends UsageEvent {
-  RunUsageEvent(String usagePath,
-      {String label,
-      @required int exitCode,
-      @required List<String> specifiedExperiments,
-      @required List<String> args})
-      : super(RunCommand.cmdName, usagePath,
-            label: label,
-            exitCode: exitCode,
-            specifiedExperiments: specifiedExperiments,
-            args: args);
 }

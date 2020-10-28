@@ -178,7 +178,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
 }
 
 // Native methods for typed data allocation are recognized and implemented
-// both in FlowGraphBuilder::BuildGraphOfRecognizedMethod and interpreter.
+// in FlowGraphBuilder::BuildGraphOfRecognizedMethod.
 // These bodies exist only to assert that they are not used.
 #define TYPED_DATA_NEW(name)                                                   \
   DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 0, 2) {                          \

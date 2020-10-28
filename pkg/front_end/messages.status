@@ -463,10 +463,14 @@ InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
 JsInteropAnonymousFactoryPositionalParameters/analyzerCode: Fail # Web compiler specific
 JsInteropAnonymousFactoryPositionalParameters/example: Fail # Web compiler specific
+JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
+JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
+JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
+JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
 JsInteropNamedParameters/example: Fail # Web compiler specific
 JsInteropNonExternalConstructor/analyzerCode: Fail # Web compiler specific

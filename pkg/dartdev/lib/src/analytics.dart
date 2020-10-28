@@ -53,7 +53,6 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
 
   if (Platform.environment['_DARTDEV_LOG_ANALYTICS'] != null) {
     // Used for testing what analytics messages are sent.
-    print('Logging analytics');
     _instance = _LoggingAnalytics();
   } else if (disableAnalytics) {
     // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is

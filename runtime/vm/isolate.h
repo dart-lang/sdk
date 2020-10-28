@@ -18,7 +18,6 @@
 #include "platform/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
-#include "vm/constants_kbc.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
 #include "vm/field_table.h"
@@ -56,9 +55,6 @@ class HandleScope;
 class HandleVisitor;
 class Heap;
 class ICData;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-class Interpreter;
-#endif
 class IsolateObjectStore;
 class IsolateProfilerData;
 class IsolateReloadContext;

@@ -66,7 +66,7 @@ void pub() {
     expect(result.stderr, result2.stderr);
   });
 
-  test('pub run --enable-experiment', () {
+  test('run --enable-experiment', () {
     p = project();
     p.file('bin/main.dart',
         "void main() { int a; a = null; print('a is \$a.'); }");

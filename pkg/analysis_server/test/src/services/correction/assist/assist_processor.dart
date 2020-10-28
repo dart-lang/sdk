@@ -35,7 +35,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   @override
-  void addTestSource(String code, [Uri uri]) {
+  void addTestSource(String code) {
     if (useLineEndingsForPlatform) {
       code = normalizeNewlinesForPlatform(code);
     }
@@ -61,7 +61,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
         _length = 0;
       }
     }
-    super.addTestSource(code, uri);
+    super.addTestSource(code);
   }
 
   void assertExitPosition({String before, String after}) {

@@ -141,7 +141,7 @@ DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 0, 1) {
   if (!FLAG_causal_async_stacks) {
     // If causal async stacks are not enabled we should recognize this method
     // and never call to the NOP runtime.
-    // See kernel_to_il.cc/bytecode_reader.cc/interpreter.cc.
+    // See kernel_to_il.cc.
     UNREACHABLE();
   }
 #if !defined(PRODUCT)
@@ -180,7 +180,6 @@ static void AppendFrames(const GrowableObjectArray& code_list,
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle(zone);
-  Bytecode& bytecode = Bytecode::Handle(zone);
   Smi& offset = Smi::Handle(zone);
   for (; frame != NULL; frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
@@ -191,18 +190,9 @@ static void AppendFrames(const GrowableObjectArray& code_list,
       continue;
     }
 
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      if (bytecode.function() == Function::null()) {
-        continue;
-      }
-      offset = Smi::New(frame->pc() - bytecode.PayloadStart());
-      code_list.Add(bytecode);
-    } else {
-      code = frame->LookupDartCode();
-      offset = Smi::New(frame->pc() - code.PayloadStart());
-      code_list.Add(code);
-    }
+    code = frame->LookupDartCode();
+    offset = Smi::New(frame->pc() - code.PayloadStart());
+    code_list.Add(code);
     pc_offset_list.Add(offset);
   }
 }
@@ -222,14 +212,6 @@ const StackTrace& GetCurrentStackTrace(int skip_frames) {
   const StackTrace& stacktrace =
       StackTrace::Handle(StackTrace::New(code_array, pc_offset_array));
   return stacktrace;
-}
-
-bool HasStack() {
-  Thread* thread = Thread::Current();
-  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
-                            StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  return frame != nullptr;
 }
 
 }  // namespace dart

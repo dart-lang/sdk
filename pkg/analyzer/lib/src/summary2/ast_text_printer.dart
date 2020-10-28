@@ -510,6 +510,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(node.functionKeyword);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
+    _token(node.question);
   }
 
   @override
@@ -931,6 +932,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitTypeName(TypeName node) {
     node.name.accept(this);
     node.typeArguments?.accept(this);
+    _token(node.question);
   }
 
   @override

@@ -468,7 +468,7 @@ part of 'a.dart';
         RefactoringWorkspace([driverFor(testFile)], searchEngine);
     // Allow passing an oldName for when we don't want to rename testSource,
     // but otherwise fall back to testSource.fullname
-    oldFile = convertPath(oldFile ?? testSource.fullName);
+    oldFile = convertPath(oldFile ?? testFile);
     refactoring = MoveFileRefactoring(
         resourceProvider, refactoringWorkspace, testAnalysisResult, oldFile);
     refactoring.newFile = convertPath(newFile);

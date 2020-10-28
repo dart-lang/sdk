@@ -31,8 +31,10 @@ class TransformSetManagerTest extends AbstractContextTest {
     );
 
     addSource('/home/test/pubspec.yaml', '');
-    var testSource = addSource('/home/test/lib/test.dart', '');
-    var result = await session.getResolvedLibrary(testSource.fullName);
+
+    var testFile = convertPath('/home/test/lib/test.dart');
+    addSource(testFile, '');
+    var result = await session.getResolvedLibrary(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(2));
   }
@@ -41,8 +43,9 @@ class TransformSetManagerTest extends AbstractContextTest {
     // addTestPackageDependency('p1', '/.pub-cache/p1');
     // addTestPackageDependency('p2', '/.pub-cache/p2');
     addSource('/home/test/pubspec.yaml', '');
-    var testSource = addSource('/home/test/lib/test.dart', '');
-    var result = await session.getResolvedLibrary(testSource.fullName);
+    var testFile = convertPath('/home/test/lib/test.dart');
+    addSource(testFile, '');
+    var result = await session.getResolvedLibrary(testFile);
     var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(0));
   }

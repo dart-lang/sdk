@@ -277,21 +277,6 @@ class FunctionViewElement extends CustomElement implements Renderable {
             ]
         ]);
     }
-    if (_function.bytecode != null) {
-      members.add(new DivElement()
-        ..classes = ['memberItem']
-        ..children = <Element>[
-          new DivElement()
-            ..classes = ['memberName']
-            ..text = 'bytecode',
-          new DivElement()
-            ..classes = ['memberName']
-            ..children = <Element>[
-              new CodeRefElement(_isolate, _function.bytecode!, queue: _r.queue)
-                  .element,
-            ]
-        ]);
-    }
     members.add(new DivElement()
       ..classes = ['memberItem']
       ..text = ' ');

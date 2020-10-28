@@ -775,8 +775,7 @@ static intptr_t Usage(const Function& function) {
       // 'function' is queued for optimized compilation
       count = FLAG_optimization_counter_threshold;
     } else {
-      // 'function' is queued for unoptimized compilation
-      count = FLAG_compilation_counter_threshold;
+      count = 0;
     }
   } else if (Code::IsOptimized(function.CurrentCode())) {
     // 'function' was optimized and stopped counting
@@ -4834,10 +4833,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   UpdateReceiverSminess(zone);
 
-  if ((compiler->is_optimizing() || compiler->function().HasBytecode()) &&
-      HasICData()) {
-    ASSERT(HasICData());
-    if (compiler->is_optimizing() && (ic_data()->NumberOfUsedChecks() > 0)) {
+  if (compiler->is_optimizing() && HasICData()) {
+    if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =
           ICData::ZoneHandle(zone, ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),

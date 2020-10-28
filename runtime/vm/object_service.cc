@@ -321,12 +321,6 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!code.IsNull()) {
     jsobj.AddProperty("code", code);
   }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Bytecode& bytecode = Bytecode::Handle(this->bytecode());
-  if (!bytecode.IsNull()) {
-    jsobj.AddProperty("_bytecode", bytecode);
-  }
-#endif  // !DART_PRECOMPILED_RUNTIME
   Array& ics = Array::Handle(ic_data_array());
   if (!ics.IsNull()) {
     jsobj.AddProperty("_icDataArray", ics);
@@ -575,53 +569,6 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
         }
       }
     }
-
-    if (is_declared_in_bytecode()) {
-      // Make sure top level class (containing annotations) is fully loaded.
-      EnsureTopLevelClassIsFinalized();
-      Array& metadata = Array::Handle(GetExtendedMetadata(*this, 1));
-      if (metadata.Length() != 0) {
-        // Library has the only element in the extended metadata.
-        metadata ^= metadata.At(0);
-        if (!metadata.IsNull()) {
-          Thread* thread = Thread::Current();
-          auto& desc = Array::Handle();
-          auto& target_uri = String::Handle();
-          auto& is_export = Bool::Handle();
-          auto& is_deferred = Bool::Handle();
-          for (intptr_t i = 0, n = metadata.Length(); i < n; ++i) {
-            desc ^= metadata.At(i);
-            // Each dependency is represented as an array with the following
-            // layout:
-            //  [0] = target library URI (String)
-            //  [1] = is_export (bool)
-            //  [2] = is_deferred (bool)
-            //  [3] = prefix (String or null)
-            //  ...
-            // The library dependencies are encoded by getLibraryAnnotations(),
-            // pkg/vm/lib/bytecode/gen_bytecode.dart.
-            target_uri ^= desc.At(0);
-            is_export ^= desc.At(1);
-            is_deferred ^= desc.At(2);
-            prefix_name ^= desc.At(3);
-
-            target = Library::LookupLibrary(thread, target_uri);
-            if (target.IsNull()) {
-              continue;
-            }
-
-            JSONObject jsdep(&jsarr);
-            jsdep.AddProperty("isDeferred", is_deferred.value());
-            jsdep.AddProperty("isExport", is_export.value());
-            jsdep.AddProperty("isImport", !is_export.value());
-            if (!prefix_name.IsNull()) {
-              jsdep.AddProperty("prefix", prefix_name.ToCString());
-            }
-            jsdep.AddProperty("target", target);
-          }
-        }
-      }
-    }
   }
   {
     JSONArray jsarr(&jsobj, "variables");
@@ -723,11 +670,6 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
           jsentry.AddProperty("kind", "Immediate");
           jsentry.AddProperty64("value", imm);
           break;
-        case ObjectPool::EntryType::kNativeEntryData:
-          obj = ObjectAt(i);
-          jsentry.AddProperty("kind", "NativeEntryData");
-          jsentry.AddProperty("value", obj);
-          break;
         case ObjectPool::EntryType::kNativeFunction:
           imm = RawValueAt(i);
           jsentry.AddProperty("kind", "NativeFunction");
@@ -806,10 +748,6 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void ExceptionHandlers::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
-}
-
-void ParameterTypeCheck::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
@@ -894,8 +832,6 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 }
 
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // N.B. This is polymorphic with Bytecode.
-
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Code", ref);
   jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp(),
@@ -955,47 +891,6 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   PrintJSONInlineIntervals(&jsobj);
-}
-
-void Bytecode::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // N.B. This is polymorphic with Code.
-
-  JSONObject jsobj(stream);
-  AddCommonObjectProperties(&jsobj, "Code", ref);
-  int64_t compile_timestamp = 0;
-  jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp,
-                          PayloadStart());
-  const char* qualified_name = QualifiedName();
-  const char* vm_name = Name();
-  AddNameProperties(&jsobj, qualified_name, vm_name);
-
-  jsobj.AddProperty("kind", "Dart");
-  jsobj.AddProperty("_optimized", false);
-  jsobj.AddProperty("_intrinsic", false);
-  jsobj.AddProperty("_native", false);
-  if (ref) {
-    return;
-  }
-  const Function& fun = Function::Handle(function());
-  jsobj.AddProperty("function", fun);
-  jsobj.AddPropertyF("_startAddress", "%" Px "", PayloadStart());
-  jsobj.AddPropertyF("_endAddress", "%" Px "", PayloadStart() + Size());
-  jsobj.AddProperty("_alive", true);
-  const ObjectPool& obj_pool = ObjectPool::Handle(object_pool());
-  jsobj.AddProperty("_objectPool", obj_pool);
-  {
-    JSONArray jsarr(&jsobj, "_disassembly");
-    DisassembleToJSONStream formatter(jsarr);
-    Disassemble(&formatter);
-  }
-  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  if (!descriptors.IsNull()) {
-    JSONObject desc(&jsobj, "_descriptors");
-    descriptors.PrintToJSONObject(&desc, false);
-  }
-
-  { JSONArray inlined_functions(&jsobj, "_inlinedFunctions"); }
-  { JSONArray inline_intervals(&jsobj, "_inlinedIntervals"); }
 }
 
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -1557,15 +1452,7 @@ void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void ReceivePort::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject obj(stream);
-  Instance::PrintSharedInstanceJSON(&obj, ref);
-  const StackTrace& allocation_location_ =
-      StackTrace::Handle(allocation_location());
-  const String& debug_name_ = String::Handle(debug_name());
-  obj.AddProperty("kind", "ReceivePort");
-  obj.AddProperty64("portId", Id());
-  obj.AddProperty("debugName", debug_name_.ToCString());
-  obj.AddProperty("allocationLocation", allocation_location_);
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 void SendPort::PrintJSONImpl(JSONStream* stream, bool ref) const {

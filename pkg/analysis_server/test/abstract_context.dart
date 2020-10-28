@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -79,9 +78,8 @@ class AbstractContextTest with ResourceProviderMixin {
 
   String get workspaceRootPath => '/home';
 
-  Source addSource(String path, String content, [Uri uri]) {
-    var file = newFile(path, content: content);
-    return file.createSource(uri);
+  void addSource(String path, String content) {
+    newFile(path, content: content);
   }
 
   Future<void> analyzeTestPackageFiles() async {

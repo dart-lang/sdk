@@ -278,7 +278,7 @@ void Precompiler::DoCompileAll() {
       if (FLAG_use_bare_instructions) {
         // We use any stub here to get it's object pool (all stubs share the
         // same object pool in bare instructions mode).
-        const Code& code = StubCode::InterpretCall();
+        const Code& code = StubCode::LazyCompile();
         const ObjectPool& stub_pool = ObjectPool::Handle(code.object_pool());
 
         global_object_pool_builder()->Reset();
@@ -420,7 +420,6 @@ void Precompiler::DoCompileAll() {
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
-      I->object_store()->set_bytecode_attributes(Array::null_array());
       DropMetadata();
       DropLibraryEntries();
     }
@@ -1745,7 +1744,6 @@ void Precompiler::DropFunctions() {
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
         function.DropUncompiledImplicitClosureFunction();
-        function.ClearBytecode();
         if (functions_to_retain_.ContainsKey(function)) {
           retained_functions.Add(function);
         } else {
@@ -1795,7 +1793,6 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    function.ClearBytecode();
     if (functions_to_retain_.ContainsKey(function)) {
       retained_functions.Add(function);
     } else {
@@ -1812,7 +1809,6 @@ void Precompiler::DropFields() {
   Field& field = Field::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
-  Function& initializer_function = Function::Handle(Z);
 
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
@@ -1825,10 +1821,6 @@ void Precompiler::DropFields() {
       for (intptr_t j = 0; j < fields.Length(); j++) {
         field ^= fields.At(j);
         bool retain = fields_to_retain_.HasKey(&field);
-        if (field.HasInitializerFunction()) {
-          initializer_function = field.InitializerFunction();
-          initializer_function.ClearBytecode();
-        }
 #if !defined(PRODUCT)
         if (field.is_instance() && cls.is_allocated()) {
           // Keep instance fields so their names are available to graph tools.
@@ -2228,7 +2220,6 @@ void Precompiler::DropLibraryEntries() {
           program_info.set_scripts(Array::null_array());
           program_info.set_libraries_cache(Array::null_array());
           program_info.set_classes_cache(Array::null_array());
-          program_info.set_bytecode_component(Array::null_array());
         }
         script.set_resolved_url(String::null_string());
         script.set_compile_time_constants(Array::null_array());

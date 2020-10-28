@@ -56,7 +56,7 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ str(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
     __ blx(TMP);
-    __ LoadImmediate(TMP, VMTag::kDartCompiledTagId);
+    __ LoadImmediate(TMP, VMTag::kDartTagId);
     __ str(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
     ASSERT((kAbiPreservedCpuRegs & (1 << THR)) != 0);

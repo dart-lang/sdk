@@ -378,7 +378,6 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* top_frame = iterator.NextFrame();
     ASSERT(top_frame != NULL);
-    ASSERT(!top_frame->is_interpreted());
     const Code& code = Code::Handle(top_frame->LookupDartCode());
     const Function& top_function = Function::Handle(code.function());
     const Script& script = Script::Handle(top_function.script());

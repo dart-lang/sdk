@@ -577,7 +577,7 @@ IsolateTest checkRecordedStops(
       expectedStops = removeAdjacentDuplicates(expectedStops);
     }
 
-    // Single stepping in interpreted bytecode may record extra stops.
+    // Single stepping may record extra stops.
     // Allow the extra ones as long as the expected ones are recorded.
     int i = 0;
     int j = 0;

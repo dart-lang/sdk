@@ -28,12 +28,12 @@ class _ProvisionalApiTest extends _ProvisionalApiTestBase
 
 /// Base class for provisional API tests.
 abstract class _ProvisionalApiTestBase extends AbstractContextTest {
-  bool get _usePermissiveMode;
-
   String projectPath;
 
+  bool get _usePermissiveMode;
+
   void setUp() {
-    projectPath = convertPath(AbstractContextTest.testsPath);
+    projectPath = convertPath(testsPath);
     super.setUp();
   }
 
@@ -109,8 +109,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       {Map<String, String> migratedInput = const {},
       bool removeViaComments = false,
       bool warnOnWeakCode = false}) async {
-    var sourcePath =
-        convertPath('${AbstractContextTest.testsPath}/lib/test.dart');
+    var sourcePath = convertPath('$testsPath/lib/test.dart');
     await _checkMultipleFileChanges(
         {sourcePath: content}, {sourcePath: expected},
         migratedInput: migratedInput,
@@ -4581,6 +4580,33 @@ f() {
     var content = 'int f(num n) => n;';
     var expected = 'int f(num n) => n as int;';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_many_type_variables() async {
+    try {
+      assert(false);
+    } catch (_) {
+      // When assertions are enabled, this test fails, so skip it.
+      // See https://github.com/dart-lang/sdk/issues/43945.
+      return;
+    }
+    var content = '''
+void test(C<int> x, double Function<S>(C<S>) y) {
+  x.f<double>(y);
+}
+class C<T> {
+  U f<U>(U Function<V>(C<V>) z) => throw 'foo';
+}
+''';
+    var expected = '''
+void test(C<int> x, double Function<S>(C<S>) y) {
+  x.f<double>(y);
+}
+class C<T> {
+  U f<U>(U Function<V>(C<V>) z) => throw 'foo';
+}
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   Future<void> test_map_nullable_input() async {

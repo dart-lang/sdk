@@ -47,11 +47,7 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
     newFile('$workspaceRootPath/p/lib/lib.dart', content: content);
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(
-          name: 'p',
-          rootPath: '$workspaceRootPath/p',
-          languageVersion: '2.9',
-        ),
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
   }
 

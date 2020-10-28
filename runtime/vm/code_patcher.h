@@ -107,18 +107,6 @@ class CodePatcher : public AllStatic {
 // Example pattern: `[0x3d, 0x8b, -1, -1]`.
 bool MatchesPattern(uword end, const int16_t* pattern, intptr_t size);
 
-class KBCPatcher : public AllStatic {
- public:
-  static NativeFunctionWrapper GetNativeCallAt(uword return_address,
-                                               const Bytecode& bytecode,
-                                               NativeFunction* function);
-
-  static void PatchNativeCallAt(uword return_address,
-                                const Bytecode& bytecode,
-                                NativeFunction function,
-                                NativeFunctionWrapper trampoline);
-};
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CODE_PATCHER_H_

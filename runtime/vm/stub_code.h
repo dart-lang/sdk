@@ -46,7 +46,7 @@ class StubCode : public AllStatic {
 
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
-  static bool InInvocationStub(uword pc, bool is_interpreted_frame);
+  static bool InInvocationStub(uword pc);
 
   // Check if the specified pc is in the jump to frame stub.
   static bool InJumpToFrameStub(uword pc);

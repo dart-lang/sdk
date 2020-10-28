@@ -743,15 +743,9 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
          info.potential_natives() == GrowableObjectArray::null());
 #endif
 
-  auto& kernel_data = ExternalTypedData::Handle(Z);
-  intptr_t kernel_data_program_offset = 0;
-  if (!function.is_declared_in_bytecode()) {
-    kernel_data = function.KernelData();
-    kernel_data_program_offset = function.KernelDataProgramOffset();
-  }
+  auto& kernel_data = ExternalTypedData::Handle(Z, function.KernelData());
+  intptr_t kernel_data_program_offset = function.KernelDataProgramOffset();
 
-  // TODO(alexmarkov): refactor this - StreamingFlowGraphBuilder should not be
-  //  used for bytecode functions.
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, kernel_data, kernel_data_program_offset);
   return streaming_flow_graph_builder.BuildGraph();
@@ -837,11 +831,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
-    // This list must be kept in sync with BytecodeReaderHelper::NativeEntry in
-    // runtime/vm/compiler/frontend/bytecode_reader.cc and implemented in the
-    // bytecode interpreter in runtime/vm/interpreter.cc. Alternatively, these
-    // methods must work in their original form (a Dart body or native entry) in
-    // the bytecode interpreter.
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:

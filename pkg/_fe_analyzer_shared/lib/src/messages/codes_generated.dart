@@ -5902,6 +5902,42 @@ const MessageCode messageJsInteropAnonymousFactoryPositionalParameters =
         tip: r"""Try replacing them with named parameters instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateJsInteropDartClassExtendsJSClass = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""Dart class '#name' cannot extend JS interop class '#name2'.""",
+    tipTemplate:
+        r"""Try adding the JS interop annotation or removing it from the parent class.""",
+    withArguments: _withArgumentsJsInteropDartClassExtendsJSClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeJsInteropDartClassExtendsJSClass =
+    const Code<Message Function(String name, String name2)>(
+  "JsInteropDartClassExtendsJSClass",
+  templateJsInteropDartClassExtendsJSClass,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropDartClassExtendsJSClass(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeJsInteropDartClassExtendsJSClass,
+      message:
+          """Dart class '${name}' cannot extend JS interop class '${name2}'.""",
+      tip:
+          """Try adding the JS interop annotation or removing it from the parent class.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
     messageJsInteropEnclosingClassJSAnnotation;
 
@@ -5932,6 +5968,42 @@ const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
     message:
         r"""JS interop classes do not support [] and []= operator methods.""",
     tip: r"""Try replacing with a normal method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateJsInteropJSClassExtendsDartClass = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""JS interop class '#name' cannot extend Dart class '#name2'.""",
+    tipTemplate:
+        r"""Try removing the JS interop annotation or adding it to the parent class.""",
+    withArguments: _withArgumentsJsInteropJSClassExtendsDartClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeJsInteropJSClassExtendsDartClass =
+    const Code<Message Function(String name, String name2)>(
+  "JsInteropJSClassExtendsDartClass",
+  templateJsInteropJSClassExtendsDartClass,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropJSClassExtendsDartClass(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeJsInteropJSClassExtendsDartClass,
+      message:
+          """JS interop class '${name}' cannot extend Dart class '${name2}'.""",
+      tip:
+          """Try removing the JS interop annotation or adding it to the parent class.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropNamedParameters = messageJsInteropNamedParameters;

@@ -308,12 +308,6 @@ void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
   num_stack_locals_ = num_stack_locals;
 }
 
-void ParsedFunction::AllocateBytecodeVariables(intptr_t num_stack_locals) {
-  ASSERT(!function().IsIrregexpFunction());
-  first_parameter_index_ = VariableIndex(function().num_fixed_parameters());
-  num_stack_locals_ = num_stack_locals;
-}
-
 void ParsedFunction::SetCovariantParameters(
     const BitVector* covariant_parameters) {
   ASSERT(covariant_parameters_ == nullptr);

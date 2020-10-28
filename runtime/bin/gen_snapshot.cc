@@ -125,7 +125,6 @@ static const char* kSnapshotKindNames[] = {
   V(compile_all, compile_all)                                                  \
   V(help, help)                                                                \
   V(obfuscate, obfuscate)                                                      \
-  V(read_all_bytecode, read_all_bytecode)                                      \
   V(strip, strip)                                                              \
   V(verbose, verbose)                                                          \
   V(version, version)
@@ -390,13 +389,6 @@ static void MaybeLoadExtraInputs(const CommandLineOptions& inputs) {
 }
 
 static void MaybeLoadCode() {
-  if (read_all_bytecode &&
-      ((snapshot_kind == kCore) || (snapshot_kind == kCoreJIT) ||
-       (snapshot_kind == kApp) || (snapshot_kind == kAppJIT))) {
-    Dart_Handle result = Dart_ReadAllBytecode();
-    CHECK_RESULT(result);
-  }
-
   if (compile_all &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
     Dart_Handle result = Dart_CompileAll();

@@ -223,12 +223,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
   }
 
   @override
-  void onResolutionEnd() {
-    assert(_annotationProcessor != null,
-        "AnnotationProcessor has not been created.");
-    _annotationProcessor.processJsInteropAnnotations(
-        nativeBasicData, nativeDataBuilder);
-  }
+  void onResolutionEnd() {}
 
   @override
   NativeBasicData get nativeBasicData {

@@ -71,12 +71,6 @@ TypeParameterPtr GetFunctionTypeParameter(const Function& fun,
 }
 
 ObjectPtr Invoke(const Library& lib, const char* name) {
-  // These tests rely on running unoptimized code to collect type feedback. The
-  // interpreter does not collect type feedback for interface calls, so set
-  // compilation threshold to 0 in order to compile invoked function
-  // immediately and execute compiled code.
-  SetFlagScope<int> sfs(&FLAG_compilation_counter_threshold, 0);
-
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
   Dart_Handle result;
