@@ -48,7 +48,10 @@ void nonNullAsserts(bool enable) {
 bool _nativeNonNullAsserts = false;
 
 /// Enables null assertions on native APIs to make sure value returned from the
-/// browser is sound. These apply to dart:html and similar web libraries.
+/// browser is sound.
+///
+/// These apply to dart:html and similar web libraries. Note that these only are
+/// added in sound null-safety only.
 void nativeNonNullAsserts(bool enable) {
   _nativeNonNullAsserts = enable;
 }

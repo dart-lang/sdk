@@ -2279,8 +2279,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Fields on a native class are implicitly native.
       // Methods/getters/setters are marked external/native.
       if (member is Field || _isExternal(member)) {
-        // If the native member needs to be null-checked, we require symbolizing
-        // it in order to access the null-check at the member definition.
+        // If the native member needs to be null-checked and we're running in
+        // sound null-safety, we require symbolizing it in order to access the
+        // null-check at the member definition.
         if (_isNullCheckableNative(member)) return true;
         var jsName = _annotationName(member, isJSName);
         return jsName != null && jsName != name;
@@ -4282,8 +4283,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Return whether [member] returns a native object whose type needs to be
-  /// null-checked. This is true for non-nullable native return types.
+  /// null-checked in sound null-safety.
+  ///
+  /// This is true for non-nullable native return types.
   bool _isNullCheckableNative(Member member) =>
+      _options.soundNullSafety &&
       member != null &&
       member.isExternal &&
       _extensionTypes.isNativeClass(member.enclosingClass) &&
@@ -5092,8 +5096,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var result = js.parseForeignJS(source).instantiate(jsArgs);
 
     // Add a check to make sure any JS() values from a native type are typed
-    // properly.
-    if (_isWebLibrary(_currentLibrary.importUri)) {
+    // properly in sound null-safety.
+    if (_isWebLibrary(_currentLibrary.importUri) && _options.soundNullSafety) {
       var type = node.getStaticType(_staticTypeContext);
       if (type.isPotentiallyNonNullable) {
         result = runtimeCall('checkNativeNonNull(#)', [result]);
