@@ -23890,6 +23890,39 @@ const char* TransferableTypedData::ToCString() const {
   return "TransferableTypedData";
 }
 
+bool Closure::CanonicalizeEquals(const Instance& other) const {
+  if (!other.IsClosure()) return false;
+
+  const Closure& other_closure = Closure::Cast(other);
+  return (instantiator_type_arguments() ==
+          other_closure.instantiator_type_arguments()) &&
+         (function_type_arguments() ==
+          other_closure.function_type_arguments()) &&
+         (delayed_type_arguments() == other_closure.delayed_type_arguments()) &&
+         (function() == other_closure.function()) &&
+         (context() == other_closure.context());
+}
+
+void Closure::CanonicalizeFieldsLocked(Thread* thread) const {
+  TypeArguments& type_args = TypeArguments::Handle();
+  type_args = instantiator_type_arguments();
+  if (!type_args.IsNull()) {
+    type_args = type_args.Canonicalize(thread, nullptr);
+    set_instantiator_type_arguments(type_args);
+  }
+  type_args = function_type_arguments();
+  if (!type_args.IsNull()) {
+    type_args = type_args.Canonicalize(thread, nullptr);
+    set_function_type_arguments(type_args);
+  }
+  type_args = delayed_type_arguments();
+  if (!type_args.IsNull()) {
+    type_args = type_args.Canonicalize(thread, nullptr);
+    set_delayed_type_arguments(type_args);
+  }
+  // Ignore function, context, hash.
+}
+
 intptr_t Closure::NumTypeParameters(Thread* thread) const {
   // Only check for empty here, as the null TAV is used to mean that the
   // closed-over delayed type parameters were all of dynamic type.
