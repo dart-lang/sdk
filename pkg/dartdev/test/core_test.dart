@@ -26,14 +26,13 @@ void main() {
 
 void _dartdevCommand() {
   void _assertDartdevCommandProperties(
-      DartdevCommand command, String name, String usagePath,
+      DartdevCommand command, String name, String expectedUsagePath,
       [int subcommandCount = 0]) {
     expect(command, isNotNull);
     expect(command.name, name);
     expect(command.description, isNotEmpty);
     expect(command.project, isNotNull);
     expect(command.argParser, isNotNull);
-    expect(command.usagePath, usagePath);
     expect(command.subcommands.length, subcommandCount);
   }
 
@@ -87,7 +86,7 @@ void _dartdevCommand() {
   });
 
   test('run', () {
-    _assertDartdevCommandProperties(RunCommand(), 'run', 'run');
+    _assertDartdevCommandProperties(RunCommand(verbose: false), 'run', 'run');
   });
 
   test('test', () {

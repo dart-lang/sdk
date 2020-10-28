@@ -26,6 +26,19 @@ void main() {
       final result = p.runSync('help', []);
       expect(extractAnalytics(result), [
         {
+          'hitType': 'screenView',
+          'message': {'viewName': 'help'}
+        },
+        {
+          'hitType': 'event',
+          'message': {
+            'category': 'dartdev',
+            'action': 'help',
+            'label': null,
+            'value': null
+          }
+        },
+        {
           'hitType': 'timing',
           'message': {
             'variableName': 'help',
@@ -52,7 +65,7 @@ void main() {
             'label': null,
             'value': null,
             'cd1': '0',
-            'cd3': ''
+            'cd3': ' template ',
           }
         },
         {
@@ -73,18 +86,17 @@ void main() {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'pub/get'}
+          // TODO(sigurdm): this should be pub/get
+          'message': {'viewName': 'pub'}
         },
         {
           'hitType': 'event',
           'message': {
             'category': 'dartdev',
-            'action': 'pub/get',
+            'action': 'pub',
             'label': null,
             'value': null,
             'cd1': '0',
-            'cd2': '',
-            'cd3': '',
           }
         },
         {
@@ -115,14 +127,121 @@ void main() {
             'label': null,
             'value': null,
             'cd1': '0',
-            // TODO(sigurdm): We should filter out the value here.
-            'cd3': '-l80',
+            'cd3': ' line-length ',
           }
         },
         {
           'hitType': 'timing',
           'message': {
             'variableName': 'format',
+            'time': isA<int>(),
+            'category': 'commands',
+            'label': null
+          }
+        }
+      ]);
+    });
+
+    test('run', () {
+      final p = project(
+          mainSrc: 'void main(List<String> args) => print(args)',
+          logAnalytics: true);
+      final result = p.runSync('run', [
+        '--no-pause-isolates-on-exit',
+        '--enable-asserts',
+        'lib/main.dart',
+        '--argument'
+      ]);
+      expect(extractAnalytics(result), [
+        {
+          'hitType': 'screenView',
+          'message': {'viewName': 'run'}
+        },
+        {
+          'hitType': 'event',
+          'message': {
+            'category': 'dartdev',
+            'action': 'run',
+            'label': null,
+            'value': null,
+            'cd1': '0',
+            'cd3': ' enable-asserts pause-isolates-on-exit ',
+          }
+        },
+        {
+          'hitType': 'timing',
+          'message': {
+            'variableName': 'run',
+            'time': isA<int>(),
+            'category': 'commands',
+            'label': null
+          }
+        }
+      ]);
+    });
+
+    test('run --enable-experiments', () {
+      final p = project(
+          mainSrc: 'void main(List<String> args) => print(args)',
+          logAnalytics: true);
+      final result = p.runSync('--enable-experiment=non-nullable', [
+        'run',
+        'lib/main.dart',
+      ]);
+      expect(extractAnalytics(result), [
+        {
+          'hitType': 'screenView',
+          'message': {'viewName': 'run'}
+        },
+        {
+          'hitType': 'event',
+          'message': {
+            'category': 'dartdev',
+            'action': 'run',
+            'label': null,
+            'value': null,
+            'cd1': '0',
+            'cd2': ' non-nullable ',
+          }
+        },
+        {
+          'hitType': 'timing',
+          'message': {
+            'variableName': 'run',
+            'time': isA<int>(),
+            'category': 'commands',
+            'label': null
+          }
+        }
+      ]);
+    });
+
+    test('compile', () {
+      final p = project(
+          mainSrc: 'void main(List<String> args) => print(args);',
+          logAnalytics: true);
+      final result = p
+          .runSync('compile', ['kernel', 'lib/main.dart', '-o', 'main.kernel']);
+      expect(extractAnalytics(result), [
+        {
+          'hitType': 'screenView',
+          'message': {'viewName': 'compile/kernel'}
+        },
+        {
+          'hitType': 'event',
+          'message': {
+            'category': 'dartdev',
+            'action': 'compile/kernel',
+            'label': null,
+            'value': null,
+            'cd1': '0',
+            'cd3': ' output ',
+          }
+        },
+        {
+          'hitType': 'timing',
+          'message': {
+            'variableName': 'compile/kernel',
             'time': isA<int>(),
             'category': 'commands',
             'label': null
