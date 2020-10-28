@@ -750,6 +750,31 @@ ObjectPtr DartLibraryCalls::LookupHandler(Dart_Port port_id) {
   return result.raw();
 }
 
+ObjectPtr DartLibraryCalls::LookupOpenPorts() {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& function = Function::Handle(
+      zone, thread->isolate()->object_store()->lookup_open_ports());
+  const int kTypeArgsLen = 0;
+  const int kNumArguments = 0;
+  if (function.IsNull()) {
+    Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
+    ASSERT(!isolate_lib.IsNull());
+    const String& class_name = String::Handle(
+        zone, isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
+    const String& function_name = String::Handle(
+        zone, isolate_lib.PrivateName(Symbols::_lookupOpenPorts()));
+    function = Resolver::ResolveStatic(isolate_lib, class_name, function_name,
+                                       kTypeArgsLen, kNumArguments,
+                                       Object::empty_array());
+    ASSERT(!function.IsNull());
+    thread->isolate()->object_store()->set_lookup_open_ports(function);
+  }
+  const Object& result = Object::Handle(
+      zone, DartEntry::InvokeFunction(function, Object::empty_array()));
+  return result.raw();
+}
+
 ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
                                           const Instance& message) {
   Thread* thread = Thread::Current();

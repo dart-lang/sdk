@@ -504,7 +504,7 @@ static constexpr dart::compiler::target::word ParameterTypeCheck_InstanceSize =
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 24;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 12;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 12;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 20;
 static constexpr dart::compiler::target::word RedirectionData_InstanceSize = 16;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 60;
 static constexpr dart::compiler::target::word Script_InstanceSize = 56;
@@ -1031,7 +1031,7 @@ static constexpr dart::compiler::target::word ParameterTypeCheck_InstanceSize =
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 48;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 16;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 24;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 24;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 40;
 static constexpr dart::compiler::target::word RedirectionData_InstanceSize = 32;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 120;
 static constexpr dart::compiler::target::word Script_InstanceSize = 96;
@@ -1549,7 +1549,7 @@ static constexpr dart::compiler::target::word ParameterTypeCheck_InstanceSize =
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 24;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 12;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 12;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 20;
 static constexpr dart::compiler::target::word RedirectionData_InstanceSize = 16;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 60;
 static constexpr dart::compiler::target::word Script_InstanceSize = 56;
@@ -2077,7 +2077,7 @@ static constexpr dart::compiler::target::word ParameterTypeCheck_InstanceSize =
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 48;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 16;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 24;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 24;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 40;
 static constexpr dart::compiler::target::word RedirectionData_InstanceSize = 32;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 120;
 static constexpr dart::compiler::target::word Script_InstanceSize = 96;
@@ -2594,7 +2594,7 @@ static constexpr dart::compiler::target::word ParameterTypeCheck_InstanceSize =
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 24;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 12;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 12;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 20;
 static constexpr dart::compiler::target::word RedirectionData_InstanceSize = 16;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 60;
 static constexpr dart::compiler::target::word Script_InstanceSize = 56;
@@ -3115,7 +3115,7 @@ static constexpr dart::compiler::target::word ParameterTypeCheck_InstanceSize =
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 48;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 16;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 24;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 24;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 40;
 static constexpr dart::compiler::target::word RedirectionData_InstanceSize = 32;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 120;
 static constexpr dart::compiler::target::word Script_InstanceSize = 96;
@@ -3627,7 +3627,7 @@ static constexpr dart::compiler::target::word ParameterTypeCheck_InstanceSize =
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 24;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 12;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 12;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 20;
 static constexpr dart::compiler::target::word RedirectionData_InstanceSize = 16;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 60;
 static constexpr dart::compiler::target::word Script_InstanceSize = 56;
@@ -4149,7 +4149,7 @@ static constexpr dart::compiler::target::word ParameterTypeCheck_InstanceSize =
 static constexpr dart::compiler::target::word PatchClass_InstanceSize = 48;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 16;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 24;
-static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 24;
+static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 40;
 static constexpr dart::compiler::target::word RedirectionData_InstanceSize = 32;
 static constexpr dart::compiler::target::word RegExp_InstanceSize = 120;
 static constexpr dart::compiler::target::word Script_InstanceSize = 96;
@@ -4722,7 +4722,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize = 8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 12;
-static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 12;
+static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_RedirectionData_InstanceSize =
     16;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 60;
@@ -5303,7 +5303,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize = 16;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 24;
-static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_RedirectionData_InstanceSize =
     32;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 120;
@@ -5888,7 +5888,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize = 16;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 24;
-static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_RedirectionData_InstanceSize =
     32;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 120;
@@ -6461,7 +6461,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize = 8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 12;
-static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 12;
+static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_RedirectionData_InstanceSize =
     16;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 60;
@@ -7035,7 +7035,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize = 16;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 24;
-static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_RedirectionData_InstanceSize =
     32;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 120;
@@ -7613,7 +7613,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize = 16;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 24;
-static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_ReceivePort_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_RedirectionData_InstanceSize =
     32;
 static constexpr dart::compiler::target::word AOT_RegExp_InstanceSize = 120;
