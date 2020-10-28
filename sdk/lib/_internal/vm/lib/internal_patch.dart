@@ -163,7 +163,7 @@ T unsafeCast<T>(Object? v) native "Internal_unsafeCast";
 
 // This function can be used to keep an object alive til that point.
 //
-// This is implemented by a recognized method, but in bytecode through a native.
+// This is implemented by a recognized method.
 @pragma('vm:prefer-inline')
 void reachabilityFence(Object object) native "Internal_reachabilityFence";
 
