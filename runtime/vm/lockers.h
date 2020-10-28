@@ -322,6 +322,7 @@ class SafepointRwLock {
 
 #if defined(DEBUG)
   bool IsCurrentThreadReader() {
+    SafepointMonitorLocker ml(&monitor_);
     ThreadId id = OSThread::GetCurrentThreadId();
     if (IsCurrentThreadWriter()) {
       return true;
@@ -333,7 +334,7 @@ class SafepointRwLock {
     }
     return false;
   }
-#endif // defined(DEBUG)
+#endif  // defined(DEBUG)
 
   bool IsCurrentThreadWriter() {
     return writer_id_ == OSThread::GetCurrentThreadId();
