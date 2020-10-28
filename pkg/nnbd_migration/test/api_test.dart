@@ -33,7 +33,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   bool get _usePermissiveMode;
 
   void setUp() {
-    projectPath = convertPath(AbstractContextTest.testsPath);
+    projectPath = convertPath(testsPath);
     super.setUp();
   }
 
@@ -109,8 +109,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       {Map<String, String> migratedInput = const {},
       bool removeViaComments = false,
       bool warnOnWeakCode = false}) async {
-    var sourcePath =
-        convertPath('${AbstractContextTest.testsPath}/lib/test.dart');
+    var sourcePath = convertPath('$testsPath/lib/test.dart');
     await _checkMultipleFileChanges(
         {sourcePath: content}, {sourcePath: expected},
         migratedInput: migratedInput,

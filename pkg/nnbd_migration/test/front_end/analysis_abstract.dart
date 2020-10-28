@@ -71,8 +71,8 @@ class AbstractAnalysisTest extends AbstractContextTest {
 
   void setUp() {
     super.setUp();
-    projectPath = convertPath(AbstractContextTest.testsPath);
-    testFolder = convertPath('${AbstractContextTest.testsPath}/bin');
-    testFile = convertPath('${AbstractContextTest.testsPath}/bin/test.dart');
+    projectPath = convertPath(testsPath);
+    testFolder = convertPath('$testsPath/bin');
+    testFile = convertPath('$testsPath/bin/test.dart');
   }
 }

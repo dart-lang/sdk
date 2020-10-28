@@ -18,9 +18,6 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 /// TODO(paulberry): this logic is duplicated from other packages.  Find a way
 /// share it, or avoid relying on it.
 class AbstractContextTest with ResourceProviderMixin {
-  static const _homePath = '/home';
-  static const testsPath = '$_homePath/tests';
-
   OverlayResourceProvider overlayResourceProvider;
 
   AnalysisContextCollection _analysisContextCollection;
@@ -28,7 +25,11 @@ class AbstractContextTest with ResourceProviderMixin {
 
   AnalysisDriver get driver => _driver;
 
+  String get homePath => '/home';
+
   AnalysisSession get session => driver.currentSession;
+
+  String get testsPath => '$homePath/tests';
 
   void addMetaPackage() {
     addPackageFile('meta', 'meta.dart', r'''
@@ -93,7 +94,7 @@ export 'package:test_core/test_core.dart';
   /// Create all analysis contexts in [_homePath].
   void createAnalysisContexts() {
     _analysisContextCollection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath(_homePath)],
+      includedPaths: [convertPath(homePath)],
       enableIndex: true,
       resourceProvider: overlayResourceProvider,
       sdkPath: convertPath('/sdk'),
@@ -241,7 +242,7 @@ environment:
 
   void _createDriver() {
     var collection = AnalysisContextCollectionImpl(
-      includedPaths: [convertPath(_homePath)],
+      includedPaths: [convertPath(homePath)],
       enableIndex: true,
       resourceProvider: resourceProvider,
       sdkPath: convertPath('/sdk'),
