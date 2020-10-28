@@ -67,7 +67,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 ```dart
 String abc
 ```
-*lib/main.dart*
+*package:test/main.dart*
 
 ---
 This is a string.
@@ -182,7 +182,7 @@ print();
 ```dart
 String abc
 ```
-*lib/main.dart*
+*package:test/main.dart*
     '''
         .trim();
 

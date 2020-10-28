@@ -156,7 +156,11 @@ class AddMissingParameterRequiredTest_Workspace
 
   Future<void> test_function_inPackage_inWorkspace() async {
     newFile('/home/aaa/lib/a.dart', content: 'void test() {}');
-    addTestPackageDependency('aaa', '/home/aaa');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
 
     _workspace = DartChangeWorkspace([
       session,
@@ -178,7 +182,12 @@ main() {
   }
 
   Future<void> test_function_inPackage_outsideWorkspace() async {
-    addPackageFile('bbb', 'b.dart', 'void test() {}');
+    newFile('/home/bbb/lib/b.dart', content: 'void test() {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+    );
 
     await resolveTestUnit('''
 import 'package:bbb/b.dart';

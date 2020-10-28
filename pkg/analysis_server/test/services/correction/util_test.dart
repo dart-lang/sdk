@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../src/services/correction/assist/assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -36,6 +37,9 @@ main() {
     var condition = ifStatement.condition;
     var result = CorrectionUtils(testAnalysisResult).invertCondition(condition);
     expect(result, expected);
+    // For compactness we put multiple cases into one test method.
+    // Prepare for resolving the test file one again.
+    changeFile(testFile);
   }
 
   Future<void> test_addLibraryImports_dart_hasImports_between() async {
@@ -192,7 +196,15 @@ class A {}
 
   Future<void>
       test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
-    addPackageFile('aaa', 'aaa.dart', '');
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart');
+    newFile('$workspaceRootPath/bbb/lib/bbb.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+    );
+
     await resolveTestUnit('''
 import 'dart:async';
 
@@ -209,7 +221,15 @@ import 'package:bbb/bbb.dart';
 
   Future<void>
       test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
-    addPackageFile('bbb', 'bbb.dart', '');
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart');
+    newFile('$workspaceRootPath/bbb/lib/bbb.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb'),
+    );
+
     await resolveTestUnit('''
 import 'dart:async';
 
@@ -225,8 +245,19 @@ import 'package:bbb/bbb.dart';
   }
 
   Future<void> test_addLibraryImports_package_hasImports_between() async {
-    addPackageFile('aaa', 'aaa.dart', '');
-    addPackageFile('ddd', 'ddd.dart', '');
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart');
+    newFile('$workspaceRootPath/bbb/lib/bbb.dart');
+    newFile('$workspaceRootPath/ccc/lib/ccc.dart');
+    newFile('$workspaceRootPath/ddd/lib/ddd.dart');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa')
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')
+        ..add(name: 'ccc', rootPath: '$workspaceRootPath/ccc')
+        ..add(name: 'ddd', rootPath: '$workspaceRootPath/ddd'),
+    );
+
     await resolveTestUnit('''
 import 'package:aaa/aaa.dart';
 import 'package:ddd/ddd.dart';

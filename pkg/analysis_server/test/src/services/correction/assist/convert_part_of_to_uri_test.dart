@@ -24,10 +24,14 @@ class ConvertPartOfToUriTest extends AssistProcessorTest {
 library foo;
 part 'src/bar.dart';
 ''');
+
     testFile = convertPath('/home/test/lib/src/bar.dart');
-    await resolveTestUnit('''
+    addTestSource('''
 part of foo;
 ''');
+
+    await analyzeTestPackageFiles();
+    await resolveTestUnit2();
     await assertHasAssistAt('foo', '''
 part of '../foo.dart';
 ''');
@@ -38,10 +42,14 @@ part of '../foo.dart';
 library foo;
 part 'bar.dart';
 ''');
+
     testFile = convertPath('/home/test/lib/bar.dart');
-    await resolveTestUnit('''
+    addTestSource('''
 part of foo;
 ''');
+
+    await analyzeTestPackageFiles();
+    await resolveTestUnit2();
     await assertHasAssistAt('foo', '''
 part of 'foo.dart';
 ''');

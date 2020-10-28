@@ -30,7 +30,7 @@ class CompletionManagerTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_resolveDirectives() async {
-    addSource('/home/test/lib/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 library libA;
 /// My class.
 /// Short description.
@@ -38,12 +38,14 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    addSource('/home/test/lib/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', content: '''
 library libB;
 import "a.dart" as foo;
 part 'test.dart';
 ''');
     addTestSource('part of libB; main() {^}');
+
+    await resolveFile('$testPackageLibPath/b.dart');
 
     // Build the request
     var baseRequest = CompletionRequestImpl(

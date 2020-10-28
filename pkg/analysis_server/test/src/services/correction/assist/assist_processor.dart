@@ -16,6 +16,8 @@ import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';
 
+export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+
 /// A base class defining support for writing assist processor tests.
 abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   int _offset;
@@ -30,6 +32,36 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   /// The workspace in which fixes contributor operates.
   ChangeWorkspace get workspace {
     return DartChangeWorkspace([session]);
+  }
+
+  @override
+  void addTestSource(String code, [Uri uri]) {
+    if (useLineEndingsForPlatform) {
+      code = normalizeNewlinesForPlatform(code);
+    }
+    final eol = code.contains('\r\n') ? '\r\n' : '\n';
+    var offset = code.indexOf('/*caret*/');
+    if (offset >= 0) {
+      var endOffset = offset + '/*caret*/'.length;
+      code = code.substring(0, offset) + code.substring(endOffset);
+      _offset = offset;
+      _length = 0;
+    } else {
+      var startOffset = code.indexOf('// start$eol');
+      var endOffset = code.indexOf('// end$eol');
+      if (startOffset >= 0 && endOffset >= 0) {
+        var startLength = '// start$eol'.length;
+        code = code.substring(0, startOffset) +
+            code.substring(startOffset + startLength, endOffset) +
+            code.substring(endOffset + '// end$eol'.length);
+        _offset = startOffset;
+        _length = endOffset - startLength - _offset;
+      } else {
+        _offset = 0;
+        _length = 0;
+      }
+    }
+    super.addTestSource(code, uri);
   }
 
   void assertExitPosition({String before, String after}) {
@@ -139,36 +171,6 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     return values.map((value) {
       return LinkedEditSuggestion(value, kind);
     }).toList();
-  }
-
-  @override
-  Future<void> resolveTestUnit(String code) async {
-    if (useLineEndingsForPlatform) {
-      code = normalizeNewlinesForPlatform(code);
-    }
-    final eol = code.contains('\r\n') ? '\r\n' : '\n';
-    var offset = code.indexOf('/*caret*/');
-    if (offset >= 0) {
-      var endOffset = offset + '/*caret*/'.length;
-      code = code.substring(0, offset) + code.substring(endOffset);
-      _offset = offset;
-      _length = 0;
-    } else {
-      var startOffset = code.indexOf('// start$eol');
-      var endOffset = code.indexOf('// end$eol');
-      if (startOffset >= 0 && endOffset >= 0) {
-        var startLength = '// start$eol'.length;
-        code = code.substring(0, startOffset) +
-            code.substring(startOffset + startLength, endOffset) +
-            code.substring(endOffset + '// end$eol'.length);
-        _offset = startOffset;
-        _length = endOffset - startLength - _offset;
-      } else {
-        _offset = 0;
-        _length = 0;
-      }
-    }
-    return super.resolveTestUnit(code);
   }
 
   @override

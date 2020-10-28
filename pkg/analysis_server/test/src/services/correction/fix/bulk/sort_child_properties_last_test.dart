@@ -19,7 +19,7 @@ class SortChildPropertyLastTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.sort_child_properties_last;
 
   Future<void> test_singleFile() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {

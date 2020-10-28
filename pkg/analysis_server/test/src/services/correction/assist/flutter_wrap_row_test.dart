@@ -19,8 +19,15 @@ class FlutterWrapRowTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_ROW;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_twoWidgets() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 

@@ -1717,8 +1717,6 @@ class Class : public Object {
   const char* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
 
-  ArrayPtr invocation_dispatcher_cache() const;
-  void set_invocation_dispatcher_cache(const Array& cache) const;
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,
                                          FunctionLayout::Kind kind) const;
@@ -1750,6 +1748,9 @@ class Class : public Object {
  private:
   void set_functions(const Array& value) const;
   void set_fields(const Array& value) const;
+  void set_invocation_dispatcher_cache(const Array& cache) const;
+
+  ArrayPtr invocation_dispatcher_cache() const;
 
   // Calculates number of type arguments of this class.
   // This includes type arguments of a superclass and takes overlapping

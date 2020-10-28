@@ -43,6 +43,9 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   void addTestSource(String code, [Uri uri]) {
+    if (useLineEndingsForPlatform) {
+      code = normalizeNewlinesForPlatform(code);
+    }
     testCode = code;
     testSource = addSource(testFile, code, uri);
   }
@@ -128,10 +131,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestUnit(String code) async {
-    if (useLineEndingsForPlatform) {
-      code = normalizeNewlinesForPlatform(code);
-    }
     addTestSource(code);
+    await resolveTestUnit2();
+  }
+
+  Future<void> resolveTestUnit2() async {
     testAnalysisResult = await session.getResolvedUnit(testFile);
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
@@ -147,7 +151,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     }
     testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
-    findNode = FindNode(code, testUnit);
+    findNode = FindNode(testCode, testUnit);
   }
 
   @override

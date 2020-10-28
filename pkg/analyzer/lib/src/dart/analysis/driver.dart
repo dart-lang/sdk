@@ -2347,7 +2347,7 @@ class _FilesDefiningClassMemberNameTask {
     while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
       // Prepare files to check.
       if (filesToCheck.isEmpty) {
-        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+        Set<String> newFiles = driver.knownFiles.difference(checkedFiles);
         filesToCheck.addAll(newFiles);
       }
 

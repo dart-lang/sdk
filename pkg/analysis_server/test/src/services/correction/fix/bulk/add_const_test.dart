@@ -22,7 +22,7 @@ class AddConstToConstructorTest extends BulkFixProcessorTest {
   /// Disabled in BulkFixProcessor.
   @failingTest
   Future<void> test_singleFile() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     await resolveTestUnit(r'''
 class C {
   const C([C c]);
@@ -45,7 +45,7 @@ class AddConstToImmutableConstructorTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_const_constructors_in_immutables;
 
   Future<void> test_singleFile() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     await resolveTestUnit('''
 import 'package:meta/meta.dart';
 

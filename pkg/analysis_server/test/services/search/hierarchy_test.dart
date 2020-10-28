@@ -23,7 +23,7 @@ class HierarchyTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    searchEngine = SearchEngineImpl([driver]);
+    searchEngine = SearchEngineImpl([driverFor(testFile)]);
   }
 
   Future<void> test_getClassMembers() async {

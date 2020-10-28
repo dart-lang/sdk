@@ -7,8 +7,10 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -16,9 +18,13 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+import '../../../../abstract_context.dart';
 import '../../../../abstract_single_unit.dart';
+
+export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 /// A base class defining support for writing fix processor tests that are
 /// specific to fixes associated with lints that use the FixKind.
@@ -283,8 +289,10 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
+    var analysisContext = contextFor(testFile);
+
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    tracker.addContext(driver.analysisContext);
+    tracker.addContext(analysisContext);
 
     var context = DartFixContextImpl(
       workspace,
@@ -293,7 +301,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       (name) {
         var provider = TopLevelDeclarationsProvider(tracker);
         provider.doTrackerWork();
-        return provider.get(driver.analysisContext, testFile, name);
+        return provider.get(analysisContext, testFile, name);
       },
     );
     return await DartFixContributor().computeFixes(context);
@@ -349,5 +357,24 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       positions.add(Position(testFile, offset));
     }
     return positions;
+  }
+}
+
+mixin WithNullSafetyLintMixin on AbstractContextTest {
+  /// Return the lint code being tested.
+  String get lintCode;
+
+  @override
+  String get testPackageLanguageVersion =>
+      Feature.non_nullable.isEnabledByDefault ? '2.12' : '2.11';
+
+  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43837
+  /// Remove when Null Safety is enabled by default.
+  @nonVirtual
+  @override
+  void setUp() {
+    super.setUp();
+    createAnalysisOptionsFile(
+        experiments: [EnableString.non_nullable], lints: [lintCode]);
   }
 }

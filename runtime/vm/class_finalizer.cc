@@ -1003,6 +1003,12 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   if (cls.is_type_finalized()) {
     return;
   }
+
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  if (cls.is_type_finalized()) {
+    return;
+  }
+
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize types in %s\n", cls.ToCString());
   }

@@ -9,16 +9,17 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../abstract_context.dart';
 import 'completion_contributor_util.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgListContributorTest);
+    defineReflectiveTests(ArgListContributorWithNullSafetyTest);
   });
 }
 
-@reflectiveTest
-class ArgListContributorTest extends DartCompletionContributorTest {
+mixin ArgListContributorMixin on DartCompletionContributorTest {
   void assertNoOtherSuggestions(Iterable<CompletionSuggestion> expected) {
     for (var suggestion in suggestions) {
       if (!expected.contains(suggestion)) {
@@ -111,7 +112,11 @@ class ArgListContributorTest extends DartCompletionContributorTest {
   DartCompletionContributor createContributor() {
     return ArgListContributor();
   }
+}
 
+@reflectiveTest
+class ArgListContributorTest extends DartCompletionContributorTest
+    with ArgListContributorMixin {
   Future<void> test_Annotation_imported_constructor_named_param() async {
     addSource('/home/test/lib/a.dart', '''
 library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
@@ -380,7 +385,7 @@ void main() {
   }
 
   Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_0() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/widgets.dart';
@@ -400,7 +405,7 @@ build() => new Row(
   }
 
   Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_01() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -421,7 +426,7 @@ import 'package:flutter/material.dart';
   }
 
   Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_1() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -442,7 +447,7 @@ build() => new Row(
   }
 
   Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_2() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -466,7 +471,7 @@ build() => new Row(
       test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
     // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
     // type it's children.
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -492,7 +497,7 @@ class DynamicRow extends Widget {
   Future<void>
       test_ArgumentList_Flutter_InstanceCreationExpression_children_Map() async {
     // Ensure we don't generate Map params for a future API
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -516,7 +521,7 @@ class MapRow extends Widget {
 
   Future<void>
       test_ArgumentList_Flutter_InstanceCreationExpression_slivers() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -544,7 +549,7 @@ class CustomScrollView extends Widget {
     // TODO(brianwilkerson) This test has been changed so that it no longer has
     // anything to do with Flutter (by moving the declaration of `foo` out of
     // the 'material' library). Determine whether the test is still valid.
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
 
     addTestSource('''
 import 'package:flutter/material.dart';
@@ -964,7 +969,7 @@ main() { new A(^, two: 'foo');}''');
   }
 
   Future<void> test_ArgumentList_local_constructor_required_param_0() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 class A { A({int one, @required String two: 'defaultValue'}) { } }
@@ -1078,8 +1083,27 @@ main() { f("16", radix: ^);}''');
     assertNoSuggestions();
   }
 
+  Future<void> test_superConstructorInvocation() async {
+    addTestSource('''
+class A {
+  final bool field1;
+  final int field2;
+  A({this.field1, this.field2});
+}
+class B extends A {
+  B() : super(^);
+}
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'field1': 'bool', 'field2': 'int'});
+  }
+}
+
+@reflectiveTest
+class ArgListContributorWithNullSafetyTest extends DartCompletionContributorTest
+    with WithNullSafetyMixin, ArgListContributorMixin {
   Future<void> test_ArgumentList_nnbd_function_named_param() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     addTestSource(r'''
 f({int? nullable, int nonnullable}) {}
 main() { f(^);}');
@@ -1092,7 +1116,6 @@ main() { f(^);}');
   }
 
   Future<void> test_ArgumentList_nnbd_function_named_param_imported() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     addSource('/home/test/lib/a.dart', '''
 f({int? nullable, int nonnullable}) {}''');
     createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
@@ -1108,7 +1131,6 @@ main() { f(^);}');
   }
 
   Future<void> test_ArgumentList_nnbd_function_named_param_legacy() async {
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     addSource('/home/test/lib/a.dart', '''
 // @dart = 2.8
 f({int named}) {}''');
@@ -1120,21 +1142,5 @@ main() { f(^);}');
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
       'named': 'int*',
     });
-  }
-
-  Future<void> test_superConstructorInvocation() async {
-    addTestSource('''
-class A {
-  final bool field1;
-  final int field2;
-  A({this.field1, this.field2});
-}
-class B extends A {
-  B() : super(^);
-}
-''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'field1': 'bool', 'field2': 'int'});
   }
 }

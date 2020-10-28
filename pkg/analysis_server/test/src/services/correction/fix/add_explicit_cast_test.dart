@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -478,10 +478,8 @@ void foo(int a) {
 }
 
 @reflectiveTest
-class AddExplicitCastWithNullSafetyTest extends AddExplicitCastTest {
-  @override
-  List<String> get experiments => [EnableString.non_nullable];
-
+class AddExplicitCastWithNullSafetyTest extends AddExplicitCastTest
+    with WithNullSafetyMixin {
   Future<void> test_assignment_null() async {
     await resolveTestUnit('''
 void f(int x) {

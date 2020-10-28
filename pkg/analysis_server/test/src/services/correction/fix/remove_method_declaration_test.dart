@@ -92,7 +92,6 @@ class B extends A<int> {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
   Future<void> test_method_nullSafety_optIn_fromOptOut() async {
     createAnalysisOptionsFile(
       experiments: [EnableString.non_nullable],

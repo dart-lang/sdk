@@ -452,6 +452,9 @@ class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
   AnalysisServerOptions get serverOptions =>
       AnalysisServerOptions()..enabledExperiments = ['non-nullable'];
 
+  @override
+  String get testPackageLanguageVersion => latestLanguageVersion;
+
   Future<void> test_params_requiredNamed() async {
     // This test requires support for the "required" keyword.
     final content = '''

@@ -48,7 +48,7 @@ void main() {h^}''');
   }
 
   Future<void> test_ArgDefaults_function_with_optional_positional() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -61,7 +61,7 @@ void main() {h^}''');
   }
 
   Future<void> test_ArgDefaults_function_with_required_named() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -75,7 +75,7 @@ void main() {h^}''');
   }
 
   Future<void> test_ArgDefaults_inherited_method_with_required_named() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     resolveSource('/home/test/lib/b.dart', '''
 import 'package:meta/meta.dart';
 
@@ -96,7 +96,7 @@ class B extends A {
   }
 
   Future<void> test_ArgDefaults_method_with_required_named() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -1498,7 +1498,7 @@ void main() {
   }
 
   Future<void> test_Block_unimported() async {
-    addPackageFile('aaa', 'a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     addTestSource('main() { ^ }');
 
     await computeSuggestions();
@@ -3995,7 +3995,7 @@ main() {new^ X.c();}''');
   }
 
   Future<void> test_localConstructor() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -4010,14 +4010,14 @@ class A {
   }
 
   Future<void> test_localConstructor2() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''class A {A.named();} main() {^}}''');
     await computeSuggestions();
     assertSuggestConstructor('A.named');
   }
 
   Future<void> test_localConstructor_abstract() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 abstract class A {
   A();
@@ -4030,14 +4030,14 @@ abstract class A {
   }
 
   Future<void> test_localConstructor_defaultConstructor() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''class A {} main() {^}}''');
     await computeSuggestions();
     assertSuggestConstructor('A');
   }
 
   Future<void> test_localConstructor_factory() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 abstract class A {
   factory A();
@@ -4050,7 +4050,7 @@ abstract class A {
   }
 
   Future<void> test_localConstructor_optionalNew() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -6047,7 +6047,7 @@ void main() async* {
 
   Future<void> _check_flutter_setState(
       String line, String completion, int selectionOffset) async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     addTestSource('''
 import 'package:flutter/widgets.dart';
 

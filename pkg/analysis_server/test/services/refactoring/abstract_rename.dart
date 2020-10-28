@@ -12,6 +12,8 @@ import 'package:test/test.dart';
 
 import 'abstract_refactoring.dart';
 
+export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+
 /// The base class for all [RenameRefactoring] tests.
 class RenameRefactoringTest extends RefactoringTest {
   @override
@@ -49,7 +51,10 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Creates a new [RenameRefactoring] in [refactoring] for [element].
   /// Fails if no [RenameRefactoring] can be created.
   void createRenameRefactoringForElement(Element element) {
-    var workspace = RefactoringWorkspace([driver], searchEngine);
+    var workspace = RefactoringWorkspace(
+      [driverFor(testFile)],
+      searchEngine,
+    );
     refactoring = RenameRefactoring(workspace, testAnalysisResult, element);
     expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
   }

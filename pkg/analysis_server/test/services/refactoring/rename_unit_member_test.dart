@@ -236,11 +236,17 @@ main() {
   }
 
   Future<void> test_checkInitialConditions_outsideOfProject() async {
-    addPackageFile('aaa', 'lib.dart', r'''
+    newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 class A {}
 ''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
+
     await indexTestUnit('''
-import "package:aaa/lib.dart";
+import "package:aaa/a.dart";
 main() {
   A a;
 }
@@ -374,7 +380,7 @@ main() {
   }
 
   Future<void> test_createChange_ClassElement_flutterWidget() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -416,7 +422,7 @@ class NewPageState extends State<NewPage> {
 
   Future<void>
       test_createChange_ClassElement_flutterWidget_privateBoth() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -458,7 +464,7 @@ class _NewPageState extends State<_NewPage> {
 
   Future<void>
       test_createChange_ClassElement_flutterWidget_privateState() async {
-    addFlutterPackage();
+    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 

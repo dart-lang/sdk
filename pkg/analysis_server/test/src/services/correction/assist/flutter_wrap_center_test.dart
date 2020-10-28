@@ -19,8 +19,15 @@ class FlutterWrapCenterTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_CENTER;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   Future<void> test_aroundCenter() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
@@ -33,7 +40,6 @@ class FakeFlutter {
   }
 
   Future<void> test_aroundContainer() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
@@ -53,7 +59,6 @@ class FakeFlutter {
   }
 
   Future<void> test_aroundNamedConstructor() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
@@ -83,7 +88,6 @@ main() {
   }
 
   Future<void> test_assignment() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 
@@ -103,7 +107,6 @@ main() {
   }
 
   Future<void> test_expressionFunctionBody() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {

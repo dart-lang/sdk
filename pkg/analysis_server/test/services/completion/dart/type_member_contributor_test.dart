@@ -78,7 +78,7 @@ void main() {new A().a^}''');
   }
 
   Future<void> test_ArgDefaults_method_with_optional_positional() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -93,7 +93,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_ArgDefaults_method_with_required_named() async {
-    addMetaPackage();
+    writeTestPackageConfig(meta: true);
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -1075,7 +1075,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_Block_unimported() async {
-    addPackageFile('aaa', 'a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     addTestSource('main() { ^ }');
 
     await computeSuggestions();

@@ -392,9 +392,9 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// If the length is not specified, it defaults to null, which indicates
   /// that the view extends to the end of the byte buffer.
   ///
-  /// Throws [RangeError] if [offsetInBytes] or [length] are negative, or
-  /// if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
-  /// the length of [buffer].
+  /// The [offsetInBytes] and [length] must be non-negative, and
+  /// [offsetInBytes] + ([length] * elementSizeInBytes) must be less than or
+  /// equal to the length of [buffer].
   factory NativeByteData.view(
       ByteBuffer buffer, int offsetInBytes, int? length) {
     _checkViewArguments(buffer, offsetInBytes, length);
@@ -411,8 +411,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// the specified [byteOffset] in this object, in IEEE 754
   /// single-precision binary floating-point format (binary32).
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 4` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 4` must be less than or equal to the length of this object.
   double getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
       _getFloat32(byteOffset, Endian.little == endian);
 
@@ -424,8 +424,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// the specified [byteOffset] in this object, in IEEE 754
   /// double-precision binary floating-point format (binary64).
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 8` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 8` must be less than or equal to the length of this object.
   double getFloat64(int byteOffset, [Endian endian = Endian.big]) =>
       _getFloat64(byteOffset, Endian.little == endian);
 
@@ -439,8 +439,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// The return value will be between 2<sup>15</sup> and 2<sup>15</sup> - 1,
   /// inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 2` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 2` must be less than or equal to the length of this object.
   int getInt16(int byteOffset, [Endian endian = Endian.big]) =>
       _getInt16(byteOffset, Endian.little == endian);
 
@@ -454,8 +454,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// The return value will be between 2<sup>31</sup> and 2<sup>31</sup> - 1,
   /// inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 4` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 4` must be less than or equal to the length of this object.
   int getInt32(int byteOffset, [Endian endian = Endian.big]) =>
       _getInt32(byteOffset, Endian.little == endian);
 
@@ -469,8 +469,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// The return value will be between 2<sup>63</sup> and 2<sup>63</sup> - 1,
   /// inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 8` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 8` must be less than or equal to the length of this object.
   int getInt64(int byteOffset, [Endian endian = Endian.big]) {
     throw UnsupportedError('Int64 accessor not supported by dart2js.');
   }
@@ -479,8 +479,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// specified [byteOffset] in this object, in two's complement binary
   /// representation. The return value will be between -128 and 127, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// greater than or equal to the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// less than the length of this object.
   int getInt8(int byteOffset) native;
 
   /// Returns the positive integer represented by the two bytes starting
@@ -488,8 +488,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// form.
   /// The return value will be between 0 and  2<sup>16</sup> - 1, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 2` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 2` must be less than or equal to the length of this object.
   int getUint16(int byteOffset, [Endian endian = Endian.big]) =>
       _getUint16(byteOffset, Endian.little == endian);
 
@@ -502,8 +502,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// form.
   /// The return value will be between 0 and  2<sup>32</sup> - 1, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 4` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 4` must be less than or equal to the length of this object.
   int getUint32(int byteOffset, [Endian endian = Endian.big]) =>
       _getUint32(byteOffset, Endian.little == endian);
 
@@ -516,8 +516,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// form.
   /// The return value will be between 0 and  2<sup>64</sup> - 1, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 8` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 8` must be less than or equal to the length of this object.
   int getUint64(int byteOffset, [Endian endian = Endian.big]) {
     throw UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
@@ -526,8 +526,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// [byteOffset] in this object, in unsigned binary form. The
   /// return value will be between 0 and 255, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// greater than or equal to the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// less than the length of this object.
   int getUint8(int byteOffset) native;
 
   /// Sets the four bytes starting at the specified [byteOffset] in this
@@ -543,8 +543,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// Note that finite (but large) values can be converted to infinity, and
   /// small non-zero values can be converted to zero.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 4` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 4` must be less than or equal to the length of this object.
   void setFloat32(int byteOffset, num value, [Endian endian = Endian.big]) =>
       _setFloat32(byteOffset, value, Endian.little == endian);
 
@@ -555,8 +555,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// object to the IEEE 754 double-precision binary floating-point
   /// (binary64) representation of the specified [value].
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 8` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 8` must be less than or equal to the length of this object.
   void setFloat64(int byteOffset, num value, [Endian endian = Endian.big]) =>
       _setFloat64(byteOffset, value, Endian.little == endian);
 
@@ -568,8 +568,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// [value], which must fit in two bytes. In other words, [value] must lie
   /// between 2<sup>15</sup> and 2<sup>15</sup> - 1, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 2` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 2` must be less than or equal to the length of this object.
   void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) =>
       _setInt16(byteOffset, value, Endian.little == endian);
 
@@ -581,8 +581,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// [value], which must fit in four bytes. In other words, [value] must lie
   /// between 2<sup>31</sup> and 2<sup>31</sup> - 1, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 4` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 4` must be less than or equal to the length of this object.
   void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) =>
       _setInt32(byteOffset, value, Endian.little == endian);
 
@@ -594,8 +594,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// [value], which must fit in eight bytes. In other words, [value] must lie
   /// between 2<sup>63</sup> and 2<sup>63</sup> - 1, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 8` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 8` must be less than or equal to the length of this object.
   void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
     throw UnsupportedError('Int64 accessor not supported by dart2js.');
   }
@@ -605,8 +605,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// must fit in a single byte. In other words, [value] must be between
   /// -128 and 127, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// greater than or equal to the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// less than the length of this object.
   void setInt8(int byteOffset, int value) native;
 
   /// Sets the two bytes starting at the specified [byteOffset] in this object
@@ -614,8 +614,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// which must fit in two bytes. in other words, [value] must be between
   /// 0 and 2<sup>16</sup> - 1, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 2` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 2` must be less than or equal to the length of this object.
   void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) =>
       _setUint16(byteOffset, value, Endian.little == endian);
 
@@ -627,8 +627,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// which must fit in four bytes. in other words, [value] must be between
   /// 0 and 2<sup>32</sup> - 1, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 4` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 4` must be less than or equal to the length of this object.
   void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) =>
       _setUint32(byteOffset, value, Endian.little == endian);
 
@@ -640,8 +640,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// which must fit in eight bytes. in other words, [value] must be between
   /// 0 and 2<sup>64</sup> - 1, inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative, or
-  /// `byteOffset + 8` is greater than the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// `byteOffset + 8` must be less than or equal to the length of this object.
   void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
     throw UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
@@ -651,8 +651,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
   /// in a single byte. in other words, [value] must be between 0 and 255,
   /// inclusive.
   ///
-  /// Throws [RangeError] if [byteOffset] is negative,
-  /// or greater than or equal to the length of this object.
+  /// The [byteOffset] must be non-negative, and
+  /// less than the length of this object.
   void setUint8(int byteOffset, int value) native;
 
   static NativeByteData _create1(arg) =>

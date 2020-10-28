@@ -23,9 +23,16 @@ class SortChildPropertyLastTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.sort_child_properties_last;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+  }
+
   /// More coverage in the `sort_child_properties_last_test.dart` assist test.
   Future<void> test_sort() async {
-    addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
 main() {

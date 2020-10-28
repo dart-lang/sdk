@@ -20,7 +20,10 @@ class AddFieldFormalParametersTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
 
   Future<void> test_flutter() async {
-    addFlutterPackage();
+    writeTestPackageConfig(
+      flutter: true,
+    );
+
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 

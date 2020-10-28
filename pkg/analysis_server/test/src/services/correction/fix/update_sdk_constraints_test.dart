@@ -64,6 +64,7 @@ const c = a == null;
   }
 
   Future<void> test_gtGtGtOperator() async {
+    writeTestPackageConfig(languageVersion: latestLanguageVersion);
     createAnalysisOptionsFile(experiments: [EnableString.triple_shift]);
     await testUpdate(content: '''
 class C {

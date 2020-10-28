@@ -10,7 +10,6 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/utilities/mock_packages.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'code_actions_abstract.dart';
 
@@ -304,14 +303,10 @@ class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
   @override
   void setUp() {
     super.setUp();
-
-    final flutterLibFolder = MockPackages.instance.addFlutter(resourceProvider);
-    final metaLibFolder = MockPackages.instance.addMeta(resourceProvider);
-    // Create .packages in the project.
-    newFile(join(projectFolderPath, '.packages'), content: '''
-flutter:${flutterLibFolder.toUri()}
-meta:${metaLibFolder.toUri()}
-''');
+    writePackageConfig(
+      projectFolderPath,
+      flutter: true,
+    );
   }
 
   Future<void> test_appliesCorrectEdits() async {

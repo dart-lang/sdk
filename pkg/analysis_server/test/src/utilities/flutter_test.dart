@@ -22,7 +22,9 @@ class FlutterTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    addFlutterPackage();
+    writeTestPackageConfig(
+      flutter: true,
+    );
   }
 
   Future<void> test_getWidgetPresentationText_icon() async {
