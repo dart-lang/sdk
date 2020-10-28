@@ -11,5 +11,6 @@ int foo() {
   } else
     ; // Empty else statement
 
-  // Missing return
+  0 as int; // Unnecessary cast
+  return 0;
 }

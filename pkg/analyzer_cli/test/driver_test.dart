@@ -1072,8 +1072,7 @@ class OptionsTest extends BaseTest {
       options: path.join(testDir, 'analysis_options.yaml'),
     );
     expect(exitCode, 3);
-    expect(outSink.toString(),
-        contains('but doesn\'t end with a return statement'));
+    expect(outSink.toString(), contains('Unnecessary cast.'));
     expect(outSink.toString(), contains('isn\'t defined'));
     expect(outSink.toString(), contains('Avoid empty else statements'));
   }
