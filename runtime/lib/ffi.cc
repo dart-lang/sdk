@@ -306,36 +306,9 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   return Integer::New(SizeOf(type_arg, zone));
 }
 
-// Static invocations to this method are translated directly in streaming FGB
-// and bytecode FGB. However, we can still reach this entrypoint in the bytecode
-// interpreter.
+// Static invocations to this method are translated directly in streaming FGB.
 DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 1) {
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   UNREACHABLE();
-#else
-  ASSERT(FLAG_enable_interpreter);
-
-  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  GET_NATIVE_TYPE_ARGUMENT(dart_type, arguments->NativeTypeArgAt(0));
-  GET_NATIVE_TYPE_ARGUMENT(native_type, arguments->NativeTypeArgAt(1));
-
-  const Function& dart_signature =
-      Function::Handle(zone, Type::Cast(dart_type).signature());
-  const Function& native_signature =
-      Function::Handle(zone, Type::Cast(native_type).signature());
-  const Function& function = Function::Handle(
-      compiler::ffi::TrampolineFunction(dart_signature, native_signature));
-
-  // Set the c function pointer in the context of the closure rather than in
-  // the function so that we can reuse the function for each c function with
-  // the same signature.
-  const Context& context = Context::Handle(Context::New(1));
-  context.SetAt(0, pointer);
-
-  return Closure::New(Object::null_type_arguments(),
-                      Object::null_type_arguments(), function, context,
-                      Heap::kOld);
-#endif
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {

@@ -26,7 +26,6 @@
 #include "vm/heap/safepoint.h"
 #include "vm/heap/verifier.h"
 #include "vm/image_snapshot.h"
-#include "vm/interpreter.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
@@ -1681,10 +1680,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
         "         See dartbug.com/30524 for more information.\n");
   }
 
-  if (FLAG_enable_interpreter) {
-    NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(
-                           this, /* optimizing = */ false));
-  }
   NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
                          new BackgroundCompiler(this, /* optimizing = */ true));
 }
@@ -1697,11 +1692,6 @@ Isolate::~Isolate() {
   // TODO(32796): Re-enable assertion.
   // RELEASE_ASSERT(reload_context_ == NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  if (FLAG_enable_interpreter) {
-    delete background_compiler_;
-    background_compiler_ = nullptr;
-  }
 
   delete optimizing_background_compiler_;
   optimizing_background_compiler_ = nullptr;
@@ -2602,10 +2592,6 @@ void Isolate::set_forward_table_old(WeakTable* table) {
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   BackgroundCompiler::Stop(this);
-  if (FLAG_enable_interpreter) {
-    delete background_compiler_;
-    background_compiler_ = nullptr;
-  }
   delete optimizing_background_compiler_;
   optimizing_background_compiler_ = nullptr;
 

@@ -108,11 +108,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       func.IsRedirectingFactory() || func.is_synthetic()) {
     return true;
   }
-  // Note that context_scope() remains null for closures declared in bytecode,
-  // because the same information is retrieved from the parent's local variable
-  // descriptors.
-  // See IsLocalFunction() case in BytecodeReader::ComputeLocalVarDescriptors.
-  if (!func.is_declared_in_bytecode() && func.IsNonImplicitClosureFunction() &&
+  if (func.IsNonImplicitClosureFunction() &&
       (func.context_scope() == ContextScope::null())) {
     // TODO(iposva): This can arise if we attempt to compile an inner function
     // before we have compiled its enclosing function or if the enclosing
@@ -198,10 +194,7 @@ bool SourceReport::ScriptIsLoadedByLibrary(const Script& script,
 void SourceReport::PrintCallSitesData(JSONObject* jsobj,
                                       const Function& function,
                                       const Code& code) {
-  if (code.IsNull()) {
-    // TODO(regis): implement for bytecode.
-    return;
-  }
+  ASSERT(!code.IsNull());
   const TokenPosition begin_pos = function.token_pos();
   const TokenPosition end_pos = function.end_token_pos();
 
@@ -234,10 +227,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& function,
                                      const Code& code) {
-  if (code.IsNull()) {
-    // TODO(regis): implement for bytecode.
-    return;
-  }
+  ASSERT(!code.IsNull());
   const TokenPosition begin_pos = function.token_pos();
   const TokenPosition end_pos = function.end_token_pos();
 
@@ -319,63 +309,24 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
 
   BitVector possible(zone(), func_length);
 
-  if (code.IsNull()) {
-    const Bytecode& bytecode = Bytecode::Handle(func.bytecode());
-    ASSERT(!bytecode.IsNull());
-    kernel::BytecodeSourcePositionsIterator iter(zone(), bytecode);
-    intptr_t token_offset = -1;
-    uword pc_offset = kUwordMax;
-    // Ignore all possible breakpoint positions until the first DebugCheck
-    // opcode of the function.
-    const uword debug_check_pc = bytecode.GetFirstDebugCheckOpcodePc();
-    if (debug_check_pc != 0) {
-      const uword debug_check_pc_offset =
-          debug_check_pc - bytecode.PayloadStart();
-      while (iter.MoveNext()) {
-        if (pc_offset != kUwordMax) {
-          // Check that there is at least one 'debug checked' opcode in the last
-          // source position range.
-          if (bytecode.GetDebugCheckedOpcodeReturnAddress(
-                  pc_offset, iter.PcOffset()) != 0) {
-            possible.Add(token_offset);
-          }
-          pc_offset = kUwordMax;
-        }
-        const TokenPosition token_pos = iter.TokenPos();
-        if ((token_pos < begin_pos) || (token_pos > end_pos)) {
-          // Does not correspond to a valid source position.
-          continue;
-        }
-        if (iter.PcOffset() < debug_check_pc_offset) {
-          // No breakpoints in prologue.
-          continue;
-        }
-        pc_offset = iter.PcOffset();
-        token_offset = token_pos.Pos() - begin_pos.Pos();
-      }
-    }
-    if (pc_offset != kUwordMax && bytecode.GetDebugCheckedOpcodeReturnAddress(
-                                      pc_offset, bytecode.Size()) != 0) {
-      possible.Add(token_offset);
-    }
-  } else {
-    const uint8_t kSafepointKind =
-        (PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall |
-         PcDescriptorsLayout::kRuntimeCall);
+  ASSERT(!code.IsNull());
 
-    const PcDescriptors& descriptors =
-        PcDescriptors::Handle(zone(), code.pc_descriptors());
+  const uint8_t kSafepointKind =
+      (PcDescriptorsLayout::kIcCall | PcDescriptorsLayout::kUnoptStaticCall |
+       PcDescriptorsLayout::kRuntimeCall);
 
-    PcDescriptors::Iterator iter(descriptors, kSafepointKind);
-    while (iter.MoveNext()) {
-      const TokenPosition token_pos = iter.TokenPos();
-      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
-        // Does not correspond to a valid source position.
-        continue;
-      }
-      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
-      possible.Add(token_offset);
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone(), code.pc_descriptors());
+
+  PcDescriptors::Iterator iter(descriptors, kSafepointKind);
+  while (iter.MoveNext()) {
+    const TokenPosition token_pos = iter.TokenPos();
+    if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+      // Does not correspond to a valid source position.
+      continue;
     }
+    intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+    possible.Add(token_offset);
   }
 
   JSONArray bpts(jsobj, "possibleBreakpoints");
@@ -454,16 +405,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   const TokenPosition end_pos = func.end_token_pos();
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
-  Bytecode& bytecode = Bytecode::Handle(zone());
-  if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
-    // When the bytecode of a function is loaded, the function code is not null,
-    // but pointing to the stub to interpret the bytecode. The various Print
-    // functions below take code as an argument and know to process the bytecode
-    // if code is null.
-    code = Code::null();  // Ignore installed stub to interpret bytecode.
-    bytecode = func.bytecode();
-  }
-  if (code.IsNull() && bytecode.IsNull()) {
+  if (code.IsNull()) {
     if (func.HasCode() || (compile_mode_ == kForceCompile)) {
       const Error& err =
           Error::Handle(Compiler::EnsureUnoptimizedCode(thread(), func));
@@ -478,10 +420,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
         return;
       }
       code = func.unoptimized_code();
-      if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
-        code = Code::null();  // Ignore installed stub to interpret bytecode.
-        bytecode = func.bytecode();
-      }
     } else {
       // This function has not been compiled yet.
       JSONObject range(jsarr);
@@ -492,7 +430,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       return;
     }
   }
-  ASSERT(!code.IsNull() || !bytecode.IsNull());
+  ASSERT(!code.IsNull());
 
   // We skip compiled async functions.  Once an async function has
   // been compiled, there is another function with the same range which
@@ -503,7 +441,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
     range.AddProperty("scriptIndex", GetScriptIndex(script));
     range.AddProperty("startPos", begin_pos);
     range.AddProperty("endPos", end_pos);
-    range.AddProperty("compiled", true);  // bytecode or code.
+    range.AddProperty("compiled", true);
 
     if (IsReportRequested(kCallSites)) {
       PrintCallSitesData(&range, func, code);
@@ -590,8 +528,6 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
 }
 
 void SourceReport::VisitClosures(JSONArray* jsarr) {
-  // Note that closures declared in bytecode are not visited here, but in
-  // VisitFunction while traversing the object pool of their owner functions.
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       thread()->isolate()->object_store()->closure_functions());
 

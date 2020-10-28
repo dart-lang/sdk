@@ -40,7 +40,6 @@ class ObjectPointerVisitor;
   V(ByteData, "ByteData")                                                      \
   V(ByteDataDot, "ByteData.")                                                  \
   V(ByteDataDot_view, "ByteData._view")                                        \
-  V(Bytecode, "Bytecode")                                                      \
   V(Call, "call")                                                              \
   V(Cancel, "cancel")                                                          \
   V(CastError, "_CastError")                                                   \
@@ -237,7 +236,6 @@ class ObjectPointerVisitor;
   V(Other, "other")                                                            \
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(PackageScheme, "package:")                                                 \
-  V(ParameterTypeCheck, "ParameterTypeCheck")                                  \
   V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \

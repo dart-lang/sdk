@@ -194,11 +194,6 @@ class TranslationHelper {
                    const char* format,
                    ...) PRINTF_ATTRIBUTE(5, 6);
 
-  ArrayPtr GetBytecodeComponent() const { return info_.bytecode_component(); }
-  void SetBytecodeComponent(const Array& bytecode_component) {
-    info_.set_bytecode_component(bytecode_component);
-  }
-
   void SetExpressionEvaluationFunction(const Function& function) {
     ASSERT(expression_evaluation_function_ == nullptr);
     expression_evaluation_function_ = &Function::Handle(zone_, function.raw());
@@ -1260,8 +1255,6 @@ class KernelReaderHelper {
   // kernel program.
   intptr_t data_program_offset_;
 
-  friend class BytecodeMetadataHelper;
-  friend class BytecodeReaderHelper;
   friend class ClassHelper;
   friend class CallSiteAttributesMetadataHelper;
   friend class ConstantReader;

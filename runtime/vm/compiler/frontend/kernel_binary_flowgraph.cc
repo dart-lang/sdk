@@ -5,8 +5,6 @@
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 
 #include "vm/compiler/ffi/callback.h"
-#include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
@@ -15,9 +13,6 @@
 #include "vm/stack_frame.h"
 
 namespace dart {
-
-DECLARE_FLAG(bool, enable_interpreter);
-
 namespace kernel {
 
 #define Z (zone_)
@@ -1054,55 +1049,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
   ActiveClassScope active_class_scope(active_class(), &klass);
   ActiveMemberScope active_member(active_class(), &outermost_function);
   ActiveTypeParametersScope active_type_params(active_class(), function, Z);
-
-  if (function.is_declared_in_bytecode()) {
-    bytecode_metadata_helper_.ParseBytecodeFunction(parsed_function());
-
-    switch (function.kind()) {
-      case FunctionLayout::kImplicitClosureFunction:
-        return B->BuildGraphOfImplicitClosureFunction(function);
-      case FunctionLayout::kImplicitGetter:
-      case FunctionLayout::kImplicitSetter:
-        return B->BuildGraphOfFieldAccessor(function);
-      case FunctionLayout::kImplicitStaticGetter: {
-        if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
-          break;
-        }
-        return B->BuildGraphOfFieldAccessor(function);
-      }
-      case FunctionLayout::kDynamicInvocationForwarder:
-        return B->BuildGraphOfDynamicInvocationForwarder(function);
-      case FunctionLayout::kMethodExtractor:
-        return B->BuildGraphOfMethodExtractor(function);
-      case FunctionLayout::kNoSuchMethodDispatcher:
-        return B->BuildGraphOfNoSuchMethodDispatcher(function);
-      default:
-        break;
-    }
-
-    ASSERT(function.HasBytecode());
-
-    BytecodeFlowGraphBuilder bytecode_compiler(
-        flow_graph_builder_, parsed_function(),
-        &(flow_graph_builder_->ic_data_array_));
-
-    if (B->IsRecognizedMethodForFlowGraph(function)) {
-      bytecode_compiler.CreateParameterVariables();
-      return B->BuildGraphOfRecognizedMethod(function);
-    }
-
-    return bytecode_compiler.BuildGraph();
-  }
-
-  // Certain special functions could have a VM-internal bytecode
-  // attached to them.
-  ASSERT((!function.HasBytecode()) ||
-         (function.kind() == FunctionLayout::kImplicitGetter) ||
-         (function.kind() == FunctionLayout::kImplicitSetter) ||
-         (function.kind() == FunctionLayout::kImplicitStaticGetter) ||
-         (function.kind() == FunctionLayout::kMethodExtractor) ||
-         (function.kind() == FunctionLayout::kInvokeFieldDispatcher) ||
-         (function.kind() == FunctionLayout::kNoSuchMethodDispatcher));
 
   ParseKernelASTFunction();
 
@@ -3174,8 +3120,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
                                   NULL));
 
   // Special case identical(x, y) call.
-  // Note: similar optimization is performed in bytecode flow graph builder -
-  // see BytecodeFlowGraphBuilder::BuildDirectCall().
   // TODO(27590) consider moving this into the inliner and force inline it
   // there.
   if (special_case_identical) {

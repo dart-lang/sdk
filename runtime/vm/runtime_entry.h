@@ -57,8 +57,6 @@ class RuntimeEntry : public BaseRuntimeEntry {
   NOT_IN_PRECOMPILED(void Call(compiler::Assembler* assembler,
                                intptr_t argument_count) const);
 
-  static uword InterpretCallEntry();
-
  protected:
   NOT_IN_PRECOMPILED(static void CallInternal(const RuntimeEntry* runtime_entry,
                                               compiler::Assembler* assembler,

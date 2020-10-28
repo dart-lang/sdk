@@ -88,9 +88,6 @@ abstract class ServiceFunction extends Object implements FunctionRef {
   CodeRef? get unoptimizedCode;
 
   /// [optional]
-  CodeRef? get bytecode;
-
-  /// [optional]
   FieldRef? get field;
   int? get usageCounter;
   InstanceRef? get icDataArray;

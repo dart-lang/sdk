@@ -208,8 +208,6 @@
   FIELD(Thread, float_not_address_offset)                                      \
   FIELD(Thread, float_zerow_address_offset)                                    \
   FIELD(Thread, global_object_pool_offset)                                     \
-  FIELD(Thread, interpret_call_entry_point_offset)                             \
-  FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, exit_through_ffi_offset)                                       \
   FIELD(Thread, isolate_offset)                                                \
@@ -301,7 +299,6 @@
   SIZEOF(Array, InstanceSize, ArrayLayout)                                     \
   SIZEOF(Array, header_size, ArrayLayout)                                      \
   SIZEOF(Bool, InstanceSize, BoolLayout)                                       \
-  SIZEOF(Bytecode, InstanceSize, BytecodeLayout)                               \
   SIZEOF(Capability, InstanceSize, CapabilityLayout)                           \
   SIZEOF(Class, InstanceSize, ClassLayout)                                     \
   SIZEOF(Closure, InstanceSize, ClosureLayout)                                 \
@@ -347,7 +344,6 @@
   SIZEOF(Object, InstanceSize, ObjectLayout)                                   \
   SIZEOF(ObjectPool, InstanceSize, ObjectPoolLayout)                           \
   SIZEOF(OneByteString, InstanceSize, OneByteStringLayout)                     \
-  SIZEOF(ParameterTypeCheck, InstanceSize, ParameterTypeCheckLayout)           \
   SIZEOF(PatchClass, InstanceSize, PatchClassLayout)                           \
   SIZEOF(PcDescriptors, HeaderSize, PcDescriptorsLayout)                       \
   SIZEOF(Pointer, InstanceSize, PointerLayout)                                 \

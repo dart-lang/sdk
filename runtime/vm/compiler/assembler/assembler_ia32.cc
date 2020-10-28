@@ -2288,8 +2288,7 @@ void Assembler::TransitionNativeToGenerated(Register scratch,
   }
 
   // Mark that the thread is executing Dart code.
-  movl(Assembler::VMTagAddress(),
-       Immediate(target::Thread::vm_tag_compiled_id()));
+  movl(Assembler::VMTagAddress(), Immediate(target::Thread::vm_tag_dart_id()));
   movl(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::generated_execution_state()));
 

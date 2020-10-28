@@ -8,10 +8,6 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/compiler/frontend/bytecode_reader.h"
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 
 // Keep in sync with
@@ -45,29 +41,6 @@ intptr_t FindPcOffset(const PcDescriptors& pc_descs, intptr_t yield_index) {
   }
   UNREACHABLE();  // If we cannot find it we have a bug.
 }
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-intptr_t FindPcOffset(const Bytecode& bytecode, intptr_t yield_index) {
-  if (yield_index == PcDescriptorsLayout::kInvalidYieldIndex) {
-    return 0;
-  }
-  if (!bytecode.HasSourcePositions()) {
-    return 0;
-  }
-  intptr_t last_yield_point = 0;
-  kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
-                                               bytecode);
-  while (iter.MoveNext()) {
-    if (iter.IsYieldPoint()) {
-      last_yield_point++;
-    }
-    if (last_yield_point == yield_index) {
-      return iter.PcOffset();
-    }
-  }
-  UNREACHABLE();  // If we cannot find it we have a bug.
-}
-#endif
 
 // Instance caches library and field references.
 // This way we don't have to do the look-ups for every frame in the stack.
@@ -301,8 +274,7 @@ bool CallerClosureFinder::IsRunningAsync(const Closure& receiver_closure) {
 }
 
 ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
-                                               const Function& function,
-                                               bool is_interpreted) {
+                                               const Function& function) {
   NoSafepointScope nsp;
 
   ASSERT(!function.IsNull());
@@ -317,8 +289,7 @@ ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
   const intptr_t kNumClosureAndArgs = 4;
   auto& closure = Closure::Handle();
   for (intptr_t i = 0; i < kNumClosureAndArgs; i++) {
-    // KBC builds the stack upwards instead of the usual downwards stack.
-    ObjectPtr arg = last_object_in_caller[(is_interpreted ? -i : i)];
+    ObjectPtr arg = last_object_in_caller[i];
     if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
       closure = Closure::RawCast(arg);
       if (closure.function() == function.raw()) {
@@ -351,7 +322,6 @@ void StackTraceUtils::CollectFramesLazy(
 
   auto& function = Function::Handle(zone);
   auto& code = Code::Handle(zone);
-  auto& bytecode = Bytecode::Handle(zone);
   auto& offset = Smi::Handle(zone);
 
   auto& closure = Closure::Handle(zone);
@@ -365,32 +335,15 @@ void StackTraceUtils::CollectFramesLazy(
       continue;
     }
 
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      ASSERT(!bytecode.IsNull());
-      function = bytecode.function();
-      if (function.IsNull()) {
-        continue;
-      }
-      RELEASE_ASSERT(function.raw() == frame->LookupDartFunction());
-    } else {
-      function = frame->LookupDartFunction();
-    }
+    function = frame->LookupDartFunction();
 
     // Add the current synchronous frame.
-    if (frame->is_interpreted()) {
-      code_array.Add(bytecode);
-      const intptr_t pc_offset = frame->pc() - bytecode.PayloadStart();
-      ASSERT(pc_offset > 0 && pc_offset <= bytecode.Size());
-      offset = Smi::New(pc_offset);
-    } else {
-      code = frame->LookupDartCode();
-      ASSERT(function.raw() == code.function());
-      code_array.Add(code);
-      const intptr_t pc_offset = frame->pc() - code.PayloadStart();
-      ASSERT(pc_offset > 0 && pc_offset <= code.Size());
-      offset = Smi::New(pc_offset);
-    }
+    code = frame->LookupDartCode();
+    ASSERT(function.raw() == code.function());
+    code_array.Add(code);
+    const intptr_t pc_offset = frame->pc() - code.PayloadStart();
+    ASSERT(pc_offset > 0 && pc_offset <= code.Size());
+    offset = Smi::New(pc_offset);
     pc_offset_array.Add(offset);
     if (on_sync_frames != nullptr) {
       (*on_sync_frames)(frame);
@@ -411,8 +364,7 @@ void StackTraceUtils::CollectFramesLazy(
         // through the yields.
         ObjectPtr* last_caller_obj =
             reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
-        closure = FindClosureInFrame(last_caller_obj, function,
-                                     frame->is_interpreted());
+        closure = FindClosureInFrame(last_caller_obj, function);
 
         // If this async function hasn't yielded yet, we're still dealing with a
         // normal stack. Continue to next frame as usual.
@@ -434,18 +386,10 @@ void StackTraceUtils::CollectFramesLazy(
            closure = caller_closure_finder.FindCaller(closure)) {
         function = closure.function();
         // In hot-reload-test-mode we sometimes have to do this:
-        if (!function.HasCode() && !function.HasBytecode()) {
+        if (!function.HasCode()) {
           function.EnsureHasCode();
         }
-        if (function.HasBytecode()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-          bytecode = function.bytecode();
-          code_array.Add(bytecode);
-          offset = Smi::New(FindPcOffset(bytecode, GetYieldIndex(closure)));
-#else
-          UNREACHABLE();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-        } else if (function.HasCode()) {
+        if (function.HasCode()) {
           code = function.CurrentCode();
           code_array.Add(code);
           pc_descs = code.pc_descriptors();
@@ -485,7 +429,6 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Function& function = Function::Handle(zone);
   Code& code = Code::Handle(zone);
-  Bytecode& bytecode = Bytecode::Handle(zone);
   String& function_name = String::Handle(zone);
   const bool async_function_is_null = async_function.IsNull();
   int sync_async_gap_frames = -1;
@@ -499,14 +442,8 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
       skip_frames--;
       continue;
     }
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      function = bytecode.function();
-      if (function.IsNull()) continue;
-    } else {
-      code = frame->LookupDartCode();
-      function = code.function();
-    }
+    code = frame->LookupDartCode();
+    function = code.function();
     const bool function_is_null = function.IsNull();
     if (!function_is_null && sync_async_gap_frames > 0) {
       function_name = function.QualifiedScrubbedName();
@@ -539,9 +476,7 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
-  Function& function = Function::Handle(zone);
   Code& code = Code::Handle(zone);
-  Bytecode& bytecode = Bytecode::Handle(zone);
   Smi& offset = Smi::Handle(zone);
   intptr_t collected_frames_count = 0;
   for (; (frame != NULL) && (collected_frames_count < count);
@@ -553,19 +488,9 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
       skip_frames--;
       continue;
     }
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      function = bytecode.function();
-      if (function.IsNull()) {
-        continue;
-      }
-      offset = Smi::New(frame->pc() - bytecode.PayloadStart());
-      code_array.SetAt(array_offset, bytecode);
-    } else {
-      code = frame->LookupDartCode();
-      offset = Smi::New(frame->pc() - code.PayloadStart());
-      code_array.SetAt(array_offset, code);
-    }
+    code = frame->LookupDartCode();
+    offset = Smi::New(frame->pc() - code.PayloadStart());
+    code_array.SetAt(array_offset, code);
     pc_offset_array.SetAt(array_offset, offset);
     array_offset++;
     collected_frames_count++;
@@ -598,12 +523,8 @@ intptr_t StackTraceUtils::ExtractAsyncStackTraceInfo(
   ASSERT(async_code_array->At(0) != Code::null());
   ASSERT(async_code_array->At(0) == StubCode::AsynchronousGapMarker().raw());
   const Object& code_object = Object::Handle(async_code_array->At(1));
-  if (code_object.IsCode()) {
-    *async_function = Code::Cast(code_object).function();
-  } else {
-    ASSERT(code_object.IsBytecode());
-    *async_function = Bytecode::Cast(code_object).function();
-  }
+  ASSERT(code_object.IsCode());
+  *async_function = Code::Cast(code_object).function();
   ASSERT(!async_function->IsNull());
   ASSERT(async_function->IsAsyncFunction() ||
          async_function->IsAsyncGenerator());

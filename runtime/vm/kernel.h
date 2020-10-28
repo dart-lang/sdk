@@ -214,11 +214,6 @@ void ReadParameterCovariance(const Function& function,
 // as such function already checks all of its parameters.
 bool NeedsDynamicInvocationForwarder(const Function& function);
 
-// Returns a list of ParameterTypeChecks needed by a dynamic invocation
-// forwarder that targets [function]. Indices in these checks correspond to
-// bytecode frame indices.
-ArrayPtr CollectDynamicInvocationChecks(const Function& function);
-
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone);
 

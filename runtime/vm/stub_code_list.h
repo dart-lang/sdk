@@ -42,7 +42,6 @@ namespace dart {
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
-  V(InterpretCall)                                                             \
   V(CallBootstrapNative)                                                       \
   V(CallNoScopeNative)                                                         \
   V(CallAutoScopeNative)                                                       \
@@ -50,7 +49,6 @@ namespace dart {
   V(CallStaticFunction)                                                        \
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
-  V(InvokeDartCodeFromBytecode)                                                \
   V(DebugStepCheck)                                                            \
   V(SwitchableCallMiss)                                                        \
   V(MonomorphicSmiableCheck)                                                   \

@@ -9,7 +9,6 @@
 #include "vm/debugger.h"
 #include "vm/dispatch_table.h"
 #include "vm/heap/safepoint.h"
-#include "vm/interpreter.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
@@ -19,13 +18,11 @@
 #include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, precompiled_mode);
 
 // A cache of VM heap allocated arguments descriptors.
@@ -53,7 +50,6 @@ class ScopedIsolateStackLimits : public ValueObject {
     thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
 #else
     thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
-    // TODO(regis): For now, the interpreter is using its own stack limit.
 #endif
 
 #if defined(USING_SAFE_STACK)
@@ -135,27 +131,6 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
   ScopedIsolateStackLimits stack_limit(thread, current_sp);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!function.HasCode()) {
-    if (FLAG_enable_interpreter && function.IsBytecodeAllowed(zone)) {
-      if (!function.HasBytecode()) {
-        ErrorPtr error =
-            kernel::BytecodeReader::ReadFunctionBytecode(thread, function);
-        if (error != Error::null()) {
-          return error;
-        }
-      }
-
-      // If we have bytecode but no native code then invoke the interpreter.
-      if (function.HasBytecode() && (FLAG_compilation_counter_threshold != 0)) {
-        ASSERT(thread->no_callback_scope_depth() == 0);
-        SuspendLongJumpScope suspend_long_jump_scope(thread);
-        TransitionToGenerated transition(thread);
-        return Interpreter::Current()->Call(function, arguments_descriptor,
-                                            arguments, thread);
-      }
-
-      // Fall back to compilation.
-    }
-
     const Object& result =
         Object::Handle(zone, Compiler::CompileFunction(thread, function));
     if (result.IsError()) {

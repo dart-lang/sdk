@@ -37,7 +37,7 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ movq(compiler::Assembler::VMTagAddress(), RAX);
     __ CallCFunction(RAX);
     __ movq(compiler::Assembler::VMTagAddress(),
-            compiler::Immediate(VMTag::kDartCompiledTagId));
+            compiler::Immediate(VMTag::kDartTagId));
     ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << THR)) != 0);
     ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << PP)) != 0);
   } else {

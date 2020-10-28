@@ -17,7 +17,6 @@
 #include "vm/flags.h"
 #include "vm/heap/verifier.h"
 #include "vm/instructions.h"
-#include "vm/interpreter.h"
 #include "vm/kernel_isolate.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
@@ -61,7 +60,6 @@ DEFINE_FLAG(bool,
             false,
             "Trace deoptimization verbose");
 
-DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
@@ -179,7 +177,6 @@ DEFINE_RUNTIME_ENTRY(NullError, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   const StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame->IsDartFrame());
-  ASSERT(!caller_frame->is_interpreted());
   const Code& code = Code::Handle(zone, caller_frame->LookupDartCode());
   const uword pc_offset = caller_frame->pc() - code.PayloadStart();
 
@@ -496,13 +493,6 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   UNREACHABLE();
 }
 
-// Allocate a new SubtypeTestCache for use in interpreted implicit setters.
-// Return value: newly allocated SubtypeTestCache.
-DEFINE_RUNTIME_ENTRY(AllocateSubtypeTestCache, 0) {
-  ASSERT(FLAG_enable_interpreter);
-  arguments.SetReturn(SubtypeTestCache::Handle(zone, SubtypeTestCache::New()));
-}
-
 // Allocate a new context large enough to hold the given number of variables.
 // Arg0: number of variables.
 // Return value: newly allocated context.
@@ -528,76 +518,6 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
     cloned_ctx.SetAt(i, inst);
   }
   arguments.SetReturn(cloned_ctx);
-}
-
-// Invoke field getter before dispatch.
-// Arg0: instance.
-// Arg1: field name (may be demangled during call).
-// Return value: field value.
-DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
-  ASSERT(FLAG_enable_interpreter);
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  String& name = String::CheckedHandle(zone, arguments.ArgAt(1));
-  const Class& receiver_class = Class::Handle(zone, receiver.clazz());
-  if (Function::IsDynamicInvocationForwarderName(name)) {
-    name = Function::DemangleDynamicInvocationForwarderName(name);
-    arguments.SetArgAt(1, name);  // Reflect change in arguments.
-  }
-  const String& getter_name = String::Handle(zone, Field::GetterName(name));
-  const int kTypeArgsLen = 0;
-  const int kNumArguments = 1;
-  ArgumentsDescriptor args_desc(Array::Handle(
-      zone, ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
-  const Function& getter =
-      Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
-                                 receiver_class, getter_name, args_desc));
-  ASSERT(!getter.IsNull());  // An InvokeFieldDispatcher function was created.
-  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
-  args.SetAt(0, receiver);
-  const Object& result =
-      Object::Handle(zone, DartEntry::InvokeFunction(getter, args));
-  ThrowIfError(result);
-  arguments.SetReturn(result);
-}
-
-// Check that arguments are valid for the given closure.
-// Arg0: closure
-// Arg1: arguments descriptor
-// Return value: whether the arguments are valid
-DEFINE_RUNTIME_ENTRY(ClosureArgumentsValid, 2) {
-  ASSERT(FLAG_enable_interpreter);
-  const auto& closure = Closure::CheckedHandle(zone, arguments.ArgAt(0));
-  const auto& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(1));
-
-  const auto& function = Function::Handle(zone, closure.function());
-  const ArgumentsDescriptor args_desc(descriptor);
-  if (!function.AreValidArguments(args_desc, nullptr)) {
-    arguments.SetReturn(Bool::False());
-  } else if (!closure.IsGeneric(thread) && args_desc.TypeArgsLen() > 0) {
-    // The arguments may be valid for the closure function itself, but if the
-    // closure has delayed type arguments, no type arguments should be provided.
-    arguments.SetReturn(Bool::False());
-  } else {
-    arguments.SetReturn(Bool::True());
-  }
-}
-
-// Resolve 'call' function of receiver.
-// Arg0: receiver (not a closure).
-// Arg1: arguments descriptor
-// Return value: 'call' function'.
-DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
-  ASSERT(FLAG_enable_interpreter);
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const Array& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(1));
-  ArgumentsDescriptor args_desc(descriptor);
-  ASSERT(!receiver.IsClosure());  // Interpreter tests for closure.
-  Class& cls = Class::Handle(zone, receiver.clazz());
-  Function& call_function = Function::Handle(
-      zone,
-      Resolver::ResolveDynamicForReceiverClass(cls, Symbols::Call(), args_desc,
-                                               /*allow_add=*/false));
-  arguments.SetReturn(call_function);
 }
 
 // Helper routine for tracing a type check.
@@ -888,7 +808,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       DartFrameIterator iterator(thread,
                                  StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* caller_frame = iterator.NextFrame();
-      ASSERT(!caller_frame->is_interpreted());
       const Code& caller_code =
           Code::Handle(zone, caller_frame->LookupDartCode());
       const ObjectPool& pool =
@@ -971,7 +890,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       DartFrameIterator iterator(thread,
                                  StackFrameIterator::kNoCrossThreadIteration);
       StackFrame* caller_frame = iterator.NextFrame();
-      ASSERT(!caller_frame->is_interpreted());
       const Code& caller_code =
           Code::Handle(zone, caller_frame->LookupDartCode());
       const ObjectPool& pool =
@@ -1059,7 +977,6 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  ASSERT(!caller_frame->is_interpreted());
   const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
   ASSERT(caller_code.is_optimized());
@@ -1100,9 +1017,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   Code& orig_stub = Code::Handle(zone);
-  if (!caller_frame->is_interpreted()) {
-    orig_stub = isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
-  }
+  orig_stub = isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   ThrowIfError(error);
@@ -1217,7 +1132,6 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
   ASSERT(caller_frame->IsDartFrame());
 
   // Monomorphic/megamorphic calls are only for unoptimized code.
-  if (caller_frame->is_interpreted()) return;
   Zone* zone = thread->zone();
   const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
   if (caller_code.is_optimized()) return;
@@ -1246,12 +1160,6 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
     // descriptor, so do not allow transition to this state if the callee
     // needs it.
     if (target_function.PrologueNeedsArgumentsDescriptor()) {
-      return;
-    }
-
-    // Avoid forcing foreground compilation if target function is still
-    // interpreted.
-    if (FLAG_enable_interpreter && !target_function.HasCode()) {
       return;
     }
 
@@ -2168,41 +2076,6 @@ DEFINE_RUNTIME_ENTRY(SwitchableCallMiss, 2) {
       /*use_force_growth=*/true);
 }
 
-// Handles interpreted interface call cache miss.
-//   Arg0: receiver
-//   Arg1: target name
-//   Arg2: arguments descriptor
-//   Returns: target function (can only be null if !FLAG_lazy_dispatchers)
-// Modifies the instance call table in current interpreter.
-DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
-  ASSERT(FLAG_enable_interpreter);
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const String& target_name = String::CheckedHandle(zone, arguments.ArgAt(1));
-  const Array& arg_desc = Array::CheckedHandle(zone, arguments.ArgAt(2));
-
-  ArgumentsDescriptor arguments_descriptor(arg_desc);
-  const Class& receiver_class = Class::Handle(zone, receiver.clazz());
-  Function& target_function = Function::Handle(zone);
-  if (receiver_class.EnsureIsFinalized(thread) == Error::null()) {
-    target_function =
-        Resolver::ResolveDynamic(receiver, target_name, arguments_descriptor);
-  }
-
-  // TODO(regis): In order to substitute 'simple_instance_of_function', the 2nd
-  // arg to the call, the type, is needed.
-
-  if (target_function.IsNull()) {
-    target_function =
-        InlineCacheMissHelper(receiver_class, arg_desc, target_name);
-  }
-  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
-  arguments.SetReturn(target_function);
-#endif
-}
-
 // Used to find the correct receiver and function to invoke or to fall back to
 // invoking noSuchMethod when lazy dispatchers are disabled. Returns the
 // result of the invocation or an Error.
@@ -2390,37 +2263,6 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
   arguments.SetReturn(result);
 }
 
-// Invoke appropriate noSuchMethod function (or in the case of no lazy
-// dispatchers, walk the receiver to find the correct method to call).
-// Arg0: receiver
-// Arg1: function name.
-// Arg2: arguments descriptor array.
-// Arg3: arguments array.
-DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethod, 4) {
-  ASSERT(FLAG_enable_interpreter);
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const String& original_function_name =
-      String::CheckedHandle(zone, arguments.ArgAt(1));
-  const Array& orig_arguments_desc =
-      Array::CheckedHandle(zone, arguments.ArgAt(2));
-  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
-
-  auto& result = Object::Handle(zone);
-  if (!FLAG_lazy_dispatchers) {
-    // Failing to find the method could be due to the lack of lazy invoke field
-    // dispatchers, so attempt a deeper search before calling noSuchMethod.
-    result = InvokeCallThroughGetterOrNoSuchMethod(
-        thread, zone, receiver, original_function_name, orig_arguments,
-        orig_arguments_desc);
-  } else {
-    result =
-        DartEntry::InvokeNoSuchMethod(thread, receiver, original_function_name,
-                                      orig_arguments, orig_arguments_desc);
-  }
-  ThrowIfError(result);
-  arguments.SetReturn(result);
-}
-
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 // The following code is used to stress test
 //  - deoptimization
@@ -2469,13 +2311,9 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     ASSERT(frame != nullptr);
     Code& code = Code::Handle();
     Function& function = Function::Handle();
-    if (frame->is_interpreted()) {
-      function = frame->LookupDartFunction();
-    } else {
-      code = frame->LookupDartCode();
-      ASSERT(!code.IsNull());
-      function = code.function();
-    }
+    code = frame->LookupDartCode();
+    ASSERT(!code.IsNull());
+    function = code.function();
     ASSERT(!function.IsNull());
     const char* function_name = nullptr;
     if ((FLAG_deoptimize_filter != nullptr) ||
@@ -2557,13 +2395,9 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       int num_vars = 0;
       // Variable locations and number are unknown when precompiling.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      // NumLocalVariables() can call EnsureHasUnoptimizedCode() for
-      // non-interpreted functions.
       if (!frame->function().ForceOptimize()) {
-        if (!frame->IsInterpreted()) {
-          // Ensure that we have unoptimized code.
-          frame->function().EnsureHasCompiledUnoptimizedCode();
-        }
+        // Ensure that we have unoptimized code.
+        frame->function().EnsureHasCompiledUnoptimizedCode();
         num_vars = frame->NumLocalVariables();
       }
 #endif
@@ -2652,8 +2486,7 @@ DEFINE_RUNTIME_ENTRY(AllocateMint, 0) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_sp();
-  // If simulator was never called (for example, in pure
-  // interpreted mode) it may return 0 as a value of SPREG.
+  // If simulator was never called it may return 0 as a value of SPREG.
   if (stack_pos == 0) {
     // Use any reasonable value which would not be treated
     // as stack overflow.
@@ -2667,36 +2500,15 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // persist.
   uword stack_overflow_flags = thread->GetAndClearStackOverflowFlags();
 
-  bool interpreter_stack_overflow = false;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_enable_interpreter) {
-    // Do not allocate an interpreter, if none is allocated yet.
-    Interpreter* interpreter = thread->interpreter();
-    if (interpreter != NULL) {
-      interpreter_stack_overflow =
-          interpreter->get_sp() >= interpreter->overflow_stack_limit();
-    }
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow now and leave the interrupt for next
   // time.
-  if (interpreter_stack_overflow || !thread->os_thread()->HasStackHeadroom() ||
+  if (!thread->os_thread()->HasStackHeadroom() ||
       IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
     if (FLAG_verbose_stack_overflow) {
-      OS::PrintErr("Stack overflow in %s\n",
-                   interpreter_stack_overflow ? "interpreter" : "native code");
+      OS::PrintErr("Stack overflow\n");
       OS::PrintErr("  Native SP = %" Px ", stack limit = %" Px "\n", stack_pos,
                    thread->saved_stack_limit());
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      if (thread->interpreter() != nullptr) {
-        OS::PrintErr("  Interpreter SP = %" Px ", stack limit = %" Px "\n",
-                     thread->interpreter()->get_sp(),
-                     thread->interpreter()->overflow_stack_limit());
-      }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
       OS::PrintErr("Call stack:\n");
       OS::PrintErr("size | frame\n");
       StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
@@ -2704,14 +2516,9 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       uword fp = stack_pos;
       StackFrame* frame = frames.NextFrame();
       while (frame != NULL) {
-        if (frame->is_interpreted() == interpreter_stack_overflow) {
-          uword delta = interpreter_stack_overflow ? (fp - frame->fp())
-                                                   : (frame->fp() - fp);
-          fp = frame->fp();
-          OS::PrintErr("%4" Pd " %s\n", delta, frame->ToCString());
-        } else {
-          OS::PrintErr("     %s\n", frame->ToCString());
-        }
+        uword delta = (frame->fp() - fp);
+        fp = frame->fp();
+        OS::PrintErr("%4" Pd " %s\n", delta, frame->ToCString());
         frame = frames.NextFrame();
       }
     }
@@ -2754,46 +2561,6 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
       "IC call @%#" Px ": ICData: %#" Px " cnt:%" Pd " nchecks: %" Pd " %s\n",
       frame->pc(), static_cast<uword>(ic_data.raw()), function.usage_counter(),
       ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
-}
-
-// This is called from interpreter when function usage counter reached
-// compilation threshold and function needs to be compiled.
-DEFINE_RUNTIME_ENTRY(CompileInterpretedFunction, 1) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  ASSERT(!function.IsNull());
-  ASSERT(FLAG_enable_interpreter);
-
-#if !defined(PRODUCT)
-  if (Debugger::IsDebugging(thread, function)) {
-    return;
-  }
-#endif  // !defined(PRODUCT)
-
-  if (FLAG_background_compilation) {
-    if (!BackgroundCompiler::IsDisabled(isolate,
-                                        /* optimizing_compilation = */ false) &&
-        function.is_background_optimizable()) {
-      // Ensure background compiler is running, if not start it.
-      BackgroundCompiler::Start(isolate);
-      // Reduce the chance of triggering a compilation while the function is
-      // being compiled in the background. INT32_MIN should ensure that it
-      // takes long time to trigger a compilation.
-      // Note that the background compilation queue rejects duplicate entries.
-      function.SetUsageCounter(INT32_MIN);
-      isolate->background_compiler()->Compile(function);
-      return;
-    }
-  }
-
-  // Reset usage counter for future optimization.
-  function.SetUsageCounter(0);
-  Object& result =
-      Object::Handle(zone, Compiler::CompileFunction(thread, function));
-  ThrowIfError(result);
-#else
-  UNREACHABLE();
-#endif  // !DART_PRECOMPILED_RUNTIME
 }
 
 // This is called from function that needs to be optimized.
@@ -3035,7 +2802,6 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 
     // N.B.: Update the pending deopt table before updating the frame. The
     // profiler may attempt a stack walk in between.
-    ASSERT(!frame->is_interpreted());
     thread->isolate()->AddPendingDeopt(frame->fp(), deopt_pc);
     frame->MarkForLazyDeopt();
 
@@ -3057,12 +2823,9 @@ void DeoptimizeFunctionsOnStack() {
   StackFrame* frame = iterator.NextFrame();
   Code& optimized_code = Code::Handle();
   while (frame != NULL) {
-    if (!frame->is_interpreted()) {
-      optimized_code = frame->LookupDartCode();
-      if (optimized_code.is_optimized() &&
-          !optimized_code.is_force_optimized()) {
-        DeoptimizeAt(optimized_code, frame);
-      }
+    optimized_code = frame->LookupDartCode();
+    if (optimized_code.is_optimized() && !optimized_code.is_force_optimized()) {
+      DeoptimizeAt(optimized_code, frame);
     }
     frame = iterator.NextFrame();
   }
@@ -3409,65 +3172,6 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     1,
     true /* is_float */,
     reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&atan)));
-
-// Interpret a function call. Should be called only for non-jitted functions.
-// argc indicates the number of arguments, including the type arguments.
-// argv points to the first argument.
-// If argc < 0, arguments are passed at decreasing memory addresses from argv.
-extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
-                                             uword /*ArrayPtr*/ argdesc_in,
-                                             intptr_t argc,
-                                             ObjectPtr* argv,
-                                             Thread* thread) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
-  FunctionPtr function = static_cast<FunctionPtr>(function_in);
-  ArrayPtr argdesc = static_cast<ArrayPtr>(argdesc_in);
-  ASSERT(FLAG_enable_interpreter);
-  Interpreter* interpreter = Interpreter::Current();
-#if defined(DEBUG)
-  uword exit_fp = thread->top_exit_frame_info();
-  ASSERT(exit_fp != 0);
-  ASSERT(thread == Thread::Current());
-  // Caller is InterpretCall stub called from generated code.
-  // We stay in "in generated code" execution state when interpreting code.
-  ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
-  ASSERT(!Function::HasCode(function));
-  ASSERT(Function::HasBytecode(function));
-  ASSERT(interpreter != NULL);
-#endif
-  // Tell MemorySanitizer 'argv' is initialized by generated code.
-  if (argc < 0) {
-    MSAN_UNPOISON(argv - argc, -argc * sizeof(ObjectPtr));
-  } else {
-    MSAN_UNPOISON(argv, argc * sizeof(ObjectPtr));
-  }
-  ObjectPtr result = interpreter->Call(function, argdesc, argc, argv, thread);
-  DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  if (IsErrorClassId(result->GetClassIdMayBeSmi())) {
-    // Must not leak handles in the caller's zone.
-    HANDLESCOPE(thread);
-    // Protect the result in a handle before transitioning, which may trigger
-    // GC.
-    const Error& error = Error::Handle(Error::RawCast(result));
-    // Propagating an error may cause allocation. Check if we need to block for
-    // a safepoint by switching to "in VM" execution state.
-    TransitionGeneratedToVM transition(thread);
-    Exceptions::PropagateError(error);
-  }
-  return static_cast<uword>(result);
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-}
-
-uword RuntimeEntry::InterpretCallEntry() {
-  uword entry = reinterpret_cast<uword>(InterpretCall);
-#if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(entry,
-                                               Simulator::kLeafRuntimeCall, 5);
-#endif
-  return entry;
-}
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;

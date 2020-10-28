@@ -413,11 +413,6 @@ class Serializer : public ThreadStackResource {
     if (object->IsCode() && !Snapshot::IncludesCode(kind_)) {
       return RefId(Object::null());
     }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    if (object->IsBytecode() && !Snapshot::IncludesBytecode(kind_)) {
-      return RefId(Object::null());
-    }
-#endif  // !DART_PRECOMPILED_RUNTIME
     FATAL("Missing ref");
   }
 

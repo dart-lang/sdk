@@ -10,7 +10,6 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
-#include "vm/interpreter.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
@@ -25,8 +24,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
 DECLARE_FLAG(bool, precompiled_mode);
-
-DECLARE_FLAG(bool, enable_interpreter);
 
 StubCode::StubCodeEntry StubCode::entries_[kNumStubEntries] = {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -97,24 +94,8 @@ bool StubCode::HasBeenInitialized() {
   return entries_[kAsynchronousGapMarkerIndex].code != nullptr;
 }
 
-bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
+bool StubCode::InInvocationStub(uword pc) {
   ASSERT(HasBeenInitialized());
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_enable_interpreter) {
-    if (is_interpreted_frame) {
-      // Recognize special marker set up by interpreter in entry frame.
-      return Interpreter::IsEntryFrameMarker(
-          reinterpret_cast<const KBCInstr*>(pc));
-    }
-    {
-      uword entry = StubCode::InvokeDartCodeFromBytecode().EntryPoint();
-      uword size = StubCode::InvokeDartCodeFromBytecodeSize();
-      if ((pc >= entry) && (pc < (entry + size))) {
-        return true;
-      }
-    }
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   uword entry = StubCode::InvokeDartCode().EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));

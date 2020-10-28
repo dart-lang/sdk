@@ -381,7 +381,6 @@ ISOLATE_UNIT_TEST_CASE(SerializeSingletons) {
   TEST_ROUND_TRIP_IDENTICAL(Object::script_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::library_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::code_class());
-  TEST_ROUND_TRIP_IDENTICAL(Object::bytecode_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::instructions_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::pc_descriptors_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::exception_handlers_class());

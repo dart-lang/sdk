@@ -165,7 +165,6 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
   void AllocateIrregexpVariables(intptr_t num_stack_locals);
-  void AllocateBytecodeVariables(intptr_t num_stack_locals);
 
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }

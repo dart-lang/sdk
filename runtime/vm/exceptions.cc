@@ -24,7 +24,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, trace_deoptimization);
 DEFINE_FLAG(bool,
             print_stacktrace_at_throw,
@@ -129,26 +128,15 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle();
-  Bytecode& bytecode = Bytecode::Handle();
   Smi& offset = Smi::Handle();
   for (; frame != NULL; frame = frames.NextFrame()) {
     if (!frame->IsDartFrame()) {
       continue;
     }
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
-      if (bytecode.function() == Function::null()) {
-        continue;
-      }
-      offset = Smi::New(frame->pc() - bytecode.PayloadStart());
-      builder->AddFrame(bytecode, offset);
-    } else {
-      code = frame->LookupDartCode();
-      ASSERT(code.ContainsInstructionAt(frame->pc()));
-      offset = Smi::New(frame->pc() - code.PayloadStart());
-      builder->AddFrame(code, offset);
-    }
+    code = frame->LookupDartCode();
+    ASSERT(code.ContainsInstructionAt(frame->pc()));
+    offset = Smi::New(frame->pc() - code.PayloadStart());
+    builder->AddFrame(code, offset);
   }
 }
 
@@ -622,9 +610,7 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
                                StackFrameIterator::kNoCrossThreadIteration);
       for (StackFrame* frame = frames.NextFrame(); frame != nullptr;
            frame = frames.NextFrame()) {
-        if (frame->is_interpreted()) {
-          continue;
-        } else if (frame->fp() >= frame_pointer) {
+        if (frame->fp() >= frame_pointer) {
           break;
         }
         if (frame->IsMarkedForLazyDeopt()) {
@@ -677,18 +663,6 @@ void Exceptions::JumpToFrame(Thread* thread,
                              uword stack_pointer,
                              uword frame_pointer,
                              bool clear_deopt_at_target) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // TODO(regis): We still possibly need to unwind interpreter frames if they
-  // are callee frames of the C++ frame handling the exception.
-  if (FLAG_enable_interpreter) {
-    Interpreter* interpreter = thread->interpreter();
-    if ((interpreter != NULL) && interpreter->HasFrame(frame_pointer)) {
-      interpreter->JumpToFrame(program_counter, stack_pointer, frame_pointer,
-                               thread);
-    }
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   const uword fp_for_clearing =
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);

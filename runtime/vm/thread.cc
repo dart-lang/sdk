@@ -40,10 +40,6 @@ Thread::~Thread() {
   ASSERT(isolate_ == NULL);
   ASSERT(store_buffer_block_ == NULL);
   ASSERT(marking_stack_block_ == NULL);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  delete interpreter_;
-  interpreter_ = nullptr;
-#endif
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -106,9 +102,6 @@ Thread::Thread(bool is_vm_isolate)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
 #if defined(USING_SAFE_STACK)
               saved_safestack_limit_(0),
-#endif
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      interpreter_(nullptr),
 #endif
       next_(NULL) {
 #if defined(SUPPORT_TIMELINE)
@@ -681,12 +674,6 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&async_stack_trace_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ffi_callback_code_));
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (interpreter() != NULL) {
-    interpreter()->VisitObjectPointers(visitor);
-  }
-#endif
-
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
   while (scope != NULL) {
@@ -922,11 +909,6 @@ bool Thread::TopErrorHandlerIsSetJump() const {
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // False positives: interpreter stack and native stack are unordered.
-  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
-    return true;
-#endif
   return reinterpret_cast<uword>(long_jump_base()) < top_exit_frame_info_;
 #endif
 }
@@ -938,11 +920,6 @@ bool Thread::TopErrorHandlerIsExitFrame() const {
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // False positives: interpreter stack and native stack are unordered.
-  if ((interpreter_ != nullptr) && interpreter_->HasFrame(top_exit_frame_info_))
-    return true;
-#endif
   return top_exit_frame_info_ < reinterpret_cast<uword>(long_jump_base());
 #endif
 }

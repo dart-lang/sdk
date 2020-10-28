@@ -12,7 +12,6 @@
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/heap/heap.h"
-#include "vm/interpreter.h"
 #include "vm/isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/log.h"
@@ -198,19 +197,14 @@ bool ClassFinalizer::ProcessPendingClasses() {
 #if defined(DEBUG)
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      ASSERT(cls.is_declared_in_bytecode() || cls.is_declaration_loaded());
+      ASSERT(cls.is_declaration_loaded());
     }
 #endif
 
     // Finalize types in all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      if (cls.is_declared_in_bytecode()) {
-        cls.EnsureDeclarationLoaded();
-        ASSERT(cls.is_type_finalized());
-      } else {
-        FinalizeTypesInClass(cls);
-      }
+      FinalizeTypesInClass(cls);
     }
 
     // Clear pending classes array.
@@ -1118,14 +1112,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If loading from a kernel, make sure that the class is fully loaded.
-  ASSERT(cls.IsTopLevel() || cls.is_declared_in_bytecode() ||
-         (cls.kernel_offset() > 0));
+  ASSERT(cls.IsTopLevel() || (cls.kernel_offset() > 0));
   if (!cls.is_loaded()) {
-    if (cls.is_declared_in_bytecode()) {
-      kernel::BytecodeReader::FinishClassLoading(cls);
-    } else {
-      kernel::KernelLoader::FinishLoading(cls);
-    }
+    kernel::KernelLoader::FinishLoading(cls);
     if (cls.is_finalized()) {
       return;
     }
@@ -1264,7 +1253,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   ASSERT(!sentinel.IsNull());
   sentinel.SetStaticValue(enum_value, true);
 
-  ASSERT(enum_cls.is_declared_in_bytecode() || enum_cls.kernel_offset() > 0);
+  ASSERT(enum_cls.kernel_offset() > 0);
   Error& error = Error::Handle(zone);
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field = Field::RawCast(fields.At(i));
@@ -1712,14 +1701,6 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
 #ifdef DART_PRECOMPILED_RUNTIME
   UNREACHABLE();
 #else
-  Thread* mutator_thread = Isolate::Current()->mutator_thread();
-  if (mutator_thread != nullptr) {
-    Interpreter* interpreter = mutator_thread->interpreter();
-    if (interpreter != nullptr) {
-      interpreter->ClearLookupCache();
-    }
-  }
-
   auto const thread = Thread::Current();
   auto const isolate = thread->isolate();
   StackZone stack_zone(thread);
@@ -1730,7 +1711,6 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
    public:
     ClearCodeVisitor(Zone* zone, bool force)
         : force_(force),
-          bytecode_(Bytecode::Handle(zone)),
           pool_(ObjectPool::Handle(zone)),
           entry_(Object::Handle(zone)) {}
 
@@ -1741,28 +1721,12 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
     }
 
     void VisitFunction(const Function& function) {
-      bytecode_ = function.bytecode();
-      if (!bytecode_.IsNull()) {
-        pool_ = bytecode_.object_pool();
-        for (intptr_t i = 0; i < pool_.Length(); i++) {
-          ObjectPool::EntryType entry_type = pool_.TypeAt(i);
-          if (entry_type != ObjectPool::EntryType::kTaggedObject) {
-            continue;
-          }
-          entry_ = pool_.ObjectAt(i);
-          if (entry_.IsSubtypeTestCache()) {
-            SubtypeTestCache::Cast(entry_).Reset();
-          }
-        }
-      }
-
       function.ClearCode();
       function.ClearICDataArray();
     }
 
    private:
     const bool force_;
-    Bytecode& bytecode_;
     ObjectPool& pool_;
     Object& entry_;
   };

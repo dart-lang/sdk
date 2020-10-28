@@ -1986,10 +1986,6 @@ static ObjectPtr LookupHeapObjectCode(Isolate* isolate,
   if (!code.IsNull()) {
     return code.raw();
   }
-  Bytecode& bytecode = Bytecode::Handle(Bytecode::FindCode(pc));
-  if (!bytecode.IsNull()) {
-    return bytecode.raw();
-  }
 
   // Not found.
   return Object::sentinel().raw();
