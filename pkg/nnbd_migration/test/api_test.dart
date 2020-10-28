@@ -4583,6 +4583,33 @@ f() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_many_type_variables() async {
+    try {
+      assert(false);
+    } catch (_) {
+      // When assertions are enabled, this test fails, so skip it.
+      // See https://github.com/dart-lang/sdk/issues/43945.
+      return;
+    }
+    var content = '''
+void test(C<int> x, double Function<S>(C<S>) y) {
+  x.f<double>(y);
+}
+class C<T> {
+  U f<U>(U Function<V>(C<V>) z) => throw 'foo';
+}
+''';
+    var expected = '''
+void test(C<int> x, double Function<S>(C<S>) y) {
+  x.f<double>(y);
+}
+class C<T> {
+  U f<U>(U Function<V>(C<V>) z) => throw 'foo';
+}
+''';
+    await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
+  }
+
   Future<void> test_map_nullable_input() async {
     var content = '''
 Iterable<int> f(List<int> x) => x.map((y) => g(y));
