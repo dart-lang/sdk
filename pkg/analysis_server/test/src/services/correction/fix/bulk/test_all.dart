@@ -43,6 +43,7 @@ import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
+import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion;
 import 'remove_operator_test.dart' as remove_operator;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
@@ -98,6 +99,7 @@ void main() {
     remove_empty_statement.main();
     remove_interpolation_braces.main();
     remove_method_declaration.main();
+    remove_non_null_assertion.main();
     remove_operator.main();
     remove_this_expression.main();
     remove_type_annotation.main();

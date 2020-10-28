@@ -41,6 +41,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_statem
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_non_null_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
@@ -332,7 +333,10 @@ class BulkFixProcessor {
   /// A map from an error code to a generator used to create the correction
   /// producer used to build a fix for that diagnostic. The generators used for
   /// lint rules are in the [lintProducerMap].
-  static const Map<ErrorCode, ProducerGenerator> nonLintProducerMap = {};
+  static const Map<ErrorCode, ProducerGenerator> nonLintProducerMap = {
+    StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
+        RemoveNonNullAssertion.newInstance,
+  };
 
   /// Information about the workspace containing the libraries in which changes
   /// will be produced.
