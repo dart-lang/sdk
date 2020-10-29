@@ -23,6 +23,7 @@ class UnitRenderer {
   /// "proposed edits" area, in the order in which they should be displayed.
   @visibleForTesting
   static const List<NullabilityFixKind> kindPriorityOrder = [
+    NullabilityFixKind.noValidMigrationForNull,
     NullabilityFixKind.compoundAssignmentHasBadCombinedType,
     NullabilityFixKind.compoundAssignmentHasNullableSource,
     NullabilityFixKind.removeDeadCode,
@@ -316,6 +317,8 @@ class UnitRenderer {
         return '$count type$s made nullable';
       case NullabilityFixKind.makeTypeNullableDueToHint:
         return '$count nullability hint$s converted to ?$s';
+      case NullabilityFixKind.noValidMigrationForNull:
+        return '$count literal `null`$s could not be migrated';
       case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
         return '$count null-aware access$es will be unnecessary in strong '
             'checking mode';

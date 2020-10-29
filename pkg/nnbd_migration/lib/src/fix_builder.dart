@@ -573,12 +573,21 @@ class MigrationResolutionHooksImpl
       {AtomicEditInfo info, HintComment hint}) {
     var checks =
         _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
+    bool noValidMigration = node is NullLiteral && hint == null;
     info ??= checks != null
         ? AtomicEditInfo(
-            NullabilityFixDescription.checkExpression, checks.edges)
+            noValidMigration
+                ? NullabilityFixDescription.noValidMigrationForNull
+                : NullabilityFixDescription.checkExpression,
+            checks.edges)
         : null;
-    (_fixBuilder._getChange(node) as NodeChangeForExpression)
-        .addNullCheck(info, hint: hint);
+    var nodeChangeForExpression =
+        _fixBuilder._getChange(node) as NodeChangeForExpression;
+    if (noValidMigration) {
+      nodeChangeForExpression.addNoValidMigration(info);
+    } else {
+      nodeChangeForExpression.addNullCheck(info, hint: hint);
+    }
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }
