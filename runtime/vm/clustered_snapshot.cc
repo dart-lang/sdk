@@ -4841,6 +4841,10 @@ class VMSerializationRoots : public SerializationRoots {
                      "<extractor parameter names>");
     s->AddBaseObject(Object::empty_context_scope().raw(), "ContextScope",
                      "<empty>");
+    s->AddBaseObject(Object::empty_object_pool().raw(), "ObjectPool",
+                     "<empty>");
+    s->AddBaseObject(Object::empty_compressed_stackmaps().raw(),
+                     "CompressedStackMaps", "<empty>");
     s->AddBaseObject(Object::empty_descriptors().raw(), "PcDescriptors",
                      "<empty>");
     s->AddBaseObject(Object::empty_var_descriptors().raw(),
@@ -4925,6 +4929,8 @@ class VMDeserializationRoots : public DeserializationRoots {
     ASSERT(Object::extractor_parameter_names().raw() != Object::null());
     d->AddBaseObject(Object::extractor_parameter_names().raw());
     d->AddBaseObject(Object::empty_context_scope().raw());
+    d->AddBaseObject(Object::empty_object_pool().raw());
+    d->AddBaseObject(Object::empty_compressed_stackmaps().raw());
     d->AddBaseObject(Object::empty_descriptors().raw());
     d->AddBaseObject(Object::empty_var_descriptors().raw());
     d->AddBaseObject(Object::empty_exception_handlers().raw());
