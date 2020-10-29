@@ -70,12 +70,6 @@ class AssignmentExpressionResolver {
     _resolver.migrationResolutionHooks
         ?.setCompoundAssignmentExpressionTypes(node);
 
-    _resolver.setAssignmentBackwardCompatibility(
-      assignment: node,
-      left: left,
-      hasRead: hasRead,
-    );
-
     _resolveOperator(node);
 
     {

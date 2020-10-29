@@ -290,7 +290,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
 
 @reflectiveTest
 class LibraryElementTest_scope extends PubPackageResolutionTest {
-  test_lookup2() async {
+  test_lookup() async {
     await assertNoErrorsInCode(r'''
 int foo;
 ''');
@@ -298,113 +298,12 @@ int foo;
     var scope = result.libraryElement.scope;
 
     assertElement(
-      scope.lookup2('foo').getter,
+      scope.lookup('foo').getter,
       findElement.topGet('foo'),
     );
     assertElement(
-      scope.lookup2('foo').setter,
+      scope.lookup('foo').setter,
       findElement.topSet('foo'),
-    );
-  }
-
-  test_lookup2_implicitCoreImport() async {
-    await assertNoErrorsInCode('');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      scope.lookup2('int').getter,
-      intElement,
-    );
-  }
-
-  test_lookup2_notFound() async {
-    await assertNoErrorsInCode('');
-
-    var scope = result.libraryElement.scope;
-
-    assertElementNull(
-      scope.lookup2('noSuchGetter').getter,
-    );
-
-    assertElementNull(
-      scope.lookup2('noSuchSetter').setter,
-    );
-  }
-
-  test_lookup2_prefersLocal() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-import 'dart:math';
-
-int sin() => 3;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      scope.lookup2('sin').getter,
-      findElement.topFunction('sin'),
-    );
-
-    assertElement(
-      scope.lookup2('cos').getter,
-      findElement.importFind('dart:math').topFunction('cos'),
-    );
-  }
-
-  test_lookup2_prefix() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-import 'dart:math' as math;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      scope.lookup2('math').getter,
-      findElement.prefix('math'),
-    );
-  }
-
-  test_lookup2_respectsCombinator_hide() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-import 'dart:math' hide sin;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElementNull(
-      scope.lookup2('sin').getter,
-    );
-
-    var mathFind = findElement.importFind('dart:math');
-    assertElement(
-      scope.lookup2('cos').getter,
-      mathFind.topFunction('cos'),
-    );
-    assertElement(
-      scope.lookup2('tan').getter,
-      mathFind.topFunction('tan'),
-    );
-  }
-
-  test_lookup2_respectsCombinator_show() async {
-    await assertNoErrorsInCode(r'''
-// ignore:unused_import
-import 'dart:math' show sin;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      scope.lookup2('sin').getter,
-      findElement.importFind('dart:math').topFunction('sin'),
-    );
-
-    assertElementNull(
-      scope.lookup2('cos').getter,
     );
   }
 
@@ -414,28 +313,8 @@ import 'dart:math' show sin;
     var scope = result.libraryElement.scope;
 
     assertElement(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'int', setter: false),
+      scope.lookup('int').getter,
       intElement,
-    );
-  }
-
-  test_lookup_lookup() async {
-    await assertNoErrorsInCode(r'''
-int foo;
-''');
-
-    var scope = result.libraryElement.scope;
-
-    assertElement(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'foo', setter: false),
-      findElement.topGet('foo'),
-    );
-    assertElement(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'foo', setter: true),
-      findElement.topSet('foo'),
     );
   }
 
@@ -445,13 +324,11 @@ int foo;
     var scope = result.libraryElement.scope;
 
     assertElementNull(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'noSuchGetter', setter: false),
+      scope.lookup('noSuchGetter').getter,
     );
 
     assertElementNull(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'noSuchSetter', setter: true),
+      scope.lookup('noSuchSetter').setter,
     );
   }
 
@@ -466,14 +343,12 @@ int sin() => 3;
     var scope = result.libraryElement.scope;
 
     assertElement(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'sin', setter: false),
+      scope.lookup('sin').getter,
       findElement.topFunction('sin'),
     );
 
     assertElement(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'cos', setter: false),
+      scope.lookup('cos').getter,
       findElement.importFind('dart:math').topFunction('cos'),
     );
   }
@@ -487,8 +362,7 @@ import 'dart:math' as math;
     var scope = result.libraryElement.scope;
 
     assertElement(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'math', setter: false),
+      scope.lookup('math').getter,
       findElement.prefix('math'),
     );
   }
@@ -502,19 +376,16 @@ import 'dart:math' hide sin;
     var scope = result.libraryElement.scope;
 
     assertElementNull(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'sin', setter: false),
+      scope.lookup('sin').getter,
     );
 
     var mathFind = findElement.importFind('dart:math');
     assertElement(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'cos', setter: false),
+      scope.lookup('cos').getter,
       mathFind.topFunction('cos'),
     );
     assertElement(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'tan', setter: false),
+      scope.lookup('tan').getter,
       mathFind.topFunction('tan'),
     );
   }
@@ -528,14 +399,12 @@ import 'dart:math' show sin;
     var scope = result.libraryElement.scope;
 
     assertElement(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'sin', setter: false),
+      scope.lookup('sin').getter,
       findElement.importFind('dart:math').topFunction('sin'),
     );
 
     assertElementNull(
-      // ignore: deprecated_member_use_from_same_package
-      scope.lookup(id: 'cos', setter: false),
+      scope.lookup('cos').getter,
     );
   }
 }

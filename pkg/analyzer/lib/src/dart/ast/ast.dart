@@ -15,7 +15,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/engine.dart';
@@ -5814,14 +5813,6 @@ class IndexExpressionImpl extends ExpressionImpl
   @override
   MethodElement staticElement;
 
-  /// If this expression is both in a getter and setter context, the
-  /// [AuxiliaryElements] will be set to hold onto the static element from the
-  /// getter context.
-  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
-      'CompoundAssignmentExpression.writeElement')
-  @override
-  AuxiliaryElements auxiliaryElements;
-
   /// Initialize a newly created index expression that is a child of a cascade
   /// expression.
   IndexExpressionImpl.forCascade(this.period, this.question, this.leftBracket,
@@ -8833,14 +8824,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// information, or `null` if the AST structure has not been resolved or if
   /// this identifier could not be resolved.
   Element _staticElement;
-
-  /// If this expression is both in a getter and setter context, the
-  /// [AuxiliaryElements] will be set to hold onto the static element from the
-  /// getter context.
-  @Deprecated('Use CompoundAssignmentExpression.readElement and/or '
-      'CompoundAssignmentExpression.writeElement')
-  @override
-  AuxiliaryElements auxiliaryElements;
 
   @override
   List<DartType> tearOffTypeArgumentTypes;

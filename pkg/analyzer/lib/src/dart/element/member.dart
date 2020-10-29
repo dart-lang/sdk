@@ -34,10 +34,6 @@ class ConstructorMember extends ExecutableMember
   ) : super(typeProvider, declaration, substitution, isLegacy,
             const <TypeParameterElement>[]);
 
-  @deprecated
-  @override
-  ConstructorElement get baseElement => declaration;
-
   @override
   ConstructorElement get declaration => super.declaration as ConstructorElement;
 
@@ -151,10 +147,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     bool isLegacy,
     this.typeParameters,
   ) : super(typeProvider, declaration, substitution, isLegacy);
-
-  @deprecated
-  @override
-  ExecutableElement get baseElement => declaration;
 
   @override
   ExecutableElement get declaration => super.declaration as ExecutableElement;
@@ -334,10 +326,6 @@ class FieldMember extends VariableMember implements FieldElement {
     bool isLegacy,
   ) : super(typeProvider, declaration, substitution, isLegacy);
 
-  @deprecated
-  @override
-  FieldElement get baseElement => declaration;
-
   @override
   FieldElement get declaration => super.declaration as FieldElement;
 
@@ -457,10 +445,6 @@ abstract class Member implements Element {
       throw StateError('Members must be created from a declarations.');
     }
   }
-
-  /// Return the element on which the parameterized element was created.
-  @Deprecated('Use Element.declaration instead')
-  Element get baseElement => _declaration;
 
   @override
   AnalysisContext get context => _declaration.context;
@@ -732,10 +716,6 @@ class MethodMember extends ExecutableMember implements MethodElement {
     List<TypeParameterElement> typeParameters,
   ) : super(typeProvider, declaration, substitution, isLegacy, typeParameters);
 
-  @deprecated
-  @override
-  MethodElement get baseElement => declaration;
-
   @override
   MethodElement get declaration => super.declaration as MethodElement;
 
@@ -812,10 +792,6 @@ class ParameterMember extends VariableMember
     bool isLegacy,
     this.typeParameters,
   ) : super(typeProvider, declaration, substitution, isLegacy);
-
-  @deprecated
-  @override
-  ParameterElement get baseElement => declaration;
 
   @override
   ParameterElement get declaration => super.declaration as ParameterElement;
@@ -902,10 +878,6 @@ class PropertyAccessorMember extends ExecutableMember
     bool isLegacy,
     List<TypeParameterElement> typeParameters,
   ) : super(typeProvider, declaration, substitution, isLegacy, typeParameters);
-
-  @deprecated
-  @override
-  PropertyAccessorElement get baseElement => declaration;
 
   @override
   PropertyAccessorElement get correspondingGetter {
@@ -1044,29 +1016,11 @@ abstract class VariableMember extends Member implements VariableElement {
     bool isLegacy,
   ) : super(typeProvider, declaration, substitution, isLegacy);
 
-  @deprecated
-  @override
-  VariableElement get baseElement => declaration;
-
-  @Deprecated('Use computeConstantValue() instead')
-  @override
-  DartObject get constantValue => declaration.constantValue;
-
   @override
   VariableElement get declaration => super.declaration as VariableElement;
 
   @override
   bool get hasImplicitType => declaration.hasImplicitType;
-
-  @override
-  FunctionElement get initializer {
-    //
-    // Elements within this element should have type parameters substituted,
-    // just like this element.
-    //
-    throw UnsupportedError('initializer');
-    //    return getBaseElement().getInitializer();
-  }
 
   @override
   bool get isConst => declaration.isConst;
@@ -1099,13 +1053,6 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   DartObject computeConstantValue() => declaration.computeConstantValue();
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    // ignore: deprecated_member_use_from_same_package
-    declaration.initializer?.accept(visitor);
-  }
 }
 
 class _SubstitutedTypeParameters {

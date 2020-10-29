@@ -65,12 +65,6 @@ class PostfixExpressionResolver {
     _resolver.migrationResolutionHooks
         ?.setCompoundAssignmentExpressionTypes(node);
 
-    _resolver.setAssignmentBackwardCompatibility(
-      assignment: node,
-      left: operand,
-      hasRead: true,
-    );
-
     // TODO(scheglov) Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(operand);
 

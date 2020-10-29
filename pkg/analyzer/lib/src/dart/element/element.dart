@@ -439,17 +439,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
   }
 }
 
-/// For AST nodes that could be in both the getter and setter contexts
-/// ([IndexExpression]s and [SimpleIdentifier]s), the additional resolved
-/// element (getter) is stored in the AST node, in an [AuxiliaryElements].
-class AuxiliaryElements {
-  /// The element based on static type information, or `null` if the AST
-  /// structure has not been resolved or if the node could not be resolved.
-  final ExecutableElement staticElement;
-
-  AuxiliaryElements(this.staticElement);
-}
-
 /// An [AbstractClassElementImpl] which is a class.
 class ClassElementImpl extends AbstractClassElementImpl
     with TypeParameterizedElementMixin {
@@ -2421,10 +2410,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   List<AnalysisError> get constantEvaluationErrors =>
       evaluationResult?.errors ?? const <AnalysisError>[];
-
-  @Deprecated('Use computeConstantValue() instead')
-  @override
-  DartObject get constantValue => evaluationResult?.value;
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
@@ -4440,11 +4425,8 @@ class FunctionElementImpl extends ExecutableElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FunctionTypeAliasElementImpl extends ElementImpl
-    with
-        TypeParameterizedElementMixin
-    implements
-        // ignore: deprecated_member_use_from_same_package
-        GenericTypeAliasElement {
+    with TypeParameterizedElementMixin
+    implements FunctionTypeAliasElement {
   /// The element representing the generic function type.
   GenericFunctionTypeElementImpl _function;
 
@@ -6284,24 +6266,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     return linkedNode != null && linkedContext.hasInitializer(linkedNode);
   }
 
-  @deprecated
-  @override
-  FunctionElement get initializer {
-    if (hasInitializer) {
-      return FunctionElementImpl('', -1)
-        ..enclosingElement = this
-        ..isSynthetic = true
-        ..returnType = type
-        .._type = FunctionTypeImpl(
-          typeFormals: const [],
-          parameters: const [],
-          returnType: type,
-          nullabilitySuffix: NullabilitySuffix.star,
-        );
-    }
-    return null;
-  }
-
   @override
   String get name {
     if (linkedNode != null) {
@@ -7627,10 +7591,6 @@ abstract class VariableElementImpl extends ElementImpl
   /// initializers.
   Expression get constantInitializer => null;
 
-  @Deprecated('Use computeConstantValue() instead')
-  @override
-  DartObject get constantValue => evaluationResult?.value;
-
   @override
   VariableElement get declaration => this;
 
@@ -7658,10 +7618,6 @@ abstract class VariableElementImpl extends ElementImpl
   set hasImplicitType(bool hasImplicitType) {
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitType);
   }
-
-  @deprecated
-  @override
-  FunctionElement get initializer => null;
 
   @override
   bool get isConst {
@@ -7718,11 +7674,4 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   DartObject computeConstantValue() => null;
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    // ignore: deprecated_member_use_from_same_package
-    initializer?.accept(visitor);
-  }
 }

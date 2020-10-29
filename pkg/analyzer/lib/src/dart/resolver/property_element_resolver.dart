@@ -547,7 +547,7 @@ class PropertyElementResolver {
     @required bool hasWrite,
     @required bool forAnnotation,
   }) {
-    var lookupResult = target.scope.lookup2(identifier.name);
+    var lookupResult = target.scope.lookup(identifier.name);
 
     var readElement = _resolver.toLegacyElement(lookupResult.getter);
     var writeElement = _resolver.toLegacyElement(lookupResult.setter);
