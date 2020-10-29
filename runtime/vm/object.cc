@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "include/dart_api.h"
+#include "lib/stacktrace.h"
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
 #include "platform/unaligned.h"
@@ -23805,6 +23806,7 @@ const char* Capability::ToCString() const {
 }
 
 ReceivePortPtr ReceivePort::New(Dart_Port id,
+                                const String& debug_name,
                                 bool is_control_port,
                                 Heap::Space space) {
   ASSERT(id != ILLEGAL_PORT);
@@ -23812,6 +23814,8 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   Zone* zone = thread->zone();
   const SendPort& send_port =
       SendPort::Handle(zone, SendPort::New(id, thread->isolate()->origin_id()));
+  const StackTrace& allocation_location_ =
+      HasStack() ? GetCurrentStackTrace(0) : StackTrace::Handle();
 
   ReceivePort& result = ReceivePort::Handle(zone);
   {
@@ -23820,6 +23824,9 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StorePointer(&result.raw_ptr()->send_port_, send_port.raw());
+    result.StorePointer(&result.raw_ptr()->debug_name_, debug_name.raw());
+    result.StorePointer(&result.raw_ptr()->allocation_location_,
+                        allocation_location_.raw());
   }
   if (is_control_port) {
     PortMap::SetPortState(id, PortMap::kControlPort);
@@ -23888,6 +23895,39 @@ TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
 
 const char* TransferableTypedData::ToCString() const {
   return "TransferableTypedData";
+}
+
+bool Closure::CanonicalizeEquals(const Instance& other) const {
+  if (!other.IsClosure()) return false;
+
+  const Closure& other_closure = Closure::Cast(other);
+  return (instantiator_type_arguments() ==
+          other_closure.instantiator_type_arguments()) &&
+         (function_type_arguments() ==
+          other_closure.function_type_arguments()) &&
+         (delayed_type_arguments() == other_closure.delayed_type_arguments()) &&
+         (function() == other_closure.function()) &&
+         (context() == other_closure.context());
+}
+
+void Closure::CanonicalizeFieldsLocked(Thread* thread) const {
+  TypeArguments& type_args = TypeArguments::Handle();
+  type_args = instantiator_type_arguments();
+  if (!type_args.IsNull()) {
+    type_args = type_args.Canonicalize(thread, nullptr);
+    set_instantiator_type_arguments(type_args);
+  }
+  type_args = function_type_arguments();
+  if (!type_args.IsNull()) {
+    type_args = type_args.Canonicalize(thread, nullptr);
+    set_function_type_arguments(type_args);
+  }
+  type_args = delayed_type_arguments();
+  if (!type_args.IsNull()) {
+    type_args = type_args.Canonicalize(thread, nullptr);
+    set_delayed_type_arguments(type_args);
+  }
+  // Ignore function, context, hash.
 }
 
 intptr_t Closure::NumTypeParameters(Thread* thread) const {

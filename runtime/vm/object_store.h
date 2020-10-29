@@ -160,6 +160,7 @@ class ObjectPointerVisitor;
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
   RW(Function, lookup_port_handler)                                            \
+  RW(Function, lookup_open_ports)                                              \
   RW(Function, handle_message_function)                                        \
   RW(Function, growable_list_factory)                                          \
   RW(Function, simple_instance_of_function)                                    \

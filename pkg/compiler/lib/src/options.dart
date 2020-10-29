@@ -240,6 +240,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate code asserting that non-nullable return values of
   /// `@Native` methods or `JS()` invocations are checked for being non-null.
+  /// Emits checks only in sound null-safety.
   bool nativeNullAssertions = false;
   bool _noNativeNullAssertions = false;
 
@@ -599,7 +600,9 @@ class CompilerOptions implements DiagnosticOptions {
       enableMinification = false;
     }
 
-    if (_noNativeNullAssertions) nativeNullAssertions = false;
+    if (_noNativeNullAssertions || nullSafetyMode != NullSafetyMode.sound) {
+      nativeNullAssertions = false;
+    }
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

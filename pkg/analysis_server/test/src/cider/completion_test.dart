@@ -330,6 +330,34 @@ main() {
     ]);
   }
 
+  Future<void> test_limitedResolution_class_constructor_body() async {
+    _configureToCheckNotResolved(
+      identifiers: {'print'},
+    );
+
+    await _compute(r'''
+class A<T> {
+  int f = 0;
+
+  A(int a) : f = 1 {
+    ^
+  }
+
+  void foo() {
+    print(0);
+  }
+}
+''');
+
+    _assertHasClass(text: 'A');
+    _assertHasClass(text: 'String');
+    _assertHasConstructor(text: 'A');
+    _assertHasFunction(text: 'print');
+    _assertHasMethod(text: 'foo');
+    _assertHasParameter(text: 'a');
+    _assertHasTypeParameter(text: 'T');
+  }
+
   Future<void> test_limitedResolution_class_field_startWithType() async {
     _configureToCheckNotResolved(
       identifiers: {'print'},

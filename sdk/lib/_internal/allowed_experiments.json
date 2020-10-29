@@ -34,6 +34,12 @@
     "collection": {
       "experimentSet": "nullSafety"
     },
+    "connectivity": {
+      "experimentSet": "nullSafety"
+    },
+    "connectivity_platform_interface": {
+      "experimentSet": "nullSafety"
+    },
     "convert": {
       "experimentSet": "nullSafety"
     },
@@ -44,6 +50,12 @@
       "experimentSet": "nullSafety"
     },
     "dart_internal": {
+      "experimentSet": "nullSafety"
+    },
+    "device_info": {
+      "experimentSet": "nullSafety"
+    },
+    "device_info_platform_interface": {
       "experimentSet": "nullSafety"
     },
     "fake_async": {
@@ -109,6 +121,9 @@
     "platform": {
       "experimentSet": "nullSafety"
     },
+    "plugin_platform_interface": {
+      "experimentSet": "nullSafety"
+    },
     "pool": {
       "experimentSet": "nullSafety"
     },
@@ -154,7 +169,31 @@
     "typed_data": {
       "experimentSet": "nullSafety"
     },
+    "url_launcher": {
+      "experimentSet": "nullSafety"
+    },
+    "url_launcher_linux": {
+      "experimentSet": "nullSafety"
+    },
+    "url_launcher_macos": {
+      "experimentSet": "nullSafety"
+    },
+    "url_launcher_platform_interface": {
+      "experimentSet": "nullSafety"
+    },
+    "url_launcher_windows": {
+      "experimentSet": "nullSafety"
+    },
     "vector_math": {
+      "experimentSet": "nullSafety"
+    },
+    "video_player": {
+      "experimentSet": "nullSafety"
+    },
+    "video_player_platform_interface": {
+      "experimentSet": "nullSafety"
+    },
+    "video_player_web": {
       "experimentSet": "nullSafety"
     }
   }

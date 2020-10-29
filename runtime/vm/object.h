@@ -10467,6 +10467,9 @@ class Closure : public Instance {
   TypeArgumentsPtr instantiator_type_arguments() const {
     return raw_ptr()->instantiator_type_arguments_;
   }
+  void set_instantiator_type_arguments(const TypeArguments& args) const {
+    StorePointer(&raw_ptr()->instantiator_type_arguments_, args.raw());
+  }
   static intptr_t instantiator_type_arguments_offset() {
     return OFFSET_OF(ClosureLayout, instantiator_type_arguments_);
   }
@@ -10474,12 +10477,18 @@ class Closure : public Instance {
   TypeArgumentsPtr function_type_arguments() const {
     return raw_ptr()->function_type_arguments_;
   }
+  void set_function_type_arguments(const TypeArguments& args) const {
+    StorePointer(&raw_ptr()->function_type_arguments_, args.raw());
+  }
   static intptr_t function_type_arguments_offset() {
     return OFFSET_OF(ClosureLayout, function_type_arguments_);
   }
 
   TypeArgumentsPtr delayed_type_arguments() const {
     return raw_ptr()->delayed_type_arguments_;
+  }
+  void set_delayed_type_arguments(const TypeArguments& args) const {
+    StorePointer(&raw_ptr()->delayed_type_arguments_, args.raw());
   }
   static intptr_t delayed_type_arguments_offset() {
     return OFFSET_OF(ClosureLayout, delayed_type_arguments_);
@@ -10507,10 +10516,8 @@ class Closure : public Instance {
     return RoundedAllocationSize(sizeof(ClosureLayout));
   }
 
-  // Returns true if all elements are OK for canonicalization.
-  virtual void CanonicalizeFieldsLocked(Thread* thread) const {
-    // None of the fields of a closure are instances.
-  }
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
+  virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const {
     return Function::Handle(function()).Hash();
   }
@@ -10560,10 +10567,17 @@ class ReceivePort : public Instance {
   InstancePtr handler() const { return raw_ptr()->handler_; }
   void set_handler(const Instance& value) const;
 
+  StackTracePtr allocation_location() const {
+    return raw_ptr()->allocation_location_;
+  }
+
+  StringPtr debug_name() const { return raw_ptr()->debug_name_; }
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(ReceivePortLayout));
   }
   static ReceivePortPtr New(Dart_Port id,
+                            const String& debug_name,
                             bool is_control_port,
                             Heap::Space space = Heap::kNew);
 

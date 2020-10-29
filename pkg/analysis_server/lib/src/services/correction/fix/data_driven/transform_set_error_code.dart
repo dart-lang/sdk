@@ -10,6 +10,15 @@ import 'package:analyzer/error/error.dart';
 class TransformSetErrorCode extends ErrorCode {
   /**
    * Parameters:
+   * 0: the conflicting key
+   * 1: the key that it conflicts with
+   */
+  static const TransformSetErrorCode conflictingKey = TransformSetErrorCode(
+      'conflicting_key',
+      "The key '{0}' can't be used when '{1}' is also used.");
+
+  /**
+   * Parameters:
    * 0: the character that is invalid
    */
   static const TransformSetErrorCode invalidCharacter =
@@ -17,13 +26,28 @@ class TransformSetErrorCode extends ErrorCode {
 
   /**
    * Parameters:
+   * 0: the actual type of the key
+   */
+  static const TransformSetErrorCode invalidKey = TransformSetErrorCode(
+      'invalid_key', "Keys must be of type 'String' but found the type '{0}'.");
+
+  /**
+   * Parameters:
    * 0: the key with which the value is associated
    * 1: the expected type of the value
-   * 0: the actual type of the value
+   * 2: the actual type of the value
    */
   static const TransformSetErrorCode invalidValue = TransformSetErrorCode(
       'invalid_value',
       "The value of '{0}' should be of type '{1}' but is of type '{2}'.");
+
+  /**
+   * Parameters:
+   * 0: the list of valid parameter styles
+   */
+  static const TransformSetErrorCode invalidParameterStyle =
+      TransformSetErrorCode('invalid_parameter_style',
+          "The parameter style must be one of the following: {0}.");
 
   /**
    * Parameters:
@@ -42,6 +66,14 @@ class TransformSetErrorCode extends ErrorCode {
       TransformSetErrorCode('missing_key', "Missing the required key '{0}'.");
 
   /**
+   * Parameters:
+   * 0: the list of valid keys
+   */
+  static const TransformSetErrorCode missingOneOfMultipleKeys =
+      TransformSetErrorCode('missing_one_of_multiple_keys',
+          "Exactly one of the following keys must be provided: {0}.");
+
+  /**
    * No parameters.
    */
   static const TransformSetErrorCode missingTemplateEnd = TransformSetErrorCode(
@@ -53,6 +85,12 @@ class TransformSetErrorCode extends ErrorCode {
    */
   static const TransformSetErrorCode missingToken =
       TransformSetErrorCode('missing_token', "Expected to find {0}.");
+
+  /**
+   * No parameters.
+   */
+  static const TransformSetErrorCode missingUri = TransformSetErrorCode(
+      'missing_uri', "At least one URI must be provided.");
 
   /**
    * Parameters:
@@ -74,6 +112,12 @@ class TransformSetErrorCode extends ErrorCode {
    */
   static const TransformSetErrorCode unsupportedKey = TransformSetErrorCode(
       'unsupported_key', "The key '{0}' isn't supported.");
+
+  /**
+   * No parameters.
+   */
+  static const TransformSetErrorCode unsupportedVersion = TransformSetErrorCode(
+      'unsupported_version', "Only version '1' is supported at this time.");
 
   /**
    * Parameters:

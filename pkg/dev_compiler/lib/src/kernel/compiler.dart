@@ -1776,14 +1776,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Fun _emitNativeFunctionBody(Procedure node) {
     var name = _annotationName(node, isJSAnnotation) ?? node.name.text;
     if (node.isGetter) {
-      return js_ast.Fun([], js.block('{ return this.#; }', [name]));
+      var returnValue = js('this.#', [name]);
+      if (_isNullCheckableNative(node)) {
+        // Add a potential null-check on native getter if type is non-nullable.
+        returnValue = runtimeCall('checkNativeNonNull(#)', [returnValue]);
+      }
+      return js_ast.Fun([], js.block('{ return #; }', [returnValue]));
     } else if (node.isSetter) {
       var params = _emitParameters(node.function);
       return js_ast.Fun(
           params, js.block('{ this.# = #; }', [name, params.last]));
     } else {
-      return js.fun(
-          'function (...args) { return this.#.apply(this, args); }', name);
+      var returnValue = js('this.#.apply(this, args)', [name]);
+      if (_isNullCheckableNative(node)) {
+        // Add a potential null-check on return value if type is non-nullable.
+        returnValue = runtimeCall('checkNativeNonNull(#)', [returnValue]);
+      }
+      return js.fun('function (...args) { return #; }', [returnValue]);
     }
   }
 
@@ -2270,6 +2279,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Fields on a native class are implicitly native.
       // Methods/getters/setters are marked external/native.
       if (member is Field || _isExternal(member)) {
+        // If the native member needs to be null-checked and we're running in
+        // sound null-safety, we require symbolizing it in order to access the
+        // null-check at the member definition.
+        if (_isNullCheckableNative(member)) return true;
         var jsName = _annotationName(member, isJSName);
         return jsName != null && jsName != name;
       } else {
@@ -4215,14 +4228,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitPropertyGet(PropertyGet node) {
-    var propertyGet =
-        _emitPropertyGet(node.receiver, node.interfaceTarget, node.name.text);
-    if (_isCheckableNative(node.interfaceTarget)) {
-      // If target is a native getter with a non-nullable type, add a null check
-      // for soundness.
-      return runtimeCall('checkNativeNonNull(#)', [propertyGet]);
-    }
-    return propertyGet;
+    return _emitPropertyGet(
+        node.receiver, node.interfaceTarget, node.name.text);
   }
 
   @override
@@ -4276,8 +4283,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Return whether [member] returns a native object whose type needs to be
-  /// checked.
-  bool _isCheckableNative(Member member) =>
+  /// null-checked in sound null-safety.
+  ///
+  /// This is true for non-nullable native return types.
+  bool _isNullCheckableNative(Member member) =>
+      _options.soundNullSafety &&
       member != null &&
       member.isExternal &&
       _extensionTypes.isNativeClass(member.enclosingClass) &&
@@ -4356,14 +4366,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitMethodInvocation(MethodInvocation node) {
-    var methodCall = _emitMethodCall(
+    return _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
-    if (_isCheckableNative(node.interfaceTarget)) {
-      // If target is a native method with a non-nullable type, add a null check
-      // for soundness.
-      return runtimeCall('checkNativeNonNull(#)', [methodCall]);
-    }
-    return methodCall;
   }
 
   js_ast.Expression _emitMethodCall(Expression receiver, Member target,
@@ -5092,8 +5096,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var result = js.parseForeignJS(source).instantiate(jsArgs);
 
     // Add a check to make sure any JS() values from a native type are typed
-    // properly.
-    if (_isWebLibrary(_currentLibrary.importUri)) {
+    // properly in sound null-safety.
+    if (_isWebLibrary(_currentLibrary.importUri) && _options.soundNullSafety) {
       var type = node.getStaticType(_staticTypeContext);
       if (type.isPotentiallyNonNullable) {
         result = runtimeCall('checkNativeNonNull(#)', [result]);

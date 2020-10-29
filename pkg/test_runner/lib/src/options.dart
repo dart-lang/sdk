@@ -387,12 +387,31 @@ compiler.''',
   };
 
   /// The set of objects which the named configuration should imply.
-  static final _namedConfigurationOptions = {
+  static const _namedConfigurationOptions = {
     'system',
     'arch',
     'mode',
     'compiler',
     'runtime',
+    'timeout',
+    'nnbd',
+    'sanitizer',
+    'enable_asserts',
+    'use_cfe',
+    'analyzer_use_fasta_parser',
+    'use_elf',
+    'use_sdk',
+    'hot_reload',
+    'hot_reload_rollback',
+    'host_checked',
+    'csp',
+    'minified',
+    'vm_options',
+    'dart2js_options',
+    'experiments',
+    'babel',
+    'builder_tag',
+    'use_qemu'
   };
 
   /// Parses a list of strings as test options.
@@ -557,8 +576,8 @@ compiler.''',
       for (var optionName in _namedConfigurationOptions) {
         if (options.containsKey(optionName)) {
           var namedConfig = options['named_configuration'];
-          _fail("The named configuration '$namedConfig' implies "
-              "'$optionName'. Try removing '$optionName'.");
+          _fail("Can't pass '--$optionName' since it is determined by the "
+              "named configuration '$namedConfig'.");
         }
       }
     }

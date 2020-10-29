@@ -142,6 +142,12 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "collection": {
     ExperimentalFlag.nonNullable,
   },
+  "connectivity": {
+    ExperimentalFlag.nonNullable,
+  },
+  "connectivity_platform_interface": {
+    ExperimentalFlag.nonNullable,
+  },
   "convert": {
     ExperimentalFlag.nonNullable,
   },
@@ -152,6 +158,12 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     ExperimentalFlag.nonNullable,
   },
   "dart_internal": {
+    ExperimentalFlag.nonNullable,
+  },
+  "device_info": {
+    ExperimentalFlag.nonNullable,
+  },
+  "device_info_platform_interface": {
     ExperimentalFlag.nonNullable,
   },
   "fake_async": {
@@ -217,6 +229,9 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "platform": {
     ExperimentalFlag.nonNullable,
   },
+  "plugin_platform_interface": {
+    ExperimentalFlag.nonNullable,
+  },
   "pool": {
     ExperimentalFlag.nonNullable,
   },
@@ -262,7 +277,31 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "typed_data": {
     ExperimentalFlag.nonNullable,
   },
+  "url_launcher": {
+    ExperimentalFlag.nonNullable,
+  },
+  "url_launcher_linux": {
+    ExperimentalFlag.nonNullable,
+  },
+  "url_launcher_macos": {
+    ExperimentalFlag.nonNullable,
+  },
+  "url_launcher_platform_interface": {
+    ExperimentalFlag.nonNullable,
+  },
+  "url_launcher_windows": {
+    ExperimentalFlag.nonNullable,
+  },
   "vector_math": {
+    ExperimentalFlag.nonNullable,
+  },
+  "video_player": {
+    ExperimentalFlag.nonNullable,
+  },
+  "video_player_platform_interface": {
+    ExperimentalFlag.nonNullable,
+  },
+  "video_player_web": {
     ExperimentalFlag.nonNullable,
   },
 });

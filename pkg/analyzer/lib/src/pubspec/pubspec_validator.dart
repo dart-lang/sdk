@@ -248,6 +248,7 @@ class PubspecValidator {
       var pathEntry = _asString(dependency[PATH_FIELD]);
       if (pathEntry != null) {
         YamlNode pathKey() => getKey(dependency, PATH_FIELD);
+        YamlNode pathValue() => getValue(dependency, PATH_FIELD);
         var context = provider.pathContext;
         var normalizedPath = context.joinAll(path.posix.split(pathEntry));
         var packageRoot = context.dirname(source.fullName);
@@ -256,13 +257,13 @@ class PubspecValidator {
         dependencyPath = context.normalize(dependencyPath);
         var packageFolder = provider.getFolder(dependencyPath);
         if (!packageFolder.exists) {
-          _reportErrorForNode(reporter, pathKey(),
+          _reportErrorForNode(reporter, pathValue(),
               PubspecWarningCode.PATH_DOES_NOT_EXIST, [pathEntry]);
         } else {
           if (!packageFolder
               .getChild(AnalysisEngine.PUBSPEC_YAML_FILE)
               .exists) {
-            _reportErrorForNode(reporter, pathKey(),
+            _reportErrorForNode(reporter, pathValue(),
                 PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST, [pathEntry]);
           }
         }

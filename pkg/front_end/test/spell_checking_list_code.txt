@@ -223,6 +223,7 @@ condensed
 config
 configs
 configured
+connectivity
 consideration
 constness
 consult
@@ -304,6 +305,7 @@ destinations
 destroy
 deterministic
 dev
+device
 diff
 diffs
 digest
@@ -590,6 +592,7 @@ l
 lacks
 lang
 largest
+launcher
 lattice
 layer
 layout
@@ -610,6 +613,7 @@ lifter
 linearized
 linebreak
 linter
+linux
 lives
 ll
 llub
@@ -632,6 +636,7 @@ lx
 ly
 lz
 m
+macos
 maintaining
 mangled
 manipulation
@@ -806,6 +811,7 @@ permit
 pi
 picking
 pkg
+player
 plugin
 pm
 pn
@@ -1251,6 +1257,7 @@ vegorov
 verbosity
 versa
 vice
+video
 violated
 visit*
 visitors

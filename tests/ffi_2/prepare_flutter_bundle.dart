@@ -6,7 +6,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:args/args.dart';
+
+// TODO(dacoharkes): Migrate script to be nullsafe and generate nullsafe
+// Flutter app.
 
 main(List<String> args) async {
   if (args.length != 1) {
@@ -51,16 +53,34 @@ main(List<String> args) async {
 
   await generateCleanDir(flutterTestsDir);
 
-  final dartTestsDir = path.join(flutterTestsDir, 'lib/src/generated');
+  final dartTestsDirRelative = 'example/lib';
+  final dartTestsDir = path.join(flutterTestsDir, dartTestsDirRelative);
   await generateDartTests(dartTestsDir, allFiles, testFiles);
 
-  final ccDir = path.join(flutterTestsDir, 'ios/Classes');
+  final ccDirRelative = 'ios/Classes';
+  final ccDir = path.join(flutterTestsDir, ccDirRelative);
   await generateCLibs(sdkRoot, ccDir, allFiles, testFiles);
 
-  print('');
-  print('Please copy generated files into FFI flutter test application');
-  print('  * $dartTestsDir');
-  print('  * $ccDir');
+  print('''
+
+Files generated in:
+  * $dartTestsDir
+  * $ccDir
+
+Generate flutter test application with:
+  flutter create --platforms=android,ios --template=plugin <ffi_test_app_name>
+
+Please copy generated files into FFI flutter test application:
+  cd <ffi_test_app_dir> && cp -r $flutterTestsDir ./
+
+After copying modify the test application:
+  * Modify example/pubspec.yaml to depend on package:ffi.
+  * Modify example/lib/main.dart to invoke all.dart while rendering.
+  * Open example/ios/Runner.xcworkspace in Xcode.
+    * Add the cpp files to Pods/Development Pods/<deep nesting>/ios/Classes
+      to ensure they are statically linked to the app.
+''');
+  // TODO(dacoharkes): Automate these steps. How to automate the XCode step?
 }
 
 void dumpTestList(List<String> testFiles, String message) {
@@ -108,6 +128,12 @@ Future generateCLibs(String sdkRoot, String destDir, Set<String> allFiles,
   destinationFile =
       path.join(dir.path, path.basename(lib2)).replaceAll('.cc', '.cpp');
   File(destinationFile).writeAsStringSync(File(lib2).readAsStringSync());
+
+  final lib3 = path.join(
+      sdkRoot, 'runtime/bin/ffi_test/ffi_test_functions_generated.cc');
+  destinationFile =
+      path.join(dir.path, path.basename(lib3)).replaceAll('.cc', '.cpp');
+  File(destinationFile).writeAsStringSync(File(lib3).readAsStringSync());
 }
 
 String cleanDart(String content) {
@@ -159,7 +185,8 @@ ffi.DynamicLibrary dlopenPlatformSpecific(String name, {String path}) {
 
 Stream<String> listTestFiles(
     String sdkRoot, List<String> filteredTests) async* {
-  await for (final file in Directory(path.join(sdkRoot, 'tests/ffi')).list()) {
+  await for (final file
+      in Directory(path.join(sdkRoot, 'tests/ffi_2')).list()) {
     if (file is File && file.path.endsWith('_test.dart')) {
       // These tests are VM specific and cannot necessarily be run on Flutter.
       if (path.basename(file.path).startsWith('vmspecific_')) {

@@ -20,7 +20,6 @@ class Flags {
 
   static const String linkDependencies = "--link-dependencies";
 
-  static const String bytecode = "--bytecode";
   static const String compileSdk = "--compile-sdk";
   static const String dumpIr = "--dump-ir";
   static const String enableExperiment = "--enable-experiment";
