@@ -24,7 +24,7 @@ void main() {
       exitCode = 0;
     });
 
-    test('only throw errors', () async {
+    test('ignores can exceed 80', () async {
       await cli.run([
         'test/_data/lines_longer_than_80_chars',
         '--rules=lines_longer_than_80_chars'
