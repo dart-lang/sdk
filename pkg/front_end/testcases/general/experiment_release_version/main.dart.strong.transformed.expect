@@ -20,8 +20,8 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/experiment_release_version/unversioned_lib.dart:5:4: Error: This requires the null safety language feature, which is experimental.
-// You can enable the experiment using the '--enable-experiment=non-nullable' command line option.
+// pkg/front_end/testcases/general/experiment_release_version/unversioned_lib.dart:5:4: Error: This requires the 'non-nullable' language feature to be enabled.
+// The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-non-nullable' command line option is passed.
 // int? unversionedLibrary; // error
 //    ^
 //
@@ -34,8 +34,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/experiment_release_version/versioned_2_8_lib.dart:7:4: Error: This requires the null safety language feature, which is experimental and requires language version of 2.9 or higher.
-// You can enable the experiment using the '--enable-experiment=non-nullable' command line option.
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_8_lib.dart:7:4: Error: This requires the null safety language feature, which requires language version of 2.10 or higher.
 // int? versioned_2_8_Library; // error
 //    ^
 //
@@ -48,8 +47,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/experiment_release_version/versioned_2_9_lib.dart:7:4: Error: This requires the null safety language feature, which is experimental.
-// You can enable the experiment using the '--enable-experiment=non-nullable' command line option.
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_9_lib.dart:7:4: Error: This requires the null safety language feature, which requires language version of 2.10 or higher.
 // int? versioned_2_9_Library; // error
 //    ^
 //
@@ -62,8 +60,8 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/experiment_release_version/versioned_2_10_lib.dart:7:4: Error: This requires the null safety language feature, which is experimental.
-// You can enable the experiment using the '--enable-experiment=non-nullable' command line option.
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_10_lib.dart:7:4: Error: This requires the 'non-nullable' language feature to be enabled.
+// The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-non-nullable' command line option is passed.
 // int? versioned_2_10_Library; // error
 //    ^
 //

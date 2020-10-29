@@ -8,7 +8,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '2.11.0';
+const _currentVersion = '2.12.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -98,7 +98,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.non_nullable,
     documentation: 'Non Nullable by default',
     experimentalReleaseVersion: Version.parse('2.10.0'),
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.12.0'),
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
@@ -175,7 +175,7 @@ class IsEnabledByDefault {
   static const bool extension_methods = true;
 
   /// Default state of the experiment "non-nullable"
-  static const bool non_nullable = false;
+  static const bool non_nullable = true;
 
   /// Default state of the experiment "nonfunction-type-aliases"
   static const bool nonfunction_type_aliases = false;

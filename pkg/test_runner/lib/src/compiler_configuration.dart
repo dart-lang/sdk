@@ -28,8 +28,6 @@ List<String> _experimentsArgument(
   var experiments = {
     ...configuration.experiments,
     ...testFile.experiments,
-    if (configuration.nnbdMode != NnbdMode.legacy)
-      'non-nullable',
   };
   if (experiments.isEmpty) {
     return const [];

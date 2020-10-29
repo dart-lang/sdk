@@ -1902,7 +1902,6 @@
           "name": "check dart nnbd sdk for static errors",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
           ]
         },
@@ -2193,7 +2192,6 @@
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8-unsound",
             "--dart2js-batch",
-            "--enable-experiment=non-nullable",
             "observatory_ui"
           ]
         },
@@ -2266,7 +2264,6 @@
             "-ndart2js-${system}-${runtime}-unsound",
             "--dart2js-batch",
             "--reset-browser-configuration",
-            "--enable-experiment=non-nullable",
             "observatory_ui"
           ]
         },
@@ -2319,7 +2316,6 @@
           "arguments": [
             "-ndart2js-minified-linux-d8-unsound",
             "--dart2js-batch",
-            "--enable-experiment=non-nullable",
             "observatory_ui"
           ]
         },
@@ -2392,7 +2388,6 @@
             "-ndart2js-minified-csp-linux-chrome-unsound",
             "--dart2js-batch",
             "--reset-browser-configuration",
-            "--enable-experiment=non-nullable",
             "observatory_ui"
           ]
         },
@@ -2426,7 +2421,6 @@
           "name": "check dart nnbd sdk for static errors",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
             "--target",
             "dart2js"
@@ -2895,7 +2889,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--fatal-warnings",
-	    "--enable-experiment=non-nullable",
             "pkg/compiler"
           ]
         },
@@ -3073,7 +3066,6 @@
           "name": "analyze runtime/observatory",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "--enable-experiment=non-nullable",
             "runtime/observatory"
           ]
         },

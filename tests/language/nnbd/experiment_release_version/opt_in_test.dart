@@ -4,7 +4,7 @@
 
 // This version should continue to opt in to null safety in purpetuity (or at
 // least until Dart 3), when the experiment is enabled.
-// @dart = 2.10
+// @dart = 2.12
 
 void main() {
   // This should be an error since we are opted in.
