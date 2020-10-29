@@ -52,6 +52,17 @@ class PubspecWarningCode extends ErrorCode {
       "The value of the 'flutter' field is expected to be a map.",
       correction: "Try converting the value to be a map.");
 
+  /// A code indicating that a versioned package has an invalid dependency (git
+  /// or path).
+  ///
+  /// Parameters:
+  /// 0: the kind of dependency.
+  static const PubspecWarningCode INVALID_DEPENDENCY = PubspecWarningCode(
+      'INVALID_DEPENDENCY', "Publishable packages can't have {0} dependencies.",
+      correction:
+          "Try adding a 'publish_to: none' entry to mark the package as not "
+          "for publishing or remove the {0} dependency.");
+
   /// A code indicating that the name field is missing.
   static const PubspecWarningCode MISSING_NAME = PubspecWarningCode(
       'MISSING_NAME', "The name field is required but missing.",

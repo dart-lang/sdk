@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/src/span.dart';
 import 'package:yaml/yaml.dart';
@@ -27,11 +28,20 @@ class PubspecValidator {
   /// configuration data.
   static const String FLUTTER_FIELD = 'flutter';
 
+  /// The name of the field whose value is a git dependency.
+  static const String GIT_FIELD = 'git';
+
   /// The name of the field whose value is the name of the package.
   static const String NAME_FIELD = 'name';
 
   /// The name of the field whose value is a path to a package dependency.
   static const String PATH_FIELD = 'path';
+
+  /// The name of the field whose value is the where to publish the package.
+  static const String PUBLISH_TO_FIELD = 'publish_to';
+
+  /// The name of the field whose value is the version of the package.
+  static const String VERSION_FIELD = 'version';
 
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
@@ -89,6 +99,16 @@ class PubspecValidator {
     return false;
   }
 
+  String _asString(dynamic node) {
+    if (node is String) {
+      return node;
+    }
+    if (node is YamlScalar && node.value is String) {
+      return node.value as String;
+    }
+    return null;
+  }
+
   /// Return a map whose keys are the names of declared dependencies and whose
   /// values are the specifications of those dependencies. The map is extracted
   /// from the given [contents] using the given [key].
@@ -122,8 +142,17 @@ class PubspecValidator {
     Map<dynamic, YamlNode> declaredDevDependencies =
         _getDeclaredDependencies(reporter, contents, DEV_DEPENDENCIES_FIELD);
 
+    bool isPublishablePackage = false;
+    var version = contents[VERSION_FIELD];
+    if (version != null) {
+      var publishTo = _asString(contents[PUBLISH_TO_FIELD]);
+      if (publishTo != 'none') {
+        isPublishablePackage = true;
+      }
+    }
+
     for (var dependency in declaredDependencies.entries) {
-      _validatePathEntries(reporter, dependency.value);
+      _validatePathEntries(reporter, dependency.value, isPublishablePackage);
     }
 
     for (var dependency in declaredDevDependencies.entries) {
@@ -132,7 +161,7 @@ class PubspecValidator {
         _reportErrorForNode(reporter, packageName,
             PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY, [packageName.value]);
       }
-      _validatePathEntries(reporter, dependency.value);
+      _validatePathEntries(reporter, dependency.value, false);
     }
   }
 
@@ -209,33 +238,44 @@ class PubspecValidator {
   /// Valid paths are directories that:
   ///
   /// 1. exist,
-  /// 2. contain a pubspec.yaml file, and
-  /// 3. `lib` dir
-  void _validatePathEntries(ErrorReporter reporter, YamlNode dependency) {
+  /// 2. contain a pubspec.yaml file
+  ///
+  /// If [checkForPathAndGitDeps] is true, `git` or `path` dependencies will
+  /// be marked invalid.
+  void _validatePathEntries(ErrorReporter reporter, YamlNode dependency,
+      bool checkForPathAndGitDeps) {
     if (dependency is YamlMap) {
-      for (var node in dependency.nodes.entries) {
-        var pathEntry = dependency[PATH_FIELD];
-        if (pathEntry != null) {
-          var context = provider.pathContext;
-          var normalizedPath = context.joinAll(path.posix.split(pathEntry));
-          var packageRoot = context.dirname(source.fullName);
-          var dependencyPath = context.join(packageRoot, normalizedPath);
-          dependencyPath = context.absolute(dependencyPath);
-          dependencyPath = context.normalize(dependencyPath);
-          var packageFolder = provider.getFolder(dependencyPath);
-          if (!packageFolder.exists) {
-            _reportErrorForNode(reporter, node.value,
-                PubspecWarningCode.PATH_DOES_NOT_EXIST, [pathEntry]);
-          } else {
-            if (!packageFolder
-                .getChild(AnalysisEngine.PUBSPEC_YAML_FILE)
-                .exists) {
-              _reportErrorForNode(reporter, node.value,
-                  PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST, [pathEntry]);
-            }
-            // todo (pq): test for presence of a lib dir.
+      var pathEntry = _asString(dependency[PATH_FIELD]);
+      if (pathEntry != null) {
+        YamlNode pathKey() => getKey(dependency, PATH_FIELD);
+        var context = provider.pathContext;
+        var normalizedPath = context.joinAll(path.posix.split(pathEntry));
+        var packageRoot = context.dirname(source.fullName);
+        var dependencyPath = context.join(packageRoot, normalizedPath);
+        dependencyPath = context.absolute(dependencyPath);
+        dependencyPath = context.normalize(dependencyPath);
+        var packageFolder = provider.getFolder(dependencyPath);
+        if (!packageFolder.exists) {
+          _reportErrorForNode(reporter, pathKey(),
+              PubspecWarningCode.PATH_DOES_NOT_EXIST, [pathEntry]);
+        } else {
+          if (!packageFolder
+              .getChild(AnalysisEngine.PUBSPEC_YAML_FILE)
+              .exists) {
+            _reportErrorForNode(reporter, pathKey(),
+                PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST, [pathEntry]);
           }
         }
+        if (checkForPathAndGitDeps) {
+          _reportErrorForNode(reporter, pathKey(),
+              PubspecWarningCode.INVALID_DEPENDENCY, [PATH_FIELD]);
+        }
+      }
+
+      var gitEntry = dependency[GIT_FIELD];
+      if (gitEntry != null && checkForPathAndGitDeps) {
+        _reportErrorForNode(reporter, getKey(dependency, GIT_FIELD),
+            PubspecWarningCode.INVALID_DEPENDENCY, [GIT_FIELD]);
       }
     }
   }

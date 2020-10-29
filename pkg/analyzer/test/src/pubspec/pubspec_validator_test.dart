@@ -196,6 +196,73 @@ dependencies:
 ''');
   }
 
+  test_dependencyGit_malformed_empty() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git:
+''');
+  }
+
+  test_dependencyGit_malformed_list() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git:
+      - baz
+''');
+  }
+
+  test_dependencyGit_malformed_scalar() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git: baz
+''');
+  }
+
+  test_dependencyGit_noVersion_valid() {
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    git:      
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
+''');
+  }
+
+  test_dependencyGit_version_error() {
+    assertErrors('''
+name: sample
+version: 0.1.0
+dependencies:
+  foo:
+    git:      
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
+''', [PubspecWarningCode.INVALID_DEPENDENCY]);
+  }
+
+  test_dependencyGit_version_valid() {
+    assertNoErrors('''
+name: sample
+version: 0.1.0
+publish_to: none
+dependencies:
+  foo:
+    git:      
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
+''');
+  }
+
   test_dependencyGitPath() {
     // git paths are not validated
     assertNoErrors('''
@@ -205,6 +272,40 @@ dependencies:
     git:
       url: git@github.com:foo/foo.git
       path: path/to/foo
+''');
+  }
+
+  test_dependencyPath_malformed_empty() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path:
+''');
+  }
+
+  test_dependencyPath_malformed_list() {
+    // todo (pq): consider validating.
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: 
+     - baz
+''');
+  }
+
+  test_dependencyPath_noVersion_valid() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertNoErrors('''
+name: sample
+dependencies:
+  foo:
+    path: /foo
 ''');
   }
 
@@ -257,6 +358,35 @@ dependencies:
 ''');
   }
 
+  test_dependencyPath_version_error() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertErrors('''
+name: sample
+version: 0.1.0
+dependencies:
+  foo:
+    path: /foo
+''', [PubspecWarningCode.INVALID_DEPENDENCY]);
+  }
+
+  test_dependencyPath_version_valid() {
+    newFolder('/foo');
+    newFile('/foo/pubspec.yaml', content: '''
+name: foo
+''');
+    assertNoErrors('''
+name: sample
+version: 0.1.0
+publish_to: none
+dependencies:
+  foo:
+    path: /foo
+''');
+  }
+
   test_dependencyPathDoesNotExist_path_error() {
     assertErrors('''
 name: sample
@@ -285,6 +415,19 @@ dev_dependencies: true
 name: sample
 dev_dependencies:
   a: any
+''');
+  }
+
+  test_devDependencyGit_version_no_error() {
+    // Git paths are OK in dev_dependencies
+    assertNoErrors('''
+name: sample
+version: 0.1.0
+dev_dependencies:
+  foo:
+    git:      
+      url: git@github.com:foo/foo.git
+      path: path/to/foo
 ''');
   }
 

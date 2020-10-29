@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
-import 'package:analyzer/src/dart/micro/libraries_log.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/exception/exception.dart';
@@ -76,13 +75,11 @@ class FileResolver {
 
   MicroContextObjects contextObjects;
 
-  final LibrariesLog _librariesLog = LibrariesLog();
-
   _LibraryContext libraryContext;
 
   /// List of ids for cache elements that are invalidated. Track elements that
-  /// are invalidated during [changeFile]. Used in [releaseAndClearRemovedIds] to
-  /// release the cache items and is then cleared.
+  /// are invalidated during [changeFile]. Used in [releaseAndClearRemovedIds]
+  /// to release the cache items and is then cleared.
   final Set<int> removedCacheIds = {};
 
   FileResolver(
@@ -124,10 +121,6 @@ class FileResolver {
     this.byteStore = byteStore;
   }
 
-  List<LibrariesLogEntry> get librariesLogEntries {
-    return _librariesLog.entries;
-  }
-
   /// Update the resolver to reflect the fact that the file with the given
   /// [path] was changed. We need to make sure that when this file, of any file
   /// that directly or indirectly referenced it, is resolved, we used the new
@@ -142,13 +135,8 @@ class FileResolver {
     var removedFiles = <FileState>[];
     fsState.changeFile(path, removedFiles);
 
-    // Update the log.
-    var logEntry = _librariesLog.changeFile(path);
+    // Schedule disposing references to cached unlinked data.
     for (var removedFile in removedFiles) {
-      logEntry.addRemoved(
-        path: removedFile.path,
-        uri: removedFile.uri,
-      );
       removedCacheIds.add(removedFile.id);
     }
 
@@ -474,7 +462,6 @@ class FileResolver {
         resourceProvider,
         byteStore,
         contextObjects,
-        _librariesLog,
       );
     }
   }
@@ -615,7 +602,6 @@ class _LibraryContext {
   final ResourceProvider resourceProvider;
   final CiderByteStore byteStore;
   final MicroContextObjects contextObjects;
-  final LibrariesLog librariesLog;
 
   LinkedElementFactory elementFactory;
 
@@ -626,7 +612,6 @@ class _LibraryContext {
     this.resourceProvider,
     this.byteStore,
     this.contextObjects,
-    this.librariesLog,
   ) {
     elementFactory = LinkedElementFactory(
       contextObjects.analysisContext,
@@ -646,20 +631,8 @@ class _LibraryContext {
     var librariesLinkedTimer = Stopwatch();
     var inputsTimer = Stopwatch();
 
-    var logEntry = librariesLog.loadForTarget(
-      path: targetLibrary.path,
-      uri: targetLibrary.uri,
-    );
-
     void loadBundle(LibraryCycle cycle) {
       if (!loadedBundles.add(cycle)) return;
-
-      for (var library in cycle.libraries) {
-        logEntry.addLibrary(
-          path: library.path,
-          uri: library.uri,
-        );
-      }
 
       performance.getDataInt('cycleCount').increment();
       performance.getDataInt('libraryCount').add(cycle.libraries.length);

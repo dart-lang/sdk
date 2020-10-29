@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/dart/micro/libraries_log.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:matcher/matcher.dart';
@@ -25,67 +24,12 @@ class FileResolver_changeFile_Test extends FileResolutionTest {
   String bPath;
   String cPath;
 
-  String get _asyncLibraryPath => futureElement.library.source.fullName;
-
-  String get _coreLibraryPath => intElement.library.source.fullName;
-
   @override
   void setUp() {
     super.setUp();
     aPath = convertPath('/workspace/dart/test/lib/a.dart');
     bPath = convertPath('/workspace/dart/test/lib/b.dart');
     cPath = convertPath('/workspace/dart/test/lib/c.dart');
-  }
-
-  test_changeFile_log() async {
-    newFile(aPath, content: r'''
-class A {}
-''');
-
-    newFile(bPath, content: r'''
-import 'a.dart';
-A a;
-B b;
-''');
-
-    result = await resolveFile(bPath);
-    assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.UNDEFINED_CLASS, 22, 1),
-    ]);
-
-    newFile(aPath, content: r'''
-class A {}
-class B {}
-''');
-    fileResolver.changeFile(aPath);
-
-    result = await resolveFile(bPath);
-    assertErrorsInResolvedUnit(result, []);
-
-    // The failure of this check will be reported badly.
-    expect(fileResolver.librariesLogEntries, [
-      predicate((LoadLibrariesForTargetLogEntry entry) {
-        expect(entry.target.path, bPath);
-        var loadedPathSet = entry.loaded.map((f) => f.path).toSet();
-        expect(loadedPathSet, contains(aPath));
-        expect(loadedPathSet, contains(bPath));
-        expect(loadedPathSet, contains(_asyncLibraryPath));
-        expect(loadedPathSet, contains(_coreLibraryPath));
-        return true;
-      }),
-      predicate((ChangeFileLoadEntry entry) {
-        expect(entry.target, aPath);
-        var removedPathSet = entry.removed.map((f) => f.path).toSet();
-        expect(removedPathSet, {aPath, bPath});
-        return true;
-      }),
-      predicate((LoadLibrariesForTargetLogEntry entry) {
-        expect(entry.target.path, bPath);
-        var loadedPathSet = entry.loaded.map((f) => f.path).toSet();
-        expect(loadedPathSet, {aPath, bPath});
-        return true;
-      }),
-    ]);
   }
 
   test_changeFile_refreshedFiles() async {

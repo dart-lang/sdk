@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
+import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show ErrorCode, ErrorSeverity, ErrorType;
@@ -795,6 +796,9 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.WITH_BEFORE_EXTENDS,
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
   ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+  PubspecWarningCode.INVALID_DEPENDENCY,
+  PubspecWarningCode.PATH_DOES_NOT_EXIST,
+  PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST,
   ScannerErrorCode.EXPECTED_TOKEN,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,
