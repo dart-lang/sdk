@@ -68,12 +68,6 @@ class PrefixExpressionResolver {
       _resolver.migrationResolutionHooks
           ?.setCompoundAssignmentExpressionTypes(node);
 
-      _resolver.setAssignmentBackwardCompatibility(
-        assignment: node,
-        left: operand,
-        hasRead: true,
-      );
-
       _assignmentShared.checkFinalAlreadyAssigned(node.operand);
     } else {
       node.operand.accept(_resolver);

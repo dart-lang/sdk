@@ -567,9 +567,6 @@ class ResolutionCopierTest with ElementsTypesMixin {
     );
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
-    AuxiliaryElements auxiliaryElements = AuxiliaryElements(staticElement);
-    // ignore: deprecated_member_use_from_same_package
-    fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
@@ -578,8 +575,6 @@ class ResolutionCopierTest with ElementsTypesMixin {
       index: AstTestFactory.integer(0),
     );
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    // ignore: deprecated_member_use_from_same_package
-    expect(toNode.auxiliaryElements, same(auxiliaryElements));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }
@@ -851,16 +846,11 @@ class ResolutionCopierTest with ElementsTypesMixin {
     SimpleIdentifier fromNode = AstTestFactory.identifier3("x");
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceTypeStar(ElementFactory.classElement2('C')));
-    AuxiliaryElements auxiliaryElements = AuxiliaryElements(staticElement);
-    // ignore: deprecated_member_use_from_same_package
-    fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
     DartType staticType = interfaceTypeStar(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SimpleIdentifier toNode = AstTestFactory.identifier3("x");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
-    // ignore: deprecated_member_use_from_same_package
-    expect(toNode.auxiliaryElements, same(auxiliaryElements));
     expect(toNode.staticElement, same(staticElement));
     expect(toNode.staticType, same(staticType));
   }

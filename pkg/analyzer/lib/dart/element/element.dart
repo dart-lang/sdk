@@ -691,12 +691,6 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// produced but no errors were generated, then the list will be empty.
   List<AnalysisError> get constantEvaluationErrors;
 
-  /// Return a representation of the value of this annotation, or `null` if the
-  /// value of this annotation has not been computed or if the value could not
-  /// be computed because of errors.
-  @Deprecated('Use computeConstantValue() instead')
-  DartObject get constantValue;
-
   /// Return the element referenced by this annotation.
   ///
   /// In valid code this element can be a [PropertyAccessorElement] getter
@@ -1198,12 +1192,6 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class GenericFunctionTypeElement implements FunctionTypedElement {}
-
-/// A synonym for [FunctionTypeAliasElement].
-///
-/// Clients may not extend, implement, or mix-in this class.
-@Deprecated('Use FunctionTypeAliasElement instead')
-abstract class GenericTypeAliasElement implements FunctionTypeAliasElement {}
 
 /// A combinator that causes some of the names in a namespace to be hidden when
 /// being imported.
@@ -1755,27 +1743,12 @@ abstract class UriReferencedElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableElement implements Element, ConstantEvaluationTarget {
-  /// Return a representation of the value of this variable.
-  ///
-  /// Return `null` if either this variable was not declared with the 'const'
-  /// modifier or if the value of this variable could not be computed because of
-  /// errors.
-  @Deprecated('Use computeConstantValue() instead')
-  DartObject get constantValue;
-
   @override
   VariableElement get declaration;
 
   /// Return `true` if this variable element did not have an explicit type
   /// specified for it.
   bool get hasImplicitType;
-
-  /// Return a synthetic function representing this variable's initializer, or
-  /// `null` if this variable does not have an initializer. The function will
-  /// have no parameters. The return type of the function will be the
-  /// compile-time type of the initialization expression.
-  @deprecated
-  FunctionElement get initializer;
 
   /// Return `true` if this variable was declared with the 'const' modifier.
   bool get isConst;

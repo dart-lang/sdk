@@ -841,7 +841,11 @@ class InferenceVisitor
     Expression implicitDowncast = inferrer.ensureAssignable(
         variable.type, inferredType, variableGet,
         fileOffset: parent.fileOffset,
-        errorTemplate: templateForInLoopElementTypeNotAssignable);
+        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        nullabilityErrorTemplate:
+            templateForInLoopElementTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopElementTypeNotAssignablePartNullability);
     Statement expressionEffect;
     if (!identical(implicitDowncast, variableGet)) {
       variable.initializer = implicitDowncast..parent = variable;
@@ -884,7 +888,10 @@ class InferenceVisitor
             const DynamicType(), iterableClass, inferrer.library.nonNullable),
         inferredExpressionType,
         iterable,
-        errorTemplate: templateForInLoopTypeNotIterable);
+        errorTemplate: templateForInLoopTypeNotIterable,
+        nullabilityErrorTemplate: templateForInLoopTypeNotIterableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopTypeNotIterablePartNullability);
     DartType inferredType;
     if (typeNeeded) {
       inferredType = const DynamicType();
@@ -1396,13 +1403,51 @@ class InferenceVisitor
           }
         } else if (spreadTypeBound is InterfaceType) {
           if (!inferrer.isAssignable(inferredTypeArgument, spreadElementType)) {
-            replacement = inferrer.helper.buildProblem(
-                templateSpreadElementTypeMismatch.withArguments(
-                    spreadElementType,
-                    inferredTypeArgument,
-                    inferrer.isNonNullableByDefault),
-                element.expression.fileOffset,
-                1);
+            if (inferrer.isNonNullableByDefault) {
+              IsSubtypeOf subtypeCheckResult = inferrer.typeSchemaEnvironment
+                  .performNullabilityAwareSubtypeCheck(
+                      spreadElementType, inferredTypeArgument);
+              if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
+                if (spreadElementType == subtypeCheckResult.subtype &&
+                    inferredTypeArgument == subtypeCheckResult.supertype) {
+                  replacement = inferrer.helper.buildProblem(
+                      templateSpreadElementTypeMismatchNullability
+                          .withArguments(
+                              spreadElementType,
+                              inferredTypeArgument,
+                              inferrer.isNonNullableByDefault),
+                      element.expression.fileOffset,
+                      1);
+                } else {
+                  replacement = inferrer.helper.buildProblem(
+                      templateSpreadElementTypeMismatchPartNullability
+                          .withArguments(
+                              spreadElementType,
+                              inferredTypeArgument,
+                              subtypeCheckResult.subtype,
+                              subtypeCheckResult.supertype,
+                              inferrer.isNonNullableByDefault),
+                      element.expression.fileOffset,
+                      1);
+                }
+              } else {
+                replacement = inferrer.helper.buildProblem(
+                    templateSpreadElementTypeMismatch.withArguments(
+                        spreadElementType,
+                        inferredTypeArgument,
+                        inferrer.isNonNullableByDefault),
+                    element.expression.fileOffset,
+                    1);
+              }
+            } else {
+              replacement = inferrer.helper.buildProblem(
+                  templateSpreadElementTypeMismatch.withArguments(
+                      spreadElementType,
+                      inferredTypeArgument,
+                      inferrer.isNonNullableByDefault),
+                  element.expression.fileOffset,
+                  1);
+            }
           }
           if (inferrer.isNonNullableByDefault &&
               spreadType.isPotentiallyNullable &&
@@ -1855,22 +1900,95 @@ class InferenceVisitor
           Expression keyError;
           Expression valueError;
           if (!inferrer.isAssignable(inferredKeyType, actualKeyType)) {
-            keyError = inferrer.helper.buildProblem(
-                templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
-                    actualKeyType,
-                    inferredKeyType,
-                    inferrer.isNonNullableByDefault),
-                entry.expression.fileOffset,
-                1);
+            if (inferrer.isNonNullableByDefault) {
+              IsSubtypeOf subtypeCheckResult = inferrer.typeSchemaEnvironment
+                  .performNullabilityAwareSubtypeCheck(
+                      actualKeyType, inferredKeyType);
+              if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
+                if (actualKeyType == subtypeCheckResult.subtype &&
+                    inferredKeyType == subtypeCheckResult.supertype) {
+                  keyError = inferrer.helper.buildProblem(
+                      templateSpreadMapEntryElementKeyTypeMismatchNullability
+                          .withArguments(actualKeyType, inferredKeyType,
+                              inferrer.isNonNullableByDefault),
+                      entry.expression.fileOffset,
+                      1);
+                } else {
+                  keyError = inferrer.helper.buildProblem(
+                      // ignore: lines_longer_than_80_chars
+                      templateSpreadMapEntryElementKeyTypeMismatchPartNullability
+                          .withArguments(
+                              actualKeyType,
+                              inferredKeyType,
+                              subtypeCheckResult.subtype,
+                              subtypeCheckResult.supertype,
+                              inferrer.isNonNullableByDefault),
+                      entry.expression.fileOffset,
+                      1);
+                }
+              } else {
+                keyError = inferrer.helper.buildProblem(
+                    templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
+                        actualKeyType,
+                        inferredKeyType,
+                        inferrer.isNonNullableByDefault),
+                    entry.expression.fileOffset,
+                    1);
+              }
+            } else {
+              keyError = inferrer.helper.buildProblem(
+                  templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
+                      actualKeyType,
+                      inferredKeyType,
+                      inferrer.isNonNullableByDefault),
+                  entry.expression.fileOffset,
+                  1);
+            }
           }
           if (!inferrer.isAssignable(inferredValueType, actualValueType)) {
-            valueError = inferrer.helper.buildProblem(
-                templateSpreadMapEntryElementValueTypeMismatch.withArguments(
-                    actualValueType,
-                    inferredValueType,
-                    inferrer.isNonNullableByDefault),
-                entry.expression.fileOffset,
-                1);
+            if (inferrer.isNonNullableByDefault) {
+              IsSubtypeOf subtypeCheckResult = inferrer.typeSchemaEnvironment
+                  .performNullabilityAwareSubtypeCheck(
+                      actualValueType, inferredValueType);
+              if (subtypeCheckResult.isSubtypeWhenIgnoringNullabilities()) {
+                if (actualValueType == subtypeCheckResult.subtype &&
+                    inferredValueType == subtypeCheckResult.supertype) {
+                  valueError = inferrer.helper.buildProblem(
+                      templateSpreadMapEntryElementValueTypeMismatchNullability
+                          .withArguments(actualValueType, inferredValueType,
+                              inferrer.isNonNullableByDefault),
+                      entry.expression.fileOffset,
+                      1);
+                } else {
+                  valueError = inferrer.helper.buildProblem(
+                      // ignore: lines_longer_than_80_chars
+                      templateSpreadMapEntryElementValueTypeMismatchPartNullability
+                          .withArguments(
+                              actualValueType,
+                              inferredValueType,
+                              subtypeCheckResult.subtype,
+                              subtypeCheckResult.supertype,
+                              inferrer.isNonNullableByDefault),
+                      entry.expression.fileOffset,
+                      1);
+                }
+              } else {
+                valueError = inferrer.helper.buildProblem(
+                    templateSpreadMapEntryElementValueTypeMismatch
+                        .withArguments(actualValueType, inferredValueType,
+                            inferrer.isNonNullableByDefault),
+                    entry.expression.fileOffset,
+                    1);
+              }
+            } else {
+              valueError = inferrer.helper.buildProblem(
+                  templateSpreadMapEntryElementValueTypeMismatch.withArguments(
+                      actualValueType,
+                      inferredValueType,
+                      inferrer.isNonNullableByDefault),
+                  entry.expression.fileOffset,
+                  1);
+            }
           }
           if (inferrer.isNonNullableByDefault &&
               spreadType.isPotentiallyNullable &&
@@ -3621,7 +3739,10 @@ class InferenceVisitor
     right = inferrer.ensureAssignableResult(
         rightType.withDeclaredNullability(inferrer.library.nullable),
         rightResult,
-        errorTemplate: templateArgumentTypeNotAssignable);
+        errorTemplate: templateArgumentTypeNotAssignable,
+        nullabilityErrorTemplate: templateArgumentTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+            templateArgumentTypeNotAssignablePartNullability);
 
     Expression equals = new MethodInvocation(
         left,
@@ -6233,11 +6354,15 @@ class LocalForInVariable implements ForInVariable {
   }
 
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
+    DartType variableType =
+        inferrer.computeGreatestClosure(variableSet.variable.type);
     Expression rhs = inferrer.ensureAssignable(
-        inferrer.computeGreatestClosure(variableSet.variable.type),
-        rhsType,
-        variableSet.value,
+        variableType, rhsType, variableSet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
+        nullabilityErrorTemplate:
+            templateForInLoopElementTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
 
     variableSet.value = rhs..parent = variableSet;
@@ -6296,6 +6421,10 @@ class PropertyForInVariable implements ForInVariable {
     Expression rhs = inferrer.ensureAssignable(
         inferrer.computeGreatestClosure(_writeType), rhsType, _rhs,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
+        nullabilityErrorTemplate:
+            templateForInLoopElementTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
 
     propertySet.value = rhs..parent = propertySet;
@@ -6332,6 +6461,10 @@ class SuperPropertyForInVariable implements ForInVariable {
         rhsType,
         superPropertySet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
+        nullabilityErrorTemplate:
+            templateForInLoopElementTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
     superPropertySet.value = rhs..parent = superPropertySet;
     ExpressionInferenceResult result = inferrer.inferExpression(
@@ -6352,11 +6485,15 @@ class StaticForInVariable implements ForInVariable {
 
   @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
+    DartType setterType =
+        inferrer.computeGreatestClosure(staticSet.target.setterType);
     Expression rhs = inferrer.ensureAssignable(
-        inferrer.computeGreatestClosure(staticSet.target.setterType),
-        rhsType,
-        staticSet.value,
+        setterType, rhsType, staticSet.value,
         errorTemplate: templateForInLoopElementTypeNotAssignable,
+        nullabilityErrorTemplate:
+            templateForInLoopElementTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
 
     staticSet.value = rhs..parent = staticSet;

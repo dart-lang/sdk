@@ -383,7 +383,7 @@ class LinterContextImpl implements LinterContext {
     }
 
     if (scope != null) {
-      var lookupResult = scope.lookup2(id);
+      var lookupResult = scope.lookup(id);
       var idElement = lookupResult.getter;
       var idEqElement = lookupResult.setter;
 

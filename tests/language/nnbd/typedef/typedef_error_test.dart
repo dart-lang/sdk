@@ -14,7 +14,7 @@ void main() {
   F f = null; // typedefs from opted out libraries are treated as non-nullable
   //    ^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'int Function(int)'.
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'int Function(int)' because 'Null' is nullable and 'int Function(int)' isn't.
 
   f = takesNonNullable; // F is int* Function(int*)
   f(null); // F is int* Function(int*)

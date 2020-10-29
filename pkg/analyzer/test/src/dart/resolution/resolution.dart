@@ -51,7 +51,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ClassElement get futureElement => typeProvider.futureElement;
 
   /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
-  bool get hasAssignmentLeftResolution => true;
+  bool get hasAssignmentLeftResolution => false;
 
   ClassElement get intElement => typeProvider.intType.element;
 
@@ -383,8 +383,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var isRead = node.inGetterContext();
     var isWrite = node.inSetterContext();
     if (isRead && isWrite) {
-      // ignore: deprecated_member_use_from_same_package
-      assertElement(node.auxiliaryElements?.staticElement, readElement);
       assertElement(node.staticElement, writeElement);
     } else if (isRead) {
       assertElement(node.staticElement, readElement);

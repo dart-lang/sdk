@@ -658,55 +658,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  /// TODO(scheglov) This is mostly necessary for backward compatibility.
-  /// Although we also use `staticElement` for `getType(left)` below.
-  void setAssignmentBackwardCompatibility({
-    @required CompoundAssignmentExpression assignment,
-    @required AstNode left,
-    @required bool hasRead,
-  }) {
-    if (left is IndexExpression) {
-      if (hasRead) {
-        left.staticElement = assignment.writeElement;
-        // ignore: deprecated_member_use_from_same_package
-        left.auxiliaryElements = AuxiliaryElements(assignment.readElement);
-      } else {
-        left.staticElement = assignment.writeElement;
-      }
-      inferenceHelper.recordStaticType(left, assignment.writeType);
-      return;
-    }
-
-    SimpleIdentifier leftIdentifier;
-    if (left is PrefixedIdentifier) {
-      leftIdentifier = left.identifier;
-      inferenceHelper.recordStaticType(left, assignment.writeType);
-    } else if (left is PropertyAccess) {
-      leftIdentifier = left.propertyName;
-      inferenceHelper.recordStaticType(left, assignment.writeType);
-    } else if (left is SimpleIdentifier) {
-      leftIdentifier = left;
-    } else {
-      return;
-    }
-
-    if (hasRead) {
-      var readElement = assignment.readElement;
-      if (readElement is PropertyAccessorElement) {
-        // ignore: deprecated_member_use_from_same_package
-        leftIdentifier.auxiliaryElements = AuxiliaryElements(readElement);
-      }
-    }
-
-    leftIdentifier.staticElement = assignment.writeElement;
-    if (assignment.readElement is VariableElement) {
-      var leftType = localVariableTypeProvider.getType(leftIdentifier);
-      inferenceHelper.recordStaticType(leftIdentifier, leftType);
-    } else {
-      inferenceHelper.recordStaticType(leftIdentifier, assignment.writeType);
-    }
-  }
-
   void setReadElement(Expression node, Element element) {
     DartType readType = DynamicTypeImpl.instance;
     if (node is IndexExpression) {
@@ -3209,7 +3160,7 @@ class VariableResolverVisitor extends ScopedVisitor {
       return;
     }
     // Prepare VariableElement.
-    Element element = nameScope.lookup2(node.name).getter;
+    Element element = nameScope.lookup(node.name).getter;
     if (element is! VariableElement) {
       return;
     }
