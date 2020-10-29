@@ -470,7 +470,14 @@ class MigrationCli {
         throw _BadArgException(
             'Invalid value for --${CommandLineOptions.previewPortOption}');
       }
-      var webPreview = argResults[CommandLineOptions.webPreviewFlag] as bool;
+      bool webPreview;
+      if (argResults.wasParsed(CommandLineOptions.webPreviewFlag)) {
+        webPreview = argResults[CommandLineOptions.webPreviewFlag] as bool;
+      } else {
+        // If the `webPreviewFlag` wasn't explicitly passed, then the value of
+        // this option is based on the value of the [applyChanges] option.
+        webPreview = !applyChanges;
+      }
       if (applyChanges && webPreview) {
         throw _BadArgException('--apply-changes requires --no-web-preview');
       }
