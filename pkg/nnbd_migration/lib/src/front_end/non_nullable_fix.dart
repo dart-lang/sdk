@@ -4,7 +4,6 @@
 
 import 'dart:convert' show jsonDecode, JsonEncoder;
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -30,11 +29,11 @@ class NonNullableFix {
   // TODO(srawlins): Refactor to use
   //  `Feature.non_nullable.releaseVersion` when this becomes non-null (perhaps
   //  after "Beta").
-  static final Version _intendedMinimumSdkVersion =
-      Feature.non_nullable.experimentalReleaseVersion;
+  static final Version _intendedMinimumSdkVersion = Version.parse('2.12.0-0');
 
   // In the package_config.json file, the patch number is omitted.
-  static const String _intendedLanguageVersion = '2.10';
+  static final String _intendedLanguageVersion =
+      '${_intendedMinimumSdkVersion.major}.${_intendedMinimumSdkVersion.minor}';
 
   static final String _intendedSdkVersionConstraint =
       '>=$_intendedMinimumSdkVersion <2.12.0';
