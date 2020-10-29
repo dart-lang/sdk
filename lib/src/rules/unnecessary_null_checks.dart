@@ -104,7 +104,7 @@ DartType getExpectedType(PostfixExpression node) {
     parent = parent.parent;
   }
   if (parent is ArgumentList) {
-    return (realNode as Expression).staticParameterElement.type;
+    return (realNode as Expression).staticParameterElement?.type;
   }
   return null;
 }
