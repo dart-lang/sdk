@@ -1,4 +1,16 @@
-## 2.11.0
+## 2.12.0
+
+### Language
+
+**Breaking Change** [Null
+Safety](https://dart.dev/null-safety/understanding-null-safety) is now enabled
+by default in all packages with a lower sdk constraint of 2.12.0 or greater.
+Files that are not subject to language versioning (whether because they are not
+contained in a pub package, or because the package that they are contained in
+has no lower sdk constraint) are treated as opted into to null safety by default
+and may report new errors.  Pub packages may be opted out of null safety by
+setting a min sdk constraint in pubspec.yaml of 2.9.0 or less.  Files may be
+opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 ### Core libraries
 
