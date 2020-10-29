@@ -152,9 +152,6 @@ class NonNullableFix {
     if (updated) {
       _processConfigFile(pkgFolder, pubspec);
     }
-    // TODO(https://github.com/dart-lang/sdk/issues/43806): stop processing
-    // analysis options file when the experiment is no longer needed.
-    _processAnalysisOptionsFile(pkgFolder);
   }
 
   Future<void> processUnit(ResolvedUnitResult result) async {
@@ -208,91 +205,6 @@ class NonNullableFix {
             path: state.pathMapper.map(includedRoot),
             queryParameters: {'authToken': authToken}).toString()
       ];
-    }
-  }
-
-  void _processAnalysisOptionsException(
-      String action, String analysisOptionsPath, error) {
-    listener.addRecommendation('''Failed to $action analysis options file
-  $analysisOptionsPath
-  $error
-
-  Manually update this file to enable the Null Safety language feature in static
-  analysis by adding:
-
-    analyzer:
-      enable-experiment:
-        - non-nullable
-''');
-  }
-
-  void _processAnalysisOptionsFile(Folder pkgFolder) {
-    var analysisOptionsFile =
-        pkgFolder.getChildAssumingFile('analysis_options.yaml');
-    if (!analysisOptionsFile.exists) {
-      // A source file edit cannot be made for a file which doesn't exist.
-      // Instead of using the fix listener, just write the file directly.
-      analysisOptionsFile.writeAsStringSync('''
-analyzer:
-  enable-experiment:
-    - non-nullable
-
-''');
-      return;
-    }
-
-    _YamlFile analysisOptions;
-    try {
-      analysisOptions = _YamlFile._parseFrom(analysisOptionsFile);
-    } on FileSystemException catch (e) {
-      _processAnalysisOptionsException('read', analysisOptionsFile.path, e);
-      return;
-    } on FormatException catch (e) {
-      _processAnalysisOptionsException('parse', analysisOptionsFile.path, e);
-      return;
-    }
-
-    var analysisOptionsMap = analysisOptions.content;
-    YamlNode analyzerOptions;
-    if (analysisOptionsMap is YamlMap) {
-      analyzerOptions = analysisOptionsMap.nodes['analyzer'];
-    }
-    if (analyzerOptions == null) {
-      // There is no top-level "analyzer" section. We can write one in its
-      // entirety, and use a 2-space indentation. This is a valid indentation,
-      // even if the file contains another top-level section (perhaps "linter")
-      // which uses a different indentation.
-      var start = SourceLocation(0, line: 0, column: 0);
-      var content = '''
-analyzer:
-  enable-experiment:
-    - non-nullable
-
-''';
-      analysisOptions._insertAfterParent(
-          SourceSpan(start, start, ''), content, listener);
-    } else if (analyzerOptions is YamlMap) {
-      var enableExperiment = analyzerOptions.nodes['enable-experiment'];
-      if (enableExperiment == null) {
-        var analyzerIndentation =
-            analysisOptions._getMapEntryIndentation(analyzerOptions);
-        var indent = ' ' * analyzerIndentation;
-        var content = '\n'
-            '${indent}enable-experiment:\n'
-            '$indent  - non-nullable';
-        analysisOptions._insertAfterParent(
-            analyzerOptions.span, content, listener);
-      } else if (enableExperiment is YamlList) {
-        var enableExperimentIndentation =
-            analysisOptions._getListIndentation(enableExperiment);
-        var indent = ' ' * enableExperimentIndentation;
-        var nonNullableIsEnabled = enableExperiment.value
-            .any((experiment) => experiment == 'non-nullable');
-        if (nonNullableIsEnabled) return;
-        var content = '\n' '$indent- non-nullable';
-        analysisOptions._insertAfterParent(
-            enableExperiment.span, content, listener);
-      }
     }
   }
 
@@ -515,47 +427,12 @@ $stackTrace''');
 }
 
 class _YamlFile {
-  static final _newlineCharacter = RegExp('[\r\n]');
   final String path;
   final String textContent;
 
   final YamlNode content;
 
   _YamlFile._(this.path, this.textContent, this.content);
-
-  /// Returns the indentation of the entries in [node].
-  int _getListIndentation(YamlList node) {
-    return node.span.start.column;
-  }
-
-  /// Returns the indentation of the first (and presumably all) entry of [node].
-  int _getMapEntryIndentation(YamlMap node) {
-    if (node.isEmpty) return 2;
-
-    var value = node.nodes.values.first;
-    if (value is YamlScalar) {
-      // A YamlScalar value indicates that a "key: value" pair is on a single
-      // line. The span's start column is the start column of the value, not the
-      // key.
-      var offset = value.span.start.offset;
-      var firstSpaceIndex =
-          textContent.lastIndexOf(_newlineCharacter, offset) + 1;
-      var index = firstSpaceIndex;
-      while (textContent.codeUnitAt(index) == $space) {
-        index++;
-      }
-      return index - firstSpaceIndex;
-    } else if (value is YamlMap) {
-      // If the first entry of [node] is a YamlMap, then the span for [node]
-      // indicates the start of the first entry.
-      return node.span.start.column;
-    } else {
-      assert(value is YamlList);
-      // If the first entry of [node] is a YamlList, then the span for [value]
-      // indicates the start of the first list entry.
-      return value.span.start.column;
-    }
-  }
 
   String _getName() {
     YamlNode packageNameNode;
