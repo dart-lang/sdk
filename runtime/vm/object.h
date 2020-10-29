@@ -10567,10 +10567,17 @@ class ReceivePort : public Instance {
   InstancePtr handler() const { return raw_ptr()->handler_; }
   void set_handler(const Instance& value) const;
 
+  StackTracePtr allocation_location() const {
+    return raw_ptr()->allocation_location_;
+  }
+
+  StringPtr debug_name() const { return raw_ptr()->debug_name_; }
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(ReceivePortLayout));
   }
   static ReceivePortPtr New(Dart_Port id,
+                            const String& debug_name,
                             bool is_control_port,
                             Heap::Space space = Heap::kNew);
 

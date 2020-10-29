@@ -22,7 +22,8 @@ import "dart:_internal" show spawnFunction;
 @patch
 class ReceivePort {
   @patch
-  factory ReceivePort() => new _ReceivePortImpl();
+  factory ReceivePort([String debugName = '']) =>
+      new _ReceivePortImpl(debugName);
 
   @patch
   factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
@@ -62,15 +63,16 @@ class RawReceivePort {
    * event is received.
    */
   @patch
-  factory RawReceivePort([Function? handler]) {
-    _RawReceivePortImpl result = new _RawReceivePortImpl();
+  factory RawReceivePort([Function? handler, String debugName = '']) {
+    _RawReceivePortImpl result = new _RawReceivePortImpl(debugName);
     result.handler = handler;
     return result;
   }
 }
 
 class _ReceivePortImpl extends Stream implements ReceivePort {
-  _ReceivePortImpl() : this.fromRawReceivePort(new RawReceivePort());
+  _ReceivePortImpl([String debugName = ''])
+      : this.fromRawReceivePort(new RawReceivePort(null, debugName));
 
   _ReceivePortImpl.fromRawReceivePort(this._rawPort)
       : _controller = new StreamController(sync: true) {
@@ -128,11 +130,20 @@ Function _getIsolateScheduleImmediateClosure() {
 
 @pragma("vm:entry-point")
 class _RawReceivePortImpl implements RawReceivePort {
-  factory _RawReceivePortImpl() native "RawReceivePortImpl_factory";
+  factory _RawReceivePortImpl(String debugName) {
+    final port = _RawReceivePortImpl._(debugName);
+    _portMap[port._get_id()] = <String, dynamic>{
+      'port': port,
+    };
+    return port;
+  }
+
+  factory _RawReceivePortImpl._(String debugName)
+      native "RawReceivePortImpl_factory";
 
   close() {
     // Close the port and remove it from the handler map.
-    _handlerMap.remove(this._closeInternal());
+    _portMap.remove(this._closeInternal());
   }
 
   SendPort get sendPort {
@@ -155,8 +166,13 @@ class _RawReceivePortImpl implements RawReceivePort {
   // Called from the VM to retrieve the handler for a message.
   @pragma("vm:entry-point", "call")
   static _lookupHandler(int id) {
-    var result = _handlerMap[id];
+    var result = _portMap[id]?['handler'];
     return result;
+  }
+
+  @pragma("vm:entry-point", "call")
+  static _lookupOpenPorts() {
+    return _portMap.values.map((e) => e['port']).toList();
   }
 
   // Called from the VM to dispatch to the handler.
@@ -173,22 +189,16 @@ class _RawReceivePortImpl implements RawReceivePort {
   _closeInternal() native "RawReceivePortImpl_closeInternal";
 
   void set handler(Function? value) {
-    _handlerMap[this._get_id()] = value;
+    final id = this._get_id();
+    if (!_portMap.containsKey(id)) {
+      _portMap[id] = <String, dynamic>{
+        'port': this,
+      };
+    }
+    _portMap[id]!['handler'] = value;
   }
 
-  // TODO(iposva): Ideally keep this map in the VM.
-  // id to handler mapping.
-  static _initHandlerMap() {
-    // TODO(18511): Workaround bad CheckSmi hoisting.
-    var tempMap = new HashMap();
-    // Collect feedback that not all keys are Smis.
-    tempMap["."] = 1;
-    tempMap["."] = 2;
-
-    return new HashMap();
-  }
-
-  static final Map _handlerMap = _initHandlerMap();
+  static final _portMap = <dynamic, Map<String, dynamic>>{};
 }
 
 @pragma("vm:entry-point")
