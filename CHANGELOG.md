@@ -31,17 +31,6 @@
 
 Updated the Linter to `0.1.121`, which includes:
 
-#### Pub
-
-* New commands `pub add` and `pub remove` that adds and remove new dependencies
-  to your `pubspec.yaml`.
-* New option `pub outdated mode=null-safety` that will analyze your dependencies
-  for null-safety.
-* `pub publish` will check your pubspec keys for likely typos.
-* `pub get` will print a warning if the resolution is mixed mode.
-
-# 0.1.121
-
 * Performance improvements to `always_use_package_imports`,
   `avoid_renaming_method_parameters`, `prefer_relative_imports` and
   `public_member_api_docs`.
@@ -55,6 +44,17 @@ Updated the Linter to `0.1.121`, which includes:
 * New lint: `unnecessary_null_checks`.
 * Fixed `unawaited_futures` to handle `Future` subtypes.
 * New lint: `avoid_type_to_string`.
+
+#### Pub
+
+* The top level `pub` executable has been deprecated. Use `dart pub` instead.
+* New commands `dart pub add` and `dart pub remove` that adds and removes new
+  dependencies to your `pubspec.yaml`.
+* New option `dart pub outdated mode=null-safety` that will analyze your
+  dependencies for null-safety.
+* `dart pub publish` will now check your pubspec keys for likely typos.
+* `pub get` will print a warning if the resolution is in mixed-mode requiring
+  the code to run with `dart --no-sound-null-safety`.
 
 ## 2.10.3 - 2020-10-29
 
