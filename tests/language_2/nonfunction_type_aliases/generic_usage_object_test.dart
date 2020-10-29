@@ -47,9 +47,9 @@ extension E on T<dynamic> {
   T<dynamic> foo(T<dynamic> t) => t;
 }
 
-T<Type> Function(T<Type>) id;
-
 X foo<X>(X x) => x;
+
+T<Object> Function(T<Object>) id = (x) => x;
 
 main() {
   var v8 = <T<C>>[];
@@ -60,4 +60,5 @@ main() {
   v10 = v11;
   T<Null>();
   T<Object> v12 = foo<T<bool>>(T<bool>());
+  id(v12);
 }

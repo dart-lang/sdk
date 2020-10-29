@@ -1155,24 +1155,20 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 
 /// A function type alias (`typedef`).
 ///
+/// This class models a type alias whose body specifies a function type, as
+/// is the only possible kind of type alias before the generalization that
+/// allows the body to be an arbitrary type.
+///
+/// This class will be deprecated and [TypeAliasElement] will replace it
+/// when non-function type aliases are enabled by default.
+///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionTypeAliasElement
-    implements TypeParameterizedElement, TypeDefiningElement {
-  @override
-  CompilationUnitElement get enclosingElement;
-
+abstract class FunctionTypeAliasElement implements TypeAliasElement {
   /// Return the generic function type element representing the generic function
   /// type on the right side of the equals.
   GenericFunctionTypeElement get function;
 
-  /// Produces the function type resulting from instantiating this typedef with
-  /// the given [typeArguments] and [nullabilitySuffix].
-  ///
-  /// Note that this always instantiates the typedef itself, so for a
-  /// [FunctionTypeAliasElement] the returned [FunctionType] might still be a
-  /// generic function, with type formals. For example, if the typedef is:
-  ///     typedef F<T> = void Function<U>(T, U);
-  /// then `F<int>` will produce `void Function<U>(int, U)`.
+  @override
   FunctionType instantiate({
     @required List<DartType> typeArguments,
     @required NullabilitySuffix nullabilitySuffix,
@@ -1662,6 +1658,28 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
 
   /// Return `true` if this field was explicitly marked as being external.
   bool get isExternal;
+}
+
+/// A type alias (`typedef`).
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class TypeAliasElement
+    implements TypeParameterizedElement, TypeDefiningElement {
+  @override
+  CompilationUnitElement get enclosingElement;
+
+  /// Produces the type resulting from instantiating this typedef with the given
+  /// [typeArguments] and [nullabilitySuffix].
+  ///
+  /// Note that this always instantiates the typedef itself, so for a
+  /// [TypeAliasElement] the returned [DartType] might still be a generic
+  /// type, with type formals. For example, if the typedef is:
+  ///     typedef F<T> = void Function<U>(T, U);
+  /// then `F<int>` will produce `void Function<U>(int, U)`.
+  DartType instantiate({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  });
 }
 
 /// An element that defines a type.

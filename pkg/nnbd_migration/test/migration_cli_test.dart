@@ -455,8 +455,8 @@ analyzer:
   foo: 1
 ''');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -474,8 +474,8 @@ analyzer:
       foo: 1
 ''');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -495,8 +495,8 @@ analyzer:
       bar: 1
 ''');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -517,8 +517,8 @@ analyzer: 1
     var projectContents =
         simpleProject(analysisOptionsText: analysisOptionsText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -530,8 +530,8 @@ analyzer: 1
   test_analysis_options_does_not_exist() async {
     var projectContents = simpleProject();
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -552,8 +552,8 @@ analyzer:
     var projectContents =
         simpleProject(analysisOptionsText: analysisOptionsText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -570,8 +570,8 @@ analyzer:
     var projectContents =
         simpleProject(analysisOptionsText: analysisOptionsText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -589,8 +589,8 @@ analyzer:
     var projectContents =
         simpleProject(analysisOptionsText: analysisOptionsText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -611,8 +611,8 @@ analyzer:
     var projectContents =
         simpleProject(analysisOptionsText: analysisOptionsText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -629,8 +629,8 @@ analyzer:
 name: test
 ''');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -648,8 +648,8 @@ name: test
   test_analysis_options_is_not_a_map() async {
     var projectContents = simpleProject(analysisOptionsText: 'not-a-map');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     expect(() async => await cliRunner.run(), throwsUnsupportedError);
   }
 
@@ -702,6 +702,7 @@ name: test
 
   test_flag_apply_changes_default() {
     expect(assertParseArgsSuccess([]).applyChanges, isFalse);
+    expect(assertParseArgsSuccess([]).webPreview, isTrue);
   }
 
   test_flag_apply_changes_disable() async {
@@ -710,6 +711,12 @@ name: test
   }
 
   test_flag_apply_changes_enable() {
+    var options = assertParseArgsSuccess(['--apply-changes']);
+    expect(options.applyChanges, isTrue);
+    expect(options.webPreview, isFalse);
+  }
+
+  test_flag_apply_changes_enable_with_no_web_preview() {
     expect(
         assertParseArgsSuccess(['--no-web-preview', '--apply-changes'])
             .applyChanges,
@@ -806,8 +813,7 @@ int? y = 0;
     var projectContents = createProject();
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli(nullSafePackages: ['test'])
-        .decodeCommandLineArgs(
-            _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     assertNormalExit(cliRunner);
     // Check that a summary was printed
@@ -828,8 +834,8 @@ int? y = 0;
     var projectContents = simpleProject();
     var projectDir = createProjectDir(projectContents);
     var cli = _createCli();
-    var cliRunner = cli.decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner =
+        cli.decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     bool applyHookCalled = false;
     cli._onApplyHook = () {
       expect(applyHookCalled, false);
@@ -1731,12 +1737,11 @@ int f() => null;
     if (dartVersionIsNullSafeByDefault) {
       // The lack of a package config file means the test file is already opted
       // in.
-      await assertRunFailure(
-          ['--no-web-preview', '--apply-changes', projectDir]);
+      await assertRunFailure(['--apply-changes', projectDir]);
       _expectErrorIndicatingCodeIsAlreadyOptedIn();
     } else {
-      var cliRunner = _createCli().decodeCommandLineArgs(
-          _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+      var cliRunner = _createCli()
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
       await cliRunner.run();
       // The Dart source code should still be migrated.
       assertProjectContents(
@@ -1765,12 +1770,11 @@ int f() => null;
     if (dartVersionIsNullSafeByDefault) {
       // An omitted languageVersion field means the code is opted in to null
       // safety.
-      await assertRunFailure(
-          ['--no-web-preview', '--apply-changes', projectDir]);
+      await assertRunFailure(['--apply-changes', projectDir]);
       _expectErrorIndicatingCodeIsAlreadyOptedIn();
     } else {
-      var cliRunner = _createCli().decodeCommandLineArgs(
-          _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+      var cliRunner = _createCli()
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
       await cliRunner.run();
       // The Dart source code should still be migrated.
       assertProjectContents(projectDir,
@@ -1792,12 +1796,11 @@ int f() => null;
     if (dartVersionIsNullSafeByDefault) {
       // An omitted entry in the package config means the code is opted in to null
       // safety.
-      await assertRunFailure(
-          ['--no-web-preview', '--apply-changes', projectDir]);
+      await assertRunFailure(['--apply-changes', projectDir]);
       _expectErrorIndicatingCodeIsAlreadyOptedIn();
     } else {
-      var cliRunner = _createCli().decodeCommandLineArgs(
-          _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+      var cliRunner = _createCli()
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
       await cliRunner.run();
       // The Dart source code should still be migrated.
       assertProjectContents(projectDir,
@@ -1824,12 +1827,11 @@ int f() => null;
 
     if (dartVersionIsNullSafeByDefault) {
       // An unreadable package config means the code is opted in to null safety.
-      await assertRunFailure(
-          ['--no-web-preview', '--apply-changes', projectDir]);
+      await assertRunFailure(['--apply-changes', projectDir]);
       _expectErrorIndicatingCodeIsAlreadyOptedIn();
     } else {
-      var cliRunner = _createCli().decodeCommandLineArgs(
-          _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+      var cliRunner = _createCli()
+          .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
       await cliRunner.run();
       // The Dart source code should still be migrated.
       assertProjectContents(projectDir,
@@ -1968,8 +1970,8 @@ int f() => null;
   test_pubspec_does_not_exist() async {
     var projectContents = simpleProject()..remove('pubspec.yaml');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -1988,8 +1990,8 @@ environment:
   foo: 1
 ''');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -2008,8 +2010,8 @@ environment: 1
 ''';
     var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -2024,8 +2026,8 @@ environment:
 ''';
     var projectContents = simpleProject(pubspecText: pubspecText);
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(
@@ -2042,8 +2044,8 @@ environment:
 name: test
 ''');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     await cliRunner.run();
     // The Dart source code should still be migrated.
     assertProjectContents(projectDir, simpleProject(migrated: true, pubspecText:
@@ -2059,8 +2061,8 @@ name: test
   test_pubspec_is_not_a_map() async {
     var projectContents = simpleProject(pubspecText: 'not-a-map');
     var projectDir = createProjectDir(projectContents);
-    var cliRunner = _createCli().decodeCommandLineArgs(
-        _parseArgs(['--no-web-preview', '--apply-changes', projectDir]));
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     expect(() async => await cliRunner.run(), throwsUnsupportedError);
   }
 
