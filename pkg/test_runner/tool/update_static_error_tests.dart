@@ -303,7 +303,7 @@ Future<List<StaticError>> runDart2js(
 
 /// Find the most recently-built [binary] in any of the build directories.
 String _findBinary(String name, String windowsExtension) {
-  String binary = Platform.isWindows ? "$name.$windowsExtension" : name;
+  var binary = Platform.isWindows ? "$name.$windowsExtension" : name;
 
   String newestPath;
   DateTime newestTime;
