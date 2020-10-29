@@ -199,7 +199,10 @@ class _SyncClosureContext implements ClosureContext {
               _returnContext, expressionType, statement.expression,
               fileOffset: statement.expression.fileOffset,
               isVoidAllowed: true,
-              errorTemplate: templateInvalidReturn);
+              errorTemplate: templateInvalidReturn,
+              nullabilityErrorTemplate: templateInvalidReturnNullability,
+              nullabilityPartErrorTemplate:
+                  templateInvalidReturnPartNullability);
           statement.expression = expression..parent = statement;
         }
       }
@@ -552,7 +555,10 @@ class _AsyncClosureContext implements ClosureContext {
                   inferrer.computeGreatestClosure2(_returnContext),
               declaredContextType: returnType,
               isVoidAllowed: false,
-              errorTemplate: templateInvalidReturnAsync)
+              errorTemplate: templateInvalidReturnAsync,
+              nullabilityErrorTemplate: templateInvalidReturnAsyncNullability,
+              nullabilityPartErrorTemplate:
+                  templateInvalidReturnAsyncPartNullability)
             ..parent = statement;
         }
       }

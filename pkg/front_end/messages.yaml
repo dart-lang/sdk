@@ -3275,6 +3275,33 @@ ExternalFactoryRedirection:
 ArgumentTypeNotAssignable:
   template: "The argument type '#type' can't be assigned to the parameter type '#type2'."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  script: >
+    method(int i) {}
+    main() {
+      method(1.5);
+    }
+
+ArgumentTypeNotAssignableNullability:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(int i) {}
+    main() {
+      int? j = null;
+      method(j);
+    }
+
+ArgumentTypeNotAssignablePartNullability:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(List<int> i) {}
+    main() {
+      List<int?> j = [null];
+      method(j);
+    }
 
 InvalidAssignmentError:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
@@ -3283,6 +3310,28 @@ InvalidAssignmentError:
     main() {
       int i;
       i = 1.5;
+    }
+
+InvalidAssignmentErrorNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      int i = 0;
+      int? j;
+      i = j;
+    }
+
+InvalidAssignmentErrorPartNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      List<int> i = [];
+      List<int?> j = [null];
+      i = j;
     }
 
 PatchClassTypeVariablesMismatch:
@@ -3540,9 +3589,58 @@ ForInLoopElementTypeNotAssignable:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   tip: "Try changing the type of the variable."
   analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  script: |
+    method() {
+      List<String> list = [];
+      for (int i in list) {}
+    }
+
+ForInLoopElementTypeNotAssignableNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type' is nullable and '#type2' isn't."
+  tip: "Try changing the type of the variable."
+  analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  configuration: nnbd-strong
+  script: |
+    method() {
+      List<int?> list = [];
+      for (int i in list) {}
+    }
+
+ForInLoopElementTypeNotAssignablePartNullability:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  tip: "Try changing the type of the variable."
+  analyzerCode: FOR_IN_OF_INVALID_ELEMENT_TYPE
+  configuration: nnbd-strong
+  script: |
+    method() {
+      List<List<int?>> list = [[]];
+      for (List<int> i in list) {}
+    }
 
 ForInLoopTypeNotIterable:
   template: "The type '#type' used in the 'for' loop must implement '#type2'."
+  analyzerCode: FOR_IN_OF_INVALID_TYPE
+  script: |
+    method() {
+      String list = '';
+      for (int i in list) {}
+    }
+
+ForInLoopTypeNotIterableNullability:
+  template: "The type '#type' used in the 'for' loop must implement '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: FOR_IN_OF_INVALID_TYPE
+  configuration: nnbd-strong
+  script: |
+    method() {
+      List<int>? list = null;
+      for (int i in list) {}
+    }
+
+# This cannot never occur since the iterable is checked to be assignable to `Iterable<dynamic>` so nullability can
+# only be a problem at the immediate level as in [ForInLoopTypeNotIterableNullability]. The message is needed for
+# symmetry in the call site.
+ForInLoopTypeNotIterablePartNullability:
+  template: "The type '#type' used in the 'for' loop must implement '#type2' because '#type3' is nullable and '#type4' isn't."
   analyzerCode: FOR_IN_OF_INVALID_TYPE
 
 InitializingFormalTypeMismatch:
@@ -3759,10 +3857,30 @@ InvalidReturn:
   configuration: nnbd-strong
   declaration: "int foo() { return true; }"
 
+InvalidReturnNullability:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type' is nullable and '#type2' isn't."
+  configuration: nnbd-strong
+  declaration: "int foo(int? i) { return i; }"
+
+InvalidReturnPartNullability:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
+  configuration: nnbd-strong
+  declaration: "List<int> foo(List<int?> list) { return list; }"
+
 InvalidReturnAsync:
   template: "A value of type '#type' can't be returned from an async function with return type '#type2'."
   configuration: nnbd-strong
   declaration: "Future<int> foo() async { return true; }"
+
+InvalidReturnAsyncNullability:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type' is nullable and '#type2' isn't."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo(int? i) async { return i; }"
+
+InvalidReturnAsyncPartNullability:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
+  configuration: nnbd-strong
+  declaration: "Future<List<int>> foo(List<int?> list) async { return list; }"
 
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."
@@ -4119,6 +4237,26 @@ SpreadElementTypeMismatch:
       List<int> b = <int>[...a];
     }
 
+SpreadElementTypeMismatchNullability:
+  template: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      List<int?> a = <int?>[0, null];
+      List<int> b = <int>[...a];
+    }
+
+SpreadElementTypeMismatchPartNullability:
+  template: "Can't assign spread elements of type '#type' to collection elements of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      List<List<int?>> a = <List<int?>>[[0, null]];
+      List<List<int>> b = <List<int>>[...a];
+    }
+
 SpreadMapEntryTypeMismatch:
   template: "Unexpected type '#type' of a map spread entry.  Expected 'dynamic' or a Map."
   script:
@@ -4142,6 +4280,26 @@ SpreadMapEntryElementKeyTypeMismatch:
       Map<int, int> b = <int, int>{...a};
     }
 
+SpreadMapEntryElementKeyTypeMismatchNullability:
+  template: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<String?, int> a = <String?, int>{"foo": 42, null: 87};
+      Map<String, int> b = <String, int>{...a};
+    }
+
+SpreadMapEntryElementKeyTypeMismatchPartNullability:
+  template: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<List<String?>, int> a = <List<String?>, int>{["foo"]: 42, [null]: 87};
+      Map<List<String>, int> b = <List<String>, int>{...a};
+    }
+
 SpreadMapEntryElementValueTypeMismatch:
   template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
   analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
@@ -4149,6 +4307,26 @@ SpreadMapEntryElementValueTypeMismatch:
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
       Map<String, String> b = <String, String>{...a};
+    }
+
+SpreadMapEntryElementValueTypeMismatchNullability:
+  template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type' is nullable and '#type2' isn't."
+  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<String, int?> a = <String, int?>{"foo": 42, "bar": null};
+      Map<String, int> b = <String, int>{...a};
+    }
+
+SpreadMapEntryElementValueTypeMismatchPartNullability:
+  template: "Can't assign spread entry values of type '#type' to map entry values of type '#type2' because '#type3' is nullable and '#type4' isn't."
+  analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Map<String, List<int?>> a = <String, List<int?>>{"foo": [42], "bar": [null]};
+      Map<String, List<int>> b = <String, List<int>>{...a};
     }
 
 CantDisambiguateNotEnoughInformation:

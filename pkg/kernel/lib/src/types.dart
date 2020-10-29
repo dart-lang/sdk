@@ -509,8 +509,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
             /// From the NNBD spec: For each j such that r0j is required, then
             /// there exists an i in n+1...q such that xj = yi, and r1i is
             /// required
-            result =
-                result.and(const IsSubtypeOf.onlyIfIgnoringNullabilities());
+            result = result.and(new IsSubtypeOf.onlyIfIgnoringNullabilities(
+                subtype: s, supertype: t));
           }
         }
         if (sCount == sNamedParameters.length) return const IsSubtypeOf.never();
@@ -526,7 +526,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
         /// From the NNBD spec: For each j such that r0j is required, then there
         /// exists an i in n+1...q such that xj = yi, and r1i is required
         if (sNamedParameter.isRequired && !tNamedParameter.isRequired) {
-          result = result.and(const IsSubtypeOf.onlyIfIgnoringNullabilities());
+          result = result.and(new IsSubtypeOf.onlyIfIgnoringNullabilities(
+              subtype: s, supertype: t));
         }
       }
       for (; sCount < sNamedParameters.length; sCount++) {
@@ -535,7 +536,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
           /// From the NNBD spec: For each j such that r0j is required, then
           /// there exists an i in n+1...q such that xj = yi, and r1i is
           /// required
-          result = result.and(const IsSubtypeOf.onlyIfIgnoringNullabilities());
+          result = result.and(new IsSubtypeOf.onlyIfIgnoringNullabilities(
+              subtype: s, supertype: t));
         }
       }
     }
@@ -928,7 +930,8 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
         return const IsSubtypeOf.always();
       }
       if (t.nullability == Nullability.nonNullable) {
-        return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+        return new IsSubtypeOf.onlyIfIgnoringNullabilities(
+            subtype: s, supertype: t);
       }
       throw new StateError(
           "Unexpected nullability '$t.nullability' of type Never");

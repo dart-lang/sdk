@@ -270,7 +270,8 @@ abstract class TypeEnvironment extends Types {
                 SubtypeCheckMode.withNullabilities) &&
             isSubtypeOf(type3, coreTypes.intNonNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
-          // If T1, T2 and T3 are all subtypes of int, the static type of e is int.
+          // If T1, T2 and T3 are all subtypes of int, the static type of e is
+          // int.
           return coreTypes.intNonNullableRawType;
         } else if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
                 SubtypeCheckMode.withNullabilities) &&
@@ -278,7 +279,8 @@ abstract class TypeEnvironment extends Types {
                 SubtypeCheckMode.withNullabilities) &&
             isSubtypeOf(type3, coreTypes.doubleNonNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
-          // If T1, T2 and T3 are all subtypes of double, the static type of e is double.
+          // If T1, T2 and T3 are all subtypes of double, the static type of e
+          // is double.
           return coreTypes.doubleNonNullableRawType;
         }
       }
@@ -343,10 +345,15 @@ class IsSubtypeOf {
   /// The only state of an [IsSubtypeOf] object.
   final int _value;
 
-  const IsSubtypeOf._internal(int value) : _value = value;
+  final DartType subtype;
+
+  final DartType supertype;
+
+  const IsSubtypeOf._internal(int value, this.subtype, this.supertype)
+      : _value = value;
 
   /// Subtype check succeeds in both modes.
-  const IsSubtypeOf.always() : this._internal(_valueAlways);
+  const IsSubtypeOf.always() : this._internal(_valueAlways, null, null);
 
   /// Subtype check succeeds only if the nullability markers are ignored.
   ///
@@ -356,11 +363,12 @@ class IsSubtypeOf {
   /// mode).  By contraposition, if a subtype check fails for two types when the
   /// nullability markers are ignored, it should also fail for those types in
   /// full-NNBD mode.
-  const IsSubtypeOf.onlyIfIgnoringNullabilities()
-      : this._internal(_valueOnlyIfIgnoringNullabilities);
+  const IsSubtypeOf.onlyIfIgnoringNullabilities(
+      {DartType subtype, DartType supertype})
+      : this._internal(_valueOnlyIfIgnoringNullabilities, subtype, supertype);
 
   /// Subtype check fails in both modes.
-  const IsSubtypeOf.never() : this._internal(_valueNever);
+  const IsSubtypeOf.never() : this._internal(_valueNever, null, null);
 
   /// Checks if two types are in relation based solely on their nullabilities.
   ///
@@ -378,10 +386,12 @@ class IsSubtypeOf {
       if (supertype is InvalidType) {
         return const IsSubtypeOf.always();
       }
-      return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
+          subtype: subtype, supertype: supertype);
     }
     if (supertype is InvalidType) {
-      return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
+          subtype: subtype, supertype: supertype);
     }
 
     if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
@@ -406,7 +416,8 @@ class IsSubtypeOf {
           return const IsSubtypeOf.always();
         }
       }
-      return const IsSubtypeOf.onlyIfIgnoringNullabilities();
+      return new IsSubtypeOf.onlyIfIgnoringNullabilities(
+          subtype: subtype, supertype: supertype);
     }
     return const IsSubtypeOf.always();
   }
@@ -421,7 +432,21 @@ class IsSubtypeOf {
   /// `Rb.and(Rc)` where `Rb` is the result of `B1 <: B2`, `Rc` is the result
   /// of `C1 <: C2`.
   IsSubtypeOf and(IsSubtypeOf other) {
-    return _all[_andValues(_value, other._value)];
+    int resultValue = _andValues(_value, other._value);
+    if (resultValue == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
+      // If the type mismatch is due to nullabilities, the mismatching parts are
+      // remembered in either 'this' or [other].  In that case we need to return
+      // exactly one of those objects, so that the information about mismatching
+      // parts is propagated upwards.
+      if (_value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
+        return this;
+      } else {
+        assert(other._value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities);
+        return other;
+      }
+    } else {
+      return _all[resultValue];
+    }
   }
 
   /// Shorts the computation of [and] if `this` is [IsSubtypeOf.never].
@@ -448,7 +473,21 @@ class IsSubtypeOf {
   /// as `Rs.or(Rf)` where `Rs` is the result of `T <: S`, `Rf` is the result of
   /// `T <: Future<S>`.
   IsSubtypeOf or(IsSubtypeOf other) {
-    return _all[_orValues(_value, other._value)];
+    int resultValue = _orValues(_value, other._value);
+    if (resultValue == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
+      // If the type mismatch is due to nullabilities, the mismatching parts are
+      // remembered in either 'this' or [other].  In that case we need to return
+      // exactly one of those objects, so that the information about mismatching
+      // parts is propagated upwards.
+      if (_value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities) {
+        return this;
+      } else {
+        assert(other._value == IsSubtypeOf._valueOnlyIfIgnoringNullabilities);
+        return other;
+      }
+    } else {
+      return _all[resultValue];
+    }
   }
 
   /// Shorts the computation of [or] if `this` is [IsSubtypeOf.always].

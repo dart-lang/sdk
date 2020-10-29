@@ -306,6 +306,7 @@ Template compileTemplate(String name, int index, String template, String tip,
       case "type":
       case "type2":
       case "type3":
+      case "type4":
         parameters.add("DartType _${name}");
         ensureLabeler();
         conversions

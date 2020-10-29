@@ -27,52 +27,52 @@ dynamic nonNullable() {
   _ = bq && b;
   //  ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = b && bq;
   //       ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = bq || b;
   //  ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = b || bq;
   //       ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = !bq;
   //   ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = bq ? "a" : "b";
   //  ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   if (bq) {}
   //  ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   while (bq) {}
   //     ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   do {} while (bq);
   //           ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   for (; bq;) {}
   //     ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   try {
     throw bq;
@@ -84,24 +84,24 @@ dynamic nonNullable() {
   assert(bq);
   //     ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = [if (bq) 1];
   //       ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = [for (; bq;) 1];
   //         ^^
   // [analyzer] unspecified
   //          ^
-  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   Iterable<int>? iq = maybeNullable([1]);
   for (var v in iq) {}
   //            ^^
   // [analyzer] unspecified
-  // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
 
   _ = [...iq];
   //      ^
@@ -114,12 +114,12 @@ dynamic nonNullable() {
     await for (var v in sq) {}
     //                  ^^
     // [analyzer] unspecified
-    // [cfe] The type 'Stream<int>?' used in the 'for' loop must implement 'Stream<dynamic>'.
+    // [cfe] The type 'Stream<int>?' used in the 'for' loop must implement 'Stream<dynamic>' because 'Stream<int>?' is nullable and 'Stream<dynamic>' isn't.
 
     yield* sq;
     //     ^^
     // [analyzer] unspecified
-    // [cfe] A value of type 'Stream<int>?' can't be assigned to a variable of type 'Stream<Object?>'.
+    // [cfe] A value of type 'Stream<int>?' can't be assigned to a variable of type 'Stream<Object?>' because 'Stream<int>?' is nullable and 'Stream<Object?>' isn't.
   }
 
   foo().toList();
@@ -140,52 +140,52 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
   _ = bq && b;
   //  ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = b && bq;
   //       ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = bq || b;
   //  ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = b || bq;
   //       ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = !bq;
   //   ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = bq ? "a" : "b";
   //  ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   if (bq) {}
   //  ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   while (bq) {}
   //     ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   do {} while (bq);
   //           ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   for (; bq;) {}
   //     ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   try {
     throw bq;
@@ -197,24 +197,24 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
   assert(bq);
   //     ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = [if (bq) 1];
   //       ^^
   // [analyzer] unspecified
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   _ = [for (; bq;) 1];
   //         ^^
   // [analyzer] unspecified
   //          ^
-  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool'.
+  // [cfe] A value of type 'BQ' can't be assigned to a variable of type 'bool' because 'bool?' is nullable and 'bool' isn't.
 
   Iterable<int>? iq = maybeNullable([1]);
   for (var v in iq) {}
   //            ^^
   // [analyzer] unspecified
-  // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  // [cfe] The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
 
   _ = [...iq];
   //      ^^
@@ -226,12 +226,12 @@ dynamic potentiallyNonNullable<BQ extends bool?>() {
     await for (var v in sq) {}
     //                  ^^
     // [analyzer] unspecified
-    // [cfe] The type 'Stream<Object?>?' used in the 'for' loop must implement 'Stream<dynamic>'.
+    // [cfe] The type 'Stream<Object?>?' used in the 'for' loop must implement 'Stream<dynamic>' because 'Stream<Object?>?' is nullable and 'Stream<dynamic>' isn't.
 
     yield* sq;
     //     ^^
     // [analyzer] unspecified
-    // [cfe] A value of type 'SQ' can't be assigned to a variable of type 'Stream<Object?>'.
+    // [cfe] A value of type 'SQ' can't be assigned to a variable of type 'Stream<Object?>' because 'Stream<Object?>?' is nullable and 'Stream<Object?>' isn't.
   }
 
   foo<Stream<Object?>>().toList();
@@ -253,7 +253,7 @@ class C {
     return cq;
     //     ^^
     // [analyzer] unspecified
-    // [cfe] A value of type 'C?' can't be returned from a function with return type 'C'.
+    // [cfe] A value of type 'C?' can't be returned from a function with return type 'C' because 'C?' is nullable and 'C' isn't.
   }
 }
 
