@@ -1027,4 +1027,65 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteToReadLock) {
   EXPECT(!lock.IsCurrentThreadWriter());
 }
 
+struct ReaderThreadState {
+  ThreadJoinId reader_id = OSThread::kInvalidThreadJoinId;
+  SafepointRwLock* rw_lock = nullptr;
+  IsolateGroup* isolate_group = nullptr;
+  intptr_t elapsed_us = 0;
+};
+
+void Helper(uword arg) {
+  auto state = reinterpret_cast<ReaderThreadState*>(arg);
+  state->reader_id = OSThread::GetCurrentThreadJoinId(OSThread::Current());
+
+  const bool kBypassSafepoint = false;
+  Thread::EnterIsolateGroupAsHelper(state->isolate_group, Thread::kUnknownTask,
+                                    kBypassSafepoint);
+  {
+    auto thread = Thread::Current();
+    const auto before_us = OS::GetCurrentMonotonicMicros();
+    intptr_t after_us = before_us;
+    {
+      SafepointReadRwLocker reader(thread, state->rw_lock);
+      after_us = OS::GetCurrentMonotonicMicros();
+    }
+    state->elapsed_us = (after_us - before_us);
+  }
+  Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockExclusiveNestedWriter_Regress44000) {
+  auto isolate_group = IsolateGroup::Current();
+
+  SafepointRwLock lock;
+  ReaderThreadState state;
+  state.rw_lock = &lock;
+  state.isolate_group = isolate_group;
+  {
+    // Hold one writer lock.
+    SafepointWriteRwLocker locker(Thread::Current(), &lock);
+    {
+      // Hold another, nested, writer lock.
+      SafepointWriteRwLocker locker2(Thread::Current(), &lock);
+
+      // Start a thread, it will try to acquire read lock but it will have to
+      // wait until we have exited both writer scopes.
+      if (OSThread::Start("DartWorker", &Helper,
+                          reinterpret_cast<uword>(&state)) != 0) {
+        FATAL("Could not start worker thread");
+      }
+      // Give thread a little time to actually start running.
+      OS::Sleep(20);
+
+      OS::Sleep(500);
+    }
+    OS::Sleep(500);
+  }
+  // Join the other thread.
+  OSThread::Join(state.reader_id);
+
+  // Ensure the reader thread had to wait for around 1 second.
+  EXPECT(state.elapsed_us > 2 * 500 * 1000);
+}
+
 }  // namespace dart
