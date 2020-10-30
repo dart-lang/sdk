@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -448,10 +447,6 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
 @reflectiveTest
 class SignatureHelpWithNullSafetyTest extends AbstractLspAnalysisServerTest
     with SignatureHelpMixin {
-  @override
-  AnalysisServerOptions get serverOptions =>
-      AnalysisServerOptions()..enabledExperiments = ['non-nullable'];
-
   @override
   String get testPackageLanguageVersion => latestLanguageVersion;
 

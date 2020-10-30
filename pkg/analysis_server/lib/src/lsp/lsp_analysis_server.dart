@@ -43,7 +43,6 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -741,9 +740,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       analysisServer.notificationManager;
 
   @override
-  nd.AnalysisDriver addAnalysisDriver(
-      Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
-    var builder = createContextBuilder(folder, options);
+  nd.AnalysisDriver addAnalysisDriver(Folder folder, ContextRoot contextRoot) {
+    var builder = createContextBuilder(folder);
     var analysisDriver = builder.buildDriver(contextRoot);
     final textDocumentCapabilities =
         analysisServer.clientCapabilities?.textDocument;
@@ -838,9 +836,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
+  ContextBuilder createContextBuilder(Folder folder) {
     var builderOptions = ContextBuilderOptions();
-    builderOptions.defaultOptions = options;
     var builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);

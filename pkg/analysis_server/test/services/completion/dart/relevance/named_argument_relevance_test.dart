@@ -46,9 +46,6 @@ void g() => f(^);
 @reflectiveTest
 class NamedArgumentRelevanceWithNullSafetyTest
     extends NamedArgumentRelevanceTest {
-  @override
-  List<String> get enabledExperiments => ['non-nullable'];
-
   Future<void> test_required() async {
     await addTestFile('''
 void f({int a = 0, required int b}) {}

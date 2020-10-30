@@ -9,12 +9,9 @@ import 'package:test/test.dart';
 import '../../../../client/completion_driver_test.dart';
 
 class CompletionRelevanceTest extends AbstractCompletionDriverTest {
-  List<String> get enabledExperiments => [];
-
   @override
-  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
-    ..enabledExperiments = enabledExperiments
-    ..useNewRelevance = true;
+  AnalysisServerOptions get serverOptions =>
+      AnalysisServerOptions()..useNewRelevance = true;
 
   @override
   bool get supportsAvailableSuggestions => true;
