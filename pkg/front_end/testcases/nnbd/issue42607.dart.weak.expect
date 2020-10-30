@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  core::int* x = 3;
+  let final core::int* #t1 = x in #t1.{core::num::==}(null) ?{core::bool*} null : #t1.{core::int::isEven};
+  x = null;
+}
+static method main() → dynamic {}
