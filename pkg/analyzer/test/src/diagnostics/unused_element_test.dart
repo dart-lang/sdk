@@ -155,6 +155,31 @@ print(x) {}
     ]);
   }
 
+  test_classGetterSetter_isUsed_assignmentExpression_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get _foo => 0;
+  set _foo(int _) {}
+
+  void f() {
+    _foo += 2;
+  }
+}
+''');
+  }
+
+  test_classSetter_isUsed_assignmentExpression_simple() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set _foo(int _) {}
+
+  void f() {
+    _foo = 0;
+  }
+}
+''');
+  }
+
   test_constructor_isUsed_asRedirectee() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -818,8 +843,8 @@ extension _A on String {
     ]);
   }
 
-  // Postfix operators can only be called, not defined. The "notUsed" sibling to
-  // this test is the test on a binary operator.
+  /// Postfix operators can only be called, not defined. The "notUsed" sibling to
+  /// this test is the test on a binary operator.
   test_method_notUsed_privateExtension_indexEqOperator() async {
     await assertErrorsInCode(r'''
 extension _A on bool {
@@ -840,8 +865,8 @@ extension _A on bool {
     ]);
   }
 
-  // Assignment operators can only be called, not defined. The "notUsed" sibling
-  // to this test is the test on a binary operator.
+  /// Assignment operators can only be called, not defined. The "notUsed" sibling
+  /// to this test is the test on a binary operator.
   test_method_notUsed_privateExtension_operator() async {
     await assertErrorsInCode(r'''
 extension _A on String {
@@ -1380,6 +1405,57 @@ main() {
 _f(int p) => 7;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 30, 2),
+    ]);
+  }
+
+  test_topLevelGetterSetter_isUsed_assignmentExpression_compound() async {
+    await assertNoErrorsInCode(r'''
+int get _foo => 0;
+set _foo(int _) {}
+
+void f() {
+  _foo += 2;
+}
+''');
+  }
+
+  test_topLevelGetterSetter_isUsed_postfixExpression_increment() async {
+    await assertNoErrorsInCode(r'''
+int get _foo => 0;
+set _foo(int _) {}
+
+void f() {
+  _foo++;
+}
+''');
+  }
+
+  test_topLevelGetterSetter_isUsed_prefixExpression_increment() async {
+    await assertNoErrorsInCode(r'''
+int get _foo => 0;
+set _foo(int _) {}
+
+void f() {
+  ++_foo;
+}
+''');
+  }
+
+  test_topLevelSetter_isUsed_assignmentExpression_simple() async {
+    await assertNoErrorsInCode(r'''
+set _foo(int _) {}
+
+void f() {
+  _foo = 0;
+}
+''');
+  }
+
+  test_topLevelSetter_notUsed() async {
+    await assertErrorsInCode(r'''
+set _foo(int _) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 4, 4),
     ]);
   }
 
