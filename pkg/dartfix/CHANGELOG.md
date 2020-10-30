@@ -1,3 +1,7 @@
+# 0.1.8
+* The dartfix package has been deprecated. The functionality has been moved to
+  the new `dart fix` command that's included in the SDK.
+
 # 0.1.7
 * Improve experimental non-nullable migration support.
 * Extract some nnbd migration implementation components from the dartfix
