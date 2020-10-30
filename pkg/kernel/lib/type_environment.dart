@@ -530,13 +530,89 @@ enum SubtypeCheckMode {
   ignoringNullabilities,
 }
 
+abstract class StaticTypeCache {
+  DartType getExpressionType(Expression node, StaticTypeContext context);
+
+  DartType getForInIteratorType(ForInStatement node, StaticTypeContext context);
+
+  DartType getForInElementType(ForInStatement node, StaticTypeContext context);
+}
+
+class StaticTypeCacheImpl implements StaticTypeCache {
+  Map<Expression, DartType> _expressionTypes;
+  Map<ForInStatement, DartType> _forInIteratorTypes;
+  Map<ForInStatement, DartType> _forInElementTypes;
+
+  DartType getExpressionType(Expression node, StaticTypeContext context) {
+    _expressionTypes ??= <Expression, DartType>{};
+    return _expressionTypes[node] ??= node.getStaticTypeInternal(context);
+  }
+
+  DartType getForInIteratorType(
+      ForInStatement node, StaticTypeContext context) {
+    _forInIteratorTypes ??= <ForInStatement, DartType>{};
+    return _forInIteratorTypes[node] ??= node.getIteratorTypeInternal(context);
+  }
+
+  DartType getForInElementType(ForInStatement node, StaticTypeContext context) {
+    _forInElementTypes ??= <ForInStatement, DartType>{};
+    return _forInElementTypes[node] ??= node.getElementTypeInternal(context);
+  }
+}
+
 /// Context object needed for computing `Expression.getStaticType`.
 ///
 /// The [StaticTypeContext] provides access to the [TypeEnvironment] and the
 /// current 'this type' as well as determining the nullability state of the
 /// enclosing library.
-// TODO(johnniwinther): Support static type caching through [StaticTypeContext].
-class StaticTypeContext {
+abstract class StaticTypeContext {
+  /// The [TypeEnvironment] used for the static type computation.
+  ///
+  /// This provides access to the core types and the class hierarchy.
+  TypeEnvironment get typeEnvironment;
+
+  /// The static type of a `this` expression.
+  InterfaceType get thisType;
+
+  /// Creates a static type context for computing static types in the body
+  /// of [member].
+  factory StaticTypeContext(Member member, TypeEnvironment typeEnvironment,
+      {StaticTypeCache cache}) = StaticTypeContextImpl;
+
+  /// Creates a static type context for computing static types of annotations
+  /// in [library].
+  factory StaticTypeContext.forAnnotations(
+      Library library, TypeEnvironment typeEnvironment,
+      {StaticTypeCache cache}) = StaticTypeContextImpl.forAnnotations;
+
+  /// The [Nullability] used for non-nullable types.
+  ///
+  /// For opt out libraries this is [Nullability.legacy].
+  Nullability get nonNullable;
+
+  /// The [Nullability] used for nullable types.
+  ///
+  /// For opt out libraries this is [Nullability.legacy].
+  Nullability get nullable;
+
+  /// Return `true` if the current library is opted in to non-nullable by
+  /// default.
+  bool get isNonNullableByDefault;
+
+  /// Returns the mode under which the current library was compiled.
+  NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode;
+
+  /// Returns the static type of [node].
+  DartType getExpressionType(Expression node);
+
+  /// Returns the static type of the iterator in for-in statement [node].
+  DartType getForInIteratorType(ForInStatement node);
+
+  /// Returns the static type of the element in for-in statement [node].
+  DartType getForInElementType(ForInStatement node);
+}
+
+class StaticTypeContextImpl implements StaticTypeContext {
   /// The [TypeEnvironment] used for the static type computation.
   ///
   /// This provides access to the core types and the class hierarchy.
@@ -551,17 +627,23 @@ class StaticTypeContext {
   /// The static type of a `this` expression.
   final InterfaceType thisType;
 
+  final StaticTypeCache _cache;
+
   /// Creates a static type context for computing static types in the body
   /// of [member].
-  StaticTypeContext(Member member, this.typeEnvironment)
+  StaticTypeContextImpl(Member member, this.typeEnvironment,
+      {StaticTypeCache cache})
       : _library = member.enclosingLibrary,
         thisType = member.enclosingClass?.getThisType(
-            typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable);
+            typeEnvironment.coreTypes, member.enclosingLibrary.nonNullable),
+        _cache = cache;
 
   /// Creates a static type context for computing static types of annotations
   /// in [library].
-  StaticTypeContext.forAnnotations(this._library, this.typeEnvironment)
-      : thisType = null;
+  StaticTypeContextImpl.forAnnotations(this._library, this.typeEnvironment,
+      {StaticTypeCache cache})
+      : thisType = null,
+        _cache = cache;
 
   /// The [Nullability] used for non-nullable types.
   ///
@@ -580,6 +662,30 @@ class StaticTypeContext {
   /// Returns the mode under which the current library was compiled.
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
       _library.nonNullableByDefaultCompiledMode;
+
+  DartType getExpressionType(Expression node) {
+    if (_cache != null) {
+      return _cache.getExpressionType(node, this);
+    } else {
+      return node.getStaticTypeInternal(this);
+    }
+  }
+
+  DartType getForInIteratorType(ForInStatement node) {
+    if (_cache != null) {
+      return _cache.getForInIteratorType(node, this);
+    } else {
+      return node.getIteratorTypeInternal(this);
+    }
+  }
+
+  DartType getForInElementType(ForInStatement node) {
+    if (_cache != null) {
+      return _cache.getForInElementType(node, this);
+    } else {
+      return node.getElementTypeInternal(this);
+    }
+  }
 }
 
 /// Implementation of [StaticTypeContext] that update its state when entering
@@ -636,7 +742,6 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   _FlatStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
       : super._internal(typeEnvironment);
 
-  @override
   Library get _library {
     Library library = _currentLibrary ?? _currentMember?.enclosingLibrary;
     assert(library != null,
@@ -718,6 +823,18 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
         "Trying to leave $node but current is ${_currentLibrary}.");
     _currentLibrary = null;
   }
+
+  @override
+  DartType getExpressionType(Expression node) =>
+      node.getStaticTypeInternal(this);
+
+  @override
+  DartType getForInIteratorType(ForInStatement node) =>
+      node.getIteratorTypeInternal(this);
+
+  @override
+  DartType getForInElementType(ForInStatement node) =>
+      node.getElementTypeInternal(this);
 }
 
 /// Implementation of [StatefulStaticTypeContext] that use a stack to change
@@ -729,7 +846,6 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
   _StackedStatefulStaticTypeContext(TypeEnvironment typeEnvironment)
       : super._internal(typeEnvironment);
 
-  @override
   Library get _library {
     assert(_contextStack.isNotEmpty,
         "No library currently associated with StaticTypeContext.");
@@ -805,6 +921,18 @@ class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
         "Inconsistent static type context stack: "
         "Trying to leave $node but current is ${state._node}.");
   }
+
+  @override
+  DartType getExpressionType(Expression node) =>
+      node.getStaticTypeInternal(this);
+
+  @override
+  DartType getForInIteratorType(ForInStatement node) =>
+      node.getIteratorTypeInternal(this);
+
+  @override
+  DartType getForInElementType(ForInStatement node) =>
+      node.getElementTypeInternal(this);
 }
 
 class _StaticTypeContextState {

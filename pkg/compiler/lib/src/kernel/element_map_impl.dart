@@ -1429,12 +1429,15 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           new ir.StaticTypeContext(node, typeEnvironment));
       return converter.convert(impactData);
     } else {
+      StaticTypeCacheImpl staticTypeCache = new StaticTypeCacheImpl();
       KernelImpactBuilder builder = new KernelImpactBuilder(
           this,
           member,
           reporter,
           options,
-          new ir.StaticTypeContext(node, typeEnvironment),
+          new ir.StaticTypeContext(node, typeEnvironment,
+              cache: staticTypeCache),
+          staticTypeCache,
           variableScopeModel,
           annotations,
           _constantValuefier);

@@ -53,6 +53,11 @@ mixin ControlFlowElement on Expression {
   }
 
   @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return unsupported("getStaticTypeInternal", fileOffset, getFileUri(this));
+  }
+
+  @override
   R accept<R>(ExpressionVisitor<R> v) => v.defaultExpression(this);
 
   @override

@@ -55,12 +55,14 @@ class KernelImpactBuilder extends ImpactBuilderBase
       this.reporter,
       this._options,
       ir.StaticTypeContext staticTypeContext,
+      StaticTypeCacheImpl staticTypeCache,
       VariableScopeModel variableScopeModel,
       this._annotations,
       this._constantValuefier)
       : this.impactBuilder = new ResolutionWorldImpactBuilder(
             elementMap.commonElements.dartTypes, currentMember),
-        super(staticTypeContext, elementMap.classHierarchy, variableScopeModel);
+        super(staticTypeContext, staticTypeCache, elementMap.classHierarchy,
+            variableScopeModel);
 
   @override
   CommonElements get commonElements => elementMap.commonElements;
