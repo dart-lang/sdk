@@ -102,7 +102,7 @@ class DeprecatedMemberUseVerifier {
 
   void simpleIdentifier(SimpleIdentifier node) {
     // Don't report declared identifiers.
-    if (node.inDeclarationContext()) {
+    if (_inDeclarationContext(node)) {
       return;
     }
 
@@ -202,6 +202,22 @@ class DeprecatedMemberUseVerifier {
     }
   }
 
+  /// Returns whether [node] is in a declaration context.
+  ///
+  /// This accounts for field formal parameters as well, whose identifiers do
+  /// not consider themselves, for other purposes, to be in a declaration
+  /// context.
+  bool _inDeclarationContext(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return true;
+    }
+    var parent = node.parent;
+    if (parent is FieldFormalParameter && parent.identifier == node) {
+      return true;
+    }
+    return false;
+  }
+
   void _invocationArguments(Element element, ArgumentList arguments) {
     element = element?.declaration;
     if (element is ExecutableElement) {
@@ -279,7 +295,9 @@ class DeprecatedMemberUseVerifier {
   static bool _isLocalParameter(Element element, AstNode node) {
     if (element is ParameterElement) {
       ExecutableElement definingFunction = element.enclosingElement;
-      FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
+      AstNode body = node.thisOrAncestorOfType<FunctionBody>();
+      body ??= node.thisOrAncestorOfType<ConstructorInitializer>();
+
       while (body != null) {
         ExecutableElement enclosingFunction;
         AstNode parent = body.parent;

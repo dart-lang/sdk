@@ -864,6 +864,48 @@ class A {
     ]);
   }
 
+  test_parameter_named_inDefiningConstructor_asFieldFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C({@deprecated this.x});
+}
+''');
+  }
+
+  test_parameter_named_inDefiningConstructor_assertInitializer() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C({@deprecated int y}) : assert(y > 0);
+}
+''');
+  }
+
+  test_parameter_named_inDefiningConstructor_fieldInitializer() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int x;
+  C({@deprecated int y}) : x = y;
+}
+''');
+  }
+
+  test_parameter_named_inDefiningConstructor_inFieldFormalParameter_notName() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+@deprecated
+class B extends A {}
+
+class C {
+  A a;
+  C({B this.a});
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 68, 1),
+    ]);
+  }
+
   test_parameter_named_inDefiningFunction() async {
     await assertNoErrorsInCode(r'''
 f({@deprecated int x}) => x;
