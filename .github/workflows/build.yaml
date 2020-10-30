@@ -8,29 +8,26 @@ on:
 
 jobs:
   build:
-    name: "linter ${{ matrix.bot }}"
+    name: ${{ matrix.linter-bot }}
     runs-on: ubuntu-latest
+    container:
+      image:  google/dart:beta
     strategy:
       fail-fast: false
       matrix:
         linter-bot:
           - main
-          - benchmark
-          - pana_baseline
           - release
+          - pana_baseline
+          - benchmark
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Dart
-        env:
-          DART_VERSION: beta/release/latest
-        run: |
-          ./.github/install-dart.sh
-          echo "::add-path::`pwd`/dart-sdk/bin"
-          echo "::add-path::$HOME/.pub-cache/bin"
+      - name: pub get
+        run: dart pub get
 
-      - name: ./tool/travis.sh
+      - name: tool/travis.sh
         env:
           LINTER_BOT: ${{ matrix.linter-bot }}
         run: ./tool/travis.sh
