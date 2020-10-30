@@ -262,6 +262,47 @@ def _CheckLayering(input_api, output_api):
     return []
 
 
+def _CheckTestPlan(input_api, output_api):
+    """Run test plan check.
+
+  Each change that touches specified directories in the checkout are required
+  to have TEST= line explaining how this change was validated.
+  """
+
+    DIRS = [
+        'runtime/vm',
+        'runtime/bin',
+        'runtime/lib',
+        'runtime/include',
+        'runtime/observatory',
+        'runtime/observatory_2',
+        'runtime/platform',
+        'pkg/vm',
+        'sdk/lib/_internal/vm',
+    ]
+
+    # Run only if directory was affected.
+    files = [f.LocalPath() for f in input_api.AffectedFiles()]
+    affected = filter(lambda dir: any(f.startswith(dir) for f in files), DIRS)
+    if len(affected) != 0 and input_api.change.tags.get('TEST', '') == '':
+        return [
+            output_api.PresubmitError('Change is missing TEST= line',
+                                      long_text="""
+When changing files in one of the following directories you
+must include TEST= line at the end of your change description.
+
+    %s
+
+This line is expected to explain in a free form the kind of testing
+that was performed to validate effect of the change. For example,
+it can list newly added tests or already existing tests which are assumed
+to cover the change.
+""" % ('    '.join(affected)))
+        ]
+
+    return []
+
+
 def _CheckClangTidy(input_api, output_api):
     """Run clang-tidy on VM changes."""
 
@@ -333,6 +374,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckLayering(input_api, output_api))
     results.extend(_CheckClangTidy(input_api, output_api))
     results.extend(_CheckTestMatrixValid(input_api, output_api))
+    results.extend(_CheckTestPlan(input_api, output_api))
     results.extend(
         input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
     return results
