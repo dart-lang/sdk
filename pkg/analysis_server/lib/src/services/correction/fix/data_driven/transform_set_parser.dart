@@ -405,8 +405,9 @@ class TransformSetParser {
   Change _translateChange(YamlNode node, ErrorContext context) {
     assert(node != null);
     if (node is YamlMap) {
-      var kind = _translateString(node.valueAt(_kindKey),
-          ErrorContext(key: _kindKey, parentNode: node));
+      var kindNode = node.valueAt(_kindKey);
+      var kindContext = ErrorContext(key: _kindKey, parentNode: node);
+      var kind = _translateString(kindNode, kindContext);
       if (kind == null) {
         return null;
       } else if (kind == _addParameterKind) {
@@ -420,7 +421,7 @@ class TransformSetParser {
       } else if (kind == _renameKind) {
         return _translateRenameChange(node);
       }
-      return _reportInvalidValueOneOf(node, context, [
+      return _reportInvalidValueOneOf(kindNode, kindContext, [
         _addParameterKind,
         _addTypeParameterKind,
         _removeParameterKind,
@@ -879,8 +880,9 @@ class TransformSetParser {
   /// error.
   ValueGenerator _translateValueGenerator(YamlNode node, ErrorContext context) {
     if (node is YamlMap) {
-      var kind = _translateString(node.valueAt(_kindKey),
-          ErrorContext(key: _kindKey, parentNode: node));
+      var kindNode = node.valueAt(_kindKey);
+      var kindContext = ErrorContext(key: _kindKey, parentNode: node);
+      var kind = _translateString(kindNode, kindContext);
       if (kind == null) {
         return null;
       } else if (kind == _fragmentKind) {
@@ -888,7 +890,7 @@ class TransformSetParser {
       } else if (kind == _importKind) {
         return _translateImportValue(node);
       }
-      return _reportInvalidValueOneOf(node, context, [
+      return _reportInvalidValueOneOf(kindNode, kindContext, [
         _fragmentKind,
         _importKind,
       ]);
