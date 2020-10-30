@@ -149,11 +149,41 @@ void testPlainVariables(int i, double d, num n) {
     n.remainder(never).expectStaticType<Exactly<num>>();
   }
 
-  (dyn1 + d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 - d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 * d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 % d).expectStaticType<Exactly<dynamic>>();
-  dyn1.remainder(d).expectStaticType<Exactly<dynamic>>();
+  var dyn1a = dyn1 + d;
+  if (false) {
+    // Check that the static type of [dyn1a] is dynamic:
+    Never n = dyn1a;
+    dyn1a = 0;
+    dyn1a = false;
+  }
+  var dyn1b = dyn1 - d;
+  if (false) {
+    // Check that the static type of [dyn1b] is dynamic:
+    Never n = dyn1b;
+    dyn1b = 0;
+    dyn1b = false;
+  }
+  var dyn1c = dyn1 * d;
+  if (false) {
+    // Check that the static type of [dyn1c] is dynamic:
+    Never n = dyn1c;
+    dyn1c = 0;
+    dyn1c = false;
+  }
+  var dyn1d = dyn1 % d;
+  if (false) {
+    // Check that the static type of [dyn1d] is dynamic:
+    Never n = dyn1d;
+    dyn1d = 0;
+    dyn1d = false;
+  }
+  var dyn1e = dyn1.remainder(d);
+  if (false) {
+    // Check that the static type of [dyn1e] is dynamic:
+    Never n = dyn1a;
+    dyn1a = 0;
+    dyn1a = false;
+  }
 
   if (false) {
     (never + d).expectStaticType<Exactly<Never>>();
@@ -356,11 +386,41 @@ void testPromotedVariables(Object i, Object d, Object n) {
     n.remainder(never).expectStaticType<Exactly<num>>();
   }
 
-  (dyn1 + d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 - d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 * d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 % d).expectStaticType<Exactly<dynamic>>();
-  dyn1.remainder(d).expectStaticType<Exactly<dynamic>>();
+  var dyn1a = dyn1 + d;
+  if (false) {
+    // Check that the static type of [dyn1a] is dynamic:
+    Never n = dyn1a;
+    dyn1a = 0;
+    dyn1a = false;
+  }
+  var dyn1b = dyn1 - d;
+  if (false) {
+    // Check that the static type of [dyn1b] is dynamic:
+    Never n = dyn1b;
+    dyn1b = 0;
+    dyn1b = false;
+  }
+  var dyn1c = dyn1 * d;
+  if (false) {
+    // Check that the static type of [dyn1c] is dynamic:
+    Never n = dyn1c;
+    dyn1c = 0;
+    dyn1c = false;
+  }
+  var dyn1d = dyn1 % d;
+  if (false) {
+    // Check that the static type of [dyn1d] is dynamic:
+    Never n = dyn1d;
+    dyn1d = 0;
+    dyn1d = false;
+  }
+  var dyn1e = dyn1.remainder(d);
+  if (false) {
+    // Check that the static type of [dyn1e] is dynamic:
+    Never n = dyn1a;
+    dyn1a = 0;
+    dyn1a = false;
+  }
 
   if (false) {
     (never + d).expectStaticType<Exactly<Never>>();
@@ -599,11 +659,41 @@ void testTypeVariables<I extends int, D extends double, N extends num>(
     n.remainder(never).expectStaticType<Exactly<num>>();
   }
 
-  (dyn1 + d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 - d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 * d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 % d).expectStaticType<Exactly<dynamic>>();
-  dyn1.remainder(d).expectStaticType<Exactly<dynamic>>();
+  var dyn1a = dyn1 + d;
+  if (false) {
+    // Check that the static type of [dyn1a] is dynamic:
+    Never n = dyn1a;
+    dyn1a = 0;
+    dyn1a = false;
+  }
+  var dyn1b = dyn1 - d;
+  if (false) {
+    // Check that the static type of [dyn1b] is dynamic:
+    Never n = dyn1b;
+    dyn1b = 0;
+    dyn1b = false;
+  }
+  var dyn1c = dyn1 * d;
+  if (false) {
+    // Check that the static type of [dyn1c] is dynamic:
+    Never n = dyn1c;
+    dyn1c = 0;
+    dyn1c = false;
+  }
+  var dyn1d = dyn1 % d;
+  if (false) {
+    // Check that the static type of [dyn1d] is dynamic:
+    Never n = dyn1d;
+    dyn1d = 0;
+    dyn1d = false;
+  }
+  var dyn1e = dyn1.remainder(d);
+  if (false) {
+    // Check that the static type of [dyn1e] is dynamic:
+    Never n = dyn1a;
+    dyn1a = 0;
+    dyn1a = false;
+  }
 
   if (false) {
     (never + d).expectStaticType<Exactly<Never>>();
@@ -820,11 +910,41 @@ void testPromotedTypeVariables<T>(T i, T d, T n) {
     n.remainder(never).expectStaticType<Exactly<num>>();
   }
 
-  (dyn1 + d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 - d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 * d).expectStaticType<Exactly<dynamic>>();
-  (dyn1 % d).expectStaticType<Exactly<dynamic>>();
-  dyn1.remainder(d).expectStaticType<Exactly<dynamic>>();
+  var dyn1a = dyn1 + d;
+  if (false) {
+    // Check that the static type of [dyn1a] is dynamic:
+    Never n = dyn1a;
+    dyn1a = 0;
+    dyn1a = false;
+  }
+  var dyn1b = dyn1 - d;
+  if (false) {
+    // Check that the static type of [dyn1b] is dynamic:
+    Never n = dyn1b;
+    dyn1b = 0;
+    dyn1b = false;
+  }
+  var dyn1c = dyn1 * d;
+  if (false) {
+    // Check that the static type of [dyn1c] is dynamic:
+    Never n = dyn1c;
+    dyn1c = 0;
+    dyn1c = false;
+  }
+  var dyn1d = dyn1 % d;
+  if (false) {
+    // Check that the static type of [dyn1d] is dynamic:
+    Never n = dyn1d;
+    dyn1d = 0;
+    dyn1d = false;
+  }
+  var dyn1e = dyn1.remainder(d);
+  if (false) {
+    // Check that the static type of [dyn1e] is dynamic:
+    Never n = dyn1a;
+    dyn1a = 0;
+    dyn1a = false;
+  }
 
   if (false) {
     (never + d).expectStaticType<Exactly<Never>>();

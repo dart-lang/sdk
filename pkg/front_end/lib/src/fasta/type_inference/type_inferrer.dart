@@ -952,9 +952,12 @@ class TypeInferrerImpl implements TypeInferrer {
             // potentially nullable access.
             isPotentiallyNullable: false);
       }
-      if (includeExtensionMethods) {
+      if (includeExtensionMethods && receiverBound is! DynamicType) {
         ObjectAccessTarget target = _findExtensionMember(
-            receiverBound, coreTypes.objectClass, name, fileOffset,
+            isNonNullableByDefault ? receiverType : receiverBound,
+            coreTypes.objectClass,
+            name,
+            fileOffset,
             setter: setter);
         if (target != null) {
           return target;

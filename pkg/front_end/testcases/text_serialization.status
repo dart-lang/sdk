@@ -93,7 +93,6 @@ general/override_setter_with_field: TypeCheckError
 general/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
 general/type_parameter_type_named_int: RuntimeError
 general/type_variable_as_super: RuntimeError
-general/type_variable_bound_access: TypeCheckError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general/with_dependencies/issue_43084/issue_43084: RuntimeError
@@ -140,7 +139,6 @@ general_nnbd_opt_out/spread_collection: RuntimeError # Should be fixed as part o
 general_nnbd_opt_out/statements: Crash
 general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError
 general_nnbd_opt_out/type_variable_as_super: RuntimeError
-general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
