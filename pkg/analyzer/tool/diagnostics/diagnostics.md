@@ -3884,7 +3884,7 @@ var x;
 _The receiver can't be null because of short-circuiting, so the null-aware
 operator '{0}' can't be used._
 
-_The receiver can't be null, so the null-aware operator '{0}' can't be used._
+_The receiver can't be null, so the null-aware operator '{0}' is unnecessary._
 
 #### Description
 
@@ -3923,8 +3923,7 @@ operator following `s` short-circuits the evaluation of both `length` and
 `isEven` if `s` is `null`. In other words, if `s` is `null`, then neither
 `length` nor `isEven` will be invoked, and if `s` is non-`null`, then
 `length` can't return a `null` value. Either way, `isEven` can't be invoked
-on a `null` value, so the null-aware operator is neither necessary nor
-allowed. See
+on a `null` value, so the null-aware operator is not necessary. See
 [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
 for more details.
 
