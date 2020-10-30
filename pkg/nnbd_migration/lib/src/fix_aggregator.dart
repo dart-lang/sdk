@@ -684,6 +684,10 @@ class NodeChangeForDefaultFormalParameter
 /// Implementation of [NodeChange] specialized for operating on [Expression]
 /// nodes.
 class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
+  bool _addsNoValidMigration = false;
+
+  AtomicEditInfo _addNoValidMigrationInfo;
+
   bool _addsNullCheck = false;
 
   AtomicEditInfo _addNullCheckInfo;
@@ -696,8 +700,14 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
 
   NodeChangeForExpression() : super._();
 
+  /// Gets the info for any added "no valid migration" comment.
+  AtomicEditInfo get addNoValidMigrationInfo => _addNoValidMigrationInfo;
+
   /// Gets the info for any added null check.
   AtomicEditInfo get addNullCheckInfo => _addNullCheckInfo;
+
+  /// Indicates whether [addNoValidMigration] has been called.
+  bool get addsNoValidMigration => _addsNoValidMigration;
 
   /// Indicates whether [addNullCheck] has been called.
   bool get addsNullCheck => _addsNullCheck;
@@ -711,9 +721,16 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
 
   @override
   Iterable<String> get _toStringParts => [
+        if (_addsNoValidMigration) 'addsNoValidMigration',
         if (_addsNullCheck) 'addsNullCheck',
         if (_introducesAsType != null) 'introducesAsType'
       ];
+
+  void addNoValidMigration(AtomicEditInfo info) {
+    assert(!_addsNoValidMigration);
+    _addsNoValidMigration = true;
+    _addNoValidMigrationInfo = info;
+  }
 
   /// Causes a null check to be added to this expression, with the given [info].
   void addNullCheck(AtomicEditInfo info, {HintComment hint}) {
@@ -753,6 +770,11 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
         plan = aggregator.planner
             .addUnaryPostfix(plan, TokenType.BANG, info: _addNullCheckInfo);
       }
+    }
+    if (_addsNoValidMigration) {
+      plan = aggregator.planner.addCommentPostfix(
+          plan, '/* no valid migration */',
+          info: _addNoValidMigrationInfo, isInformative: true);
     }
     if (_introducesAsType != null) {
       plan = aggregator.planner.addBinaryPostfix(

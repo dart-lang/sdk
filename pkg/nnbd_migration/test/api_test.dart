@@ -785,27 +785,27 @@ main() {
 
   Future<void> test_conditional_expression_guard_subexpression() async {
     var content = '''
-void f(String s, int x) {
-  s == null ? (x = null) : (x = s.length);
+void f(String s, int x, int/*?*/ n) {
+  s == null ? (x = n) : (x = s.length);
 }
 ''';
     var expected = '''
-void f(String s, int x) {
-  s == null ? (x = null!) : (x = s.length);
+void f(String s, int x, int? n) {
+  s == null ? (x = n!) : (x = s.length);
 }
 ''';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   Future<void> test_conditional_expression_guard_value_ifFalse() async {
-    var content = 'int f(String s) => s != null ? s.length : null;';
-    var expected = 'int f(String s) => s != null ? s.length : null!;';
+    var content = 'int f(String s, int/*?*/ n) => s != null ? s.length : n;';
+    var expected = 'int f(String s, int? n) => s != null ? s.length : n!;';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
   Future<void> test_conditional_expression_guard_value_ifTrue() async {
-    var content = 'int f(String s) => s == null ? null : s.length;';
-    var expected = 'int f(String s) => s == null ? null! : s.length;';
+    var content = 'int f(String s, int/*?*/ n) => s == null ? n : s.length;';
+    var expected = 'int f(String s, int? n) => s == null ? n! : s.length;';
     await _checkSingleFileChanges(content, expected, warnOnWeakCode: true);
   }
 
@@ -3879,16 +3879,16 @@ main() {
 class C<T extends Object/*!*/> {
   C(T/*!*/ t);
 }
-main() {
-  C<int> c = C<int>(null);
+test(int/*?*/ n) {
+  C<int> c = C<int>(n);
 }
 ''';
     var expected = '''
 class C<T extends Object> {
   C(T t);
 }
-main() {
-  C<int> c = C<int>(null!);
+test(int? n) {
+  C<int> c = C<int>(n!);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -3920,16 +3920,16 @@ main() {
 class C<T extends Object/*!*/> {
   C(T/*!*/ t);
 }
-main() {
-  C<int> c = C(null);
+test(int/*?*/ n) {
+  C<int> c = C(n);
 }
 ''';
     var expected = '''
 class C<T extends Object> {
   C(T t);
 }
-main() {
-  C<int> c = C(null!);
+test(int? n) {
+  C<int> c = C(n!);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -4372,6 +4372,22 @@ int? g() => null;
         {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
   }
 
+  Future<void> test_literal_null_without_valid_migration() async {
+    var content = '''
+void f(int/*!*/ x) {}
+void g() {
+  f(null);
+}
+''';
+    var expected = '''
+void f(int x) {}
+void g() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_literals_maintain_nullability() async {
     // See #40590. Without exact nullability, this would migrate to
     // `List<int?> list = <int>[1, 2]`. While the function of exact nullability
@@ -4705,14 +4721,14 @@ void g() {
       test_methodInvocation_typeArguments_explicit_nonNullable() async {
     var content = '''
 T f<T extends Object/*!*/>(T/*!*/ t) => t;
-void g() {
-  int x = f<int>(null);
+void g(int/*?*/ n) {
+  int x = f<int>(n);
 }
 ''';
     var expected = '''
 T f<T extends Object>(T t) => t;
-void g() {
-  int x = f<int>(null!);
+void g(int? n) {
+  int x = f<int>(n!);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -4755,14 +4771,14 @@ void g() {
       test_methodInvocation_typeArguments_inferred_nonNullable() async {
     var content = '''
 T f<T extends Object/*!*/>(T/*!*/ t) => t;
-void g() {
-  int x = f(null);
+void g(int/*?*/ n) {
+  int x = f(n);
 }
 ''';
     var expected = '''
 T f<T extends Object>(T t) => t;
-void g() {
-  int x = f(null!);
+void g(int? n) {
+  int x = f(n!);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -7079,8 +7095,8 @@ void g(bool b, int i1, int i2) {
   }
   i4.toDouble();
 }
-main() {
-  g(false, null, null);
+test(int/*?*/ n) {
+  g(false, n, null);
 }
 ''';
     var expected = '''
@@ -7097,8 +7113,8 @@ void g(bool b, int i1, int? i2) {
   }
   i4!.toDouble();
 }
-main() {
-  g(false, null!, null);
+test(int? n) {
+  g(false, n!, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

@@ -94,6 +94,8 @@ class MigrationSummary {
         return 'makeTypeNullable';
       case NullabilityFixKind.makeTypeNullableDueToHint:
         return 'makeTypeNullableDueToHint';
+      case NullabilityFixKind.noValidMigrationForNull:
+        return 'noValidMigrationForNull';
       case NullabilityFixKind.nullAwarenessUnnecessaryInStrongMode:
         return 'nullAwarenessUnnecessaryInStrongMode';
       case NullabilityFixKind.nullAwareAssignmentUnnecessaryInStrongMode:

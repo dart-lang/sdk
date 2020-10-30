@@ -145,9 +145,7 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
 
       // If we're given a non-zero exit code, DartDev is signaling for us to
       // shutdown.
-      if (dartdev_exit_code != 0) {
-        Process::SetGlobalExitCode(dartdev_exit_code);
-      }
+      Process::SetGlobalExitCode(dartdev_exit_code);
 
       // If DartDev hasn't signaled for us to do anything else, we can assume
       // there's nothing else for the VM to run and that we can exit.

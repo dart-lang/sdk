@@ -211,6 +211,10 @@ class InfoBuilder {
         // their "OrNull" equivalents.  We don't offer any hints around
         // this transformation.
         break;
+      case NullabilityFixKind.noValidMigrationForNull:
+        // We don't offer any edits around unmigratable `null`s.  The user has
+        // to fix manually.
+        break;
     }
     return edits;
   }

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' as io;
+// Do not call exit() directly. Use VmInteropHandler.exit() instead.
+import 'dart:io' as io hide exit;
 import 'dart:isolate';
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -29,8 +30,7 @@ import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
 
 /// This is typically called from bin/, but given the length of the method and
-/// analytics logic, it has been moved here. Also note that this method calls
-/// [io.exit(code)] directly.
+/// analytics logic, it has been moved here.
 Future<void> runDartdev(List<String> args, SendPort port) async {
   VmInteropHandler.initialize(port);
 
@@ -69,13 +69,15 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
 
     // Alert the user that analytics has been disabled.
     print(analyticsDisabledNoticeMessage);
-    io.exit(0);
+    VmInteropHandler.exit(0);
+    return;
   } else if (args.contains('--enable-analytics')) {
     analytics.enabled = true;
 
     // Alert the user again that anonymous data will be collected.
     print(analyticsNoticeOnFirstRunMessage);
-    io.exit(0);
+    VmInteropHandler.exit(0);
+    return;
   }
 
   try {

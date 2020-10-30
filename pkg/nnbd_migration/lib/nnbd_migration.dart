@@ -117,6 +117,12 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.downcastExpression,
   );
 
+  /// Informative message: there is no valid migration for `null` in a
+  /// non-nullable context.
+  static const noValidMigrationForNull = NullabilityFixDescription._(
+      appliedMessage: 'No valid migration for `null` in a non-nullable context',
+      kind: NullabilityFixKind.noValidMigrationForNull);
+
   /// Informative message: a null-aware access won't be necessary in strong
   /// checking mode.
   static const nullAwarenessUnnecessaryInStrongMode =
@@ -276,6 +282,7 @@ enum NullabilityFixKind {
   downcastExpression,
   makeTypeNullable,
   makeTypeNullableDueToHint,
+  noValidMigrationForNull,
   nullAwarenessUnnecessaryInStrongMode,
   nullAwareAssignmentUnnecessaryInStrongMode,
   otherCastExpression,

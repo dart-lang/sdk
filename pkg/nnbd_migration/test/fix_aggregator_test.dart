@@ -1134,6 +1134,16 @@ f(Object o) => o as a.Future<Null>;
     expect(previewInfo, null);
   }
 
+  Future<void> test_noValidMigration() async {
+    await analyze('f(a) => null;');
+    var literal = findNode.nullLiteral('null');
+    var previewInfo = run(
+        {literal: NodeChangeForExpression()..addNoValidMigration(_MockInfo())});
+    expect(previewInfo.applyTo(code), code);
+    expect(previewInfo.applyTo(code, includeInformative: true),
+        'f(a) => null /* no valid migration */;');
+  }
+
   Future<void> test_nullCheck_index_cascadeResult() async {
     await analyze('f(a) => a..[0].c;');
     var index = findNode.index('[0]');
