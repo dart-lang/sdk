@@ -1,0 +1,36 @@
+name: linter
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: "linter ${{ matrix.bot }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        linter-bot:
+          - main
+          - benchmark
+          - pana_baseline
+          - release
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Dart
+        env:
+          DART_VERSION: beta/release/latest
+        run: |
+          ./.github/install-dart.sh
+          echo "::add-path::`pwd`/dart-sdk/bin"
+          echo "::add-path::$HOME/.pub-cache/bin"
+
+      - name: ./tool/travis.sh
+        env:
+          LINTER_BOT: ${{ matrix.linter-bot }}
+        run: ./tool/travis.sh
