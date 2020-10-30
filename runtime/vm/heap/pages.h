@@ -307,6 +307,11 @@ class PageSpace {
                                is_protected, is_locked);
   }
 
+  void TryReleaseReservation();
+  bool MarkReservation();
+  void TryReserveForOOM();
+  void VisitRoots(ObjectPointerVisitor* visitor);
+
   bool ReachedHardThreshold() const {
     return page_space_controller_.ReachedHardThreshold(usage_);
   }
@@ -569,6 +574,8 @@ class PageSpace {
   // page freelists without locking.
   const intptr_t num_freelists_;
   FreeList* freelists_;
+  static constexpr intptr_t kOOMReservationSize = 32 * KB;
+  FreeListElement* oom_reservation_ = nullptr;
 
   // Use ExclusivePageIterator for safe access to these.
   mutable Mutex pages_lock_;

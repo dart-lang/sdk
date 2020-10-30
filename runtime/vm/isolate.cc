@@ -448,7 +448,7 @@ bool IsolateGroup::UnregisterIsolateDecrementCount(Isolate* isolate) {
 
 void IsolateGroup::CreateHeap(bool is_vm_isolate,
                               bool is_service_or_kernel_isolate) {
-  Heap::Init(this,
+  Heap::Init(this, is_vm_isolate,
              is_vm_isolate
                  ? 0  // New gen size 0; VM isolate should only allocate in old.
                  : FLAG_new_gen_semi_max_size * MBInWords,
