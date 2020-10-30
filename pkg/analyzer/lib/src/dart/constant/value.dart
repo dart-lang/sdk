@@ -1048,14 +1048,18 @@ class DoubleState extends NumState {
         return IntState.UNKNOWN_VALUE;
       }
       double result = value / rightValue.toDouble();
-      return IntState(result.toInt());
+      if (result.isFinite) {
+        return IntState(result.toInt());
+      }
     } else if (rightOperand is DoubleState) {
       double rightValue = rightOperand.value;
       if (rightValue == null) {
         return IntState.UNKNOWN_VALUE;
       }
       double result = value / rightValue;
-      return IntState(result.toInt());
+      if (result.isFinite) {
+        return IntState(result.toInt());
+      }
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
@@ -1976,7 +1980,9 @@ class IntState extends NumState {
         return UNKNOWN_VALUE;
       }
       double result = value.toDouble() / rightValue;
-      return IntState(result.toInt());
+      if (result.isFinite) {
+        return IntState(result.toInt());
+      }
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
