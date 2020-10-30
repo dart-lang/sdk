@@ -1,0 +1,14 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42607.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart = 2.6
+// ^^^^^^^^^^^^^^
+//
+import self as self;
+
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

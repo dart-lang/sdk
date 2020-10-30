@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42607.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart = 2.6
+// ^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  core::int* x = 3;
+  let final core::int* #t1 = x in #t1.{core::num::==}(null) ?{core::bool*} null : #t1.{core::int::isEven};
+  x = null;
+}
+static method main() → dynamic {}
