@@ -206,16 +206,16 @@ void main() {
 
   void f20(dynamic a, FutureOr<void> b) {
     var x = condition ? a : b;
-    // Verify that the type of `x` is a top type.
-    x.expectStaticType<Exactly<dynamic>>();
-    // Verify that it is `dynamic`.
-    x.unknownMember();
+    // Verify that the type of `x` is `dynamic`.
+    Never n = x; // It is `dynamic` or `Never`.
+    x = 0; // It is a supertype of `int`.
+    x = false; // It is a supertype of `bool`.
 
     var y = condition ? b : a;
-    // Verify that the type of `y` is a top type.
-    y.expectStaticType<Exactly<dynamic>>();
-    // Verify that it is `dynamic`.
-    y.unknownMember();
+    // Verify that the type of `y` is `dynamic`.
+    n = y;
+    y = 0;
+    y = false;
   }
 
   void f21(A a, B b) {

@@ -834,6 +834,18 @@ class DartObjectImplTest {
     _assertIdentical(_boolValue(null), _stringValue(null), _stringValue("def"));
   }
 
+  void test_integerDivide_infinity_knownDouble() {
+    _assertIntegerDivide(
+      null,
+      _doubleValue(double.infinity),
+      _doubleValue(2.0),
+    );
+  }
+
+  void test_integerDivide_infinity_knownInt() {
+    _assertIntegerDivide(null, _doubleValue(double.infinity), _intValue(2));
+  }
+
   void test_integerDivide_knownDouble_knownDouble() {
     _assertIntegerDivide(_intValue(3), _doubleValue(6.0), _doubleValue(2.0));
   }
@@ -849,6 +861,10 @@ class DartObjectImplTest {
 
   void test_integerDivide_knownDouble_unknownInt() {
     _assertIntegerDivide(_intValue(null), _doubleValue(6.0), _intValue(null));
+  }
+
+  void test_integerDivide_knownInt_knownDoubleZero() {
+    _assertIntegerDivide(null, _intValue(6), _doubleValue(0.0));
   }
 
   void test_integerDivide_knownInt_knownInt() {
@@ -867,8 +883,36 @@ class DartObjectImplTest {
     _assertIntegerDivide(_intValue(null), _intValue(6), _intValue(null));
   }
 
+  void test_integerDivide_knownInt_zero() {
+    _assertIntegerDivide(null, _intValue(2), _intValue(0));
+  }
+
   void test_integerDivide_knownString_knownInt() {
     _assertIntegerDivide(null, _stringValue("6"), _intValue(2));
+  }
+
+  void test_integerDivide_NaN_knownDouble() {
+    _assertIntegerDivide(null, _doubleValue(double.nan), _doubleValue(2.0));
+  }
+
+  void test_integerDivide_NaN_knownInt() {
+    _assertIntegerDivide(null, _doubleValue(double.nan), _intValue(2));
+  }
+
+  void test_integerDivide_negativeInfinity_knownDouble() {
+    _assertIntegerDivide(
+      null,
+      _doubleValue(double.negativeInfinity),
+      _doubleValue(2.0),
+    );
+  }
+
+  void test_integerDivide_negativeInfinity_knownInt() {
+    _assertIntegerDivide(
+      null,
+      _doubleValue(double.negativeInfinity),
+      _intValue(2),
+    );
   }
 
   void test_integerDivide_unknownDouble_knownDouble() {

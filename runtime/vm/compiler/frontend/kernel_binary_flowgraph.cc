@@ -504,7 +504,7 @@ Fragment StreamingFlowGraphBuilder::SetAsyncStackTrace(
 
   Fragment code;
   code += LoadLocal(async_stack_trace_var);
-  // Call _asyncSetThreadStackTrace
+  // Call _setAsyncThreadStackTrace
   code += StaticCall(TokenPosition::kNoSource, target,
                      /* argument_count = */ 1, ICData::kStatic);
   code += Drop();

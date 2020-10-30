@@ -37,10 +37,10 @@ void main() {
 
   void f5(Function Function<Y>([Y y]) x, dynamic y) {
     var z = condition ? x : y;
-    // Check that the type is a top type.
-    z.expectStaticType<Exactly<dynamic>>();
-    // Check that the type is `dynamic`.
-    z.unknownMember;
+    // Check that the type of `z` is `dynamic`.
+    Never n = z; // It is `dynamic` or `Never`.
+    z = 0; // It is a supertype of `int`.
+    z = false; // It is a supertype of `bool`.
   }
 
   void f6(Never x, Never Function() y) {

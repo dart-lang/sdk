@@ -352,7 +352,7 @@ class SafepointRwLock {
     if (IsCurrentThreadWriter()) {
       return false;
     }
-    while (state_ == -1) {
+    while (state_ < 0) {
       ml.Wait();
     }
 #if defined(DEBUG)
@@ -407,7 +407,7 @@ class SafepointRwLock {
   Monitor monitor_;
   // [state_] > 0  : The lock is held by multiple readers.
   // [state_] == 0 : The lock is free (no readers/writers).
-  // [state_] == -1: The lock is held by a single writer.
+  // [state_] < 0  : The lock is held by a single writer (possibly nested).
   intptr_t state_ = 0;
 
 #if defined(DEBUG)
