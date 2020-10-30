@@ -6,6 +6,9 @@
 LibTest/core/Uri/hasEmptyPath_A01_t01: RuntimeError
 LibTest/core/Uri/parse_A05_t01: RuntimeError
 
+[ $system == windows ]
+LibTest/io/ProcessResult/exitCode_A01_t02: Skip # Issue 43645
+
 [ $compiler != dart2js && $runtime != none && $runtime != vm && !$checked ]
 LibTest/async/Future/catchError_A03_t05: RuntimeError
 
