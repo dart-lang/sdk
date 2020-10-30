@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math';
-import 'package:analyzer/analyzer.dart'; // OK
+import 'package:async/async.dart'; // OK
 import 'dummy.dart';
 import 'package:async/src/async_cache.dart'; // LINT
 import 'package:yaml/yaml.dart'; // LINT

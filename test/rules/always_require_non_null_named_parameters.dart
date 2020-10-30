@@ -4,6 +4,8 @@
 
 // test w/ `pub run test -N always_require_non_null_named_parameters`
 
+// @dart=2.9
+
 import 'package:meta/meta.dart';
 
 var condition = true;

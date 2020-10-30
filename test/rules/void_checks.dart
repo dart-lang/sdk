@@ -4,6 +4,8 @@
 
 // test w/ `pub run test -N void_checks`
 
+// @dart=2.9
+
 import 'dart:async';
 
 var x;

@@ -10,7 +10,7 @@ import 'dart:math'; // OK
 import 'package:async/src/async_cache.dart'; // OK
 import 'package:yaml/yaml.dart'; // OK
 import 'package:charcode/ascii.dart'; // LINT
-import 'package:analyzer/analyzer.dart'; // LINT
+import 'package:async/async.dart'; // LINT
 
 import 'package:linter/src/analyzer.dart'; // OK
 import 'package:linter/src/ast.dart'; // OK
@@ -33,7 +33,7 @@ export 'dart:math'; // OK
 export 'package:async/src/async_cache.dart'; // OK
 export 'package:yaml/yaml.dart'; // OK
 export 'package:charcode/ascii.dart'; // LINT
-export 'package:analyzer/analyzer.dart'; // LINT
+export 'package:async/async.dart'; // LINT
 
 export 'package:linter/src/analyzer.dart'; // OK
 export 'package:linter/src/ast.dart'; // OK
