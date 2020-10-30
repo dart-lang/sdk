@@ -161,7 +161,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         usedElements.addElement(element);
       }
     } else {
-      _useIdentifierElement(node);
+      _useIdentifierElement(node, node.readElement);
+      _useIdentifierElement(node, node.writeElement);
+      _useIdentifierElement(node, node.staticElement);
       var parent = node.parent;
       // If [node] is a method tear-off, assume all parameters are used.
       var functionReferenceIsCall =
@@ -216,9 +218,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Marks an [Element] of [node] as used in the library.
-  void _useIdentifierElement(Identifier node) {
-    Element element = node.staticElement;
+  /// Marks the [element] of [node] as used in the library.
+  void _useIdentifierElement(Identifier node, Element element) {
     if (element == null) {
       return;
     }
