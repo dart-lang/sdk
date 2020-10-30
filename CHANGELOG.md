@@ -1,3 +1,17 @@
+# 0.1.122
+
+* fixed NPE in `unnecessary_null_checks`
+* fixed NPE in `missing_whitespace_between_adjacent_strings`
+* updated `void_checks` for NNBD
+* fixed range error in `unnecessary_string_escapes`
+* fixed false positives in `unnecessary_null_types`
+* fixed `prefer_constructors_over_static_methods` to respect type parameters
+* updated `always_require_non_null_named_parameters` to be NNBD-aware
+* updated `unnecessary_nullable_for_final_variable_declarations` to allow dynamic
+* update `overridden_fields` to not report on abstract parent fields
+* fixes to `unrelated_type_equality_checks` for NNBD
+* improvement to `type_init_formals`to allow types not equal to the field type
+
 # 0.1.121
 
 * performance improvements to `always_use_package_imports`, `avoid_renaming_method_parameters`, `prefer_relative_imports` and `public_member_api_docs`
