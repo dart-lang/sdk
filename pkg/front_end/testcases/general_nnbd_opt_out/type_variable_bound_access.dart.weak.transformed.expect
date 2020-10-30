@@ -1,0 +1,59 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/type_variable_bound_access.dart:24:36: Error: The getter 'length' isn't defined for the class 'num'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'length'.
+//   num method2() => field1 + field2.length;
+//                                    ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class DynamicClass<T extends dynamic = dynamic, S extends self::DynamicClass::T* = dynamic> extends core::Object {
+  generic-covariant-impl field self::DynamicClass::T* field1;
+  generic-covariant-impl field self::DynamicClass::T* field2;
+  constructor •(self::DynamicClass::T* field1, self::DynamicClass::T* field2) → self::DynamicClass<self::DynamicClass::T*, self::DynamicClass::S*>*
+    : self::DynamicClass::field1 = field1, self::DynamicClass::field2 = field2, super core::Object::•()
+    ;
+  method method() → dynamic
+    return this.{self::DynamicClass::field1}.*(this.{self::DynamicClass::field2});
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class NumClass<T extends core::num* = core::num*, S extends self::NumClass::T* = core::num*> extends core::Object {
+  generic-covariant-impl field self::NumClass::T* field1;
+  generic-covariant-impl field self::NumClass::S* field2;
+  constructor •(self::NumClass::T* field1, self::NumClass::S* field2) → self::NumClass<self::NumClass::T*, self::NumClass::S*>*
+    : self::NumClass::field1 = field1, self::NumClass::field2 = field2, super core::Object::•()
+    ;
+  method method1() → core::num*
+    return this.{self::NumClass::field1}.{core::num::*}(this.{self::NumClass::field2});
+  method method2() → core::num*
+    return this.{self::NumClass::field1}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/type_variable_bound_access.dart:24:36: Error: The getter 'length' isn't defined for the class 'num'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'length'.
+  num method2() => field1 + field2.length;
+                                   ^^^^^^");
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  new self::DynamicClass::•<core::num*, core::int*>(0.5, 2).{self::DynamicClass::method}();
+  new self::NumClass::•<core::num*, core::double*>(2, 0.5).{self::NumClass::method1}();
+}

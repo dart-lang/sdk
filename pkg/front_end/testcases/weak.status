@@ -53,7 +53,6 @@ general_nnbd_opt_out/override_setter_with_field: TypeCheckError
 general_nnbd_opt_out/spread_collection: RuntimeError
 general_nnbd_opt_out/type_parameter_type_named_int: RuntimeError # Expected
 general_nnbd_opt_out/type_variable_as_super: RuntimeError
-general_nnbd_opt_out/type_variable_bound_access: TypeCheckError
 general_nnbd_opt_out/unsound_promotion: TypeCheckError
 general_nnbd_opt_out/void_methods: RuntimeError
 late_lowering/covariant_late_field: TypeCheckError

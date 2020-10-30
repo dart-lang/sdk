@@ -1,0 +1,6 @@
+extension E<T> (){}
+on T (){}
+method1<S>(S s) {}
+method2<S extends dynamic>(S s) {}
+main() {}
+throws(void Function() f) {}

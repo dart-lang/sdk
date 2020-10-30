@@ -191,6 +191,7 @@ nnbd/issue42967: FormatterCrash
 nnbd/issue43211: FormatterCrash
 nnbd/issue43278: FormatterCrash
 nnbd/issue43354: FormatterCrash
+nnbd/issue43591: FormatterCrash
 nnbd/issue43689: FormatterCrash
 nnbd/language_issue1182: FormatterCrash
 nnbd/late: FormatterCrash

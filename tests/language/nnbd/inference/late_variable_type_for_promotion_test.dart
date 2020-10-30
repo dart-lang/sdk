@@ -97,7 +97,12 @@ void nullableUninitializedWithType() {
 void uninitializedUntyped() {
   late var x;
   x = 0;
-  x.expectStaticType<Exactly<dynamic>>();
+  if (false) {
+    // Check that the static type of [x] is dynamic:
+    Never n = x;
+    x = 0;
+    x = false;
+  }
   // Attempting to promote to `int?` should be ok, since `int?` is a subtype of
   // `dynamic`.
   if (x is int?) {
