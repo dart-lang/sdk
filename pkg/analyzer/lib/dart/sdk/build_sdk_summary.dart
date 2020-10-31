@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -217,7 +216,7 @@ class _Builder {
 
     var unit = result.unit as CompilationUnitImpl;
     unit.languageVersion = LibraryLanguageVersion(
-      package: ExperimentStatus.currentVersion,
+      package: languageVersion,
       override: null,
     );
 

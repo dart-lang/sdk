@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/uri.dart';
@@ -85,7 +84,7 @@ class FeatureSetProvider {
   /// be either lower, or higher than the package language version.
   Version getLanguageVersion(String path, Uri uri) {
     if (uri.isScheme('dart')) {
-      return ExperimentStatus.currentVersion;
+      return _sdkLanguageVersion;
     }
     var package = _findPackage(uri, path);
     if (package != null) {
@@ -93,7 +92,7 @@ class FeatureSetProvider {
       if (languageVersion != null) {
         return languageVersion;
       }
-      return ExperimentStatus.currentVersion;
+      return _sdkLanguageVersion;
     }
 
     return _nonPackageDefaultLanguageVersion;
