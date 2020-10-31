@@ -117,7 +117,7 @@ vars = {
   "intl_tag": "0.17.0-nullsafety",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "8f189db8f0c299187a0e8fa959dba7e9b0254be5",
-  "linter_tag": "0.1.121",
+  "linter_tag": "0.1.122",
   "logging_rev": "9d2a7fdd05b09bc06474881152b5baaf38fd1329",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "6f89681d59541ddb1cf3a58efbdaa2304ffc3f51",
