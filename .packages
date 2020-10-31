@@ -35,7 +35,6 @@ dart_internal:pkg/dart_internal/lib
 dart_style:third_party/pkg_tested/dart_style/lib
 dartdev:pkg/dartdev/lib
 dartdoc:third_party/pkg/dartdoc/lib
-dartfix:pkg/dartfix/lib
 dds:pkg/dds/lib
 dev_compiler:pkg/dev_compiler/lib
 diagnostic:pkg/diagnostic/lib

@@ -2964,7 +2964,19 @@ enum AsyncMarker {
 
 abstract class Expression extends TreeNode {
   /// Returns the static type of the expression.
-  DartType getStaticType(StaticTypeContext context);
+  ///
+  /// This calls `StaticTypeContext.getExpressionType` which calls
+  /// [getStaticTypeInternal] to compute the type of not already cached in
+  /// [context].
+  DartType getStaticType(StaticTypeContext context) {
+    return context.getExpressionType(this);
+  }
+
+  /// Computes the static type of this expression.
+  ///
+  /// This is called by `StaticTypeContext.getExpressionType` if the static
+  /// type of this expression is not already cached in [context].
+  DartType getStaticTypeInternal(StaticTypeContext context);
 
   /// Returns the static type of the expression as an instantiation of
   /// [superclass].
@@ -3066,14 +3078,26 @@ class InvalidExpression extends Expression {
 
   InvalidExpression(this.message);
 
-  DartType getStaticType(StaticTypeContext context) => const BottomType();
+  @override
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
 
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      const BottomType();
+
+  @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInvalidExpression(this);
+
+  @override
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitInvalidExpression(this, arg);
 
-  visitChildren(Visitor v) {}
-  transformChildren(Transformer v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
+  void transformChildren(Transformer v) {}
 
   @override
   String toString() {
@@ -3095,7 +3119,11 @@ class VariableGet extends Expression {
 
   VariableGet(this.variable, [this.promotedType]) : assert(variable != null);
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return promotedType ?? variable.type;
   }
 
@@ -3141,6 +3169,10 @@ class VariableSet extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitVariableSet(this);
@@ -3194,7 +3226,8 @@ class PropertyGet extends Expression {
     interfaceTargetReference = getMemberReference(member);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     var interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
       Class superclass = interfaceTarget.enclosingClass;
@@ -3274,6 +3307,10 @@ class PropertySet extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitPropertySet(this);
@@ -3333,7 +3370,7 @@ class SuperPropertyGet extends Expression {
     interfaceTargetReference = getMemberReference(member);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     if (interfaceTarget == null) {
       // TODO(johnniwinther): SuperPropertyGet without a target should be
       // replaced by invalid expressions.
@@ -3399,6 +3436,10 @@ class SuperPropertySet extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSuperPropertySet(this);
@@ -3447,7 +3488,12 @@ class StaticGet extends Expression {
     targetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(StaticTypeContext context) => target.getterType;
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
+      target.getterType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStaticGet(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3492,6 +3538,10 @@ class StaticSet extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStaticSet(this);
@@ -3686,7 +3736,7 @@ class MethodInvocation extends InvocationExpression {
     interfaceTargetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     var interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
       if (interfaceTarget is Procedure &&
@@ -3816,7 +3866,7 @@ class SuperMethodInvocation extends InvocationExpression {
     interfaceTargetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     if (interfaceTarget == null) return const DynamicType();
     Class superclass = interfaceTarget.enclosingClass;
     List<DartType> receiverTypeArguments = context.typeEnvironment
@@ -3887,7 +3937,7 @@ class StaticInvocation extends InvocationExpression {
     targetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return Substitution.fromPairs(
             target.function.typeParameters, arguments.types)
         .substituteType(target.function.returnType);
@@ -3951,7 +4001,7 @@ class ConstructorInvocation extends InvocationExpression {
     targetReference = getMemberReference(target);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return arguments.types.isEmpty
         ? context.typeEnvironment.coreTypes
             .rawType(target.enclosingClass, context.nonNullable)
@@ -4018,7 +4068,7 @@ class Instantiation extends Expression {
     expression?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     FunctionType type = expression.getStaticType(context);
     return Substitution.fromPairs(type.typeParameters, typeArguments)
         .substituteType(type.withoutTypeParameters);
@@ -4065,6 +4115,10 @@ class Not extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNot(this);
@@ -4118,6 +4172,10 @@ class LogicalExpression extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitLogicalExpression(this);
@@ -4170,7 +4228,11 @@ class ConditionalExpression extends Expression {
     otherwise?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) => staticType;
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => staticType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitConditionalExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4238,6 +4300,10 @@ class StringConcatenation extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.stringRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStringConcatenation(this);
@@ -4288,7 +4354,11 @@ class ListConcatenation extends Expression {
     setParents(lists, this);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return context.typeEnvironment.listType(typeArgument, context.nonNullable);
   }
 
@@ -4342,7 +4412,11 @@ class SetConcatenation extends Expression {
     setParents(sets, this);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return context.typeEnvironment.setType(typeArgument, context.nonNullable);
   }
 
@@ -4399,7 +4473,11 @@ class MapConcatenation extends Expression {
     setParents(maps, this);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return context.typeEnvironment
         .mapType(keyType, valueType, context.nonNullable);
   }
@@ -4460,7 +4538,11 @@ class InstanceCreation extends Expression {
 
   Class get classNode => classReference.asClass;
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return typeArguments.isEmpty
         ? context.typeEnvironment.coreTypes
             .rawType(classNode, context.nonNullable)
@@ -4558,6 +4640,10 @@ class FileUriExpression extends Expression implements FileUriNode {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       expression.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitFileUriExpression(this);
@@ -4619,6 +4705,10 @@ class IsExpression extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitIsExpression(this);
@@ -4728,7 +4818,11 @@ class AsExpression extends Expression {
         : (flags & ~FlagForNonNullableByDefault);
   }
 
-  DartType getStaticType(StaticTypeContext context) => type;
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => type;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitAsExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4791,7 +4885,7 @@ class NullCheck extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     DartType operandType = operand.getStaticType(context);
     return operandType == context.typeEnvironment.nullType
         ? const NeverType(Nullability.nonNullable)
@@ -4840,6 +4934,10 @@ class StringLiteral extends BasicLiteral {
   StringLiteral(this.value);
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.stringRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStringLiteral(this);
@@ -4869,6 +4967,10 @@ class IntLiteral extends BasicLiteral {
   IntLiteral(this.value);
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitIntLiteral(this);
@@ -4892,6 +4994,10 @@ class DoubleLiteral extends BasicLiteral {
   DoubleLiteral(this.value);
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.doubleRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitDoubleLiteral(this);
@@ -4915,6 +5021,10 @@ class BoolLiteral extends BasicLiteral {
   BoolLiteral(this.value);
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitBoolLiteral(this);
@@ -4936,6 +5046,10 @@ class NullLiteral extends BasicLiteral {
   Object get value => null;
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.nullType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullLiteral(this);
@@ -4959,6 +5073,10 @@ class SymbolLiteral extends Expression {
   SymbolLiteral(this.value);
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.symbolRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSymbolLiteral(this);
@@ -4986,6 +5104,10 @@ class TypeLiteral extends Expression {
   TypeLiteral(this.type);
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.typeRawType(context.nonNullable);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitTypeLiteral(this);
@@ -5012,7 +5134,11 @@ class TypeLiteral extends Expression {
 }
 
 class ThisExpression extends Expression {
-  DartType getStaticType(StaticTypeContext context) => context.thisType;
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => context.thisType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitThisExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -5034,6 +5160,10 @@ class ThisExpression extends Expression {
 
 class Rethrow extends Expression {
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.isNonNullableByDefault
           ? const NeverType(Nullability.nonNullable)
           : const BottomType();
@@ -5064,6 +5194,10 @@ class Throw extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       context.isNonNullableByDefault
           ? const NeverType(Nullability.nonNullable)
           : const BottomType();
@@ -5105,7 +5239,11 @@ class ListLiteral extends Expression {
     setParents(expressions, this);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return context.typeEnvironment.listType(typeArgument, context.nonNullable);
   }
 
@@ -5152,7 +5290,11 @@ class SetLiteral extends Expression {
     setParents(expressions, this);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return context.typeEnvironment.setType(typeArgument, context.nonNullable);
   }
 
@@ -5203,7 +5345,11 @@ class MapLiteral extends Expression {
     setParents(entries, this);
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return context.typeEnvironment
         .mapType(keyType, valueType, context.nonNullable);
   }
@@ -5302,7 +5448,7 @@ class AwaitExpression extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return context.typeEnvironment.flatten(operand.getStaticType(context));
   }
 
@@ -5348,7 +5494,7 @@ class FunctionExpression extends Expression implements LocalFunction {
     function?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return function.computeFunctionType(context.nonNullable);
   }
 
@@ -5386,7 +5532,11 @@ class ConstantExpression extends Expression {
     assert(constant != null);
   }
 
-  DartType getStaticType(StaticTypeContext context) => type;
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => type;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitConstantExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -5424,6 +5574,10 @@ class Let extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       body.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitLet(this);
@@ -5469,6 +5623,10 @@ class BlockExpression extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) =>
       value.getStaticType(context);
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitBlockExpression(this);
@@ -5523,7 +5681,11 @@ class LoadLibrary extends Expression {
 
   LoadLibrary(this.import);
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return context.typeEnvironment
         .futureType(const DynamicType(), context.nonNullable);
   }
@@ -5554,7 +5716,11 @@ class CheckLibraryIsLoaded extends Expression {
 
   CheckLibraryIsLoaded(this.import);
 
-  DartType getStaticType(StaticTypeContext context) {
+  DartType getStaticType(StaticTypeContext context) =>
+      getStaticTypeInternal(context);
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
     return context.typeEnvironment.coreTypes.objectRawType(context.nonNullable);
   }
 
@@ -6066,6 +6232,76 @@ class ForInStatement extends Statement {
     if (body != null) {
       body = body.accept<TreeNode>(v);
       body?.parent = this;
+    }
+  }
+
+  /// Returns the type of the iterator in this for-in statement.
+  ///
+  /// This calls `StaticTypeContext.getForInIteratorType` which calls
+  /// [getStaticTypeInternal] to compute the type of not already cached in
+  /// [context].
+  DartType getIteratorType(StaticTypeContext context) =>
+      context.getForInIteratorType(this);
+
+  /// Computes the type of the iterator in this for-in statement.
+  ///
+  /// This is called by `StaticTypeContext.getForInIteratorType` if the iterator
+  /// type of this for-in statement is not already cached in [context].
+  DartType getIteratorTypeInternal(StaticTypeContext context) {
+    DartType iteratorType;
+    if (isAsync) {
+      InterfaceType streamType = iterable.getStaticTypeAsInstanceOf(
+          context.typeEnvironment.coreTypes.streamClass, context);
+      if (streamType != null) {
+        iteratorType = new InterfaceType(
+            context.typeEnvironment.coreTypes.streamIteratorClass,
+            context.nonNullable,
+            streamType.typeArguments);
+      }
+    } else {
+      InterfaceType iterableType = iterable.getStaticTypeAsInstanceOf(
+          context.typeEnvironment.coreTypes.iterableClass, context);
+      Member member = context.typeEnvironment.hierarchy
+          .getInterfaceMember(iterableType.classNode, new Name('iterator'));
+      if (member != null) {
+        iteratorType = Substitution.fromInterfaceType(iterableType)
+            .substituteType(member.getterType);
+      }
+    }
+    return iteratorType ??= const DynamicType();
+  }
+
+  /// Returns the type of the element in this for-in statement.
+  ///
+  /// This calls `StaticTypeContext.getForInElementType` which calls
+  /// [getStaticTypeInternal] to compute the type of not already cached in
+  /// [context].
+  DartType getElementType(StaticTypeContext context) =>
+      context.getForInElementType(this);
+
+  /// Computes the type of the element in this for-in statement.
+  ///
+  /// This is called by `StaticTypeContext.getForInElementType` if the element
+  /// type of this for-in statement is not already cached in [context].
+  DartType getElementTypeInternal(StaticTypeContext context) {
+    DartType iterableType = iterable.getStaticType(context);
+    // TODO(johnniwinther): Update this to use the type of
+    //  `iterable.iterator.current` if inference is updated accordingly.
+    while (iterableType is TypeParameterType) {
+      TypeParameterType typeParameterType = iterableType;
+      iterableType =
+          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
+    }
+    if (isAsync) {
+      List<DartType> typeArguments = context.typeEnvironment
+          .getTypeArgumentsAsInstanceOf(
+              iterableType, context.typeEnvironment.coreTypes.streamClass);
+      return typeArguments.single;
+    } else {
+      List<DartType> typeArguments = context.typeEnvironment
+          .getTypeArgumentsAsInstanceOf(
+              iterableType, context.typeEnvironment.coreTypes.iterableClass);
+      return typeArguments.single;
     }
   }
 

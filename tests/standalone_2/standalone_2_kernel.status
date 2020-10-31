@@ -7,7 +7,6 @@
 fragmentation_test: Pass, Slow # GC heavy
 fragmentation_typed_data_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
-out_of_memory_unhandled_exception_test: Pass, Slow
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".

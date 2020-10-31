@@ -279,21 +279,21 @@ class DeprecatedMemberUseVerifier {
   static bool _isLocalParameter(Element element, AstNode node) {
     if (element is ParameterElement) {
       ExecutableElement definingFunction = element.enclosingElement;
-      FunctionBody body = node.thisOrAncestorOfType<FunctionBody>();
-      while (body != null) {
-        ExecutableElement enclosingFunction;
-        AstNode parent = body.parent;
-        if (parent is ConstructorDeclaration) {
-          enclosingFunction = parent.declaredElement;
-        } else if (parent is FunctionExpression) {
-          enclosingFunction = parent.declaredElement;
-        } else if (parent is MethodDeclaration) {
-          enclosingFunction = parent.declaredElement;
+
+      for (; node != null; node = node.parent) {
+        if (node is ConstructorDeclaration) {
+          if (node.declaredElement == definingFunction) {
+            return true;
+          }
+        } else if (node is FunctionExpression) {
+          if (node.declaredElement == definingFunction) {
+            return true;
+          }
+        } else if (node is MethodDeclaration) {
+          if (node.declaredElement == definingFunction) {
+            return true;
+          }
         }
-        if (enclosingFunction == definingFunction) {
-          return true;
-        }
-        body = parent?.thisOrAncestorOfType<FunctionBody>();
       }
     }
     return false;

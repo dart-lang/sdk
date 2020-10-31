@@ -2030,17 +2030,17 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  /* // #### Description
+  // #### Description
   //
   // The analyzer produces this diagnostic when a reference to the class `Never`
   // is found in code that has an SDK constraint whose lower bound is less than
-  // 2.X.0. This class wasn't defined in earlier versions, so this code won't be
-  // able to run against earlier versions of the SDK.
+  // 2.12.0. This class wasn't defined in earlier versions, so this code won't
+  // be able to run against earlier versions of the SDK.
   //
   // #### Examples
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
-  // bound of less than 2.X.0:
+  // bound of less than 2.12.0:
   //
   // ```yaml
   // %uri="pubspec.yaml"
@@ -2062,7 +2062,7 @@ class HintCode extends AnalyzerErrorCode {
   //
   // ```yaml
   // environment:
-  //   sdk: '>=2.X.0 <2.7.0'
+  //   sdk: '>=2.12.0 <2.13.0'
   // ```
   //
   // If you need to support older versions of the SDK, then rewrite the code to
@@ -2070,14 +2070,12 @@ class HintCode extends AnalyzerErrorCode {
   //
   // ```dart
   // dynamic x;
-  // ``` */
+  // ```
   static const HintCode SDK_VERSION_NEVER = HintCode(
-      // TODO(brianwilkerson) Replace the message with the following when we know
-      //  when this feature will ship:
-      //    The type 'Never' wasn't supported until version 2.X.0, but this code
-      //    is required to be able to run on earlier versions.
       'SDK_VERSION_NEVER',
-      "The type Never isn't yet supported.");
+      "The type 'Never' wasn't supported until version 2.X.0, but this code is "
+          "required to be able to run on earlier versions.",
+      correction: "Try updating the SDK constraints.");
 
   /**
    * No parameters.

@@ -167,6 +167,7 @@ class Heap {
 
   // Initialize the heap and register it with the isolate.
   static void Init(IsolateGroup* isolate_group,
+                   bool is_vm_isolate,
                    intptr_t max_new_gen_words,
                    intptr_t max_old_gen_words);
 
@@ -305,6 +306,7 @@ class Heap {
 #endif  // PRODUCT
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
+  bool is_vm_isolate() const { return is_vm_isolate_; }
 
   Monitor* barrier() const { return &barrier_; }
   Monitor* barrier_done() const { return &barrier_done_; }
@@ -354,6 +356,7 @@ class Heap {
   };
 
   Heap(IsolateGroup* isolate_group,
+       bool is_vm_isolate,
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
        intptr_t max_old_gen_words);
 
@@ -391,6 +394,7 @@ class Heap {
   void CollectForDebugging();
 
   IsolateGroup* isolate_group_;
+  bool is_vm_isolate_;
 
   // The different spaces used for allocation.
   Scavenger new_space_;

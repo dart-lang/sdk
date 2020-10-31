@@ -1103,7 +1103,7 @@ class MockSdk implements DartSdk {
     _versionFile = resourceProvider
         .getFolder(resourceProvider.convertPath(sdkRoot))
         .getChildAssumingFile('version');
-    _versionFile.writeAsStringSync('2.10.0');
+    _versionFile.writeAsStringSync('2.12.0');
 
     for (MockSdkLibrary library in _LIBRARIES) {
       var convertedLibrary = library._toProvider(resourceProvider);

@@ -25,6 +25,7 @@ import '../ir/closure.dart' show ClosureScopeModel;
 import '../ir/impact.dart';
 import '../ir/modular.dart';
 import '../ir/scope.dart' show ScopeModel;
+import '../ir/static_type.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/backend_impact.dart';
 import '../js_backend/backend_usage.dart';
@@ -439,8 +440,11 @@ class KernelModularStrategy extends ModularStrategy {
       // depend on metadata, so these parts of the impact data need to be
       // computed during conversion to [ResolutionImpact].
       impactBuilderData = _compilerTask.measureSubtask('worldImpact', () {
+        StaticTypeCacheImpl staticTypeCache = StaticTypeCacheImpl();
         ImpactBuilder builder = ImpactBuilder(
-            ir.StaticTypeContext(node, _elementMap.typeEnvironment),
+            ir.StaticTypeContext(node, _elementMap.typeEnvironment,
+                cache: staticTypeCache),
+            staticTypeCache,
             _elementMap.classHierarchy,
             scopeModel.variableScopeModel,
             useAsserts: _elementMap.options.enableUserAssertions,

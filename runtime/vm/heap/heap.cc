@@ -58,9 +58,11 @@ class NoActiveIsolateScope {
 };
 
 Heap::Heap(IsolateGroup* isolate_group,
+           bool is_vm_isolate,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words)
     : isolate_group_(isolate_group),
+      is_vm_isolate_(is_vm_isolate),
       new_space_(this, max_new_gen_semi_words),
       old_space_(this, max_old_gen_words),
       barrier_(),
@@ -150,6 +152,9 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   if (addr != 0) {
     return addr;
   }
+
+  old_space_.TryReleaseReservation();
+
   // Give up allocating this object.
   OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
                size);
@@ -678,11 +683,12 @@ void Heap::WriteProtect(bool read_only) {
 }
 
 void Heap::Init(IsolateGroup* isolate_group,
+                bool is_vm_isolate,
                 intptr_t max_new_gen_words,
                 intptr_t max_old_gen_words) {
   ASSERT(isolate_group->heap() == nullptr);
-  std::unique_ptr<Heap> heap(
-      new Heap(isolate_group, max_new_gen_words, max_old_gen_words));
+  std::unique_ptr<Heap> heap(new Heap(isolate_group, is_vm_isolate,
+                                      max_new_gen_words, max_old_gen_words));
   isolate_group->set_heap(std::move(heap));
 }
 

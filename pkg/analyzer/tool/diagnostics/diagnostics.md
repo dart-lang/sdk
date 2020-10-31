@@ -3884,7 +3884,7 @@ var x;
 _The receiver can't be null because of short-circuiting, so the null-aware
 operator '{0}' can't be used._
 
-_The receiver can't be null, so the null-aware operator '{0}' can't be used._
+_The receiver can't be null, so the null-aware operator '{0}' is unnecessary._
 
 #### Description
 
@@ -3923,8 +3923,7 @@ operator following `s` short-circuits the evaluation of both `length` and
 `isEven` if `s` is `null`. In other words, if `s` is `null`, then neither
 `length` nor `isEven` will be invoked, and if `s` is non-`null`, then
 `length` can't return a `null` value. Either way, `isEven` can't be invoked
-on a `null` value, so the null-aware operator is neither necessary nor
-allowed. See
+on a `null` value, so the null-aware operator is not necessary. See
 [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
 for more details.
 
@@ -7120,6 +7119,52 @@ code so that the `is` expression isn't in a
 {% prettify dart tag=pre+code %}
 const x = 4;
 var y = x is int ? 0 : 1;
+{% endprettify %}
+
+### sdk_version_never
+
+_The type 'Never' wasn't supported until version 2.X.0, but this code is
+required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when a reference to the class `Never`
+is found in code that has an SDK constraint whose lower bound is less than
+2.12.0. This class wasn't defined in earlier versions, so this code won't
+be able to run against earlier versions of the SDK.
+
+#### Examples
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.12.0:
+
+```yaml
+environment:
+  sdk: '>=2.5.0 <2.6.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart tag=pre+code %}
+[!Never!] n;
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the type to be used:
+
+```yaml
+environment:
+  sdk: '>=2.12.0 <2.13.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not reference this class:
+
+{% prettify dart tag=pre+code %}
+dynamic x;
 {% endprettify %}
 
 ### sdk_version_set_literal

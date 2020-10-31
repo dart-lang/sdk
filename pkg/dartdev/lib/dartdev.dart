@@ -89,14 +89,16 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
       args = List.from(args)..remove('--disable-dartdev-analytics');
     }
 
-    // These flags have a format that can't be handled by package:args, so while
-    // they are valid flags we'll assume the VM has verified them by this point.
-    args = args
-        .where(
-          (element) => !(element.contains('--observe') ||
-              element.contains('--enable-vm-service')),
-        )
-        .toList();
+    if (args.contains('run')) {
+      // These flags have a format that can't be handled by package:args, so while
+      // they are valid flags we'll assume the VM has verified them by this point.
+      args = args
+          .where(
+            (element) => !(element.contains('--observe') ||
+                element.contains('--enable-vm-service')),
+          )
+          .toList();
+    }
 
     // If ... help pub ... is in the args list, remove 'help', and add '--help'
     // to the end of the list. This will make it possible to use the help

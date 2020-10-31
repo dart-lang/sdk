@@ -7,6 +7,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -260,40 +261,65 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   }
 
   test_sdk_allowedExperiments_default() {
+    var feature_a = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+
     _newSdkExperimentsFile(r'''
 {
   "version": 1,
   "experimentSets": {
-    "nullSafety": ["non-nullable"]
+    "with_a": ["a"]
   },
   "sdk": {
     "default": {
-      "experimentSet": "nullSafety"
+      "experimentSet": "with_a"
     }
   }
 }
 ''');
 
-    provider = FeatureSetProvider.build(
-      sourceFactory: sourceFactory,
-      resourceProvider: resourceProvider,
-      packages: findPackagesFrom(resourceProvider, getFolder('/test')),
-      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
-      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
-      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
-    );
+    overrideKnownFeatures({'a': feature_a}, () {
+      provider = FeatureSetProvider.build(
+        sourceFactory: sourceFactory,
+        resourceProvider: resourceProvider,
+        packages: findPackagesFrom(resourceProvider, getFolder('/test')),
+        packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+        nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
+        nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      );
 
-    var featureSet = _getSdkFeatureSet('dart:math');
-    expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
+      var core_featureSet = _getSdkFeatureSet('dart:core');
+      expect(core_featureSet.isEnabled(feature_a), isTrue);
+
+      var math_featureSet = _getSdkFeatureSet('dart:math');
+      expect(math_featureSet.isEnabled(feature_a), isTrue);
+    });
   }
 
   test_sdk_allowedExperiments_library() {
+    var feature_a = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+
     _newSdkExperimentsFile(r'''
 {
   "version": 1,
   "experimentSets": {
     "none": [],
-    "nullSafety": ["non-nullable"]
+    "with_a": ["a"]
   },
   "sdk": {
     "default": {
@@ -301,26 +327,29 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     },
     "libraries": {
       "math": {
-        "experimentSet": "nullSafety"
+        "experimentSet": "with_a"
       }
     }
   }
 }
 ''');
-    provider = FeatureSetProvider.build(
-      sourceFactory: sourceFactory,
-      resourceProvider: resourceProvider,
-      packages: findPackagesFrom(resourceProvider, getFolder('/test')),
-      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
-      nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
-      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
-    );
 
-    var core_featureSet = _getSdkFeatureSet('dart:core');
-    expect(core_featureSet.isEnabled(Feature.non_nullable), isFalse);
+    overrideKnownFeatures({'a': feature_a}, () {
+      provider = FeatureSetProvider.build(
+        sourceFactory: sourceFactory,
+        resourceProvider: resourceProvider,
+        packages: findPackagesFrom(resourceProvider, getFolder('/test')),
+        packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+        nonPackageDefaultLanguageVersion: ExperimentStatus.currentVersion,
+        nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      );
 
-    var math_featureSet = _getSdkFeatureSet('dart:math');
-    expect(math_featureSet.isEnabled(Feature.non_nullable), isTrue);
+      var core_featureSet = _getSdkFeatureSet('dart:core');
+      expect(core_featureSet.isEnabled(feature_a), isFalse);
+
+      var math_featureSet = _getSdkFeatureSet('dart:math');
+      expect(math_featureSet.isEnabled(feature_a), isTrue);
+    });
   }
 
   test_sdk_allowedExperiments_mockDefault() {

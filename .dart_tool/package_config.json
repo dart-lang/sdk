@@ -229,12 +229,6 @@
       "languageVersion": "2.10"
     },
     {
-      "name": "dartfix",
-      "rootUri": "../pkg/dartfix",
-      "packageUri": "lib/",
-      "languageVersion": "2.8"
-    },
-    {
       "name": "dds",
       "rootUri": "../pkg/dds",
       "packageUri": "lib/",

@@ -221,4 +221,18 @@ void run() {
     expect(result.stderr, contains('Unhandled exception'));
     expect(result.exitCode, 255);
   });
+
+  test('does not interpret VM flags provided after script', () async {
+    p = project(mainSrc: 'void main() { assert(false); }');
+
+    // Any VM flags passed after the script shouldn't be interpreted by the VM.
+    ProcessResult result = p.runSync('run', [
+      p.relativeFilePath,
+      '--enable-asserts',
+    ]);
+
+    expect(result.stdout, isEmpty);
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  });
 }
