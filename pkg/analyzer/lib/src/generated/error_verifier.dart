@@ -1494,7 +1494,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       Element prevElement = _exportedElements[name];
       if (element != null && prevElement != null && prevElement != element) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.AMBIGUOUS_EXPORT, directive, [
+            CompileTimeErrorCode.AMBIGUOUS_EXPORT, directive.uri, [
           name,
           prevElement.library.definingCompilationUnit.source.uri,
           element.library.definingCompilationUnit.source.uri
