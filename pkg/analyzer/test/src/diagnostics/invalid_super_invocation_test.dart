@@ -21,7 +21,7 @@ class A {
   A(int x) : super(), assert(x != null);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 23, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 23, 5),
     ]);
   }
 
@@ -32,7 +32,7 @@ class A {
   A() : super(), x = 1;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 33, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 33, 5),
     ]);
   }
 }

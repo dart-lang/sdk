@@ -26,7 +26,7 @@ class N {}
 export 'lib1.dart';
 export 'lib2.dart';
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 20, 19),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11),
     ]);
   }
 
@@ -41,7 +41,7 @@ extension E on String {}
 export 'lib1.dart';
 export 'lib2.dart';
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 20, 19),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 27, 11),
     ]);
   }
 

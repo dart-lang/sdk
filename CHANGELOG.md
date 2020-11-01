@@ -41,8 +41,19 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 #### Linter
 
-Updated the Linter to `0.1.121`, which includes:
+Updated the Linter to `0.1.122`, which includes:
 
+* A fixed NPE in `unnecessary_null_checks`.
+* A fixed NPE in `missing_whitespace_between_adjacent_strings`.
+* Updates to `void_checks` for NNBD.
+* A fixed range error in `unnecessary_string_escapes`.
+* A fixed false positives in `unnecessary_null_types`.
+* Fixes to `prefer_constructors_over_static_methods` to respect type parameters.
+* Updates to `always_require_non_null_named_parameters` to be NNBD-aware.
+* Updates tp `unnecessary_nullable_for_final_variable_declarations` to allow dynamic.
+* Updates `overridden_fields` to not report on abstract parent fields.
+* Fixes to `unrelated_type_equality_checks` for NNBD.
+* Improvements to `type_init_formals`to allow types not equal to the field type.
 * Performance improvements to `always_use_package_imports`,
   `avoid_renaming_method_parameters`, `prefer_relative_imports` and
   `public_member_api_docs`.

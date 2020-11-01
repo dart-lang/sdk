@@ -33,7 +33,7 @@ class A {
   A.name() {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 18, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 18, 5),
       error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 18, 7),
     ]);
   }
