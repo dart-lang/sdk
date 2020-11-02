@@ -107,7 +107,11 @@ final mixinOn = JS('', 'Symbol("mixinOn")');
 @JSExportName('implements')
 final implements_ = JS('', 'Symbol("implements")');
 
-List? Function() getImplements(clazz) => JS(
+/// Either `null` if `clazz` doesn't directly implement any interfaces or a
+/// list of type objects if it does.  Note, indirectly (e.g., via superclass)
+/// implemented interfaces aren't included here.
+/// See compiler.dart for when/how it is emitted.
+List Function()? getImplements(clazz) => JS(
     '',
     'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz,

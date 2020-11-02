@@ -2045,7 +2045,7 @@ Object? _getMatchingSupertype(Object? subtype, Object supertype) {
   // Check interfaces.
   var getInterfaces = getImplements(subtype);
   if (getInterfaces != null) {
-    for (var iface in getInterfaces()!) {
+    for (var iface in getInterfaces()) {
       result = _getMatchingSupertype(iface, supertype);
       if (result != null) return result;
     }
