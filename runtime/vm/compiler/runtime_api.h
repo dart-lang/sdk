@@ -702,7 +702,7 @@ class String : public AllStatic {
   static word length_offset();
   static word InstanceSize();
   static word NextFieldOffset();
-  static word InstanceSize(intptr_t payload_size);
+  static word InstanceSize(word payload_size);
 };
 
 class OneByteString : public AllStatic {
