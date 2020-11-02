@@ -11,6 +11,14 @@
   is now `FunctionTypeAliasElement`, not its function element.
 * Removed deprecated `GenericTypeAliasElement`.
 
+## 0.40.6
+* The non_nullable feature is released in 2.12 language version.
+* Updated the current language version to 2.12.
+* Changed the default language version when the package does not specify one.
+  Instead of the latest known language version, the language version of the
+  SDK (against which analysis is done, not necessary the same as used to run
+  the analyzer) is used.
+
 ## 0.40.5
 * Deprecated `GenericTypeAliasElement`. Use `FunctionTypeAliasElement`.
 * Read imports, exports, and parts on demand in `AnalysisDriver`.

@@ -54,39 +54,46 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
   if (Platform.environment['_DARTDEV_LOG_ANALYTICS'] != null) {
     // Used for testing what analytics messages are sent.
     _instance = _LoggingAnalytics();
-  } else if (disableAnalytics) {
+    return _instance;
+  }
+
+  if (disableAnalytics) {
     // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
     // handled here.
     // Also, stdout.hasTerminal is checked, if there is no terminal we infer that
     // a machine is running dartdev so we return analytics shouldn't be set.
     _instance = DisabledAnalytics(_trackingId, _appName);
-  } else {
-    var settingsDir = getDartStorageDirectory();
-    if (settingsDir == null) {
-      // Some systems don't support user home directories; for those, fail
+    return _instance;
+  }
+
+  var settingsDir = getDartStorageDirectory();
+  if (settingsDir == null) {
+    // Some systems don't support user home directories; for those, fail
+    // gracefully by returning a disabled analytics object.
+    _instance = DisabledAnalytics(_trackingId, _appName);
+    return _instance;
+  }
+
+  if (!settingsDir.existsSync()) {
+    try {
+      settingsDir.createSync();
+    } catch (e) {
+      // If we can't create the directory for the analytics settings, fail
       // gracefully by returning a disabled analytics object.
       _instance = DisabledAnalytics(_trackingId, _appName);
-    } else if (!settingsDir.existsSync()) {
-      try {
-        settingsDir.createSync();
-      } catch (e) {
-        // If we can't create the directory for the analytics settings, fail
-        // gracefully by returning a disabled analytics object.
-        _instance = DisabledAnalytics(_trackingId, _appName);
-      }
-    } else {
-      var readmeFile =
-          File('${settingsDir.absolute.path}${path.separator}$_readmeFileName');
-      if (!readmeFile.existsSync()) {
-        readmeFile.createSync();
-        readmeFile.writeAsStringSync(_readmeFileContents);
-      }
-
-      var settingsFile = File(path.join(settingsDir.path, _settingsFileName));
-      _instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
+      return _instance;
     }
   }
 
+  var readmeFile =
+      File('${settingsDir.absolute.path}${path.separator}$_readmeFileName');
+  if (!readmeFile.existsSync()) {
+    readmeFile.createSync();
+    readmeFile.writeAsStringSync(_readmeFileContents);
+  }
+
+  var settingsFile = File(path.join(settingsDir.path, _settingsFileName));
+  _instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
   return _instance;
 }
 
