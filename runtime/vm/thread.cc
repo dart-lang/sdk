@@ -294,10 +294,6 @@ void Thread::set_async_stack_trace(const StackTrace& stack_trace) {
   async_stack_trace_ = stack_trace.raw();
 }
 
-void Thread::set_raw_async_stack_trace(StackTracePtr raw_stack_trace) {
-  async_stack_trace_ = raw_stack_trace;
-}
-
 void Thread::clear_async_stack_trace() {
   async_stack_trace_ = StackTrace::null();
 }
