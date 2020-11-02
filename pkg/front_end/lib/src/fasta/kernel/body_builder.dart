@@ -319,8 +319,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   /// List of built type aliased generative constructor invocations that
   /// require unaliasing.
-  final List<ConstructorInvocation> typeAliasedConstructorInvocations =
-      <ConstructorInvocation>[];
+  final List<TypeAliasedConstructorInvocationJudgment>
+      typeAliasedConstructorInvocations = [];
 
   /// List of built type aliased factory constructor invocations that require
   /// unaliasing.
@@ -1244,11 +1244,24 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void _unaliasTypeAliasedConstructorInvocations() {
-    for (ConstructorInvocation invocation
+    for (TypeAliasedConstructorInvocationJudgment invocation
         in typeAliasedConstructorInvocations) {
-      // TODO(eernst): Should replace aliased constructor invocations,
-      // such that back ends don't see instance creations on type aliases.
-      invocation.replaceWith(new NullLiteral());
+      DartType unaliasedType = new TypedefType(
+              invocation.typeAliasBuilder.typedef,
+              Nullability.nonNullable,
+              invocation.arguments.types)
+          .unalias;
+      List<DartType> invocationTypeArguments = null;
+      if (unaliasedType is InterfaceType) {
+        invocationTypeArguments = unaliasedType.typeArguments;
+      }
+      Arguments invocationArguments = new ArgumentsImpl(
+          invocation.arguments.positional,
+          types: invocationTypeArguments,
+          named: invocation.arguments.named);
+      invocation.replaceWith(new ConstructorInvocation(
+          invocation.target, invocationArguments,
+          isConst: invocation.isConst));
     }
     typeAliasedConstructorInvocations.clear();
   }
