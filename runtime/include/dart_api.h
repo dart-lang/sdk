@@ -921,7 +921,7 @@ typedef struct {
 /**
  * Initializes the VM.
  *
- * \param flags A struct containing initialization information. The version
+ * \param params A struct containing initialization information. The version
  *   field of the struct must be DART_INITIALIZE_PARAMS_CURRENT_VERSION.
  *
  * \return NULL if initialization is successful. Returns an error message
