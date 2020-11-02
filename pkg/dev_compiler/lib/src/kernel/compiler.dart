@@ -1082,29 +1082,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (c == _coreTypes.deprecatedFutureOrClass) {
-      // These methods are difficult to place in the runtime or patch files.
-      // * They need to be callable from the class but they can't be static
-      //   methods on the FutureOr class in Dart because they reference the
-      //   generic type parameter.
-      // * There isn't an obvious place in dart:_runtime were we could place a
-      //   method that adds these type tests (similar to addTypeTests()) because
-      //   in the bootstrap ordering the Future class hasn't been defined yet.
-      var typeParam =
-          TypeParameterType(c.typeParameters[0], Nullability.undetermined);
-      var typeT = visitTypeParameterType(typeParam);
-      var futureOfT = visitInterfaceType(InterfaceType(
-          _coreTypes.futureClass, currentLibrary.nonNullable, [typeParam]));
-      body.add(js.statement('''
-          #.is = function is_FutureOr(o) {
-            return #.is(o) || #.is(o);
-          }
-          ''', [className, typeT, futureOfT]));
-      body.add(js.statement('''
-          #.as = function as_FutureOr(o) {
-            if (#.is(o) || #.is(o)) return o;
-            return #.as(o, this);
-          }
-          ''', [className, typeT, futureOfT, runtimeModule]));
+      // Custom type tests for FutureOr types are attached when the type is
+      // constructed in the runtime normalizeFutureOr method.
       return null;
     }
 

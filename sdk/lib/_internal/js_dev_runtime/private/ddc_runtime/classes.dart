@@ -164,6 +164,29 @@ normalizeFutureOr(typeConstructor, setBaseClass) {
     // as a FutureOr because it is equal to 'async.FutureOr` (in the JS).
     JS('!', '#[#] = #', genericType, _originalDeclaration, normalize);
     JS('!', '#(#)', addTypeCaches, genericType);
+    // Add FutureOr specific is and as methods.
+    is_FutureOr(obj) =>
+        JS<bool>('!', '#.is(#)', typeArg, obj) ||
+        JS<bool>('!', '#(#).is(#)', getGenericClass(Future), typeArg, obj);
+    JS('!', '#.is = #', genericType, is_FutureOr);
+
+    as_FutureOr(obj) {
+      // Special test to handle case for mixed mode non-nullable FutureOr of a
+      // legacy type. This allows casts like `null as FutureOr<int*>` to work
+      // in weak and sound mode.
+      if (obj == null && _jsInstanceOf(typeArg, LegacyType)) {
+        return obj;
+      }
+
+      if (JS<bool>('!', '#.is(#)', typeArg, obj) ||
+          JS<bool>('!', '#(#).is(#)', getGenericClass(Future), typeArg, obj)) {
+        return obj;
+      }
+      return cast(obj, JS('!', '#(#)', getGenericClass(FutureOr), typeArg));
+    }
+
+    JS('!', '#.as = #', genericType, as_FutureOr);
+
     return genericType;
   }
 
