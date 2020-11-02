@@ -3469,6 +3469,15 @@ void f({@required int i}) {}
   }
 
   Future<void>
+      test_functionDeclaration_parameter_named_no_default_required_hint() async {
+    await analyze('''
+void f({/*required*/ int i}) {}
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
+  }
+
+  Future<void>
       test_functionDeclaration_parameter_positionalOptional_default_notNull() async {
     await analyze('''
 void f([int i = 1]) {}
@@ -3609,6 +3618,20 @@ void g() {
     await analyze('''
 import 'package:meta/meta.dart';
 void f({@required int i}) {}
+void g() {
+  f();
+}
+''');
+    // The call at `f()` is presumed to be in error; no constraint is recorded.
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertNoUpstreamNullability(nullable_i);
+  }
+
+  Future<void>
+      test_functionInvocation_parameter_named_missing_required_hint() async {
+    verifyNoTestUnitErrors = false;
+    await analyze('''
+void f({/*required*/ int i}) {}
 void g() {
   f();
 }

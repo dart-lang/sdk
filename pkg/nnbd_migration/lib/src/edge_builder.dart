@@ -212,6 +212,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final Set<PromotableElement> _lateHintedLocals = {};
 
+  final Set<PromotableElement> _requiredHintedParameters = {};
+
   final Map<Token, HintComment> _nullCheckHints = {};
 
   /// Helper that assists us in transforming Iterable methods to their "OrNull"
@@ -745,6 +747,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (node.declaredElement.hasRequired) {
         // Nothing to do; the implicit default value of `null` will never be
         // reached.
+      } else if (_variables.getRequiredHint(source, node) != null) {
+        // Nothing to do; assume the implicit default value of `null` will never
+        // be reached.
+        _requiredHintedParameters.add(node.declaredElement);
       } else {
         _graph.makeNullable(getOrComputeElementType(node.declaredElement).node,
             OptionalFormalParameterOrigin(source, node));
@@ -1536,6 +1542,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (!node.inDeclarationContext() &&
           node.inGetterContext() &&
           !_lateHintedLocals.contains(staticElement) &&
+          !_requiredHintedParameters.contains(staticElement) &&
           !_flowAnalysis.isAssigned(staticElement)) {
         _graph.makeNullable(type.node, UninitializedReadOrigin(source, node));
       }

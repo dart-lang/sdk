@@ -123,14 +123,16 @@ class InfoBuilder {
         'Reason', [_makeTraceEntry(info.description, info.codeReference)]));
   }
 
-  /// Return an edit that can be applied.
+  /// Returns a list of edits that can be applied.
   List<EditDetail> _computeEdits(
-      AtomicEditInfo fixInfo, int offset, String content) {
-    EditDetail _removeHint(String description) => EditDetail.fromSourceEdit(
+      AtomicEditInfo fixInfo, int offset, ResolvedUnitResult result) {
+    var content = result.content;
+
+    EditDetail removeHint(String description) => EditDetail.fromSourceEdit(
         description,
         fixInfo.hintComment.changesToRemove(content).toSourceEdits().single);
 
-    EditDetail _changeHint(String description, String replacement) =>
+    EditDetail changeHint(String description, String replacement) =>
         EditDetail.fromSourceEdit(
             description,
             fixInfo.hintComment
@@ -142,16 +144,27 @@ class InfoBuilder {
     var fixKind = fixInfo.description.kind;
     switch (fixKind) {
       case NullabilityFixKind.addLateDueToHint:
-        edits.add(_removeHint('Remove /*late*/ hint'));
+        edits.add(removeHint('Remove /*late*/ hint'));
         break;
       case NullabilityFixKind.addLateFinalDueToHint:
-        edits.add(_removeHint('Remove /*late final*/ hint'));
+        edits.add(removeHint('Remove /*late final*/ hint'));
         break;
       case NullabilityFixKind.addRequired:
-        // TODO(brianwilkerson) This doesn't verify that the meta package has
-        //  been imported.
-        edits
-            .add(EditDetail("Mark with '@required'.", offset, 0, '@required '));
+        var metaImport =
+            _findImportDirective(result.unit, 'package:meta/meta.dart');
+        if (metaImport == null) {
+          edits.add(
+              EditDetail('Add /*required*/ hint', offset, 0, '/*required*/ '));
+        } else {
+          var prefix = metaImport.prefix?.name;
+          if (prefix == null) {
+            edits.add(
+                EditDetail("Mark with '@required'", offset, 0, '@required '));
+          } else {
+            edits.add(EditDetail(
+                "Mark with '@required'", offset, 0, '@$prefix.required '));
+          }
+        }
         break;
       case NullabilityFixKind.checkExpression:
         // TODO(brianwilkerson) Determine whether we can know that the fix is
@@ -159,7 +172,7 @@ class InfoBuilder {
         edits.add(EditDetail('Add /*!*/ hint', offset, 0, '/*!*/'));
         break;
       case NullabilityFixKind.checkExpressionDueToHint:
-        edits.add(_removeHint('Remove /*!*/ hint'));
+        edits.add(removeHint('Remove /*!*/ hint'));
         break;
       case NullabilityFixKind.downcastExpression:
       case NullabilityFixKind.otherCastExpression:
@@ -180,12 +193,12 @@ class InfoBuilder {
         edits.add(EditDetail('Add /*?*/ hint', offset, 0, '/*?*/'));
         break;
       case NullabilityFixKind.makeTypeNullableDueToHint:
-        edits.add(_changeHint('Change to /*!*/ hint', '/*!*/'));
-        edits.add(_removeHint('Remove /*?*/ hint'));
+        edits.add(changeHint('Change to /*!*/ hint', '/*!*/'));
+        edits.add(removeHint('Remove /*?*/ hint'));
         break;
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
-        edits.add(_removeHint('Remove /*!*/ hint'));
-        edits.add(_changeHint('Change to /*?*/ hint', '/*?*/'));
+        edits.add(removeHint('Remove /*!*/ hint'));
+        edits.add(changeHint('Change to /*?*/ hint', '/*?*/'));
         break;
       case NullabilityFixKind.addLate:
       case NullabilityFixKind.addLateDueToTestSetup:
@@ -363,7 +376,7 @@ class InfoBuilder {
         }
         var info = edit.info;
         var edits = info != null
-            ? _computeEdits(info, sourceOffset, result.content)
+            ? _computeEdits(info, sourceOffset, result)
             : <EditDetail>[];
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
         var traces = info == null
@@ -424,6 +437,17 @@ class InfoBuilder {
     unitInfo.migrationOffsetMapper = mapper;
     unitInfo.content = content;
     return unitInfo;
+  }
+
+  /// Searches [unit] for an import directive whose URI matches [uri], returning
+  /// it if found, or `null` if not found.
+  ImportDirective _findImportDirective(CompilationUnit unit, String uri) {
+    for (var directive in unit.directives) {
+      if (directive is ImportDirective && directive.uriContent == uri) {
+        return directive;
+      }
+    }
+    return null;
   }
 
   TraceEntryInfo _makeTraceEntry(

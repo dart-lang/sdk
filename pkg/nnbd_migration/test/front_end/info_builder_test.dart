@@ -796,7 +796,7 @@ void f(int/*?*/ a) {
         edits: isEmpty);
   }
 
-  Future<void> test_insertedRequired_fieldFormal() async {
+  Future<void> test_insertedRequired_fieldFormal_hint() async {
     var unit = await buildInfoForSingleTestFile('''
 class C {
   int level;
@@ -821,10 +821,41 @@ class C {
         explanation: "Add 'required' keyword to parameter 'level' in 'C.'",
         kind: NullabilityFixKind.addRequired);
     assertEdit(
-        edit: edits[0], offset: 42, length: 0, replacement: '@required ');
+        edit: edits[0], offset: 42, length: 0, replacement: '/*required*/ ');
   }
 
-  Future<void> test_insertedRequired_parameter() async {
+  Future<void> test_insertedRequired_fieldFormal() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+import 'package:meta/meta.dart';
+class C {
+  int level;
+  int level2;
+  C({this.level}) : this.level2 = level + 1;
+}
+''', migratedContent: '''
+import 'package:meta/meta.dart';
+class C {
+  int  level;
+  int  level2;
+  C({required this.level}) : this.level2 = level + 1;
+}
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(
+        region: region,
+        offset: 77,
+        length: 9,
+        explanation: "Add 'required' keyword to parameter 'level' in 'C.'",
+        kind: NullabilityFixKind.addRequired);
+    assertEdit(
+        edit: edits[0], offset: 75, length: 0, replacement: '@required ');
+  }
+
+  Future<void> test_insertedRequired_parameter_hint() async {
     var unit = await buildInfoForSingleTestFile('''
 class C {
   int level = 0;
@@ -847,7 +878,59 @@ class C {
         explanation: "Add 'required' keyword to parameter 'lvl' in 'C.f'",
         kind: NullabilityFixKind.addRequired);
     assertEdit(
-        edit: edits[0], offset: 37, length: 0, replacement: '@required ');
+        edit: edits[0], offset: 37, length: 0, replacement: '/*required*/ ');
+  }
+
+  Future<void> test_insertedRequired_parameter_metaPrefixed() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+import 'package:meta/meta.dart' as meta;
+class C {
+  int level = 0;
+  bool f({int lvl}) => lvl >= level;
+}
+''', migratedContent: '''
+import 'package:meta/meta.dart' as meta;
+class C {
+  int  level = 0;
+  bool  f({required int  lvl}) => lvl >= level;
+}
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertEdit(
+        edit: edits[0], offset: 78, length: 0, replacement: '@meta.required ');
+  }
+
+  Future<void> test_insertedRequired_parameter() async {
+    addMetaPackage();
+    var unit = await buildInfoForSingleTestFile('''
+import 'package:meta/meta.dart';
+class C {
+  int level = 0;
+  bool f({int lvl}) => lvl >= level;
+}
+''', migratedContent: '''
+import 'package:meta/meta.dart';
+class C {
+  int  level = 0;
+  bool  f({required int  lvl}) => lvl >= level;
+}
+''');
+    var regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(
+        region: region,
+        offset: 72,
+        length: 9,
+        explanation: "Add 'required' keyword to parameter 'lvl' in 'C.f'",
+        kind: NullabilityFixKind.addRequired);
+    assertEdit(
+        edit: edits[0], offset: 70, length: 0, replacement: '@required ');
   }
 
   Future<void> test_insertParens() async {
