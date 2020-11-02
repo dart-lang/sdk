@@ -220,7 +220,7 @@ class DependencyChecker {
 }
 
 // TODO(devoncarew): Refactor so this class extends DartdevCommand.
-class MigrateCommand extends Command<dynamic> {
+class MigrateCommand extends Command<int> {
   static const String cmdName = 'migrate';
 
   static const String cmdDescription =
