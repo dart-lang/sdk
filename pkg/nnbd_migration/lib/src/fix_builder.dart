@@ -1145,20 +1145,33 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
             cls.name, method.name, element.name),
         {FixReasonTarget.root: node});
     var metadata = parameter.metadata;
-    for (var annotation in metadata) {
-      if (annotation.elementAnnotation.isRequired) {
-        // TODO(paulberry): what if `@required` isn't the first annotation?
-        // Will we produce something that isn't grammatical?
-        (_fixBuilder._getChange(annotation) as NodeChangeForAnnotation)
+    if (metadata != null && metadata.isNotEmpty) {
+      // Only the last annotation can be changed into a `required` keyword;
+      // changing an earlier annotation into a keyword would be illegal.
+      var lastAnnotation = metadata.last;
+      if (lastAnnotation.elementAnnotation.isRequired) {
+        (_fixBuilder._getChange(lastAnnotation) as NodeChangeForAnnotation)
           ..changeToRequiredKeyword = true
           ..changeToRequiredKeywordInfo = info;
         return;
       }
     }
     // Otherwise create a new `required` keyword.
-    (_fixBuilder._getChange(parameter) as NodeChangeForDefaultFormalParameter)
+    var nodeChange = (_fixBuilder._getChange(parameter)
+        as NodeChangeForDefaultFormalParameter)
       ..addRequiredKeyword = true
       ..addRequiredKeywordInfo = info;
+    var requiredAnnotation = metadata?.firstWhere(
+        (annotation) => annotation.elementAnnotation.isRequired,
+        orElse: () => null);
+    if (requiredAnnotation != null) {
+      // If the parameter was annotated with `@required`, but it was not the
+      // last annotation, we remove the annotation in addition to adding the
+      // `required` keyword.
+      nodeChange
+        ..annotationToRemove = requiredAnnotation
+        ..removeAnnotationInfo = info;
+    }
   }
 
   void _makeTypeNameNullable(TypeAnnotation node, DecoratedType decoratedType) {

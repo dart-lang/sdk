@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// Determines if the given [token] is followed by a nullability hint, and if
@@ -225,4 +226,41 @@ enum HintCommentKind {
   /// The comment `/*required*/`, which indicates that the parameter should be
   /// required.
   required,
+}
+
+extension FormalParameterExtensions on FormalParameter {
+  // TODO(srawlins): Add this to FormalParameter interface.
+  Token get firstTokenAfterCommentAndMetadata {
+    var parameter = this is DefaultFormalParameter
+        ? (this as DefaultFormalParameter).parameter
+        : this as NormalFormalParameter;
+    if (parameter is FieldFormalParameter) {
+      if (parameter.keyword != null) {
+        return parameter.keyword;
+      } else if (parameter.type != null) {
+        return parameter.type.beginToken;
+      } else {
+        return parameter.thisKeyword;
+      }
+    } else if (parameter is FunctionTypedFormalParameter) {
+      if (parameter.covariantKeyword != null) {
+        return parameter.covariantKeyword;
+      } else if (parameter.returnType != null) {
+        return parameter.returnType.beginToken;
+      } else {
+        return parameter.identifier.token;
+      }
+    } else if (parameter is SimpleFormalParameter) {
+      if (parameter.covariantKeyword != null) {
+        return parameter.covariantKeyword;
+      } else if (parameter.keyword != null) {
+        return parameter.keyword;
+      } else if (parameter.type != null) {
+        return parameter.type.beginToken;
+      } else {
+        return parameter.identifier.token;
+      }
+    }
+    return null;
+  }
 }
