@@ -7347,6 +7347,30 @@ _f(Object x) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44012')
+  Future<void> test_use_import_prefix_when_adding_re_exported_type() async {
+    addPackageFile('http', 'http.dart', '''
+export 'src/base_client.dart';
+export 'src/client.dart';
+''');
+    addPackageFile('http', 'src/base_client.dart', '''
+import 'client.dart';
+abstract class BaseClient implements Client {}
+''');
+    addPackageFile('http', 'src/client.dart', '''
+abstract class Client {}
+''');
+    var content = '''
+import 'package:http/http.dart' as http;
+http.BaseClient downcast(http.Client x) => x;
+''';
+    var expected = '''
+import 'package:http/http.dart' as http;
+http.BaseClient downcast(http.Client x) => x as http.BaseClient;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_weak_if_visit_weak_subexpression() async {
     var content = '''
 int f(int x, int/*?*/ y) {
