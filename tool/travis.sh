@@ -55,17 +55,17 @@ else
 
   echo ""
 
-  OBS_PORT=9292
-
-  # Run the tests.
-  dart --disable-service-auth-codes \
-    --disable-analytics \
-    --enable-vm-service=$OBS_PORT \
-    --pause-isolates-on-exit \
-    test/all.dart &
-
   # Install dart_coveralls; gather and send coverage data.
   if [ "$COVERALLS_TOKEN" ]; then
+
+    OBS_PORT=9292
+    
+    # Run the tests setup for coverage reporting.
+    dart --disable-service-auth-codes \
+      --disable-analytics \
+      --enable-vm-service=$OBS_PORT \
+      --pause-isolates-on-exit \
+      test/all.dart &
 
     status=$?  
 
@@ -94,5 +94,9 @@ else
     coveralls-lcov var/lcov.info
 
     exit $status
+  else
+    # Run the tests w/o coverage
+    dart --disable-analytics \
+      test/all.dart
   fi
 fi
