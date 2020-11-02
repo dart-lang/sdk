@@ -106,8 +106,6 @@ dartdevk:             Compile to JavaScript using dartdevk.
 app_jitk:             Compile the Dart code into Kernel and then into an app
                       snapshot.
 dartk:                Compile the Dart code into Kernel before running test.
-dartkb:               Compile the Dart code into Kernel with bytecode before
-                      running test.
 dartkp:               Compile the Dart code into Kernel and then Kernel into
                       AOT snapshot before running the test.
 spec_parser:          Parse Dart code using the specification parser.

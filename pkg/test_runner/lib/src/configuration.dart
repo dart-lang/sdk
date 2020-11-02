@@ -200,7 +200,6 @@ class TestConfiguration {
       Compiler.appJitk,
       Compiler.dartdevk,
       Compiler.dartk,
-      Compiler.dartkb,
       Compiler.dartkp,
       Compiler.fasta,
       Compiler.dart2js,

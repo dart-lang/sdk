@@ -98,7 +98,6 @@ abstract class CompilerConfiguration {
         return AppJitCompilerConfiguration(configuration);
 
       case Compiler.dartk:
-      case Compiler.dartkb:
         if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.system == System.android) {

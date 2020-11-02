@@ -3253,7 +3253,7 @@
           ]
         },
         {
-          "name": "remove out directory to do a clean linux-x64-bytecode build",
+          "name": "remove out directory",
           "script": "tools/bots/try_benchmarks.sh",
           "arguments": [
             "clean"

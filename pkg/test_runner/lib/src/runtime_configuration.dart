@@ -251,9 +251,6 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         break;
     }
 
-    if (_configuration.compiler == Compiler.dartkb) {
-      multiplier *= 4;
-    }
     if (mode.isDebug) {
       multiplier *= 2;
     }
