@@ -409,6 +409,28 @@ void main() {
           ))
           ''');
     });
+
+    test('function', () async {
+      await driver.check(
+          scope: <String, String>{'x': '1', 'y': '2', 'z': '3'},
+          expression: 'main',
+          expectedResult: '''
+          (function(x, y, z) {
+            var VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.fnType(dart.dynamic, [])))();
+            dart.defineLazy(CT, {
+              get C0() {
+                return C0 = dart.fn(foo.main, VoidTodynamic());
+              }
+            }, false);
+            var C0;
+            return C0 || CT.C0;
+          }(
+            1,
+            2,
+            3
+          ))
+          ''');
+    });
   });
 
   group('Expression compiler tests in method:', () {
@@ -1313,7 +1335,16 @@ void main() {
           expression: 'const MyClass(1)',
           expectedResult: '''
           (function(p) {
-            return C0 || CT.C0;
+             dart.defineLazy(CT, {
+               get C0() {
+                 return C0 = dart.const({
+                   __proto__: foo.MyClass.prototype,
+                   [_t]: 1
+                 });
+               }
+             }, false);
+             var C0;
+             return C0 || CT.C0;
           }(
             1
           ))
@@ -1353,6 +1384,15 @@ void main() {
           expression: "const Key('t')",
           expectedResult: '''
           (function(p) {
+            dart.defineLazy(CT, {
+              get C0() {
+                return C0 = dart.const({
+                  __proto__: foo.ValueKey.prototype,
+                  [value]: "t"
+                  });
+                }
+            }, false);
+            var C0;
             return C0 || CT.C0;
           }(
             1

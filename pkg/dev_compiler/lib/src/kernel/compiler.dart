@@ -3002,10 +3002,47 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // size on expression evaluation is better.
     // Issue: https://github.com/dart-lang/sdk/issues/43288
     var fun = _emitFunction(functionNode, name);
-    var items = _typeTable?.discharge();
-    var body = js_ast.Block([...?items, ...fun.body.statements]);
 
+    var types = _typeTable.discharge();
+    var constants = _dischargeConstTable();
+
+    var body = js_ast.Block([...?types, ...?constants, ...fun.body.statements]);
     return js_ast.Fun(fun.params, body);
+  }
+
+  /// Emit all collected const symbols
+  ///
+  /// This is similar to how constants are emitted during
+  /// initial compilation in emitModule
+  ///
+  /// TODO: unify the code with emitModule.
+  List<js_ast.Statement> _dischargeConstTable() {
+    var items = <js_ast.Statement>[];
+
+    if (_constLazyAccessors.isNotEmpty) {
+      var constTableBody = runtimeStatement(
+          'defineLazy(#, { # }, false)', [_constTable, _constLazyAccessors]);
+      items.add(constTableBody);
+      _constLazyAccessors.clear();
+    }
+
+    _copyAndFlattenBlocks(items, moduleItems);
+    moduleItems.clear();
+    return items;
+  }
+
+  /// Flattens blocks in [items] to a single list.
+  ///
+  /// This will not flatten blocks that are marked as being scopes.
+  void _copyAndFlattenBlocks(
+      List<js_ast.Statement> result, Iterable<js_ast.ModuleItem> items) {
+    for (var item in items) {
+      if (item is js_ast.Block && !item.isScope) {
+        _copyAndFlattenBlocks(result, item.statements);
+      } else {
+        result.add(item as js_ast.Statement);
+      }
+    }
   }
 
   js_ast.Fun _emitFunction(FunctionNode f, String name) {
