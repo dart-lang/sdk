@@ -18,7 +18,7 @@ import 'utils.dart';
 Logger log;
 bool isDiagnostics = false;
 
-abstract class DartdevCommand extends Command {
+abstract class DartdevCommand extends Command<int> {
   final String _name;
   final String _description;
 

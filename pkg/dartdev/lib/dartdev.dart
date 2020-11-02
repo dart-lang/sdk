@@ -152,7 +152,7 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
   }
 }
 
-class DartdevRunner extends CommandRunner {
+class DartdevRunner extends CommandRunner<int> {
   @override
   final ArgParser argParser =
       ArgParser(usageLineLength: dartdevUsageLineLength);

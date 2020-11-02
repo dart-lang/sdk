@@ -14,6 +14,11 @@ import utils
 def Main():
     args = sys.argv[1:]
 
+    cleanup_dart = False
+    if '--cleanup_dart_processes' in args:
+        args.remove('--cleanup_dart_processes')
+        cleanup_dart = True
+
     tools_dir = os.path.dirname(os.path.realpath(__file__))
     repo_dir = os.path.dirname(tools_dir)
     dart_test_script = os.path.join(repo_dir, 'pkg', 'test_runner', 'bin',
@@ -32,6 +37,14 @@ def Main():
     with utils.FileDescriptorLimitIncreaser():
         with utils.CoreDumpArchiver(args):
             exit_code = subprocess.call(command)
+
+    if cleanup_dart:
+        cleanup_command = [
+            sys.executable,
+            os.path.join(tools_dir, 'task_kill.py'), '--kill_dart=True',
+            '--kill_vc=False'
+        ]
+        subprocess.call(cleanup_command)
 
     utils.DiagnoseExitCode(exit_code, command)
     return exit_code

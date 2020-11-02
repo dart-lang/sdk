@@ -141,8 +141,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
         if (key == 'co19_2' || key == 'co19') {
           testSuites.add(Co19TestSuite(configuration, key));
         } else if ((configuration.compiler == Compiler.none ||
-                configuration.compiler == Compiler.dartk ||
-                configuration.compiler == Compiler.dartkb) &&
+                configuration.compiler == Compiler.dartk) &&
             configuration.runtime == Runtime.vm &&
             key == 'vm') {
           // vm tests contain both cc tests (added here) and dart tests (added
