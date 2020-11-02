@@ -30,13 +30,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   FindNode findNode;
   FindElement findElement;
 
-  /// Whether the test should perform analysis with NNBD enabled.
-  ///
-  /// `false` by default.  May be overridden in derived test classes.
-  ///
-  /// TODO(paulberry): once NNBD ships, this should no longer be needed.
-  bool get analyzeWithNnbd => false;
-
   void addTestSource(String code, [Uri uri]) {
     testCode = code;
     testSource = addSource(testFile, code, uri);
@@ -80,28 +73,6 @@ name: tests
 version: 1.0.0
 environment:
   sdk: '>=2.12.0 <3.0.0'
-''');
-      newFile('$testRoot/.dart_tool/package_config.json', content: '''
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "meta",
-      "rootUri": "file:///.pub-cache/meta",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "tests",
-      "rootUri": "../",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    }
-  ],
-  "generated": "2020-10-21T21:13:05.186004Z",
-  "generator": "pub",
-  "generatorVersion": "2.12.0"
-}
 ''');
     }
     super.setUp();
