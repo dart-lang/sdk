@@ -59,6 +59,7 @@ class WasmRuntime {
 
   DynamicLibrary _lib;
   late Pointer<WasmerEngine> _engine;
+  Map<int, dynamic> traps = {};
   late WasmerWasiConfigInheritStderrFn _wasi_config_inherit_stderr;
   late WasmerWasiConfigInheritStdoutFn _wasi_config_inherit_stdout;
   late WasmerWasiConfigNewFn _wasi_config_new;
@@ -124,6 +125,8 @@ class WasmRuntime {
   late WasmerStoreDeleteFn _store_delete;
   late WasmerStoreNewFn _store_new;
   late WasmerTrapDeleteFn _trap_delete;
+  late WasmerTrapMessageFn _trap_message;
+  late WasmerTrapNewFn _trap_new;
   late WasmerValtypeDeleteFn _valtype_delete;
   late WasmerValtypeKindFn _valtype_kind;
   late WasmerValtypeVecDeleteFn _valtype_vec_delete;
@@ -344,6 +347,11 @@ class WasmRuntime {
     _trap_delete =
         _lib.lookupFunction<NativeWasmerTrapDeleteFn, WasmerTrapDeleteFn>(
             'wasm_trap_delete');
+    _trap_message =
+        _lib.lookupFunction<NativeWasmerTrapMessageFn, WasmerTrapMessageFn>(
+            'wasm_trap_message');
+    _trap_new = _lib.lookupFunction<NativeWasmerTrapNewFn, WasmerTrapNewFn>(
+        'wasm_trap_new');
     _valtype_delete =
         _lib.lookupFunction<NativeWasmerValtypeDeleteFn, WasmerValtypeDeleteFn>(
             'wasm_valtype_delete');
@@ -432,10 +440,31 @@ class WasmRuntime {
     return imps;
   }
 
+  void maybeThrowTrap(Pointer<WasmerTrap> trap, String source) {
+    if (trap != nullptr) {
+      var stashedException = traps[trap.address];
+      if (stashedException != null) {
+        traps.remove(stashedException);
+        throw stashedException;
+      } else {
+        var trapMessage = allocate<WasmerByteVec>();
+        _trap_message(trap, trapMessage);
+        var message = "Wasm trap when calling $source: ${trapMessage.ref}";
+        free(trapMessage.ref.data);
+        free(trapMessage);
+        throw Exception(message);
+      }
+    }
+  }
+
   Pointer<WasmerInstance> instantiate(Pointer<WasmerStore> store,
-      Pointer<WasmerModule> module, Pointer<Pointer<WasmerExtern>> imports) {
-    return _checkNotEqual(_instance_new(store, module, imports, nullptr),
-        nullptr, "Wasm module instantiation failed.");
+      Pointer<WasmerModule> module, Pointer<WasmerExternVec> imports) {
+    var trap = allocate<Pointer<WasmerTrap>>();
+    trap.value = nullptr;
+    var inst = _instance_new(store, module, imports, trap);
+    maybeThrowTrap(trap.value, "module initialization function");
+    free(trap);
+    return _checkNotEqual(inst, nullptr, "Wasm module instantiation failed.");
   }
 
   Pointer<WasmerExternVec> exports(Pointer<WasmerInstance> instancePtr) {
@@ -475,9 +504,9 @@ class WasmRuntime {
     return _valtype_kind(rets.ref.data[0]);
   }
 
-  void call(Pointer<WasmerFunc> func, Pointer<WasmerVal> args,
-      Pointer<WasmerVal> results) {
-    _func_call(func, args, results);
+  void call(Pointer<WasmerFunc> func, Pointer<WasmerValVec> args,
+      Pointer<WasmerValVec> results, String source) {
+    maybeThrowTrap(_func_call(func, args, results), source);
   }
 
   Pointer<WasmerMemory> externToMemory(Pointer<WasmerExtern> extern) {
@@ -522,6 +551,18 @@ class WasmRuntime {
         store, funcType, func.cast(), env.cast(), finalizer.cast());
   }
 
+  Pointer<WasmerTrap> newTrap(Pointer<WasmerStore> store, dynamic exception) {
+    var msg = allocate<WasmerByteVec>();
+    msg.ref.data = allocate<Uint8>();
+    msg.ref.data[0] = 0;
+    msg.ref.length = 0;
+    var trap = _trap_new(store, msg);
+    traps[trap.address] = exception;
+    free(msg.ref.data);
+    free(msg);
+    return _checkNotEqual(trap, nullptr, "Failed to create trap.");
+  }
+
   Pointer<WasmerWasiConfig> newWasiConfig() {
     var name = allocate<Uint8>();
     name[0] = 0;
@@ -549,7 +590,7 @@ class WasmRuntime {
   }
 
   void getWasiImports(Pointer<WasmerStore> store, Pointer<WasmerModule> mod,
-      Pointer<WasmerWasiEnv> env, Pointer<Pointer<WasmerExtern>> imports) {
+      Pointer<WasmerWasiEnv> env, Pointer<WasmerExternVec> imports) {
     _checkNotEqual(_wasi_get_imports(store, mod, env, imports), 0,
         "Failed to fill WASI imports.");
   }

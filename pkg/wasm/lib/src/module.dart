@@ -49,13 +49,11 @@ class WasmModule {
 }
 
 Pointer<WasmerTrap> _wasmFnImportTrampoline(Pointer<_WasmFnImport> imp,
-    Pointer<WasmerVal> args, Pointer<WasmerVal> results) {
+    Pointer<WasmerValVec> args, Pointer<WasmerValVec> results) {
   try {
     _WasmFnImport._call(imp, args, results);
-  } catch (e) {
-    // TODO: Use WasmerTrap to handle this case. For now just print the
-    // exception (if we ignore it, FFI will silently return a default result).
-    print(e);
+  } catch (exception) {
+    return WasmRuntime().newTrap(imp.ref.store, exception);
   }
   return nullptr;
 }
@@ -66,8 +64,8 @@ void _wasmFnImportFinalizer(Pointer<_WasmFnImport> imp) {
 }
 
 final _wasmFnImportTrampolineNative = Pointer.fromFunction<
-    Pointer<WasmerTrap> Function(Pointer<_WasmFnImport>, Pointer<WasmerVal>,
-        Pointer<WasmerVal>)>(_wasmFnImportTrampoline);
+    Pointer<WasmerTrap> Function(Pointer<_WasmFnImport>, Pointer<WasmerValVec>,
+        Pointer<WasmerValVec>)>(_wasmFnImportTrampoline);
 final _wasmFnImportToFn = <int, Function>{};
 final _wasmFnImportFinalizerNative =
     Pointer.fromFunction<Void Function(Pointer<_WasmFnImport>)>(
@@ -75,34 +73,36 @@ final _wasmFnImportFinalizerNative =
 
 class _WasmFnImport extends Struct {
   @Int32()
-  external int numArgs;
-
-  @Int32()
   external int returnType;
 
-  static void _call(Pointer<_WasmFnImport> imp, Pointer<WasmerVal> rawArgs,
-      Pointer<WasmerVal> rawResult) {
+  external Pointer<WasmerStore> store;
+
+  static void _call(Pointer<_WasmFnImport> imp, Pointer<WasmerValVec> rawArgs,
+      Pointer<WasmerValVec> rawResult) {
     Function fn = _wasmFnImportToFn[imp.address] as Function;
     var args = [];
-    for (var i = 0; i < imp.ref.numArgs; ++i) {
-      args.add(rawArgs[i].toDynamic);
+    for (var i = 0; i < rawArgs.ref.length; ++i) {
+      args.add(rawArgs.ref.data[i].toDynamic);
     }
+    assert(
+        rawResult.ref.length == 1 || imp.ref.returnType == WasmerValKindVoid);
     var result = Function.apply(fn, args);
-    switch (imp.ref.returnType) {
-      case WasmerValKindI32:
-        rawResult.ref.i32 = result;
-        break;
-      case WasmerValKindI64:
-        rawResult.ref.i64 = result;
-        break;
-      case WasmerValKindF32:
-        rawResult.ref.f32 = result;
-        break;
-      case WasmerValKindF64:
-        rawResult.ref.f64 = result;
-        break;
-      case WasmerValKindVoid:
-      // Do nothing.
+    if (imp.ref.returnType != WasmerValKindVoid) {
+      rawResult.ref.data[0].kind = imp.ref.returnType;
+      switch (imp.ref.returnType) {
+        case WasmerValKindI32:
+          rawResult.ref.data[0].i32 = result;
+          break;
+        case WasmerValKindI64:
+          rawResult.ref.data[0].i64 = result;
+          break;
+        case WasmerValKindF32:
+          rawResult.ref.data[0].f32 = result;
+          break;
+        case WasmerValKindF64:
+          rawResult.ref.data[0].f64 = result;
+          break;
+      }
     }
   }
 }
@@ -113,16 +113,18 @@ class WasmInstanceBuilder {
   WasmModule _module;
   late List<WasmImportDescriptor> _importDescs;
   Map<String, int> _importIndex;
-  late Pointer<Pointer<WasmerExtern>> _imports;
+  Pointer<WasmerExternVec> _imports = allocate<WasmerExternVec>();
   Pointer<WasmerWasiEnv> _wasiEnv = nullptr;
 
   WasmInstanceBuilder(this._module) : _importIndex = {} {
     _importDescs = WasmRuntime().importDescriptors(_module._module);
-    _imports = allocate<Pointer<WasmerExtern>>(count: _importDescs.length);
+    _imports.ref.length = _importDescs.length;
+    _imports.ref.data =
+        allocate<Pointer<WasmerExtern>>(count: _importDescs.length);
     for (var i = 0; i < _importDescs.length; ++i) {
       var imp = _importDescs[i];
       _importIndex["${imp.moduleName}::${imp.name}"] = i;
-      _imports[i] = nullptr;
+      _imports.ref.data[i] = nullptr;
     }
   }
 
@@ -130,7 +132,7 @@ class WasmInstanceBuilder {
     var index = _importIndex["${moduleName}::${name}"];
     if (index == null) {
       throw Exception("Import not found: ${moduleName}::${name}");
-    } else if (_imports[index] != nullptr) {
+    } else if (_imports.ref.data[index] != nullptr) {
       throw Exception("Import already filled: ${moduleName}::${name}");
     } else {
       return index;
@@ -145,7 +147,7 @@ class WasmInstanceBuilder {
     if (imp.kind != WasmerExternKindMemory) {
       throw Exception("Import is not a memory: $imp");
     }
-    _imports[index] = WasmRuntime().memoryToExtern(memory._mem);
+    _imports.ref.data[index] = WasmRuntime().memoryToExtern(memory._mem);
     return this;
   }
 
@@ -162,8 +164,8 @@ class WasmInstanceBuilder {
     var argTypes = runtime.getArgTypes(imp.funcType);
     var returnType = runtime.getReturnType(imp.funcType);
     var wasmFnImport = allocate<_WasmFnImport>();
-    wasmFnImport.ref.numArgs = argTypes.length;
     wasmFnImport.ref.returnType = returnType;
+    wasmFnImport.ref.store = _module._store;
     _wasmFnImportToFn[wasmFnImport.address] = fn;
     var fnImp = runtime.newFunc(
         _module._store,
@@ -171,7 +173,7 @@ class WasmInstanceBuilder {
         _wasmFnImportTrampolineNative,
         wasmFnImport,
         _wasmFnImportFinalizerNative);
-    _imports[index] = runtime.functionToExtern(fnImp);
+    _imports.ref.data[index] = runtime.functionToExtern(fnImp);
     return this;
   }
 
@@ -193,7 +195,7 @@ class WasmInstanceBuilder {
   /// Build the module instance.
   WasmInstance build() {
     for (var i = 0; i < _importDescs.length; ++i) {
-      if (_imports[i] == nullptr) {
+      if (_imports.ref.data[i] == nullptr) {
         throw Exception("Missing import: ${_importDescs[i]}");
       }
     }
@@ -211,8 +213,7 @@ class WasmInstance {
   Stream<List<int>>? _stderr;
   Map<String, WasmFunction> _functions = {};
 
-  WasmInstance(
-      this._module, Pointer<Pointer<WasmerExtern>> imports, this._wasiEnv)
+  WasmInstance(this._module, Pointer<WasmerExternVec> imports, this._wasiEnv)
       : _instance = WasmRuntime()
             .instantiate(_module._store, _module._module, imports) {
     var runtime = WasmRuntime();

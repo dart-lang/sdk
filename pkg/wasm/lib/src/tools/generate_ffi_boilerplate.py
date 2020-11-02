@@ -155,6 +155,7 @@ reReplace = [(re.compile('\\b%s\\b' % k), v) for k, v in [
     ('own', ''),
     ('WASM_API_EXTERN', ''),
     ('wasm_name_t', 'wasm_byte_vec_t'),
+    ('wasm_message_t', 'wasm_byte_vec_t'),
     ('wasm_memory_pages_t', 'uint32_t'),
     ('wasm_externkind_t', 'uint8_t'),
     ('wasm_valkind_t', 'uint8_t'),
@@ -290,7 +291,7 @@ WASM_API_EXTERN void wasm_module_exports(const wasm_module_t*, own wasm_exportty
 WASM_API_EXTERN const wasm_name_t* wasm_exporttype_name(const wasm_exporttype_t*);
 WASM_API_EXTERN const wasm_externtype_t* wasm_exporttype_type(const wasm_exporttype_t*);
 WASM_API_EXTERN wasm_externkind_t wasm_externtype_kind(const wasm_externtype_t*);
-WASM_API_EXTERN own wasm_instance_t* wasm_instance_new(wasm_store_t*, const wasm_module_t*, const wasm_extern_t* const imports[], own wasm_trap_t**);
+WASM_API_EXTERN own wasm_instance_t* wasm_instance_new(wasm_store_t*, const wasm_module_t*, const wasm_extern_vec_t* imports, own wasm_trap_t**);
 WASM_API_EXTERN void wasm_instance_exports(const wasm_instance_t*, own wasm_extern_vec_t* out);
 WASM_API_EXTERN own wasm_memory_t* wasm_memory_new(wasm_store_t*, const wasm_memorytype_t*);
 WASM_API_EXTERN byte_t* wasm_memory_data(wasm_memory_t*);
@@ -305,11 +306,13 @@ WASM_API_EXTERN wasm_extern_t* wasm_memory_as_extern(wasm_memory_t*);
 WASM_API_EXTERN const wasm_valtype_vec_t* wasm_functype_params(const wasm_functype_t*);
 WASM_API_EXTERN const wasm_valtype_vec_t* wasm_functype_results(const wasm_functype_t*);
 WASM_API_EXTERN own wasm_func_t* wasm_func_new_with_env( wasm_store_t*, const wasm_functype_t* type, void* fn, void* env, void *finalizer);
-WASM_API_EXTERN own wasm_trap_t* wasm_func_call(const wasm_func_t*, const wasm_val_t args[], wasm_val_t results[]);
+WASM_API_EXTERN own wasm_trap_t* wasm_func_call(const wasm_func_t*, const wasm_val_vec_t* args, wasm_val_vec_t* results);
+WASM_API_EXTERN own wasm_trap_t* wasm_trap_new(wasm_store_t* store, const wasm_message_t*);
+WASM_API_EXTERN void wasm_trap_message(const wasm_trap_t*, own wasm_message_t* out);
 WASM_API_EXTERN wasm_valkind_t wasm_valtype_kind(const wasm_valtype_t*);
 wasi_config_t* wasi_config_new(const uint8_t* program_name);
 wasi_env_t* wasi_env_new(wasi_config_t* config);
-bool wasi_get_imports(const wasm_store_t* store, const wasm_module_t* module, const wasi_env_t* wasi_env, wasm_extern_t** imports);
+bool wasi_get_imports(const wasm_store_t* store, const wasm_module_t* module, const wasi_env_t* wasi_env, wasm_extern_vec_t* imports);
 int wasmer_last_error_message(uint8_t* buffer, int length);
 int wasmer_last_error_length();
 void wasi_env_set_memory(wasi_env_t* env, const wasm_memory_t* memory);

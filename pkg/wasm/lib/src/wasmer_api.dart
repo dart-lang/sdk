@@ -261,16 +261,10 @@ typedef WasmerWasiEnvSetMemoryFn = void Function(
     Pointer<WasmerWasiEnv>, Pointer<WasmerMemory>);
 
 // wasi_get_imports
-typedef NativeWasmerWasiGetImportsFn = Uint8 Function(
-    Pointer<WasmerStore>,
-    Pointer<WasmerModule>,
-    Pointer<WasmerWasiEnv>,
-    Pointer<Pointer<WasmerExtern>>);
-typedef WasmerWasiGetImportsFn = int Function(
-    Pointer<WasmerStore>,
-    Pointer<WasmerModule>,
-    Pointer<WasmerWasiEnv>,
-    Pointer<Pointer<WasmerExtern>>);
+typedef NativeWasmerWasiGetImportsFn = Uint8 Function(Pointer<WasmerStore>,
+    Pointer<WasmerModule>, Pointer<WasmerWasiEnv>, Pointer<WasmerExternVec>);
+typedef WasmerWasiGetImportsFn = int Function(Pointer<WasmerStore>,
+    Pointer<WasmerModule>, Pointer<WasmerWasiEnv>, Pointer<WasmerExternVec>);
 
 // wasm_byte_vec_delete
 typedef NativeWasmerByteVecDeleteFn = Void Function(Pointer<WasmerByteVec>);
@@ -401,9 +395,9 @@ typedef WasmerFuncAsExternFn = Pointer<WasmerExtern> Function(
 
 // wasm_func_call
 typedef NativeWasmerFuncCallFn = Pointer<WasmerTrap> Function(
-    Pointer<WasmerFunc>, Pointer<WasmerVal>, Pointer<WasmerVal>);
+    Pointer<WasmerFunc>, Pointer<WasmerValVec>, Pointer<WasmerValVec>);
 typedef WasmerFuncCallFn = Pointer<WasmerTrap> Function(
-    Pointer<WasmerFunc>, Pointer<WasmerVal>, Pointer<WasmerVal>);
+    Pointer<WasmerFunc>, Pointer<WasmerValVec>, Pointer<WasmerValVec>);
 
 // wasm_func_delete
 typedef NativeWasmerFuncDeleteFn = Void Function(Pointer<WasmerFunc>);
@@ -495,12 +489,12 @@ typedef WasmerInstanceExportsFn = void Function(
 typedef NativeWasmerInstanceNewFn = Pointer<WasmerInstance> Function(
     Pointer<WasmerStore>,
     Pointer<WasmerModule>,
-    Pointer<Pointer<WasmerExtern>>,
+    Pointer<WasmerExternVec>,
     Pointer<Pointer<WasmerTrap>>);
 typedef WasmerInstanceNewFn = Pointer<WasmerInstance> Function(
     Pointer<WasmerStore>,
     Pointer<WasmerModule>,
-    Pointer<Pointer<WasmerExtern>>,
+    Pointer<WasmerExternVec>,
     Pointer<Pointer<WasmerTrap>>);
 
 // wasm_memory_as_extern
@@ -582,6 +576,18 @@ typedef WasmerStoreNewFn = Pointer<WasmerStore> Function(Pointer<WasmerEngine>);
 // wasm_trap_delete
 typedef NativeWasmerTrapDeleteFn = Void Function(Pointer<WasmerTrap>);
 typedef WasmerTrapDeleteFn = void Function(Pointer<WasmerTrap>);
+
+// wasm_trap_message
+typedef NativeWasmerTrapMessageFn = Void Function(
+    Pointer<WasmerTrap>, Pointer<WasmerByteVec>);
+typedef WasmerTrapMessageFn = void Function(
+    Pointer<WasmerTrap>, Pointer<WasmerByteVec>);
+
+// wasm_trap_new
+typedef NativeWasmerTrapNewFn = Pointer<WasmerTrap> Function(
+    Pointer<WasmerStore>, Pointer<WasmerByteVec>);
+typedef WasmerTrapNewFn = Pointer<WasmerTrap> Function(
+    Pointer<WasmerStore>, Pointer<WasmerByteVec>);
 
 // wasm_valtype_delete
 typedef NativeWasmerValtypeDeleteFn = Void Function(Pointer<WasmerValtype>);
