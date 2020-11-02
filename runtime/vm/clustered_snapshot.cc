@@ -2380,21 +2380,43 @@ class RODataSerializationCluster : public SerializationCluster {
 
 class RODataDeserializationCluster : public DeserializationCluster {
  public:
-  RODataDeserializationCluster() : DeserializationCluster("ROData") {}
+  explicit RODataDeserializationCluster(intptr_t cid)
+      : DeserializationCluster("ROData"), cid_(cid) {}
   ~RODataDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d, bool is_canonical) {
+    start_index_ = d->next_index();
     intptr_t count = d->ReadUnsigned();
     uint32_t running_offset = 0;
     for (intptr_t i = 0; i < count; i++) {
       running_offset += d->ReadUnsigned() << kObjectAlignmentLog2;
       d->AssignRef(d->GetObjectAt(running_offset));
     }
+    stop_index_ = d->next_index();
   }
 
   void ReadFill(Deserializer* d, bool is_canonical) {
     // No-op.
   }
+
+  void PostLoad(Deserializer* d, const Array& refs, bool is_canonical) {
+    if (is_canonical && IsStringClassId(cid_) &&
+        (d->isolate() != Dart::vm_isolate())) {
+      CanonicalStringSet table(d->zone(),
+                               d->isolate()->object_store()->symbol_table());
+      String& str = String::Handle(d->zone());
+      for (intptr_t i = start_index_; i < stop_index_; i++) {
+        str ^= refs.At(i);
+        ASSERT(str.IsCanonical());
+        bool present = table.Insert(str);
+        ASSERT(!present);
+      }
+      d->isolate()->object_store()->set_symbol_table(table.Release());
+    }
+  }
+
+ private:
+  const intptr_t cid_;
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5499,6 +5521,14 @@ const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
       return "CodeSourceMap";
     case kCompressedStackMapsCid:
       return "CompressedStackMaps";
+    case kOneByteStringCid:
+      return current_loading_unit_id_ <= LoadingUnit::kRootId
+                 ? "OneByteStringCid"
+                 : nullptr;
+    case kTwoByteStringCid:
+      return current_loading_unit_id_ <= LoadingUnit::kRootId
+                 ? "TwoByteStringCid"
+                 : nullptr;
     default:
       return nullptr;
   }
@@ -5771,19 +5801,15 @@ void Serializer::Trace(ObjectPtr object) {
     is_canonical = object->ptr()->IsCanonical();
   }
 
-  SerializationCluster* cluster =
-      is_canonical ? canonical_clusters_by_cid_[cid] : clusters_by_cid_[cid];
-  if (cluster == nullptr) {
-    cluster = NewClusterForClass(cid);
-    if (cluster == nullptr) {
+  SerializationCluster** cluster_ref =
+      is_canonical ? &canonical_clusters_by_cid_[cid] : &clusters_by_cid_[cid];
+  if (*cluster_ref == nullptr) {
+    *cluster_ref = NewClusterForClass(cid);
+    if (*cluster_ref == nullptr) {
       UnexpectedObject(object, "No serialization cluster defined");
     }
-    if (is_canonical) {
-      canonical_clusters_by_cid_[cid] = cluster;
-    } else {
-      clusters_by_cid_[cid] = cluster;
-    }
   }
+  SerializationCluster* cluster = *cluster_ref;
   ASSERT(cluster != nullptr);
 
 #if defined(SNAPSHOT_BACKTRACE)
@@ -6171,6 +6197,7 @@ Deserializer::Deserializer(Thread* thread,
                            intptr_t size,
                            const uint8_t* data_buffer,
                            const uint8_t* instructions_buffer,
+                           bool is_non_root_unit,
                            intptr_t offset)
     : ThreadStackResource(thread),
       heap_(thread->isolate()->heap()),
@@ -6183,7 +6210,8 @@ Deserializer::Deserializer(Thread* thread,
       previous_text_offset_(0),
       canonical_clusters_(nullptr),
       clusters_(nullptr),
-      field_table_(thread->isolate()->field_table()) {
+      field_table_(thread->isolate()->field_table()),
+      is_non_root_unit_(is_non_root_unit) {
   if (Snapshot::IncludesCode(kind)) {
     ASSERT(instructions_buffer != nullptr);
     ASSERT(data_buffer != nullptr);
@@ -6218,7 +6246,13 @@ DeserializationCluster* Deserializer::ReadCluster() {
       case kPcDescriptorsCid:
       case kCodeSourceMapCid:
       case kCompressedStackMapsCid:
-        return new (Z) RODataDeserializationCluster();
+        return new (Z) RODataDeserializationCluster(cid);
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+        if (!is_non_root_unit_) {
+          return new (Z) RODataDeserializationCluster(cid);
+        }
+        break;
     }
   }
 
@@ -7076,7 +7110,8 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   }
 
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
-                            instructions_image_, offset);
+                            instructions_image_, /*is_non_root_unit=*/false,
+                            offset);
   ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
   if (api_error != ApiError::null()) {
     return api_error;
@@ -7116,7 +7151,8 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   }
 
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
-                            instructions_image_, offset);
+                            instructions_image_, /*is_non_root_unit=*/false,
+                            offset);
   ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
   if (api_error != ApiError::null()) {
     return api_error;
@@ -7149,8 +7185,9 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
     return ConvertToApiError(error);
   }
 
-  Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
-                            instructions_image_, offset);
+  Deserializer deserializer(
+      thread_, kind_, buffer_, size_, data_image_, instructions_image_,
+      /*is_non_root_unit=*/unit.id() != LoadingUnit::kRootId, offset);
   ApiErrorPtr api_error = deserializer.VerifyImageAlignment();
   if (api_error != ApiError::null()) {
     return api_error;

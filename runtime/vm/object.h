@@ -8578,6 +8578,8 @@ class String : public Instance {
 #endif
   static const intptr_t kMaxElements = kSmiMax / kTwoByteChar;
 
+  static intptr_t HeaderSize() { return String::kSizeofRawString; }
+
   class CodePointIterator : public ValueObject {
    public:
     explicit CodePointIterator(const String& str)
@@ -8967,12 +8969,6 @@ class OneByteString : public AllStatic {
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(OneByteStringLayout) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
-#if defined(HASH_IN_OBJECT_HEADER)
-    // We have to pad zero-length raw strings so that they can be externalized.
-    // If we don't pad, then the external string object does not fit in the
-    // memory allocated for the raw string.
-    if (len == 0) return InstanceSize(1);
-#endif
     return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
@@ -9061,11 +9057,12 @@ class OneByteString : public AllStatic {
                                    bool as_reference);
 
   friend class Class;
-  friend class String;
-  friend class Symbols;
   friend class ExternalOneByteString;
+  friend class ImageWriter;
   friend class SnapshotReader;
+  friend class String;
   friend class StringHasher;
+  friend class Symbols;
   friend class Utf8;
 };
 
@@ -9097,7 +9094,6 @@ class TwoByteString : public AllStatic {
   static intptr_t data_offset() {
     return OFFSET_OF_RETURNED_VALUE(TwoByteStringLayout, data);
   }
-
   static intptr_t UnroundedSize(TwoByteStringPtr str) {
     return UnroundedSize(Smi::Value(str->ptr()->length_));
   }
@@ -9112,10 +9108,6 @@ class TwoByteString : public AllStatic {
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(TwoByteStringLayout) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
-    // We have to pad zero-length raw strings so that they can be externalized.
-    // If we don't pad, then the external string object does not fit in the
-    // memory allocated for the raw string.
-    if (len == 0) return InstanceSize(1);
     return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
@@ -9187,9 +9179,10 @@ class TwoByteString : public AllStatic {
                                    bool as_reference);
 
   friend class Class;
+  friend class ImageWriter;
+  friend class SnapshotReader;
   friend class String;
   friend class StringHasher;
-  friend class SnapshotReader;
   friend class Symbols;
 };
 
