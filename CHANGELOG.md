@@ -39,6 +39,11 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
   `--enable-assert-initializers` command line options. These options haven't
   been supported in a while and were no-ops.
 
+#### dartfmt
+
+* Don't duplicate comments on chained if elements.
+* Preserve `?` in initializing formal function-typed parameters.
+
 #### Linter
 
 Updated the Linter to `0.1.122`, which includes:
