@@ -637,7 +637,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     _checkForValidField(node);
-    _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
     _checkForFieldInitializingFormalRedirectingConstructor(node);
     _checkForTypeAnnotationDeferredClass(node.type);
@@ -1107,7 +1106,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
     _checkForTypeAnnotationDeferredClass(node.type);
 
@@ -2108,16 +2106,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_enclosingExecutable.isConstConstructor) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, expression);
-    }
-  }
-
-  /// Verify that the given normal formal [parameter] is not 'const'.
-  ///
-  /// See [CompileTimeErrorCode.CONST_FORMAL_PARAMETER].
-  void _checkForConstFormalParameter(NormalFormalParameter parameter) {
-    if (parameter.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_FORMAL_PARAMETER, parameter);
     }
   }
 

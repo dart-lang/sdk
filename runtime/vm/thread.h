@@ -659,7 +659,6 @@ class Thread : public ThreadState {
 
   StackTracePtr async_stack_trace() const;
   void set_async_stack_trace(const StackTrace& stack_trace);
-  void set_raw_async_stack_trace(StackTracePtr raw_stack_trace);
   void clear_async_stack_trace();
   static intptr_t async_stack_trace_offset() {
     return OFFSET_OF(Thread, async_stack_trace_);

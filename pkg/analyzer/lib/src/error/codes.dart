@@ -1675,15 +1675,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is
-   * declared as a constant variable.
-   */
-  static const CompileTimeErrorCode CONST_FORMAL_PARAMETER =
-      CompileTimeErrorCode(
-          'CONST_FORMAL_PARAMETER', "Parameters can't be const.",
-          correction: "Try removing the 'const' keyword.");
-
-  /**
    * No parameters.
    */
   // #### Description

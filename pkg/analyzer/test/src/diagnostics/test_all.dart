@@ -86,7 +86,6 @@ import 'const_eval_type_bool_test.dart' as const_eval_type_bool;
 import 'const_eval_type_num_test.dart' as const_eval_type_num;
 import 'const_field_initializer_not_assignable_test.dart'
     as const_field_initializer_not_assignable;
-import 'const_formal_parameter_test.dart' as const_formal_parameter;
 import 'const_initialized_with_non_constant_value_from_deferred_library_test.dart'
     as const_initialized_with_non_constant_value_from_deferred_library;
 import 'const_initialized_with_non_constant_value_test.dart'
@@ -712,7 +711,6 @@ main() {
     const_eval_type_bool.main();
     const_eval_type_num.main();
     const_field_initializer_not_assignable.main();
-    const_formal_parameter.main();
     const_initialized_with_non_constant_value_from_deferred_library.main();
     const_initialized_with_non_constant_value.main();
     const_instance_field.main();
