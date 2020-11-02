@@ -793,6 +793,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
           List<Expression> positionalArguments = <Expression>[];
           for (VariableDeclaration parameter
               in member.function.positionalParameters) {
+            inferrer.flowAnalysis?.declare(parameter, true);
             positionalArguments.add(new VariableGetImpl(
                 parameter,
                 inferrer.typePromoter.getFactForAccess(parameter, 0),
@@ -802,6 +803,7 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
           List<NamedExpression> namedArguments = <NamedExpression>[];
           for (VariableDeclaration parameter
               in member.function.namedParameters) {
+            inferrer.flowAnalysis?.declare(parameter, true);
             namedArguments.add(new NamedExpression(
                 parameter.name,
                 new VariableGetImpl(
