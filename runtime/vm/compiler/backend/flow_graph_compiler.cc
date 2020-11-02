@@ -2446,6 +2446,17 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     return output_dst_type();
   }
 
+  // If the int type is assignable to [dst_type] we special case it on the
+  // caller side!
+  const Type& int_type = Type::Handle(zone(), Type::IntType());
+  bool is_non_smi = false;
+  if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
+    __ BranchIfSmi(TypeTestABI::kInstanceReg, done);
+    is_non_smi = true;
+  } else if (!receiver_type->CanBeSmi()) {
+    is_non_smi = true;
+  }
+
   if (dst_type.IsTypeParameter()) {
     // Special case: Instantiate the type parameter on the caller side, invoking
     // the TTS of the corresponding type parameter in the caller.
@@ -2473,19 +2484,7 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
         compiler::FieldAddress(kTypeArgumentsReg,
                                compiler::target::TypeArguments::type_at_offset(
                                    type_param.index())));
-    elide_info = true;
     return output_dst_type();
-  }
-
-  // If the int type is assignable to [dst_type] we special case it on the
-  // caller side!
-  const Type& int_type = Type::Handle(zone(), Type::IntType());
-  bool is_non_smi = false;
-  if (int_type.IsSubtypeOf(dst_type, Heap::kOld)) {
-    __ BranchIfSmi(TypeTestABI::kInstanceReg, done);
-    is_non_smi = true;
-  } else if (!receiver_type->CanBeSmi()) {
-    is_non_smi = true;
   }
 
   if (auto const hi = thread()->hierarchy_info()) {

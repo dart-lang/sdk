@@ -178,6 +178,12 @@ environment:
       "languageVersion": "2.9"
     },
     {
+      "name": "http",
+      "rootUri": "${toUriStr('/.pub-cache/http')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.9"
+    },
+    {
       "name": "meta",
       "rootUri": "${toUriStr('/.pub-cache/meta')}",
       "packageUri": "lib/",

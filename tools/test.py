@@ -15,8 +15,8 @@ def Main():
     args = sys.argv[1:]
 
     cleanup_dart = False
-    if '--cleanup_dart_processes' in args:
-        args.remove('--cleanup_dart_processes')
+    if '--cleanup-dart-processes' in args:
+        args.remove('--cleanup-dart-processes')
         cleanup_dart = True
 
     tools_dir = os.path.dirname(os.path.realpath(__file__))

@@ -67,6 +67,17 @@ HintComment getPrefixHint(Token token) {
             lateOffset + 'late final'.length,
             commentToken.end,
             token.offset);
+      } else if (commentText == 'required') {
+        var requiredOffset =
+            commentOffset + commentToken.lexeme.indexOf('required');
+        return HintComment(
+            HintCommentKind.required,
+            commentOffset,
+            commentOffset,
+            requiredOffset,
+            requiredOffset + 'required'.length,
+            commentToken.end,
+            token.offset);
       }
     }
   }
@@ -210,4 +221,8 @@ enum HintCommentKind {
   /// The comment `/*late final*/`, which indicates that the variable
   /// declaration should be late and final.
   lateFinal,
+
+  /// The comment `/*required*/`, which indicates that the parameter should be
+  /// required.
+  required,
 }

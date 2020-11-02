@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1103,7 +1104,10 @@ class MockSdk implements DartSdk {
     _versionFile = resourceProvider
         .getFolder(resourceProvider.convertPath(sdkRoot))
         .getChildAssumingFile('version');
-    _versionFile.writeAsStringSync('2.12.0');
+    _versionFile.writeAsStringSync(
+      '${ExperimentStatus.currentVersion.major}.'
+      '${ExperimentStatus.currentVersion.minor}.0',
+    );
 
     for (MockSdkLibrary library in _LIBRARIES) {
       var convertedLibrary = library._toProvider(resourceProvider);
