@@ -1333,6 +1333,21 @@ StrongModeNNBDPackageOptOut:
     Run 'pub outdated --mode=null-safety' to determine if versions of your
     dependencies supporting null safety are available.
 
+WeakWithStrongDillLibrary:
+  template: "Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety."
+
+StrongWithWeakDillLibrary:
+  template: "Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety."
+
+AgnosticWithStrongDillLibrary:
+  template: "Loaded library is compiled with sound null safety and cannot be used in compilation for agnostic null safety."
+
+AgnosticWithWeakDillLibrary:
+  template: "Loaded library is compiled with unsound null safety and cannot be used in compilation for agnostic null safety."
+
+InvalidNnbdDillLibrary:
+  template: "Trying to use library with invalid null safety."
+
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_ABSTRACT_METHOD

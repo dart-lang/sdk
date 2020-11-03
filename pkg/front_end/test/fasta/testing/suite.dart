@@ -83,6 +83,7 @@ import 'package:kernel/ast.dart'
         Library,
         Member,
         Node,
+        NonNullableByDefaultCompiledMode,
         TreeNode,
         UnevaluatedConstant,
         Version,
@@ -756,7 +757,19 @@ class Run extends Step<ComponentResult, int, FastaContext> {
         } finally {
           await generated.parent.delete(recursive: true);
         }
-        return process.toResult();
+        Result<int> runResult = process.toResult();
+        if (result.component.mode == NonNullableByDefaultCompiledMode.Invalid) {
+          // In this case we expect and want a runtime error.
+          if (runResult.outcome == ExpectationSet.Default["RuntimeError"]) {
+            // We convert this to pass because that's exactly what we'd expect.
+            return pass(0);
+          } else {
+            // Different outcome - that's a failure!
+            return new Result<int>(runResult.output,
+                ExpectationSet.Default["MissingRuntimeError"], runResult.error);
+          }
+        }
+        return runResult;
       case "none":
       case "noneWithJs":
         return pass(0);

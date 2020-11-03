@@ -6,13 +6,7 @@ library fasta.dill_loader;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
-import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
-import 'package:kernel/ast.dart'
-    show Class, Component, DartType, Library, NonNullableByDefaultCompiledMode;
-import 'package:kernel/binary/ast_from_binary.dart'
-    show mergeCompilationModeOrThrow;
+import 'package:kernel/ast.dart' show Class, Component, DartType, Library;
 
 import '../builder/class_builder.dart';
 import '../builder/library_builder.dart';
@@ -55,8 +49,6 @@ class DillLoader extends Loader {
       Library library = componentLibraries[i];
       Uri uri = library.importUri;
       if (filter == null || filter(library.importUri)) {
-        assert(
-            _checkNNBDSetting(library), "Unexpected NNBD setting for library");
         libraries.add(library);
         target.addLibrary(library);
         requestedLibraries.add(uri);
@@ -123,33 +115,5 @@ class DillLoader extends Loader {
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
-  }
-
-  bool _checkNNBDSetting(Library library) {
-    // Compute "output nnbd mode".
-    NonNullableByDefaultCompiledMode compiledMode;
-    if (target.context.options
-        .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
-      switch (target.context.options.nnbdMode) {
-        case NnbdMode.Weak:
-          compiledMode = NonNullableByDefaultCompiledMode.Weak;
-          break;
-        case NnbdMode.Strong:
-          compiledMode = NonNullableByDefaultCompiledMode.Strong;
-          break;
-        case NnbdMode.Agnostic:
-          compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
-          break;
-      }
-    } else {
-      compiledMode = NonNullableByDefaultCompiledMode.Weak;
-    }
-
-    if (compiledMode !=
-        mergeCompilationModeOrThrow(
-            compiledMode, library.nonNullableByDefaultCompiledMode)) {
-      return false;
-    }
-    return true;
   }
 }

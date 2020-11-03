@@ -914,6 +914,7 @@ enum class NNBDCompiledMode {
   kWeak = 0,
   kStrong = 1,
   kAgnostic = 2,
+  kInvalid = 3,
 };
 
 class Class : public Object {

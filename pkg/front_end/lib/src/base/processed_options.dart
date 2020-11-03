@@ -374,6 +374,12 @@ class ProcessedOptions {
   }
 
   Component _validateNullSafetyMode(Component component) {
+    if (component.mode == NonNullableByDefaultCompiledMode.Invalid) {
+      throw new FormatException(
+          'Provided .dill file for the following libraries has an invalid null '
+          'safety mode and does not support null safety:\n'
+          '${component.libraries.join('\n')}');
+    }
     if (nnbdMode == NnbdMode.Strong &&
         !(component.mode == NonNullableByDefaultCompiledMode.Strong ||
             component.mode == NonNullableByDefaultCompiledMode.Agnostic)) {

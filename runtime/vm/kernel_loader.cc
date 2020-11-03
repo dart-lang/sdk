@@ -1013,6 +1013,12 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
   library.set_is_nnbd(library_helper.IsNonNullableByDefault());
   const NNBDCompiledMode mode =
       library_helper.GetNonNullableByDefaultCompiledMode();
+  if (mode == NNBDCompiledMode::kInvalid) {
+    H.ReportError(
+        "Library '%s' was compiled in an unsupported mixed mode between sound "
+        "null safety and not sound null safety.",
+        String::Handle(library.url()).ToCString());
+  }
   if (!I->null_safety() && mode == NNBDCompiledMode::kStrong) {
     H.ReportError(
         "Library '%s' was compiled with sound null safety (in strong mode) and "

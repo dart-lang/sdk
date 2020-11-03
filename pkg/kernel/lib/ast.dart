@@ -342,7 +342,7 @@ class Reference {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-enum NonNullableByDefaultCompiledMode { Weak, Strong, Agnostic }
+enum NonNullableByDefaultCompiledMode { Weak, Strong, Agnostic, Invalid }
 
 class Library extends NamedNode
     implements Annotatable, Comparable<Library>, FileUriNode {
@@ -393,7 +393,7 @@ class Library extends NamedNode
     if (!bit1 && !bit2) return NonNullableByDefaultCompiledMode.Weak;
     if (bit1 && !bit2) return NonNullableByDefaultCompiledMode.Strong;
     if (bit1 && bit2) return NonNullableByDefaultCompiledMode.Agnostic;
-    // !bit1 && bit2 is unused.
+    if (!bit1 && bit2) return NonNullableByDefaultCompiledMode.Invalid;
     throw new StateError("Unused bit-pattern for compilation mode");
   }
 
@@ -410,6 +410,10 @@ class Library extends NamedNode
         break;
       case NonNullableByDefaultCompiledMode.Agnostic:
         flags = (flags | NonNullableByDefaultModeBit1) |
+            NonNullableByDefaultModeBit2;
+        break;
+      case NonNullableByDefaultCompiledMode.Invalid:
+        flags = (flags & ~NonNullableByDefaultModeBit1) |
             NonNullableByDefaultModeBit2;
         break;
     }

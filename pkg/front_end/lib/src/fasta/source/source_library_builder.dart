@@ -487,19 +487,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   LanguageVersion get languageVersion => _languageVersion;
 
   void markLanguageVersionFinal() {
-    if (enableNonNullableInLibrary &&
+    if (!isNonNullableByDefault &&
         (loader.nnbdMode == NnbdMode.Strong ||
             loader.nnbdMode == NnbdMode.Agnostic)) {
       // In strong and agnostic mode, the language version is not allowed to
       // opt a library out of nnbd.
-      if (!isNonNullableByDefault) {
-        if (_languageVersion.isExplicit) {
-          addPostponedProblem(messageStrongModeNNBDButOptOut,
-              _languageVersion.charOffset, _languageVersion.charCount, fileUri);
-        } else {
-          loader.registerStrongOptOutLibrary(this);
-        }
+      if (_languageVersion.isExplicit) {
+        addPostponedProblem(messageStrongModeNNBDButOptOut,
+            _languageVersion.charOffset, _languageVersion.charCount, fileUri);
+      } else {
+        loader.registerStrongOptOutLibrary(this);
       }
+      library.nonNullableByDefaultCompiledMode =
+          NonNullableByDefaultCompiledMode.Invalid;
+      loader.hasInvalidNnbdModeLibrary = true;
     }
     _languageVersion.isFinal = true;
     _ensureIsNonNullableByDefault();

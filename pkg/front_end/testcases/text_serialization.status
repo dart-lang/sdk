@@ -167,8 +167,6 @@ inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_assign_to_property_custom: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
-late_lowering/initializer_rewrite_from_opt_out: RuntimeError # Test is inherently mixed mode
-late_lowering/non_nullable_from_opt_out: RuntimeError # Test is inherently mixed mode
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue41180: RuntimeError
@@ -178,8 +176,6 @@ nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
-nnbd/strong_lib_not_ok_from_dill/strong: RuntimeError
-nnbd/strong_package_not_ok_from_dill/strong: RuntimeError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
