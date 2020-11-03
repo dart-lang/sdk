@@ -1917,8 +1917,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('setExceptionPauseMode', {'mode': mode});
   }
 
-  Future<ServiceMap> getStack() {
-    return invokeRpc('getStack', {}).then((response) => response as ServiceMap);
+  Future<ServiceMap> getStack({int? limit}) {
+    return invokeRpc('getStack', {
+      if (limit != null) 'limit': limit,
+    }).then((response) => response as ServiceMap);
   }
 
   Future<ObjectStore> getObjectStore() {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.0
+- Update to version `3.42.0` of the spec.
+- Added optional `limit` parameter to `getStack` RPC.
+
 ## 5.4.0
 - Update to version `3.41.0` of the spec.
 - Added `PortList` class.
