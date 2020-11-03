@@ -401,9 +401,7 @@ static void ReleaseFilesPairs(const Dart_CObject& files) {
   delete[] files.value.as_array.values;
 }
 
-static void PassThroughFinalizer(void* isolate_callback_data,
-                                 Dart_WeakPersistentHandle handle,
-                                 void* peer) {}
+static void PassThroughFinalizer(void* isolate_callback_data, void* peer) {}
 
 MallocGrowableArray<char*>* KernelIsolate::experimental_flags_ =
     new MallocGrowableArray<char*>();

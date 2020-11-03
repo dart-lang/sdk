@@ -1374,7 +1374,6 @@ ExternalTypedDataPtr ExternalTypedData::ReadFrom(SnapshotReader* reader,
 
 // This function's name can appear in Observatory.
 static void IsolateMessageTypedDataFinalizer(void* isolate_callback_data,
-                                             Dart_WeakPersistentHandle handle,
                                              void* buffer) {
   free(buffer);
 }
@@ -1707,9 +1706,9 @@ void TransferableTypedDataLayout::WriteTo(SnapshotWriter* writer,
       length, data, tpeer,
       // Finalizer does nothing - in case of failure to serialize,
       // [data] remains wrapped in sender's [TransferableTypedData].
-      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {},
+      [](void* data, void* peer) {},
       // This is invoked on successful serialization of the message
-      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {
+      [](void* data, void* peer) {
         TransferableTypedDataPeer* tpeer =
             reinterpret_cast<TransferableTypedDataPeer*>(peer);
         tpeer->handle()->EnsureFreedExternal(IsolateGroup::Current());

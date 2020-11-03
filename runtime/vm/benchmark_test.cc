@@ -201,9 +201,7 @@ BENCHMARK(UseDartApi) {
   benchmark->set_score(elapsed_time);
 }
 
-static void NoopFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 //
 // Measure time accessing internal and external strings.

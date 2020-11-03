@@ -8765,7 +8765,7 @@ class String : public Instance {
                                intptr_t array_len,
                                void* peer,
                                intptr_t external_allocation_size,
-                               Dart_WeakPersistentHandleFinalizer callback,
+                               Dart_HandleFinalizer callback,
                                Heap::Space = Heap::kNew);
 
   // Creates a new External String object using the specified array of
@@ -8774,7 +8774,7 @@ class String : public Instance {
                                intptr_t array_len,
                                void* peer,
                                intptr_t external_allocation_size,
-                               Dart_WeakPersistentHandleFinalizer callback,
+                               Dart_HandleFinalizer callback,
                                Heap::Space = Heap::kNew);
 
   static void Copy(const String& dst,
@@ -9214,13 +9214,12 @@ class ExternalOneByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(ExternalOneByteStringLayout));
   }
 
-  static ExternalOneByteStringPtr New(
-      const uint8_t* characters,
-      intptr_t len,
-      void* peer,
-      intptr_t external_allocation_size,
-      Dart_WeakPersistentHandleFinalizer callback,
-      Heap::Space space);
+  static ExternalOneByteStringPtr New(const uint8_t* characters,
+                                      intptr_t len,
+                                      void* peer,
+                                      intptr_t external_allocation_size,
+                                      Dart_HandleFinalizer callback,
+                                      Heap::Space space);
 
   static ExternalOneByteStringPtr null() {
     return static_cast<ExternalOneByteStringPtr>(Object::null());
@@ -9313,13 +9312,12 @@ class ExternalTwoByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(ExternalTwoByteStringLayout));
   }
 
-  static ExternalTwoByteStringPtr New(
-      const uint16_t* characters,
-      intptr_t len,
-      void* peer,
-      intptr_t external_allocation_size,
-      Dart_WeakPersistentHandleFinalizer callback,
-      Heap::Space space = Heap::kNew);
+  static ExternalTwoByteStringPtr New(const uint16_t* characters,
+                                      intptr_t len,
+                                      void* peer,
+                                      intptr_t external_allocation_size,
+                                      Dart_HandleFinalizer callback,
+                                      Heap::Space space = Heap::kNew);
 
   static ExternalTwoByteStringPtr null() {
     return static_cast<ExternalTwoByteStringPtr>(Object::null());
@@ -10103,10 +10101,9 @@ class ExternalTypedData : public TypedDataBase {
 
 #undef TYPED_GETTER_SETTER
 
-  FinalizablePersistentHandle* AddFinalizer(
-      void* peer,
-      Dart_WeakPersistentHandleFinalizer callback,
-      intptr_t external_size) const;
+  FinalizablePersistentHandle* AddFinalizer(void* peer,
+                                            Dart_HandleFinalizer callback,
+                                            intptr_t external_size) const;
 
   static intptr_t data_offset() {
     return OFFSET_OF(ExternalTypedDataLayout, data_);

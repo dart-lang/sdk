@@ -344,11 +344,10 @@ class CObject {
   static Dart_CObject* NewArray(intptr_t length);
   static Dart_CObject* NewUint8Array(intptr_t length);
   static Dart_CObject* NewUint32Array(intptr_t length);
-  static Dart_CObject* NewExternalUint8Array(
-      intptr_t length,
-      uint8_t* data,
-      void* peer,
-      Dart_WeakPersistentHandleFinalizer callback);
+  static Dart_CObject* NewExternalUint8Array(intptr_t length,
+                                             uint8_t* data,
+                                             void* peer,
+                                             Dart_HandleFinalizer callback);
 
   static Dart_CObject* NewIOBuffer(int64_t length);
   static void FreeIOBufferData(Dart_CObject* object);
@@ -571,7 +570,7 @@ class CObjectExternalUint8Array : public CObject {
   }
   uint8_t* Data() const { return cobject_->value.as_external_typed_data.data; }
   void* Peer() const { return cobject_->value.as_external_typed_data.peer; }
-  Dart_WeakPersistentHandleFinalizer Callback() const {
+  Dart_HandleFinalizer Callback() const {
     return cobject_->value.as_external_typed_data.callback;
   }
 

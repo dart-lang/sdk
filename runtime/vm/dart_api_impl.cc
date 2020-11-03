@@ -711,25 +711,22 @@ void FinalizablePersistentHandle::Finalize(
   if (!handle->raw()->IsHeapObject()) {
     return;  // Free handle.
   }
+  Dart_HandleFinalizer callback = handle->callback();
+  ASSERT(callback != NULL);
   void* peer = handle->peer();
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
 
-  ASSERT(handle->auto_delete());
-
-  if (handle->callback_signature_ == CallbackSignature::kHandleFinalizer) {
-    Dart_HandleFinalizer callback = handle->callback();
-    ASSERT(callback != NULL);
-    (*callback)(isolate_group->embedder_data(), peer);
-  } else {
-    Dart_WeakPersistentHandleFinalizer callback =
-        handle->CallbackWeakFinalizer();
-    ASSERT(callback != NULL);
-    Dart_WeakPersistentHandle object = handle->ApiWeakPersistentHandle();
-    (*callback)(isolate_group->embedder_data(), object, peer);
+  if (!handle->auto_delete()) {
+    // Clear handle before running finalizer, finalizer can free the handle.
+    state->ClearWeakPersistentHandle(handle);
   }
 
-  state->FreeWeakPersistentHandle(handle);
+  (*callback)(isolate_group->embedder_data(), peer);
+
+  if (handle->auto_delete()) {
+    state->FreeWeakPersistentHandle(handle);
+  }
 }
 
 // --- Handles ---
@@ -942,6 +939,9 @@ Dart_HandleFromWeakPersistent(Dart_WeakPersistentHandle object) {
   NoSafepointScope no_safepoint_scope;
   FinalizablePersistentHandle* weak_ref =
       FinalizablePersistentHandle::Cast(object);
+  if (weak_ref->IsFinalizedNotFreed()) {
+    return Dart_Null();
+  }
   return Api::NewHandle(thread, weak_ref->raw());
 }
 
@@ -986,14 +986,14 @@ static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
     const Object& ref,
     void* peer,
     intptr_t external_allocation_size,
-    Dart_WeakPersistentHandleFinalizer callback) {
+    Dart_HandleFinalizer callback) {
   if (!ref.raw()->IsHeapObject()) {
     return NULL;
   }
   FinalizablePersistentHandle* finalizable_ref =
       FinalizablePersistentHandle::New(thread->isolate(), ref, peer, callback,
                                        external_allocation_size,
-                                       /*auto_delete=*/true);
+                                       /*auto_delete=*/false);
   return finalizable_ref->ApiWeakPersistentHandle();
 }
 
@@ -1002,7 +1002,7 @@ static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
     intptr_t external_allocation_size,
-    Dart_WeakPersistentHandleFinalizer callback) {
+    Dart_HandleFinalizer callback) {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& ref = thread->ObjectHandle();
   ref = Api::UnwrapHandle(object);
@@ -1044,7 +1044,7 @@ DART_EXPORT Dart_WeakPersistentHandle
 Dart_NewWeakPersistentHandle(Dart_Handle object,
                              void* peer,
                              intptr_t external_allocation_size,
-                             Dart_WeakPersistentHandleFinalizer callback) {
+                             Dart_HandleFinalizer callback) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   if (callback == NULL) {
@@ -2961,7 +2961,7 @@ Dart_NewExternalLatin1String(const uint8_t* latin1_array,
                              intptr_t length,
                              void* peer,
                              intptr_t external_allocation_size,
-                             Dart_WeakPersistentHandleFinalizer callback) {
+                             Dart_HandleFinalizer callback) {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   if (latin1_array == NULL && length != 0) {
@@ -2983,7 +2983,7 @@ Dart_NewExternalUTF16String(const uint16_t* utf16_array,
                             intptr_t length,
                             void* peer,
                             intptr_t external_allocation_size,
-                            Dart_WeakPersistentHandleFinalizer callback) {
+                            Dart_HandleFinalizer callback) {
   DARTSCOPE(Thread::Current());
   if (utf16_array == NULL && length != 0) {
     RETURN_NULL_ERROR(utf16_array);
@@ -3933,14 +3933,13 @@ static Dart_Handle NewTypedData(Thread* thread, intptr_t cid, intptr_t length) {
   return Api::NewHandle(thread, TypedData::New(cid, length));
 }
 
-static Dart_Handle NewExternalTypedData(
-    Thread* thread,
-    intptr_t cid,
-    void* data,
-    intptr_t length,
-    void* peer,
-    intptr_t external_allocation_size,
-    Dart_WeakPersistentHandleFinalizer callback) {
+static Dart_Handle NewExternalTypedData(Thread* thread,
+                                        intptr_t cid,
+                                        void* data,
+                                        intptr_t length,
+                                        void* peer,
+                                        intptr_t external_allocation_size,
+                                        Dart_HandleFinalizer callback) {
   CHECK_LENGTH(length, ExternalTypedData::MaxElements(cid));
   Zone* zone = thread->zone();
   intptr_t bytes = length * ExternalTypedData::ElementSizeInBytes(cid);
@@ -3952,19 +3951,18 @@ static Dart_Handle NewExternalTypedData(
   result = ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
                                   thread->heap()->SpaceForExternal(bytes));
   if (callback != nullptr) {
-    AllocateWeakPersistentHandle(thread, result, peer, external_allocation_size,
-                                 callback);
+    AllocateFinalizableHandle(thread, result, peer, external_allocation_size,
+                              callback);
   }
   return Api::NewHandle(thread, result.raw());
 }
 
-static Dart_Handle NewExternalByteData(
-    Thread* thread,
-    void* data,
-    intptr_t length,
-    void* peer,
-    intptr_t external_allocation_size,
-    Dart_WeakPersistentHandleFinalizer callback) {
+static Dart_Handle NewExternalByteData(Thread* thread,
+                                       void* data,
+                                       intptr_t length,
+                                       void* peer,
+                                       intptr_t external_allocation_size,
+                                       Dart_HandleFinalizer callback) {
   Zone* zone = thread->zone();
   Dart_Handle ext_data =
       NewExternalTypedData(thread, kExternalTypedDataUint8ArrayCid, data,
@@ -4049,13 +4047,13 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
                                                 NULL);
 }
 
-DART_EXPORT Dart_Handle Dart_NewExternalTypedDataWithFinalizer(
-    Dart_TypedData_Type type,
-    void* data,
-    intptr_t length,
-    void* peer,
-    intptr_t external_allocation_size,
-    Dart_WeakPersistentHandleFinalizer callback) {
+DART_EXPORT Dart_Handle
+Dart_NewExternalTypedDataWithFinalizer(Dart_TypedData_Type type,
+                                       void* data,
+                                       intptr_t length,
+                                       void* peer,
+                                       intptr_t external_allocation_size,
+                                       Dart_HandleFinalizer callback) {
   DARTSCOPE(Thread::Current());
   if (data == NULL && length != 0) {
     RETURN_NULL_ERROR(data);

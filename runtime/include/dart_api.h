@@ -244,8 +244,9 @@ typedef struct _Dart_IsolateGroup* Dart_IsolateGroup;
  * the object is garbage collected. It is never safe to use these handles
  * unless you know the object is still reachable.
  *
- * WeakPersistentHandles are persistent handles which are auto deleted
- * when the object is garbage collected.
+ * WeakPersistentHandles are persistent handles which are automatically set
+ * to point Dart_Null when the object is garbage collected. They are not auto
+ * deleted, so it is safe to use them after the object has become unreachable.
  */
 typedef struct _Dart_Handle* Dart_Handle;
 typedef Dart_Handle Dart_PersistentHandle;
@@ -254,10 +255,6 @@ typedef struct _Dart_FinalizableHandle* Dart_FinalizableHandle;
 // These structs are versioned by DART_API_DL_MAJOR_VERSION, bump the
 // version when changing this struct.
 
-typedef void (*Dart_WeakPersistentHandleFinalizer)(
-    void* isolate_callback_data,
-    Dart_WeakPersistentHandle handle,
-    void* peer);
 typedef void (*Dart_HandleFinalizer)(void* isolate_callback_data, void* peer);
 
 /**
@@ -423,6 +420,8 @@ DART_EXPORT Dart_Handle Dart_HandleFromPersistent(Dart_PersistentHandle object);
 
 /**
  * Allocates a handle in the current scope from a weak persistent handle.
+ *
+ * This will be a handle to Dart_Null if the object has been garbage collected.
  */
 DART_EXPORT Dart_Handle
 Dart_HandleFromWeakPersistent(Dart_WeakPersistentHandle object);
@@ -461,24 +460,18 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
 /**
  * Allocates a weak persistent handle for an object.
  *
- * This handle has the lifetime of the current isolate unless the object
- * pointed to by the handle is garbage collected, in this case the VM
- * automatically deletes the handle after invoking the callback associated
- * with the handle. The handle can also be explicitly deallocated by
- * calling Dart_DeleteWeakPersistentHandle.
+ * This handle has the lifetime of the current isolate. The handle can also be
+ * explicitly deallocated by calling Dart_DeleteWeakPersistentHandle.
  *
- * If the object becomes unreachable the callback is invoked with the weak
- * persistent handle and the peer as arguments. The callback can be executed on
- * any thread, will have an isolate group, but will not have a current isolate.
- * The callback can only call Dart_DeletePersistentHandle or
- * Dart_DeleteWeakPersistentHandle. The callback must not call
- * Dart_DeleteWeakPersistentHandle for the handle being finalized, as it is
- * automatically deleted by the VM after the callback returns. This gives the
- * embedder the ability to cleanup data associated with the object and clear
- * out any cached references to the handle. All references to this handle after
- * the callback will be invalid. It is illegal to call into the VM with any
- * other Dart_* functions from the callback. If the handle is deleted before
- * the object becomes unreachable, the callback is never invoked.
+ * If the object becomes unreachable the callback is invoked with the peer as
+ * argument. The callback can be executed on any thread, will have a current
+ * isolate group, but will not have a current isolate. The callback can only
+ * call Dart_DeletePersistentHandle or Dart_DeleteWeakPersistentHandle. This
+ * gives the embedder the ability to cleanup data associated with the object.
+ * The handle will point to the Dart_Null object after the finalizer has been
+ * run. It is illegal to call into the VM with any other Dart_* functions from
+ * the callback. If the handle is deleted before the object becomes
+ * unreachable, the callback is never invoked.
  *
  * Requires there to be a current isolate.
  *
@@ -498,7 +491,7 @@ DART_EXPORT Dart_WeakPersistentHandle
 Dart_NewWeakPersistentHandle(Dart_Handle object,
                              void* peer,
                              intptr_t external_allocation_size,
-                             Dart_WeakPersistentHandleFinalizer callback);
+                             Dart_HandleFinalizer callback);
 
 /**
  * Deletes the given weak persistent [object] handle.
@@ -2046,7 +2039,7 @@ Dart_NewExternalLatin1String(const uint8_t* latin1_array,
                              intptr_t length,
                              void* peer,
                              intptr_t external_allocation_size,
-                             Dart_WeakPersistentHandleFinalizer callback);
+                             Dart_HandleFinalizer callback);
 
 /**
  * Returns a String which references an external array of UTF-16 encoded
@@ -2067,7 +2060,7 @@ Dart_NewExternalUTF16String(const uint16_t* utf16_array,
                             intptr_t length,
                             void* peer,
                             intptr_t external_allocation_size,
-                            Dart_WeakPersistentHandleFinalizer callback);
+                            Dart_HandleFinalizer callback);
 
 /**
  * Gets the C string representation of a String.
@@ -2440,13 +2433,13 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
  * \return The TypedData object if no error occurs. Otherwise returns
  *   an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalTypedDataWithFinalizer(
-    Dart_TypedData_Type type,
-    void* data,
-    intptr_t length,
-    void* peer,
-    intptr_t external_allocation_size,
-    Dart_WeakPersistentHandleFinalizer callback);
+DART_EXPORT Dart_Handle
+Dart_NewExternalTypedDataWithFinalizer(Dart_TypedData_Type type,
+                                       void* data,
+                                       intptr_t length,
+                                       void* peer,
+                                       intptr_t external_allocation_size,
+                                       Dart_HandleFinalizer callback);
 
 /**
  * Returns a ByteBuffer object for the typed data.

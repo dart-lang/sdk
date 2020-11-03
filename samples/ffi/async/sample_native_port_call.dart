@@ -37,8 +37,8 @@ main() async {
   print("C T2 = Some C thread executing C.");
   print("C    = C T1 or C T2.");
   print("Dart: Setup.");
-  Expect.isTrue(NativeApi.majorVersion == 1);
-  Expect.isTrue(NativeApi.minorVersion >= 1);
+  Expect.isTrue(NativeApi.majorVersion == 2);
+  Expect.isTrue(NativeApi.minorVersion >= 0);
   final initializeApi = dl.lookupFunction<IntPtr Function(Pointer<Void>),
       int Function(Pointer<Void>)>("InitDartApiDL");
   Expect.isTrue(initializeApi(NativeApi.initializeApiDLData) == 0);
