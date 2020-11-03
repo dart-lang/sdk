@@ -1124,7 +1124,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       }
       uint8_t* data = object->value.as_external_typed_data.data;
       void* peer = object->value.as_external_typed_data.peer;
-      Dart_WeakPersistentHandleFinalizer callback =
+      Dart_HandleFinalizer callback =
           object->value.as_external_typed_data.callback;
       if (callback == NULL) {
         return false;

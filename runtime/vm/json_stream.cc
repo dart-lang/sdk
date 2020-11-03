@@ -184,9 +184,7 @@ void JSONStream::PostNullReply(Dart_Port port) {
       Message::New(port, Object::null(), Message::kNormalPriority));
 }
 
-static void Finalizer(void* isolate_callback_data,
-                      Dart_WeakPersistentHandle handle,
-                      void* buffer) {
+static void Finalizer(void* isolate_callback_data, void* buffer) {
   free(buffer);
 }
 

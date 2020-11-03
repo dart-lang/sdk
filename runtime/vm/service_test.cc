@@ -485,9 +485,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
 
-static void WeakHandleFinalizer(void* isolate_callback_data,
-                                Dart_WeakPersistentHandle handle,
-                                void* peer) {}
+static void WeakHandleFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   const char* kScript =

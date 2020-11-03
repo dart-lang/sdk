@@ -1624,9 +1624,7 @@ ISOLATE_UNIT_TEST_CASE(StringEqualsUTF32) {
   EXPECT(!th_str.Equals(chars, 3));
 }
 
-static void NoopFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = {0xF6, 0xF1, 0xE9};

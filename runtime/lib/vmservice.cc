@@ -72,7 +72,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 0, 1) {
 DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
-    return Service::HandleObjectRootMessage(message);
+  return Service::HandleObjectRootMessage(message);
 #endif
   return Object::null();
 }
@@ -307,16 +307,12 @@ class TarArchive {
   DISALLOW_COPY_AND_ASSIGN(TarArchive);
 };
 
-static void ContentsFinalizer(void* isolate_callback_data,
-                              Dart_WeakPersistentHandle handle,
-                              void* peer) {
+static void ContentsFinalizer(void* isolate_callback_data, void* peer) {
   uint8_t* data = reinterpret_cast<uint8_t*>(peer);
   delete[] data;
 }
 
-static void FilenameFinalizer(void* isolate_callback_data,
-                              Dart_WeakPersistentHandle handle,
-                              void* peer) {
+static void FilenameFinalizer(void* isolate_callback_data, void* peer) {
   char* filename = reinterpret_cast<char*>(peer);
   delete[] filename;
 }

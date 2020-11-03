@@ -475,7 +475,7 @@ DART_EXPORT void ExecuteCallback(Work* work_ptr) {
 
 Dart_Port send_port_;
 
-static void FreeFinalizer(void*, Dart_WeakPersistentHandle, void* value) {
+static void FreeFinalizer(void*, void* value) {
   free(value);
 }
 
@@ -776,9 +776,7 @@ DART_EXPORT void ThreadPoolTest_BarrierSync(
 // vmspecific_handle_test.dart (statically linked).
 // vmspecific_handle_dynamically_linked_test.dart (dynamically linked).
 
-static void RunFinalizer(void* isolate_callback_data,
-                         Dart_WeakPersistentHandle handle,
-                         void* peer) {
+static void RunFinalizer(void* isolate_callback_data, void* peer) {
   printf("Running finalizer for weak handle.\n");
 }
 
