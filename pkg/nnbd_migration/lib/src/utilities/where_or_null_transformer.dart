@@ -61,12 +61,20 @@ class WhereOrNullTransformer {
 
   WhereOrNullTransformer(this._typeProvider, this._typeSystem);
 
-  /// If [expression] is the `orElse` argument of a call that can be
-  /// transformed, returns information about the transformable call; otherwise
-  /// returns `null`.
+  /// If [expression] is the expression part of the `orElse` argument of a call
+  /// that can be transformed, returns information about the transformable call;
+  /// otherwise returns `null`.
   WhereOrNullTransformationInfo tryTransformOrElseArgument(
-          Expression expression) =>
-      _tryTransformMethodInvocation(expression?.parent?.parent?.parent);
+      Expression expression) {
+    var transformationInfo =
+        _tryTransformMethodInvocation(expression?.parent?.parent?.parent);
+    if (transformationInfo != null &&
+        identical(transformationInfo.orElseArgument.expression, expression)) {
+      return transformationInfo;
+    } else {
+      return null;
+    }
+  }
 
   /// Searches [argumentList] for a named argument with the name "orElse".  If
   /// such an argument is found, and no other named arguments are found, it is

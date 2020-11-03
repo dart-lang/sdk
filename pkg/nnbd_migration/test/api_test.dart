@@ -2757,6 +2757,29 @@ g(String s) {}
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_firstWhere_complex_target() async {
+    // See https://github.com/dart-lang/sdk/issues/43956
+    var content = '''
+Iterable<Match> allMatches(String str) => 'x'.allMatches(str);
+
+Match matchAsPrefix(String str, [int start = 0]) {
+  return allMatches(str)
+      .firstWhere((match) => match.start == start, orElse: () => null);
+}
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+Iterable<Match> allMatches(String str) => 'x'.allMatches(str);
+
+Match? matchAsPrefix(String str, [int start = 0]) {
+  return allMatches(str)
+      .firstWhereOrNull((match) => match.start == start);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_firstWhere_non_nullable() async {
     var content = '''
 int firstEven(Iterable<int> x)
