@@ -606,9 +606,17 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
   }
 
   Member getDispatchTargetKernel(Class cls, Name name, bool isSetter) {
-    return getNodeFromClass(cls)
-        .getDispatchTarget(name, isSetter)
-        ?.getMember(this);
+    ClassMember classMember =
+        getNodeFromClass(cls).getDispatchTarget(name, isSetter);
+    Member member = classMember?.getMember(this);
+    if (member != null && member.isAbstract) {
+      if (cls.superclass != null) {
+        return getDispatchTargetKernel(cls.superclass, name, isSetter);
+      } else {
+        return null;
+      }
+    }
+    return member;
   }
 
   Member getCombinedMemberSignatureKernel(Class cls, Name name, bool isSetter,

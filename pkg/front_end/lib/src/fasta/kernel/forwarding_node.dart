@@ -162,6 +162,12 @@ class ForwardingNode {
     Arguments arguments = new Arguments(positionalArguments,
         types: typeArguments, named: namedArguments);
     Expression superCall;
+    assert(superTarget != null,
+        "No super target found for '${name}' in ${enclosingClass}.");
+    assert(
+        !superTarget.isAbstract,
+        "Abstract super target $superTarget found for '${name}' in "
+        "${enclosingClass}.");
     switch (kind) {
       case ProcedureKind.Method:
       case ProcedureKind.Operator:
