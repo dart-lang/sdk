@@ -4,8 +4,6 @@
 
 library fasta.testing.kernel_chain;
 
-import 'dart:async' show Future;
-
 import 'dart:io' show Directory, File, IOSink, Platform;
 
 import 'dart:typed_data' show Uint8List;

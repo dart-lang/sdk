@@ -4,8 +4,6 @@
 
 import 'dart:io' show exitCode;
 
-import 'dart:async' show Future;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;

@@ -4,7 +4,6 @@
 
 library fasta.test.text_serialization_test;
 
-import 'dart:async' show Future;
 import 'dart:io' show Platform;
 
 import 'testing/suite.dart';

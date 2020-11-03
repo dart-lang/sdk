@@ -4,7 +4,7 @@
 
 library fasta.compiler_context;
 
-import 'dart:async' show Future, Zone, runZoned;
+import 'dart:async' show Zone, runZoned;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 

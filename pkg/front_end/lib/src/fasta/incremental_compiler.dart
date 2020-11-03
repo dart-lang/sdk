@@ -4,8 +4,6 @@
 
 library fasta.incremental_compiler;
 
-import 'dart:async' show Future;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';

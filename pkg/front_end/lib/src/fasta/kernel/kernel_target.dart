@@ -4,8 +4,6 @@
 
 library fasta.kernel_target;
 
-import 'dart:async' show Future;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
     show DillLibraryBuilder;

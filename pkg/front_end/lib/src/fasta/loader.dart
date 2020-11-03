@@ -4,8 +4,6 @@
 
 library fasta.loader;
 
-import 'dart:async' show Future;
-
 import 'dart:collection' show Queue;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;

@@ -4,8 +4,6 @@
 
 library fasta.test.expression_test;
 
-import "dart:async" show Future;
-
 import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File, IOSink;

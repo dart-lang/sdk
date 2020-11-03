@@ -5,8 +5,6 @@
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator;
 
-import 'dart:async' show Future;
-
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain, noLength;
 
