@@ -464,6 +464,7 @@ import 'null_aware_before_operator_test.dart' as null_aware_before_operator;
 import 'null_aware_in_condition_test.dart' as null_aware_in_condition;
 import 'null_aware_in_logical_operator_test.dart'
     as null_aware_in_logical_operator;
+import 'null_check_always_fails_test.dart' as null_check_always_fails;
 import 'null_safety_read_write_test.dart' as null_safety_read_write;
 import 'nullable_type_in_catch_clause_test.dart'
     as nullable_type_in_catch_clause;
@@ -963,6 +964,7 @@ main() {
     null_aware_before_operator.main();
     null_aware_in_condition.main();
     null_aware_in_logical_operator.main();
+    null_check_always_fails.main();
     null_safety_read_write.main();
     nullable_type_in_catch_clause.main();
     nullable_type_in_extends_clause.main();
