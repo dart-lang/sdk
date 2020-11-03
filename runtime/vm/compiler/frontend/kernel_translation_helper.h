@@ -438,7 +438,8 @@ class FieldHelper {
  public:
   enum Field {
     kStart,  // tag.
-    kCanonicalName,
+    kCanonicalNameGetter,
+    kCanonicalNameSetter,
     kSourceUriIndex,
     kPosition,
     kEndPosition,
@@ -484,7 +485,8 @@ class FieldHelper {
   bool IsLate() const { return (flags_ & kIsLate) != 0; }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
 
-  NameIndex canonical_name_;
+  NameIndex canonical_name_getter_;
+  NameIndex canonical_name_setter_;
   TokenPosition position_;
   TokenPosition end_position_;
   uint32_t flags_ = 0;

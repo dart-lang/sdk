@@ -806,15 +806,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   Builder addBuilder(String name, Builder declaration, int charOffset,
-      {Reference reference}) {
+      {Reference getterReference, Reference setterReference}) {
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
     if (name == null) {
       unhandled("null", "name", charOffset, fileUri);
     }
-    if (reference != null) {
-      loader.buildersCreatedWithReferences[reference] = declaration;
+    if (getterReference != null) {
+      loader.buildersCreatedWithReferences[getterReference] = declaration;
+    }
+    if (setterReference != null) {
+      loader.buildersCreatedWithReferences[setterReference] = declaration;
     }
     if (currentTypeParameterScopeBuilder == libraryDeclaration) {
       if (declaration is MemberBuilder) {
@@ -977,7 +980,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
           isConst: true,
-          reference: referenceFrom?.reference));
+          getterReference: referenceFrom?.getterReference,
+          setterReference: referenceFrom?.setterReference));
     }
 
     return library;
@@ -1258,7 +1262,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 library.additionalExports.add(memberLast.extension.reference);
               } else if (memberLast is MemberBuilder) {
                 for (Member member in memberLast.exportedMembers) {
-                  library.additionalExports.add(member.reference);
+                  if (member is Field) {
+                    // For fields add both getter and setter references
+                    // so replacing a field with a getter/setter pair still
+                    // exports correctly.
+                    library.additionalExports.add(member.getterReference);
+                    library.additionalExports.add(member.setterReference);
+                  } else {
+                    library.additionalExports.add(member.reference);
+                  }
                 }
               } else {
                 unhandled('member', 'exportScope', memberLast.charOffset,
@@ -1594,7 +1606,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(className, classBuilder, nameOffset,
-        reference: referencesFromClass?.reference);
+        getterReference: referencesFromClass?.reference);
   }
 
   Map<String, TypeVariableBuilder> checkTypeVariables(
@@ -1804,7 +1816,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(extensionName, extensionBuilder, nameOffset,
-        reference: referenceFrom?.reference);
+        getterReference: referenceFrom?.reference);
   }
 
   TypeBuilder applyMixins(TypeBuilder type, int startCharOffset, int charOffset,
@@ -2045,7 +2057,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset,
-            reference: referencesFromClass?.reference);
+            getterReference: referencesFromClass?.reference);
         supertype = addNamedType(fullname, const NullabilityBuilder.omitted(),
             applicationTypeArguments, charOffset);
       }
@@ -2194,7 +2206,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         setterReferenceFrom);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: referenceFrom?.getterReference,
+        setterReference: referenceFrom?.setterReference);
     if (type == null && fieldBuilder.next == null) {
       // Only the first one (the last one in the linked list of next pointers)
       // are added to the tree, had parent pointers and can infer correctly.
@@ -2255,7 +2268,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         constructorBuilder.constructor, name);
     checkTypeVariables(typeVariables, constructorBuilder);
     addBuilder(constructorName, constructorBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: referenceFrom?.reference);
     if (nativeMethodName != null) {
       addNativeMethod(constructorBuilder);
     }
@@ -2368,7 +2381,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         procedureBuilder.procedure, documentationComment);
     checkTypeVariables(typeVariables, procedureBuilder);
     addBuilder(name, procedureBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: referenceFrom?.reference);
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
@@ -2471,7 +2484,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     factoryDeclaration.resolveTypes(procedureBuilder.typeVariables, this);
     addBuilder(procedureName, procedureBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: referenceFrom?.reference);
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
@@ -2505,7 +2518,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         referencesFromClass,
         referencesFromIndexedClass);
     addBuilder(name, builder, charOffset,
-        reference: referencesFromClass?.reference);
+        getterReference: referencesFromClass?.reference);
     metadataCollector?.setDocumentationComment(
         builder.cls, documentationComment);
   }
@@ -2533,7 +2546,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
         .resolveTypes(typeVariables, this);
     addBuilder(name, typedefBuilder, charOffset,
-        reference: referenceFrom?.reference);
+        getterReference: referenceFrom?.reference);
   }
 
   FunctionTypeBuilder addFunctionType(

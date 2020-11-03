@@ -577,7 +577,10 @@ class RegularFieldEncoding implements FieldEncoding {
 
   RegularFieldEncoding(Uri fileUri, int charOffset, int charEndOffset,
       Field reference, bool isNonNullableByDefault) {
-    _field = new Field(null, fileUri: fileUri, reference: reference?.reference)
+    _field = new Field(null,
+        fileUri: fileUri,
+        getterReference: reference?.getterReference,
+        setterReference: reference?.setterReference)
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = isNonNullableByDefault;
@@ -787,12 +790,14 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         _isSetStrategy = isSetStrategy,
         _forceIncludeIsSetField =
             isSetStrategy == late_lowering.IsSetStrategy.forceUseIsSetField {
-    _field =
-        new Field(null, fileUri: fileUri, reference: referenceFrom?.reference)
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..isNonNullableByDefault = true
-          ..isInternalImplementation = true;
+    _field = new Field(null,
+        fileUri: fileUri,
+        getterReference: referenceFrom?.getterReference,
+        setterReference: referenceFrom?.setterReference)
+      ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = true
+      ..isInternalImplementation = true;
     switch (_isSetStrategy) {
       case late_lowering.IsSetStrategy.useSentinelOrNull:
         // [_lateIsSetField] is never needed.
@@ -800,7 +805,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       case late_lowering.IsSetStrategy.forceUseIsSetField:
       case late_lowering.IsSetStrategy.useIsSetFieldOrNull:
         _lateIsSetField = new Field(null,
-            fileUri: fileUri, reference: lateIsSetReferenceFrom?.reference)
+            fileUri: fileUri,
+            getterReference: lateIsSetReferenceFrom?.getterReference,
+            setterReference: lateIsSetReferenceFrom?.setterReference)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = true

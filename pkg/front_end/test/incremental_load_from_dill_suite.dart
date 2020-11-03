@@ -1908,8 +1908,11 @@ void doSimulateTransformer(Component c) {
     Name fieldName = new Name("unique_SimulateTransformer");
     Field field = new Field(fieldName,
         isFinal: true,
-        reference: lib.reference.canonicalName
+        getterReference: lib.reference.canonicalName
             ?.getChildFromFieldWithName(fieldName)
+            ?.reference,
+        setterReference: lib.reference.canonicalName
+            ?.getChildFromFieldSetterWithName(fieldName)
             ?.reference);
     lib.addField(field);
     for (Class c in lib.classes) {
@@ -1920,8 +1923,11 @@ void doSimulateTransformer(Component c) {
       fieldName = new Name("unique_SimulateTransformer");
       field = new Field(fieldName,
           isFinal: true,
-          reference: c.reference.canonicalName
+          getterReference: c.reference.canonicalName
               ?.getChildFromFieldWithName(fieldName)
+              ?.reference,
+          setterReference: c.reference.canonicalName
+              ?.getChildFromFieldSetterWithName(fieldName)
               ?.reference);
       c.addField(field);
     }

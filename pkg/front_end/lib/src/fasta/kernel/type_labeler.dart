@@ -309,7 +309,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       if (field.isStatic) continue;
       if (!first) result.add(", ");
       result.add("${field.name}: ");
-      node.fieldValues[field.reference].accept(this);
+      node.fieldValues[field.getterReference].accept(this);
       first = false;
     }
     result.add("}");

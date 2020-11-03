@@ -131,6 +131,10 @@ class CanonicalName {
     return getChild('@fields').getChildFromQualifiedName(field.name);
   }
 
+  CanonicalName getChildFromFieldSetter(Field field) {
+    return getChild('@=fields').getChildFromQualifiedName(field.name);
+  }
+
   CanonicalName getChildFromConstructor(Constructor constructor) {
     return getChild('@constructors')
         .getChildFromQualifiedName(constructor.name);
@@ -144,6 +148,10 @@ class CanonicalName {
 
   CanonicalName getChildFromFieldWithName(Name name) {
     return getChild('@fields').getChildFromQualifiedName(name);
+  }
+
+  CanonicalName getChildFromFieldSetterWithName(Name name) {
+    return getChild('@=fields').getChildFromQualifiedName(name);
   }
 
   CanonicalName getChildFromTypedef(Typedef typedef_) {

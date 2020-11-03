@@ -614,6 +614,7 @@ class BinaryBuilder {
         if (child.name != '@methods' &&
             child.name != '@typedefs' &&
             child.name != '@fields' &&
+            child.name != '@=fields' &&
             child.name != '@getters' &&
             child.name != '@setters' &&
             child.name != '@factories' &&
@@ -1284,14 +1285,17 @@ class BinaryBuilder {
   Field readField() {
     int tag = readByte();
     assert(tag == Tag.Field);
-    var canonicalName = readCanonicalNameReference();
-    var reference = canonicalName.getReference();
-    Field node = reference.node;
+    CanonicalName getterCanonicalName = readCanonicalNameReference();
+    Reference getterReference = getterCanonicalName.getReference();
+    CanonicalName setterCanonicalName = readCanonicalNameReference();
+    Reference setterReference = setterCanonicalName.getReference();
+    Field node = getterReference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
     if (node == null) {
-      node = new Field(null, reference: reference);
+      node = new Field(null,
+          getterReference: getterReference, setterReference: setterReference);
     }
     var fileUri = readUriReference();
     int fileOffset = readOffset();
