@@ -6218,7 +6218,7 @@ main(double computation(int p)) {
 
     SimpleIdentifier methodName = prefixed.identifier;
     expect(methodName.staticElement, isNull);
-    expect(methodName.staticType, typeProvider.dynamicType);
+    assertType(methodName.staticType, 'double Function(int)');
   }
 
   test_prefixedIdentifier_importPrefix_className() async {

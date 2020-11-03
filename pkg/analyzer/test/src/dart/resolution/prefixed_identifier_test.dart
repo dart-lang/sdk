@@ -33,6 +33,20 @@ main() {
     );
   }
 
+  test_functionType_call_read() async {
+    await assertNoErrorsInCode('''
+void f(int Function(String) a) {
+  a.call;
+}
+''');
+
+    assertPrefixedIdentifier(
+      findNode.prefixed('.call;'),
+      element: null,
+      type: 'int Function(String)',
+    );
+  }
+
   test_implicitCall_tearOff() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {

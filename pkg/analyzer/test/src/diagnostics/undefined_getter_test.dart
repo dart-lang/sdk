@@ -277,7 +277,7 @@ class A {
 }
 
 void f(A a) {
-  return a.staticMethod.call;
+  a.staticMethod.call;
 }
 ''');
   }
