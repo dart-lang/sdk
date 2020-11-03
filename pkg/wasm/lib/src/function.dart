@@ -13,17 +13,19 @@ class WasmFunction {
   Pointer<WasmerFunc> _func;
   List<int> _argTypes;
   int _returnType;
-  Pointer<WasmerVal> _args;
-  Pointer<WasmerVal> _results;
+  Pointer<WasmerValVec> _args = allocate<WasmerValVec>();
+  Pointer<WasmerValVec> _results = allocate<WasmerValVec>();
 
-  WasmFunction(this._name, this._func, this._argTypes, this._returnType)
-      : _args = _argTypes.length == 0
-            ? nullptr
-            : allocate<WasmerVal>(count: _argTypes.length),
-        _results =
-            _returnType == WasmerValKindVoid ? nullptr : allocate<WasmerVal>() {
+  WasmFunction(this._name, this._func, this._argTypes, this._returnType) {
+    _args.ref.length = _argTypes.length;
+    _args.ref.data = _argTypes.length == 0
+        ? nullptr
+        : allocate<WasmerVal>(count: _argTypes.length);
+    _results.ref.length = _returnType == WasmerValKindVoid ? 0 : 1;
+    _results.ref.data =
+        _returnType == WasmerValKindVoid ? nullptr : allocate<WasmerVal>();
     for (var i = 0; i < _argTypes.length; ++i) {
-      _args[i].kind = _argTypes[i];
+      _args.ref.data[i].kind = _argTypes[i];
     }
   }
 
@@ -35,19 +37,19 @@ class WasmFunction {
     switch (_argTypes[i]) {
       case WasmerValKindI32:
         if (arg is! int) return false;
-        _args[i].i32 = arg;
+        _args.ref.data[i].i32 = arg;
         return true;
       case WasmerValKindI64:
         if (arg is! int) return false;
-        _args[i].i64 = arg;
+        _args.ref.data[i].i64 = arg;
         return true;
       case WasmerValKindF32:
         if (arg is! num) return false;
-        _args[i].f32 = arg;
+        _args.ref.data[i].f32 = arg;
         return true;
       case WasmerValKindF64:
         if (arg is! num) return false;
-        _args[i].f64 = arg;
+        _args.ref.data[i].f64 = arg;
         return true;
     }
     return false;
@@ -62,12 +64,12 @@ class WasmFunction {
         throw ArgumentError("Bad argument type for WASM function: $this");
       }
     }
-    WasmRuntime().call(_func, _args, _results);
+    WasmRuntime().call(_func, _args, _results, toString());
 
     if (_returnType == WasmerValKindVoid) {
       return null;
     }
-    var result = _results[0];
+    var result = _results.ref.data[0];
     assert(_returnType == result.kind);
     switch (_returnType) {
       case WasmerValKindI32:

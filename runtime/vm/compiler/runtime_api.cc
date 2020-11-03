@@ -934,6 +934,10 @@ word String::NextFieldOffset() {
   return -kWordSize;
 }
 
+word String::InstanceSize(word payload_size) {
+  return RoundedAllocationSize(String::InstanceSize() + payload_size);
+}
+
 word OneByteString::NextFieldOffset() {
   return -kWordSize;
 }

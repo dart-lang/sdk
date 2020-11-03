@@ -666,6 +666,14 @@ class NodeChangeForDefaultFormalParameter
   /// contained in the edit.
   AtomicEditInfo addRequiredKeywordInfo;
 
+  /// If non-null, indicates a `@required` annotation which should be removed
+  /// from this node.
+  Annotation annotationToRemove;
+
+  /// If [annotationToRemove] is non-null, the information that should be
+  /// contained in the edit.
+  AtomicEditInfo removeAnnotationInfo;
+
   NodeChangeForDefaultFormalParameter() : super._();
 
   @override
@@ -676,8 +684,17 @@ class NodeChangeForDefaultFormalParameter
   EditPlan _apply(DefaultFormalParameter node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (!addRequiredKeyword) return innerPlan;
-    return aggregator.planner.surround(innerPlan,
-        prefix: [AtomicEdit.insert('required ', info: addRequiredKeywordInfo)]);
+
+    var offset = node.firstTokenAfterCommentAndMetadata.offset;
+    return aggregator.planner.passThrough(node, innerPlans: [
+      aggregator.planner.insertText(node, offset, [
+        AtomicEdit.insert('required ', info: addRequiredKeywordInfo),
+      ]),
+      if (annotationToRemove != null)
+        aggregator.planner
+            .removeNode(annotationToRemove, info: removeAnnotationInfo),
+      ...aggregator.innerPlansForNode(node),
+    ]);
   }
 }
 

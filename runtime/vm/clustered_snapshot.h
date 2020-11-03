@@ -417,7 +417,7 @@ class Serializer : public ThreadStackResource {
   }
 
  private:
-  static const char* ReadOnlyObjectType(intptr_t cid);
+  const char* ReadOnlyObjectType(intptr_t cid);
 
   Heap* heap_;
   Zone* zone_;
@@ -548,6 +548,7 @@ class Deserializer : public ThreadStackResource {
                intptr_t size,
                const uint8_t* data_buffer,
                const uint8_t* instructions_buffer,
+               bool is_non_root_unit,
                intptr_t offset = 0);
   ~Deserializer();
 
@@ -658,6 +659,7 @@ class Deserializer : public ThreadStackResource {
   DeserializationCluster** canonical_clusters_;
   DeserializationCluster** clusters_;
   FieldTable* field_table_;
+  const bool is_non_root_unit_;
 };
 
 #define ReadFromTo(obj, ...) d->ReadFromTo(obj, ##__VA_ARGS__);

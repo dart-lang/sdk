@@ -57,6 +57,7 @@ class WasmRuntime {
 
   DynamicLibrary _lib;
   late Pointer<WasmerEngine> _engine;
+  Map<int, dynamic> traps = {};
 /* <RUNTIME_MEMB> */
 
   factory WasmRuntime() {
@@ -166,10 +167,31 @@ class WasmRuntime {
     return imps;
   }
 
+  void maybeThrowTrap(Pointer<WasmerTrap> trap, String source) {
+    if (trap != nullptr) {
+      var stashedException = traps[trap.address];
+      if (stashedException != null) {
+        traps.remove(stashedException);
+        throw stashedException;
+      } else {
+        var trapMessage = allocate<WasmerByteVec>();
+        _trap_message(trap, trapMessage);
+        var message = "Wasm trap when calling $source: ${trapMessage.ref}";
+        free(trapMessage.ref.data);
+        free(trapMessage);
+        throw Exception(message);
+      }
+    }
+  }
+
   Pointer<WasmerInstance> instantiate(Pointer<WasmerStore> store,
-      Pointer<WasmerModule> module, Pointer<Pointer<WasmerExtern>> imports) {
-    return _checkNotEqual(_instance_new(store, module, imports, nullptr),
-        nullptr, "Wasm module instantiation failed.");
+      Pointer<WasmerModule> module, Pointer<WasmerExternVec> imports) {
+    var trap = allocate<Pointer<WasmerTrap>>();
+    trap.value = nullptr;
+    var inst = _instance_new(store, module, imports, trap);
+    maybeThrowTrap(trap.value, "module initialization function");
+    free(trap);
+    return _checkNotEqual(inst, nullptr, "Wasm module instantiation failed.");
   }
 
   Pointer<WasmerExternVec> exports(Pointer<WasmerInstance> instancePtr) {
@@ -209,9 +231,9 @@ class WasmRuntime {
     return _valtype_kind(rets.ref.data[0]);
   }
 
-  void call(Pointer<WasmerFunc> func, Pointer<WasmerVal> args,
-      Pointer<WasmerVal> results) {
-    _func_call(func, args, results);
+  void call(Pointer<WasmerFunc> func, Pointer<WasmerValVec> args,
+      Pointer<WasmerValVec> results, String source) {
+    maybeThrowTrap(_func_call(func, args, results), source);
   }
 
   Pointer<WasmerMemory> externToMemory(Pointer<WasmerExtern> extern) {
@@ -256,6 +278,18 @@ class WasmRuntime {
         store, funcType, func.cast(), env.cast(), finalizer.cast());
   }
 
+  Pointer<WasmerTrap> newTrap(Pointer<WasmerStore> store, dynamic exception) {
+    var msg = allocate<WasmerByteVec>();
+    msg.ref.data = allocate<Uint8>();
+    msg.ref.data[0] = 0;
+    msg.ref.length = 0;
+    var trap = _trap_new(store, msg);
+    traps[trap.address] = exception;
+    free(msg.ref.data);
+    free(msg);
+    return _checkNotEqual(trap, nullptr, "Failed to create trap.");
+  }
+
   Pointer<WasmerWasiConfig> newWasiConfig() {
     var name = allocate<Uint8>();
     name[0] = 0;
@@ -283,7 +317,7 @@ class WasmRuntime {
   }
 
   void getWasiImports(Pointer<WasmerStore> store, Pointer<WasmerModule> mod,
-      Pointer<WasmerWasiEnv> env, Pointer<Pointer<WasmerExtern>> imports) {
+      Pointer<WasmerWasiEnv> env, Pointer<WasmerExternVec> imports) {
     _checkNotEqual(_wasi_get_imports(store, mod, env, imports), 0,
         "Failed to fill WASI imports.");
   }

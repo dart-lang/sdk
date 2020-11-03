@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -892,42 +891,5 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     buffer.write(unit.declaredElement.source.fullName);
     buffer.write('"');
     throw UnimplementedError(buffer.toString());
-  }
-}
-
-extension on FormalParameter {
-  // TODO(srawlins): Add this to FormalParameter interface.
-  Token get firstTokenAfterCommentAndMetadata {
-    var parameter = this is DefaultFormalParameter
-        ? (this as DefaultFormalParameter).parameter
-        : this as NormalFormalParameter;
-    if (parameter is FieldFormalParameter) {
-      if (parameter.keyword != null) {
-        return parameter.keyword;
-      } else if (parameter.type != null) {
-        return parameter.type.beginToken;
-      } else {
-        return parameter.thisKeyword;
-      }
-    } else if (parameter is FunctionTypedFormalParameter) {
-      if (parameter.covariantKeyword != null) {
-        return parameter.covariantKeyword;
-      } else if (parameter.returnType != null) {
-        return parameter.returnType.beginToken;
-      } else {
-        return parameter.identifier.token;
-      }
-    } else if (parameter is SimpleFormalParameter) {
-      if (parameter.covariantKeyword != null) {
-        return parameter.covariantKeyword;
-      } else if (parameter.keyword != null) {
-        return parameter.keyword;
-      } else if (parameter.type != null) {
-        return parameter.type.beginToken;
-      } else {
-        return parameter.identifier.token;
-      }
-    }
-    return null;
   }
 }

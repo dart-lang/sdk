@@ -244,6 +244,60 @@ main() {}
     expect(previewInfo.applyTo(code), 'f({required int x}) => 0;');
   }
 
+  Future<void> test_addRequired_afterMetadata() async {
+    await analyze('f({@deprecated int x}) => 0;');
+    var previewInfo = run({
+      findNode.defaultParameter('int x'): NodeChangeForDefaultFormalParameter()
+        ..addRequiredKeyword = true
+    });
+    expect(previewInfo.applyTo(code), 'f({@deprecated required int x}) => 0;');
+  }
+
+  Future<void> test_addRequired_afterMetadata_andRequiredAnnotation() async {
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+f({@required @deprecated int x}) {}
+''';
+    await analyze(content);
+    var annotation = findNode.annotation('required');
+    var previewInfo = run({
+      findNode.defaultParameter('int x'): NodeChangeForDefaultFormalParameter()
+        ..addRequiredKeyword = true
+        ..annotationToRemove = annotation
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+f({@deprecated required int x}) {}
+''');
+    expect(previewInfo.values, hasLength(2));
+
+    expect(previewInfo[content.indexOf('int ')], hasLength(1));
+    expect(previewInfo[content.indexOf('int ')].single.isInsertion, true);
+    expect(previewInfo[content.indexOf('@required')], isNotNull);
+    expect(previewInfo[content.indexOf('@required')].single.isDeletion, true);
+  }
+
+  Future<void> test_addRequired_afterMetadata_beforeFinal() async {
+    await analyze('f({@deprecated final int x}) => 0;');
+    var previewInfo = run({
+      findNode.defaultParameter('int x'): NodeChangeForDefaultFormalParameter()
+        ..addRequiredKeyword = true
+    });
+    expect(previewInfo.applyTo(code),
+        'f({@deprecated required final int x}) => 0;');
+  }
+
+  Future<void> test_addRequired_afterMetadata_beforeFunctionTyped() async {
+    await analyze('f({@deprecated int x()}) => 0;');
+    var previewInfo = run({
+      findNode.defaultParameter('int x'): NodeChangeForDefaultFormalParameter()
+        ..addRequiredKeyword = true
+    });
+    expect(
+        previewInfo.applyTo(code), 'f({@deprecated required int x()}) => 0;');
+  }
+
   Future<void> test_addShownName_atEnd_multiple() async {
     await analyze("import 'dart:math' show cos;");
     var previewInfo = run({
@@ -1726,6 +1780,24 @@ int f() => null;
       cast: NodeChangeForAsExpression()..removeAs = true
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.y;');
+  }
+
+  Future<void>
+      test_requiredAnnotationToRequiredKeyword_leadingAnnotations() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+f({@deprecated @required int x}) {}
+''');
+    var annotation = findNode.annotation('required');
+    var previewInfo = run({
+      annotation: NodeChangeForAnnotation()..changeToRequiredKeyword = true
+    });
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+f({@deprecated required int x}) {}
+''');
+    expect(previewInfo.values.single.single.isDeletion, true);
   }
 
   Future<void> test_requiredAnnotationToRequiredKeyword_prefixed() async {

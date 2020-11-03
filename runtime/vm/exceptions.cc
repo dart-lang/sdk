@@ -753,7 +753,10 @@ static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
                                  const Instance& existing_stacktrace,
                                  const bool is_rethrow) {
-  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
+  // available, it is the innermost error handler. If one is available, so
+  // should jump there instead.
+  RELEASE_ASSERT(thread->long_jump_base() == nullptr);
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
 #if !defined(PRODUCT)
@@ -995,7 +998,10 @@ void Exceptions::ReThrow(Thread* thread,
 void Exceptions::PropagateError(const Error& error) {
   ASSERT(!error.IsNull());
   Thread* thread = Thread::Current();
-  DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
+  // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
+  // available, it is the innermost error handler. If one is available, so
+  // should jump there instead.
+  RELEASE_ASSERT(thread->long_jump_base() == nullptr);
   Zone* zone = thread->zone();
   if (error.IsUnhandledException()) {
     // If the error object represents an unhandled exception, then

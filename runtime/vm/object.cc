@@ -2600,15 +2600,18 @@ ObjectPtr Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
 
   uword address = heap->Allocate(size, space);
   if (UNLIKELY(address == 0)) {
-    if (thread->top_exit_frame_info() != 0) {
+    // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
+    // available, it is the innermost error handler, so check for a longjmp base
+    // before checking for an exit frame.
+    if (thread->long_jump_base() != nullptr) {
+      Report::LongJump(Object::out_of_memory_error());
+      UNREACHABLE();
+    } else if (thread->top_exit_frame_info() != 0) {
       // Use the preallocated out of memory exception to avoid calling
       // into dart code or allocating any code.
       const Instance& exception =
           Instance::Handle(thread->isolate()->object_store()->out_of_memory());
       Exceptions::Throw(thread, exception);
-      UNREACHABLE();
-    } else if (thread->long_jump_base() != nullptr) {
-      Report::LongJump(Object::out_of_memory_error());
       UNREACHABLE();
     } else {
       // Nowhere to propagate an exception to.
