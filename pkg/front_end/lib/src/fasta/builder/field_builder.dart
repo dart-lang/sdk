@@ -1163,10 +1163,11 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
       CoreTypes coreTypes, String name, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterBodyWithoutInitializer(
-        coreTypes, fileOffset, name, type, 'Field',
+        coreTypes, fileOffset, name, type,
         createVariableRead: _createFieldRead,
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
-        isSetEncoding: isSetEncoding);
+        isSetEncoding: isSetEncoding,
+        forField: true);
   }
 }
 
@@ -1267,7 +1268,7 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       CoreTypes coreTypes, String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBodyFinal(
-        coreTypes, fileOffset, name, parameter, type, 'Field',
+        coreTypes, fileOffset, name, parameter, type,
         shouldReturnValue: false,
         createVariableRead: () => _createFieldGet(_field),
         createVariableWrite: (Expression value) =>
@@ -1275,7 +1276,8 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
         createIsSetWrite: (Expression value) =>
             _createFieldSet(_lateIsSetField, value),
-        isSetEncoding: isSetEncoding);
+        isSetEncoding: isSetEncoding,
+        forField: true);
   }
 }
 
@@ -1307,7 +1309,7 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       CoreTypes coreTypes, String name, Expression initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterWithInitializerWithRecheck(
-        coreTypes, fileOffset, name, _type, 'Field', initializer,
+        coreTypes, fileOffset, name, _type, initializer,
         createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
             _createFieldSet(_field, value),

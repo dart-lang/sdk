@@ -101,7 +101,7 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   T? local2;
   core::bool #local2#isSet = false;
   function #local2#get() → T%
-    return #local2#isSet ?{T%} local2{T%} : throw new _in::LateInitializationErrorImpl::•("Local 'local2' has not been initialized.");
+    return #local2#isSet ?{T%} local2{T%} : throw new _in::LateError::localNI("local2");
   function #local2#set(T% #t1) → dynamic {
     #local2#isSet = true;
     return local2 = #t1;
@@ -110,7 +110,7 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   core::int? local4;
   core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.");
+    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateError::localNI("local4");
   function #local4#set(core::int #t2) → dynamic {
     #local4#isSet = true;
     return local4 = #t2;
@@ -119,7 +119,7 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   FutureOr<core::int>? local6;
   core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
-    return #local6#isSet ?{FutureOr<core::int>} local6{FutureOr<core::int>} : throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.");
+    return #local6#isSet ?{FutureOr<core::int>} local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
   function #local6#set(FutureOr<core::int>#t3) → dynamic {
     #local6#isSet = true;
     return local6 = #t3;
@@ -162,7 +162,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   T? local2;
   core::bool #local2#isSet = false;
   function #local2#get() → T%
-    return #local2#isSet ?{T%} local2{T%} : throw new _in::LateInitializationErrorImpl::•("Local 'local2' has not been initialized.");
+    return #local2#isSet ?{T%} local2{T%} : throw new _in::LateError::localNI("local2");
   function #local2#set(T% #t11) → dynamic {
     #local2#isSet = true;
     return local2 = #t11;
@@ -171,7 +171,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   core::int? local4;
   core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.");
+    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateError::localNI("local4");
   function #local4#set(core::int #t12) → dynamic {
     #local4#isSet = true;
     return local4 = #t12;
@@ -180,7 +180,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   FutureOr<core::int>? local6;
   core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
-    return #local6#isSet ?{FutureOr<core::int>} local6{FutureOr<core::int>} : throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.");
+    return #local6#isSet ?{FutureOr<core::int>} local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
   function #local6#set(FutureOr<core::int>#t13) → dynamic {
     #local6#isSet = true;
     return local6 = #t13;
@@ -226,7 +226,7 @@ static field () → core::Null? fieldCompound = () → core::Null? {
   core::int? local4;
   core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.");
+    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateError::localNI("local4");
   function #local4#set(core::int #t18) → dynamic {
     #local4#isSet = true;
     return local4 = #t18;
@@ -243,7 +243,7 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   self::methodDirect::T? local2;
   core::bool #local2#isSet = false;
   function #local2#get() → self::methodDirect::T%
-    return #local2#isSet ?{self::methodDirect::T%} local2{self::methodDirect::T%} : throw new _in::LateInitializationErrorImpl::•("Local 'local2' has not been initialized.");
+    return #local2#isSet ?{self::methodDirect::T%} local2{self::methodDirect::T%} : throw new _in::LateError::localNI("local2");
   function #local2#set(self::methodDirect::T% #t21) → dynamic {
     #local2#isSet = true;
     return local2 = #t21;
@@ -252,7 +252,7 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   core::int? local4;
   core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.");
+    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateError::localNI("local4");
   function #local4#set(core::int #t22) → dynamic {
     #local4#isSet = true;
     return local4 = #t22;
@@ -261,7 +261,7 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   FutureOr<core::int>? local6;
   core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
-    return #local6#isSet ?{FutureOr<core::int>} local6{FutureOr<core::int>} : throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.");
+    return #local6#isSet ?{FutureOr<core::int>} local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
   function #local6#set(FutureOr<core::int>#t23) → dynamic {
     #local6#isSet = true;
     return local6 = #t23;
@@ -304,7 +304,7 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   self::methodConditional::T? local2;
   core::bool #local2#isSet = false;
   function #local2#get() → self::methodConditional::T%
-    return #local2#isSet ?{self::methodConditional::T%} local2{self::methodConditional::T%} : throw new _in::LateInitializationErrorImpl::•("Local 'local2' has not been initialized.");
+    return #local2#isSet ?{self::methodConditional::T%} local2{self::methodConditional::T%} : throw new _in::LateError::localNI("local2");
   function #local2#set(self::methodConditional::T% #t31) → dynamic {
     #local2#isSet = true;
     return local2 = #t31;
@@ -313,7 +313,7 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   core::int? local4;
   core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.");
+    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateError::localNI("local4");
   function #local4#set(core::int #t32) → dynamic {
     #local4#isSet = true;
     return local4 = #t32;
@@ -322,7 +322,7 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   FutureOr<core::int>? local6;
   core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
-    return #local6#isSet ?{FutureOr<core::int>} local6{FutureOr<core::int>} : throw new _in::LateInitializationErrorImpl::•("Local 'local6' has not been initialized.");
+    return #local6#isSet ?{FutureOr<core::int>} local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
   function #local6#set(FutureOr<core::int>#t33) → dynamic {
     #local6#isSet = true;
     return local6 = #t33;
@@ -368,7 +368,7 @@ static method methodCompound() → dynamic {
   core::int? local4;
   core::bool #local4#isSet = false;
   function #local4#get() → core::int
-    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateInitializationErrorImpl::•("Local 'local4' has not been initialized.");
+    return #local4#isSet ?{core::int} local4{core::int} : throw new _in::LateError::localNI("local4");
   function #local4#set(core::int #t38) → dynamic {
     #local4#isSet = true;
     return local4 = #t38;

@@ -7,12 +7,12 @@ static method main() → dynamic {
   core::bool b = false;
   final core::int? lateLocal;
   function #lateLocal#get() → core::int
-    return let final core::int? #t1 = lateLocal in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'lateLocal' has not been initialized.") : #t1{core::int};
+    return let final core::int? #t1 = lateLocal in #t1.==(null) ?{core::int} throw new _in::LateError::localNI("lateLocal") : #t1{core::int};
   function #lateLocal#set(core::int #t2) → dynamic
     if(lateLocal.==(null))
       return lateLocal = #t2;
     else
-      throw new _in::LateInitializationErrorImpl::•("Local 'lateLocal' has already been initialized.");
+      throw new _in::LateError::localAI("lateLocal");
   if(b) {
     #lateLocal#set.call(123);
   }
@@ -26,10 +26,10 @@ static method main() → dynamic {
     final T? lateGenericLocal;
     core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T%
-      return #lateGenericLocal#isSet ?{T%} lateGenericLocal{T%} : throw new _in::LateInitializationErrorImpl::•("Local 'lateGenericLocal' has not been initialized.");
+      return #lateGenericLocal#isSet ?{T%} lateGenericLocal{T%} : throw new _in::LateError::localNI("lateGenericLocal");
     function #lateGenericLocal#set(T% #t3) → dynamic
       if(#lateGenericLocal#isSet)
-        throw new _in::LateInitializationErrorImpl::•("Local 'lateGenericLocal' has already been initialized.");
+        throw new _in::LateError::localAI("lateGenericLocal");
       else {
         #lateGenericLocal#isSet = true;
         return lateGenericLocal = #t3;

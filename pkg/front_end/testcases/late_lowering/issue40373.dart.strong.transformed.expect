@@ -16,7 +16,7 @@ class C extends core::Object {
   set p1(core::num #t2) → void
     this.{self::C::_#C#p1} = #t2;
   get p2() → core::num
-    return let final core::num? #t3 = this.{self::C::_#C#p2} in #t3.==(null) ?{core::num} let final core::num #t4 = this.{self::C::pi} in this.{self::C::_#C#p2}.==(null) ?{core::num} this.{self::C::_#C#p2} = #t4 : throw new _in::LateInitializationErrorImpl::•("Field 'p2' has been assigned during initialization.") : #t3{core::num};
+    return let final core::num? #t3 = this.{self::C::_#C#p2} in #t3.==(null) ?{core::num} let final core::num #t4 = this.{self::C::pi} in this.{self::C::_#C#p2}.==(null) ?{core::num} this.{self::C::_#C#p2} = #t4 : throw new _in::LateError::fieldADI("p2") : #t3{core::num};
 }
 static method main() → dynamic {
   self::expect(3.14, new self::C::•().{self::C::p1});

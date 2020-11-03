@@ -20,7 +20,7 @@ abstract class A extends core::Object {
     : super core::Object::•()
     ;
   get x() → core::int
-    return this.{test::A::_#A#x#isSet} ?{core::int} let final core::int? #t1 = this.{test::A::_#A#x} in #t1{core::int} : throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.");
+    return this.{test::A::_#A#x#isSet} ?{core::int} let final core::int? #t1 = this.{test::A::_#A#x} in #t1{core::int} : throw new _in::LateError::fieldNI("x");
   set x(core::int #t2) → void {
     this.{test::A::_#A#x#isSet} = true;
     this.{test::A::_#A#x} = #t2;

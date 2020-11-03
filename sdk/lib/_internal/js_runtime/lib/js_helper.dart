@@ -48,7 +48,7 @@ import 'dart:_internal' as _symbol_dev;
 import 'dart:_internal'
     show
         EfficientLengthIterable,
-        LateInitializationErrorImpl,
+        LateError,
         MappedIterable,
         IterableElementError,
         SubListIterable;
@@ -3026,5 +3026,4 @@ const kRequiredSentinel = const _Required();
 bool isRequired(Object? value) => identical(kRequiredSentinel, value);
 
 /// Called by generated code to throw a LateInitializationError.
-void throwLateInitializationError(String name) =>
-    throw LateInitializationErrorImpl(name);
+void throwLateInitializationError(String name) => throw LateError(name);

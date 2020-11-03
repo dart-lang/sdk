@@ -5929,14 +5929,11 @@ class InferenceVisitor
           new FunctionNode(
               node.initializer == null
                   ? late_lowering.createGetterBodyWithoutInitializer(
-                      inferrer.coreTypes,
-                      fileOffset,
-                      node.name,
-                      node.type,
-                      'Local',
+                      inferrer.coreTypes, fileOffset, node.name, node.type,
                       createVariableRead: createVariableRead,
                       createIsSetRead: createIsSetRead,
-                      isSetEncoding: isSetEncoding)
+                      isSetEncoding: isSetEncoding,
+                      forField: false)
                   : late_lowering.createGetterWithInitializer(
                       inferrer.coreTypes,
                       fileOffset,
@@ -5976,13 +5973,13 @@ class InferenceVisitor
                             node.name,
                             setterParameter,
                             node.type,
-                            'Local',
                             shouldReturnValue: true,
                             createVariableRead: createVariableRead,
                             createVariableWrite: createVariableWrite,
                             createIsSetRead: createIsSetRead,
                             createIsSetWrite: createIsSetWrite,
-                            isSetEncoding: isSetEncoding)
+                            isSetEncoding: isSetEncoding,
+                            forField: false)
                         : late_lowering.createSetterBody(inferrer.coreTypes,
                             fileOffset, node.name, setterParameter, node.type,
                             shouldReturnValue: true,

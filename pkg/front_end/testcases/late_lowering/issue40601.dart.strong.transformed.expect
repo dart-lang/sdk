@@ -13,7 +13,7 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
     self::A::T? value;
     core::bool #value#isSet = false;
     function #value#get() → self::A::T%
-      return #value#isSet ?{self::A::T%} value{self::A::T%} : throw new _in::LateInitializationErrorImpl::•("Local 'value' has not been initialized.");
+      return #value#isSet ?{self::A::T%} value{self::A::T%} : throw new _in::LateError::localNI("value");
     function #value#set(self::A::T% #t1) → dynamic {
       #value#isSet = true;
       return value = #t1;

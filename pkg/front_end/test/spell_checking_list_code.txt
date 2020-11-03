@@ -20,6 +20,7 @@ accumulating
 acon
 acov
 across
+adi
 affecting
 afterwards
 agree
