@@ -101,7 +101,7 @@ vars = {
 "dart_style_tag": "1.3.9",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "72c69f8659ce8823ce2dde9a4f758b0fa617ab5e",
+  "dartdoc_rev" : "6935dcd8f2d78cf1797e6365b4b71505e6579659",
   "ffi_rev": "a90bd424116fb6f416337db67425171f2dc4c98f",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
