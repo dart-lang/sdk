@@ -16,7 +16,7 @@ class B extends core::Object implements self::A {
     : super core::Object::•()
     ;
   get field() → core::int?
-    return this.{self::B::_#B#field#isSet} ?{core::int?} this.{self::B::_#B#field} : throw new _in::LateInitializationErrorImpl::•("Field 'field' has not been initialized.");
+    return this.{self::B::_#B#field#isSet} ?{core::int?} this.{self::B::_#B#field} : throw new _in::LateError::fieldNI("field");
   set field(core::int? #t1) → void {
     this.{self::B::_#B#field#isSet} = true;
     this.{self::B::_#B#field} = #t1;

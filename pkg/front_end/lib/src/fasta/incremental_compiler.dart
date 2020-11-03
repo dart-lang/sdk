@@ -785,11 +785,47 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     dillLoadedData.loader.currentSourceLoader = userCode.loader;
 
     // Re-use the libraries we've deemed re-usable.
+    List<bool> seenModes = [false, false, false, false];
     for (LibraryBuilder library in reusedLibraries) {
+      seenModes[library.library.nonNullableByDefaultCompiledMode.index] = true;
       userCode.loader.builders[library.importUri] = library;
       if (library.importUri.scheme == "dart" &&
           library.importUri.path == "core") {
         userCode.loader.coreLibrary = library;
+      }
+    }
+    // Check compilation mode up against what we've seen here and set
+    // `hasInvalidNnbdModeLibrary` accordingly.
+    if (c.options.isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+      switch (c.options.nnbdMode) {
+        case NnbdMode.Weak:
+          // Don't expect strong or invalid.
+          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
+          }
+          break;
+        case NnbdMode.Strong:
+          // Don't expect weak or invalid.
+          if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
+          }
+          break;
+        case NnbdMode.Agnostic:
+          // Don't expect strong, weak or invalid.
+          if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
+              seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
+          }
+          break;
+      }
+    } else {
+      // Don't expect strong or invalid.
+      if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
+          seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
+        userCode.loader.hasInvalidNnbdModeLibrary = true;
       }
     }
 
@@ -1595,6 +1631,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // For now just don't initialize from this dill.
             throw const PackageChangedError();
           }
+          // Note: If a library has a NonNullableByDefaultCompiledMode.invalid
+          // we will throw and we won't initialize from it.
+          // That's wanted behavior.
           if (compiledMode !=
               mergeCompilationModeOrThrow(
                   compiledMode, lib.nonNullableByDefaultCompiledMode)) {

@@ -189,9 +189,7 @@ main() {
         var nullExpr = _Expression();
         flow.nullLiteral(nullExpr);
         var expr = _Expression();
-        var successIsReachable =
-            flow.equalityOp_end(expr, nullExpr, _Type('Null'), notEqual: true);
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, nullExpr, _Type('Null'), notEqual: true);
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         expect(flow.promotedType(x).type, 'int');
@@ -214,11 +212,7 @@ main() {
         var nullExpr = _Expression();
         flow.nullLiteral(nullExpr);
         var expr = _Expression();
-        var successIsReachable =
-            flow.equalityOp_end(expr, nullExpr, _Type('Null'), notEqual: true);
-        // The `== null` case is considered reachable due to mixed mode
-        // unsoundness
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, nullExpr, _Type('Null'), notEqual: true);
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         expect(flow.promotedType(x), isNull);
@@ -235,10 +229,8 @@ main() {
         flow.ifStatement_conditionBegin();
         flow.equalityOp_rightBegin(_Expression(), _Type('int?'));
         var expr = _Expression();
-        var successIsReachable = flow.equalityOp_end(
-            expr, _Expression(), _Type('int?'),
+        flow.equalityOp_end(expr, _Expression(), _Type('int?'),
             notEqual: false);
-        expect(successIsReachable, true);
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         flow.ifStatement_elseBegin();
@@ -253,9 +245,7 @@ main() {
         flow.ifStatement_conditionBegin();
         flow.equalityOp_rightBegin(_Expression(), _Type('int?'));
         var expr = _Expression();
-        var successIsReachable = flow
-            .equalityOp_end(expr, _Expression(), _Type('int?'), notEqual: true);
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, _Expression(), _Type('int?'), notEqual: true);
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         flow.ifStatement_elseBegin();
@@ -296,9 +286,7 @@ main() {
         var nullExpr = _Expression();
         flow.nullLiteral(nullExpr);
         var expr = _Expression();
-        var successIsReachable =
-            flow.equalityOp_end(expr, nullExpr, _Type('Null'), notEqual: false);
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, nullExpr, _Type('Null'), notEqual: false);
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         expect(flow.promotedType(x), isNull);
@@ -321,11 +309,7 @@ main() {
         var nullExpr = _Expression();
         flow.nullLiteral(nullExpr);
         var expr = _Expression();
-        var successIsReachable =
-            flow.equalityOp_end(expr, nullExpr, _Type('Null'), notEqual: false);
-        // The `== null` case is considered reachable due to mixed mode
-        // unsoundness
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, nullExpr, _Type('Null'), notEqual: false);
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         expect(flow.promotedType(x), isNull);
@@ -406,9 +390,7 @@ main() {
         flow.equalityOp_rightBegin(null1, _Type('Null'));
         var null2 = _Expression();
         var expr = _Expression();
-        var successIsReachable =
-            flow.equalityOp_end(expr, null2, _Type('Null'));
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, null2, _Type('Null'));
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         flow.ifStatement_elseBegin();
@@ -425,9 +407,7 @@ main() {
         flow.equalityOp_rightBegin(null1, _Type('Null'));
         var null2 = _Expression();
         var expr = _Expression();
-        var successIsReachable =
-            flow.equalityOp_end(expr, null2, _Type('Null'), notEqual: true);
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, null2, _Type('Null'), notEqual: true);
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, false);
         flow.ifStatement_elseBegin();
@@ -444,10 +424,7 @@ main() {
         flow.equalityOp_rightBegin(null1, _Type('Null'));
         var null2 = _Expression();
         var expr = _Expression();
-        var successIsReachable = flow.equalityOp_end(expr, null2, _Type('int'));
-        // The `== null` case is considered reachable due to mixed mode
-        // unsoundness
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, null2, _Type('int'));
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         flow.ifStatement_elseBegin();
@@ -464,11 +441,7 @@ main() {
         flow.equalityOp_rightBegin(null1, _Type('Null'));
         var null2 = _Expression();
         var expr = _Expression();
-        var successIsReachable =
-            flow.equalityOp_end(expr, null2, _Type('int'), notEqual: true);
-        // The `== null` case is considered reachable due to mixed mode
-        // unsoundness
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, null2, _Type('int'), notEqual: true);
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         flow.ifStatement_elseBegin();
@@ -485,11 +458,7 @@ main() {
         flow.equalityOp_rightBegin(null1, _Type('int'));
         var null2 = _Expression();
         var expr = _Expression();
-        var successIsReachable =
-            flow.equalityOp_end(expr, null2, _Type('Null'));
-        // The `== null` case is considered reachable due to mixed mode
-        // unsoundness
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, null2, _Type('Null'));
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         flow.ifStatement_elseBegin();
@@ -506,11 +475,7 @@ main() {
         flow.equalityOp_rightBegin(null1, _Type('int'));
         var null2 = _Expression();
         var expr = _Expression();
-        var successIsReachable =
-            flow.equalityOp_end(expr, null2, _Type('Null'), notEqual: true);
-        // The `== null` case is considered reachable due to mixed mode
-        // unsoundness
-        expect(successIsReachable, true);
+        flow.equalityOp_end(expr, null2, _Type('Null'), notEqual: true);
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         flow.ifStatement_elseBegin();
@@ -1154,9 +1119,7 @@ main() {
       h.assignedVariables((vars) => vars.write(x));
       h.run((flow) {
         h.declare(x, initialized: true);
-        var rhsIsReachable = flow.ifNullExpression_rightBegin(
-            h.variableRead(x)(), _Type('int?'));
-        expect(rhsIsReachable, true);
+        flow.ifNullExpression_rightBegin(h.variableRead(x)(), _Type('int?'));
         expect(flow.isReachable, true);
         flow.write(x, _Type('int'));
         expect(flow.promotedType(x).type, 'int');
@@ -1171,9 +1134,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
-        var rhsIsReachable = flow.ifNullExpression_rightBegin(
-            h.variableRead(x)(), _Type('int?'));
-        expect(rhsIsReachable, true);
+        flow.ifNullExpression_rightBegin(h.variableRead(x)(), _Type('int?'));
         expect(flow.isReachable, true);
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
@@ -1188,9 +1149,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
-        var rhsIsReachable =
-            flow.ifNullExpression_rightBegin(h.expr(), _Type('int?'));
-        expect(rhsIsReachable, true);
+        flow.ifNullExpression_rightBegin(h.expr(), _Type('int?'));
         expect(flow.isReachable, true);
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
@@ -1203,11 +1162,7 @@ main() {
     test('ifNullExpression does not detect when RHS is unreachable', () {
       var h = _Harness();
       h.run((flow) {
-        var rhsIsReachable =
-            flow.ifNullExpression_rightBegin(h.expr(), _Type('int'));
-        // We can't treat the RHS as unreachable because of mixed mode
-        // unsoundness
-        expect(rhsIsReachable, true);
+        flow.ifNullExpression_rightBegin(h.expr(), _Type('int'));
         expect(flow.isReachable, true);
         flow.ifNullExpression_end();
         expect(flow.isReachable, true);
@@ -1218,9 +1173,7 @@ main() {
         () {
       var h = _Harness();
       h.run((flow) {
-        var rhsIsReachable =
-            flow.ifNullExpression_rightBegin(h.expr(), _Type('Null'));
-        expect(rhsIsReachable, true);
+        flow.ifNullExpression_rightBegin(h.expr(), _Type('Null'));
         expect(flow.isReachable, true);
         flow.ifNullExpression_end();
         expect(flow.isReachable, true);
@@ -1267,9 +1220,7 @@ main() {
         var read = _Expression();
         flow.variableRead(read, x);
         var expr = _Expression();
-        var failureReachable =
-            flow.isExpression_end(expr, read, inverted, _Type(tryPromoteType));
-        expect(failureReachable, true);
+        flow.isExpression_end(expr, read, inverted, _Type(tryPromoteType));
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         if (expectedPromotedTypeThen == null) {
@@ -1319,9 +1270,7 @@ main() {
         flow.ifStatement_conditionBegin();
         var subExpr = _Expression();
         var expr = _Expression();
-        var failureReachable =
-            flow.isExpression_end(expr, subExpr, false, _Type('int'));
-        expect(failureReachable, true);
+        flow.isExpression_end(expr, subExpr, false, _Type('int'));
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         flow.ifStatement_elseBegin();
@@ -1337,9 +1286,7 @@ main() {
         flow.ifStatement_conditionBegin();
         var subExpr = _Expression();
         var expr = _Expression();
-        var failureReachable =
-            flow.isExpression_end(expr, subExpr, true, _Type('int'));
-        expect(failureReachable, true);
+        flow.isExpression_end(expr, subExpr, true, _Type('int'));
         flow.ifStatement_thenBegin(expr);
         expect(flow.isReachable, true);
         flow.ifStatement_elseBegin();
@@ -1534,9 +1481,7 @@ main() {
         h.declare(x, initialized: true);
         var varExpr = _Expression();
         flow.variableRead(varExpr, x);
-        var shortIsReachable =
-            flow.nullAwareAccess_rightBegin(varExpr, _Type('int?'));
-        expect(shortIsReachable, true);
+        flow.nullAwareAccess_rightBegin(varExpr, _Type('int?'));
         expect(flow.isReachable, true);
         expect(flow.promotedType(x).type, 'int');
         flow.nullAwareAccess_end();
@@ -1551,9 +1496,7 @@ main() {
         h.declare(x, initialized: true);
         var varExpr = _Expression();
         flow.variableRead(varExpr, x);
-        var shortIsReachable =
-            flow.nullAwareAccess_rightBegin(null, _Type('int?'));
-        expect(shortIsReachable, true);
+        flow.nullAwareAccess_rightBegin(null, _Type('int?'));
         expect(flow.isReachable, true);
         expect(flow.promotedType(x), isNull);
         flow.nullAwareAccess_end();
@@ -1568,11 +1511,7 @@ main() {
         h.declare(x, initialized: true);
         h.promote(x, 'int');
         var lhs = _Expression();
-        var shortIsReachable =
-            flow.nullAwareAccess_rightBegin(lhs, _Type('int'));
-        // We can't treat the short as unreachable because of mixed mode
-        // unsoundness
-        expect(shortIsReachable, true);
+        flow.nullAwareAccess_rightBegin(lhs, _Type('int'));
         expect(flow.isReachable, true);
         expect(flow.promotedType(x).type, 'int');
         flow.write(x, _Type('int?'));
@@ -1587,11 +1526,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
-        var shortIsReachable =
-            flow.nullAwareAccess_rightBegin(_Expression(), _Type('int'));
-        // We can't treat the RHS as unreachable because of mixed mode
-        // unsoundness
-        expect(shortIsReachable, true);
+        flow.nullAwareAccess_rightBegin(_Expression(), _Type('int'));
         expect(flow.isReachable, true);
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');

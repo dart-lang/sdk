@@ -138,6 +138,9 @@ Future<CompilerResult> generateKernelInternal(
           compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
           break;
       }
+      if (kernelTarget.loader.hasInvalidNnbdModeLibrary) {
+        compiledMode = NonNullableByDefaultCompiledMode.Invalid;
+      }
 
       trimmedSummaryComponent.setMainMethodAndMode(
           trimmedSummaryComponent.mainMethodName, false, compiledMode);

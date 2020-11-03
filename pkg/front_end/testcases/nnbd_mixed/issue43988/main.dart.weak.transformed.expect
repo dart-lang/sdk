@@ -1,0 +1,160 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+abstract class _E1&Object&A extends core::Object implements mai::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_E1&Object&A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///main_lib.dart */ method(core::num i, {core::String s = #C1}) → core::String
+    return s;
+}
+abstract class _E1&Object&A&D extends self::_E1&Object&A implements mai::D /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_E1&Object&A&D*
+    : super self::_E1&Object&A::•()
+    ;
+  abstract forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*;
+}
+class E1 extends self::_E1&Object&A&D {
+  synthetic constructor •() → self::E1*
+    : super self::_E1&Object&A&D::•()
+    ;
+  abstract member-signature method method(covariant core::num* i, {core::String* s = #C1}) → core::String*; -> self::_E1&Object&A&D::method
+}
+abstract class _E2&Object&A extends core::Object implements mai::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_E2&Object&A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///main_lib.dart */ method(core::num i, {core::String s = #C1}) → core::String
+    return s;
+}
+class E2 extends self::_E2&Object&A implements mai::D /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::E2*
+    : super self::_E2&Object&A::•()
+    ;
+  abstract forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*;
+}
+abstract class C6 extends mai::C3 implements mai::C4 {
+  synthetic constructor •() → self::C6*
+    : super mai::C3::•()
+    ;
+  abstract forwarding-stub method method2([covariant core::String* a = #C2]) → dynamic;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class C8 extends mai::C5 implements mai::C7 {
+  synthetic constructor •() → self::C8*
+    : super mai::C5::•()
+    ;
+  abstract forwarding-stub method method2([covariant core::String* a = #C2, core::num* b = #C2]) → dynamic;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → mai::Interface
+    : super core::Object::•()
+    ;
+  abstract method method(core::num i) → core::String;
+}
+abstract class Interface2 extends core::Object {
+  synthetic constructor •() → mai::Interface2
+    : super core::Object::•()
+    ;
+  abstract method method(covariant core::int i) → core::String;
+}
+abstract class A extends core::Object implements mai::Interface /*isMixinDeclaration*/  {
+  method method(core::num i, {core::String s = #C1}) → core::String
+    return s;
+}
+abstract class D extends core::Object implements mai::Interface, mai::Interface2 {
+  synthetic constructor •() → mai::D
+    : super core::Object::•()
+    ;
+  abstract forwarding-stub method method(covariant core::num i) → core::String;
+}
+abstract class C1 extends core::Object {
+  synthetic constructor •() → mai::C1
+    : super core::Object::•()
+    ;
+  abstract method method2() → dynamic;
+}
+abstract class C2 extends core::Object {
+  synthetic constructor •() → mai::C2
+    : super core::Object::•()
+    ;
+  abstract method method2([core::String a = #C2]) → dynamic;
+}
+abstract class C3 extends core::Object implements mai::C1, mai::C2 {
+  synthetic constructor •() → mai::C3
+    : super core::Object::•()
+    ;
+  abstract member-signature method method2([core::String a = #C2]) → dynamic; -> mai::C2::method2
+}
+abstract class C4 extends core::Object {
+  synthetic constructor •() → mai::C4
+    : super core::Object::•()
+    ;
+  abstract method method2([covariant core::String a = #C2]) → dynamic;
+}
+abstract class C5 extends mai::C3 implements mai::C4 {
+  synthetic constructor •() → mai::C5
+    : super mai::C3::•()
+    ;
+  abstract forwarding-stub method method2([covariant core::String a = #C2]) → dynamic;
+}
+abstract class C7 extends core::Object {
+  synthetic constructor •() → mai::C7
+    : super core::Object::•()
+    ;
+  abstract method method2([core::String a = #C2, core::num b = #C2]) → dynamic;
+}
+
+constants  {
+  #C1 = "hello"
+  #C2 = null
+}

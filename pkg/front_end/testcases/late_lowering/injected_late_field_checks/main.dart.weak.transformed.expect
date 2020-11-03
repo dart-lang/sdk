@@ -23,7 +23,7 @@ class Class extends core::Object {
     : self2::Class::_#Class#foo#isSet = true, self2::Class::_#Class#foo = foo, super core::Object::•()
     ;
   get /* from org-dartlang-testcase:///patch_lib.dart */ foo() → core::int
-    return this.{self2::Class::_#Class#foo#isSet} ?{core::int} let final core::int? #t1 = this.{self2::Class::_#Class#foo} in #t1{core::int} : throw new _in::LateInitializationErrorImpl::•("Field 'foo' has not been initialized.");
+    return this.{self2::Class::_#Class#foo#isSet} ?{core::int} let final core::int? #t1 = this.{self2::Class::_#Class#foo} in #t1{core::int} : throw new _in::LateError::fieldNI("foo");
   set /* from org-dartlang-testcase:///patch_lib.dart */ foo(core::int #t2) → void {
     this.{self2::Class::_#Class#foo#isSet} = true;
     this.{self2::Class::_#Class#foo} = #t2;

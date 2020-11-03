@@ -162,6 +162,26 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAgnosticWithStrongDillLibrary =
+    messageAgnosticWithStrongDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAgnosticWithStrongDillLibrary = const MessageCode(
+    "AgnosticWithStrongDillLibrary",
+    message:
+        r"""Loaded library is compiled with sound null safety and cannot be used in compilation for agnostic null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAgnosticWithWeakDillLibrary =
+    messageAgnosticWithWeakDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAgnosticWithWeakDillLibrary = const MessageCode(
+    "AgnosticWithWeakDillLibrary",
+    message:
+        r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for agnostic null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5623,6 +5643,14 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
         r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidNnbdDillLibrary = messageInvalidNnbdDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidNnbdDillLibrary = const MessageCode(
+    "InvalidNnbdDillLibrary",
+    message: r"""Trying to use library with invalid null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateInvalidOperator =
     const Template<Message Function(Token token)>(
         messageTemplate:
@@ -8720,6 +8748,16 @@ dependencies supporting null safety are available.""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStrongWithWeakDillLibrary =
+    messageStrongWithWeakDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStrongWithWeakDillLibrary = const MessageCode(
+    "StrongWithWeakDillLibrary",
+    message:
+        r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9687,6 +9725,16 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
     index: 100,
     message: r"""Type 'void' can't have type arguments.""",
     tip: r"""Try removing the type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWeakWithStrongDillLibrary =
+    messageWeakWithStrongDillLibrary;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWeakWithStrongDillLibrary = const MessageCode(
+    "WeakWithStrongDillLibrary",
+    message:
+        r"""Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

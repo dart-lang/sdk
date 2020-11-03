@@ -323,6 +323,18 @@ class SourceLoader extends Loader {
   void registerStrongOptOutLibrary(LibraryBuilder libraryBuilder) {
     _strongOptOutLibraries ??= {};
     _strongOptOutLibraries.add(libraryBuilder);
+    hasInvalidNnbdModeLibrary = true;
+  }
+
+  bool hasInvalidNnbdModeLibrary = false;
+
+  Map<LibraryBuilder, Message> _nnbdMismatchLibraries;
+
+  void registerNnbdMismatchLibrary(
+      LibraryBuilder libraryBuilder, Message message) {
+    _nnbdMismatchLibraries ??= {};
+    _nnbdMismatchLibraries[libraryBuilder] = message;
+    hasInvalidNnbdModeLibrary = true;
   }
 
   @override
@@ -394,6 +406,13 @@ class SourceLoader extends Loader {
             null);
         _strongOptOutLibraries = null;
       }
+    }
+    if (_nnbdMismatchLibraries != null) {
+      for (MapEntry<LibraryBuilder, Message> entry
+          in _nnbdMismatchLibraries.entries) {
+        addProblem(entry.value, -1, noLength, entry.key.fileUri);
+      }
+      _nnbdMismatchLibraries = null;
     }
   }
 

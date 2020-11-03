@@ -765,7 +765,12 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   Member getDispatchTarget(Class class_, Name name, {bool setter: false}) {
     List<Member> list =
         _buildImplementedMembers(class_, infoFor(class_), setters: setter);
-    return ClassHierarchy.findMemberByName(list, name);
+    Member member = ClassHierarchy.findMemberByName(list, name);
+    assert(
+        member == null || !member.isAbstract,
+        "Abstract member $member found as dispatch target "
+        "for $name on $class_");
+    return member;
   }
 
   @override

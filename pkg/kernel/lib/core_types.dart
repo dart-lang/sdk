@@ -96,7 +96,11 @@ class CoreTypes {
   Procedure _asyncErrorWrapperHelperProcedure;
   Procedure _awaitHelperProcedure;
   Procedure _boolFromEnvironment;
-  Constructor _lateInitializationErrorConstructor;
+  Constructor _lateInitializationFieldAssignedDuringInitializationConstructor;
+  Constructor _lateInitializationFieldNotInitializedConstructor;
+  Constructor _lateInitializationLocalNotInitializedConstructor;
+  Constructor _lateInitializationFieldAlreadyInitializedConstructor;
+  Constructor _lateInitializationLocalAlreadyInitializedConstructor;
   Constructor _reachabilityErrorConstructor;
 
   /// The `dart:mirrors` library, or `null` if the component does not use it.
@@ -1226,9 +1230,30 @@ class CoreTypes {
     return result;
   }
 
-  Constructor get lateInitializationErrorConstructor {
-    return _lateInitializationErrorConstructor ??=
-        index.getMember('dart:_internal', 'LateInitializationErrorImpl', '');
+  Constructor
+      get lateInitializationFieldAssignedDuringInitializationConstructor {
+    return _lateInitializationFieldAssignedDuringInitializationConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'fieldADI');
+  }
+
+  Constructor get lateInitializationFieldNotInitializedConstructor {
+    return _lateInitializationFieldNotInitializedConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'fieldNI');
+  }
+
+  Constructor get lateInitializationLocalNotInitializedConstructor {
+    return _lateInitializationLocalNotInitializedConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'localNI');
+  }
+
+  Constructor get lateInitializationFieldAlreadyInitializedConstructor {
+    return _lateInitializationFieldAlreadyInitializedConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'fieldAI');
+  }
+
+  Constructor get lateInitializationLocalAlreadyInitializedConstructor {
+    return _lateInitializationLocalAlreadyInitializedConstructor ??=
+        index.getMember('dart:_internal', 'LateError', 'localAI');
   }
 
   Constructor get reachabilityErrorConstructor {

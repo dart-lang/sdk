@@ -2637,6 +2637,15 @@ NonNullableByDefaultCompiledMode mergeCompilationModeOrThrow(
   if (a == null || a == b) {
     return b;
   }
+
+  // If something is invalid, it should always merge as invalid.
+  if (a == NonNullableByDefaultCompiledMode.Invalid) {
+    return a;
+  }
+  if (b == NonNullableByDefaultCompiledMode.Invalid) {
+    return b;
+  }
+
   if (a == NonNullableByDefaultCompiledMode.Agnostic) {
     return b;
   }

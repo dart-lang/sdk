@@ -10,6 +10,8 @@
 // Run 'pub outdated --mode=null-safety' to determine if versions of your
 // dependencies supporting null safety are available.
 //
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_dill/opt_in_package/lib/opt_in_lib.dart: Error: Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.
+//
 library /*isNonNullableByDefault*/;
 import self as self;
 

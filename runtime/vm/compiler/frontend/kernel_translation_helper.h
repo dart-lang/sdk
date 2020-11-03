@@ -793,7 +793,7 @@ class LibraryHelper {
     if (!bit1 && !bit2) return NNBDCompiledMode::kWeak;
     if (bit1 && !bit2) return NNBDCompiledMode::kStrong;
     if (bit1 && bit2) return NNBDCompiledMode::kAgnostic;
-    // !bit1 && bit2 is unused.
+    if (!bit1 && bit2) return NNBDCompiledMode::kInvalid;
     UNREACHABLE();
   }
 

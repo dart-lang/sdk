@@ -19,10 +19,10 @@ class Class extends core::Object {
     : self::Class::_#Class#field#isSet = true, self::Class::_#Class#field = field, super core::Object::•()
     ;
   get field() → core::int?
-    return this.{self::Class::_#Class#field#isSet} ?{core::int?} this.{self::Class::_#Class#field} : throw new _in::LateInitializationErrorImpl::•("Field 'field' has not been initialized.");
+    return this.{self::Class::_#Class#field#isSet} ?{core::int?} this.{self::Class::_#Class#field} : throw new _in::LateError::fieldNI("field");
   set field(core::int? #t1) → void
     if(this.{self::Class::_#Class#field#isSet})
-      throw new _in::LateInitializationErrorImpl::•("Field 'field' has already been initialized.");
+      throw new _in::LateError::fieldAI("field");
     else {
       this.{self::Class::_#Class#field#isSet} = true;
       this.{self::Class::_#Class#field} = #t1;

@@ -27,7 +27,7 @@ class C extends core::Object {
     if(!this.{self::C::_#C#p2#isSet}) {
       final core::num #t3 = this.{self::C::pi};
       if(this.{self::C::_#C#p2#isSet})
-        throw new _in::LateInitializationErrorImpl::•("Field 'p2' has been assigned during initialization.");
+        throw new _in::LateError::fieldADI("p2");
       this.{self::C::_#C#p2} = #t3;
       this.{self::C::_#C#p2#isSet} = true;
     }
