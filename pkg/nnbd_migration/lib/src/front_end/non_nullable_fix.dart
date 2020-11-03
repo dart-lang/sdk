@@ -36,7 +36,7 @@ class NonNullableFix {
       '${_intendedMinimumSdkVersion.major}.${_intendedMinimumSdkVersion.minor}';
 
   static final String _intendedSdkVersionConstraint =
-      '>=$_intendedMinimumSdkVersion <2.12.0';
+      '>=$_intendedMinimumSdkVersion <3.0.0';
 
   static final List<HttpPreviewServer> _allServers = [];
 

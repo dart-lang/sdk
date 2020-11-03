@@ -432,7 +432,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
           '''
 name: test
 environment:
-  sdk: '${migrated ? '>=2.12.0-0 <2.12.0' : '>=2.6.0 <3.0.0'}'
+  sdk: '${migrated ? '>=2.12.0-0 <3.0.0' : '>=2.6.0 <3.0.0'}'
 ''',
       '.dart_tool/package_config.json':
           packageConfigText ?? _getPackageConfigText(migrated: migrated),
@@ -1794,7 +1794,7 @@ environment:
 name: test
 environment:
   foo: 1
-  sdk: '>=2.12.0-0 <2.12.0'
+  sdk: '>=2.12.0-0 <3.0.0'
 '''));
   }
 
@@ -1834,6 +1834,27 @@ environment:
             packageConfigText: _getPackageConfigText(migrated: false)));
   }
 
+  test_pubspec_has_unusual_max_sdk_constraint() async {
+    // No one should be using a weird max SDK constraint like this.  If they are
+    // doing so, we'll fix it to 3.0.0.
+    var projectContents = simpleProject(pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.6.0 <2.17.4'
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0-0 <3.0.0'
+'''));
+  }
+
   test_pubspec_is_missing_environment() async {
     var projectContents = simpleProject(pubspecText: '''
 name: test
@@ -1847,7 +1868,7 @@ name: test
         // This is strange-looking, but valid.
         '''
 environment:
-  sdk: '>=2.12.0-0 <2.12.0'
+  sdk: '>=2.12.0-0 <3.0.0'
 
 name: test
 '''));
