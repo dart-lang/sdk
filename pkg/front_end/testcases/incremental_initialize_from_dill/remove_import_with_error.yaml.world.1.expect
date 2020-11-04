@@ -1,4 +1,12 @@
-main = <No Member>;
+main = mai::main;
+//
+// Problems in component:
+//
+// org-dartlang-test:///b.dart:14:7: Error: 'C' can't implement both 'I<int>' and 'I<String>'
+//  - 'I' is from 'org-dartlang-test:///b.dart'.
+// class C extends A implements B {}
+//       ^
+//
 library bLibrary from "org-dartlang-test:///b.dart" as bLi {
 
   class I<T extends dart.core::Object* = dynamic> extends dart.core::Object {

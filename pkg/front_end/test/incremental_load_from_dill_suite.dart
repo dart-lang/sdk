@@ -508,6 +508,8 @@ class NewWorldTest {
         Uri uri = base.resolve(filename);
         if (filename == ".packages") {
           packagesUri = uri;
+        } else if (filename == ".dart_tool/package_config.json") {
+          packagesUri = uri;
         }
         if (world["enableStringReplacement"] == true) {
           data = doStringReplacements(data);
@@ -1065,6 +1067,7 @@ class NewWorldTest {
 
 Result checkNNBDSettings(Component component) {
   NonNullableByDefaultCompiledMode mode = component.mode;
+  if (mode == NonNullableByDefaultCompiledMode.Invalid) return null;
   for (Library lib in component.libraries) {
     if (mode == lib.nonNullableByDefaultCompiledMode) continue;
 
@@ -1574,16 +1577,18 @@ String nodeToString(TreeNode node) {
   return '$buffer';
 }
 
-String componentToStringSdkFiltered(Component node) {
+String componentToStringSdkFiltered(Component component) {
   Component c = new Component();
   List<Uri> dartUris = new List<Uri>();
-  for (Library lib in node.libraries) {
+  for (Library lib in component.libraries) {
     if (lib.importUri.scheme == "dart") {
       dartUris.add(lib.importUri);
     } else {
       c.libraries.add(lib);
     }
   }
+  c.setMainMethodAndMode(component.mainMethodName, true, component.mode);
+  c.problemsAsJson = component.problemsAsJson;
 
   StringBuffer s = new StringBuffer();
   s.write(componentToString(c));
