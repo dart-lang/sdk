@@ -32,6 +32,9 @@ Future<void> generateNative({
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
     final sourcePath = path.canonicalize(path.normalize(sourceFile));
+    if (packages != null) {
+      packages = path.canonicalize(path.normalize(packages));
+    }
     final Kind outputKind = {
       'aot': Kind.aot,
       'exe': Kind.exe,
