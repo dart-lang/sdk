@@ -4,8 +4,6 @@
 
 library fasta.source_loader;
 
-import 'dart:async' show Future;
-
 import 'dart:convert' show utf8;
 
 import 'dart:typed_data' show Uint8List;

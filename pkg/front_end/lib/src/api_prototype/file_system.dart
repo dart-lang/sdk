@@ -4,8 +4,6 @@
 
 library front_end.file_system;
 
-import 'dart:async';
-
 /// Abstract interface to file system operations.
 ///
 /// All front end interaction with the file system goes through this interface;

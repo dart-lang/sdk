@@ -860,7 +860,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           isStatic: true,
           initializer: literal,
           fileUri: cls.fileUri,
-          reference: referenceFrom?.reference)
+          getterReference: referenceFrom?.getterReference,
+          setterReference: referenceFrom?.setterReference)
         ..fileOffset = cls.fileOffset;
       cls.addField(field);
       constructorsField = new DillFieldBuilder(field, this);

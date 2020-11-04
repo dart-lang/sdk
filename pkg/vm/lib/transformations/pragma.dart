@@ -66,7 +66,8 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
     if (pragmaConstant == null) return null;
 
     String pragmaName;
-    Constant name = pragmaConstant.fieldValues[coreTypes.pragmaName.reference];
+    Constant name =
+        pragmaConstant.fieldValues[coreTypes.pragmaName.getterReference];
     if (name is StringConstant) {
       pragmaName = name.value;
     } else {
@@ -74,7 +75,7 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
     }
 
     Constant options =
-        pragmaConstant.fieldValues[coreTypes.pragmaOptions.reference];
+        pragmaConstant.fieldValues[coreTypes.pragmaOptions.getterReference];
     assert(options != null);
 
     switch (pragmaName) {

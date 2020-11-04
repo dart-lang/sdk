@@ -4,8 +4,6 @@
 
 library fasta.testing.suite;
 
-import 'dart:async' show Future;
-
 import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show Directory, File, Platform;

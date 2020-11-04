@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.41.0';
+const String vmServiceVersion = '3.42.0';
 
 /// @optional
 const String optional = 'optional';
@@ -733,6 +733,12 @@ abstract class VmServiceInterface {
   /// The `getStack` RPC is used to retrieve the current execution stack and
   /// message queue for an isolate. The isolate does not need to be paused.
   ///
+  /// If `limit` is provided, up to `limit` frames from the top of the stack
+  /// will be returned. If the stack depth is smaller than `limit` the entire
+  /// stack is returned. Note: this limit also applies to the
+  /// `asyncCausalFrames` and `awaiterFrames` stack representations in the
+  /// `Stack` response.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -740,7 +746,7 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Stack> getStack(String isolateId);
+  Future<Stack> getStack(String isolateId, {int limit});
 
   /// The `getSupportedProtocols` RPC is used to determine which protocols are
   /// supported by the current server.
@@ -1344,6 +1350,7 @@ class VmServerConnection {
         case 'getStack':
           response = await _serviceImplementation.getStack(
             params['isolateId'],
+            limit: params['limit'],
           );
           break;
         case 'getSupportedProtocols':
@@ -1798,8 +1805,10 @@ class VmService implements VmServiceInterface {
       _call('getProcessMemoryUsage');
 
   @override
-  Future<Stack> getStack(String isolateId) =>
-      _call('getStack', {'isolateId': isolateId});
+  Future<Stack> getStack(String isolateId, {int limit}) => _call('getStack', {
+        'isolateId': isolateId,
+        if (limit != null) 'limit': limit,
+      });
 
   @override
   Future<ProtocolList> getSupportedProtocols() =>
@@ -6664,23 +6673,40 @@ class SourceReportRange {
       'compiled: ${compiled}]';
 }
 
+/// The `Stack` class represents the various components of a Dart stack trace
+/// for a given isolate.
+///
+/// See [getStack].
 class Stack extends Response {
   static Stack parse(Map<String, dynamic> json) =>
       json == null ? null : Stack._fromJson(json);
 
+  /// A list of frames that make up the synchronous stack, rooted at the message
+  /// loop (i.e., the frames since the last asynchronous gap or the isolate's
+  /// entrypoint).
   List<Frame> frames;
 
+  /// A list of frames representing the asynchronous path. Comparable to
+  /// `awaiterFrames`, if provided, although some frames may be different.
   @optional
   List<Frame> asyncCausalFrames;
 
+  /// A list of frames representing the asynchronous path. Comparable to
+  /// `asyncCausalFrames`, if provided, although some frames may be different.
   @optional
   List<Frame> awaiterFrames;
 
+  /// A list of messages in the isolate's message queue.
   List<Message> messages;
+
+  /// Specifies whether or not this stack is complete or has been artificially
+  /// truncated.
+  bool truncated;
 
   Stack({
     @required this.frames,
     @required this.messages,
+    @required this.truncated,
     this.asyncCausalFrames,
     this.awaiterFrames,
   });
@@ -6698,6 +6724,7 @@ class Stack extends Response {
             createServiceObject(json['awaiterFrames'], const ['Frame']));
     messages = List<Message>.from(
         createServiceObject(json['messages'], const ['Message']) ?? []);
+    truncated = json['truncated'];
   }
 
   @override
@@ -6707,6 +6734,7 @@ class Stack extends Response {
     json.addAll({
       'frames': frames.map((f) => f.toJson()).toList(),
       'messages': messages.map((f) => f.toJson()).toList(),
+      'truncated': truncated,
     });
     _setIfNotNull(json, 'asyncCausalFrames',
         asyncCausalFrames?.map((f) => f?.toJson())?.toList());
@@ -6715,8 +6743,9 @@ class Stack extends Response {
     return json;
   }
 
-  String toString() =>
-      '[Stack type: ${type}, frames: ${frames}, messages: ${messages}]';
+  String toString() => '[Stack ' //
+      'type: ${type}, frames: ${frames}, messages: ${messages}, ' //
+      'truncated: ${truncated}]';
 }
 
 /// The `Success` type is used to indicate that an operation completed

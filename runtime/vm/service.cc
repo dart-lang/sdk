@@ -12,6 +12,7 @@
 #include "platform/globals.h"
 
 #include "platform/unicode.h"
+#include "platform/utils.h"
 #include "vm/base64.h"
 #include "vm/canonical_tables.h"
 #include "vm/compiler/jit/compiler.h"
@@ -1526,6 +1527,7 @@ static bool GetScripts(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* get_stack_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
+    new UIntParameter("limit", false),
     NULL,
 };
 
@@ -1533,7 +1535,15 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
     return true;
   }
-
+  intptr_t limit = 0;
+  bool has_limit = js->HasParam("limit");
+  if (has_limit) {
+    limit = UIntParameter::Parse(js->LookupParam("limit"));
+    if (limit < 0) {
+      PrintInvalidParamError(js, "limit");
+      return true;
+    }
+  }
   Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   DebuggerStackTrace* async_causal_stack =
@@ -1546,7 +1556,9 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   {
     JSONArray jsarr(&jsobj, "frames");
 
-    intptr_t num_frames = stack->Length();
+    intptr_t num_frames =
+        has_limit ? Utils::Minimum(stack->Length(), limit) : stack->Length();
+
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
@@ -1557,7 +1569,9 @@ static bool GetStack(Thread* thread, JSONStream* js) {
 
   if (async_causal_stack != NULL) {
     JSONArray jsarr(&jsobj, "asyncCausalFrames");
-    intptr_t num_frames = async_causal_stack->Length();
+    intptr_t num_frames =
+        has_limit ? Utils::Minimum(async_causal_stack->Length(), limit)
+                  : async_causal_stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = async_causal_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
@@ -1568,7 +1582,9 @@ static bool GetStack(Thread* thread, JSONStream* js) {
 
   if (awaiter_stack != NULL) {
     JSONArray jsarr(&jsobj, "awaiterFrames");
-    intptr_t num_frames = awaiter_stack->Length();
+    intptr_t num_frames = has_limit
+                              ? Utils::Minimum(awaiter_stack->Length(), limit)
+                              : awaiter_stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = awaiter_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
@@ -1576,6 +1592,14 @@ static bool GetStack(Thread* thread, JSONStream* js) {
       jsobj.AddProperty("index", i);
     }
   }
+
+  const bool truncated =
+      (has_limit &&
+       (limit < stack->Length() ||
+        (async_causal_stack != nullptr &&
+         limit < async_causal_stack->Length()) ||
+        (awaiter_stack != nullptr && limit < awaiter_stack->Length())));
+  jsobj.AddProperty("truncated", truncated);
 
   {
     MessageHandler::AcquiredQueues aq(isolate->message_handler());

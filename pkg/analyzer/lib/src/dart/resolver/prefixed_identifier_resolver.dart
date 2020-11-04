@@ -32,10 +32,60 @@ class PrefixedIdentifierResolver {
       hasWrite: false,
     );
 
-    var identifier = node.identifier;
-    identifier.staticElement = result.readElement;
+    var element = result.readElement;
 
-    _resolve2(node);
+    var identifier = node.identifier;
+    identifier.staticElement = element;
+
+    if (element is ExtensionElement) {
+      _setExtensionIdentifierType(node);
+      return;
+    }
+
+    if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
+      _recordStaticType(identifier, NeverTypeImpl.instance);
+      _recordStaticType(node, NeverTypeImpl.instance);
+      return;
+    }
+
+    DartType type = DynamicTypeImpl.instance;
+    if (element is ClassElement) {
+      if (_isExpressionIdentifier(node)) {
+        var type = _typeProvider.typeType;
+        node.staticType = type;
+        identifier.staticType = type;
+      }
+      return;
+    } else if (element is DynamicElementImpl) {
+      var type = _typeProvider.typeType;
+      node.staticType = type;
+      identifier.staticType = type;
+      return;
+    } else if (element is FunctionTypeAliasElement) {
+      if (node.parent is TypeName) {
+        // no type
+      } else {
+        var type = _typeProvider.typeType;
+        node.staticType = type;
+        identifier.staticType = type;
+      }
+      return;
+    } else if (element is MethodElement) {
+      type = element.type;
+    } else if (element is PropertyAccessorElement) {
+      type = _getTypeOfProperty(element);
+    } else if (element is ExecutableElement) {
+      type = element.type;
+    } else if (element is VariableElement) {
+      type = element.type;
+    } else if (result.functionTypeCallType != null) {
+      type = result.functionTypeCallType;
+    }
+
+    type = _inferenceHelper.inferTearOff(node, identifier, type);
+
+    _recordStaticType(identifier, type);
+    _recordStaticType(node, type);
   }
 
   /// Return the type that should be recorded for a node that resolved to the given accessor.
@@ -101,60 +151,6 @@ class PrefixedIdentifierResolver {
   /// TODO(scheglov) this is duplicate
   void _recordStaticType(Expression expression, DartType type) {
     _inferenceHelper.recordStaticType(expression, type);
-  }
-
-  void _resolve2(PrefixedIdentifier node) {
-    SimpleIdentifier prefixedIdentifier = node.identifier;
-    Element staticElement = prefixedIdentifier.staticElement;
-
-    if (staticElement is ExtensionElement) {
-      _setExtensionIdentifierType(node);
-      return;
-    }
-
-    if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
-      _recordStaticType(prefixedIdentifier, NeverTypeImpl.instance);
-      _recordStaticType(node, NeverTypeImpl.instance);
-      return;
-    }
-
-    DartType staticType = DynamicTypeImpl.instance;
-    if (staticElement is ClassElement) {
-      if (_isExpressionIdentifier(node)) {
-        var type = _typeProvider.typeType;
-        node.staticType = type;
-        node.identifier.staticType = type;
-      }
-      return;
-    } else if (staticElement is DynamicElementImpl) {
-      var type = _typeProvider.typeType;
-      node.staticType = type;
-      node.identifier.staticType = type;
-      return;
-    } else if (staticElement is FunctionTypeAliasElement) {
-      if (node.parent is TypeName) {
-        // no type
-      } else {
-        var type = _typeProvider.typeType;
-        node.staticType = type;
-        node.identifier.staticType = type;
-      }
-      return;
-    } else if (staticElement is MethodElement) {
-      staticType = staticElement.type;
-    } else if (staticElement is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(staticElement);
-    } else if (staticElement is ExecutableElement) {
-      staticType = staticElement.type;
-    } else if (staticElement is VariableElement) {
-      staticType = staticElement.type;
-    }
-
-    staticType =
-        _inferenceHelper.inferTearOff(node, node.identifier, staticType);
-
-    _recordStaticType(prefixedIdentifier, staticType);
-    _recordStaticType(node, staticType);
   }
 
   /// TODO(scheglov) this is duplicate

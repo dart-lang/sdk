@@ -126,7 +126,7 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
       this.addMethod, Set<Selector> dynamicSelectors, this.coreTypes, this.info)
       : tagNumberField = tagNumberClass.fields
             .firstWhere((f) => f.name.text == 'tagNumber')
-            .reference {
+            .getterReference {
     dynamicNames.addAll(dynamicSelectors.map((sel) => sel.target.text));
   }
 

@@ -1435,6 +1435,15 @@ class HintCode extends AnalyzerErrorCode {
           "as an operand of a logical operator.");
 
   /**
+   * This hint indicates that a null literal is null-checked with `!`, but null
+   * is never not null.
+   */
+  static const HintCode NULL_CHECK_ALWAYS_FAILS = HintCode(
+      'NULL_CHECK_ALWAYS_FAILS',
+      "This null-check will always throw an exception because the expression "
+          "will always evaluate to 'null'.");
+
+  /**
    * No parameters.
    */
   // #### Description

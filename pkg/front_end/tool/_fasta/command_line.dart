@@ -4,8 +4,6 @@
 
 library fasta.tool.command_line;
 
-import 'dart:async' show Future;
-
 import 'dart:io' show exit;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;

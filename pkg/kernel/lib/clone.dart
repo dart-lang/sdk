@@ -680,7 +680,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri,
-        reference: referenceFrom?.reference)
+        getterReference: referenceFrom?.getterReference,
+        setterReference: referenceFrom?.setterReference)
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[]

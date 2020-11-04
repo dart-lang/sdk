@@ -7,7 +7,7 @@
 /// reload on the running program.
 library front_end.incremental.hot_reload_e2e_test;
 
-import 'dart:async' show Completer, Future;
+import 'dart:async' show Completer;
 
 import 'dart:convert' show LineSplitter, utf8;
 

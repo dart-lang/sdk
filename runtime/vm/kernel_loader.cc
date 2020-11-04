@@ -2196,7 +2196,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
   ASSERT(field.NeedsGetter());
 
-  const String& getter_name = H.DartGetterName(field_helper->canonical_name_);
+  const String& getter_name =
+      H.DartGetterName(field_helper->canonical_name_getter_);
   const Object& script_class =
       ClassForScriptAt(klass, field_helper->source_uri_index_);
   Function& getter = Function::ZoneHandle(
@@ -2229,7 +2230,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   if (field.NeedsSetter()) {
     // Only static fields can be const.
     ASSERT(!field_helper->IsConst());
-    const String& setter_name = H.DartSetterName(field_helper->canonical_name_);
+    const String& setter_name =
+        H.DartSetterName(field_helper->canonical_name_setter_);
     Function& setter = Function::ZoneHandle(
         Z, Function::New(setter_name, FunctionLayout::kImplicitSetter,
                          field_helper->IsStatic(),

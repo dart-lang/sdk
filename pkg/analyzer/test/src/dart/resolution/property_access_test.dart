@@ -124,6 +124,20 @@ void f(A a) {
     }
   }
 
+  test_functionType_call_read() async {
+    await assertNoErrorsInCode('''
+void f(int Function(String) a) {
+  (a).call;
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('call;'),
+      element: null,
+      type: 'int Function(String)',
+    );
+  }
+
   test_instanceCreation_read() async {
     await assertNoErrorsInCode('''
 class A {

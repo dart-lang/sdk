@@ -69,7 +69,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.6.0",
-  "async_rev": "6d2de25f208b011d79d056115256d3840229723b",
+  "async_rev": "695b3ac280f107c84adf7488743abfdfaaeea68f",
   "bazel_worker_rev": "26680d5e249b249c7216ab2fed0ac8ed4ee285c5",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
@@ -101,7 +101,7 @@ vars = {
 "dart_style_tag": "1.3.9",  # Please see the note above before updating.
 
   "chromedriver_tag": "83.0.4103.39",
-  "dartdoc_rev" : "72c69f8659ce8823ce2dde9a4f758b0fa617ab5e",
+  "dartdoc_rev" : "6935dcd8f2d78cf1797e6365b4b71505e6579659",
   "ffi_rev": "a90bd424116fb6f416337db67425171f2dc4c98f",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
@@ -147,7 +147,7 @@ vars = {
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
   "source_span_rev": "cc7c4288a83f71ecef3414199947b52a8c112c65",
   "sse_tag": "e5cf68975e8e87171a3dc297577aa073454a91dc",
-  "stack_trace_tag": "45319bfd2a6da228d8c32b06e1da02ad199373c7",
+  "stack_trace_tag": "c9c867fa9d5b9c8a059e33d3efe759698aa49d60",
   "stagehand_tag": "v3.3.9",
   "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",

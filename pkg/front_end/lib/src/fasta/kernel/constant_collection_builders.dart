@@ -191,7 +191,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
                 evaluator.unmodifiableSetMap.enclosingClass.reference, [
               elementType
             ], <Reference, Constant>{
-              evaluator.unmodifiableSetMap.reference: map
+              evaluator.unmodifiableSetMap.getterReference: map
             }));
       } else {
         return evaluator.lowerSetConstant(result);

@@ -613,6 +613,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _deprecatedVerifier.postfixExpression(node);
+    if (node.operand.staticType?.isDartCoreNull ?? false) {
+      _errorReporter.reportErrorForNode(HintCode.NULL_CHECK_ALWAYS_FAILS, node);
+    }
     super.visitPostfixExpression(node);
   }
 

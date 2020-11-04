@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 49;
+  UInt32 formatVersion = 50;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -353,7 +353,8 @@ abstract type Member extends Node {}
 
 type Field extends Member {
   Byte tag = 4;
-  CanonicalNameReference canonicalName;
+  CanonicalNameReference canonicalNameGetter;
+  CanonicalNameReference canonicalNameSetter;
   // An absolute path URI to the .dart file from which the field was created.
   UriReference fileUri;
   FileOffset fileOffset;

@@ -45,7 +45,8 @@ class VmConstantsBackend extends ConstantsBackend {
       constant.keyType,
       constant.valueType,
     ], <Reference, Constant>{
-      kvPairListField.reference: kvListConstant,
+      // We use getterReference as we refer to the field itself.
+      kvPairListField.getterReference: kvListConstant,
     });
   }
 }

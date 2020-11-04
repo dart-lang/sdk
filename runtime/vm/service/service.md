@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.41
+# Dart VM Service Protocol 3.42
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.41_ of the Dart VM Service Protocol. This
+This document describes of _version 3.42_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -995,11 +995,16 @@ removal or addition of any bucket.
 ### getStack
 
 ```
-Stack|Sentinel getStack(string isolateId)
+Stack|Sentinel getStack(string isolateId, int limit [optional])
 ```
 
 The _getStack_ RPC is used to retrieve the current execution stack and
 message queue for an isolate. The isolate does not need to be paused.
+
+If _limit_ is provided, up to _limit_ frames from the top of the stack will be
+returned. If the stack depth is smaller than _limit_ the entire stack is
+returned. Note: this limit also applies to the `asyncCausalFrames` and
+`awaiterFrames` stack representations in the _Stack_ response.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -3646,12 +3651,32 @@ and therefore will not contain a _type_ property.
 
 ```
 class Stack extends Response {
+  // A list of frames that make up the synchronous stack, rooted at the message
+  // loop (i.e., the frames since the last asynchronous gap or the isolate's
+  // entrypoint).
   Frame[] frames;
+
+  // A list of frames representing the asynchronous path. Comparable to
+  // `awaiterFrames`, if provided, although some frames may be different.
   Frame[] asyncCausalFrames [optional];
+
+  // A list of frames representing the asynchronous path. Comparable to
+  // `asyncCausalFrames`, if provided, although some frames may be different.
   Frame[] awaiterFrames [optional];
+
+  // A list of messages in the isolate's message queue.
   Message[] messages;
+
+  // Specifies whether or not this stack is complete or has been artificially
+  // truncated.
+  bool truncated;
 }
 ```
+
+The _Stack_ class represents the various components of a Dart stack trace for a
+given isolate.
+
+See [getStack](#getStack).
 
 ### ExceptionPauseMode
 
@@ -3921,5 +3946,6 @@ version | comments
 3.39 | Removed the following deprecated RPCs and objects: `getClientName`, `getWebSocketTarget`, `setClientName`, `requireResumeApproval`, `ClientName`, and `WebSocketTarget`.
 3.40 | Added `IsolateFlag` object and `isolateFlags` property to `Isolate`.
 3.41 | Added `PortList` object, `ReceivePort` `InstanceKind`, and `getPorts` RPC.
+3.42 | Added `limit` optional parameter to `getStack` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

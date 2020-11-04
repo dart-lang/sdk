@@ -332,6 +332,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final nativeFunctionType = InterfaceType(
         nativeFunctionClass, Nullability.legacy, node.arguments.types);
     var name = Name("_#ffiCallback${callbackCount++}", currentLibrary);
+    var lookupField = currentLibraryIndex?.lookupField(name.text);
     final Field field = Field(name,
         type: InterfaceType(
             pointerClass, Nullability.legacy, [nativeFunctionType]),
@@ -345,7 +346,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         isStatic: true,
         isFinal: true,
         fileUri: currentLibrary.fileUri,
-        reference: currentLibraryIndex?.lookupField(name.text)?.reference)
+        getterReference: lookupField?.getterReference,
+        setterReference: lookupField?.setterReference)
       ..fileOffset = node.fileOffset;
     currentLibrary.addField(field);
     return StaticGet(field);

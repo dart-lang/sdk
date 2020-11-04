@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/io.dart' show readBytesFromFile;
 
 import 'package:testing/testing.dart'
-    show ChainContext, Future, Result, Step, TestDescription;
+    show ChainContext, Result, Step, TestDescription;
 
 class ReadFile {
   final Uri uri;

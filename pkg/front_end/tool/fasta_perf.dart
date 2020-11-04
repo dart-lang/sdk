@@ -5,7 +5,6 @@
 /// An entrypoint used to run portions of fasta and measure its performance.
 library front_end.tool.fasta_perf;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';

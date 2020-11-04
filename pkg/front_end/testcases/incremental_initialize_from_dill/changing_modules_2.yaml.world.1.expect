@@ -6,6 +6,7 @@ library from "package:example/a.dart" as a {
 }
 library from "package:foo/foo.dart" as foo {
 additionalExports = (a::example,
+  a::example,
   a::a)
 
   export "package:example/a.dart";

@@ -4,8 +4,6 @@
 
 library fasta.test.fast_strong_test;
 
-import 'dart:async' show Future;
-
 import 'dart:io' show Platform;
 
 import 'testing/suite.dart';

@@ -549,7 +549,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         _writeNodeMetadataImpl(component, componentOffset);
       }
       libraryOffsets = <int>[];
-      CanonicalName main = getCanonicalNameOfMember(component.mainMethod);
+      CanonicalName main = getCanonicalNameOfMemberGetter(component.mainMethod);
       if (main != null) {
         checkCanonicalName(main);
       }
@@ -749,7 +749,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     assert(_binaryOffsetForConstantTable >= 0);
     writeUInt32(_binaryOffsetForConstantTable);
 
-    CanonicalName main = getCanonicalNameOfMember(component.mainMethod);
+    CanonicalName main = getCanonicalNameOfMemberGetter(component.mainMethod);
     if (main == null) {
       writeUInt32(0);
     } else {
@@ -840,8 +840,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeNullAllowedInstanceMemberReference(Reference reference) {
     writeNullAllowedReference(reference);
-    Member member = reference?.asMember;
-    writeNullAllowedReference(member?.memberSignatureOrigin?.reference);
+    writeNullAllowedReference(
+        getMemberReferenceGetter(reference?.asMember?.memberSignatureOrigin));
   }
 
   void writeNullAllowedReference(Reference reference) {
@@ -859,8 +859,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeNonNullInstanceMemberReference(Reference reference) {
     writeNonNullReference(reference);
-    Member member = reference.asMember;
-    writeNullAllowedReference(member?.memberSignatureOrigin?.reference);
+    writeNullAllowedReference(
+        getMemberReferenceGetter(reference.asMember?.memberSignatureOrigin));
   }
 
   void writeNonNullReference(Reference reference) {
@@ -1167,7 +1167,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     enterScope(memberScope: true);
     writeByte(Tag.Constructor);
-    writeNonNullCanonicalNameReference(getCanonicalNameOfMember(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfMemberGetter(node));
     writeUriReference(node.fileUri);
     writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
@@ -1222,7 +1222,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     enterScope(memberScope: true);
     writeByte(Tag.Procedure);
-    writeNonNullCanonicalNameReference(getCanonicalNameOfMember(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfMemberGetter(node));
     writeUriReference(node.fileUri);
     writeOffset(node.startFileOffset);
     writeOffset(node.fileOffset);
@@ -1246,12 +1246,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitField(Field node) {
-    if (node.canonicalName == null) {
+    if (node.getterCanonicalName == null || node.setterCanonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
     enterScope(memberScope: true);
     writeByte(Tag.Field);
-    writeNonNullCanonicalNameReference(getCanonicalNameOfMember(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfMemberGetter(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfMemberSetter(node));
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
@@ -1273,7 +1274,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         typeParameters: node.typeParameters,
         memberScope: true,
         variableScope: true);
-    writeNonNullCanonicalNameReference(getCanonicalNameOfMember(node));
+    writeNonNullCanonicalNameReference(getCanonicalNameOfMemberGetter(node));
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);

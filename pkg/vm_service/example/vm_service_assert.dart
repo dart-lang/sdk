@@ -1105,6 +1105,7 @@ vms.Stack assertStack(vms.Stack obj) {
   assertString(obj.type);
   assertListOfFrame(obj.frames);
   assertListOfMessage(obj.messages);
+  assertBool(obj.truncated);
   return obj;
 }
 

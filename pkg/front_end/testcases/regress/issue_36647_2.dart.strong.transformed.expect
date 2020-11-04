@@ -2,6 +2,7 @@ library;
 import self as self;
 import "issue_36647_2_lib1.dart" as iss;
 additionalExports = (iss::foo,
+  iss::foo,
   iss::bar,
   iss::baz)
 

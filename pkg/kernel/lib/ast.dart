@@ -210,7 +210,12 @@ abstract class NamedNode extends TreeNode {
 
   NamedNode(Reference reference)
       : this.reference = reference ?? new Reference() {
-    this.reference.node = this;
+    if (this is Field) {
+      Field me = this;
+      me.getterReference.node = this;
+    } else {
+      this.reference.node = this;
+    }
   }
 
   CanonicalName get canonicalName => reference?.canonicalName;
@@ -537,7 +542,10 @@ class Library extends NamedNode
     }
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
-      canonicalName.getChildFromField(field).bindTo(field.reference);
+      canonicalName.getChildFromField(field).bindTo(field.getterReference);
+      canonicalName
+          .getChildFromFieldSetter(field)
+          .bindTo(field.setterReference);
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
@@ -1181,7 +1189,10 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
-      canonicalName.getChildFromField(member).bindTo(member.reference);
+      canonicalName.getChildFromField(member).bindTo(member.getterReference);
+      canonicalName
+          .getChildFromFieldSetter(member)
+          .bindTo(member.setterReference);
     }
     for (int i = 0; i < procedures.length; ++i) {
       Procedure member = procedures[i];
@@ -1659,6 +1670,16 @@ class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   Expression initializer; // May be null.
+  final Reference setterReference;
+  @Deprecated("Use the specific getterReference/setterReference instead")
+  Reference get reference => super.reference;
+
+  Reference get getterReference => super.reference;
+  @Deprecated(
+      "Use the specific getterCanonicalName/setterCanonicalName instead")
+  CanonicalName get canonicalName => reference?.canonicalName;
+  CanonicalName get getterCanonicalName => getterReference?.canonicalName;
+  CanonicalName get setterCanonicalName => setterReference?.canonicalName;
 
   Field(Name name,
       {this.type: const DynamicType(),
@@ -1672,8 +1693,14 @@ class Field extends Member {
       bool isLate: false,
       int transformerFlags: 0,
       Uri fileUri,
-      Reference reference})
-      : super(name, fileUri, reference) {
+      Reference getterReference,
+      Reference setterReference})
+      :
+        // TODO(jensj): Maybe don't create one for final fields?
+        // ('final' is a mutable setting though).
+        this.setterReference = setterReference ?? new Reference(),
+        super(name, fileUri, getterReference) {
+    this.setterReference.node = this;
     assert(type != null);
     initializer?.parent = this;
     this.isCovariant = isCovariant;
@@ -1687,6 +1714,12 @@ class Field extends Member {
             !isConst &&
             (!isFinal || (isLate && initializer == null)));
     this.transformerFlags = transformerFlags;
+  }
+
+  @override
+  void _relinkNode() {
+    super._relinkNode();
+    this.setterReference.node = this;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -1843,6 +1876,11 @@ class Field extends Member {
 
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(getterReference);
   }
 }
 
@@ -2073,7 +2111,7 @@ class RedirectingFactoryConstructor extends Member {
   void set target(Member member) {
     assert(member is Constructor ||
         (member is Procedure && member.kind == ProcedureKind.Factory));
-    targetReference = getMemberReference(member);
+    targetReference = getMemberReferenceGetter(member);
   }
 
   R accept<R>(MemberVisitor<R> v) => v.visitRedirectingFactoryConstructor(this);
@@ -2173,24 +2211,31 @@ class Procedure extends Member {
       Member forwardingStubSuperTarget,
       Member forwardingStubInterfaceTarget,
       Member memberSignatureOrigin})
-      : this._byReferenceRenamed(name, kind, function,
-            isAbstract: isAbstract,
-            isStatic: isStatic,
-            isExternal: isExternal,
-            isConst: isConst,
-            isForwardingStub: isForwardingStub,
-            isMemberSignature: isMemberSignature,
-            isForwardingSemiStub: isForwardingSemiStub,
-            isExtensionMember: isExtensionMember,
-            transformerFlags: transformerFlags,
-            fileUri: fileUri,
-            reference: reference,
-            forwardingStubSuperTargetReference:
-                getMemberReference(forwardingStubSuperTarget),
-            forwardingStubInterfaceTargetReference:
-                getMemberReference(forwardingStubInterfaceTarget),
-            memberSignatureOriginReference:
-                getMemberReference(memberSignatureOrigin));
+      : this._byReferenceRenamed(
+          name,
+          kind,
+          function,
+          isAbstract: isAbstract,
+          isStatic: isStatic,
+          isExternal: isExternal,
+          isConst: isConst,
+          isForwardingStub: isForwardingStub,
+          isMemberSignature: isMemberSignature,
+          isForwardingSemiStub: isForwardingSemiStub,
+          isExtensionMember: isExtensionMember,
+          transformerFlags: transformerFlags,
+          fileUri: fileUri,
+          reference: reference,
+          forwardingStubSuperTargetReference:
+              getMemberReferenceBasedOnProcedureKind(
+                  forwardingStubSuperTarget, kind),
+          forwardingStubInterfaceTargetReference:
+              getMemberReferenceBasedOnProcedureKind(
+                  forwardingStubInterfaceTarget, kind),
+          memberSignatureOriginReference:
+              getMemberReferenceBasedOnProcedureKind(
+                  memberSignatureOrigin, kind),
+        );
 
   Procedure._byReferenceRenamed(Name name, this.kind, this.function,
       {bool isAbstract: false,
@@ -2359,21 +2404,24 @@ class Procedure extends Member {
       forwardingStubSuperTargetReference?.asMember;
 
   void set forwardingStubSuperTarget(Member target) {
-    forwardingStubSuperTargetReference = getMemberReference(target);
+    forwardingStubSuperTargetReference =
+        getMemberReferenceBasedOnProcedureKind(target, kind);
   }
 
   Member get forwardingStubInterfaceTarget =>
       forwardingStubInterfaceTargetReference?.asMember;
 
   void set forwardingStubInterfaceTarget(Member target) {
-    forwardingStubInterfaceTargetReference = getMemberReference(target);
+    forwardingStubInterfaceTargetReference =
+        getMemberReferenceBasedOnProcedureKind(target, kind);
   }
 
   @override
   Member get memberSignatureOrigin => memberSignatureOriginReference?.asMember;
 
   void set memberSignatureOrigin(Member target) {
-    memberSignatureOriginReference = getMemberReference(target);
+    memberSignatureOriginReference =
+        getMemberReferenceBasedOnProcedureKind(target, kind);
   }
 
   R accept<R>(MemberVisitor<R> v) => v.visitProcedure(this);
@@ -2469,7 +2517,10 @@ class FieldInitializer extends Initializer {
   Expression value;
 
   FieldInitializer(Field field, Expression value)
-      : this.byReference(field?.reference, value);
+      : this.byReference(
+            // getterReference is used since this refers to the field itself
+            field?.getterReference,
+            value);
 
   FieldInitializer.byReference(this.fieldReference, this.value) {
     value?.parent = this;
@@ -2478,7 +2529,7 @@ class FieldInitializer extends Initializer {
   Field get field => fieldReference?.node;
 
   void set field(Field field) {
-    fieldReference = field?.reference;
+    fieldReference = field?.getterReference;
   }
 
   R accept<R>(InitializerVisitor<R> v) => v.visitFieldInitializer(this);
@@ -2521,7 +2572,10 @@ class SuperInitializer extends Initializer {
   Arguments arguments;
 
   SuperInitializer(Constructor target, Arguments arguments)
-      : this.byReference(getMemberReference(target), arguments);
+      : this.byReference(
+            // Getter vs setter doesn't matter for constructors.
+            getMemberReferenceGetter(target),
+            arguments);
 
   SuperInitializer.byReference(this.targetReference, this.arguments) {
     arguments?.parent = this;
@@ -2530,7 +2584,8 @@ class SuperInitializer extends Initializer {
   Constructor get target => targetReference?.asConstructor;
 
   void set target(Constructor target) {
-    targetReference = getMemberReference(target);
+    // Getter vs setter doesn't matter for constructors.
+    targetReference = getMemberReferenceGetter(target);
   }
 
   R accept<R>(InitializerVisitor<R> v) => v.visitSuperInitializer(this);
@@ -2569,7 +2624,10 @@ class RedirectingInitializer extends Initializer {
   Arguments arguments;
 
   RedirectingInitializer(Constructor target, Arguments arguments)
-      : this.byReference(getMemberReference(target), arguments);
+      : this.byReference(
+            // Getter vs setter doesn't matter for constructors.
+            getMemberReferenceGetter(target),
+            arguments);
 
   RedirectingInitializer.byReference(this.targetReference, this.arguments) {
     arguments?.parent = this;
@@ -2578,7 +2636,8 @@ class RedirectingInitializer extends Initializer {
   Constructor get target => targetReference?.asConstructor;
 
   void set target(Constructor target) {
-    targetReference = getMemberReference(target);
+    // Getter vs setter doesn't matter for constructors.
+    targetReference = getMemberReferenceGetter(target);
   }
 
   R accept<R>(InitializerVisitor<R> v) => v.visitRedirectingInitializer(this);
@@ -3217,7 +3276,8 @@ class PropertyGet extends Expression {
   Reference interfaceTargetReference;
 
   PropertyGet(Expression receiver, Name name, [Member interfaceTarget])
-      : this.byReference(receiver, name, getMemberReference(interfaceTarget));
+      : this.byReference(
+            receiver, name, getMemberReferenceGetter(interfaceTarget));
 
   PropertyGet.byReference(
       this.receiver, this.name, this.interfaceTargetReference) {
@@ -3227,7 +3287,7 @@ class PropertyGet extends Expression {
   Member get interfaceTarget => interfaceTargetReference?.asMember;
 
   void set interfaceTarget(Member member) {
-    interfaceTargetReference = getMemberReference(member);
+    interfaceTargetReference = getMemberReferenceGetter(member);
   }
 
   @override
@@ -3296,7 +3356,7 @@ class PropertySet extends Expression {
   PropertySet(Expression receiver, Name name, Expression value,
       [Member interfaceTarget])
       : this.byReference(
-            receiver, name, value, getMemberReference(interfaceTarget));
+            receiver, name, value, getMemberReferenceSetter(interfaceTarget));
 
   PropertySet.byReference(
       this.receiver, this.name, this.value, this.interfaceTargetReference) {
@@ -3307,7 +3367,7 @@ class PropertySet extends Expression {
   Member get interfaceTarget => interfaceTargetReference?.asMember;
 
   void set interfaceTarget(Member member) {
-    interfaceTargetReference = getMemberReference(member);
+    interfaceTargetReference = getMemberReferenceSetter(member);
   }
 
   DartType getStaticType(StaticTypeContext context) =>
@@ -3364,14 +3424,14 @@ class SuperPropertyGet extends Expression {
   Reference interfaceTargetReference;
 
   SuperPropertyGet(Name name, [Member interfaceTarget])
-      : this.byReference(name, getMemberReference(interfaceTarget));
+      : this.byReference(name, getMemberReferenceGetter(interfaceTarget));
 
   SuperPropertyGet.byReference(this.name, this.interfaceTargetReference);
 
   Member get interfaceTarget => interfaceTargetReference?.asMember;
 
   void set interfaceTarget(Member member) {
-    interfaceTargetReference = getMemberReference(member);
+    interfaceTargetReference = getMemberReferenceGetter(member);
   }
 
   DartType getStaticTypeInternal(StaticTypeContext context) {
@@ -3426,7 +3486,8 @@ class SuperPropertySet extends Expression {
   Reference interfaceTargetReference;
 
   SuperPropertySet(Name name, Expression value, Member interfaceTarget)
-      : this.byReference(name, value, getMemberReference(interfaceTarget));
+      : this.byReference(
+            name, value, getMemberReferenceSetter(interfaceTarget));
 
   SuperPropertySet.byReference(
       this.name, this.value, this.interfaceTargetReference) {
@@ -3436,7 +3497,7 @@ class SuperPropertySet extends Expression {
   Member get interfaceTarget => interfaceTargetReference?.asMember;
 
   void set interfaceTarget(Member member) {
-    interfaceTargetReference = getMemberReference(member);
+    interfaceTargetReference = getMemberReferenceSetter(member);
   }
 
   DartType getStaticType(StaticTypeContext context) =>
@@ -3482,14 +3543,14 @@ class StaticGet extends Expression {
   /// A static field, getter, or method (for tear-off).
   Reference targetReference;
 
-  StaticGet(Member target) : this.byReference(getMemberReference(target));
+  StaticGet(Member target) : this.byReference(getMemberReferenceGetter(target));
 
   StaticGet.byReference(this.targetReference);
 
   Member get target => targetReference?.asMember;
 
   void set target(Member target) {
-    targetReference = getMemberReference(target);
+    targetReference = getMemberReferenceGetter(target);
   }
 
   DartType getStaticType(StaticTypeContext context) =>
@@ -3529,7 +3590,7 @@ class StaticSet extends Expression {
   Expression value;
 
   StaticSet(Member target, Expression value)
-      : this.byReference(getMemberReference(target), value);
+      : this.byReference(getMemberReferenceSetter(target), value);
 
   StaticSet.byReference(this.targetReference, this.value) {
     value?.parent = this;
@@ -3538,7 +3599,7 @@ class StaticSet extends Expression {
   Member get target => targetReference?.asMember;
 
   void set target(Member target) {
-    targetReference = getMemberReference(target);
+    targetReference = getMemberReferenceSetter(target);
   }
 
   DartType getStaticType(StaticTypeContext context) =>
@@ -3726,7 +3787,11 @@ class MethodInvocation extends InvocationExpression {
   MethodInvocation(Expression receiver, Name name, Arguments arguments,
       [Member interfaceTarget])
       : this.byReference(
-            receiver, name, arguments, getMemberReference(interfaceTarget));
+            receiver,
+            name,
+            arguments,
+            // An invocation doesn't refer to the setter.
+            getMemberReferenceGetter(interfaceTarget));
 
   MethodInvocation.byReference(
       this.receiver, this.name, this.arguments, this.interfaceTargetReference) {
@@ -3737,7 +3802,8 @@ class MethodInvocation extends InvocationExpression {
   Member get interfaceTarget => interfaceTargetReference?.asMember;
 
   void set interfaceTarget(Member target) {
-    interfaceTargetReference = getMemberReference(target);
+    // An invocation doesn't refer to the setter.
+    interfaceTargetReference = getMemberReferenceGetter(target);
   }
 
   DartType getStaticTypeInternal(StaticTypeContext context) {
@@ -3857,7 +3923,11 @@ class SuperMethodInvocation extends InvocationExpression {
 
   SuperMethodInvocation(Name name, Arguments arguments,
       [Procedure interfaceTarget])
-      : this.byReference(name, arguments, getMemberReference(interfaceTarget));
+      : this.byReference(
+            name,
+            arguments,
+            // An invocation doesn't refer to the setter.
+            getMemberReferenceGetter(interfaceTarget));
 
   SuperMethodInvocation.byReference(
       this.name, this.arguments, this.interfaceTargetReference) {
@@ -3867,7 +3937,8 @@ class SuperMethodInvocation extends InvocationExpression {
   Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
 
   void set interfaceTarget(Procedure target) {
-    interfaceTargetReference = getMemberReference(target);
+    // An invocation doesn't refer to the setter.
+    interfaceTargetReference = getMemberReferenceGetter(target);
   }
 
   DartType getStaticTypeInternal(StaticTypeContext context) {
@@ -3927,7 +3998,10 @@ class StaticInvocation extends InvocationExpression {
   Name get name => target?.name;
 
   StaticInvocation(Procedure target, Arguments arguments, {bool isConst: false})
-      : this.byReference(getMemberReference(target), arguments,
+      : this.byReference(
+            // An invocation doesn't refer to the setter.
+            getMemberReferenceGetter(target),
+            arguments,
             isConst: isConst);
 
   StaticInvocation.byReference(this.targetReference, this.arguments,
@@ -3938,7 +4012,8 @@ class StaticInvocation extends InvocationExpression {
   Procedure get target => targetReference?.asProcedure;
 
   void set target(Procedure target) {
-    targetReference = getMemberReference(target);
+    // An invocation doesn't refer to the setter.
+    targetReference = getMemberReferenceGetter(target);
   }
 
   DartType getStaticTypeInternal(StaticTypeContext context) {
@@ -3991,7 +4066,10 @@ class ConstructorInvocation extends InvocationExpression {
 
   ConstructorInvocation(Constructor target, Arguments arguments,
       {bool isConst: false})
-      : this.byReference(getMemberReference(target), arguments,
+      : this.byReference(
+            // A constructor doesn't refer to the setter.
+            getMemberReferenceGetter(target),
+            arguments,
             isConst: isConst);
 
   ConstructorInvocation.byReference(this.targetReference, this.arguments,
@@ -4002,7 +4080,8 @@ class ConstructorInvocation extends InvocationExpression {
   Constructor get target => targetReference?.asConstructor;
 
   void set target(Constructor target) {
-    targetReference = getMemberReference(target);
+    // A constructor doesn't refer to the setter.
+    targetReference = getMemberReferenceGetter(target);
   }
 
   DartType getStaticTypeInternal(StaticTypeContext context) {
@@ -9567,6 +9646,8 @@ class Component extends TreeNode {
   void toTextInternal(AstPrinter printer) {
     // TODO(johnniwinther): Implement this.
   }
+
+  String leakingDebugToString() => astToText.debugComponentToString(this);
 }
 
 /// A tuple with file, line, and column number, for displaying human-readable
@@ -9838,11 +9919,37 @@ class Source {
   }
 }
 
-/// Returns the [Reference] object for the given member.
+/// Returns the [Reference] object for the given member based on the
+/// ProcedureKind.
 ///
 /// Returns `null` if the member is `null`.
-Reference getMemberReference(Member member) {
-  return member?.reference;
+Reference getMemberReferenceBasedOnProcedureKind(
+    Member member, ProcedureKind kind) {
+  if (member == null) return null;
+  if (member is Field) {
+    if (kind == ProcedureKind.Setter) return member.setterReference;
+    return member.getterReference;
+  }
+  return member.reference;
+}
+
+/// Returns the (getter) [Reference] object for the given member.
+///
+/// Returns `null` if the member is `null`.
+/// TODO(jensj): Should it be called NotSetter instead of Getter?
+Reference getMemberReferenceGetter(Member member) {
+  if (member == null) return null;
+  if (member is Field) return member.getterReference;
+  return member.reference;
+}
+
+/// Returns the setter [Reference] object for the given member.
+///
+/// Returns `null` if the member is `null`.
+Reference getMemberReferenceSetter(Member member) {
+  if (member == null) return null;
+  if (member is Field) return member.setterReference;
+  return member.reference;
 }
 
 /// Returns the [Reference] object for the given class.
@@ -9856,12 +9963,36 @@ Reference getClassReference(Class class_) {
 /// member has not been assigned a canonical name yet.
 ///
 /// Returns `null` if the member is `null`.
-CanonicalName getCanonicalNameOfMember(Member member) {
+CanonicalName getCanonicalNameOfMemberGetter(Member member) {
   if (member == null) return null;
-  if (member.canonicalName == null) {
+  CanonicalName canonicalName;
+  if (member is Field) {
+    canonicalName = member.getterCanonicalName;
+  } else {
+    canonicalName = member.canonicalName;
+  }
+  if (canonicalName == null) {
     throw '$member has no canonical name';
   }
-  return member.canonicalName;
+  return canonicalName;
+}
+
+/// Returns the canonical name of [member], or throws an exception if the
+/// member has not been assigned a canonical name yet.
+///
+/// Returns `null` if the member is `null`.
+CanonicalName getCanonicalNameOfMemberSetter(Member member) {
+  if (member == null) return null;
+  CanonicalName canonicalName;
+  if (member is Field) {
+    canonicalName = member.setterCanonicalName;
+  } else {
+    canonicalName = member.canonicalName;
+  }
+  if (canonicalName == null) {
+    throw '$member has no canonical name';
+  }
+  return canonicalName;
 }
 
 /// Returns the canonical name of [class_], or throws an exception if the

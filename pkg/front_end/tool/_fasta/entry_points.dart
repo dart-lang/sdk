@@ -4,8 +4,6 @@
 
 library fasta.tool.entry_points;
 
-import 'dart:async' show Stream;
-
 import 'dart:convert' show LineSplitter, jsonDecode, jsonEncode, utf8;
 
 import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;

@@ -4,8 +4,6 @@
 
 library fasta.dill_loader;
 
-import 'dart:async' show Future;
-
 import 'package:kernel/ast.dart' show Class, Component, DartType, Library;
 
 import '../builder/class_builder.dart';

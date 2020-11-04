@@ -1108,6 +1108,7 @@ tagger
 tags
 tailor
 taking
+talk
 talks
 tb
 team

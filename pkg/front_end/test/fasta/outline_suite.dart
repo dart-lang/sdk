@@ -4,8 +4,6 @@
 
 library fasta.test.outline_test;
 
-import 'dart:async' show Future;
-
 import 'testing/suite.dart';
 
 Future<FastaContext> createContext(

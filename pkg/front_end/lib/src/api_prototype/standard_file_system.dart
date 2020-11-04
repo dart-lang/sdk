@@ -4,7 +4,6 @@
 
 library front_end.standard_file_system;
 
-import 'dart:async';
 import 'dart:io' as io;
 
 import 'file_system.dart';

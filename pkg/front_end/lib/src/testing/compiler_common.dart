@@ -5,8 +5,6 @@
 /// Common compiler options and helper functions used for testing.
 library front_end.testing.compiler_options_common;
 
-import 'dart:async' show Future;
-
 import 'package:kernel/ast.dart' show Library, Component;
 
 import '../api_prototype/front_end.dart'

@@ -1743,6 +1743,8 @@ class ResolverVisitor extends ScopedVisitor {
       type = element.type;
     } else if (element is PropertyAccessorElement && element.isGetter) {
       type = element.returnType;
+    } else if (result.functionTypeCallType != null) {
+      type = result.functionTypeCallType;
     } else {
       type = DynamicTypeImpl.instance;
     }

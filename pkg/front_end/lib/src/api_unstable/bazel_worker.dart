@@ -5,8 +5,6 @@
 /// API needed by `utils/front_end/summary_worker.dart`, a tool used to compute
 /// summaries in build systems like bazel, pub-build, and package-build.
 
-import 'dart:async' show Future;
-
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 

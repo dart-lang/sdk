@@ -248,7 +248,8 @@ bool TranslationHelper::IsField(NameIndex name) {
   if (IsPrivate(name)) {
     kind = CanonicalNameParent(kind);
   }
-  return StringEquals(CanonicalNameString(kind), "@fields");
+  return StringEquals(CanonicalNameString(kind), "@fields") ||
+         StringEquals(CanonicalNameString(kind), "@=fields");
 }
 
 bool TranslationHelper::IsConstructor(NameIndex name) {
@@ -992,9 +993,14 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
       FALL_THROUGH;
-    case kCanonicalName:
-      canonical_name_ =
-          helper_->ReadCanonicalNameReference();  // read canonical_name.
+    case kCanonicalNameGetter:
+      canonical_name_getter_ =
+          helper_->ReadCanonicalNameReference();  // read canonical_name_getter.
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
+    case kCanonicalNameSetter:
+      canonical_name_setter_ =
+          helper_->ReadCanonicalNameReference();  // read canonical_name_setter.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kSourceUriIndex:

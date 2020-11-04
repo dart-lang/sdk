@@ -169,6 +169,13 @@ String debugLibraryToString(Library library) {
   return '$buffer';
 }
 
+String debugComponentToString(Component component) {
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: new NameSystem())
+      .writeComponentFile(component);
+  return '$buffer';
+}
+
 String componentToString(Component node) {
   StringBuffer buffer = new StringBuffer();
   new Printer(buffer, syntheticNames: new NameSystem())
