@@ -36,8 +36,6 @@ static const char* kSnapshotKindNames[] = {
 
 SnapshotKind Options::gen_snapshot_kind_ = kNone;
 bool Options::enable_vm_service_ = false;
-MallocGrowableArray<const char*> Options::enabled_experiments_ =
-    MallocGrowableArray<const char*>(4);
 
 #define OPTION_FIELD(variable) Options::variable##_
 
@@ -366,28 +364,6 @@ bool Options::ProcessVMDebuggingOptions(const char* arg,
 #undef HANDLE_DARTDEV_VM_DEBUG_OPTIONS
 
   return false;
-}
-
-bool Options::ProcessEnableExperimentOption(const char* arg,
-                                            CommandLineOptions* vm_options) {
-  const char* value =
-      OptionProcessor::ProcessOption(arg, "--enable_experiment=");
-  if (value == nullptr) {
-    value = OptionProcessor::ProcessOption(arg, "--enable-experiment=");
-  }
-  if (value == nullptr) {
-    return false;
-  }
-  vm_options->AddArgument(arg);
-  Utils::CStringUniquePtr tmp =
-      Utils::CreateCStringUniquePtr(Utils::StrDup(value));
-  char* save_ptr;  // Needed for strtok_r.
-  char* token = strtok_r(const_cast<char*>(tmp.get()), ",", &save_ptr);
-  while (token != NULL) {
-    enabled_experiments_.Add(Utils::StrDup(token));
-    token = strtok_r(NULL, ",", &save_ptr);
-  }
-  return true;
 }
 
 int Options::ParseArguments(int argc,

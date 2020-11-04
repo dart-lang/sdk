@@ -70,7 +70,6 @@ namespace bin {
   V(ProcessEnvironmentOption)                                                  \
   V(ProcessEnableVmServiceOption)                                              \
   V(ProcessObserveOption)                                                      \
-  V(ProcessEnableExperimentOption)                                             \
   V(ProcessVMDebuggingOptions)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
@@ -178,8 +177,6 @@ class Options {
                                     const char** out_ip,
                                     int default_port,
                                     const char* default_ip);
-
-  static MallocGrowableArray<const char*> enabled_experiments_;
 
 #define OPTION_FRIEND(flag, variable) friend class OptionProcessor_##flag;
   STRING_OPTIONS_LIST(OPTION_FRIEND)
