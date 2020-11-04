@@ -1,8 +1,6 @@
 language: dart
 dart:
-  # pending fix of: https://github.com/dart-lang/sdk/issues/43979
-  #- dev 
-  - beta
+  - dev
 sudo: false
 script: ./tool/travis.sh
 env:
