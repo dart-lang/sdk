@@ -45,8 +45,9 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
 
   // The Analytics instance used to report information back to Google Analytics;
   // see lib/src/analytics.dart.
-  Analytics analytics =
-      createAnalyticsInstance(args.contains('--disable-dartdev-analytics'));
+  final analytics = createAnalyticsInstance(
+    args.contains('--disable-dartdev-analytics'),
+  );
 
   // If we have not printed the analyticsNoticeOnFirstRunMessage to stdout,
   // the user is on a terminal, and the machine is not a bot, then print the
@@ -80,7 +81,7 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
   }
 
   try {
-    final runner = DartdevRunner(args);
+    final runner = DartdevRunner(args, analytics);
 
     // Run can't be called with the '--disable-dartdev-analytics' flag; remove
     // it if it is contained in args.
@@ -152,6 +153,8 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
 }
 
 class DartdevRunner extends CommandRunner<int> {
+  final Analytics analytics;
+
   @override
   final ArgParser argParser =
       ArgParser(usageLineLength: dartdevUsageLineLength);
@@ -159,7 +162,8 @@ class DartdevRunner extends CommandRunner<int> {
   static const String dartdevDescription =
       'A command-line utility for Dart development';
 
-  DartdevRunner(List<String> args) : super('dart', '$dartdevDescription.') {
+  DartdevRunner(List<String> args, this.analytics)
+      : super('dart', '$dartdevDescription.') {
     final bool verbose = args.contains('-v') || args.contains('--verbose');
 
     argParser.addFlag('verbose',
@@ -238,19 +242,17 @@ class DartdevRunner extends CommandRunner<int> {
     final path = commandNames.join('/');
     // Send the screen view to analytics
     unawaited(
-      analyticsInstance.sendScreenView(path),
+      analytics.sendScreenView(path),
     );
 
     try {
       final exitCode = await super.runCommand(topLevelResults);
 
-      if (path != null &&
-          analyticsInstance != null &&
-          analyticsInstance.enabled) {
+      if (path != null && analytics.enabled) {
         // Send the event to analytics
         unawaited(
           sendUsageEvent(
-            analyticsInstance,
+            analytics,
             path,
             exitCode: exitCode,
             commandFlags:
@@ -268,9 +270,9 @@ class DartdevRunner extends CommandRunner<int> {
       return exitCode;
     } finally {
       stopwatch.stop();
-      if (analyticsInstance.enabled) {
+      if (analytics.enabled) {
         unawaited(
-          analyticsInstance.sendTiming(
+          analytics.sendTiming(
             path ?? '',
             stopwatch.elapsedMilliseconds,
             category: 'commands',
