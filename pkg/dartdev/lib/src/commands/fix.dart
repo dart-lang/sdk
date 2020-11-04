@@ -17,14 +17,20 @@ class FixCommand extends DartdevCommand {
   static const String cmdName = 'fix';
 
   // This command is hidden as its currently experimental.
-  FixCommand() : super(cmdName, 'Fix Dart source code.', hidden: true);
+  FixCommand() : super(cmdName, 'Fix Dart source code.', hidden: true) {
+    argParser.addFlag('dry-run',
+        abbr: 'n',
+        defaultsTo: false,
+        help: 'Show which files would be modified but make no changes.');
+  }
 
   @override
   FutureOr<int> run() async {
     log.stdout('\n*** The `fix` command is provisional and subject to change '
         'or removal in future releases. ***\n');
 
-    if (argResults.rest.length > 1) {
+    var dryRun = argResults['dry-run'];
+    if (argResults.rest.length - (dryRun ? 1 : 0) > 1) {
       usageException('Only one file or directory is expected.');
     }
 
@@ -64,11 +70,25 @@ class FixCommand extends DartdevCommand {
     if (edits.isEmpty) {
       log.stdout('Nothing to fix!');
     } else {
-      progress = log.progress('Applying fixes');
-      var fileCount = await _applyFixes(edits);
-      progress.finish(showTiming: true);
-      if (fileCount > 0) {
-        log.stdout('Fixed $fileCount ${pluralize("file", fileCount)}.');
+      if (dryRun) {
+        log.stdout("Running 'dart fix' without '--dry-run' would apply changes "
+            'in the following files:');
+        var files = <String>{};
+        for (var edit in edits) {
+          var file = edit.file;
+          files.add(path.relative(file, from: dir.path));
+        }
+        var paths = files.toList()..sort();
+        for (var path in paths) {
+          log.stdout(path);
+        }
+      } else {
+        progress = log.progress('Applying fixes');
+        var fileCount = await _applyFixes(edits);
+        progress.finish(showTiming: true);
+        if (fileCount > 0) {
+          log.stdout('Fixed $fileCount ${pluralize("file", fileCount)}.');
+        }
       }
     }
 
