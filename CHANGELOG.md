@@ -1,3 +1,7 @@
+# 0.1.123
+
+* fixed NPEs in `unnecessary_null_checks`
+
 # 0.1.122
 
 * fixed NPE in `unnecessary_null_checks`
