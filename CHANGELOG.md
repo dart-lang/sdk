@@ -56,9 +56,9 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 #### Linter
 
-Updated the Linter to `0.1.122`, which includes:
+Updated the Linter to `0.1.123`, which includes:
 
-* A fixed NPE in `unnecessary_null_checks`.
+* Fixed NPEs in `unnecessary_null_checks`.
 * A fixed NPE in `missing_whitespace_between_adjacent_strings`.
 * Updates to `void_checks` for NNBD.
 * A fixed range error in `unnecessary_string_escapes`.
