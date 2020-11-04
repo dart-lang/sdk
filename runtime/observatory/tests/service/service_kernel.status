@@ -111,7 +111,7 @@ get_isolate_after_language_error_test: CompileTimeError
 get_object_rpc_test: SkipByDesign
 get_source_report_test: Skip, Timeout
 get_source_report_with_mixin_test: Skip, Timeout
-get_stack_limit_test: Skip, Timeout
+get_stack_limit_rpc_test: Skip, Timeout
 get_stack_rpc_test: Skip, Timeout
 implicit_getter_setter_test: SkipByDesign
 invoke_test: Skip, Timeout
