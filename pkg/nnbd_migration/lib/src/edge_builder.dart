@@ -1236,17 +1236,27 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       targetType = _thisOrSuper(node);
     }
     DecoratedType expressionType;
-    if (callee == null) {
+    DecoratedType calleeType;
+    if (targetType != null &&
+        targetType.type is FunctionType &&
+        node.methodName.name == 'call') {
+      // If `X` has a function type, then in the expression `X.call()`, the
+      // function being called is `X` itself, so the callee type is simply the
+      // type of `X`.
+      calleeType = targetType;
+    } else if (callee != null) {
+      calleeType = getOrComputeElementType(callee, targetType: targetType);
+      if (callee is PropertyAccessorElement) {
+        calleeType = calleeType.returnType;
+      }
+    }
+    if (calleeType == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
       _dispatch(node.argumentList);
       expressionType = _makeNullableDynamicType(node);
     } else {
-      var calleeType = getOrComputeElementType(callee, targetType: targetType);
-      if (callee is PropertyAccessorElement) {
-        calleeType = calleeType.returnType;
-      }
       expressionType = _handleInvocationArguments(
           node,
           node.argumentList.arguments,

@@ -5231,6 +5231,24 @@ String? f(bool b) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_null_aware_call_followed_by_if_null() async {
+    var content = '''
+typedef MapGetter = Map<String, String> Function();
+void f(Map<String, String> m) {}
+void g(MapGetter/*?*/ mapGetter) {
+  f(mapGetter?.call() ?? {});
+}
+''';
+    var expected = '''
+typedef MapGetter = Map<String, String> Function();
+void f(Map<String, String> m) {}
+void g(MapGetter? mapGetter) {
+  f(mapGetter?.call() ?? {});
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_null_aware_getter_invocation() async {
     var content = '''
 bool f(int i) => i?.isEven;
