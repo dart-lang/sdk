@@ -24,13 +24,14 @@ import 'package:linter/src/version.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'rules/experiments/experiments.dart';
+import 'experiments_test.dart' as experiment_tests;
 import 'util/annotation_matcher.dart';
 import 'util/test_utils.dart';
 
 void main() {
   defineSanityTests();
   defineRuleTests();
+  experiment_tests.main();
   defineRuleUnitTests();
 }
 
@@ -55,28 +56,6 @@ void defineRuleTests() {
         });
       }
     });
-    group('experiments', () {
-      registerLintRuleExperiments();
-
-      for (var entry in Directory(p.join(ruleDir, 'experiments')).listSync()) {
-        if (entry is! Directory) continue;
-
-        group(p.basename(entry.path), () {
-          final analysisOptionsFile =
-              File(p.join(entry.path, 'analysis_options.yaml'));
-          final analysisOptions = analysisOptionsFile.readAsStringSync();
-          final ruleTestDir = Directory(p.join(entry.path, 'rules'));
-          for (var test in ruleTestDir.listSync()) {
-            if (test is! File) continue;
-            final testFile = test as File;
-            final ruleName = p.basenameWithoutExtension(test.path);
-            testRule(ruleName, testFile,
-                analysisOptions: analysisOptions, debug: true);
-          }
-        });
-      }
-    });
-
     group('pub', () {
       for (var entry in Directory(p.join(ruleDir, 'pub')).listSync()) {
         if (entry is Directory) {
