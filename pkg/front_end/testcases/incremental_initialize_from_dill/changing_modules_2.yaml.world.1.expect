@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "package:example/a.dart" as a {
 
   static field dart.core::bool* example = true;

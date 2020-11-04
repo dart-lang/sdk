@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///lib.dart" as lib {
 
   static method foo() → dynamic {

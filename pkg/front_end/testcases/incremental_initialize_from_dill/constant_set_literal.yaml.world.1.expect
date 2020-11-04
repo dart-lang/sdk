@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///lib.dart" as lib {
 
   static const field dart.core::Set<dart.core::String*>* bar = #C6;

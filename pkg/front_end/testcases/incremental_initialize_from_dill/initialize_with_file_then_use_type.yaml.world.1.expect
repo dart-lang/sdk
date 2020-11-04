@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///foo.dart" as foo {
 
   class Foo extends dart.core::Object {

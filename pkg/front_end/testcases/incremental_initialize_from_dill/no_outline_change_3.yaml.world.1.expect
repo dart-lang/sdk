@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///libA.dart" as libA {
 
   static method whatever() → dynamic /* originally async */ {

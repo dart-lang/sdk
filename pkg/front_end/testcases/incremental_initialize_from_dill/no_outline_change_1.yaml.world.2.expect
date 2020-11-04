@@ -1,4 +1,4 @@
-main = <No Member>;
+main = act::main;
 library from "org-dartlang-test:///actualMain.dart" as act {
 
   import "org-dartlang-test:///main.dart" as m;

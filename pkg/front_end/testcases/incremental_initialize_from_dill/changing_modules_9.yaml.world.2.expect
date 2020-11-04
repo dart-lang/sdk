@@ -1,4 +1,4 @@
-main = <No Member>;
+main = main::main;
 library from "org-dartlang-test:///main.dart" as main {
 
   import "package:moduleA/a.dart";
