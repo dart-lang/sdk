@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/rename_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
@@ -61,6 +62,7 @@ class TransformSetParser {
   static const String _mixinKey = 'mixin';
   static const String _nameKey = 'name';
   static const String _newNameKey = 'newName';
+  static const String _oldNameKey = 'oldName';
   static const String _setterKey = 'setter';
   static const String _statementsKey = 'statements';
   static const String _styleKey = 'style';
@@ -90,6 +92,7 @@ class TransformSetParser {
   static const String _importKind = 'import';
   static const String _removeParameterKind = 'removeParameter';
   static const String _renameKind = 'rename';
+  static const String _renameParameterKind = 'renameParameter';
 
   /// The valid values for the [_styleKey] in an [_addParameterKind] change.
   static const List<String> validStyles = [
@@ -420,12 +423,15 @@ class TransformSetParser {
         return null;
       } else if (kind == _renameKind) {
         return _translateRenameChange(node);
+      } else if (kind == _renameParameterKind) {
+        return _translateRenameParameterChange(node);
       }
       return _reportInvalidValueOneOf(kindNode, kindContext, [
         _addParameterKind,
         _addTypeParameterKind,
         _removeParameterKind,
         _renameKind,
+        _renameParameterKind,
       ]);
     } else {
       return _reportInvalidValue(node, context, 'Map');
@@ -718,9 +724,25 @@ class TransformSetParser {
     var newName = _translateString(node.valueAt(_newNameKey),
         ErrorContext(key: _newNameKey, parentNode: node));
     if (newName == null) {
+      // The error has already been reported.
       return null;
     }
     return Rename(newName: newName);
+  }
+
+  /// Translate the [node] into a rename parameter change. Return the resulting
+  /// change, or `null` if the [node] does not represent a valid rename change.
+  RenameParameter _translateRenameParameterChange(YamlMap node) {
+    _reportUnsupportedKeys(node, const {_kindKey, _newNameKey, _oldNameKey});
+    var oldName = _translateString(node.valueAt(_oldNameKey),
+        ErrorContext(key: _oldNameKey, parentNode: node));
+    var newName = _translateString(node.valueAt(_newNameKey),
+        ErrorContext(key: _newNameKey, parentNode: node));
+    if (oldName == null || newName == null) {
+      // The error has already been reported.
+      return null;
+    }
+    return RenameParameter(newName: newName, oldName: oldName);
   }
 
   /// Translate the [node] into a string. Return the resulting string, or `null`

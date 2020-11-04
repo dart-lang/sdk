@@ -4,6 +4,7 @@
 
 import 'dart:convert' show jsonDecode, JsonEncoder;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -26,19 +27,9 @@ import 'package:yaml/yaml.dart';
 /// and determines whether the associated variable or parameter can be null
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
-  // TODO(srawlins): Refactor to use
-  //  `Feature.non_nullable.releaseVersion` when this becomes non-null (perhaps
-  //  after "Beta").
-  static final Version _intendedMinimumSdkVersion = Version.parse('2.12.0-0');
-
-  // In the package_config.json file, the patch number is omitted.
-  static final String _intendedLanguageVersion =
-      '${_intendedMinimumSdkVersion.major}.${_intendedMinimumSdkVersion.minor}';
-
-  static final String _intendedSdkVersionConstraint =
-      '>=$_intendedMinimumSdkVersion <3.0.0';
-
   static final List<HttpPreviewServer> _allServers = [];
+
+  final Version _intendedMinimumSdkVersion;
 
   /// The internet address the server should bind to.  Should be suitable for
   /// passing to HttpServer.bind, i.e. either a [String] or an
@@ -87,13 +78,25 @@ class NonNullableFix {
 
   NonNullableFix(
       this.listener, this.resourceProvider, this._getLineInfo, this.bindAddress,
-      {List<String> included = const [], this.preferredPort, this.summaryPath})
+      {List<String> included = const [],
+      this.preferredPort,
+      this.summaryPath,
+      @required String sdkPath})
       : includedRoot =
-            _getIncludedRoot(included, listener.server.resourceProvider) {
+            _getIncludedRoot(included, listener.server.resourceProvider),
+        _intendedMinimumSdkVersion =
+            _computeIntendedMinimumSdkVersion(resourceProvider, sdkPath) {
     reset();
   }
 
   bool get isPreviewServerRunning => _server != null;
+
+  /// In the package_config.json file, the patch number is omitted.
+  String get _intendedLanguageVersion =>
+      '${_intendedMinimumSdkVersion.major}.${_intendedMinimumSdkVersion.minor}';
+
+  String get _intendedSdkVersionConstraint =>
+      '>=$_intendedMinimumSdkVersion <3.0.0';
 
   InstrumentationListener createInstrumentationListener(
           {MigrationSummary migrationSummary}) =>
@@ -369,6 +372,52 @@ environment:
       } catch (_) {}
     }
     _allServers.clear();
+  }
+
+  static Version _computeIntendedMinimumSdkVersion(
+      ResourceProvider resourceProvider, String sdkPath) {
+    var versionFile = resourceProvider
+        .getFile(resourceProvider.pathContext.join(sdkPath, 'version'));
+    if (!versionFile.exists) {
+      throw StateError(
+          'Could not find SDK version file at ${versionFile.path}');
+    }
+    var sdkVersionString = versionFile.readAsStringSync().trim();
+    var sdkVersion = Version.parse(sdkVersionString);
+    // Ideally, we would like to set the user's minimum SDK constraint to the
+    // version in which null safety was released to stable.  But we only want to
+    // do so if we are sure that stable release exists.  An easy way to check
+    // that is to see if the current SDK version is greater than or equal to the
+    // stable release of null safety.
+    var nullSafetyStableReleaseVersion = Feature.non_nullable.releaseVersion;
+    if (sdkVersion >= nullSafetyStableReleaseVersion) {
+      // It is, so we can use it as the minimum SDK constraint.
+      return nullSafetyStableReleaseVersion;
+    } else {
+      // It isn't.  This either means that null safety hasn't been released to
+      // stable yet (in which case it's definitely not safe to use
+      // `nullSafetyStableReleaseVersion` as a minimum SDK constraint), or it
+      // has been released but the user hasn't upgraded to it (in which case we
+      // don't want to use it as a minimum SDK constraint anyway, because we
+      // don't want to force the user to upgrade their SDK in order to be able
+      // to use their own package).  Our next best option is to use the user's
+      // current SDK version as a minimum SDK constraint, assuming it's a proper
+      // beta release version.
+      if (sdkVersionString.contains('beta')) {
+        // It is, so we can use it.
+        return sdkVersion;
+      } else {
+        // It isn't.  The user is probably either on a bleeding edge version of
+        // the SDK (e.g. `2.12.0-edge.<SHA>`), a dev version
+        // (e.g. `2.12.0-X.Y.dev`), or an internally built version
+        // (e.g. `2.12.0-<large number>`).  All of these version numbers are
+        // unsafe for the user to use as their minimum SDK constraint, because
+        // if they published their package, it wouldn't be usable with the
+        // latest beta release.  So just fall back on using a version of
+        // `<stable release>-0`.
+        return Version.parse('$nullSafetyStableReleaseVersion-0');
+      }
+    }
   }
 
   /// Get the "root" of all [included] paths. See [includedRoot] for its

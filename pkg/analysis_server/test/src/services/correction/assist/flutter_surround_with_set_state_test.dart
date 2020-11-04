@@ -27,6 +27,23 @@ class FlutterSurroundWithSetStateTest extends AssistProcessorTest {
     );
   }
 
+  Future<void> test_noParentNode() async {
+    // This code selects the `CompilationUnit` node which has previously
+    // caused errors in code assuming the node would have a parent.
+    await resolveTestCode('''
+main() {
+// start
+  print(0);
+}
+
+other() {
+  print(1);
+// end
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_outsideState() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
@@ -34,7 +51,7 @@ import 'package:flutter/widgets.dart';
 class Stateless {
   int _count1;
   int _count2;
-  
+
   void increment() {
 // start
     ++_count1;

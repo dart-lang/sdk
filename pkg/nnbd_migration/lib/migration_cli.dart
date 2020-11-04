@@ -692,11 +692,13 @@ class MigrationCliRunner {
       Object bindAddress,
       {List<String> included = const <String>[],
       int preferredPort,
-      String summaryPath}) {
+      String summaryPath,
+      @required String sdkPath}) {
     return NonNullableFix(listener, resourceProvider, getLineInfo, bindAddress,
         included: included,
         preferredPort: preferredPort,
-        summaryPath: summaryPath);
+        summaryPath: summaryPath,
+        sdkPath: sdkPath);
   }
 
   /// Runs the full migration process.
@@ -732,7 +734,8 @@ class MigrationCliRunner {
         _fixCodeProcessor.getLineInfo, computeBindAddress(),
         included: [options.directory],
         preferredPort: options.previewPort,
-        summaryPath: options.summary);
+        summaryPath: options.summary,
+        sdkPath: options.sdkPath);
     nonNullableFix.rerunFunction = _rerunFunction;
     _fixCodeProcessor.registerCodeTask(nonNullableFix);
 

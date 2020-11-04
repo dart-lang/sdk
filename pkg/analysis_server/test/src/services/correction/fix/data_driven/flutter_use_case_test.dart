@@ -675,6 +675,287 @@ void f(Widget widget) {
 ''');
   }
 
+  Future<void> test_material_TextTheme_copyWith_deprecated() async {
+    setPackageContent('''
+class TextTheme {
+  TextTheme copyWith({TextStyle headline1, TextStyle headline2,
+  TextStyle headline3, TextStyle headline4, TextStyle headline5,
+  TextStyle headline6, TextStyle subtitle1, TextStyle subtitle2,
+  TextStyle bodyText1, TextStyle bodyText2, TextStyle caption,
+  TextStyle button, TextStyle overline,
+  @deprecated TextStyle display4, @deprecated TextStyle display3,
+  @deprecated TextStyle display2, @deprecated TextStyle display1,
+  @deprecated TextStyle headline, @deprecated TextStyle title,
+  @deprecated TextStyle subhead, @deprecated TextStyle subtitle,
+  @deprecated TextStyle body2, @deprecated TextStyle body1}) {}
+}
+class TextStyle {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename arguments'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      method: 'copyWith'
+      inClass: 'TextTheme'
+    changes:
+      - kind: 'renameParameter'
+        oldName: 'display4'
+        newName: 'headline1'
+      - kind: 'renameParameter'
+        oldName: 'display3'
+        newName: 'headline2'
+      - kind: 'renameParameter'
+        oldName: 'display2'
+        newName: 'headline3'
+      - kind: 'renameParameter'
+        oldName: 'display1'
+        newName: 'headline4'
+      - kind: 'renameParameter'
+        oldName: 'headline'
+        newName: 'headline5'
+      - kind: 'renameParameter'
+        oldName: 'title'
+        newName: 'headline6'
+      - kind: 'renameParameter'
+        oldName: 'subhead'
+        newName: 'subtitle1'
+      - kind: 'renameParameter'
+        oldName: 'subtitle'
+        newName: 'subtitle2'
+      - kind: 'renameParameter'
+        oldName: 'body2'
+        newName: 'bodytext1'
+      - kind: 'renameParameter'
+        oldName: 'body1'
+        newName: 'bodytext2'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(TextTheme t, TextStyle s) {
+  t.copyWith(display2: s);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(TextTheme t, TextStyle s) {
+  t.copyWith(headline3: s);
+}
+''');
+  }
+
+  Future<void> test_material_TextTheme_copyWith_removed() async {
+    setPackageContent('''
+class TextTheme {
+  TextTheme copyWith({TextStyle headline1, TextStyle headline2,
+  TextStyle headline3, TextStyle headline4, TextStyle headline5,
+  TextStyle headline6, TextStyle subtitle1, TextStyle subtitle2,
+  TextStyle bodyText1, TextStyle bodyText2, TextStyle caption,
+  TextStyle button, TextStyle overline}) {}
+}
+class TextStyle {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename arguments'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      method: 'copyWith'
+      inClass: 'TextTheme'
+    changes:
+      - kind: 'renameParameter'
+        oldName: 'display4'
+        newName: 'headline1'
+      - kind: 'renameParameter'
+        oldName: 'display3'
+        newName: 'headline2'
+      - kind: 'renameParameter'
+        oldName: 'display2'
+        newName: 'headline3'
+      - kind: 'renameParameter'
+        oldName: 'display1'
+        newName: 'headline4'
+      - kind: 'renameParameter'
+        oldName: 'headline'
+        newName: 'headline5'
+      - kind: 'renameParameter'
+        oldName: 'title'
+        newName: 'headline6'
+      - kind: 'renameParameter'
+        oldName: 'subhead'
+        newName: 'subtitle1'
+      - kind: 'renameParameter'
+        oldName: 'subtitle'
+        newName: 'subtitle2'
+      - kind: 'renameParameter'
+        oldName: 'body2'
+        newName: 'bodytext1'
+      - kind: 'renameParameter'
+        oldName: 'body1'
+        newName: 'bodytext2'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(TextTheme t, TextStyle s) {
+  t.copyWith(subtitle: s);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(TextTheme t, TextStyle s) {
+  t.copyWith(subtitle2: s);
+}
+''');
+  }
+
+  Future<void> test_material_TextTheme_defaultConstructor_deprecated() async {
+    setPackageContent('''
+class TextTheme {
+  TextTheme({TextStyle headline1, TextStyle headline2, TextStyle headline3,
+  TextStyle headline4, TextStyle headline5, TextStyle headline6,
+  TextStyle subtitle1, TextStyle subtitle2, TextStyle bodyText1,
+  TextStyle bodyText2, TextStyle caption, TextStyle button, TextStyle overline,
+  @deprecated TextStyle display4, @deprecated TextStyle display3,
+  @deprecated TextStyle display2, @deprecated TextStyle display1,
+  @deprecated TextStyle headline, @deprecated TextStyle title,
+  @deprecated TextStyle subhead, @deprecated TextStyle subtitle,
+  @deprecated TextStyle body2, @deprecated TextStyle body1}) {}
+}
+class TextStyle {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename arguments'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'TextTheme'
+    changes:
+      - kind: 'renameParameter'
+        oldName: 'display4'
+        newName: 'headline1'
+      - kind: 'renameParameter'
+        oldName: 'display3'
+        newName: 'headline2'
+      - kind: 'renameParameter'
+        oldName: 'display2'
+        newName: 'headline3'
+      - kind: 'renameParameter'
+        oldName: 'display1'
+        newName: 'headline4'
+      - kind: 'renameParameter'
+        oldName: 'headline'
+        newName: 'headline5'
+      - kind: 'renameParameter'
+        oldName: 'title'
+        newName: 'headline6'
+      - kind: 'renameParameter'
+        oldName: 'subhead'
+        newName: 'subtitle1'
+      - kind: 'renameParameter'
+        oldName: 'subtitle'
+        newName: 'subtitle2'
+      - kind: 'renameParameter'
+        oldName: 'body2'
+        newName: 'bodytext1'
+      - kind: 'renameParameter'
+        oldName: 'body1'
+        newName: 'bodytext2'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(TextStyle s) {
+  TextTheme(display4: s);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(TextStyle s) {
+  TextTheme(headline1: s);
+}
+''');
+  }
+
+  Future<void> test_material_TextTheme_defaultConstructor_removed() async {
+    setPackageContent('''
+class TextTheme {
+  TextTheme({TextStyle headline1, TextStyle headline2, TextStyle headline3,
+  TextStyle headline4, TextStyle headline5, TextStyle headline6,
+  TextStyle subtitle1, TextStyle subtitle2, TextStyle bodyText1,
+  TextStyle bodyText2, TextStyle caption, TextStyle button, TextStyle overline,
+  }) {}
+}
+class TextStyle {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename arguments'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'TextTheme'
+    changes:
+      - kind: 'renameParameter'
+        oldName: 'display4'
+        newName: 'headline1'
+      - kind: 'renameParameter'
+        oldName: 'display3'
+        newName: 'headline2'
+      - kind: 'renameParameter'
+        oldName: 'display2'
+        newName: 'headline3'
+      - kind: 'renameParameter'
+        oldName: 'display1'
+        newName: 'headline4'
+      - kind: 'renameParameter'
+        oldName: 'headline'
+        newName: 'headline5'
+      - kind: 'renameParameter'
+        oldName: 'title'
+        newName: 'headline6'
+      - kind: 'renameParameter'
+        oldName: 'subhead'
+        newName: 'subtitle1'
+      - kind: 'renameParameter'
+        oldName: 'subtitle'
+        newName: 'subtitle2'
+      - kind: 'renameParameter'
+        oldName: 'body2'
+        newName: 'bodytext1'
+      - kind: 'renameParameter'
+        oldName: 'body1'
+        newName: 'bodytext2'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(TextStyle s) {
+  TextTheme(display3: s);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(TextStyle s) {
+  TextTheme(headline2: s);
+}
+''');
+  }
+
   Future<void> test_material_TextTheme_display4_deprecated() async {
     setPackageContent('''
 class TextTheme {

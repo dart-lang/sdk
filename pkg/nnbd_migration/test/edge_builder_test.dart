@@ -4692,6 +4692,29 @@ int f2(C c) => c.m2()/*!*/;
     expect(hasNullCheckHint(findNode.methodInvocation('c.m2')), isTrue);
   }
 
+  Future<void> test_methodInvocation_call_functionTyped() async {
+    await analyze('''
+void f(void Function(int x) callback, int y) => callback.call(y);
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  Future<void> test_methodInvocation_call_interfaceTyped() async {
+    // Make sure that we don't try to treat all methods called `call` as though
+    // the underlying type is a function type.
+    await analyze('''
+abstract class C {
+  void call(int x);
+}
+void f(C c, int y) => c.call(y);
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
   Future<void> test_methodInvocation_dynamic() async {
     await analyze('''
 class C {
