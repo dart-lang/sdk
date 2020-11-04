@@ -145,7 +145,7 @@ void run() {
     expect(
       result.stdout,
       matches(
-          r'Observatory listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9]+=\/\n.*'),
+          r'Observatory listening on http:\/\/127.0.0.1:8181\/[a-zA-Z0-9_-]+=\/\n.*'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);

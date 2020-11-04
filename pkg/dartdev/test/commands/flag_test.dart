@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
 import 'package:test/test.dart';
@@ -47,17 +46,6 @@ void command() {
         }
       }
     });
-  });
-
-  test('enable experiments flag is supported', () {
-    final args = [
-      '--disable-dartdev-analytics',
-      '--enable-experiment=non-nullable'
-    ];
-    final runner = DartdevRunner(args);
-    ArgResults results = runner.parse(args);
-    expect(results['enable-experiment'], isNotEmpty);
-    expect(results['enable-experiment'].first, 'non-nullable');
   });
 }
 

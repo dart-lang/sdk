@@ -91,14 +91,7 @@ class _StreamManager {
     // The _IsolateManager requires information from both the Debug and
     // Isolate streams, so they must always be subscribed to by DDS.
     for (final stream in ddsCoreStreams) {
-      try {
-        await streamListen(null, stream);
-        if (loggingRepositoryStreams.contains(stream)) {
-          loggingRepositories[stream] = _LoggingRepository();
-        }
-      } on json_rpc.RpcException {
-        // Stdout and Stderr streams may not exist.
-      }
+      await streamListen(null, stream);
     }
     dds._vmServiceClient.registerMethod(
       'streamNotify',
@@ -108,10 +101,10 @@ class _StreamManager {
         if (isolateManagerStreams.contains(streamId)) {
           dds.isolateManager.handleIsolateEvent(parameters);
         }
-        // Keep a history of messages to send to clients when they first
-        // subscribe to a stream with an event history.
-        if (loggingRepositories.containsKey(streamId)) {
-          loggingRepositories[streamId].add(parameters.asMap);
+        // Keep a history of log messages to send to clients when they first
+        // subscribe to the Logging stream.
+        if (streamId == kLoggingStream) {
+          dds.loggingRepository.add(parameters.asMap);
         }
         streamNotify(streamId, parameters.value);
       },
@@ -144,8 +137,8 @@ class _StreamManager {
     }
     if (client != null) {
       streamListeners[stream].add(client);
-      if (loggingRepositories.containsKey(stream)) {
-        loggingRepositories[stream].sendHistoricalLogs(client);
+      if (stream == kLoggingStream) {
+        dds.loggingRepository.sendHistoricalLogs(client);
       } else if (stream == kServiceStream) {
         // Send all previously registered service extensions when a client
         // subscribes to the Service stream.
@@ -230,13 +223,8 @@ class _StreamManager {
   );
 
   static const kDebugStream = 'Debug';
-  static const kExtensionStream = 'Extension';
   static const kIsolateStream = 'Isolate';
   static const kLoggingStream = 'Logging';
-  static const kStderrStream = 'Stderr';
-  static const kStdoutStream = 'Stdout';
-
-  static Map<String, _LoggingRepository> loggingRepositories = {};
 
   // Never cancel the Debug or Isolate stream as `_IsolateManager` requires
   // them for isolate state notifications.
@@ -245,13 +233,10 @@ class _StreamManager {
     kIsolateStream,
   };
 
-  // Never cancel the logging and extension event streams as `_LoggingRepository`
-  // requires them keep history.
+  // Never cancel the Logging stream as `_LoggingRepository` requires it to
+  // keep a log history.
   static const loggingRepositoryStreams = <String>{
-    kExtensionStream,
     kLoggingStream,
-    kStderrStream,
-    kStdoutStream,
   };
 
   // The set of streams that DDS requires to function.

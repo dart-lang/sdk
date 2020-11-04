@@ -10,6 +10,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     _clientManager = _ClientManager(this);
     _expressionEvaluator = _ExpressionEvaluator(this);
     _isolateManager = _IsolateManager(this);
+    _loggingRepository = _LoggingRepository();
     _streamManager = _StreamManager(this);
     _authCode = _authCodesEnabled ? _makeAuthToken() : '';
   }
@@ -268,6 +269,9 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   _IsolateManager get isolateManager => _isolateManager;
   _IsolateManager _isolateManager;
+
+  _LoggingRepository get loggingRepository => _loggingRepository;
+  _LoggingRepository _loggingRepository;
 
   _StreamManager get streamManager => _streamManager;
   _StreamManager _streamManager;

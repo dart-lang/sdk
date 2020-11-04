@@ -58,11 +58,14 @@ class TestCommand extends DartdevCommand {
       _printMissingDepInstructions(isHelpCommand);
       return 65;
     }
-
+    List<String> enabledExperiments = [];
+    if (!(testArgs.length == 1 && testArgs[0] == '-h')) {
+      enabledExperiments = argResults.enabledExperiments;
+    }
     final args = [
       'run',
-      if (wereExperimentsSpecified)
-        '--$experimentFlagName=${specifiedExperiments.join(',')}',
+      if (enabledExperiments.isNotEmpty)
+        '--$experimentFlagName=${enabledExperiments.join(',')}',
       'test',
       ...testArgs,
     ];

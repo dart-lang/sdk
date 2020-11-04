@@ -145,6 +145,7 @@ class RunCommand extends DartdevCommand {
         negatable: false,
         help: 'Enables tracing of library and script loading.',
       );
+    addExperimentalFlags(argParser, verbose);
   }
 
   @override
@@ -214,15 +215,6 @@ class RunCommand extends DartdevCommand {
         usageException('Could not find the implicit file to run: '
             'bin$separator$cwdName.dart.');
       }
-    }
-
-    // Pass any --enable-experiment options along.
-    if (args.isNotEmpty && wereExperimentsSpecified) {
-      List<String> experimentIds = specifiedExperiments;
-      args = [
-        '--$experimentFlagName=${experimentIds.join(',')}',
-        ...args,
-      ];
     }
 
     // If the user wants to start a debugging session we need to do some extra

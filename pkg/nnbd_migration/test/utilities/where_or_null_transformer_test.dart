@@ -133,6 +133,15 @@ f(C c) => c.firstWhere((i) => i.isEven, orElse: () => null, ifSo: () => null);
         isNull);
   }
 
+  Future<void> test_mismatch_other_subexpression() async {
+    await analyze('''
+List<int> f(List<int> x) => x;
+g(List<int> x) => f(x).firstWhere((i) => i.isEven, orElse: () => null);
+''');
+    var xExpression = findNode.simple('x).firstWhere');
+    expect(transformer.tryTransformOrElseArgument(xExpression), isNull);
+  }
+
   Future<void> test_mismatch_unrelated_type() async {
     await analyze('''
 abstract class C {

@@ -85,6 +85,8 @@ void defineTest() {
   test('has package:test dependency', () {
     p = project(mainSrc: 'int get foo => 1;\n');
     p.file('test/foo_test.dart', '''
+$dartVersionFilePrefix2_9
+
 import 'package:test/test.dart';
 
 void main() {

@@ -47,22 +47,6 @@ See the corresponding section in the VM Service protocol [here][service-protocol
 
 See the corresponding section in the VM Service protocol [here][service-protocol-ids-and-names].
 
-## Streams
-
-For a list of core VM service streams, see [streamListen][service-protocol-streams].
-
-DDS will keep a history of events on certain streams and send historical events
-when a client first subscribes to a stream with history. These streams currently
-consist of the following:
-
-- `Logging`
-- `Stdout`
-- `Stderr`
-- `Extension`
-
-In addition, subscribing to the `Service` stream will result in a `ServiceRegistered`
-event being sent to the subscribing client for each existing service extension.
-
 ## Public RPCs
 
 The DDS Protocol supports all [public RPCs defined in the VM Service protocol][service-protocol-public-rpcs].
@@ -203,7 +187,6 @@ version | comments
 [service-protocol]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md
 [service-protocol-rpcs-requests-and-responses]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#rpcs-requests-and-responses
 [service-protocol-events]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#events
-[service-protocol-streams]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#streamlisten
 [service-protocol-binary-events]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#binary-events
 [service-protocol-types]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#types
 [service-protocol-ids-and-names]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#ids-and-names

@@ -37,10 +37,10 @@ void f() {
   test_nullLiteral_parenthesized() async {
     await assertErrorsInCode(r'''
 void f() {
-  null!;
+  (null)!;
 }
 ''', [
-      error(HintCode.NULL_CHECK_ALWAYS_FAILS, 13, 5),
+      error(HintCode.NULL_CHECK_ALWAYS_FAILS, 13, 7),
     ]);
   }
 

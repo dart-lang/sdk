@@ -613,7 +613,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _deprecatedVerifier.postfixExpression(node);
-    if (node.operand.staticType?.isDartCoreNull ?? false) {
+    if (node.operator.type == TokenType.BANG &&
+        node.operand.staticType.isDartCoreNull) {
       _errorReporter.reportErrorForNode(HintCode.NULL_CHECK_ALWAYS_FAILS, node);
     }
     super.visitPostfixExpression(node);
@@ -1641,9 +1642,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
 class _InvalidAccessVerifier {
   static final _templateExtension = '.template';
-  static final _testDir = '${path.separator}test${path.separator}';
-  static final _testDriverDir = '${path.separator}test_driver${path.separator}';
-  static final _testingDir = '${path.separator}testing${path.separator}';
+  static final _testDirectories = [
+    '${path.separator}test${path.separator}',
+    '${path.separator}integration_test${path.separator}',
+    '${path.separator}test_driver${path.separator}',
+    '${path.separator}testing${path.separator}',
+  ];
 
   final ErrorReporter _errorReporter;
   final LibraryElement _library;
@@ -1658,9 +1662,7 @@ class _InvalidAccessVerifier {
       this._errorReporter, this._library, this._workspacePackage) {
     var path = _library.source.fullName;
     _inTemplateSource = path.contains(_templateExtension);
-    _inTestDirectory = path.contains(_testDir) ||
-        path.contains(_testDriverDir) ||
-        path.contains(_testingDir);
+    _inTestDirectory = _testDirectories.any(path.contains);
   }
 
   /// Produces a hint if [identifier] is accessed from an invalid location.

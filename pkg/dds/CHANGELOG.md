@@ -1,8 +1,3 @@
-# 1.5.0
-- Added event caching for `Stdout`, `Stderr`, and `Extension` streams. When a
-client subscribes to one of these streams, they will be sent up to 10,000
-historical events from the stream.
-
 # 1.4.1
 - Fixed issue where `evaluate` and `evaluateInFrame` requests were not being
   forwarded to the VM service properly when no external compilation service

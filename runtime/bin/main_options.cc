@@ -557,44 +557,6 @@ int Options::ParseArguments(int argc,
 
   vm_options->AddArguments(vm_argv, vm_argc);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!enabled_experiments_.is_empty()) {
-    intptr_t num_experiments = enabled_experiments_.length();
-    if (!(Options::disable_dart_dev() || run_script)) {
-      const char* kEnableExperiment = "--enable-experiment=";
-      int option_size = strlen(kEnableExperiment);
-      for (intptr_t i = 0; i < num_experiments; ++i) {
-        const char* flag = enabled_experiments_.At(i);
-        option_size += strlen(flag);
-        if (i + 1 != num_experiments) {
-          // Account for comma if there's more experiments to add.
-          ++option_size;
-        }
-      }
-      // Make room for null terminator
-      ++option_size;
-
-      char* enabled_experiments_arg = new char[option_size];
-      int offset = snprintf(enabled_experiments_arg, option_size, "%s",
-                            kEnableExperiment);
-      for (intptr_t i = 0; i < num_experiments; ++i) {
-        const char* flag = enabled_experiments_.At(i);
-        const char* kFormat = (i + 1 != num_experiments) ? "%s," : "%s";
-        offset += snprintf(enabled_experiments_arg + offset,
-                           option_size - offset, kFormat, flag);
-        free(const_cast<char*>(flag));
-        ASSERT(offset < option_size);
-      }
-      DartDevIsolate::set_should_run_dart_dev(true);
-      dart_options->AddArgument(enabled_experiments_arg);
-    } else {
-      for (intptr_t i = 0; i < num_experiments; ++i) {
-        free(const_cast<char*>(enabled_experiments_.At(i)));
-      }
-    }
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   // If running with dartdev, attempt to parse VM flags which are part of the
   // dartdev command (e.g., --enable-vm-service, --observe, etc).
   if (!run_script) {

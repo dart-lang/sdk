@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,6 +9,7 @@ import 'package:dart2native/generate.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
+import '../experiments.dart';
 import '../sdk.dart';
 import '../vm_interop_handler.dart';
 
@@ -45,7 +46,8 @@ bool checkFile(String sourcePath) {
 class CompileJSCommand extends CompileSubcommandCommand {
   static const String cmdName = 'js';
 
-  CompileJSCommand() : super(cmdName, 'Compile Dart to JavaScript.') {
+  CompileJSCommand({bool verbose})
+      : super(cmdName, 'Compile Dart to JavaScript.') {
     argParser
       ..addOption(
         commonOptions['outputFile'].flag,
@@ -58,6 +60,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
         abbr: 'm',
         negatable: false,
       );
+    addExperimentalFlags(argParser, verbose);
   }
 
   @override
@@ -91,6 +94,8 @@ class CompileJSCommand extends CompileSubcommandCommand {
 
     VmInteropHandler.run(sdk.dart2jsSnapshot, [
       '--libraries-spec=$librariesPath',
+      if (argResults.enabledExperiments.isNotEmpty)
+        "--enable-experiment=${argResults.enabledExperiments.join(',')}",
       ...argResults.arguments,
     ]);
 
@@ -112,6 +117,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     this.help,
     this.fileExt,
     this.formatName,
+    bool verbose,
   }) : super(commandName, 'Compile Dart $help') {
     argParser
       ..addOption(
@@ -119,6 +125,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
         help: commonOptions['outputFile'].help,
         abbr: commonOptions['outputFile'].abbr,
       );
+    addExperimentalFlags(argParser, verbose);
   }
 
   @override
@@ -144,10 +151,14 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
       outputFile = '$inputWithoutDart.$fileExt';
     }
 
+    final enabledExperiments = argResults.enabledExperiments;
     // Build arguments.
     List<String> args = [];
     args.add('--snapshot-kind=$formatName');
     args.add('--snapshot=${path.canonicalize(outputFile)}');
+    if (enabledExperiments.isNotEmpty) {
+      args.add("--enable-experiment=${enabledExperiments.join(',')}");
+    }
     if (verbose) {
       args.add('-v');
     }
@@ -173,6 +184,7 @@ class CompileNativeCommand extends CompileSubcommandCommand {
     this.commandName,
     this.format,
     this.help,
+    bool verbose,
   }) : super(commandName, 'Compile Dart $help') {
     argParser
       ..addOption(
@@ -195,6 +207,8 @@ For example: dart compile $commandName --packages=/tmp/pkgs main.dart''')
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file.
 <path> can be relative or absolute.''');
+
+    addExperimentalFlags(argParser, verbose);
   }
 
   @override
@@ -225,6 +239,7 @@ Remove debugging information from the output and save it separately to the speci
         defines: argResults['define'],
         packages: argResults['packages'],
         enableAsserts: argResults['enable-asserts'],
+        enableExperiment: argResults.enabledExperiments.join(','),
         debugFile: argResults['save-debugging-info'],
         verbose: verbose,
       );
@@ -245,30 +260,36 @@ abstract class CompileSubcommandCommand extends DartdevCommand {
 
 class CompileCommand extends DartdevCommand {
   static const String cmdName = 'compile';
-
-  CompileCommand() : super(cmdName, 'Compile Dart to various formats.') {
-    addSubcommand(CompileJSCommand());
+  CompileCommand({bool verbose = false})
+      : super(cmdName, 'Compile Dart to various formats.') {
+    addSubcommand(CompileJSCommand(
+      verbose: verbose,
+    ));
     addSubcommand(CompileSnapshotCommand(
       commandName: CompileSnapshotCommand.jitSnapshotCmdName,
       help: 'to a JIT snapshot.',
       fileExt: 'jit',
       formatName: 'app-jit',
+      verbose: verbose,
     ));
     addSubcommand(CompileSnapshotCommand(
       commandName: CompileSnapshotCommand.kernelCmdName,
       help: 'to a kernel snapshot.',
       fileExt: 'dill',
       formatName: 'kernel',
+      verbose: verbose,
     ));
     addSubcommand(CompileNativeCommand(
       commandName: CompileNativeCommand.exeCmdName,
       help: 'to a self-contained executable.',
       format: 'exe',
+      verbose: verbose,
     ));
     addSubcommand(CompileNativeCommand(
       commandName: CompileNativeCommand.aotSnapshotCmdName,
       help: 'to an AOT snapshot.',
       format: 'aot',
+      verbose: verbose,
     ));
   }
 }

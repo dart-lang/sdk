@@ -39,6 +39,25 @@ export 'lib1.dart' show fn0;
     await _resolveFile('$testPackageRootPath/lib2.dart');
   }
 
+  test_fromIntegrationTestDirectory() async {
+    newFile('$testPackageRootPath/lib1.dart', content: r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  void a(){ }
+}
+''');
+    newFile('$testPackageRootPath/integration_test/test.dart', content: r'''
+import '../lib1.dart';
+class B {
+  void b() => new A().a();
+}
+''');
+
+    await _resolveFile('$testPackageRootPath/lib1.dart');
+    await _resolveFile('$testPackageRootPath/integration_test/test.dart');
+  }
+
   test_fromTestDirectory() async {
     newFile('$testPackageRootPath/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
@@ -56,6 +75,25 @@ class B {
 
     await _resolveFile('$testPackageRootPath/lib1.dart');
     await _resolveFile('$testPackageRootPath/test/test.dart');
+  }
+
+  test_fromTestDriverDirectory() async {
+    newFile('$testPackageRootPath/lib1.dart', content: r'''
+import 'package:meta/meta.dart';
+class A {
+  @visibleForTesting
+  void a(){ }
+}
+''');
+    newFile('$testPackageRootPath/test_driver/test.dart', content: r'''
+import '../lib1.dart';
+class B {
+  void b() => new A().a();
+}
+''');
+
+    await _resolveFile('$testPackageRootPath/lib1.dart');
+    await _resolveFile('$testPackageRootPath/test_driver/test.dart');
   }
 
   test_fromTestingDirectory() async {

@@ -491,6 +491,8 @@ abstract class num implements Comparable<num> {
   int toInt();
 }
 
+abstract class Match {}
+
 class Object {
   const Object();
 
@@ -503,7 +505,9 @@ class Object {
   external dynamic noSuchMethod(Invocation invocation);
 }
 
-abstract class Pattern {}
+abstract class Pattern {
+  Iterable<Match> allMatches(String string, [int start = 0]);
+}
 
 abstract class RegExp implements Pattern {
   external factory RegExp(String source);
