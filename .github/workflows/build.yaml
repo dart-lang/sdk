@@ -14,7 +14,7 @@ jobs:
     name: ${{ matrix.linter-bot }}
     runs-on: ubuntu-latest
     container:
-      image:  google/dart:beta
+      image:  google/dart:dev
     strategy:
       fail-fast: false
       matrix:
