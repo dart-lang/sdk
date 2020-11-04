@@ -196,6 +196,8 @@ class SuiteRunner {
     if (!hasRunnableTests) return null;
 
     return """
+// @dart=2.9
+
 library testing.generated;
 
 import 'dart:async' show Future;
