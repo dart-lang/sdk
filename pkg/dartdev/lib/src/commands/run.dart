@@ -34,11 +34,7 @@ class RunCommand extends DartdevCommand {
     );
   }
 
-  RunCommand({bool verbose = false})
-      : super(
-          cmdName,
-          'Run a Dart program.',
-        ) {
+  RunCommand({bool verbose = false}) : super(cmdName, 'Run a Dart program.') {
     // NOTE: When updating this list of flags, be sure to add any VM flags to
     // the list of flags in Options::ProcessVMDebuggingOptions in
     // runtime/bin/main_options.cc. Failure to do so will result in those VM

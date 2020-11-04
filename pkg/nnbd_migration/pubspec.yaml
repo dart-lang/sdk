@@ -14,6 +14,8 @@ dependencies:
   cli_util: ^0.2.0
   collection: ^1.14.11
   crypto: ^2.0.6
+  dartdev:
+    path: ../dartdev
   meta: ^1.1.6
   path: ^1.6.2
   pub_semver: ^1.4.2
