@@ -1105,18 +1105,21 @@ class MockSdk implements DartSdk {
   ///
   /// [nullSafePackages], if supplied, is a list of packages names that should
   /// be included in the null safety allow list.
+  ///
+  /// [sdkVersion], if supplied will override the version stored in the mock
+  /// SDK's `version` file.
   MockSdk({
     @required this.resourceProvider,
     List<MockSdkLibrary> additionalLibraries = const [],
     List<String> nullSafePackages = const [],
+    String sdkVersion,
   }) {
+    sdkVersion ??= '${ExperimentStatus.currentVersion.major}.'
+        '${ExperimentStatus.currentVersion.minor}.0';
     _versionFile = resourceProvider
         .getFolder(resourceProvider.convertPath(sdkRoot))
         .getChildAssumingFile('version');
-    _versionFile.writeAsStringSync(
-      '${ExperimentStatus.currentVersion.major}.'
-      '${ExperimentStatus.currentVersion.minor}.0',
-    );
+    _versionFile.writeAsStringSync(sdkVersion);
 
     for (MockSdkLibrary library in _LIBRARIES) {
       var convertedLibrary = library._toProvider(resourceProvider);

@@ -67,11 +67,13 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
       Object bindAddress,
       {List<String> included = const <String>[],
       int preferredPort,
-      String summaryPath})
+      String summaryPath,
+      @required String sdkPath})
       : super(listener, resourceProvider, getLineInfo, bindAddress,
             included: included,
             preferredPort: preferredPort,
-            summaryPath: summaryPath);
+            summaryPath: summaryPath,
+            sdkPath: sdkPath);
 
   @override
   InstrumentationListener createInstrumentationListener(
@@ -150,19 +152,22 @@ class _MigrationCliRunner extends MigrationCliRunner {
       Object bindAddress,
       {List<String> included = const <String>[],
       int preferredPort,
-      String summaryPath}) {
+      String summaryPath,
+      @required String sdkPath}) {
     if (cli._test.injectArtificialException) {
       return _ExceptionGeneratingNonNullableFix(
           listener, resourceProvider, getLineInfo, bindAddress,
           included: included,
           preferredPort: preferredPort,
-          summaryPath: summaryPath);
+          summaryPath: summaryPath,
+          sdkPath: sdkPath);
     } else {
       return super.createNonNullableFix(
           listener, resourceProvider, getLineInfo, bindAddress,
           included: included,
           preferredPort: preferredPort,
-          summaryPath: summaryPath);
+          summaryPath: summaryPath,
+          sdkPath: sdkPath);
     }
   }
 
@@ -432,7 +437,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
           '''
 name: test
 environment:
-  sdk: '${migrated ? '>=2.12.0-0 <3.0.0' : '>=2.6.0 <3.0.0'}'
+  sdk: '${migrated ? '>=2.12.0 <3.0.0' : '>=2.6.0 <3.0.0'}'
 ''',
       '.dart_tool/package_config.json':
           packageConfigText ?? _getPackageConfigText(migrated: migrated),
@@ -1794,7 +1799,7 @@ environment:
 name: test
 environment:
   foo: 1
-  sdk: '>=2.12.0-0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 '''));
   }
 
@@ -1851,7 +1856,7 @@ environment:
         projectDir, simpleProject(migrated: true, pubspecText: '''
 name: test
 environment:
-  sdk: '>=2.12.0-0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 '''));
   }
 
@@ -1868,7 +1873,7 @@ name: test
         // This is strange-looking, but valid.
         '''
 environment:
-  sdk: '>=2.12.0-0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 name: test
 '''));
@@ -1880,6 +1885,58 @@ name: test
     var cliRunner = _createCli()
         .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
     expect(() async => await cliRunner.run(), throwsUnsupportedError);
+  }
+
+  test_pubspec_with_sdk_version_beta() async {
+    var projectDir = createProjectDir(simpleProject());
+    var cliRunner = _createCli(sdkVersion: '2.12.0-1.2.beta')
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0-1.2.beta <3.0.0'
+'''));
+  }
+
+  test_pubspec_with_sdk_version_dev() async {
+    var projectDir = createProjectDir(simpleProject());
+    var cliRunner = _createCli(sdkVersion: '2.12.0-1.2.dev')
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0-0 <3.0.0'
+'''));
+  }
+
+  test_pubspec_with_sdk_version_edge() async {
+    var projectDir = createProjectDir(simpleProject());
+    var cliRunner = _createCli(sdkVersion: '2.12.0-edge.1234567')
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0-0 <3.0.0'
+'''));
+  }
+
+  test_pubspec_with_sdk_version_internal() async {
+    var projectDir = createProjectDir(simpleProject());
+    var cliRunner = _createCli(sdkVersion: '2.12.0-1234567')
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0-0 <3.0.0'
+'''));
   }
 
   test_uses_physical_resource_provider_by_default() {
@@ -1896,9 +1953,12 @@ name: test
         headers: {'Content-Type': 'application/json; charset=UTF-8'});
   }
 
-  _MigrationCli _createCli({List<String> nullSafePackages = const []}) {
+  _MigrationCli _createCli(
+      {List<String> nullSafePackages = const [], String sdkVersion}) {
     mock_sdk.MockSdk(
-        resourceProvider: resourceProvider, nullSafePackages: nullSafePackages);
+        resourceProvider: resourceProvider,
+        nullSafePackages: nullSafePackages,
+        sdkVersion: sdkVersion);
     return _MigrationCli(this);
   }
 
