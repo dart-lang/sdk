@@ -257,6 +257,11 @@ class ArgumentError extends Error {
   static T checkNotNull<T>(T argument, [String, name]) => argument;
 }
 
+// In the SDK this is an abstract class.
+class BigInt implements Comparable<BigInt> {
+  static BigInt parse(String source, {int radix}) => BigInt();
+}
+
 abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue: false});

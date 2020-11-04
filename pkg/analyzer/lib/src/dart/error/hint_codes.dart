@@ -342,9 +342,51 @@ class HintCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the diagnostic being ignored
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a diagnostic name appears in an
+  // `ignore` comment, but the diagnostic is already being ignored, either
+  // because it's already included in the same `ignore` comment or because it
+  // appears in an `ignore-in-file` comment.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the diagnostic named
+  // `unused_local_variable` is already being ignored for the whole file so it
+  // doesn't need to be ignored on a specific line:
+  //
+  // ```dart
+  // // ignore_for_file: unused_local_variable
+  // void f() {
+  //   // ignore: [!unused_local_variable!]
+  //   var x = 0;
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the diagnostic named
+  // `unused_local_variable` is being ignored twice on the same line:
+  //
+  // ```dart
+  // void f() {
+  //   // ignore: unused_local_variable, [!unused_local_variable!]
+  //   var x = 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the ignore comment, or remove the unnecessary diagnostic name if the
+  // ignore comment is ignoring more than one diagnostic:
+  //
+  // ```dart
+  // // ignore_for_file: unused_local_variable
+  // void f() {
+  //   var x = 0;
+  // }
+  // ```
   static const HintCode DUPLICATE_IGNORE = HintCode(
       'DUPLICATE_IGNORE',
-      "The diagnostic '{0}' does not need to be ignored here because it is "
+      "The diagnostic '{0}' doesn't need to be ignored here because it's "
           "already being ignored.",
       correction:
           "Try removing the name from the list, or removing the whole comment "
