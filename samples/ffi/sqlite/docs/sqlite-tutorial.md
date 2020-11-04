@@ -92,9 +92,9 @@ We can do this by using `elementAt`.
 
 ```dart
 CString string = allocate(count: 4).cast(); // Allocates 4 bytes and casts it to a string.
-string.value = 73;                          // Stores 'F' at index 0.
-string[1] = 73;                             // Stores 'F' at index 1.
-string[2] = 70;                             // Stores 'I' at index 2.
+string.value = 70;                          // Stores 'F' at index 0.
+string[1] = 70;                             // Stores 'F' at index 1.
+string[2] = 73;                             // Stores 'I' at index 2.
 string[3] = 0;                              // Null terminates the string.
 ```
 
