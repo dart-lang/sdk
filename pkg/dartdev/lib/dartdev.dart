@@ -6,7 +6,6 @@
 import 'dart:io' as io hide exit;
 import 'dart:isolate';
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
@@ -172,8 +171,6 @@ class DartdevRunner extends CommandRunner<int> {
     argParser.addFlag('disable-analytics',
         negatable: false, help: 'Disable anonymous analytics.');
 
-    addExperimentalFlags(argParser, verbose);
-
     argParser.addFlag('diagnostics',
         negatable: false, help: 'Show tool diagnostic output.', hide: !verbose);
 
@@ -189,7 +186,7 @@ class DartdevRunner extends CommandRunner<int> {
 
     addCommand(AnalyzeCommand());
     addCommand(CreateCommand(verbose: verbose));
-    addCommand(CompileCommand());
+    addCommand(CompileCommand(verbose: verbose));
     addCommand(FixCommand());
     addCommand(FormatCommand(verbose: verbose));
     addCommand(MigrateCommand(verbose: verbose));
@@ -205,26 +202,6 @@ class DartdevRunner extends CommandRunner<int> {
   @override
   String get invocation =>
       'dart [<vm-flags>] <command|dart-file> [<arguments>]';
-
-  void addExperimentalFlags(ArgParser argParser, bool verbose) {
-    List<ExperimentalFeature> features = experimentalFeatures;
-
-    Map<String, String> allowedHelp = {};
-    for (ExperimentalFeature feature in features) {
-      String suffix =
-          feature.isEnabledByDefault ? ' (no-op - enabled by default)' : '';
-      allowedHelp[feature.enableString] = '${feature.documentation}$suffix';
-    }
-
-    argParser.addMultiOption(
-      experimentFlagName,
-      valueHelp: 'experiment',
-      allowedHelp: verbose ? allowedHelp : null,
-      help: 'Enable one or more experimental features '
-          '(see dart.dev/go/experiments).',
-      hide: !verbose,
-    );
-  }
 
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
@@ -250,18 +227,6 @@ class DartdevRunner extends CommandRunner<int> {
         ? Logger.verbose(ansi: ansi)
         : Logger.standard(ansi: ansi);
 
-    if (topLevelResults.wasParsed(experimentFlagName)) {
-      List<String> experimentIds = topLevelResults[experimentFlagName];
-      for (ExperimentalFeature feature in experimentalFeatures) {
-        // We allow default true flags, but complain when they are passed in.
-        if (feature.isEnabledByDefault &&
-            experimentIds.contains(feature.enableString)) {
-          print("'${feature.enableString}' is now enabled by default; this "
-              'flag is no longer required.');
-        }
-      }
-    }
-
     var command = topLevelResults.command;
     final commandNames = [];
     while (command != null) {
@@ -275,10 +240,6 @@ class DartdevRunner extends CommandRunner<int> {
     unawaited(
       analyticsInstance.sendScreenView(path),
     );
-
-    final topLevelCommand = topLevelResults.command == null
-        ? null
-        : commands[topLevelResults.command.name];
 
     try {
       final exitCode = await super.runCommand(topLevelResults);
@@ -299,7 +260,7 @@ class DartdevRunner extends CommandRunner<int> {
                 //
                 // Note that this will also conflate short-options and long-options.
                 command?.options?.where(command.wasParsed)?.toList(),
-            specifiedExperiments: topLevelCommand?.specifiedExperiments,
+            specifiedExperiments: topLevelResults.enabledExperiments,
           ),
         );
       }

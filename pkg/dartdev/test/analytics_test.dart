@@ -182,10 +182,10 @@ void main() {
 
     test('run --enable-experiments', () {
       final p = project(
-          mainSrc: 'void main(List<String> args) => print(args)',
+          mainSrc: 'void main(List<String> args) => print(args);',
           logAnalytics: true);
-      final result = p.runSync('--enable-experiment=non-nullable', [
-        'run',
+      final result = p.runSync('run', [
+        '--enable-experiment=non-nullable',
         'lib/main.dart',
       ]);
       expect(extractAnalytics(result), [

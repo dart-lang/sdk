@@ -56,7 +56,8 @@ Future<void> sendUsageEvent(
   /// pattern from the flutter cli tool which always passes 'flutter' as the
   /// category.
   final category = _dartdev;
-  commandFlags = commandFlags?.toList() ?? [];
+  commandFlags =
+      commandFlags?.where((e) => e != 'enable-experiment')?.toList() ?? [];
   specifiedExperiments = specifiedExperiments?.toList() ?? [];
 
   // Sort the flag lists to slightly reduce the explosion of possibilities.

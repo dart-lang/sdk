@@ -69,20 +69,20 @@ void pub() {
   test('run --enable-experiment', () {
     p = project();
     p.file('bin/main.dart',
-        "void main() { int a; a = null; print('a is \$a.'); }");
+        "void main() { int? a; a = null; print('a is \$a.'); }");
 
     // run 'pub get'
     p.runSync('pub', ['get']);
 
     var result = p.runSync(
-        'pub', ['run', '--enable-experiment=non-nullable', 'main.dart']);
+        'pub', ['run', '--enable-experiment=no-non-nullable', 'main.dart']);
 
     expect(result.exitCode, 254);
     expect(result.stdout, isEmpty);
     expect(
         result.stderr,
-        contains("A value of type 'Null' can't be assigned to a variable of "
-            "type 'int'"));
+        contains('bin/main.dart:1:18: Error: This requires the \'non-nullable\''
+            ' language feature to be enabled.\n'));
   });
 
   test('failure', () {
