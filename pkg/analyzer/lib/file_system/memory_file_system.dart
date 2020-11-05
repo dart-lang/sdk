@@ -44,6 +44,7 @@ class MemoryResourceProvider implements ResourceProvider {
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
   String convertPath(String path) {
+    assert(path != null);
     if (pathContext.style == pathos.windows.style) {
       if (path.startsWith(pathos.posix.separator)) {
         path = r'C:' + path;
@@ -84,12 +85,14 @@ class MemoryResourceProvider implements ResourceProvider {
 
   @override
   File getFile(String path) {
+    assert(path != null);
     _ensureAbsoluteAndNormalized(path);
     return _MemoryFile(this, path);
   }
 
   @override
   Folder getFolder(String path) {
+    assert(path != null);
     _ensureAbsoluteAndNormalized(path);
     return _MemoryFolder(this, path);
   }
@@ -104,6 +107,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   @override
   Resource getResource(String path) {
+    assert(path != null);
     _ensureAbsoluteAndNormalized(path);
     return _pathToResource[path] ?? _MemoryFile(this, path);
   }
@@ -115,6 +119,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void modifyFile(String path, String content) {
+    assert(content != null);
     _checkFileAtPath(path);
     _pathToBytes[path] = utf8.encode(content) as Uint8List;
     _pathToTimestamp[path] = nextStamp++;
@@ -203,6 +208,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _checkFileAtPath(String path) {
+    assert(path != null);
     // TODO(brianwilkerson) Consider throwing a FileSystemException rather than
     // an ArgumentError.
     _MemoryResource resource = _pathToResource[path];
@@ -216,6 +222,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _checkFolderAtPath(String path) {
+    assert(path != null);
     // TODO(brianwilkerson) Consider throwing a FileSystemException rather than
     // an ArgumentError.
     _MemoryResource resource = _pathToResource[path];
@@ -228,6 +235,7 @@ class MemoryResourceProvider implements ResourceProvider {
   /// The file system abstraction supports only absolute and normalized paths.
   /// This method is used to validate any input paths to prevent errors later.
   void _ensureAbsoluteAndNormalized(String path) {
+    assert(path != null);
     if (!pathContext.isAbsolute(path)) {
       throw ArgumentError("Path must be absolute : $path");
     }
@@ -238,6 +246,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   /// Create a new [_MemoryFile] without any content.
   _MemoryFile _newFile(String path) {
+    assert(path != null);
     String folderPath = pathContext.dirname(path);
     _MemoryResource folder = _pathToResource[folderPath];
     if (folder == null) {
@@ -251,6 +260,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _notifyWatchers(String path, ChangeType changeType) {
+    assert(path != null);
     _pathToWatchers.forEach((String watcherPath,
         List<StreamController<WatchEvent>> streamControllers) {
       if (watcherPath == path || pathContext.isWithin(watcherPath, path)) {
@@ -263,6 +273,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   _MemoryFile _renameFileSync(_MemoryFile file, String newPath) {
+    assert(newPath != null);
     String path = file.path;
     if (newPath == path) {
       return file;
@@ -285,6 +296,7 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   String _resolveLinks(String path) {
+    assert(path != null);
     var linkTarget = _pathToLinkedPath[path];
     if (linkTarget != null) {
       return linkTarget;
@@ -424,6 +436,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   File copyTo(Folder parentFolder) {
+    assert(parentFolder != null);
     parentFolder.create();
     File destination = parentFolder.getChildAssumingFile(shortName);
     destination.writeAsBytesSync(readAsBytesSync());
@@ -504,6 +517,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   String canonicalizePath(String relPath) {
+    assert(relPath != null);
     relPath = provider.pathContext.normalize(relPath);
     String childPath = provider.pathContext.join(path, relPath);
     childPath = provider.pathContext.normalize(childPath);
@@ -512,6 +526,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   bool contains(String path) {
+    assert(path != null);
     return provider.pathContext.isWithin(this.path, path);
   }
 
