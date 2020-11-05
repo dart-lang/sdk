@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert' show jsonDecode;
-import 'dart:math';
 import 'dart:io' hide File;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -34,6 +33,7 @@ import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/messages.dart';
 import 'package:nnbd_migration/src/utilities/json.dart' as json;
+import 'package:nnbd_migration/src/utilities/progress_bar.dart';
 import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
 
@@ -695,7 +695,8 @@ class MigrationCliRunner {
       int preferredPort,
       String summaryPath,
       @required String sdkPath}) {
-    return NonNullableFix(listener, resourceProvider, getLineInfo, bindAddress,
+    return NonNullableFix(
+        listener, resourceProvider, getLineInfo, bindAddress, logger,
         included: included,
         preferredPort: preferredPort,
         summaryPath: summaryPath,
@@ -1064,7 +1065,7 @@ class _FixCodeProcessor extends Object {
 
   Set<String> pathsToProcess;
 
-  _ProgressBar _progressBar;
+  ProgressBar _progressBar;
 
   final MigrationCliRunner _migrationCli;
 
@@ -1131,7 +1132,7 @@ class _FixCodeProcessor extends Object {
     var analysisErrors = <AnalysisError>[];
 
     // All tasks should be registered; [numPhases] should be finalized.
-    _progressBar = _ProgressBar(_migrationCli.logger, pathsToProcess.length);
+    _progressBar = ProgressBar(_migrationCli.logger, pathsToProcess.length);
 
     // Process each source file.
     await processResources((ResolvedUnitResult result) async {
@@ -1153,7 +1154,7 @@ class _FixCodeProcessor extends Object {
   }
 
   Future<MigrationState> runLaterPhases() async {
-    _progressBar = _ProgressBar(
+    _progressBar = ProgressBar(
         _migrationCli.logger, pathsToProcess.length * (numPhases - 1));
 
     await processResources((ResolvedUnitResult result) async {
@@ -1166,11 +1167,13 @@ class _FixCodeProcessor extends Object {
         await _task.finalizeUnit(result);
       }
     });
+    _progressBar.complete();
+    _migrationCli.logger.stdout(_migrationCli.ansi
+        .emphasized('Compiling instrumentation information...'));
     var state = await _task.finish();
     if (_migrationCli.options.webPreview) {
       await _task.startPreviewServer(state, _migrationCli.applyHook);
     }
-    _progressBar.complete();
     state.previewUrls = _task.previewUrls;
 
     return state;
@@ -1201,83 +1204,6 @@ class _IssueRenderer {
       ':${location.lineNumber}:${location.columnNumber} '
       '• (${issue.errorCode.name.toLowerCase()})',
     );
-  }
-}
-
-/// A facility for drawing a progress bar in the terminal.
-///
-/// The bar is instantiated with the total number of "ticks" to be completed,
-/// and progress is made by calling [tick]. The bar is drawn across one entire
-/// line, like so:
-///
-///     [----------                                                   ]
-///
-/// The hyphens represent completed progress, and the whitespace represents
-/// remaining progress.
-///
-/// If there is no terminal, the progress bar will not be drawn.
-class _ProgressBar {
-  /// Whether the progress bar should be drawn.
-  /*late*/ bool _shouldDrawProgress;
-
-  /// The width of the terminal, in terms of characters.
-  /*late*/
-  int _width;
-
-  final Logger _logger;
-
-  /// The inner width of the terminal, in terms of characters.
-  ///
-  /// This represents the number of characters available for drawing progress.
-  /*late*/
-  int _innerWidth;
-
-  final int _totalTickCount;
-
-  int _tickCount = 0;
-
-  _ProgressBar(this._logger, this._totalTickCount) {
-    if (!stdout.hasTerminal) {
-      _shouldDrawProgress = false;
-    } else {
-      _shouldDrawProgress = true;
-      _width = stdout.terminalColumns;
-      _innerWidth = stdout.terminalColumns - 2;
-      _logger.write('[' + ' ' * _innerWidth + ']');
-    }
-  }
-
-  /// Clear the progress bar from the terminal, allowing other logging to be
-  /// printed.
-  void clear() {
-    if (!_shouldDrawProgress) {
-      return;
-    }
-    _logger.write('\r' + ' ' * _width + '\r');
-  }
-
-  /// Draw the progress bar as complete, and print two newlines.
-  void complete() {
-    if (!_shouldDrawProgress) {
-      return;
-    }
-    _logger.write('\r[' + '-' * _innerWidth + ']\n\n');
-  }
-
-  /// Progress the bar by one tick.
-  void tick() {
-    if (!_shouldDrawProgress) {
-      return;
-    }
-    _tickCount++;
-    var fractionComplete =
-        max(0, _tickCount * _innerWidth ~/ _totalTickCount - 1);
-    var remaining = _innerWidth - fractionComplete - 1;
-    _logger.write('\r[' + // Bring cursor back to the start of the line.
-        '-' * fractionComplete + // Print complete work.
-        AnsiProgress.kAnimationItems[_tickCount % 4] + // Print spinner.
-        ' ' * remaining + // Print remaining work.
-        ']');
   }
 }
 

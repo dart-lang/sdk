@@ -33,6 +33,8 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'utilities/test_logger.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_MigrationCliTestPosix);
@@ -65,11 +67,12 @@ class _ExceptionGeneratingNonNullableFix extends NonNullableFix {
       ResourceProvider resourceProvider,
       LineInfo Function(String) getLineInfo,
       Object bindAddress,
+      Logger logger,
       {List<String> included = const <String>[],
       int preferredPort,
       String summaryPath,
       @required String sdkPath})
-      : super(listener, resourceProvider, getLineInfo, bindAddress,
+      : super(listener, resourceProvider, getLineInfo, bindAddress, logger,
             included: included,
             preferredPort: preferredPort,
             summaryPath: summaryPath,
@@ -92,7 +95,7 @@ class _MigrationCli extends MigrationCli {
   _MigrationCli(this._test)
       : super(
             binaryName: 'nnbd_migration',
-            loggerFactory: (isVerbose) => _test.logger = _TestLogger(isVerbose),
+            loggerFactory: (isVerbose) => _test.logger = TestLogger(isVerbose),
             defaultSdkPathOverride:
                 _test.resourceProvider.convertPath(mock_sdk.sdkRoot),
             resourceProvider: _test.resourceProvider,
@@ -156,7 +159,7 @@ class _MigrationCliRunner extends MigrationCliRunner {
       @required String sdkPath}) {
     if (cli._test.injectArtificialException) {
       return _ExceptionGeneratingNonNullableFix(
-          listener, resourceProvider, getLineInfo, bindAddress,
+          listener, resourceProvider, getLineInfo, bindAddress, logger,
           included: included,
           preferredPort: preferredPort,
           summaryPath: summaryPath,
@@ -198,7 +201,7 @@ abstract class _MigrationCliTestBase {
 
   bool Function(String) overrideShouldBeMigrated;
 
-  set logger(_TestLogger logger);
+  set logger(TestLogger logger);
 
   _MockProcessManager get processManager;
 
@@ -207,7 +210,7 @@ abstract class _MigrationCliTestBase {
 
 mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   @override
-  /*late*/ _TestLogger logger;
+  /*late*/ TestLogger logger;
 
   final hasVerboseHelpMessage = contains('for verbose help output');
 
@@ -308,7 +311,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
       String pubOutdatedStderr = ''}) {
     processManager._mockResult = ProcessResult(123 /* pid */,
         pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
-    logger = _TestLogger(true);
+    logger = TestLogger(true);
     var projectContents = simpleProject(sourceText: 'int x;');
     var projectDir = createProjectDir(projectContents);
     var success = DependencyChecker(
@@ -323,7 +326,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
       String pubOutdatedStderr = ''}) {
     processManager._mockResult = ProcessResult(123 /* pid */,
         pubOutdatedExitCode, pubOutdatedStdout, pubOutdatedStderr);
-    logger = _TestLogger(true);
+    logger = TestLogger(true);
     var projectContents = simpleProject(sourceText: 'int x;');
     var projectDir = createProjectDir(projectContents);
     var success = DependencyChecker(
@@ -2048,53 +2051,4 @@ class _MockProcessManager implements ProcessManager {
         jsonEncode({'packages': []}) /* stdout */,
         '' /* stderr */,
       );
-}
-
-/// TODO(paulberry): move into cli_util
-class _TestLogger implements Logger {
-  final stderrBuffer = StringBuffer();
-
-  final stdoutBuffer = StringBuffer();
-
-  final bool isVerbose;
-
-  _TestLogger(this.isVerbose);
-
-  @override
-  Ansi get ansi => Ansi(false);
-
-  @override
-  void flush() {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  Progress progress(String message) {
-    return SimpleProgress(this, message);
-  }
-
-  @override
-  void stderr(String message) {
-    stderrBuffer.writeln(message);
-  }
-
-  @override
-  void stdout(String message) {
-    stdoutBuffer.writeln(message);
-  }
-
-  @override
-  void trace(String message) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void write(String message) {
-    stdoutBuffer.write(message);
-  }
-
-  @override
-  void writeCharCode(int charCode) {
-    stdoutBuffer.writeCharCode(charCode);
-  }
 }
