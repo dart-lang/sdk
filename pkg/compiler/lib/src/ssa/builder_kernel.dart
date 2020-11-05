@@ -3856,8 +3856,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     // This could be a List factory constructor that returned a fresh list and
     // we have a call-site-specific type from type inference.
-    var inferredListType = globalInferenceResults.typeOfNewList(invocation);
-    AbstractValue resultType = inferredListType ?? typeMask;
+    var allocatedListType = globalInferenceResults.typeOfNewList(invocation);
+    AbstractValue resultType = allocatedListType ?? typeMask;
 
     // TODO(johnniwinther): Remove this when type arguments are passed to
     // constructors like calling a generic method.
@@ -3870,7 +3870,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     _pushStaticInvocation(function, arguments, resultType, typeArguments,
         sourceInformation: sourceInformation, instanceType: instanceType);
 
-    if (inferredListType != null) {
+    if (allocatedListType != null) {
+      HInstruction newInstance = stack.last.nonCheck();
+      if (newInstance is HInvokeStatic) {
+        newInstance.setAllocation(true);
+      }
       // Is the constructor call one from which we can extract the length
       // argument?
       bool isFixedList = false;
@@ -3891,8 +3895,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       }
 
       if (isFixedList) {
-        HInstruction newInstance = stack.last;
-        newInstance = newInstance.nonCheck();
         if (newInstance is HInvokeStatic || newInstance is HForeignCode) {
           graph.allocatedFixedLists.add(newInstance);
         }
