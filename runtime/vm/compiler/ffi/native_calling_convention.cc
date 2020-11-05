@@ -31,14 +31,14 @@ static bool SoftFpAbi() {
 }
 
 // In Soft FP, floats are treated as 4 byte ints, and doubles as 8 byte ints.
-static const NativeType& ConvertIfSoftFp(const NativeType& rep, Zone* zone) {
+static const NativeType& ConvertIfSoftFp(Zone* zone, const NativeType& rep) {
   if (SoftFpAbi() && rep.IsFloat()) {
     ASSERT(rep.IsFloat());
     if (rep.SizeInBytes() == 4) {
-      return *new (zone) NativeFundamentalType(kInt32);
+      return *new (zone) NativePrimitiveType(kInt32);
     }
     if (rep.SizeInBytes() == 8) {
-      return *new (zone) NativeFundamentalType(kInt64);
+      return *new (zone) NativePrimitiveType(kInt64);
     }
   }
   return rep;
@@ -46,25 +46,25 @@ static const NativeType& ConvertIfSoftFp(const NativeType& rep, Zone* zone) {
 
 // Representations of the arguments to a C signature function.
 static ZoneGrowableArray<const NativeType*>& ArgumentRepresentations(
-    const Function& signature,
-    Zone* zone) {
+    Zone* zone,
+    const Function& signature) {
   const intptr_t num_arguments =
       signature.num_fixed_parameters() - kNativeParamsStartAt;
   auto& result = *new ZoneGrowableArray<const NativeType*>(zone, num_arguments);
   for (intptr_t i = 0; i < num_arguments; i++) {
     AbstractType& arg_type = AbstractType::Handle(
         zone, signature.ParameterTypeAt(i + kNativeParamsStartAt));
-    const auto& rep = NativeType::FromAbstractType(arg_type, zone);
+    const auto& rep = NativeType::FromAbstractType(zone, arg_type);
     result.Add(&rep);
   }
   return result;
 }
 
 // Representation of the result of a C signature function.
-static NativeType& ResultRepresentation(const Function& signature, Zone* zone) {
+static NativeType& ResultRepresentation(Zone* zone, const Function& signature) {
   AbstractType& result_type =
       AbstractType::Handle(zone, signature.result_type());
-  return NativeType::FromAbstractType(result_type, zone);
+  return NativeType::FromAbstractType(zone, result_type);
 }
 
 // Represents the state of a stack frame going into a call, between allocations
@@ -74,7 +74,7 @@ class ArgumentAllocator : public ValueObject {
   explicit ArgumentAllocator(Zone* zone) : zone_(zone) {}
 
   const NativeLocation& AllocateArgument(const NativeType& payload_type) {
-    const auto& payload_type_converted = ConvertIfSoftFp(payload_type, zone_);
+    const auto& payload_type_converted = ConvertIfSoftFp(zone_, payload_type);
     if (payload_type_converted.IsFloat()) {
       const auto kind = FpuRegKind(payload_type);
       const intptr_t reg_index = FirstFreeFpuRegisterIndex(kind);
@@ -224,8 +224,8 @@ class ArgumentAllocator : public ValueObject {
 
 // Location for the arguments of a C signature function.
 static NativeLocations& ArgumentLocations(
-    const ZoneGrowableArray<const NativeType*>& arg_reps,
-    Zone* zone) {
+    Zone* zone,
+    const ZoneGrowableArray<const NativeType*>& arg_reps) {
   intptr_t num_arguments = arg_reps.length();
   auto& result = *new NativeLocations(zone, num_arguments);
 
@@ -239,9 +239,9 @@ static NativeLocations& ArgumentLocations(
 }
 
 // Location for the result of a C signature function.
-static NativeLocation& ResultLocation(const NativeType& payload_type,
-                                      Zone* zone) {
-  const auto& payload_type_converted = ConvertIfSoftFp(payload_type, zone);
+static NativeLocation& ResultLocation(Zone* zone,
+                                      const NativeType& payload_type) {
+  const auto& payload_type_converted = ConvertIfSoftFp(zone, payload_type);
   const auto& container_type =
       CallingConventions::kReturnRegisterExtension == kExtendedTo4
           ? payload_type_converted.WidenTo4Bytes(zone)
@@ -267,10 +267,11 @@ NativeCallingConvention::NativeCallingConvention(Zone* zone,
                                                  const Function& c_signature)
     : zone_(ASSERT_NOTNULL(zone)),
       c_signature_(c_signature),
-      arg_locs_(ArgumentLocations(ArgumentRepresentations(c_signature_, zone_),
-                                  zone_)),
+      arg_locs_(
+          ArgumentLocations(zone_,
+                            ArgumentRepresentations(zone_, c_signature_))),
       result_loc_(
-          ResultLocation(ResultRepresentation(c_signature_, zone_), zone_)) {}
+          ResultLocation(zone_, ResultRepresentation(zone_, c_signature_))) {}
 
 intptr_t NativeCallingConvention::num_args() const {
   ASSERT(c_signature_.NumOptionalParameters() == 0);

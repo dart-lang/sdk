@@ -282,7 +282,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
                                  /*enter_safepoint=*/true);
 
   __ popq(R12);
-  __ CallCFunction(RBX);
+  __ CallCFunction(RBX, /*restore_rsp=*/true);
 
   __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
 

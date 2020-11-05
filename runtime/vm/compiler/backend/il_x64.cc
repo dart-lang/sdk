@@ -1082,7 +1082,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ TransitionGeneratedToNative(target_address, FPREG, TMP,
                                    /*enter_safepoint=*/true);
 
-    __ CallCFunction(target_address);
+    __ CallCFunction(target_address, /*restore_rsp=*/true);
 
     // Update information in the thread object and leave the safepoint.
     __ TransitionNativeToGenerated(/*leave_safepoint=*/true);

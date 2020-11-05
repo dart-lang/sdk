@@ -1671,19 +1671,27 @@ void Assembler::LeaveCallRuntimeFrame() {
   LeaveStubFrame();
 }
 
-void Assembler::CallCFunction(Register reg) {
+void Assembler::CallCFunction(Register reg, bool restore_rsp) {
   // Reserve shadow space for outgoing arguments.
   if (CallingConventions::kShadowSpaceBytes != 0) {
     subq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
   }
   call(reg);
+  // Restore stack.
+  if (restore_rsp && CallingConventions::kShadowSpaceBytes != 0) {
+    addq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
+  }
 }
-void Assembler::CallCFunction(Address address) {
+void Assembler::CallCFunction(Address address, bool restore_rsp) {
   // Reserve shadow space for outgoing arguments.
   if (CallingConventions::kShadowSpaceBytes != 0) {
     subq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
   }
   call(address);
+  // Restore stack.
+  if (restore_rsp && CallingConventions::kShadowSpaceBytes != 0) {
+    addq(RSP, Immediate(CallingConventions::kShadowSpaceBytes));
+  }
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,

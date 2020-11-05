@@ -324,8 +324,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   /// List of built type aliased factory constructor invocations that require
   /// unaliasing.
-  final List<StaticInvocation> typeAliasedFactoryInvocations =
-      <StaticInvocation>[];
+  final List<TypeAliasedFactoryInvocationJudgment>
+      typeAliasedFactoryInvocations = [];
 
   /// Variables with metadata.  Their types need to be inferred late, for
   /// example, in [finishFunction].
@@ -1151,6 +1151,74 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     _resolveRedirectingFactoryTargets();
   }
 
+  /// Return an [Expression] resolving the argument invocation.
+  ///
+  /// The arguments specify the [StaticInvocation] whose `.target` is
+  /// [target], `.arguments` is [arguments], `.fileOffset` is [fileOffset],
+  /// and `.isConst` is [isConst].
+  Expression _resolveRedirectingFactoryTarget(
+      Procedure target, Arguments arguments, int fileOffset, bool isConst) {
+    Procedure initialTarget = target;
+    Expression replacementNode;
+
+    RedirectionTarget redirectionTarget =
+        getRedirectionTarget(initialTarget, this);
+    Member resolvedTarget = redirectionTarget?.target;
+
+    if (resolvedTarget == null) {
+      String name = constructorNameForDiagnostics(initialTarget.name.text,
+          className: initialTarget.enclosingClass.name);
+      // TODO(dmitryas): Report this error earlier.
+      replacementNode = buildProblem(
+          fasta.templateCyclicRedirectingFactoryConstructors
+              .withArguments(name),
+          initialTarget.fileOffset,
+          name.length);
+    } else if (resolvedTarget is Constructor &&
+        resolvedTarget.enclosingClass.isAbstract) {
+      replacementNode = evaluateArgumentsBefore(
+          forest.createArguments(noLocation, arguments.positional,
+              types: arguments.types, named: arguments.named),
+          buildAbstractClassInstantiationError(
+              fasta.templateAbstractRedirectedClassInstantiation
+                  .withArguments(resolvedTarget.enclosingClass.name),
+              resolvedTarget.enclosingClass.name,
+              initialTarget.fileOffset));
+    } else {
+      RedirectingFactoryBody redirectingFactoryBody =
+          getRedirectingFactoryBody(resolvedTarget);
+      if (redirectingFactoryBody != null) {
+        // If the redirection target is itself a redirecting factory, it means
+        // that it is unresolved.
+        assert(redirectingFactoryBody.isUnresolved);
+        String errorName = redirectingFactoryBody.unresolvedName;
+        replacementNode = buildProblem(
+            fasta.templateMethodNotFound.withArguments(errorName),
+            fileOffset,
+            noLength,
+            suppressMessage: true);
+      } else {
+        Substitution substitution = Substitution.fromPairs(
+            initialTarget.function.typeParameters, arguments.types);
+        arguments.types.clear();
+        arguments.types.length = redirectionTarget.typeArguments.length;
+        for (int i = 0; i < arguments.types.length; i++) {
+          arguments.types[i] =
+              substitution.substituteType(redirectionTarget.typeArguments[i]);
+        }
+
+        replacementNode = buildStaticInvocation(
+            resolvedTarget,
+            forest.createArguments(noLocation, arguments.positional,
+                types: arguments.types, named: arguments.named),
+            constness:
+                isConst ? Constness.explicitConst : Constness.explicitNew,
+            charOffset: fileOffset);
+      }
+    }
+    return replacementNode;
+  }
+
   void _resolveRedirectingFactoryTargets() {
     for (StaticInvocation invocation in redirectingFactoryInvocations) {
       // If the invocation was invalid, it or its parent has already been
@@ -1172,73 +1240,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
         if (parent == null) continue;
       }
-
-      Procedure initialTarget = invocation.target;
-      Expression replacementNode;
-
-      RedirectionTarget redirectionTarget =
-          getRedirectionTarget(initialTarget, this);
-      Member resolvedTarget = redirectionTarget?.target;
-
-      if (resolvedTarget == null) {
-        String name = constructorNameForDiagnostics(initialTarget.name.text,
-            className: initialTarget.enclosingClass.name);
-        // TODO(dmitryas): Report this error earlier.
-        replacementNode = buildProblem(
-            fasta.templateCyclicRedirectingFactoryConstructors
-                .withArguments(name),
-            initialTarget.fileOffset,
-            name.length);
-      } else if (resolvedTarget is Constructor &&
-          resolvedTarget.enclosingClass.isAbstract) {
-        replacementNode = evaluateArgumentsBefore(
-            forest.createArguments(noLocation, invocation.arguments.positional,
-                types: invocation.arguments.types,
-                named: invocation.arguments.named),
-            buildAbstractClassInstantiationError(
-                fasta.templateAbstractRedirectedClassInstantiation
-                    .withArguments(resolvedTarget.enclosingClass.name),
-                resolvedTarget.enclosingClass.name,
-                initialTarget.fileOffset));
-      } else {
-        RedirectingFactoryBody redirectingFactoryBody =
-            getRedirectingFactoryBody(resolvedTarget);
-        if (redirectingFactoryBody != null) {
-          // If the redirection target is itself a redirecting factory, it means
-          // that it is unresolved.
-          assert(redirectingFactoryBody.isUnresolved);
-          String errorName = redirectingFactoryBody.unresolvedName;
-          replacementNode = buildProblem(
-              fasta.templateMethodNotFound.withArguments(errorName),
-              invocation.fileOffset,
-              noLength,
-              suppressMessage: true);
-        } else {
-          Substitution substitution = Substitution.fromPairs(
-              initialTarget.function.typeParameters,
-              invocation.arguments.types);
-          invocation.arguments.types.clear();
-          invocation.arguments.types.length =
-              redirectionTarget.typeArguments.length;
-          for (int i = 0; i < invocation.arguments.types.length; i++) {
-            invocation.arguments.types[i] =
-                substitution.substituteType(redirectionTarget.typeArguments[i]);
-          }
-
-          replacementNode = buildStaticInvocation(
-              resolvedTarget,
-              forest.createArguments(
-                  noLocation, invocation.arguments.positional,
-                  types: invocation.arguments.types,
-                  named: invocation.arguments.named),
-              constness: invocation.isConst
-                  ? Constness.explicitConst
-                  : Constness.explicitNew,
-              charOffset: invocation.fileOffset);
-        }
-      }
-
-      invocation.replaceWith(replacementNode);
+      invocation.replaceWith(_resolveRedirectingFactoryTarget(invocation.target,
+          invocation.arguments, invocation.fileOffset, invocation.isConst));
     }
     redirectingFactoryInvocations.clear();
   }
@@ -1255,10 +1258,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (unaliasedType is InterfaceType) {
         invocationTypeArguments = unaliasedType.typeArguments;
       }
-      Arguments invocationArguments = new ArgumentsImpl(
-          invocation.arguments.positional,
-          types: invocationTypeArguments,
-          named: invocation.arguments.named);
+      Arguments invocationArguments = forest.createArguments(
+          noLocation, invocation.arguments.positional,
+          types: invocationTypeArguments, named: invocation.arguments.named);
       invocation.replaceWith(new ConstructorInvocation(
           invocation.target, invocationArguments,
           isConst: invocation.isConst));
@@ -1267,10 +1269,22 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void _unaliasTypeAliasedFactoryInvocations() {
-    for (StaticInvocation invocation in typeAliasedFactoryInvocations) {
-      // TODO(eernst): Should replace aliased factory invocations,
-      // such that back ends don't see instance creations on type aliases.
-      invocation.replaceWith(new NullLiteral());
+    for (TypeAliasedFactoryInvocationJudgment invocation
+        in typeAliasedFactoryInvocations) {
+      DartType unaliasedType = new TypedefType(
+              invocation.typeAliasBuilder.typedef,
+              Nullability.nonNullable,
+              invocation.arguments.types)
+          .unalias;
+      List<DartType> invocationTypeArguments = null;
+      if (unaliasedType is InterfaceType) {
+        invocationTypeArguments = unaliasedType.typeArguments;
+      }
+      Arguments invocationArguments = forest.createArguments(
+          noLocation, invocation.arguments.positional,
+          types: invocationTypeArguments, named: invocation.arguments.named);
+      invocation.replaceWith(_resolveRedirectingFactoryTarget(invocation.target,
+          invocationArguments, invocation.fileOffset, invocation.isConst));
     }
     typeAliasedFactoryInvocations.clear();
   }

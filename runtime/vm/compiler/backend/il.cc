@@ -4509,10 +4509,10 @@ void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // for the two frame pointers and two return addresses of the entry frame.
   constexpr intptr_t kEntryFramePadding = 4;
   compiler::ffi::FrameRebase rebase(
+      compiler->zone(),
       /*old_base=*/SPREG, /*new_base=*/FPREG,
       (-kExitLinkSlotFromEntryFp + kEntryFramePadding) *
-          compiler::target::kWordSize,
-      compiler->zone());
+          compiler::target::kWordSize);
   const auto& src =
       rebase.Rebase(marshaller_.NativeLocationOfNativeParameter(index_));
   NoTemporaryAllocator no_temp;
@@ -6198,8 +6198,9 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
   const Register temp = locs()->temp(1).reg();
 
-  compiler::ffi::FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0, zone_);
+  compiler::ffi::FrameRebase rebase(zone_, /*old_base=*/FPREG,
+                                    /*new_base=*/saved_fp,
+                                    /*stack_delta=*/0);
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
     const Location origin = rebase.Rebase(locs()->in(i));
     const Representation origin_rep = RequiredInputRepresentation(i);

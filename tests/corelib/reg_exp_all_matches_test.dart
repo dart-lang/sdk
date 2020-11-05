@@ -10,7 +10,7 @@ class RegExpAllMatchesTest {
   static testIterator() {
     var matches = new RegExp("foo").allMatches("foo foo");
     Iterator it = matches.iterator;
-    if (isStrongMode) {
+    if (hasSoundNullSafety) {
       Expect.throws(() => it.current);
     } else {
       Expect.isNull(it.current);

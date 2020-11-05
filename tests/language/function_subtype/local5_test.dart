@@ -40,6 +40,6 @@ main() {
   new D<bool, int>().test('int', false);
   new D<dynamic, dynamic>().test('dynamic', false);
   new D<Object, Object>().test('Object', false);
-  new D<Null, Null>().test('Null', isWeakMode);
+  new D<Null, Null>().test('Null', hasUnsoundNullSafety);
   new D<Never, Never>().test('Never', true);
 }

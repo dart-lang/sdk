@@ -2748,8 +2748,8 @@ void FlowGraphCompiler::EmitNativeMove(
   const intptr_t dst_container_size = dst_container_type.SizeInBytes();
 
   // This function does not know how to do larger mem copy moves yet.
-  ASSERT(src_payload_type.IsFundamental());
-  ASSERT(dst_payload_type.IsFundamental());
+  ASSERT(src_payload_type.IsPrimitive());
+  ASSERT(dst_payload_type.IsPrimitive());
 
   // This function does not deal with sign conversions yet.
   ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());
@@ -2773,9 +2773,9 @@ void FlowGraphCompiler::EmitNativeMove(
       // The upper bits of the source are already properly sign or zero
       // extended, so just copy the required amount of bits.
       return EmitNativeMove(destination.WithOtherNativeType(
-                                dst_container_type, dst_container_type, zone_),
+                                zone_, dst_container_type, dst_container_type),
                             source.WithOtherNativeType(
-                                dst_container_type, dst_container_type, zone_),
+                                zone_, dst_container_type, dst_container_type),
                             temp);
     }
     if (src_payload_size >= dst_payload_size &&
@@ -2783,9 +2783,9 @@ void FlowGraphCompiler::EmitNativeMove(
       // The upper bits of the source are not properly sign or zero extended
       // to be copied to the target, so regard the source as smaller.
       return EmitNativeMove(
-          destination.WithOtherNativeType(dst_container_type,
-                                          dst_container_type, zone_),
-          source.WithOtherNativeType(dst_payload_type, dst_payload_type, zone_),
+          destination.WithOtherNativeType(zone_, dst_container_type,
+                                          dst_container_type),
+          source.WithOtherNativeType(zone_, dst_payload_type, dst_payload_type),
           temp);
     }
     UNREACHABLE();
@@ -2800,8 +2800,8 @@ void FlowGraphCompiler::EmitNativeMove(
       !destination.IsFpuRegisters()) {
     // TODO(40209): If this is stack to stack, we could use FpuTMP.
     // Test the impact on code size and speed.
-    EmitNativeMove(destination.Split(0, zone_), source.Split(0, zone_), temp);
-    EmitNativeMove(destination.Split(1, zone_), source.Split(1, zone_), temp);
+    EmitNativeMove(destination.Split(zone_, 0), source.Split(zone_, 0), temp);
+    EmitNativeMove(destination.Split(zone_, 1), source.Split(zone_, 1), temp);
     return;
   }
 
@@ -2829,7 +2829,7 @@ void FlowGraphCompiler::EmitNativeMove(
   if (sign_or_zero_extend && destination.IsStack()) {
     ASSERT(source.IsRegisters());
     const auto& intermediate =
-        source.WithOtherNativeType(dst_payload_type, dst_container_type, zone_);
+        source.WithOtherNativeType(zone_, dst_payload_type, dst_container_type);
     EmitNativeMove(intermediate, source, temp);
     EmitNativeMove(destination, intermediate, temp);
     return;
@@ -2840,7 +2840,7 @@ void FlowGraphCompiler::EmitNativeMove(
   if (sign_or_zero_extend && source.IsStack()) {
     ASSERT(destination.IsRegisters());
     const auto& intermediate = destination.WithOtherNativeType(
-        src_payload_type, src_container_type, zone_);
+        zone_, src_payload_type, src_container_type);
     EmitNativeMove(intermediate, source, temp);
     EmitNativeMove(destination, intermediate, temp);
     return;
@@ -2875,12 +2875,12 @@ void FlowGraphCompiler::EmitMoveToNative(
   if (src_loc.IsPairLocation()) {
     for (intptr_t i : {0, 1}) {
       const auto& src_split = compiler::ffi::NativeLocation::FromPairLocation(
-          src_loc, src_type, i, zone_);
-      EmitNativeMove(dst.Split(i, zone_), src_split, temp);
+          zone_, src_loc, src_type, i);
+      EmitNativeMove(dst.Split(zone_, i), src_split, temp);
     }
   } else {
     const auto& src =
-        compiler::ffi::NativeLocation::FromLocation(src_loc, src_type, zone_);
+        compiler::ffi::NativeLocation::FromLocation(zone_, src_loc, src_type);
     EmitNativeMove(dst, src, temp);
   }
 }
@@ -2895,12 +2895,12 @@ void FlowGraphCompiler::EmitMoveFromNative(
   if (dst_loc.IsPairLocation()) {
     for (intptr_t i : {0, 1}) {
       const auto& dest_split = compiler::ffi::NativeLocation::FromPairLocation(
-          dst_loc, dst_type, i, zone_);
-      EmitNativeMove(dest_split, src.Split(i, zone_), temp);
+          zone_, dst_loc, dst_type, i);
+      EmitNativeMove(dest_split, src.Split(zone_, i), temp);
     }
   } else {
     const auto& dest =
-        compiler::ffi::NativeLocation::FromLocation(dst_loc, dst_type, zone_);
+        compiler::ffi::NativeLocation::FromLocation(zone_, dst_loc, dst_type);
     EmitNativeMove(dest, src, temp);
   }
 }
@@ -2935,20 +2935,20 @@ void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
     if (src.IsPairLocation()) {
       for (intptr_t i : {0, 1}) {
         const Representation src_type_split =
-            compiler::ffi::NativeType::FromUnboxedRepresentation(src_type,
-                                                                 zone_)
-                .Split(i, zone_)
+            compiler::ffi::NativeType::FromUnboxedRepresentation(zone_,
+                                                                 src_type)
+                .Split(zone_, i)
                 .AsRepresentation();
         const auto& intermediate_native =
-            compiler::ffi::NativeLocation::FromLocation(intermediate,
-                                                        src_type_split, zone_);
+            compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
+                                                        src_type_split);
         EmitMove(intermediate, src.AsPairLocation()->At(i), temp);
-        EmitNativeMove(dst.Split(i, zone_), intermediate_native, temp);
+        EmitNativeMove(dst.Split(zone_, i), intermediate_native, temp);
       }
     } else {
       const auto& intermediate_native =
-          compiler::ffi::NativeLocation::FromLocation(intermediate, src_type,
-                                                      zone_);
+          compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
+                                                      src_type);
       EmitMove(intermediate, src, temp);
       EmitNativeMove(dst, intermediate_native, temp);
     }

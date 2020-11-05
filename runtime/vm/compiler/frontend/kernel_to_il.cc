@@ -1255,7 +1255,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
-          ffi_type_arg_cid, zone_);
+          zone_, ffi_type_arg_cid);
 
       ASSERT(function.NumParameters() == 2);
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
@@ -1336,7 +1336,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
-          ffi_type_arg_cid, zone_);
+          zone_, ffi_type_arg_cid);
 
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);

@@ -19,12 +19,12 @@ namespace compiler {
 
 namespace ffi {
 
-const NativeFundamentalType& NativeType::AsFundamental() const {
-  ASSERT(IsFundamental());
-  return static_cast<const NativeFundamentalType&>(*this);
+const NativePrimitiveType& NativeType::AsPrimitive() const {
+  ASSERT(IsPrimitive());
+  return static_cast<const NativePrimitiveType&>(*this);
 }
 
-bool NativeFundamentalType::IsInt() const {
+bool NativePrimitiveType::IsInt() const {
   switch (representation_) {
     case kInt8:
     case kUint8:
@@ -40,16 +40,16 @@ bool NativeFundamentalType::IsInt() const {
   }
 }
 
-bool NativeFundamentalType::IsFloat() const {
+bool NativePrimitiveType::IsFloat() const {
   return representation_ == kFloat || representation_ == kDouble ||
          representation_ == kHalfDouble;
 }
 
-bool NativeFundamentalType::IsVoid() const {
+bool NativePrimitiveType::IsVoid() const {
   return representation_ == kVoid;
 }
 
-bool NativeFundamentalType::IsSigned() const {
+bool NativePrimitiveType::IsSigned() const {
   ASSERT(IsInt() || IsFloat());
   switch (representation_) {
     case kInt8:
@@ -84,11 +84,11 @@ static const intptr_t fundamental_size_in_bytes[kVoid + 1] = {
     0,  // kVoid,
 };
 
-intptr_t NativeFundamentalType::SizeInBytes() const {
+intptr_t NativePrimitiveType::SizeInBytes() const {
   return fundamental_size_in_bytes[representation_];
 }
 
-intptr_t NativeFundamentalType::AlignmentInBytesStack() const {
+intptr_t NativePrimitiveType::AlignmentInBytesStack() const {
   switch (CallingConventions::kArgumentStackAlignment) {
     case kAlignedToWordSize:
       // The default is to align stack arguments to word size.
@@ -108,7 +108,7 @@ intptr_t NativeFundamentalType::AlignmentInBytesStack() const {
   }
 }
 
-intptr_t NativeFundamentalType::AlignmentInBytesField() const {
+intptr_t NativePrimitiveType::AlignmentInBytesField() const {
   switch (CallingConventions::kFieldAlignment) {
     case kAlignedToValueSize:
       // The default is to align fields to their own size.
@@ -127,7 +127,7 @@ intptr_t NativeFundamentalType::AlignmentInBytesField() const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-bool NativeFundamentalType::IsExpressibleAsRepresentation() const {
+bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
   switch (representation_) {
     case kInt8:
     case kUint8:
@@ -149,7 +149,7 @@ bool NativeFundamentalType::IsExpressibleAsRepresentation() const {
   }
 }
 
-Representation NativeFundamentalType::AsRepresentation() const {
+Representation NativePrimitiveType::AsRepresentation() const {
   ASSERT(IsExpressibleAsRepresentation());
   switch (representation_) {
     case kInt32:
@@ -171,14 +171,14 @@ Representation NativeFundamentalType::AsRepresentation() const {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-bool NativeFundamentalType::Equals(const NativeType& other) const {
-  if (!other.IsFundamental()) {
+bool NativePrimitiveType::Equals(const NativeType& other) const {
+  if (!other.IsPrimitive()) {
     return false;
   }
-  return other.AsFundamental().representation_ == representation_;
+  return other.AsPrimitive().representation_ == representation_;
 }
 
-static FundamentalType split_fundamental(FundamentalType in) {
+static PrimitiveType split_fundamental(PrimitiveType in) {
   switch (in) {
     case kInt16:
       return kInt8;
@@ -199,14 +199,14 @@ static FundamentalType split_fundamental(FundamentalType in) {
   }
 }
 
-NativeFundamentalType& NativeFundamentalType::Split(intptr_t index,
-                                                    Zone* zone) const {
+NativePrimitiveType& NativePrimitiveType::Split(Zone* zone,
+                                                intptr_t index) const {
   ASSERT(index == 0 || index == 1);
   auto new_rep = split_fundamental(representation());
-  return *new (zone) NativeFundamentalType(new_rep);
+  return *new (zone) NativePrimitiveType(new_rep);
 }
 
-static FundamentalType TypeRepresentation(classid_t class_id) {
+static PrimitiveType TypeRepresentation(classid_t class_id) {
   switch (class_id) {
     case kFfiInt8Cid:
       return kInt8;
@@ -242,19 +242,19 @@ static FundamentalType TypeRepresentation(classid_t class_id) {
   }
 }
 
-NativeType& NativeType::FromTypedDataClassId(classid_t class_id, Zone* zone) {
+NativeType& NativeType::FromTypedDataClassId(Zone* zone, classid_t class_id) {
   // TODO(36730): Support composites.
   const auto fundamental_rep = TypeRepresentation(class_id);
-  return *new (zone) NativeFundamentalType(fundamental_rep);
+  return *new (zone) NativePrimitiveType(fundamental_rep);
 }
 
-NativeType& NativeType::FromAbstractType(const AbstractType& type, Zone* zone) {
+NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
   // TODO(36730): Support composites.
-  return NativeType::FromTypedDataClassId(type.type_class_id(), zone);
+  return NativeType::FromTypedDataClassId(zone, type.type_class_id());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static FundamentalType fundamental_rep(Representation rep) {
+static PrimitiveType fundamental_rep(Representation rep) {
   switch (rep) {
     case kUnboxedDouble:
       return kDouble;
@@ -272,9 +272,9 @@ static FundamentalType fundamental_rep(Representation rep) {
   UNREACHABLE();
 }
 
-NativeFundamentalType& NativeType::FromUnboxedRepresentation(Representation rep,
-                                                             Zone* zone) {
-  return *new (zone) NativeFundamentalType(fundamental_rep(rep));
+NativePrimitiveType& NativeType::FromUnboxedRepresentation(Zone* zone,
+                                                           Representation rep) {
+  return *new (zone) NativePrimitiveType(fundamental_rep(rep));
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -285,7 +285,7 @@ const char* NativeType::ToCString() const {
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-static const char* FundamentalTypeToCString(FundamentalType rep) {
+static const char* PrimitiveTypeToCString(PrimitiveType rep) {
   switch (rep) {
     case kInt8:
       return "int8";
@@ -320,16 +320,16 @@ void NativeType::PrintTo(BaseTextBuffer* f) const {
   f->AddString("I");
 }
 
-void NativeFundamentalType::PrintTo(BaseTextBuffer* f) const {
-  f->Printf("%s", FundamentalTypeToCString(representation_));
+void NativePrimitiveType::PrintTo(BaseTextBuffer* f) const {
+  f->Printf("%s", PrimitiveTypeToCString(representation_));
 }
 
 const NativeType& NativeType::WidenTo4Bytes(Zone* zone) const {
   if (IsInt() && SizeInBytes() <= 2) {
     if (IsSigned()) {
-      return *new (zone) NativeFundamentalType(kInt32);
+      return *new (zone) NativePrimitiveType(kInt32);
     } else {
-      return *new (zone) NativeFundamentalType(kUint32);
+      return *new (zone) NativePrimitiveType(kUint32);
     }
   }
   return *this;
