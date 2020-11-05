@@ -78,8 +78,8 @@ Location CallMarshaller::LocInFfiCall(intptr_t arg_index) const {
 class CallbackArgumentTranslator : public ValueObject {
  public:
   static NativeLocations& TranslateArgumentLocations(
-      const NativeLocations& arg_locs,
-      Zone* zone) {
+      Zone* zone,
+      const NativeLocations& arg_locs) {
     auto& pushed_locs = *(new NativeLocations(arg_locs.length()));
 
     CallbackArgumentTranslator translator;
@@ -122,10 +122,10 @@ class CallbackArgumentTranslator : public ValueObject {
         stack_delta += StubCodeCompiler::kNativeCallbackTrampolineStackDelta;
       }
       FrameRebase rebase(
+          zone,
           /*old_base=*/SPREG, /*new_base=*/SPREG,
           /*stack_delta=*/(argument_slots_required_ + stack_delta) *
-              compiler::target::kWordSize,
-          zone);
+              compiler::target::kWordSize);
       return rebase.Rebase(arg);
     }
 
@@ -153,8 +153,8 @@ CallbackMarshaller::CallbackMarshaller(Zone* zone,
                                        const Function& dart_signature)
     : BaseMarshaller(zone, dart_signature),
       callback_locs_(
-          CallbackArgumentTranslator::TranslateArgumentLocations(arg_locs_,
-                                                                 zone_)) {}
+          CallbackArgumentTranslator::TranslateArgumentLocations(zone_,
+                                                                 arg_locs_)) {}
 
 }  // namespace ffi
 

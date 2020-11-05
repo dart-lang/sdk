@@ -29,14 +29,14 @@ bool NativeLocation::LocationCanBeExpressed(Location loc, Representation rep) {
   return false;
 }
 
-NativeLocation& NativeLocation::FromLocation(Location loc,
-                                             Representation rep,
-                                             Zone* zone) {
+NativeLocation& NativeLocation::FromLocation(Zone* zone,
+                                             Location loc,
+                                             Representation rep) {
   // TODO(36730): We could possibly consume a pair location as struct.
   ASSERT(LocationCanBeExpressed(loc, rep));
 
   const NativeType& native_rep =
-      NativeType::FromUnboxedRepresentation(rep, zone);
+      NativeType::FromUnboxedRepresentation(zone, rep);
 
   switch (loc.kind()) {
     case Location::Kind::kRegister:
@@ -61,18 +61,18 @@ NativeLocation& NativeLocation::FromLocation(Location loc,
 }
 
 // TODO(36730): Remove when being able to consume as struct.
-NativeLocation& NativeLocation::FromPairLocation(Location pair_loc,
+NativeLocation& NativeLocation::FromPairLocation(Zone* zone,
+                                                 Location pair_loc,
                                                  Representation pair_rep,
-                                                 intptr_t index,
-                                                 Zone* zone) {
+                                                 intptr_t index) {
   ASSERT(pair_loc.IsPairLocation());
   ASSERT(index == 0 || index == 1);
   const Representation rep =
-      NativeType::FromUnboxedRepresentation(pair_rep, zone)
-          .Split(index, zone)
+      NativeType::FromUnboxedRepresentation(zone, pair_rep)
+          .Split(zone, index)
           .AsRepresentation();
   const Location loc = pair_loc.AsPairLocation()->At(index);
-  return FromLocation(loc, rep, zone);
+  return FromLocation(zone, loc, rep);
 }
 
 const NativeRegistersLocation& NativeLocation::AsRegisters() const {
@@ -126,27 +126,27 @@ Location NativeStackLocation::AsLocation() const {
   }
   UNREACHABLE();
 }
-NativeRegistersLocation& NativeRegistersLocation::Split(intptr_t index,
-                                                        Zone* zone) const {
+NativeRegistersLocation& NativeRegistersLocation::Split(Zone* zone,
+                                                        intptr_t index) const {
   ASSERT(num_regs() == 2);
   return *new (zone) NativeRegistersLocation(
-      payload_type().Split(index, zone), container_type().Split(index, zone),
+      payload_type().Split(zone, index), container_type().Split(zone, index),
       reg_at(index));
 }
 
-NativeStackLocation& NativeStackLocation::Split(intptr_t index,
-                                                Zone* zone) const {
+NativeStackLocation& NativeStackLocation::Split(Zone* zone,
+                                                intptr_t index) const {
   ASSERT(index == 0 || index == 1);
   const intptr_t size = payload_type().SizeInBytes();
 
   return *new (zone) NativeStackLocation(
-      payload_type().Split(index, zone), container_type().Split(index, zone),
+      payload_type().Split(zone, index), container_type().Split(zone, index),
       base_register_, offset_in_bytes_ + size / 2 * index);
 }
 
 NativeLocation& NativeLocation::WidenTo4Bytes(Zone* zone) const {
-  return WithOtherNativeType(payload_type().WidenTo4Bytes(zone),
-                             container_type().WidenTo4Bytes(zone), zone);
+  return WithOtherNativeType(zone, payload_type().WidenTo4Bytes(zone),
+                             container_type().WidenTo4Bytes(zone));
 }
 
 #if defined(TARGET_ARCH_ARM)

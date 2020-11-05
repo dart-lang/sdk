@@ -51,12 +51,12 @@ class NativeFundamentalType;
 // TODO(36730): Add composites.
 class NativeType : public ZoneAllocated {
  public:
-  static NativeType& FromAbstractType(const AbstractType& type, Zone* zone);
-  static NativeType& FromTypedDataClassId(classid_t class_id, Zone* zone);
+  static NativeType& FromAbstractType(Zone* zone, const AbstractType& type);
+  static NativeType& FromTypedDataClassId(Zone* zone, classid_t class_id);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  static NativeFundamentalType& FromUnboxedRepresentation(Representation rep,
-                                                          Zone* zone);
+  static NativeFundamentalType& FromUnboxedRepresentation(Zone* zone,
+                                                          Representation rep);
 #endif
 
   virtual bool IsFundamental() const { return false; }
@@ -96,7 +96,7 @@ class NativeType : public ZoneAllocated {
   virtual bool Equals(const NativeType& other) const { UNREACHABLE(); }
 
   // Split representation in two.
-  virtual NativeType& Split(intptr_t index, Zone* zone) const { UNREACHABLE(); }
+  virtual NativeType& Split(Zone* zone, intptr_t index) const { UNREACHABLE(); }
 
   // If this is a 8 or 16 bit int, returns a 32 bit container.
   // Otherwise, return original representation.
@@ -151,7 +151,7 @@ class NativeFundamentalType : public NativeType {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   virtual bool Equals(const NativeType& other) const;
-  virtual NativeFundamentalType& Split(intptr_t part, Zone* zone) const;
+  virtual NativeFundamentalType& Split(Zone* zone, intptr_t part) const;
 
   virtual void PrintTo(BaseTextBuffer* f) const;
 

@@ -199,8 +199,8 @@ static FundamentalType split_fundamental(FundamentalType in) {
   }
 }
 
-NativeFundamentalType& NativeFundamentalType::Split(intptr_t index,
-                                                    Zone* zone) const {
+NativeFundamentalType& NativeFundamentalType::Split(Zone* zone,
+                                                    intptr_t index) const {
   ASSERT(index == 0 || index == 1);
   auto new_rep = split_fundamental(representation());
   return *new (zone) NativeFundamentalType(new_rep);
@@ -242,15 +242,15 @@ static FundamentalType TypeRepresentation(classid_t class_id) {
   }
 }
 
-NativeType& NativeType::FromTypedDataClassId(classid_t class_id, Zone* zone) {
+NativeType& NativeType::FromTypedDataClassId(Zone* zone, classid_t class_id) {
   // TODO(36730): Support composites.
   const auto fundamental_rep = TypeRepresentation(class_id);
   return *new (zone) NativeFundamentalType(fundamental_rep);
 }
 
-NativeType& NativeType::FromAbstractType(const AbstractType& type, Zone* zone) {
+NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
   // TODO(36730): Support composites.
-  return NativeType::FromTypedDataClassId(type.type_class_id(), zone);
+  return NativeType::FromTypedDataClassId(zone, type.type_class_id());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -272,8 +272,9 @@ static FundamentalType fundamental_rep(Representation rep) {
   UNREACHABLE();
 }
 
-NativeFundamentalType& NativeType::FromUnboxedRepresentation(Representation rep,
-                                                             Zone* zone) {
+NativeFundamentalType& NativeType::FromUnboxedRepresentation(
+    Zone* zone,
+    Representation rep) {
   return *new (zone) NativeFundamentalType(fundamental_rep(rep));
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
