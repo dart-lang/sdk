@@ -6,6 +6,8 @@
 // of active, non-approved failures which include the commit of the current
 // bisection build.
 
+// @dart = 2.9
+
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -25,7 +27,7 @@ class ResultRecord {
 
   ResultRecord(this.data);
 
-  Map field(String name) => data['fields'][name];
+  Map field(String name) => data['fields'][name] /*!*/;
 
   int get blamelistStartIndex {
     return int.parse(field('blamelist_start_index')['integerValue']);
@@ -39,13 +41,13 @@ class ResultRecord {
     return int.parse(field('blamelist_end_index')['integerValue']);
   }
 
-  String get result => field('result')['stringValue'];
+  String get result => field('result')['stringValue'] /*!*/;
 
-  String get previousResult => field('previous_result')['stringValue'];
+  String get previousResult => field('previous_result')['stringValue'] /*!*/;
 
-  String get name => field('name')['stringValue'];
+  String get name => field('name')['stringValue'] /*!*/;
 
-  String get updateTime => data['updateTime'];
+  String get updateTime => data['updateTime'] /*!*/;
 }
 
 Query unapprovedActiveFailuresQuery(String configuration) {

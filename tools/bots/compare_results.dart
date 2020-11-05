@@ -7,6 +7,8 @@
 // The output contains additional details in the verbose mode. There is a human
 // readable mode that explains the results and how they changed.
 
+// @dart = 2.9
+
 import 'dart:collection';
 import 'dart:io';
 
@@ -126,12 +128,10 @@ bool search(
     } else {
       output = name;
     }
-    if (logs != null) {
-      final log = logs[event.after.key];
-      final bar = '=' * (output.length + 2);
-      if (log != null) {
-        logSection?.add("\n\n/$bar\\\n| $output |\n\\$bar/\n\n${log["log"]}");
-      }
+    final log = logs[event.after.key];
+    final bar = '=' * (output.length + 2);
+    if (log != null) {
+      logSection?.add("\n\n/$bar\\\n| $output |\n\\$bar/\n\n${log["log"]}");
     }
     if (!options["logs-only"]) {
       print(output);
@@ -247,7 +247,7 @@ ${parser.usage}""");
       "changed": "began failing",
       null: "failed",
     },
-    null: {
+    "any": {
       "unchanged": "had the same result",
       "changed": "changed result",
       null: "ran",
@@ -261,10 +261,12 @@ ${parser.usage}""");
   final logSection = <String>[];
   bool judgement = false;
   for (final searchForStatus
-      in searchForStatuses.isNotEmpty ? searchForStatuses : <String>[null]) {
+      in searchForStatuses.isNotEmpty ? searchForStatuses : <String>["any"]) {
     final searchForChanged = options["unchanged"]
         ? "unchanged"
-        : options["changed"] ? "changed" : null;
+        : options["changed"]
+            ? "changed"
+            : null;
     final aboutStatus = filterDescriptions[searchForStatus][searchForChanged];
     final sectionHeader = "The following tests $aboutStatus:";
     final logSectionArg =
@@ -286,8 +288,11 @@ ${parser.usage}""");
     if (options["human"] && !options["logs-only"] && !firstSection) {
       print("");
     }
-    String oldNew =
-        options["unchanged"] ? "old " : options["changed"] ? "new " : "";
+    String oldNew = options["unchanged"]
+        ? "old "
+        : options["changed"]
+            ? "new "
+            : "";
     if (judgement) {
       if (options["human"] && !options["logs-only"]) {
         print("There were ${oldNew}test failures.");

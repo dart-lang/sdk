@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io' show File, HttpStatus;
 
@@ -50,7 +52,7 @@ class FirestoreDatabase {
     };
   }
 
-  Future<List> runQuery(Query query) async {
+  Future<List /*!*/ > runQuery(Query query) async {
     var body = jsonEncode(query.data);
     var response = await _client.post(queryUrl, headers: _headers, body: body);
     if (response.statusCode == HttpStatus.ok) {
@@ -60,14 +62,18 @@ class FirestoreDatabase {
     }
   }
 
-  Future<Object> getDocument(String collectionName, String documentName) async {
+  Future<Map> getDocument(String collectionName, String documentName) async {
     var url = '$documentsUrl/$collectionName/$documentName';
     if (_currentTransaction != null) {
       url = '$url?transaction=${_escapedCurrentTransaction}';
     }
     var response = await _client.get(url, headers: _headers);
     if (response.statusCode == HttpStatus.ok) {
-      return jsonDecode(response.body);
+      var document = jsonDecode(response.body);
+      if (!document is Map) {
+        throw _error(response, message: 'Expected a Map');
+      }
+      return document;
     } else {
       throw _error(response);
     }

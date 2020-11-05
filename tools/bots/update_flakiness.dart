@@ -5,6 +5,8 @@
 
 // Update the flakiness data with a set of fresh results.
 
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -43,9 +45,9 @@ ${parser.usage}''');
   for (final path in parameters) {
     final results = await loadResults(path);
     for (final resultObject in results) {
-      final String configuration = resultObject['configuration'];
-      final String name = resultObject['name'];
-      final String result = resultObject['result'];
+      final String configuration = resultObject['configuration'] /*!*/;
+      final String name = resultObject['name'] /*!*/;
+      final String result = resultObject['result'] /*!*/;
       final key = '$configuration:$name';
       Map<String, dynamic> newMap() => {};
       final testData = data.putIfAbsent(key, newMap);
