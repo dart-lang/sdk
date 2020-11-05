@@ -25,24 +25,27 @@ main() async {
 }
 
 class SnippetTester {
-  OverlayResourceProvider provider;
-  Folder docFolder;
-  String snippetDirPath;
-  String snippetPath;
+  final OverlayResourceProvider provider;
+  final Folder docFolder;
+  final String snippetDirPath;
+  final String snippetPath;
 
-  StringBuffer output = StringBuffer();
+  final StringBuffer output = StringBuffer();
 
-  SnippetTester() {
-    provider = OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
-    String packageRoot =
-        provider.pathContext.normalize(package_root.packageRoot);
-    String analyzerPath = provider.pathContext.join(packageRoot, 'analyzer');
-    String docPath = provider.pathContext.join(analyzerPath, 'doc');
-    docFolder = provider.getFolder(docPath);
-    snippetDirPath =
+  factory SnippetTester() {
+    var provider = OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+    var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
+    var analyzerPath = provider.pathContext.join(packageRoot, 'analyzer');
+    var docPath = provider.pathContext.join(analyzerPath, 'doc');
+    var docFolder = provider.getFolder(docPath);
+    var snippetDirPath =
         provider.pathContext.join(analyzerPath, 'test', 'snippets');
-    snippetPath = provider.pathContext.join(snippetDirPath, 'snippet.dart');
+    var snippetPath = provider.pathContext.join(snippetDirPath, 'snippet.dart');
+    return SnippetTester._(provider, docFolder, snippetDirPath, snippetPath);
   }
+
+  SnippetTester._(
+      this.provider, this.docFolder, this.snippetDirPath, this.snippetPath);
 
   Future<void> verify() async {
     await verifyFolder(docFolder);

@@ -59,7 +59,7 @@ void main() => print('Hello, world!')
     String content = '''
 void main() => print('Hello, world!')
 ''';
-    String expectedPath;
+    /*late*/ String expectedPath;
     ParseStringResult result =
         _withMemoryFile(content, (resourceProvider, path) {
       expectedPath = path;

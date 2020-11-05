@@ -177,8 +177,9 @@ class DocumentationGenerator {
     List<String> includedPaths = [];
     for (CodePath codePath in codePaths) {
       includedPaths.add(codePath.documentationPath);
-      if (codePath.declarationPath != null) {
-        includedPaths.add(codePath.declarationPath);
+      var declarationPath = codePath.declarationPath;
+      if (declarationPath != null) {
+        includedPaths.add(declarationPath);
       }
     }
     AnalysisContextCollection collection = AnalysisContextCollection(
