@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:telemetry/telemetry.dart' as telemetry show isRunningOnBot;
 import 'package:usage/src/usage_impl.dart';
@@ -40,21 +41,15 @@ Dart programming language (https://dart.dev).
 const String eventCategory = 'dartdev';
 const String exitCodeParam = 'exitCode';
 
-Analytics _instance;
+/// Disabled [Analytics], exposed for testing only
+@visibleForTesting
+Analytics get disabledAnalytics => DisabledAnalytics(_trackingId, _appName);
 
-Analytics get analyticsInstance => _instance;
-
-/// Create and return an [Analytics] instance, this value is cached and returned
-/// on subsequent calls.
+/// Create and return an [Analytics] instance.
 Analytics createAnalyticsInstance(bool disableAnalytics) {
-  if (_instance != null) {
-    return _instance;
-  }
-
   if (Platform.environment['_DARTDEV_LOG_ANALYTICS'] != null) {
     // Used for testing what analytics messages are sent.
-    _instance = _LoggingAnalytics();
-    return _instance;
+    return _LoggingAnalytics();
   }
 
   if (disableAnalytics) {
@@ -62,16 +57,14 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
     // handled here.
     // Also, stdout.hasTerminal is checked, if there is no terminal we infer that
     // a machine is running dartdev so we return analytics shouldn't be set.
-    _instance = DisabledAnalytics(_trackingId, _appName);
-    return _instance;
+    return DisabledAnalytics(_trackingId, _appName);
   }
 
-  var settingsDir = getDartStorageDirectory();
+  final settingsDir = getDartStorageDirectory();
   if (settingsDir == null) {
     // Some systems don't support user home directories; for those, fail
     // gracefully by returning a disabled analytics object.
-    _instance = DisabledAnalytics(_trackingId, _appName);
-    return _instance;
+    return DisabledAnalytics(_trackingId, _appName);
   }
 
   if (!settingsDir.existsSync()) {
@@ -80,21 +73,19 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
     } catch (e) {
       // If we can't create the directory for the analytics settings, fail
       // gracefully by returning a disabled analytics object.
-      _instance = DisabledAnalytics(_trackingId, _appName);
-      return _instance;
+      return DisabledAnalytics(_trackingId, _appName);
     }
   }
 
-  var readmeFile =
+  final readmeFile =
       File('${settingsDir.absolute.path}${path.separator}$_readmeFileName');
   if (!readmeFile.existsSync()) {
     readmeFile.createSync();
     readmeFile.writeAsStringSync(_readmeFileContents);
   }
 
-  var settingsFile = File(path.join(settingsDir.path, _settingsFileName));
-  _instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
-  return _instance;
+  final settingsFile = File(path.join(settingsDir.path, _settingsFileName));
+  return DartdevAnalytics(_trackingId, settingsFile, _appName);
 }
 
 /// The directory used to store the analytics settings file.
@@ -146,6 +137,7 @@ class DartdevAnalytics extends AnalyticsImpl {
   }
 }
 
+@visibleForTesting
 class DisabledAnalytics extends AnalyticsMock {
   @override
   final String trackingId;

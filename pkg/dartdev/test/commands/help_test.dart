@@ -4,6 +4,7 @@
 
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
+import 'package:dartdev/src/analytics.dart' show disabledAnalytics;
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -21,7 +22,7 @@ void help() {
   List<String> _commandsNotTested = <String>[
     'help', // `dart help help` is redundant
   ];
-  DartdevRunner(['--disable-dartdev-analytics'])
+  DartdevRunner(['--disable-dartdev-analytics'], disabledAnalytics)
       .commands
       .forEach((String commandKey, Command command) {
     if (!_commandsNotTested.contains(commandKey)) {
@@ -46,7 +47,7 @@ void help() {
   });
 
   test('(--help flags also have -h abbr)', () {
-    DartdevRunner(['--disable-dartdev-analytics'])
+    DartdevRunner(['--disable-dartdev-analytics'], disabledAnalytics)
         .commands
         .forEach((String commandKey, Command command) {
       var helpOption = command.argParser.options['help'];

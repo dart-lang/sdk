@@ -627,17 +627,17 @@ void ScopeBuilder::VisitFunctionNode() {
     first_body_token_position_ = helper_.reader_.min_position();
   }
 
-  // Ensure that :await_jump_var, :await_ctx_var, :async_op,
-  // :async_completer and :async_stack_trace are captured.
+  // Ensure that :await_jump_var, :await_ctx_var, :async_op, :is_sync,
+  // :async_future and :async_stack_trace are captured.
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
     {
-      LocalVariable* temp = NULL;
+      LocalVariable* temp = nullptr;
       LookupCapturedVariableByName(
           (depth_.function_ == 0) ? &result_->yield_jump_variable : &temp,
           Symbols::AwaitJumpVar());
     }
     {
-      LocalVariable* temp = NULL;
+      LocalVariable* temp = nullptr;
       LookupCapturedVariableByName(
           (depth_.function_ == 0) ? &result_->yield_context_variable : &temp,
           Symbols::AwaitContextVar());
@@ -645,28 +645,34 @@ void ScopeBuilder::VisitFunctionNode() {
     {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::AsyncOperation(), true);
-      if (temp != NULL) {
+      if (temp != nullptr) {
         scope_->CaptureVariable(temp);
       }
     }
     {
       LocalVariable* temp =
-          scope_->LookupVariable(Symbols::AsyncCompleter(), true);
-      if (temp != NULL) {
+          scope_->LookupVariable(Symbols::AsyncFuture(), true);
+      if (temp != nullptr) {
+        scope_->CaptureVariable(temp);
+      }
+    }
+    {
+      LocalVariable* temp = scope_->LookupVariable(Symbols::is_sync(), true);
+      if (temp != nullptr) {
         scope_->CaptureVariable(temp);
       }
     }
     {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::ControllerStream(), true);
-      if (temp != NULL) {
+      if (temp != nullptr) {
         scope_->CaptureVariable(temp);
       }
     }
     if (FLAG_causal_async_stacks) {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::AsyncStackTraceVar(), true);
-      if (temp != NULL) {
+      if (temp != nullptr) {
         scope_->CaptureVariable(temp);
       }
     }
@@ -1354,7 +1360,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
   // This way we can allocate them in the outermost context at fixed indices,
   // allowing support for --lazy-async-stacks implementation to find awaiters.
   if (name.Equals(Symbols::AwaitJumpVar()) ||
-      name.Equals(Symbols::AsyncCompleter()) ||
+      name.Equals(Symbols::AsyncFuture()) || name.Equals(Symbols::is_sync()) ||
       name.Equals(Symbols::Controller())) {
     scope_->parent()->AddVariable(variable);
   } else {

@@ -2995,7 +2995,7 @@ class _UnreachableError extends AssertionError {
 }
 
 @pragma('dart2js:noInline')
-void assertUnreachable() {
+Never assertUnreachable() {
   throw new _UnreachableError();
 }
 

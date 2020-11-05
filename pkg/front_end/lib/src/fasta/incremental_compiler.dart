@@ -8,6 +8,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -1379,27 +1380,44 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     // Report old problems that wasn't reported again.
-    for (List<DiagnosticMessageFromJson> messages
-        in remainingComponentProblems.values) {
+    Set<Uri> strongModeNNBDPackageOptOutUris;
+    for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
+        in remainingComponentProblems.entries) {
+      List<DiagnosticMessageFromJson> messages = entry.value;
       for (int i = 0; i < messages.length; i++) {
         DiagnosticMessageFromJson message = messages[i];
+        if (message.codeName == "StrongModeNNBDPackageOptOut") {
+          // Special case this: Don't issue them here; instead collect them
+          // to get their uris and re-issue a new error.
+          strongModeNNBDPackageOptOutUris ??= {};
+          strongModeNNBDPackageOptOutUris.add(entry.key);
+          continue;
+        }
         if (issuedProblems.add(message.toJsonString())) {
           context.options.reportDiagnosticMessage(message);
         }
       }
     }
+    if (strongModeNNBDPackageOptOutUris != null) {
+      // Get the builders for these uris; then call
+      // `SourceLoader.giveCombinedErrorForNonStrongLibraries` on them to issue
+      // a new error.
+      Set<LibraryBuilder> builders = {};
+      SourceLoader loader = userCode.loader;
+      for (LibraryBuilder builder in loader.builders.values) {
+        if (strongModeNNBDPackageOptOutUris.contains(builder.fileUri)) {
+          builders.add(builder);
+        }
+      }
+      FormattedMessage message = loader.giveCombinedErrorForNonStrongLibraries(
+          builders,
+          emitNonPackageErrors: false);
+      issuedProblems.add(message.toJsonString());
+      // The problem was issued by the call so don't re-issue it here.
+    }
 
     // Save any new component-problems.
-    if (componentWithDill?.problemsAsJson != null) {
-      for (String jsonString in componentWithDill.problemsAsJson) {
-        DiagnosticMessageFromJson message =
-            new DiagnosticMessageFromJson.fromJson(jsonString);
-        List<DiagnosticMessageFromJson> messages =
-            remainingComponentProblems[message.uri] ??=
-                new List<DiagnosticMessageFromJson>();
-        messages.add(message);
-      }
-    }
+    _addProblemsAsJsonToRemainingProblems(componentWithDill?.problemsAsJson);
     return new List<String>.from(issuedProblems);
   }
 
@@ -1657,14 +1675,36 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   void saveComponentProblems(IncrementalCompilerData data) {
-    if (data.component.problemsAsJson != null) {
-      for (String jsonString in data.component.problemsAsJson) {
+    List<String> problemsAsJson = data.component.problemsAsJson;
+    _addProblemsAsJsonToRemainingProblems(problemsAsJson);
+  }
+
+  void _addProblemsAsJsonToRemainingProblems(List<String> problemsAsJson) {
+    if (problemsAsJson != null) {
+      for (String jsonString in problemsAsJson) {
         DiagnosticMessageFromJson message =
             new DiagnosticMessageFromJson.fromJson(jsonString);
-        List<DiagnosticMessageFromJson> messages =
-            remainingComponentProblems[message.uri] ??=
-                new List<DiagnosticMessageFromJson>();
-        messages.add(message);
+        assert(message.uri != null ||
+            (message.involvedFiles != null &&
+                message.involvedFiles.isNotEmpty));
+        if (message.uri != null) {
+          List<DiagnosticMessageFromJson> messages =
+              remainingComponentProblems[message.uri] ??=
+                  new List<DiagnosticMessageFromJson>();
+          messages.add(message);
+        }
+        if (message.involvedFiles != null) {
+          // This indexes the same message under several uris - this way it will
+          // be issued as long as it's a problem. It will because of
+          // deduplication when we re-issue these (in reissueComponentProblems)
+          // only be reported once.
+          for (Uri uri in message.involvedFiles) {
+            List<DiagnosticMessageFromJson> messages =
+                remainingComponentProblems[uri] ??=
+                    new List<DiagnosticMessageFromJson>();
+            messages.add(message);
+          }
+        }
       }
     }
   }

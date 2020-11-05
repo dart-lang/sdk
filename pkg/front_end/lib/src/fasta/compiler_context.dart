@@ -65,8 +65,9 @@ class CompilerContext {
 
   /// Report [message], for example, by printing it.
   void report(LocatedMessage message, Severity severity,
-      {List<LocatedMessage> context}) {
-    options.report(message, severity, context: context);
+      {List<LocatedMessage> context, List<Uri> involvedFiles}) {
+    options.report(message, severity,
+        context: context, involvedFiles: involvedFiles);
   }
 
   /// Report [message], for example, by printing it.

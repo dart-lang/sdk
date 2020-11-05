@@ -207,7 +207,8 @@ class ProcessedOptions {
         this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
   FormattedMessage format(
-      LocatedMessage message, Severity severity, List<LocatedMessage> context) {
+      LocatedMessage message, Severity severity, List<LocatedMessage> context,
+      {List<Uri> involvedFiles}) {
     int offset = message.charOffset;
     Uri uri = message.uri;
     Location location = offset == -1 ? null : getLocation(uri, offset);
@@ -221,11 +222,12 @@ class ProcessedOptions {
       }
     }
     return message.withFormatting(formatted, location?.line ?? -1,
-        location?.column ?? -1, severity, formattedContext);
+        location?.column ?? -1, severity, formattedContext,
+        involvedFiles: involvedFiles);
   }
 
   void report(LocatedMessage message, Severity severity,
-      {List<LocatedMessage> context}) {
+      {List<LocatedMessage> context, List<Uri> involvedFiles}) {
     if (command_line_reporting.isHidden(severity)) return;
     if (command_line_reporting.isCompileTimeError(severity)) {
       CompilerContext.current.logError(message, severity);
@@ -233,7 +235,8 @@ class ProcessedOptions {
     if (CompilerContext.current.options.setExitCodeOnProblem) {
       exitCode = 1;
     }
-    reportDiagnosticMessage(format(message, severity, context));
+    reportDiagnosticMessage(
+        format(message, severity, context, involvedFiles: involvedFiles));
     if (command_line_reporting.shouldThrowOn(severity)) {
       if (fatalDiagnosticCount++ < _raw.skipForDebugging) {
         // Skip this one. The interesting one comes later.

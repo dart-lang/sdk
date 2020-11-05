@@ -279,6 +279,7 @@ dec
 decl
 decoupled
 decreases
+deduplication
 deemed
 deepest
 deeply

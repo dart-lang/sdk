@@ -280,11 +280,13 @@ abstract class Loader {
       {bool wasHandled: false,
       List<LocatedMessage> context,
       Severity severity,
-      bool problemOnLibrary: false}) {
+      bool problemOnLibrary: false,
+      List<Uri> involvedFiles}) {
     return addMessage(message, charOffset, length, fileUri, severity,
         wasHandled: wasHandled,
         context: context,
-        problemOnLibrary: problemOnLibrary);
+        problemOnLibrary: problemOnLibrary,
+        involvedFiles: involvedFiles);
   }
 
   /// All messages reported by the compiler (errors, warnings, etc.) are routed
@@ -302,7 +304,8 @@ abstract class Loader {
       Uri fileUri, Severity severity,
       {bool wasHandled: false,
       List<LocatedMessage> context,
-      bool problemOnLibrary: false}) {
+      bool problemOnLibrary: false,
+      List<Uri> involvedFiles}) {
     severity = target.fixSeverity(severity, message, fileUri);
     if (severity == Severity.ignored) return null;
     String trace = """
@@ -321,13 +324,14 @@ severity: $severity
     }
     target.context.report(
         message.withLocation(fileUri, charOffset, length), severity,
-        context: context);
+        context: context, involvedFiles: involvedFiles);
     if (severity == Severity.error) {
       (wasHandled ? handledErrors : unhandledErrors)
           .add(message.withLocation(fileUri, charOffset, length));
     }
     FormattedMessage formattedMessage = target.createFormattedMessage(
-        message, charOffset, length, fileUri, context, severity);
+        message, charOffset, length, fileUri, context, severity,
+        involvedFiles: involvedFiles);
     if (!problemOnLibrary) {
       allComponentProblems.add(formattedMessage);
     }

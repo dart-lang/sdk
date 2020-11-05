@@ -49,7 +49,6 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       receiver_function_(Function::Handle(zone)),
       parent_function_(Function::Handle(zone)),
       context_entry_(Object::Handle(zone)),
-      is_sync(Object::Handle(zone)),
       future_(Object::Handle(zone)),
       listener_(Object::Handle(zone)),
       callback_(Object::Handle(zone)),
@@ -58,7 +57,6 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       var_data_(Object::Handle(zone)),
       callback_instance_(Object::Handle(zone)),
       future_impl_class(Class::Handle(zone)),
-      async_await_completer_class(Class::Handle(zone)),
       future_listener_class(Class::Handle(zone)),
       async_start_stream_controller_class(Class::Handle(zone)),
       stream_controller_class(Class::Handle(zone)),
@@ -66,8 +64,6 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       controller_subscription_class(Class::Handle(zone)),
       buffering_stream_subscription_class(Class::Handle(zone)),
       stream_iterator_class(Class::Handle(zone)),
-      completer_is_sync_field(Field::Handle(zone)),
-      completer_future_field(Field::Handle(zone)),
       future_result_or_listeners_field(Field::Handle(zone)),
       callback_field(Field::Handle(zone)),
       controller_controller_field(Field::Handle(zone)),
@@ -80,9 +76,6 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
   // - async:
   future_impl_class = async_lib.LookupClassAllowPrivate(Symbols::FutureImpl());
   ASSERT(!future_impl_class.IsNull());
-  async_await_completer_class =
-      async_lib.LookupClassAllowPrivate(Symbols::_AsyncAwaitCompleter());
-  ASSERT(!async_await_completer_class.IsNull());
   future_listener_class =
       async_lib.LookupClassAllowPrivate(Symbols::_FutureListener());
   ASSERT(!future_listener_class.IsNull());
@@ -108,12 +101,6 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
 
   // Look up fields:
   // - async:
-  completer_is_sync_field =
-      async_await_completer_class.LookupFieldAllowPrivate(Symbols::isSync());
-  ASSERT(!completer_is_sync_field.IsNull());
-  completer_future_field =
-      async_await_completer_class.LookupFieldAllowPrivate(Symbols::_future());
-  ASSERT(!completer_future_field.IsNull());
   future_result_or_listeners_field =
       future_impl_class.LookupFieldAllowPrivate(Symbols::_resultOrListeners());
   ASSERT(!future_result_or_listeners_field.IsNull());
@@ -161,12 +148,7 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future_) {
 
 ClosurePtr CallerClosureFinder::FindCallerInAsyncClosure(
     const Context& receiver_context) {
-  context_entry_ = receiver_context.At(Context::kAsyncCompleterIndex);
-  ASSERT(context_entry_.IsInstance());
-  ASSERT(context_entry_.GetClassId() == async_await_completer_class.id());
-
-  const Instance& completer = Instance::Cast(context_entry_);
-  future_ = completer.GetField(completer_future_field);
+  future_ = receiver_context.At(Context::kAsyncFutureIndex);
   return GetCallerInFutureImpl(future_);
 }
 
@@ -248,28 +230,28 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
 }
 
 bool CallerClosureFinder::IsRunningAsync(const Closure& receiver_closure) {
-  RELEASE_ASSERT(!receiver_closure.IsNull());
-  receiver_function_ = receiver_closure.function();
-  receiver_context_ = receiver_closure.context();
+  auto zone = Thread::Current()->zone();
 
   // The async* functions are never started synchronously, they start running
   // after the first `listen()` call to its returned `Stream`.
+  const Function& receiver_function_ =
+      Function::Handle(zone, receiver_closure.function());
   if (receiver_function_.IsAsyncGenClosure()) {
     return true;
   }
   ASSERT(receiver_function_.IsAsyncClosure());
 
-  context_entry_ = receiver_context_.At(Context::kAsyncCompleterIndex);
-  ASSERT(context_entry_.IsInstance());
-  ASSERT(context_entry_.GetClassId() == async_await_completer_class.id());
-
-  const Instance& completer = Instance::Cast(context_entry_);
-  is_sync = completer.GetField(completer_is_sync_field);
+  const Context& receiver_context_ =
+      Context::Handle(zone, receiver_closure.context());
+  const Object& is_sync =
+      Object::Handle(zone, receiver_context_.At(Context::kIsSyncIndex));
   ASSERT(!is_sync.IsNull());
   ASSERT(is_sync.IsBool());
-  // _AsyncAwaitCompleter.isSync indicates whether the future should be
-  // completed async. or sync., based on whether it has yielded yet.
-  // isSync is true when the :async_op is running async.
+  // isSync indicates whether the future should be completed async. or sync.,
+  // based on whether it has yielded yet.
+  // isSync is true when the :async_op has yielded at least once.
+  // I.e. isSync will be false even after :async_op has run, if e.g. it threw
+  // an exception before yielding.
   return Bool::Cast(is_sync).value();
 }
 
@@ -416,52 +398,55 @@ void StackTraceUtils::CollectFramesLazy(
   return;
 }
 
-// Count the number of frames that are on the stack.
 intptr_t StackTraceUtils::CountFrames(Thread* thread,
                                       int skip_frames,
                                       const Function& async_function,
                                       bool* sync_async_end) {
   Zone* zone = thread->zone();
   intptr_t frame_count = 0;
-  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
-                            StackFrameIterator::kNoCrossThreadIteration);
+  DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
+  ASSERT(frame != nullptr);  // We expect to find a dart invocation frame.
   Function& function = Function::Handle(zone);
   Code& code = Code::Handle(zone);
-  String& function_name = String::Handle(zone);
+  Closure& closure = Closure::Handle(zone);
   const bool async_function_is_null = async_function.IsNull();
-  int sync_async_gap_frames = -1;
-  ASSERT(async_function_is_null || sync_async_end != NULL);
-  for (; frame != NULL && sync_async_gap_frames != 0;
-       frame = frames.NextFrame()) {
-    if (!frame->IsDartFrame()) {
-      continue;
-    }
+
+  ASSERT(async_function_is_null || sync_async_end != nullptr);
+
+  for (; frame != nullptr; frame = frames.NextFrame()) {
     if (skip_frames > 0) {
       skip_frames--;
       continue;
     }
     code = frame->LookupDartCode();
     function = code.function();
+
+    frame_count++;
+
     const bool function_is_null = function.IsNull();
-    if (!function_is_null && sync_async_gap_frames > 0) {
-      function_name = function.QualifiedScrubbedName();
-      if (!CheckAndSkipAsync(&sync_async_gap_frames, function_name)) {
-        *sync_async_end = false;
-        return frame_count;
-      }
-    } else {
-      frame_count++;
-    }
+
     if (!async_function_is_null && !function_is_null &&
-        (async_function.raw() == function.parent_function())) {
-      sync_async_gap_frames = kSyncAsyncFrameGap;
+        function.parent_function() != Function::null()) {
+      if (async_function.raw() == function.parent_function()) {
+        if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+          ObjectPtr* last_caller_obj =
+              reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
+          closure = FindClosureInFrame(last_caller_obj, function);
+          if (CallerClosureFinder::IsRunningAsync(closure)) {
+            *sync_async_end = false;
+            return frame_count;
+          }
+        }
+        break;
+      }
     }
   }
+
   if (!async_function_is_null) {
-    *sync_async_end = sync_async_gap_frames == 0;
+    *sync_async_end = true;
   }
+
   return frame_count;
 }
 
@@ -472,8 +457,7 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
                                         intptr_t count,
                                         int skip_frames) {
   Zone* zone = thread->zone();
-  StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
-                            StackFrameIterator::kNoCrossThreadIteration);
+  DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
   Code& code = Code::Handle(zone);
@@ -481,9 +465,6 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
   intptr_t collected_frames_count = 0;
   for (; (frame != NULL) && (collected_frames_count < count);
        frame = frames.NextFrame()) {
-    if (!frame->IsDartFrame()) {
-      continue;
-    }
     if (skip_frames > 0) {
       skip_frames--;
       continue;
@@ -513,7 +494,7 @@ intptr_t StackTraceUtils::ExtractAsyncStackTraceInfo(
       StackTrace::Handle(thread->async_stack_trace());
   const intptr_t async_stack_trace_length = async_stack_trace.Length();
   // At least two entries (0: gap marker, 1: async function).
-  ASSERT(async_stack_trace_length >= 2);
+  RELEASE_ASSERT(async_stack_trace_length >= 2);
   // Validate the structure of this stack trace.
   *async_code_array = async_stack_trace.code_array();
   ASSERT(!async_code_array->IsNull());

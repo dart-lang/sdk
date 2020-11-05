@@ -631,7 +631,7 @@ int res(int a, int b) => a + b;
 ''');
   }
 
-  Future<void> test_expression_updateParameters() {
+  Future<void> test_expression_updateParameters() async {
     addTestFile('''
 main() {
   int a = 1;
@@ -641,15 +641,15 @@ main() {
 }
 ''');
     _setOffsetLengthForString('a + b');
-    return getRefactoringResult(_computeChange).then((result) {
-      ExtractMethodFeedback feedback = result.feedback;
-      var parameters = feedback.parameters;
-      parameters[0].name = 'aaa';
-      parameters[1].name = 'bbb';
-      parameters[1].type = 'num';
-      parameters.insert(0, parameters.removeLast());
-      options.parameters = parameters;
-      return assertSuccessfulRefactoring(_sendExtractRequest, '''
+    var result = await getRefactoringResult(_computeChange);
+    ExtractMethodFeedback feedback = result.feedback;
+    var parameters = feedback.parameters;
+    parameters[0].name = 'aaa';
+    parameters[1].name = 'bbb';
+    parameters[1].type = 'num';
+    parameters.insert(0, parameters.removeLast());
+    options.parameters = parameters;
+    return assertSuccessfulRefactoring(_sendExtractRequest, '''
 main() {
   int a = 1;
   int b = 2;
@@ -659,7 +659,6 @@ main() {
 
 int res(num bbb, int aaa) => aaa + bbb;
 ''');
-    });
   }
 
   Future<void> test_init_fatalError_invalidStatement() {

@@ -210,36 +210,39 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
       first_parameter_index;  // Current free frame index.
 
   LocalVariable* await_jump_var = nullptr;
-  LocalVariable* async_completer = nullptr;
+  LocalVariable* async_future = nullptr;
   LocalVariable* controller = nullptr;
   LocalVariable* chained_future = nullptr;
+  LocalVariable* is_sync = nullptr;
   for (intptr_t i = 0; i < num_variables(); i++) {
     LocalVariable* variable = VariableAt(i);
     if (variable->owner() == this) {
       if (variable->is_captured()) {
         if (variable->name().Equals(Symbols::AwaitJumpVar())) {
           await_jump_var = variable;
-        } else if (variable->name().Equals(Symbols::AsyncCompleter())) {
-          async_completer = variable;
+        } else if (variable->name().Equals(Symbols::AsyncFuture())) {
+          async_future = variable;
         } else if (variable->name().Equals(Symbols::Controller())) {
           controller = variable;
         } else if (variable->is_chained_future()) {
           chained_future = variable;
+        } else if (variable->name().Equals(Symbols::is_sync())) {
+          is_sync = variable;
         }
       }
     }
   }
   // If we are in an async/async* function, force :await_jump_var and
-  // :async_completer_var to be at fixed locations in the slot.
+  // :async_future to be at fixed locations in the slot.
   if (await_jump_var != nullptr) {
     AllocateContextVariable(await_jump_var, &context_owner);
     *found_captured_variables = true;
     ASSERT(await_jump_var->index().value() == Context::kAwaitJumpVarIndex);
   }
-  if (async_completer != nullptr) {
-    AllocateContextVariable(async_completer, &context_owner);
+  if (async_future != nullptr) {
+    AllocateContextVariable(async_future, &context_owner);
     *found_captured_variables = true;
-    ASSERT(async_completer->index().value() == Context::kAsyncCompleterIndex);
+    ASSERT(async_future->index().value() == Context::kAsyncFutureIndex);
   }
   if (controller != nullptr) {
     AllocateContextVariable(controller, &context_owner);
@@ -251,6 +254,11 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
     *found_captured_variables = true;
     ASSERT(chained_future->index().value() ==
            chained_future->expected_context_index());
+  }
+  if (is_sync != nullptr) {
+    AllocateContextVariable(is_sync, &context_owner);
+    *found_captured_variables = true;
+    ASSERT(is_sync->index().value() == Context::kIsSyncIndex);
   }
 
   while (pos < num_parameters) {
@@ -281,8 +289,9 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
     if (variable->owner() == this) {
       if (variable->is_captured()) {
         // Skip the variables already pre-allocated above.
-        if (variable != await_jump_var && variable != async_completer &&
-            variable != controller && variable != chained_future) {
+        if (variable != await_jump_var && variable != async_future &&
+            variable != controller && variable != chained_future &&
+            variable != is_sync) {
           AllocateContextVariable(variable, &context_owner);
           *found_captured_variables = true;
         }
@@ -320,8 +329,8 @@ static bool IsFilteredIdentifier(const String& str) {
     // Keep :async_op for asynchronous debugging.
     return false;
   }
-  if (str.raw() == Symbols::AsyncCompleter().raw()) {
-    // Keep :async_completer for asynchronous debugging.
+  if (str.raw() == Symbols::AsyncFuture().raw()) {
+    // Keep :async_future for asynchronous debugging.
     return false;
   }
   if (str.raw() == Symbols::ControllerStream().raw()) {
@@ -330,6 +339,10 @@ static bool IsFilteredIdentifier(const String& str) {
   }
   if (str.raw() == Symbols::AwaitJumpVar().raw()) {
     // Keep :await_jump_var for asynchronous debugging.
+    return false;
+  }
+  if (str.raw() == Symbols::is_sync().raw()) {
+    // Keep :is_sync for asynchronous debugging.
     return false;
   }
   if (str.raw() == Symbols::AsyncStackTraceVar().raw()) {

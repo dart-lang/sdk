@@ -195,7 +195,7 @@ class ModifyParameters extends Change<_Data> {
     if (newNamed.isNotEmpty) {
       int offset;
       var needsInitialComma = false;
-      if (arguments.isEmpty) {
+      if (remainingArguments.isEmpty && argumentsToInsert.isEmpty) {
         offset = argumentList.rightParenthesis.offset;
       } else {
         offset = arguments[arguments.length - 1].end;

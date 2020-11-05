@@ -63,6 +63,12 @@ static StackTracePtr CurrentSyncStackTrace(Thread* thread,
   return StackTrace::New(code_array, pc_offset_array);
 }
 
+// Gets current stack trace for `thread`.
+// This functions itself handles the --causel-async-stacks case.
+// For --lazy-async-stacks see `CurrentSyncStackTraceLazy`.
+// For --no-causel-async-stacks see `CurrentSyncStackTrace`.
+// Extracts the causal async stack from the thread if any set, then prepends
+// the current sync. stack up until the current async function (if any).
 static StackTracePtr CurrentStackTrace(
     Thread* thread,
     bool for_async_function,
@@ -91,8 +97,12 @@ static StackTracePtr CurrentStackTrace(
   // Determine the size of the stack trace.
   const intptr_t extra_frames = for_async_function ? 1 : 0;
   bool sync_async_end = false;
+  // Count frames until `async_function` and set whether the async function is
+  // running synchronously (i.e. hasn't yielded yet).
   const intptr_t synchronous_stack_trace_length = StackTraceUtils::CountFrames(
       thread, skip_frames, async_function, &sync_async_end);
+
+  ASSERT(synchronous_stack_trace_length > 0);
 
   const intptr_t capacity = synchronous_stack_trace_length +
                             extra_frames;  // For the asynchronous gap.
@@ -112,18 +122,21 @@ static StackTracePtr CurrentStackTrace(
     write_cursor++;
   }
 
-  // Append the synchronous stack trace.
-  const intptr_t collected_frames_count = StackTraceUtils::CollectFrames(
-      thread, code_array, pc_offset_array, write_cursor,
-      synchronous_stack_trace_length, skip_frames);
+  // Prepend: synchronous stack trace + (cached) async stack trace.
 
-  write_cursor += collected_frames_count;
+  write_cursor +=
+      StackTraceUtils::CollectFrames(thread, code_array, pc_offset_array,
+                                     /*array_offset=*/write_cursor,
+                                     /*count=*/synchronous_stack_trace_length,
+                                     /*skip_frames=*/skip_frames);
 
   ASSERT(write_cursor == capacity);
 
   const StackTrace& result = StackTrace::Handle(
-      zone, StackTrace::New(code_array, pc_offset_array, async_stack_trace,
-                            sync_async_end));
+      zone,
+      StackTrace::New(code_array, pc_offset_array,
+                      /*async_link=*/async_stack_trace,
+                      /*skip_sync_start_in_parent_stack=*/sync_async_end));
 
   return result.raw();
 }

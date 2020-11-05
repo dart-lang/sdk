@@ -480,6 +480,37 @@ void f(C c) {
 ''');
   }
 
+  Future<void> test_mixed_replaced_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  void m1({int a}) {}
+  void m2({int b}) {}
+}
+''');
+    setPackageData(_modify([
+      'C',
+      'm1'
+    ], [
+      AddParameter(0, 'b', true, false, codeTemplate('0')),
+      RemoveParameter(NamedParameterReference('a')),
+    ], newName: 'm2'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.m1(a: 1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m2(b: 0);
+}
+''');
+  }
+
   Future<void> test_remove_first_optionalNamed_deprecated() async {
     setPackageContent('''
 class C {

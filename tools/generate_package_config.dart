@@ -1,6 +1,9 @@
 #!/usr/bin/env dart
 
 /// Generates the repo's ".dart_tool/package_config.json" file.
+
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 

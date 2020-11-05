@@ -502,6 +502,104 @@ void f(PointerHoverEvent event) {
   }
 
   Future<void>
+      test_material_BottomNavigationBarItem_unnamedConstructor_deprecated() async {
+    setPackageContent('''
+class BottomNavigationBarItem {
+  BottomNavigationBarItem({String label, @deprecated Text title});
+}
+class Text {
+  Text(String text);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replaced title with label'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'BottomNavigationBarItem'
+    changes:
+      - kind: 'addParameter'
+        index: 0
+        name: 'label'
+        style: required_named
+        argumentValue:
+          expression: '{% label %}'
+          variables:
+            label:
+              kind: fragment
+              value: 'arguments[title].arguments[0]'
+      - kind: 'removeParameter'
+        name: 'title'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  BottomNavigationBarItem(title: Text('x'));
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  BottomNavigationBarItem(label: 'x');
+}
+''');
+  }
+
+  Future<void>
+      test_material_BottomNavigationBarItem_unnamedConstructor_removed() async {
+    setPackageContent('''
+class BottomNavigationBarItem {
+  BottomNavigationBarItem({String label});
+}
+class Text {
+  Text(String text);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replaced title with label'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'BottomNavigationBarItem'
+    changes:
+      - kind: 'addParameter'
+        index: 0
+        name: 'label'
+        style: required_named
+        argumentValue:
+          expression: '{% label %}'
+          variables:
+            label:
+              kind: fragment
+              value: 'arguments[title].arguments[0]'
+      - kind: 'removeParameter'
+        name: 'title'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  BottomNavigationBarItem(title: Text('x'));
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  BottomNavigationBarItem(label: 'x');
+}
+''');
+  }
+
+  Future<void>
       test_material_Scaffold_resizeToAvoidBottomPadding_deprecated() async {
     setPackageContent('''
 class Scaffold {

@@ -17,49 +17,6 @@ import "dart:_internal" show VMLibraryHooks, patch;
 // Equivalent of calling FATAL from C++ code.
 _fatal(msg) native "DartAsync_fatal";
 
-class _AsyncAwaitCompleter<T> implements Completer<T> {
-  @pragma("vm:entry-point")
-  final _future = new _Future<T>();
-  @pragma("vm:entry-point")
-  bool isSync;
-
-  @pragma("vm:entry-point")
-  _AsyncAwaitCompleter() : isSync = false;
-
-  @pragma("vm:entry-point")
-  void complete([FutureOr<T>? value]) {
-    // All paths require that if value is null, null as T succeeds.
-    value = (value == null) ? value as T : value;
-    if (!isSync) {
-      _future._asyncComplete(value);
-    } else if (value is Future<T>) {
-      assert(!_future._isComplete);
-      _future._chainFuture(value);
-    } else {
-      // TODO(40014): Remove cast when type promotion works.
-      _future._completeWithValue(value as T);
-    }
-  }
-
-  void completeError(Object e, [StackTrace? st]) {
-    st ??= AsyncError.defaultStackTrace(e);
-    if (isSync) {
-      _future._completeError(e, st);
-    } else {
-      _future._asyncCompleteError(e, st);
-    }
-  }
-
-  @pragma("vm:entry-point")
-  void start(void Function() f) {
-    f();
-    isSync = true;
-  }
-
-  Future<T> get future => _future;
-  bool get isCompleted => !_future._mayComplete;
-}
-
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
 dynamic Function(dynamic) _asyncThenWrapperHelper(
@@ -287,8 +244,25 @@ class _StreamImpl<T> {
 }
 
 @pragma("vm:entry-point", "call")
-void _completeOnAsyncReturn(Completer completer, Object? value) {
-  completer.complete(value);
+void _completeOnAsyncReturn(_Future _future, Object? value, bool is_sync) {
+  // The first awaited expression is invoked sync. so complete is async. to
+  // allow then and error handlers to be attached.
+  // async_jump_var=0 is prior to first await, =1 is first await.
+  if (!is_sync || value is Future) {
+    _future._asyncComplete(value);
+  } else {
+    _future._completeWithValue(value);
+  }
+}
+
+@pragma("vm:entry-point", "call")
+void _completeOnAsyncError(
+    _Future _future, Object e, StackTrace st, bool is_sync) {
+  if (!is_sync) {
+    _future._asyncCompleteError(e, st);
+  } else {
+    _future._completeError(e, st);
+  }
 }
 
 /// Returns a [StackTrace] object containing the synchronous prefix for this

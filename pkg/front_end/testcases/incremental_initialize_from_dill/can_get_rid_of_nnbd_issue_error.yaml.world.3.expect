@@ -1,0 +1,31 @@
+main = main::main;
+//
+// Problems in component:
+//
+// Error: This project cannot run with sound null safety, because one or more project dependencies do not
+// support null safety:
+//
+//  - package:bar
+//
+// Run 'pub outdated --mode=null-safety' to determine if versions of your
+// dependencies supporting null safety are available.
+//
+library from "package:bar/bar.dart" as bar {
+
+  static field dart.core::int* y = null;
+}
+library from "package:baz/main.dart" as main {
+
+  import "package:foo/foo.dart" as foo;
+  import "package:bar/bar.dart" as bar;
+
+  static method main() → dynamic {
+    dart.core::print(foo::x);
+    dart.core::print(bar::y);
+    dart.core::print("done");
+  }
+}
+library from "package:foo/foo.dart" as foo {
+
+  static field dart.core::int x = 42;
+}

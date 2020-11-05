@@ -15,6 +15,8 @@ import 'async.dart';
 
 class ContinuationVariables {
   static const awaitJumpVar = ':await_jump_var';
+  static const asyncFuture = ':async_future';
+  static const isSync = ":is_sync";
   static const awaitContextVar = ':await_ctx_var';
   static const asyncCompleter = ':async_completer';
   static const asyncOp = ':async_op';
@@ -1283,8 +1285,9 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
 }
 
 class AsyncFunctionRewriter extends AsyncRewriterBase {
-  VariableDeclaration completerVariable;
   VariableDeclaration returnVariable;
+  VariableDeclaration asyncFutureVariable;
+  VariableDeclaration isSyncVariable;
 
   AsyncFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
       StaticTypeContext staticTypeContext)
@@ -1303,71 +1306,87 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
       valueType = elementTypeFromAsyncReturnType();
     }
     final DartType returnType =
-        new FutureOrType(valueType, staticTypeContext.nullable);
-    var completerTypeArguments = <DartType>[valueType];
+        FutureOrType(valueType, staticTypeContext.nullable);
+    final futureTypeArguments = <DartType>[valueType];
 
-    final completerType = new InterfaceType(helper.asyncAwaitCompleterClass,
-        staticTypeContext.nonNullable, completerTypeArguments);
-    // final Completer<T> :async_completer = new _AsyncAwaitCompleter<T>();
-    completerVariable = new VariableDeclaration(
-        ContinuationVariables.asyncCompleter,
-        initializer: new ConstructorInvocation(
-            helper.asyncAwaitCompleterConstructor,
-            new Arguments([], types: completerTypeArguments))
+    final futureType = InterfaceType(helper.futureImplClass,
+        staticTypeContext.nonNullable, futureTypeArguments);
+
+    // final _Future<T> :async_future = _Future<T>();
+    asyncFutureVariable = VariableDeclaration(ContinuationVariables.asyncFuture,
+        initializer: ConstructorInvocation(helper.futureImplConstructor,
+            Arguments([], types: futureTypeArguments))
           ..fileOffset = enclosingFunction.body?.fileOffset ?? -1,
         isFinal: true,
-        type: completerType);
-    statements.add(completerVariable);
+        type: futureType);
+    statements.add(asyncFutureVariable);
 
-    returnVariable = new VariableDeclaration(ContinuationVariables.returnValue,
+    // bool :is_sync = false;
+    isSyncVariable = VariableDeclaration(ContinuationVariables.isSync,
+        initializer: BoolLiteral(false),
+        type: helper.coreTypes.boolLegacyRawType);
+    statements.add(isSyncVariable);
+
+    // asy::FutureOr<dynamic>* :return_value;
+    returnVariable = VariableDeclaration(ContinuationVariables.returnValue,
         type: returnType);
     statements.add(returnVariable);
 
     setupAsyncContinuations(statements);
 
-    // :async_completer.start(:async_op);
-    var startStatement = new ExpressionStatement(new MethodInvocation(
-        new VariableGet(completerVariable),
-        new Name('start'),
-        new Arguments([new VariableGet(nestedClosureVariable)]),
-        helper.asyncAwaitCompleterStartProcedure)
-      ..fileOffset = enclosingFunction.fileOffset);
+    // :async_op();
+    final startStatement = ExpressionStatement(MethodInvocation(
+      VariableGet(nestedClosureVariable),
+      Name('call'),
+      Arguments([]),
+    )..fileOffset = enclosingFunction.fileOffset);
     statements.add(startStatement);
-    // return :async_completer.future;
-    var completerGet = new VariableGet(completerVariable);
-    var returnStatement = new ReturnStatement(new PropertyGet(completerGet,
-        new Name('future', helper.asyncLibrary), helper.completerFuture));
-    statements.add(returnStatement);
 
-    enclosingFunction.body = new Block(statements);
+    // :is_sync = true;
+    final setIsSync =
+        ExpressionStatement(VariableSet(isSyncVariable, BoolLiteral(true)));
+    statements.add(setIsSync);
+
+    // return :async_future;
+    statements.add(ReturnStatement(VariableGet(asyncFutureVariable)));
+
+    enclosingFunction.body = Block(statements);
     enclosingFunction.body.parent = enclosingFunction;
     enclosingFunction.asyncMarker = AsyncMarker.Sync;
     return enclosingFunction;
   }
 
+  // :async_op's try-catch catch body:
   Statement buildCatchBody(exceptionVariable, stackTraceVariable) {
-    return new ExpressionStatement(new MethodInvocation(
-        new VariableGet(completerVariable),
-        new Name('completeError'),
-        new Arguments([
-          new VariableGet(exceptionVariable),
-          new VariableGet(stackTraceVariable)
-        ]),
-        helper.completerCompleteError));
+    // _completeOnAsyncError(_future, e, st, :is_sync)
+    return ExpressionStatement(StaticInvocation(
+        helper.completeOnAsyncError,
+        Arguments([
+          VariableGet(asyncFutureVariable),
+          VariableGet(exceptionVariable),
+          VariableGet(stackTraceVariable),
+          VariableGet(isSyncVariable)
+        ])));
   }
 
+  // :async_op's try-catch try body:
   Statement buildReturn(Statement body) {
     // Returns from the body have all been translated into assignments to the
     // return value variable followed by a break from the labeled body.
-    return new Block(<Statement>[
+
+    // .. body ..
+    // _completeOnAsyncReturn(_future, returnVariable, :is_sync)
+    // return;
+    return Block(<Statement>[
       body,
-      new ExpressionStatement(new StaticInvocation(
+      ExpressionStatement(StaticInvocation(
           helper.completeOnAsyncReturn,
-          new Arguments([
-            new VariableGet(completerVariable),
-            new VariableGet(returnVariable)
+          Arguments([
+            VariableGet(asyncFutureVariable),
+            VariableGet(returnVariable),
+            VariableGet(isSyncVariable)
           ]))),
-      new ReturnStatement()..fileOffset = enclosingFunction.fileEndOffset
+      ReturnStatement()..fileOffset = enclosingFunction.fileEndOffset
     ]);
   }
 
@@ -1396,15 +1415,14 @@ class HelperNodes {
   final Member asyncStarMoveNextHelper;
   final Procedure asyncThenWrapper;
   final Procedure awaitHelper;
-  final Class asyncAwaitCompleterClass;
-  final Member completerCompleteError;
-  final Member asyncAwaitCompleterConstructor;
-  final Member asyncAwaitCompleterStartProcedure;
   final Member completeOnAsyncReturn;
-  final Member completerFuture;
+  final Member completeOnAsyncError;
   final Library coreLibrary;
   final CoreTypes coreTypes;
   final Class futureClass;
+  final Class futureOrClass;
+  final Class futureImplClass;
+  final Constructor futureImplConstructor;
   final Class iterableClass;
   final Class streamClass;
   final Member streamIteratorCancel;
@@ -1435,15 +1453,14 @@ class HelperNodes {
       this.asyncStarMoveNextHelper,
       this.asyncThenWrapper,
       this.awaitHelper,
-      this.asyncAwaitCompleterClass,
-      this.completerCompleteError,
-      this.asyncAwaitCompleterConstructor,
-      this.asyncAwaitCompleterStartProcedure,
       this.completeOnAsyncReturn,
-      this.completerFuture,
+      this.completeOnAsyncError,
       this.coreLibrary,
       this.coreTypes,
       this.futureClass,
+      this.futureOrClass,
+      this.futureImplClass,
+      this.futureImplConstructor,
       this.iterableClass,
       this.streamClass,
       this.streamIteratorCancel,
@@ -1474,15 +1491,14 @@ class HelperNodes {
         coreTypes.asyncStarMoveNextHelper,
         coreTypes.asyncThenWrapperHelperProcedure,
         coreTypes.awaitHelperProcedure,
-        coreTypes.asyncAwaitCompleterClass,
-        coreTypes.completerCompleteError,
-        coreTypes.asyncAwaitCompleterConstructor,
-        coreTypes.asyncAwaitCompleterStartProcedure,
         coreTypes.completeOnAsyncReturn,
-        coreTypes.completerFuture,
+        coreTypes.completeOnAsyncError,
         coreTypes.coreLibrary,
         coreTypes,
         coreTypes.futureClass,
+        coreTypes.deprecatedFutureOrClass,
+        coreTypes.futureImplClass,
+        coreTypes.futureImplConstructor,
         coreTypes.iterableClass,
         coreTypes.streamClass,
         coreTypes.streamIteratorCancel,

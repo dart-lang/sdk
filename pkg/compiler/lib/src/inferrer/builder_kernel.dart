@@ -1306,7 +1306,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       // We have something like `List.of(elements)`.
       TypeInformation baseType =
           _listBaseType(arguments, defaultGrowable: true);
-      return baseType;
+      // TODO(sra): Use static type to bound the element type, preferably as a
+      // narrowing of all inputs.
+      TypeInformation elementType = _types.dynamicType;
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(
+              baseType, node, _analyzedMember, elementType));
     }
     if (_isConstructorOfTypedArraySubclass(constructor)) {
       // We have something like `Uint32List(len)`.
