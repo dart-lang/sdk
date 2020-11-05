@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert' show jsonDecode;
+import 'dart:math';
 import 'dart:io' hide File;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -1124,13 +1125,13 @@ class _FixCodeProcessor extends Object {
   }
 
   Future<AnalysisResult> runFirstPhase() async {
-    // All tasks should be registered; [numPhases] should be finalized.
-    _progressBar = _ProgressBar(_migrationCli.logger, pathsToProcess.length);
-
     // Process package
     _task.processPackage(context.contextRoot.root);
 
     var analysisErrors = <AnalysisError>[];
+
+    // All tasks should be registered; [numPhases] should be finalized.
+    _progressBar = _ProgressBar(_migrationCli.logger, pathsToProcess.length);
 
     // Process each source file.
     await processResources((ResolvedUnitResult result) async {
@@ -1269,7 +1270,8 @@ class _ProgressBar {
       return;
     }
     _tickCount++;
-    var fractionComplete = _tickCount * _innerWidth ~/ _totalTickCount - 1;
+    var fractionComplete =
+        max(0, _tickCount * _innerWidth ~/ _totalTickCount - 1);
     var remaining = _innerWidth - fractionComplete - 1;
     _logger.write('\r[' + // Bring cursor back to the start of the line.
         '-' * fractionComplete + // Print complete work.
