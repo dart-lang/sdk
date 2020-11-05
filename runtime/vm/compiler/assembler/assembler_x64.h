@@ -829,9 +829,9 @@ class Assembler : public AssemblerBase {
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
   // Call runtime function. Reserves shadow space on the stack before calling
-  // if platform ABI requires that. Does not restore RSP after the call itself.
-  void CallCFunction(Register reg);
-  void CallCFunction(Address address);
+  // if platform ABI requires that.
+  void CallCFunction(Register reg, bool restore_rsp = false);
+  void CallCFunction(Address address, bool restore_rsp = false);
 
   void ExtractClassIdFromTags(Register result, Register tags);
   void ExtractInstanceSizeFromTags(Register result, Register tags);

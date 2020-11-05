@@ -304,6 +304,16 @@ class CallingConventions {
   // same time? (Windows no, rest yes)
   static const bool kArgumentIntRegXorFpuReg = true;
 
+  // > The x64 Application Binary Interface (ABI) uses a four-register
+  // > fast-call calling convention by default. Space is allocated on the call
+  // > stack as a shadow store for callees to save those registers.
+  // https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-160
+  //
+  // The caller allocates this space. The caller should also reclaim this space
+  // after the call to restore the stack to its original state if needed.
+  //
+  // This is also known as home space.
+  // https://devblogs.microsoft.com/oldnewthing/20160623-00/?p=93735
   static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
 
   static const intptr_t kVolatileCpuRegisters =
