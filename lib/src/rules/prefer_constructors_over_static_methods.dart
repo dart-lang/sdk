@@ -41,7 +41,6 @@ class Point {
         y = radius * math.sin(theta);
 }
 ```
-
 ''';
 
 bool _hasNewInvocation(DartType returnType, FunctionBody body) {
@@ -64,15 +63,16 @@ class PreferConstructorsInsteadOfStaticMethods extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    final visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
@@ -82,9 +82,14 @@ class _Visitor extends SimpleAstVisitor<void> {
         parent is ClassOrMixinDeclaration &&
         returnType is InterfaceType &&
         parent.typeParameters == null &&
-        node.typeParameters == null &&
-        _hasNewInvocation(returnType, node.body)) {
-      rule.reportLint(node.name);
+        node.typeParameters == null) {
+      var interfaceType = parent.declaredElement.thisType;
+      if (!context.typeSystem.isAssignableTo(returnType, interfaceType)) {
+        return;
+      }
+      if (_hasNewInvocation(returnType, node.body)) {
+        rule.reportLint(node.name);
+      }
     }
   }
 }

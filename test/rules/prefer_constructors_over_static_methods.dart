@@ -34,6 +34,8 @@ class A {
 
   static A generic<T>() => // OK
       A.internal();
+
+  static Object ok() => Object(); // OK
 }
 
 class B<T> {
