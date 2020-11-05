@@ -394,6 +394,7 @@ void f() {
 }
 ''';
     var alreadyMigrated = '''
+// @dart=2.12
 extension Ext<T> on List<T> {
   g() {}
 }
@@ -6600,7 +6601,10 @@ void main(F<int?> f) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '$projectPath/lib/migrated_typedef.dart': 'typedef F<R> = Function(R);'
+      '$projectPath/lib/migrated_typedef.dart': '''
+// @dart=2.12
+typedef F<R> = Function(R);
+'''
     });
   }
 
@@ -6636,8 +6640,10 @@ void f4(F<int> f) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '$projectPath/lib/migrated_typedef.dart':
-          'typedef F<T> = Function<R>(T, R);'
+      '$projectPath/lib/migrated_typedef.dart': '''
+// @dart=2.12
+typedef F<T> = Function<R>(T, R);
+'''
     });
   }
 
@@ -6655,7 +6661,10 @@ void main(F f) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '$projectPath/lib/migrated_typedef.dart': 'typedef F = Function<R>(R);'
+      '$projectPath/lib/migrated_typedef.dart': '''
+// @dart=2.12
+typedef F = Function<R>(R);
+'''
     });
   }
 
