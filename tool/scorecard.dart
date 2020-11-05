@@ -116,7 +116,9 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
 
 class Header {
   final String markdown;
+
   const Header(this.markdown);
+
   static const Header left = Header('| :--- ');
   static const Header center = Header('| :---: ');
 }
@@ -124,6 +126,7 @@ class Header {
 class Detail {
   final String name;
   final Header header;
+
   const Detail(this.name, {this.header = Header.center});
 
   static const Detail rule = Detail('name', header: Header.left);
@@ -140,6 +143,7 @@ class Detail {
 
 class _AssistCollector extends GeneralizingAstVisitor<void> {
   final List<String> lintNames = <String>[];
+
   @override
   void visitNamedExpression(NamedExpression node) {
     if (node.name.toString() == 'associatedErrorCodes:') {
@@ -226,6 +230,8 @@ class ScoreCard {
     return collector.lintNames;
   }
 
+  // todo (pq): remove when fixed: https://github.com/dart-lang/linter/issues/2330
+  // ignore: prefer_constructors_over_static_methods
   static Future<List<Issue>> _getIssues() async {
     var github = GitHub();
     var slug = RepositorySlug('dart-lang', 'linter');
