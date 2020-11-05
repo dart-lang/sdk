@@ -385,13 +385,18 @@ class SourceLoader extends Loader {
         }
       }
       if (libraryByPackage.isNotEmpty) {
+        List<Uri> involvedFiles = [];
         List<String> dependencies = [];
         libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
           if (name != null) {
             dependencies.add('package:$name');
+            for (LibraryBuilder libraryBuilder in libraries) {
+              involvedFiles.add(libraryBuilder.fileUri);
+            }
           } else {
             for (LibraryBuilder libraryBuilder in libraries) {
               dependencies.add(libraryBuilder.importUri.toString());
+              involvedFiles.add(libraryBuilder.fileUri);
             }
           }
         });
@@ -401,7 +406,8 @@ class SourceLoader extends Loader {
             templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
             -1,
             -1,
-            null);
+            null,
+            involvedFiles: involvedFiles);
         _strongOptOutLibraries = null;
       }
     }

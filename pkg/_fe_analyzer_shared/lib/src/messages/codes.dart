@@ -131,9 +131,11 @@ class LocatedMessage implements Comparable<LocatedMessage> {
   }
 
   FormattedMessage withFormatting(String formatted, int line, int column,
-      Severity severity, List<FormattedMessage> relatedInformation) {
+      Severity severity, List<FormattedMessage> relatedInformation,
+      {List<Uri> involvedFiles}) {
     return new FormattedMessage(
-        this, formatted, line, column, severity, relatedInformation);
+        this, formatted, line, column, severity, relatedInformation,
+        involvedFiles: involvedFiles);
   }
 
   @override
@@ -173,8 +175,11 @@ class FormattedMessage implements DiagnosticMessage {
 
   final List<FormattedMessage> relatedInformation;
 
+  final List<Uri> involvedFiles;
+
   const FormattedMessage(this.locatedMessage, this.formatted, this.line,
-      this.column, this.severity, this.relatedInformation);
+      this.column, this.severity, this.relatedInformation,
+      {this.involvedFiles});
 
   Code<dynamic> get code => locatedMessage.code;
 
@@ -212,7 +217,8 @@ class FormattedMessage implements DiagnosticMessage {
       "ansiFormatted": ansiFormatted.toList(),
       "plainTextFormatted": plainTextFormatted.toList(),
       "severity": severity.index,
-      "uri": uri.toString(),
+      "uri": uri?.toString(),
+      "involvedFiles": involvedFiles?.map((u) => u.toString())?.toList(),
     };
   }
 
@@ -234,8 +240,10 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
 
   final Uri uri;
 
-  DiagnosticMessageFromJson(
-      this.ansiFormatted, this.plainTextFormatted, this.severity, this.uri);
+  final List<Uri> involvedFiles;
+
+  DiagnosticMessageFromJson(this.ansiFormatted, this.plainTextFormatted,
+      this.severity, this.uri, this.involvedFiles);
 
   factory DiagnosticMessageFromJson.fromJson(String jsonString) {
     Map<String, Object> decoded = json.decode(jsonString);
@@ -244,10 +252,15 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
     List<String> plainTextFormatted =
         new List<String>.from(decoded["plainTextFormatted"]);
     Severity severity = Severity.values[decoded["severity"]];
-    Uri uri = Uri.parse(decoded["uri"]);
+    Uri uri = decoded["uri"] == null ? null : Uri.parse(decoded["uri"]);
+    List<Uri> involvedFiles = decoded["involvedFiles"] == null
+        ? null
+        : new List<String>.from(decoded["involvedFiles"])
+            .map((e) => Uri.parse(e))
+            .toList();
 
     return new DiagnosticMessageFromJson(
-        ansiFormatted, plainTextFormatted, severity, uri);
+        ansiFormatted, plainTextFormatted, severity, uri, involvedFiles);
   }
 
   Map<String, Object> toJson() {
@@ -256,7 +269,8 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
       "ansiFormatted": ansiFormatted.toList(),
       "plainTextFormatted": plainTextFormatted.toList(),
       "severity": severity.index,
-      "uri": uri.toString(),
+      "uri": uri?.toString(),
+      "involvedFiles": involvedFiles?.map((u) => u.toString())?.toList(),
     };
   }
 

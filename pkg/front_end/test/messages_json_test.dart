@@ -23,12 +23,13 @@ main() {
         null, "Formatted string #3", 313, 32, Severity.error, []);
 
     FormattedMessage formattedMessage1 = new FormattedMessage(
-        locatedMessage1,
-        "Formatted string",
-        42,
-        86,
-        severity,
-        [formattedMessage2, formattedMessage3]);
+        locatedMessage1, "Formatted string", 42, 86, severity, [
+      formattedMessage2,
+      formattedMessage3
+    ], involvedFiles: [
+      Uri.parse("what:ever/foo.dart"),
+      Uri.parse("what:ever/bar.dart")
+    ]);
 
     DiagnosticMessageFromJson diagnosticMessageFromJson =
         new DiagnosticMessageFromJson.fromJson(
@@ -62,6 +63,15 @@ void compareMessages(DiagnosticMessage a, DiagnosticMessage b) {
 
   expect(a.severity, b.severity);
   expect(getMessageUri(a), getMessageUri(b));
+
+  List<Uri> uriList1 = a.involvedFiles?.toList();
+  List<Uri> uriList2 = b.involvedFiles?.toList();
+  expect(uriList1?.length, uriList2?.length);
+  if (uriList1 != null) {
+    for (int i = 0; i < uriList1.length; i++) {
+      expect(uriList1[i], uriList2[i]);
+    }
+  }
 }
 
 void expect(Object actual, Object expect) {

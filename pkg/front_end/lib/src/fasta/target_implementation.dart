@@ -180,12 +180,14 @@ abstract class TargetImplementation extends Target {
       int length,
       Uri fileUri,
       List<LocatedMessage> messageContext,
-      Severity severity) {
+      Severity severity,
+      {List<Uri> involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
         message.withLocation(fileUri, charOffset, length),
         severity,
-        messageContext);
+        messageContext,
+        involvedFiles: involvedFiles);
   }
 
   Severity fixSeverity(Severity severity, Message message, Uri fileUri) {

@@ -1390,16 +1390,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     // Save any new component-problems.
-    if (componentWithDill?.problemsAsJson != null) {
-      for (String jsonString in componentWithDill.problemsAsJson) {
-        DiagnosticMessageFromJson message =
-            new DiagnosticMessageFromJson.fromJson(jsonString);
-        List<DiagnosticMessageFromJson> messages =
-            remainingComponentProblems[message.uri] ??=
-                new List<DiagnosticMessageFromJson>();
-        messages.add(message);
-      }
-    }
+    _addProblemsAsJsonToRemainingProblems(componentWithDill?.problemsAsJson);
     return new List<String>.from(issuedProblems);
   }
 
@@ -1657,14 +1648,36 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   void saveComponentProblems(IncrementalCompilerData data) {
-    if (data.component.problemsAsJson != null) {
-      for (String jsonString in data.component.problemsAsJson) {
+    List<String> problemsAsJson = data.component.problemsAsJson;
+    _addProblemsAsJsonToRemainingProblems(problemsAsJson);
+  }
+
+  void _addProblemsAsJsonToRemainingProblems(List<String> problemsAsJson) {
+    if (problemsAsJson != null) {
+      for (String jsonString in problemsAsJson) {
         DiagnosticMessageFromJson message =
             new DiagnosticMessageFromJson.fromJson(jsonString);
-        List<DiagnosticMessageFromJson> messages =
-            remainingComponentProblems[message.uri] ??=
-                new List<DiagnosticMessageFromJson>();
-        messages.add(message);
+        assert(message.uri != null ||
+            (message.involvedFiles != null &&
+                message.involvedFiles.isNotEmpty));
+        if (message.uri != null) {
+          List<DiagnosticMessageFromJson> messages =
+              remainingComponentProblems[message.uri] ??=
+                  new List<DiagnosticMessageFromJson>();
+          messages.add(message);
+        }
+        if (message.involvedFiles != null) {
+          // This indexes the same message under several uris - this way it will
+          // be issued as long as it's a problem. It will because of
+          // deduplication when we re-issue these (in reissueComponentProblems)
+          // only be reported once.
+          for (Uri uri in message.involvedFiles) {
+            List<DiagnosticMessageFromJson> messages =
+                remainingComponentProblems[uri] ??=
+                    new List<DiagnosticMessageFromJson>();
+            messages.add(message);
+          }
+        }
       }
     }
   }

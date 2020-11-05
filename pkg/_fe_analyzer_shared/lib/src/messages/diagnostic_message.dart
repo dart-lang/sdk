@@ -34,13 +34,17 @@ abstract class DiagnosticMessage {
   Iterable<String> get plainTextFormatted;
 
   Severity get severity;
+
+  Iterable<Uri> get involvedFiles;
 }
 
 /// This method is subject to change.
 Uri getMessageUri(DiagnosticMessage message) {
   return message is FormattedMessage
       ? message.uri
-      : message is DiagnosticMessageFromJson ? message.uri : null;
+      : message is DiagnosticMessageFromJson
+          ? message.uri
+          : null;
 }
 
 /// This method is subject to change.
