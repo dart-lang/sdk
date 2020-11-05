@@ -2748,8 +2748,8 @@ void FlowGraphCompiler::EmitNativeMove(
   const intptr_t dst_container_size = dst_container_type.SizeInBytes();
 
   // This function does not know how to do larger mem copy moves yet.
-  ASSERT(src_payload_type.IsFundamental());
-  ASSERT(dst_payload_type.IsFundamental());
+  ASSERT(src_payload_type.IsPrimitive());
+  ASSERT(dst_payload_type.IsPrimitive());
 
   // This function does not deal with sign conversions yet.
   ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());

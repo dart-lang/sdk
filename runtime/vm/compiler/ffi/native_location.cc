@@ -117,10 +117,10 @@ Location NativeStackLocation::AsLocation() const {
     }
   } else {
     ASSERT(payload_type().IsFloat());
-    if (payload_type().AsFundamental().representation() == kFloat) {
+    if (payload_type().AsPrimitive().representation() == kFloat) {
       return Location::StackSlot(offset_in_words(), base_register_);
     } else {
-      ASSERT(payload_type().AsFundamental().representation() == kDouble);
+      ASSERT(payload_type().AsPrimitive().representation() == kDouble);
       return Location::DoubleStackSlot(offset_in_words(), base_register_);
     }
   }

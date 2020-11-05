@@ -1302,8 +1302,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
   ASSERT(src_type.IsFloat() == dst_type.IsFloat());
   ASSERT(src_type.IsInt() == dst_type.IsInt());
   ASSERT(src_type.IsSigned() == dst_type.IsSigned());
-  ASSERT(src_type.IsFundamental());
-  ASSERT(dst_type.IsFundamental());
+  ASSERT(src_type.IsPrimitive());
+  ASSERT(dst_type.IsPrimitive());
   const intptr_t src_size = src_type.SizeInBytes();
   const intptr_t dst_size = dst_type.SizeInBytes();
   const bool sign_or_zero_extend = dst_size > src_size;
@@ -1322,7 +1322,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
         ASSERT(dst_size == 4);
         __ movl(dst_reg, src_reg);
       } else {
-        switch (src_type.AsFundamental().representation()) {
+        switch (src_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
             __ movsxb(dst_reg, ByteRegisterOf(src_reg));
             return;
@@ -1410,7 +1410,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
         ASSERT(dst_size == 4);
         __ movl(dst_reg, src_addr);
       } else {
-        switch (src_type.AsFundamental().representation()) {
+        switch (src_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
             __ movsxb(dst_reg, src_addr);
             return;

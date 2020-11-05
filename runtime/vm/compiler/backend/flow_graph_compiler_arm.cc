@@ -1446,8 +1446,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
   ASSERT(src_container_type.IsFloat() == dst_container_type.IsFloat());
   ASSERT(src_container_type.IsInt() == dst_container_type.IsInt());
   ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());
-  ASSERT(src_payload_type.IsFundamental());
-  ASSERT(dst_payload_type.IsFundamental());
+  ASSERT(src_payload_type.IsPrimitive());
+  ASSERT(dst_payload_type.IsPrimitive());
   const intptr_t src_size = src_payload_type.SizeInBytes();
   const intptr_t dst_size = dst_payload_type.SizeInBytes();
   const bool sign_or_zero_extend = dst_size > src_size;

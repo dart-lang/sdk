@@ -23,7 +23,7 @@ namespace compiler {
 
 namespace ffi {
 
-class NativeFundamentalType;
+class NativePrimitiveType;
 
 // NativeTypes are the types used in calling convention specifications:
 // integers, floats, and composites.
@@ -38,13 +38,13 @@ class NativeFundamentalType;
 //
 // Instead, NativeTypes support representations not supported in Dart's unboxed
 // Representations, such as:
-// * Fundamental types (https://en.cppreference.com/w/cpp/language/types):
+// * Primitive types:
 //   * int8_t
 //   * int16_t
 //   * uint8_t
 //   * uint16t
 //   * void
-// * Compound types (https://en.cppreference.com/w/cpp/language/type):
+// * Compound types:
 //   * Struct
 //   * Union
 //
@@ -55,12 +55,12 @@ class NativeType : public ZoneAllocated {
   static NativeType& FromTypedDataClassId(Zone* zone, classid_t class_id);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  static NativeFundamentalType& FromUnboxedRepresentation(Zone* zone,
-                                                          Representation rep);
+  static NativePrimitiveType& FromUnboxedRepresentation(Zone* zone,
+                                                        Representation rep);
 #endif
 
-  virtual bool IsFundamental() const { return false; }
-  const NativeFundamentalType& AsFundamental() const;
+  virtual bool IsPrimitive() const { return false; }
+  const NativePrimitiveType& AsPrimitive() const;
 
   virtual bool IsInt() const { return false; }
   virtual bool IsFloat() const { return false; }
@@ -111,7 +111,7 @@ class NativeType : public ZoneAllocated {
   NativeType() {}
 };
 
-enum FundamentalType {
+enum PrimitiveType {
   kInt8,
   kUint8,
   kInt16,
@@ -127,13 +127,19 @@ enum FundamentalType {
   // TODO(37470): Add packed data structures.
 };
 
-class NativeFundamentalType : public NativeType {
+// Represents a primitive native type.
+//
+// These are called object types in the C standard (ISO/IEC 9899:2011) and
+// fundamental types in C++ (https://en.cppreference.com/w/cpp/language/types)
+// but more commonly these are called primitive types
+// (https://en.wikipedia.org/wiki/Primitive_data_type).
+class NativePrimitiveType : public NativeType {
  public:
-  explicit NativeFundamentalType(FundamentalType rep) : representation_(rep) {}
+  explicit NativePrimitiveType(PrimitiveType rep) : representation_(rep) {}
 
-  FundamentalType representation() const { return representation_; }
+  PrimitiveType representation() const { return representation_; }
 
-  virtual bool IsFundamental() const { return true; }
+  virtual bool IsPrimitive() const { return true; }
 
   virtual bool IsInt() const;
   virtual bool IsFloat() const;
@@ -151,14 +157,14 @@ class NativeFundamentalType : public NativeType {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   virtual bool Equals(const NativeType& other) const;
-  virtual NativeFundamentalType& Split(Zone* zone, intptr_t part) const;
+  virtual NativePrimitiveType& Split(Zone* zone, intptr_t part) const;
 
   virtual void PrintTo(BaseTextBuffer* f) const;
 
-  virtual ~NativeFundamentalType() {}
+  virtual ~NativePrimitiveType() {}
 
  private:
-  const FundamentalType representation_;
+  const PrimitiveType representation_;
 };
 
 }  // namespace ffi

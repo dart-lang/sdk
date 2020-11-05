@@ -35,10 +35,10 @@ static const NativeType& ConvertIfSoftFp(Zone* zone, const NativeType& rep) {
   if (SoftFpAbi() && rep.IsFloat()) {
     ASSERT(rep.IsFloat());
     if (rep.SizeInBytes() == 4) {
-      return *new (zone) NativeFundamentalType(kInt32);
+      return *new (zone) NativePrimitiveType(kInt32);
     }
     if (rep.SizeInBytes() == 8) {
-      return *new (zone) NativeFundamentalType(kInt64);
+      return *new (zone) NativePrimitiveType(kInt64);
     }
   }
   return rep;
