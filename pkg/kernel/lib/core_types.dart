@@ -82,11 +82,10 @@ class CoreTypes {
   Class _deprecatedFutureOrClass;
   Class _stackTraceClass;
   Class _streamClass;
-  Class _asyncAwaitCompleterClass;
-  Constructor _asyncAwaitCompleterConstructor;
-  Procedure _asyncAwaitCompleterStartProcedure;
+  Class _futureImplClass;
+  Constructor _futureImplConstructor;
+  Procedure _completeOnAsyncErrorProcedure;
   Procedure _completeOnAsyncReturnProcedure;
-  Procedure _completerCompleteError;
   Constructor _syncIterableDefaultConstructor;
   Constructor _streamIteratorDefaultConstructor;
   Constructor _asyncStarStreamControllerDefaultConstructor;
@@ -253,19 +252,13 @@ class CoreTypes {
     return _boolClass ??= index.getClass('dart:core', 'bool');
   }
 
-  Class get asyncAwaitCompleterClass {
-    return _asyncAwaitCompleterClass ??=
-        index.getClass('dart:async', '_AsyncAwaitCompleter');
+  Class get futureImplClass {
+    return _futureImplClass ??= index.getClass('dart:async', '_Future');
   }
 
-  Constructor get asyncAwaitCompleterConstructor {
-    return _asyncAwaitCompleterConstructor ??=
-        index.getMember('dart:async', '_AsyncAwaitCompleter', '');
-  }
-
-  Procedure get asyncAwaitCompleterStartProcedure {
-    return _asyncAwaitCompleterStartProcedure ??=
-        index.getMember('dart:async', '_AsyncAwaitCompleter', 'start');
+  Constructor get futureImplConstructor {
+    return _futureImplConstructor ??=
+        index.getMember('dart:async', '_Future', '');
   }
 
   Member get completeOnAsyncReturn {
@@ -273,13 +266,9 @@ class CoreTypes {
         index.getTopLevelMember('dart:async', '_completeOnAsyncReturn');
   }
 
-  Procedure get completerCompleteError {
-    return _completerCompleteError ??=
-        index.getMember('dart:async', 'Completer', 'completeError');
-  }
-
-  Member get completerFuture {
-    return index.getMember('dart:async', 'Completer', 'get:future');
+  Member get completeOnAsyncError {
+    return _completeOnAsyncErrorProcedure ??=
+        index.getTopLevelMember('dart:async', '_completeOnAsyncError');
   }
 
   Library get coreLibrary {

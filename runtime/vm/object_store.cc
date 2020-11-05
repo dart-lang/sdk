@@ -242,11 +242,23 @@ void ObjectStore::InitKnownObjects() {
   function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncReturn());
   ASSERT(!function_name.IsNull());
   function = Resolver::ResolveStatic(async_lib, Object::null_string(),
-                                     function_name, 0, 2, Object::null_array());
+                                     function_name, 0, 3, Object::null_array());
   ASSERT(!function.IsNull());
   set_complete_on_async_return(function);
   if (FLAG_async_debugger) {
     // Disable debugging and inlining the _CompleteOnAsyncReturn function.
+    function.set_is_debuggable(false);
+    function.set_is_inlinable(false);
+  }
+
+  function_name = async_lib.PrivateName(Symbols::_CompleteOnAsyncError());
+  ASSERT(!function_name.IsNull());
+  function = Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                     function_name, 0, 4, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_complete_on_async_error(function);
+  if (FLAG_async_debugger) {
+    // Disable debugging and inlining the _CompleteOnAsyncError function.
     function.set_is_debuggable(false);
     function.set_is_inlinable(false);
   }

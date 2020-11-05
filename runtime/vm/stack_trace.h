@@ -15,8 +15,6 @@
 namespace dart {
 
 // Helper class for finding the closure of the caller.
-// This is done via the _AsyncAwaitCompleter which holds a
-// FutureResultOrListeners which in turn holds a callback.
 class CallerClosureFinder {
  public:
   explicit CallerClosureFinder(Zone* zone);
@@ -29,7 +27,7 @@ class CallerClosureFinder {
 
   ClosurePtr FindCaller(const Closure& receiver_closure);
 
-  bool IsRunningAsync(const Closure& receiver_closure);
+  static bool IsRunningAsync(const Closure& receiver_closure);
 
  private:
   Context& receiver_context_;
@@ -37,7 +35,6 @@ class CallerClosureFinder {
   Function& parent_function_;
 
   Object& context_entry_;
-  Object& is_sync;
   Object& future_;
   Object& listener_;
   Object& callback_;
@@ -47,7 +44,6 @@ class CallerClosureFinder {
   Object& callback_instance_;
 
   Class& future_impl_class;
-  Class& async_await_completer_class;
   Class& future_listener_class;
   Class& async_start_stream_controller_class;
   Class& stream_controller_class;
@@ -56,8 +52,6 @@ class CallerClosureFinder {
   Class& buffering_stream_subscription_class;
   Class& stream_iterator_class;
 
-  Field& completer_is_sync_field;
-  Field& completer_future_field;
   Field& future_result_or_listeners_field;
   Field& callback_field;
   Field& controller_controller_field;
@@ -128,41 +122,6 @@ class StackTraceUtils : public AllStatic {
                                              StackTrace* async_stack_trace,
                                              Array* async_code_array,
                                              Array* async_pc_offset_array);
-
-  // The number of frames involved in a "sync-async" gap: a synchronous initial
-  // invocation of an asynchronous function. See CheckAndSkipAsync.
-  static constexpr intptr_t kSyncAsyncFrameGap = 2;
-
-  // A synchronous invocation of an async function involves the following
-  // frames:
-  //   <async function>__<anonymous_closure>    (0)
-  //   _Closure.call                            (1)
-  //   _AsyncAwaitCompleter.start               (2)
-  //   <async_function>                         (3)
-  //
-  // Alternatively, for optimized frames, we may see:
-  //   <async function>__<anonymous_closure>    (0)
-  //   _AsyncAwaitCompleter.start               (1)
-  //   <async_function>                         (2)
-  static bool CheckAndSkipAsync(int* skip_sync_async_frames_count,
-                                const String& function_name) {
-    ASSERT(*skip_sync_async_frames_count > 0);
-    // Make sure any function objects for methods used here are marked for
-    // retention by the precompiler, even if otherwise not needed at runtime.
-    //
-    // _AsyncAwaitCompleter.start is marked with the vm:entry-point pragma.
-    if (function_name.Equals(Symbols::_AsyncAwaitCompleterStart())) {
-      *skip_sync_async_frames_count = 0;
-      return true;
-    }
-    // _Closure.call is explicitly checked in Precompiler::MustRetainFunction.
-    if (function_name.Equals(Symbols::_ClosureCall()) &&
-        *skip_sync_async_frames_count == 2) {
-      (*skip_sync_async_frames_count)--;
-      return true;
-    }
-    return false;
-  }
 };
 
 }  // namespace dart

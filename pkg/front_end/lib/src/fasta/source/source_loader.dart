@@ -1553,7 +1553,9 @@ _asyncThenWrapperHelper(continuation) {}
 
 _awaitHelper(object, thenCallback, errorCallback, awaiter) {}
 
-_completeOnAsyncReturn(completer, value) {}
+_completeOnAsyncReturn(_future, value, async_jump_var) {}
+
+_completeOnAsyncError(_future, e, st, async_jump_var) {}
 
 class _AsyncStarStreamController {
   add(event) {}
@@ -1584,14 +1586,10 @@ class Future<T> {
 class FutureOr {
 }
 
-class _AsyncAwaitCompleter implements Completer {
-  get future => null;
+class _Future {
+  void _completeError(Object error, StackTrace stackTrace) {}
 
-  complete([value]) {}
-
-  completeError(error, [stackTrace]) {}
-
-  void start(void Function() f) {}
+  void _asyncCompleteError(Object error, StackTrace stackTrace) {}
 }
 
 class Stream {}

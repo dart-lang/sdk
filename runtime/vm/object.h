@@ -6670,12 +6670,13 @@ class Context : public Object {
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static const intptr_t kAwaitJumpVarIndex = 0;
-  static const intptr_t kAsyncCompleterIndex = 1;
+  static const intptr_t kAsyncFutureIndex = 1;
   static const intptr_t kControllerIndex = 1;
   // Expected context index of chained futures in recognized async functions.
   // These are used to unwind async stacks.
   static const intptr_t kFutureTimeoutFutureIndex = 2;
   static const intptr_t kFutureWaitFutureIndex = 2;
+  static const intptr_t kIsSyncIndex = 2;
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(ContextLayout, data) +

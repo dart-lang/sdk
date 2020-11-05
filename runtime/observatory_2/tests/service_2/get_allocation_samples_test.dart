@@ -72,7 +72,6 @@ var tests = <IsolateTest>[
       '[Unoptimized] test',
       '[Unoptimized] _Closure.call',
       '[Unoptimized] _ServiceTesteeRunner.run',
-      '[Unoptimized] _AsyncAwaitCompleter.start'
     ];
     for (var i = 0; i < expected.length; i++) {
       expect(node.profileCode.code.name, equals(expected[i]));

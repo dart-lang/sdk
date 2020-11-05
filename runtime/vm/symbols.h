@@ -28,7 +28,7 @@ class ObjectPointerVisitor;
   V(AsFunctionInternal, "_asFunctionInternal")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
-  V(AsyncCompleter, ":async_completer")                                        \
+  V(AsyncFuture, ":async_future")                                              \
   V(AsyncOperation, ":async_op")                                               \
   V(AsyncStackTraceVar, ":async_stack_trace")                                  \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
@@ -308,9 +308,6 @@ class ObjectPointerVisitor;
   V(WasmDouble, "Double")                                                      \
   V(WasmVoid, "Void")                                                          \
   V(YieldKw, "yield")                                                          \
-  V(_AsyncAwaitCompleter, "_AsyncAwaitCompleter")                              \
-  V(_AsyncAwaitCompleterConstructor, "_AsyncAwaitCompleter.")                  \
-  V(_AsyncAwaitCompleterStart, "_AsyncAwaitCompleter.start")                   \
   V(_AsyncAwaitStart, "start")                                                 \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
   V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
@@ -328,6 +325,7 @@ class ObjectPointerVisitor;
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
+  V(_CompleteOnAsyncError, "_completeOnAsyncError")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
@@ -478,6 +476,7 @@ class ObjectPointerVisitor;
   V(hashCode, "get:hashCode")                                                  \
   V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
+  V(is_sync, ":is_sync")                                                       \
   V(isPaused, "isPaused")                                                      \
   V(isSync, "isSync")                                                          \
   V(last, "last")                                                              \
