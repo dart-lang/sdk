@@ -1388,11 +1388,6 @@ dart_ci_builder(
     notifies = "infra",
     lkgr = True,
 )
-dart_ci_builder(
-    "versionchecker-linux",
-    category = "misc|vc",
-    channels = RELEASE_CHANNELS,
-)
 
 # external
 dart_ci_sandbox_builder(
