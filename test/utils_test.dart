@@ -17,6 +17,24 @@ void main() {
     ], isDartFileName, isFalse);
   });
 
+  group('isValidPackageName', () {
+    testEach([
+      'foo',
+      '_foo',
+      '__foo',
+    ], isValidPackageName, isTrue);
+    testEach([
+      'fOO',
+      'foo_',
+      'foo_Bar',
+      'fooBar',
+      'Foo',
+      '_',
+      '__',
+      '1',
+    ], isValidPackageName, isFalse);
+  });
+
   group('pubspec', () {
     testEach(['pubspec.yaml', '_pubspec.yaml'], isPubspecFileName, isTrue);
     testEach(['__pubspec.yaml', 'foo.yaml'], isPubspecFileName, isFalse);

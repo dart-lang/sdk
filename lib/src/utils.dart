@@ -15,6 +15,9 @@ final _lowerCaseUnderScore = RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
 final _lowerCaseUnderScoreWithDots =
     RegExp(r'^(_)?[_a-z0-9]*(\.[a-z][_a-z0-9]*)*$');
 
+final _lowerCaseUnderScoreWithLeadingUnderscores =
+    RegExp(r'^(_)*([a-z]+([_]?[a-z0-9]+)*)+$');
+
 final _pubspec = RegExp(r'^[_]?pubspec\.yaml$');
 
 final _underscores = RegExp(r'^[_]+$');
@@ -59,7 +62,8 @@ bool isValidLibraryPrefix(String libraryPrefix) =>
 
 /// Returns true if this [id] is a valid package name.
 bool isValidPackageName(String id) =>
-    isLowerCaseUnderScore(id) && isValidDartIdentifier(id);
+    _lowerCaseUnderScoreWithLeadingUnderscores.hasMatch(id) &&
+    isValidDartIdentifier(id);
 
 class CamelCaseString {
   static final _camelCaseMatcher = RegExp(r'[A-Z][a-z]*');
