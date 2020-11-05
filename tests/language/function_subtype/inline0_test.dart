@@ -41,7 +41,7 @@ class C<T> {
 }
 
 main() {
-  new C<bool>().test('bool', true, isWeakMode);
+  new C<bool>().test('bool', true, hasUnsoundNullSafety);
   new C<int>().test('int', false, false);
-  new C<dynamic>().test('dynamic', true, isWeakMode);
+  new C<dynamic>().test('dynamic', true, hasUnsoundNullSafety);
 }

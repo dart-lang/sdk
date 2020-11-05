@@ -14,6 +14,6 @@ final bool strong = () {
 }();
 
 void main() {
-  Expect.equals(strong, isStrongMode);
-  Expect.equals(!strong, isWeakMode);
+  Expect.equals(strong, hasSoundNullSafety);
+  Expect.equals(!strong, hasUnsoundNullSafety);
 }

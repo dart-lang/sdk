@@ -26,7 +26,7 @@ void bar(int i) {}
 void main() {
   new Class<dynamic>().test(false, bar, "dynamic");
   new Class<Object>().test(false, bar, "Object");
-  new Class<Null>().test(isWeakMode, bar, "Null");
+  new Class<Null>().test(hasUnsoundNullSafety, bar, "Null");
   new Class<Never>().test(true, bar, "Never");
   new Class<int>().test(true, bar, "int");
   new Class<bool>().test(false, bar, "bool");
