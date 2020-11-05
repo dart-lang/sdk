@@ -5,7 +5,6 @@ main = main::main;
 // Error: This project cannot run with sound null safety, because one or more project dependencies do not
 // support null safety:
 //
-//  - package:foo
 //  - package:bar
 //
 // Run 'pub outdated --mode=null-safety' to determine if versions of your

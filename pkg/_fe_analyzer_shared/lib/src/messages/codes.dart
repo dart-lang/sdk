@@ -183,6 +183,8 @@ class FormattedMessage implements DiagnosticMessage {
 
   Code<dynamic> get code => locatedMessage.code;
 
+  String get codeName => code.name;
+
   String get message => locatedMessage.message;
 
   String get tip => locatedMessage.tip;
@@ -219,6 +221,7 @@ class FormattedMessage implements DiagnosticMessage {
       "severity": severity.index,
       "uri": uri?.toString(),
       "involvedFiles": involvedFiles?.map((u) => u.toString())?.toList(),
+      "codeName": code.name,
     };
   }
 
@@ -242,8 +245,10 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
 
   final List<Uri> involvedFiles;
 
+  final String codeName;
+
   DiagnosticMessageFromJson(this.ansiFormatted, this.plainTextFormatted,
-      this.severity, this.uri, this.involvedFiles);
+      this.severity, this.uri, this.involvedFiles, this.codeName);
 
   factory DiagnosticMessageFromJson.fromJson(String jsonString) {
     Map<String, Object> decoded = json.decode(jsonString);
@@ -258,9 +263,10 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
         : new List<String>.from(decoded["involvedFiles"])
             .map((e) => Uri.parse(e))
             .toList();
+    String codeName = decoded["codeName"];
 
-    return new DiagnosticMessageFromJson(
-        ansiFormatted, plainTextFormatted, severity, uri, involvedFiles);
+    return new DiagnosticMessageFromJson(ansiFormatted, plainTextFormatted,
+        severity, uri, involvedFiles, codeName);
   }
 
   Map<String, Object> toJson() {
@@ -271,6 +277,7 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
       "severity": severity.index,
       "uri": uri?.toString(),
       "involvedFiles": involvedFiles?.map((u) => u.toString())?.toList(),
+      "codeName": codeName,
     };
   }
 

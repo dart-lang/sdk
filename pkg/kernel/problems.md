@@ -23,6 +23,8 @@ Normally this is not null (but it can be).
 `involvedFiles`: A possibly null list of uris involved in this message.
 Normally this is null.
 
+`codeName`: A string identifing the specific error message.
+
 These values are subject to change, but this file will be updated along with any
 such changes. On the code-side these are defined in
 `package:front_end/src/fasta/fasta_codes.dart`.

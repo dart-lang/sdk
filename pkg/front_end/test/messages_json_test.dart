@@ -8,15 +8,22 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
-    show DiagnosticMessageFromJson, FormattedMessage, LocatedMessage;
+    show
+        Code,
+        DiagnosticMessageFromJson,
+        FormattedMessage,
+        LocatedMessage,
+        Message;
 
 /// Test that turning a message into json and back again retains the wanted
 /// information.
 main() {
   for (int i = 0; i < Severity.values.length; i++) {
     Severity severity = Severity.values[i];
+    Code code = new Code("MyCodeName", null);
+    Message message = new Message(code);
     LocatedMessage locatedMessage1 =
-        new LocatedMessage(Uri.parse("what:ever/fun_1.dart"), 117, 2, null);
+        new LocatedMessage(Uri.parse("what:ever/fun_1.dart"), 117, 2, message);
     FormattedMessage formattedMessage2 = new FormattedMessage(
         null, "Formatted string #2", 13, 2, Severity.error, []);
     FormattedMessage formattedMessage3 = new FormattedMessage(
@@ -30,6 +37,7 @@ main() {
       Uri.parse("what:ever/foo.dart"),
       Uri.parse("what:ever/bar.dart")
     ]);
+    expect(formattedMessage1.codeName, "MyCodeName");
 
     DiagnosticMessageFromJson diagnosticMessageFromJson =
         new DiagnosticMessageFromJson.fromJson(
@@ -72,6 +80,10 @@ void compareMessages(DiagnosticMessage a, DiagnosticMessage b) {
       expect(uriList1[i], uriList2[i]);
     }
   }
+
+  String string1 = a.codeName;
+  String string2 = b.codeName;
+  expect(string1, string2);
 }
 
 void expect(Object actual, Object expect) {

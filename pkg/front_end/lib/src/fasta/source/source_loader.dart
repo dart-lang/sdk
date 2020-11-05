@@ -355,61 +355,9 @@ class SourceLoader extends Loader {
       // config we include each library uri in the message. For non-package
       // libraries with no corresponding package config we generate a message
       // per library.
-      Map<String, List<LibraryBuilder>> libraryByPackage = {};
-      Map<Package, Version> enableNonNullableVersionByPackage = {};
-      for (LibraryBuilder libraryBuilder in _strongOptOutLibraries) {
-        Package package =
-            target.uriTranslator.getPackage(libraryBuilder.importUri);
-
-        if (package != null &&
-            package.languageVersion != null &&
-            package.languageVersion is! InvalidLanguageVersion) {
-          Version enableNonNullableVersion =
-              enableNonNullableVersionByPackage[package] ??=
-                  target.getExperimentEnabledVersionInLibrary(
-                      ExperimentalFlag.nonNullable,
-                      new Uri(scheme: 'package', path: package.name));
-          Version version = new Version(
-              package.languageVersion.major, package.languageVersion.minor);
-          if (version < enableNonNullableVersion) {
-            (libraryByPackage[package?.name] ??= []).add(libraryBuilder);
-            continue;
-          }
-        }
-        if (libraryBuilder.importUri.scheme == 'package') {
-          (libraryByPackage[null] ??= []).add(libraryBuilder);
-        } else {
-          // Emit a message that doesn't mention running 'pub'.
-          addProblem(messageStrongModeNNBDButOptOut, -1, noLength,
-              libraryBuilder.fileUri);
-        }
-      }
-      if (libraryByPackage.isNotEmpty) {
-        List<Uri> involvedFiles = [];
-        List<String> dependencies = [];
-        libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
-          if (name != null) {
-            dependencies.add('package:$name');
-            for (LibraryBuilder libraryBuilder in libraries) {
-              involvedFiles.add(libraryBuilder.fileUri);
-            }
-          } else {
-            for (LibraryBuilder libraryBuilder in libraries) {
-              dependencies.add(libraryBuilder.importUri.toString());
-              involvedFiles.add(libraryBuilder.fileUri);
-            }
-          }
-        });
-        // Emit a message that suggests to run 'pub' to check for opted in
-        // versions of the packages.
-        addProblem(
-            templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
-            -1,
-            -1,
-            null,
-            involvedFiles: involvedFiles);
-        _strongOptOutLibraries = null;
-      }
+      giveCombinedErrorForNonStrongLibraries(_strongOptOutLibraries,
+          emitNonPackageErrors: true);
+      _strongOptOutLibraries = null;
     }
     if (_nnbdMismatchLibraries != null) {
       for (MapEntry<LibraryBuilder, Message> entry
@@ -418,6 +366,68 @@ class SourceLoader extends Loader {
       }
       _nnbdMismatchLibraries = null;
     }
+  }
+
+  FormattedMessage giveCombinedErrorForNonStrongLibraries(
+      Set<LibraryBuilder> libraries,
+      {bool emitNonPackageErrors}) {
+    Map<String, List<LibraryBuilder>> libraryByPackage = {};
+    Map<Package, Version> enableNonNullableVersionByPackage = {};
+    for (LibraryBuilder libraryBuilder in libraries) {
+      final Package package =
+          target.uriTranslator.getPackage(libraryBuilder.importUri);
+
+      if (package != null &&
+          package.languageVersion != null &&
+          package.languageVersion is! InvalidLanguageVersion) {
+        Version enableNonNullableVersion =
+            enableNonNullableVersionByPackage[package] ??=
+                target.getExperimentEnabledVersionInLibrary(
+                    ExperimentalFlag.nonNullable,
+                    new Uri(scheme: 'package', path: package.name));
+        Version version = new Version(
+            package.languageVersion.major, package.languageVersion.minor);
+        if (version < enableNonNullableVersion) {
+          (libraryByPackage[package.name] ??= []).add(libraryBuilder);
+          continue;
+        }
+      }
+      if (libraryBuilder.importUri.scheme == 'package') {
+        (libraryByPackage[null] ??= []).add(libraryBuilder);
+      } else {
+        if (emitNonPackageErrors) {
+          // Emit a message that doesn't mention running 'pub'.
+          addProblem(messageStrongModeNNBDButOptOut, -1, noLength,
+              libraryBuilder.fileUri);
+        }
+      }
+    }
+    if (libraryByPackage.isNotEmpty) {
+      List<Uri> involvedFiles = [];
+      List<String> dependencies = [];
+      libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
+        if (name != null) {
+          dependencies.add('package:$name');
+          for (LibraryBuilder libraryBuilder in libraries) {
+            involvedFiles.add(libraryBuilder.fileUri);
+          }
+        } else {
+          for (LibraryBuilder libraryBuilder in libraries) {
+            dependencies.add(libraryBuilder.importUri.toString());
+            involvedFiles.add(libraryBuilder.fileUri);
+          }
+        }
+      });
+      // Emit a message that suggests to run 'pub' to check for opted in
+      // versions of the packages.
+      return addProblem(
+          templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
+          -1,
+          -1,
+          null,
+          involvedFiles: involvedFiles);
+    }
+    return null;
   }
 
   List<int> getSource(List<int> bytes) {

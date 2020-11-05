@@ -36,6 +36,8 @@ abstract class DiagnosticMessage {
   Severity get severity;
 
   Iterable<Uri> get involvedFiles;
+
+  String get codeName;
 }
 
 /// This method is subject to change.
