@@ -69,6 +69,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
         }
       }
     }
+    expect(migration.unmigratedDependencies, isEmpty);
     _betweenStages();
     for (var path in input.keys) {
       if (!(session.getFile(path)).isPart) {

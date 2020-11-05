@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert' show jsonDecode;
 import 'dart:io' hide File;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -32,7 +31,6 @@ import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/migration_state.dart';
 import 'package:nnbd_migration/src/front_end/non_nullable_fix.dart';
 import 'package:nnbd_migration/src/messages.dart';
-import 'package:nnbd_migration/src/utilities/json.dart' as json;
 import 'package:nnbd_migration/src/utilities/progress_bar.dart';
 import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
@@ -100,6 +98,10 @@ class CommandLineOptions {
   static const previewHostnameOption = 'preview-hostname';
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
+  static const skipImportCheckFlag = 'skip-import-check';
+
+  /// TODO(paulberry): remove this flag once internal sources have been updated.
+  @Deprecated('The migration tool no longer performs "pub outdated" checks')
   static const skipPubOutdatedFlag = 'skip-pub-outdated';
   static const summaryOption = 'summary';
   static const verboseFlag = 'verbose';
@@ -119,105 +121,43 @@ class CommandLineOptions {
 
   final String sdkPath;
 
-  final bool skipPubOutdated;
+  final bool skipImportCheck;
 
   final String summary;
 
   final bool webPreview;
 
   CommandLineOptions(
-      {@required this.applyChanges,
-      @required this.directory,
-      @required this.ignoreErrors,
-      @required this.ignoreExceptions,
-      @required this.previewHostname,
-      @required this.previewPort,
-      @required this.sdkPath,
-      @required this.skipPubOutdated,
-      @required this.summary,
-      @required this.webPreview});
-}
-
-@visibleForTesting
-class DependencyChecker {
-  /// The directory which contains the package being migrated.
-  final String _directory;
-  final Context _pathContext;
-  final Logger _logger;
-  final ProcessManager _processManager;
-
-  DependencyChecker(
-      this._directory, this._pathContext, this._logger, this._processManager);
-
-  bool check() {
-    var pubPath = _pathContext.join(getSdkPath(), 'bin', 'dart');
-    var pubArguments = ['pub', 'outdated', '--mode=null-safety', '--json'];
-    var preNullSafetyPackages = <String, String>{};
-    try {
-      var result = _processManager.runSync(pubPath, pubArguments,
-          workingDirectory: _directory);
-      if ((result.stderr as String).isNotEmpty) {
-        throw FormatException(
-            '`dart pub outdated --mode=null-safety` exited with exit code '
-            '${result.exitCode} and stderr:\n\n${result.stderr}');
-      }
-      var outdatedOutput = jsonDecode(result.stdout as String);
-      var outdatedMap = json.expectType<Map>(outdatedOutput, 'root');
-      var packageList =
-          json.expectType<List>(outdatedMap['packages'], 'packages');
-      for (var package_ in packageList) {
-        var package = json.expectType<Map>(package_, '');
-        var current_ = json.expectKey(package, 'current');
-        if (current_ == null) {
-          continue;
-        }
-        var current = json.expectType<Map>(current_, 'current');
-        if (json.expectType<bool>(current['nullSafety'], 'nullSafety')) {
-          // For whatever reason, there is no "current" version of this package.
-          // TODO(srawlins): We may want to report this to the user. But it may
-          // be inconsequential.
-          continue;
-        }
-
-        json.expectKey(package, 'package');
-        json.expectKey(current, 'version');
-        var name = json.expectType<String>(package['package'], 'package');
-        // A version will be given, even if a package was provided with a local
-        // or git path.
-        var version = json.expectType<String>(current['version'], 'version');
-        preNullSafetyPackages[name] = version;
-      }
-    } on ProcessException catch (e) {
-      _logger.stderr(
-          'Warning: Could not execute `$pubPath ${pubArguments.join(' ')}`: '
-          '"${e.message}"');
-      // Allow the program to continue; users should be allowed to attempt to
-      // migrate when `pub outdated` is misbehaving, or if there is a bug above.
-    } on FormatException catch (e) {
-      _logger.stderr('Warning: ${e.message}');
-      // Allow the program to continue; users should be allowed to attempt to
-      // migrate when `pub outdated` is misbehaving, or if there is a bug above.
-    }
-    if (preNullSafetyPackages.isNotEmpty) {
-      _logger.stderr('Warning: not all current dependencies have migrated to '
-          'null safety:');
-      _logger.stderr('');
-      for (var package in preNullSafetyPackages.entries) {
-        _logger.stderr(
-            '  package:${package.key} (currently at version ${package.value})');
-      }
-      _logger.stderr('');
-      _logger.stderr('For the best migration experience, please update to null '
-          'safe versions of these packages before migrating your code. You can '
-          'use \'dart pub outdated --mode=null-safety\' to check the status of '
-          'dependencies.');
-      _logger.stderr('');
-      _logger.stderr('Visit https://dart.dev/tools/pub/cmd/pub-outdated for '
-          'more information.');
-      return false;
-    }
-    return true;
-  }
+      {@required
+          this.applyChanges,
+      @required
+          this.directory,
+      @required
+          this.ignoreErrors,
+      @required
+          this.ignoreExceptions,
+      @required
+          this.previewHostname,
+      @required
+          this.previewPort,
+      @required
+          this.sdkPath,
+      // TODO(paulberry): make this parameter required once internal sources
+      // have been updated.
+      bool skipImportCheck,
+      // TODO(paulberry): remove this flag once internal sources have been
+      // updated.
+      @Deprecated('The migration tool no longer performs "pub outdated" checks')
+          bool skipPubOutdated = false,
+      @required
+          this.summary,
+      @required
+          this.webPreview})
+      // `skipImportCheck` has replaced `skipPubOutdated`, so if the caller
+      // specifies the latter but not the former, carry it over.
+      // TODO(paulberry): remove this logic once internal sources have been
+      // updated.
+      : skipImportCheck = skipImportCheck ?? skipPubOutdated;
 }
 
 // TODO(devoncarew): Refactor so this class extends DartdevCommand.
@@ -312,15 +252,13 @@ class MigrationCli {
                   'analysis errors.',
             )),
     MigrationCliOption(
-        CommandLineOptions.skipPubOutdatedFlag,
+        CommandLineOptions.skipImportCheckFlag,
         (parser, hide) => parser.addFlag(
-              CommandLineOptions.skipPubOutdatedFlag,
+              CommandLineOptions.skipImportCheckFlag,
               defaultsTo: false,
               negatable: false,
-              help:
-                  'Skip the `pub outdated --mode=null-safety` check. This allows a '
-                  'migration to proceed even if some package dependencies have not yet '
-                  'been migrated.',
+              help: 'Go ahead with migration even if some imported files have '
+                  'not yet been migrated.',
             )),
     MigrationCliOption.separator('Web interface options:'),
     MigrationCliOption(
@@ -393,11 +331,6 @@ class MigrationCli {
   /// user.  Used in testing to allow user feedback messages to be tested.
   final Logger Function(bool isVerbose) loggerFactory;
 
-  /// Process manager that should be used to run processes. Used in testing to
-  /// redirect to mock processes.
-  @visibleForTesting
-  final ProcessManager processManager;
-
   /// Resource provider that should be used to access the filesystem.  Used in
   /// testing to redirect to an in-memory filesystem.
   final ResourceProvider resourceProvider;
@@ -414,7 +347,6 @@ class MigrationCli {
     @visibleForTesting this.loggerFactory = _defaultLoggerFactory,
     @visibleForTesting this.defaultSdkPathOverride,
     @visibleForTesting ResourceProvider resourceProvider,
-    @visibleForTesting this.processManager = const ProcessManager.system(),
     @visibleForTesting Map<String, String> environmentVariables,
   })  : logger = loggerFactory(false),
         resourceProvider =
@@ -491,8 +423,8 @@ class MigrationCli {
           sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
               defaultSdkPathOverride ??
               getSdkPath(),
-          skipPubOutdated:
-              argResults[CommandLineOptions.skipPubOutdatedFlag] as bool,
+          skipImportCheck:
+              argResults[CommandLineOptions.skipImportCheckFlag] as bool,
           summary: argResults[CommandLineOptions.summaryOption] as String,
           webPreview: webPreview);
       return MigrationCliRunner(this, options,
@@ -708,10 +640,6 @@ class MigrationCliRunner {
   /// If something goes wrong, a message is printed using the logger configured
   /// in the constructor, and [MigrationExit] is thrown.
   Future<void> run() async {
-    if (!options.skipPubOutdated) {
-      _checkDependencies();
-    }
-
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
@@ -861,15 +789,6 @@ When finished with the preview, hit ctrl-c to terminate this process.
       }
     }
     applyHook();
-  }
-
-  void _checkDependencies() {
-    var successful = DependencyChecker(
-            options.directory, pathContext, logger, cli.processManager)
-        .check();
-    if (!successful) {
-      throw MigrationExit(1);
-    }
   }
 
   void _displayChangeDiff(DartFixListener migrationResults) {
@@ -1148,6 +1067,16 @@ class _FixCodeProcessor extends Object {
         await _task.prepareUnit(result);
       }
     });
+
+    var unmigratedDependencies = _task.migration.unmigratedDependencies;
+    if (unmigratedDependencies.isNotEmpty) {
+      if (_migrationCli.options.skipImportCheck) {
+        _migrationCli.logger.stdout(unmigratedDependenciesWarning);
+      } else {
+        throw ExperimentStatusException.unmigratedDependencies(
+            unmigratedDependencies);
+      }
+    }
 
     return AnalysisResult(analysisErrors, _migrationCli.lineInfo,
         _migrationCli.pathContext, _migrationCli.options.directory);

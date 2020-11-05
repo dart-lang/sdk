@@ -219,6 +219,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     }
 
     await _forEachPath(migration.prepareInput);
+    expect(migration.unmigratedDependencies, isEmpty);
     await _forEachPath(migration.processInput);
     await _forEachPath(migration.finalizeInput);
     migration.finish();

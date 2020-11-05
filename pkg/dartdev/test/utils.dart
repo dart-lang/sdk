@@ -70,9 +70,6 @@ class TestProject {
   }) {
     var arguments = [
       command,
-      if (command == 'migrate')
-        // TODO(srawlins): Enable `pub outdated` in tests.
-        '--skip-pub-outdated',
       ...?args,
     ];
 
