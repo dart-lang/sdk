@@ -5250,6 +5250,15 @@ void g(MapGetter? mapGetter) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_null_aware_call_tearoff() async {
+    // Kind of a weird use case because `f?.call` is equivalent to `f`, but
+    // let's make sure we analyze it correctly.
+    var content =
+        'int Function(int) g(int/*?*/ Function(int)/*?*/ f) => f?.call;';
+    var expected = 'int? Function(int)? g(int? Function(int)? f) => f?.call;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_null_aware_getter_invocation() async {
     var content = '''
 bool f(int i) => i?.isEven;

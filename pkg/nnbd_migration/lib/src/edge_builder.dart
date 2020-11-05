@@ -2904,12 +2904,27 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       targetType = _handleTarget(target, propertyName.name, callee);
     }
-    if (callee == null) {
+    DecoratedType calleeType;
+    if (targetType != null &&
+        targetType.type is FunctionType &&
+        propertyName.name == 'call') {
+      // If `X` has a function type, then in the expression `X.call`, the
+      // function being torn off is `X` itself, so the callee type is simply the
+      // non-nullable counterpart to the type of `X`.
+      var nullabilityNodeTarget =
+          NullabilityNodeTarget.text('expression').withCodeRef(node);
+      var nullabilityNode =
+          NullabilityNode.forInferredType(nullabilityNodeTarget);
+      _graph.makeNonNullableUnion(
+          nullabilityNode, CallTearOffOrigin(source, node));
+      calleeType = targetType.withNode(nullabilityNode);
+    } else if (callee != null) {
+      calleeType = getOrComputeElementType(callee, targetType: targetType);
+    }
+    if (calleeType == null) {
       // Dynamic dispatch.
       return _makeNullableDynamicType(node);
     }
-    var calleeType = getOrComputeElementType(callee, targetType: targetType);
-    // TODO(paulberry): substitute if necessary
     if (propertyName.inSetterContext()) {
       if (isNullAware) {
         _conditionalNodes[node] = targetType.node;

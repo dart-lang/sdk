@@ -257,6 +257,7 @@ enum EdgeOriginKind {
   alreadyMigratedType,
   alwaysNullableType,
   argumentErrorCheckNotNull,
+  callTearOff,
   compoundAssignment,
   // See [DummyOrigin].
   dummy,

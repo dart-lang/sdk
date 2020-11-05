@@ -236,7 +236,7 @@ mixin EdgeTester {
   void assertNoEdge(Object source, Object destination) {
     var edges = getEdges(source, destination);
     if (edges.isNotEmpty) {
-      fail('Expected no edge $source -> $destination, found ${edges.length}');
+      fail('Expected no edge $source -> $destination, found $edges');
     }
   }
 
