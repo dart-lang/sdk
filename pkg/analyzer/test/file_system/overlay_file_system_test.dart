@@ -819,11 +819,11 @@ class OverlayResourceProviderTest extends OverlayTestSupport {
 }
 
 class OverlayTestSupport {
-  MemoryResourceProvider baseProvider;
-  OverlayResourceProvider provider;
+  /*late*/ MemoryResourceProvider baseProvider;
+  /*late*/ OverlayResourceProvider provider;
 
-  String defaultFolderPath;
-  String defaultFilePath;
+  /*late*/ String defaultFolderPath;
+  /*late*/ String defaultFilePath;
 
   void setUp() {
     baseProvider = MemoryResourceProvider();

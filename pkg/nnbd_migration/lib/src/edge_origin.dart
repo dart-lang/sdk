@@ -397,6 +397,18 @@ class ListLengthConstructorOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.listLengthConstructor;
 }
 
+/// An edge origin used for edges that originated because of a tear-off of
+/// `call` on a function type.
+class CallTearOffOrigin extends EdgeOrigin {
+  CallTearOffOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'tear-off of .call';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.callTearOff;
+}
+
 /// An edge origin used for edges that originated because a literal expression
 /// has a known nullability.
 class LiteralOrigin extends EdgeOrigin {

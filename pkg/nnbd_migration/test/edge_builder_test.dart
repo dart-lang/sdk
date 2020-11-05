@@ -6613,6 +6613,47 @@ int f2(C c) => (c).i2/*!*/;
     expect(hasNullCheckHint(findNode.propertyAccess('(c).i2')), isTrue);
   }
 
+  Future<void> test_propertyAccess_call_functionTyped() async {
+    await analyze('''
+String/*1*/ Function(int/*2*/) f(String/*3*/ Function(int/*4*/) callback)
+    => callback.call;
+''');
+    assertEdge(decoratedTypeAnnotation('String/*3*/').node,
+        decoratedTypeAnnotation('String/*1*/').node,
+        hard: false, checkable: false);
+    assertEdge(decoratedTypeAnnotation('int/*2*/').node,
+        decoratedTypeAnnotation('int/*4*/').node,
+        hard: false, checkable: false);
+    var tearOffNodeMatcher = anyNode;
+    assertEdge(
+        tearOffNodeMatcher,
+        decoratedGenericFunctionTypeAnnotation('String/*1*/ Function(int/*2*/)')
+            .node,
+        hard: false);
+    assertEdge(never, tearOffNodeMatcher.matchingNode,
+        hard: true, checkable: false);
+  }
+
+  Future<void> test_propertyAccess_call_interfaceTyped() async {
+    // Make sure that we don't try to treat all methods called `call` as though
+    // the underlying type is a function type.
+    await analyze('''
+abstract class C {
+  String call(int x);
+}
+String Function(int) f(C c) => c.call;
+''');
+    assertEdge(decoratedTypeAnnotation('String call').node,
+        decoratedTypeAnnotation('String Function').node,
+        hard: false, checkable: false);
+    assertEdge(decoratedTypeAnnotation('int) f').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: false, checkable: false);
+    assertEdge(never,
+        decoratedGenericFunctionTypeAnnotation('String Function(int)').node,
+        hard: false);
+  }
+
   Future<void> test_propertyAccess_dynamic() async {
     await analyze('''
 class C {
@@ -6638,6 +6679,16 @@ int f(int i) => i.hashCode;
     // No edge from i to `never` because it is safe to call `hashCode` on
     // `null`.
     assertNoEdge(decoratedTypeAnnotation('int i').node, never);
+  }
+
+  Future<void> test_propertyAccess_object_property_on_function_type() async {
+    await analyze('int f(void Function() g) => g.hashCode;');
+    var hashCodeReturnType = variables
+        .decoratedElementType(
+            typeProvider.objectType.element.getGetter('hashCode'))
+        .returnType;
+    assertEdge(hashCodeReturnType.node, decoratedTypeAnnotation('int f').node,
+        hard: false);
   }
 
   Future<void> test_propertyAccess_return_type() async {

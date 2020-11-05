@@ -165,7 +165,7 @@ environment:
             'name': packageName,
             'rootUri': toUriStr('/.pub-cache/$packageName'),
             'packageUri': 'lib/',
-            'languageVersion': '2.9'
+            'languageVersion': '2.12'
           },
         {
           'name': 'tests',

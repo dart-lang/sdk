@@ -21,15 +21,15 @@ main() {
 
 @reflectiveTest
 class AnalysisSessionImplTest with ResourceProviderMixin {
-  AnalysisContextCollection contextCollection;
-  AnalysisContext context;
-  AnalysisSessionImpl session;
+  /*late final*/ AnalysisContextCollection contextCollection;
+  /*late final*/ AnalysisContext context;
+  /*late final*/ AnalysisSessionImpl session;
 
-  String testContextPath;
-  String aaaContextPath;
-  String bbbContextPath;
+  /*late final*/ String testContextPath;
+  /*late final*/ String aaaContextPath;
+  /*late final*/ String bbbContextPath;
 
-  String testPath;
+  /*late final*/ String testPath;
 
   void setUp() {
     MockSdk(resourceProvider: resourceProvider);

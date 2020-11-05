@@ -394,6 +394,7 @@ void f() {
 }
 ''';
     var alreadyMigrated = '''
+// @dart=2.12
 extension Ext<T> on List<T> {
   g() {}
 }
@@ -5249,6 +5250,15 @@ void g(MapGetter? mapGetter) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_null_aware_call_tearoff() async {
+    // Kind of a weird use case because `f?.call` is equivalent to `f`, but
+    // let's make sure we analyze it correctly.
+    var content =
+        'int Function(int) g(int/*?*/ Function(int)/*?*/ f) => f?.call;';
+    var expected = 'int? Function(int)? g(int? Function(int)? f) => f?.call;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_null_aware_getter_invocation() async {
     var content = '''
 bool f(int i) => i?.isEven;
@@ -6600,7 +6610,10 @@ void main(F<int?> f) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '$projectPath/lib/migrated_typedef.dart': 'typedef F<R> = Function(R);'
+      '$projectPath/lib/migrated_typedef.dart': '''
+// @dart=2.12
+typedef F<R> = Function(R);
+'''
     });
   }
 
@@ -6636,8 +6649,10 @@ void f4(F<int> f) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '$projectPath/lib/migrated_typedef.dart':
-          'typedef F<T> = Function<R>(T, R);'
+      '$projectPath/lib/migrated_typedef.dart': '''
+// @dart=2.12
+typedef F<T> = Function<R>(T, R);
+'''
     });
   }
 
@@ -6655,7 +6670,10 @@ void main(F f) {
 }
 ''';
     await _checkSingleFileChanges(content, expected, migratedInput: {
-      '$projectPath/lib/migrated_typedef.dart': 'typedef F = Function<R>(R);'
+      '$projectPath/lib/migrated_typedef.dart': '''
+// @dart=2.12
+typedef F = Function<R>(R);
+'''
     });
   }
 
