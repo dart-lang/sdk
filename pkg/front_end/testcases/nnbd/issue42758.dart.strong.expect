@@ -78,7 +78,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
-static method test1(Never n1, Never? n2, core::Null? n3) → dynamic {
+static method test1(Never n1, Never? n2, Null n3) → dynamic {
   core::List<Never> l1 = block {
     final core::List<Never> #t1 = <Never>[];
     for (final Never #t2 in n1)
@@ -192,7 +192,7 @@ static method test1(Never n1, Never? n2, core::Null? n3) → dynamic {
     #t33.{core::Map::[]=}(n1, n1);
   } =>#t33;
 }
-static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 extends core::Null? = core::Null?>(self::test2::N1 n1, self::test2::N2% n2, self::test2::N3% n3) → dynamic {
+static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 extends Null = Null>(self::test2::N1 n1, self::test2::N2% n2, self::test2::N3% n3) → dynamic {
   core::List<Never> l1 = block {
     final core::List<Never> #t36 = <Never>[];
     for (final Never #t37 in n1)

@@ -6,17 +6,7 @@ library fasta.named_type_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        DartType,
-        Extension,
-        InterfaceType,
-        InvalidType,
-        Supertype,
-        TreeNode,
-        TypeParameter,
-        TypedefType;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import '../fasta_codes.dart'
     show
@@ -262,7 +252,6 @@ class NamedTypeBuilder extends TypeBuilder {
       TypeVariableBuilder typeParameterBuilder = declaration;
       TypeParameter typeParameter = typeParameterBuilder.parameter;
       if (typeParameter.parent is Class || typeParameter.parent is Extension) {
-        messageTypeVariableInStaticContext;
         library.addProblem(
             messageTypeVariableInStaticContext,
             charOffset ?? TreeNode.noOffset,
@@ -295,6 +284,50 @@ class NamedTypeBuilder extends TypeBuilder {
           declaration.buildType(library, library.nonNullableBuilder, arguments);
       if (type is InterfaceType) {
         return new Supertype(type.classNode, type.typeArguments);
+      } else if (type is NullType) {
+        // Even though Null is disallowed as a supertype, ClassHierarchyBuilder
+        // still expects it to be built to the respective InterfaceType
+        // referencing the deprecated class.
+        // TODO(dmitryas): Remove the dependency on the deprecated Null class
+        // from ClassHierarchyBuilder.
+        TypeDeclarationBuilder unaliasedDeclaration = this.declaration;
+        // The following code assumes that the declaration is a TypeAliasBuilder
+        // that through a chain of other TypeAliasBuilders (possibly, the chian
+        // length is 0) references a ClassBuilder of the Null class.  Otherwise,
+        // it won't produce the NullType on the output.
+        while (unaliasedDeclaration is TypeAliasBuilder) {
+          unaliasedDeclaration =
+              (unaliasedDeclaration as TypeAliasBuilder).type.declaration;
+          assert(unaliasedDeclaration != null);
+        }
+        assert(unaliasedDeclaration is ClassBuilder &&
+            unaliasedDeclaration.name == "Null");
+        return new Supertype(
+            (unaliasedDeclaration as ClassBuilder).cls, const <DartType>[]);
+      } else if (type is FutureOrType) {
+        // Even though FutureOr is disallowed as a supertype,
+        // ClassHierarchyBuilder still expects it to be built to the respective
+        // InterfaceType referencing the deprecated class.  In contrast with
+        // Null, it doesn't surface as an error due to FutureOr class not having
+        // any inheritable members.
+        // TODO(dmitryas): Remove the dependency on the deprecated FutureOr
+        // class from ClassHierarchyBuilder.
+        TypeDeclarationBuilder unaliasedDeclaration = this.declaration;
+        // The following code assumes that the declaration is a TypeAliasBuilder
+        // that through a chain of other TypeAliasBuilders (possibly, the chian
+        // length is 0) references a ClassBuilder of the FutureOr class.
+        // Otherwise, it won't produce the FutureOrType on the output.
+        while (unaliasedDeclaration is TypeAliasBuilder) {
+          unaliasedDeclaration =
+              (unaliasedDeclaration as TypeAliasBuilder).type.declaration;
+          assert(unaliasedDeclaration != null);
+        }
+        assert(unaliasedDeclaration is ClassBuilder &&
+            unaliasedDeclaration.name == "FutureOr");
+        return new Supertype((unaliasedDeclaration as ClassBuilder).cls,
+            <DartType>[type.typeArgument]);
+      } else {
+        // Do nothing: handleInvalidSuper below will handle the erroneous case.
       }
     } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(

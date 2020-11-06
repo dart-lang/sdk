@@ -17,7 +17,7 @@ static method main() → void {
     #L3:
     case #C2:
       {
-        (() → core::Null? {
+        (() → Null {
           switch(inner) {
             #L4:
             case #C1:

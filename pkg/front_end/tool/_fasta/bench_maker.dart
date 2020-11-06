@@ -253,6 +253,11 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitNullType(NullType node, StringBuffer sb) {
+    sb.write("Null");
+  }
+
+  @override
   void visitInterfaceType(InterfaceType node, StringBuffer sb) {
     Class cls = node.classNode;
     sb.write(computeName(cls));

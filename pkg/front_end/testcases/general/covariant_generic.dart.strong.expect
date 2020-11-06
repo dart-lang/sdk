@@ -28,22 +28,22 @@ class Foo<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  self::Foo<core::int*>* fooInt = new self::Foo::•<core::int*>(1, (core::int* x) → core::Null? {});
+  self::Foo<core::int*>* fooInt = new self::Foo::•<core::int*>(1, (core::int* x) → Null {});
   fooInt.{self::Foo::method}(3);
   fooInt.{self::Foo::setter} = 3;
-  fooInt.{self::Foo::withCallback}((core::int* x) → core::Null? {});
-  fooInt.{self::Foo::withCallback}((core::num* x) → core::Null? {});
+  fooInt.{self::Foo::withCallback}((core::int* x) → Null {});
+  fooInt.{self::Foo::withCallback}((core::num* x) → Null {});
   fooInt.{self::Foo::mutableField} = 3;
-  fooInt.{self::Foo::mutableCallbackField} = (core::int* x) → core::Null? {};
+  fooInt.{self::Foo::mutableCallbackField} = (core::int* x) → Null {};
   self::Foo<core::num*>* fooNum = fooInt;
   fooNum.{self::Foo::method}(3);
   fooNum.{self::Foo::method}(2.5);
   fooNum.{self::Foo::setter} = 3;
   fooNum.{self::Foo::setter} = 2.5;
-  fooNum.{self::Foo::withCallback}((core::num* x) → core::Null? {});
+  fooNum.{self::Foo::withCallback}((core::num* x) → Null {});
   fooNum.{self::Foo::mutableField} = 3;
   fooNum.{self::Foo::mutableField} = 2.5;
   let final self::Foo<core::num*>* #t1 = fooNum in let final core::int* #t2 = 3 in (#t1.{self::Foo::mutableCallbackField} as{TypeError,CovarianceCheck} (core::num*) →* void).call(#t2);
   let final self::Foo<core::num*>* #t3 = fooNum in let final core::double* #t4 = 2.5 in (#t3.{self::Foo::mutableCallbackField} as{TypeError,CovarianceCheck} (core::num*) →* void).call(#t4);
-  fooNum.{self::Foo::mutableCallbackField} = (core::num* x) → core::Null? {};
+  fooNum.{self::Foo::mutableCallbackField} = (core::num* x) → Null {};
 }

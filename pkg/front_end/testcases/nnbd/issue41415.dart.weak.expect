@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {}
-static method test<X extends core::Null? = core::Null?, Y extends Never? = Never?, Z extends Never = Never>() → dynamic {
-  (core::Null?) → core::int f = (core::Object? x) → core::int => 1;
+static method test<X extends Null = Null, Y extends Never? = Never?, Z extends Never = Never>() → dynamic {
+  (Null) → core::int f = (core::Object? x) → core::int => 1;
   (Never) → core::int g = (core::Object? x) → core::int => 1;
   (Never?) → core::int h = (core::Object? x) → core::int => 1;
   (core::String) → core::int i = (core::String x) → core::int => 1;

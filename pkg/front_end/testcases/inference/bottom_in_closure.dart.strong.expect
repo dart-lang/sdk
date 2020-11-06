@@ -1,8 +1,7 @@
 library test;
 import self as self;
-import "dart:core" as core;
 
-static field () →* core::Null? v = () → core::Null? => null;
+static field () →* Null v = () → Null => null;
 static method main() → dynamic {
   self::v;
 }

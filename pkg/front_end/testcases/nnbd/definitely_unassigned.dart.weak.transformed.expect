@@ -95,7 +95,7 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect = <T extends core::Object? = dynamic>(T% value) → core::Null? {
+static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T extends core::Object? = dynamic>(T% value) → Null {
   T% local1;
   late T% local2;
   core::int local3;
@@ -125,7 +125,7 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   ^^^^^^" in local6;
   local7;
 };
-static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null? fieldConditional = <T extends core::Object? = dynamic>(core::bool b, T% value) → core::Null? {
+static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldConditional = <T extends core::Object? = dynamic>(core::bool b, T% value) → Null {
   T% local1;
   late T% local2;
   core::int local3;
@@ -158,7 +158,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   local6;
   local7;
 };
-static field () → core::Null? fieldCompound = () → core::Null? {
+static field () → Null fieldCompound = () → Null {
   core::int local3;
   late core::int local4;
   local3 = (let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_unassigned.dart:111:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.

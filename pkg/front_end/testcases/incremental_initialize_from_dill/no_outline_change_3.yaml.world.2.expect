@@ -16,7 +16,7 @@ library from "org-dartlang-test:///libA.dart" as libA {
         #L1:
         {
           [yield] let dynamic #t1 = dart.async::_awaitHelper(null, :async_op_then, :async_op_error, :async_op) in null;
-          dart._internal::unsafeCast<dart.core::Null?>(:result);
+          dart._internal::unsafeCast<Null>(:result);
           :return_value = "hello";
           break #L1;
         }

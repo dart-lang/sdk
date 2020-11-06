@@ -21,7 +21,7 @@ static method main() → dynamic {
   self::expect(123, #lateLocal#get.call());
   self::expect(124, #lateLocal#set.call(124));
   self::expect(124, #lateLocal#get.call());
-  function local<T extends core::Object? = dynamic>(T? value1, T? value2) → core::Null? {
+  function local<T extends core::Object? = dynamic>(T? value1, T? value2) → Null {
     T? lateGenericLocal;
     core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T? {

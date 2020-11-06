@@ -91,8 +91,9 @@ Updated the Linter to `0.1.123`, which includes:
 * New option `dart pub outdated mode=null-safety` that will analyze your
   dependencies for null-safety.
 * `dart pub publish` will now check your pubspec keys for likely typos.
-* `pub get` will print a warning if the resolution is in mixed-mode requiring
+* `dart pub get` will print a warning if the resolution is in mixed-mode requiring
   the code to run with `dart --no-sound-null-safety`.
+* New command `dart pub login` that logs in to pub.dev.
 
 ## 2.10.3 - 2020-10-29
 

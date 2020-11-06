@@ -340,10 +340,6 @@ class KernelTarget extends TargetImplementation {
       await loader.buildOutlines();
       loader.createTypeInferenceEngine();
       loader.coreLibrary.becomeCoreLibrary();
-      dynamicType.bind(
-          loader.coreLibrary.lookupLocalMember("dynamic", required: true));
-      bottomType
-          .bind(loader.coreLibrary.lookupLocalMember("Never", required: true));
       loader.resolveParts();
       loader.computeLibraryScopes();
       setupTopAndBottomTypes();
@@ -844,11 +840,13 @@ class KernelTarget extends TargetImplementation {
   void setupTopAndBottomTypes() {
     objectType
         .bind(loader.coreLibrary.lookupLocalMember("Object", required: true));
-
+    dynamicType
+        .bind(loader.coreLibrary.lookupLocalMember("dynamic", required: true));
     ClassBuilder nullClassBuilder =
         loader.coreLibrary.lookupLocalMember("Null", required: true);
-    nullClassBuilder.isNullClass = true;
-    nullType.bind(nullClassBuilder);
+    nullType.bind(nullClassBuilder..isNullClass = true);
+    bottomType
+        .bind(loader.coreLibrary.lookupLocalMember("Never", required: true));
   }
 
   void computeCoreTypes() {

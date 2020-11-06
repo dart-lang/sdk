@@ -19,7 +19,7 @@ static method main() → dynamic {
   self::expect(null, lateLocalInit);
   self::expect(123, #lateLocal#get.call());
   self::expect(123, lateLocalInit);
-  function local<T extends core::Object? = dynamic>(T% value) → core::Null? {
+  function local<T extends core::Object? = dynamic>(T% value) → Null {
     T? lateGenericLocalInit;
     function initLateGenericLocal(T% value) → T% {
       return lateGenericLocalInit = value;

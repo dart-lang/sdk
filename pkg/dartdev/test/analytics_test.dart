@@ -86,23 +86,23 @@ void main() {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          // TODO(sigurdm): this should be pub/get
-          'message': {'viewName': 'pub'}
+          'message': {'viewName': 'pub/get'}
         },
         {
           'hitType': 'event',
           'message': {
             'category': 'dartdev',
-            'action': 'pub',
+            'action': 'pub/get',
             'label': null,
             'value': null,
             'cd1': '0',
+            'cd3': ' dry-run '
           }
         },
         {
           'hitType': 'timing',
           'message': {
-            'variableName': 'pub',
+            'variableName': 'pub/get',
             'time': isA<int>(),
             'category': 'commands',
             'label': null

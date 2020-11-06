@@ -28,9 +28,8 @@ static method main() → dynamic {}
 library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:async" as asy;
-import "dart:core" as core;
 
-typedef AsyncCallback = () → asy::Future<core::Null?>;
+typedef AsyncCallback = () → asy::Future<Null>;
 
 library /*isNonNullableByDefault*/;
 import self as fou;
@@ -43,7 +42,7 @@ abstract class BindingBase extends core::Object {
   synthetic constructor •() → fou::BindingBase
     : super core::Object::•()
     ;
-  method registerSignalServiceExtension({required core::String name = #C1, required () → asy::Future<core::Null?> callback = #C1}) → void {}
+  method registerSignalServiceExtension({required core::String name = #C1, required () → asy::Future<Null> callback = #C1}) → void {}
 }
 
 library;
@@ -66,7 +65,7 @@ import "dart:async" as asy;
 import "org-dartlang-testcase:///foundation_lib.dart";
 
 abstract class SchedulerBinding extends fou::BindingBase /*isMixinDeclaration*/  {
-  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<core::Null?>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
+  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<Null>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -111,7 +110,7 @@ abstract class _ServicesBinding&BindingBase&SchedulerBinding extends core::Objec
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<core::Null?>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
+  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<Null>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
 }
 abstract class ServicesBinding extends ser::_ServicesBinding&BindingBase&SchedulerBinding /*isMixinDeclaration*/  {
 }

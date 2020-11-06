@@ -29,11 +29,11 @@ library /*isNonNullableByDefault*/;
 import self as cal;
 import "dart:core" as core;
 
-static method takesNull(core::Null? n) → void {}
+static method takesNull(Null n) → void {}
 static method takesNever(Never n) → void {}
-static method applyTakesNull((core::Null?) → void f) → dynamic {}
+static method applyTakesNull((Null) → void f) → dynamic {}
 static method applyTakesNever((Never) → void f) → dynamic {}
-static method applyTakesNullNamed({required (core::Null?) → void f = #C5}) → dynamic {}
+static method applyTakesNullNamed({required (Null) → void f = #C5}) → dynamic {}
 static method applyTakesNeverNamed({required (Never) → void f = #C5}) → dynamic {}
 static method takesNullable(core::int? i) → void {}
 static method takesNonNullable(core::int i) → void {}

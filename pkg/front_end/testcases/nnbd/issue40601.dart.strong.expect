@@ -11,7 +11,7 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
   method foo() → dynamic {
     late self::A::T% value;
     () → dynamic result = () → dynamic => this.{self::A::bar}(value);
-    (() → core::Null? {
+    (() → Null {
       value = this.{self::A::baz}();
     }).call();
     return result;

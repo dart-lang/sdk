@@ -42,14 +42,14 @@ static method test3(dynamic stringMap) → dynamic {
 }
 static method main() → dynamic {
   dynamic stringList = <core::String*>["string"];
-  exp::Expect::throwsTypeError(() → core::Null? {
+  exp::Expect::throwsTypeError(() → Null {
     self::test1(stringList);
   });
-  exp::Expect::throwsTypeError(() → core::Null? {
+  exp::Expect::throwsTypeError(() → Null {
     self::test2(stringList);
   });
   dynamic stringMap = <core::String*, core::String*>{"a": "b"};
-  exp::Expect::throwsTypeError(() → core::Null? {
+  exp::Expect::throwsTypeError(() → Null {
     self::test3(stringMap);
   });
 }

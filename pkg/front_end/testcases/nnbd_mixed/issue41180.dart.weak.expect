@@ -10,7 +10,7 @@ class D<Y extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method method() → iss::C<self::D::Y*>*
-    return new iss::C::•<self::D::Y*>(() → core::Null? => null);
+    return new iss::C::•<self::D::Y*>(() → Null => null);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -23,13 +23,13 @@ class D<Y extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → void {
-  iss::foo(() → core::Null? => null);
+  iss::foo(() → Null => null);
   iss::bar = () → iss::Map<core::String*, core::String*>* => null;
   new self::D::•<core::int*>().{self::D::method}();
   self::findKey(new iss::Map::•<core::String*, core::String*>("foo", "bar"), "bar");
 }
 static method findKey(iss::Map<core::String*, dynamic>* m, dynamic search) → void {
-  core::print(let final core::MapEntry<core::String*, dynamic>* #t1 = m.{iss::Map::entries}.{iss::Iterable::singleWhere}((core::MapEntry<core::String*, dynamic>* entry) → core::bool* => entry.{core::MapEntry::value}.{core::Object::==}(search), orElse: () → core::Null? => null) in #t1.{core::Object::==}(null) ?{core::String*} null : #t1.{core::MapEntry::key});
+  core::print(let final core::MapEntry<core::String*, dynamic>* #t1 = m.{iss::Map::entries}.{iss::Iterable::singleWhere}((core::MapEntry<core::String*, dynamic>* entry) → core::bool* => entry.{core::MapEntry::value}.{core::Object::==}(search), orElse: () → Null => null) in #t1.{core::Object::==}(null) ?{core::String*} null : #t1.{core::MapEntry::key});
 }
 
 library /*isNonNullableByDefault*/;

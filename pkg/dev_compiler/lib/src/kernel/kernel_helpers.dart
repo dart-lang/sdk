@@ -336,6 +336,7 @@ bool isKnownDartTypeImplementor(DartType t) {
       t is InterfaceType ||
       t is InvalidType ||
       t is NeverType ||
+      t is NullType ||
       t is TypeParameterType ||
       t is TypedefType ||
       t is VoidType;

@@ -208,6 +208,14 @@ class MergeVisitor implements DartTypeVisitor1<DartType, DartType> {
   }
 
   @override
+  DartType visitNullType(NullType a, DartType b) {
+    if (b is NullType) {
+      return a;
+    }
+    return null;
+  }
+
+  @override
   DartType visitInvalidType(InvalidType a, DartType b) => null;
 
   @override

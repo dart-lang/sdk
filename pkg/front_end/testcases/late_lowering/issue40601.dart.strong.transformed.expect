@@ -19,7 +19,7 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
       return value = #t1;
     }
     () → dynamic result = () → dynamic => this.{self::A::bar}(#value#get.call());
-    (() → core::Null? {
+    (() → Null {
       #value#set.call(this.{self::A::baz}());
     }).call();
     return result;

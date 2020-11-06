@@ -75,7 +75,7 @@ static final field core::List<core::int> s3 = let final<BottomType> #t2 = invali
 Try using List.filled instead.
 final s3 = new List<int>(2);
                ^" in core::List::•<core::int>(2);
-static final field dynamic s4 = (() → core::Null? {
+static final field dynamic s4 = (() → Null {
   core::int e = 0;
   switch(e) {
     #L1:

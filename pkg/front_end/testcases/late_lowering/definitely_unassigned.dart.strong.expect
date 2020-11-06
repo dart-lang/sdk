@@ -96,7 +96,7 @@ import "dart:_internal" as _in;
 
 import "dart:async";
 
-static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect = <T extends core::Object? = dynamic>(T% value) → core::Null? {
+static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T extends core::Object? = dynamic>(T% value) → Null {
   T% local1;
   T? local2;
   core::bool #local2#isSet = false;
@@ -151,7 +151,7 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   ^^^^^^" in #local6#get.call();
   #local7#get.call();
 };
-static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null? fieldConditional = <T extends core::Object? = dynamic>(core::bool b, T% value) → core::Null? {
+static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldConditional = <T extends core::Object? = dynamic>(core::bool b, T% value) → Null {
   T% local1;
   T? local2;
   core::bool #local2#isSet = false;
@@ -209,7 +209,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   #local6#get.call();
   #local7#get.call();
 };
-static field () → core::Null? fieldCompound = () → core::Null? {
+static field () → Null fieldCompound = () → Null {
   core::int local3;
   core::int? local4;
   function #local4#get() → core::int

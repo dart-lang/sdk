@@ -183,8 +183,8 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
           mapEntries[i] =
               new ConstantMapEntry(entries[i], evaluator.nullConstant);
         }
-        Constant map = evaluator.lowerMapConstant(new MapConstant(
-            elementType, evaluator.typeEnvironment.nullType, mapEntries));
+        Constant map = evaluator.lowerMapConstant(
+            new MapConstant(elementType, const NullType(), mapEntries));
         return evaluator.lower(
             result,
             new InstanceConstant(

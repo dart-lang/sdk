@@ -34,7 +34,7 @@ static method main() → dynamic {
   core::List<inf::C<core::int*>*>* local1f = <inf::C<core::int*>*>[inf::field6];
   core::List<core::int*>* local1g = <core::int*>[inf::field7];
   core::List<core::int*>* local1h = <core::int*>[inf::field8];
-  core::List<core::Null?>* local1i = <core::Null?>[null];
+  core::List<Null>* local1i = <Null>[null];
   core::Set<inf::C<dynamic>*>* local2a = block {
     final core::Set<inf::C<dynamic>*>* #t1 = col::LinkedHashSet::•<inf::C<dynamic>*>();
     #t1.{core::Set::add}(inf::field1);
@@ -164,7 +164,7 @@ static method method() → dynamic {
   core::List<inf::C<core::int?>?> local1f = <inf::C<core::int?>?>[inf::field6];
   core::List<core::int> local1g = <core::int>[inf::field7];
   core::List<core::int?> local1h = <core::int?>[inf::field8];
-  core::List<core::Null?> local1i = <core::Null?>[null];
+  core::List<Null> local1i = <Null>[null];
   core::Set<inf::C<dynamic>?> local2a = block {
     final core::Set<inf::C<dynamic>?> #t17 = col::LinkedHashSet::•<inf::C<dynamic>?>();
     #t17.{core::Set::add}(inf::field1);

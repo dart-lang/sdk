@@ -347,6 +347,38 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   script.set_debug_positions(array_object);
 }
 
+ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
+  ASSERT(field.is_static() && field.is_const());
+
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    TranslationHelper helper(thread);
+    Script& script = Script::Handle(zone, field.Script());
+    helper.InitFromScript(script);
+
+    const Class& owner_class = Class::Handle(zone, field.Owner());
+    ActiveClass active_class;
+    ActiveClassScope active_class_scope(&active_class, &owner_class);
+
+    KernelReaderHelper kernel_reader(
+        zone, &helper, script,
+        ExternalTypedData::Handle(zone, field.KernelData()),
+        field.KernelDataProgramOffset());
+    kernel_reader.SetOffset(field.kernel_offset());
+    ConstantReader constant_reader(&kernel_reader, &active_class);
+
+    FieldHelper field_helper(&kernel_reader);
+    field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
+    ASSERT(field_helper.IsConst());
+
+    return constant_reader.ReadConstantInitializer();
+  } else {
+    return Thread::Current()->StealStickyError();
+  }
+}
+
 class MetadataEvaluator : public KernelReaderHelper {
  public:
   MetadataEvaluator(Zone* zone,

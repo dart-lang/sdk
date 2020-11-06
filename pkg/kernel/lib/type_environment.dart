@@ -36,7 +36,6 @@ abstract class TypeEnvironment extends Types {
 
   InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
   InterfaceType get objectNullableRawType => coreTypes.objectNullableRawType;
-  InterfaceType get nullType => coreTypes.nullType;
   InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
   /// Returns the type `List<E>` with the given [nullability] and [elementType]
@@ -82,7 +81,7 @@ abstract class TypeEnvironment extends Types {
   }
 
   DartType _withDeclaredNullability(DartType type, Nullability nullability) {
-    if (type == nullType) return type;
+    if (type is NullType) return type;
     return type.withDeclaredNullability(
         uniteNullabilities(type.declaredNullability, nullability));
   }

@@ -79,12 +79,12 @@ abstract class TypesBuilder {
     Type result;
     if (type is InterfaceType) {
       final cls = type.classNode;
-      result = (cls == coreTypes.nullClass)
-          ? const EmptyType()
-          : new ConeType(getTFClass(cls));
+      result = new ConeType(getTFClass(cls));
     } else if (type == const DynamicType() || type == const VoidType()) {
       result = const AnyType();
-    } else if (type == const BottomType() || type is NeverType) {
+    } else if (type == const BottomType() ||
+        type is NeverType ||
+        type is NullType) {
       result = const EmptyType();
     } else if (type is FunctionType) {
       // TODO(alexmarkov): support function types

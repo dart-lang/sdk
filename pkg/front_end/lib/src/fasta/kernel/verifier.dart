@@ -256,15 +256,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     exitTreeNode(node);
   }
 
-  bool isNullType(DartType node) {
-    if (node is InterfaceType) {
-      Uri importUri = node.classNode.enclosingLibrary.importUri;
-      return node.classNode.name == "Null" &&
-          importUri.scheme == "dart" &&
-          importUri.path == "core";
-    }
-    return false;
-  }
+  bool isNullType(DartType node) => node is NullType;
 
   bool isObjectClass(Class c) {
     return c.name == "Object" &&

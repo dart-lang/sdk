@@ -88,7 +88,7 @@ constants  {
   #C5 = <core::int*>[#C3]
   #C6 = null
   #C7 = <dynamic>[#C3, #C6]
-  #C8 = core::_ImmutableMap<core::int*, core::Null?> {_kvPairs:#C7}
+  #C8 = core::_ImmutableMap<core::int*, Null> {_kvPairs:#C7}
   #C9 = col::_UnmodifiableSet<core::int*> {_map:#C8}
   #C10 = "foo"
   #C11 = <dynamic>[#C3, #C10]

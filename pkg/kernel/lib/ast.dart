@@ -3068,7 +3068,7 @@ abstract class Expression extends TreeNode {
       type =
           typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
     }
-    if (type == context.typeEnvironment.nullType) {
+    if (type is NullType) {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nullable);
     } else if (type is NeverType) {
@@ -4970,7 +4970,7 @@ class NullCheck extends Expression {
 
   DartType getStaticTypeInternal(StaticTypeContext context) {
     DartType operandType = operand.getStaticType(context);
-    return operandType == context.typeEnvironment.nullType
+    return operandType is NullType
         ? const NeverType(Nullability.nonNullable)
         : operandType.withDeclaredNullability(Nullability.nonNullable);
   }
@@ -5132,8 +5132,7 @@ class NullLiteral extends BasicLiteral {
       getStaticTypeInternal(context);
 
   @override
-  DartType getStaticTypeInternal(StaticTypeContext context) =>
-      context.typeEnvironment.nullType;
+  DartType getStaticTypeInternal(StaticTypeContext context) => const NullType();
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -7609,6 +7608,49 @@ class BottomType extends DartType {
   }
 }
 
+class NullType extends DartType {
+  @override
+  final int hashCode = 415324;
+
+  const NullType();
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) => v.visitNullType(this);
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    return v.visitNullType(this, arg);
+  }
+
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) => other is NullType;
+
+  @override
+  Nullability get declaredNullability => Nullability.nullable;
+
+  @override
+  Nullability get nullability => Nullability.nullable;
+
+  @override
+  DartType withDeclaredNullability(Nullability nullability) => this;
+
+  @override
+  String toString() {
+    return "NullType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write("Null");
+  }
+}
+
 class InterfaceType extends DartType {
   Reference className;
 
@@ -8964,8 +9006,7 @@ class NullConstant extends PrimitiveConstant<Null> {
   R accept<R>(ConstantVisitor<R> v) => v.visitNullConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitNullConstantReference(this);
 
-  DartType getType(StaticTypeContext context) =>
-      context.typeEnvironment.nullType;
+  DartType getType(StaticTypeContext context) => const NullType();
 
   @override
   String toString() => 'NullConstant(${toStringInternal()})';

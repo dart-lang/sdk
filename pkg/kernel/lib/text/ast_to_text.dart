@@ -2167,6 +2167,10 @@ class Printer extends Visitor<Null> {
     writeNullability(node.nullability);
   }
 
+  visitNullType(NullType node) {
+    writeWord('Null');
+  }
+
   visitInterfaceType(InterfaceType node) {
     writeClassReferenceFromReference(node.className);
     if (node.typeArguments.isNotEmpty) {

@@ -195,7 +195,8 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     }
 
     if (nullable && type == const EmptyType()) {
-      concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
+      concreteClass =
+          _typeFlowAnalysis.environment.coreTypes.deprecatedNullClass;
       constantValue = _nullConstant ??= new NullConstant();
     } else {
       concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);

@@ -1,15 +1,15 @@
 library;
 import self as self;
-import "dart:core" as core;
 import "bounds_from_opt_in_lib.dart" as bou;
+import "dart:core" as core;
 
 import "org-dartlang-testcase:///bounds_from_opt_in_lib.dart";
 
-class LegacyClass<T extends core::Null? = core::Null?> extends bou::Class<self::LegacyClass::T*> {
+class LegacyClass<T extends Null = Null> extends bou::Class<self::LegacyClass::T*> {
   synthetic constructor •() → self::LegacyClass<self::LegacyClass::T*>*
     : super bou::Class::•()
     ;
-  method method<T extends core::Null? = core::Null?>() → dynamic {}
+  method method<T extends Null = Null>() → dynamic {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -22,9 +22,9 @@ class LegacyClass<T extends core::Null? = core::Null?> extends bou::Class<self::
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
-  bou::Class<core::Null?>* c = new bou::Class::•<core::Null?>();
-  c.{bou::Class::method}<core::Null?>();
-  bou::method<core::Null?>();
+  bou::Class<Null>* c = new bou::Class::•<Null>();
+  c.{bou::Class::method}<Null>();
+  bou::method<Null>();
 }
 static method main() → dynamic {}
 

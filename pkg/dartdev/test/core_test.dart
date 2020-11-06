@@ -9,7 +9,6 @@ import 'package:dartdev/src/commands/analyze.dart';
 import 'package:dartdev/src/commands/compile.dart';
 import 'package:dartdev/src/commands/create.dart';
 import 'package:dartdev/src/commands/fix.dart';
-import 'package:dartdev/src/commands/pub.dart';
 import 'package:dartdev/src/commands/run.dart';
 import 'package:dartdev/src/commands/test.dart';
 import 'package:dartdev/src/core.dart';
@@ -79,10 +78,6 @@ void _dartdevCommand() {
 
   test('fix', () {
     _assertDartdevCommandProperties(FixCommand(), 'fix', 'fix');
-  });
-
-  test('pub', () {
-    _assertDartdevCommandProperties(PubCommand(), 'pub', 'pub');
   });
 
   test('run', () {

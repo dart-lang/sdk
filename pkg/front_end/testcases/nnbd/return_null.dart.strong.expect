@@ -170,7 +170,7 @@ static method localFunctions() → dynamic {
   ^" in null;
   }
   function returnAsync4() → FutureOr<core::int?> async {}
-  function returnAsync5() → asy::Future<core::Null?> async {}
+  function returnAsync5() → asy::Future<Null> async {}
   function returnAsync6() → asy::Future<core::int?> async {
     return null;
   }

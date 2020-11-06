@@ -15,7 +15,7 @@ class C<X extends core::Object? = dynamic> extends core::Object {
     ;
 }
 static method check<T extends core::Object? = dynamic>(self::C<core::List<self::check::T%>> f) → self::check::T% {
-  return let core::Null? #t1 = null in #t1.==(null) ?{self::check::T%} #t1 as{ForNonNullableByDefault} self::check::T% : #t1{self::check::T%};
+  return let Null #t1 = null in #t1.==(null) ?{self::check::T%} #t1 as{ForNonNullableByDefault} self::check::T% : #t1{self::check::T%};
 }
 static method test() → void {
   core::int x = self::check<core::int>(new self::C::•<core::List<core::int>>((core::List<core::int> x) → void {}));

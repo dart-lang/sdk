@@ -15,6 +15,7 @@ import '../ast.dart'
         Library,
         NamedType,
         NeverType,
+        NullType,
         Nullability,
         TypeParameter,
         TypeParameterType,
@@ -108,6 +109,10 @@ class Types with StandardBounds {
       return const IsSubtypeOf.never();
     }
     if (s is NeverType) {
+      return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
+    }
+    if (s is NullType) {
+      // Rule 4.
       return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
     }
 
@@ -233,6 +238,25 @@ class Types with StandardBounds {
       } else if (s is FutureOrType) {
         return relation.isFutureOrRelated(s, t, this);
       }
+    } else if (t is NullType) {
+      const IsNullTypeSubtypeOf relation = const IsNullTypeSubtypeOf();
+      if (s is DynamicType) {
+        return relation.isDynamicRelated(s, t, this);
+      } else if (s is VoidType) {
+        return relation.isVoidRelated(s, t, this);
+      } else if (s is InterfaceType) {
+        return relation.isInterfaceRelated(s, t, this);
+      } else if (s is FunctionType) {
+        return relation.isFunctionRelated(s, t, this);
+      } else if (s is TypeParameterType) {
+        return s.promotedBound == null
+            ? relation.isTypeParameterRelated(s, t, this)
+            : relation.isIntersectionRelated(s, t, this);
+      } else if (s is TypedefType) {
+        return relation.isTypedefRelated(s, t, this);
+      } else if (s is FutureOrType) {
+        return relation.isFutureOrRelated(s, t, this);
+      }
     } else if (t is NeverType) {
       const IsNeverTypeSubtypeOf relation = const IsNeverTypeSubtypeOf();
       if (s is DynamicType) {
@@ -293,8 +317,7 @@ class Types with StandardBounds {
 
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes) {
-    return hierarchy.getTypeAsInstanceOf(
-        type, superclass, clientLibrary, coreTypes);
+    return hierarchy.getTypeAsInstanceOf(type, superclass, clientLibrary);
   }
 
   List<DartType> getTypeArgumentsAsInstanceOf(
@@ -343,11 +366,6 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, InterfaceType t, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      // This is an optimization, to avoid instantiating unnecessary type
-      // arguments in getKernelTypeAsInstanceOf.
-      return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
-    }
     List<DartType> asSupertypeArguments =
         types.hierarchy.getTypeArgumentsAsInstanceOf(s, t.classNode);
     if (asSupertypeArguments == null) {
@@ -546,10 +564,6 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
 
   @override
   IsSubtypeOf isInterfaceRelated(InterfaceType s, FunctionType t, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      // Rule 4.
-      return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
-    }
     return const IsSubtypeOf.never();
   }
 
@@ -639,10 +653,6 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   @override
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, TypeParameterType t, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      // Rule 4.
-      return new IsSubtypeOf.basedSolelyOnNullabilities(s, t);
-    }
     return const IsSubtypeOf.never();
   }
 
@@ -873,10 +883,6 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
   @override
   IsSubtypeOf isInterfaceRelated(
       InterfaceType s, TypeParameterType intersection, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      // Rule 4.
-      return new IsSubtypeOf.basedSolelyOnNullabilities(s, intersection);
-    }
     return const IsSubtypeOf.never();
   }
 
@@ -912,6 +918,48 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
   }
 }
 
+class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
+  const IsNullTypeSubtypeOf();
+
+  IsSubtypeOf isDynamicRelated(DynamicType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isVoidRelated(VoidType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isInterfaceRelated(InterfaceType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isIntersectionRelated(
+      TypeParameterType intersection, NullType t, Types types) {
+    return types.performNullabilityAwareMutualSubtypesCheck(
+        intersection.promotedBound, t);
+  }
+
+  IsSubtypeOf isFunctionRelated(FunctionType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isFutureOrRelated(FutureOrType s, NullType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, NullType t, Types types) {
+    // We don't need to combine the check of the bound against [t] with the
+    // check of the nullability of [s] against the nullability of [t] because
+    // [t] is always nullable.
+    return types.performNullabilityAwareSubtypeCheck(s.bound, t);
+  }
+
+  IsSubtypeOf isTypedefRelated(TypedefType s, NullType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
+  }
+}
+
 class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
   const IsNeverTypeSubtypeOf();
 
@@ -924,18 +972,6 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
   }
 
   IsSubtypeOf isInterfaceRelated(InterfaceType s, NeverType t, Types types) {
-    if (s.classNode == types.hierarchy.coreTypes.nullClass) {
-      if (t.nullability == Nullability.nullable ||
-          t.nullability == Nullability.legacy) {
-        return const IsSubtypeOf.always();
-      }
-      if (t.nullability == Nullability.nonNullable) {
-        return new IsSubtypeOf.onlyIfIgnoringNullabilities(
-            subtype: s, supertype: t);
-      }
-      throw new StateError(
-          "Unexpected nullability '$t.nullability' of type Never");
-    }
     return const IsSubtypeOf.never();
   }
 

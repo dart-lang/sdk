@@ -10,9 +10,9 @@ typedef FcovBound<X extends core::num* = core::num*> = () →* X*;
 typedef FconBound<contravariant X extends core::num* = core::num*> = (X*) →* dynamic;
 typedef FinvBound<invariant X extends core::num* = core::num*> = (X*) →* X*;
 typedef FcovCyclicBound<X extends self::A<X*>* = self::A<dynamic>*> = () →* X*;
-typedef FconCyclicBound<contravariant X extends self::A<X*>* = self::A<core::Null?>*> = (X*) →* dynamic;
+typedef FconCyclicBound<contravariant X extends self::A<X*>* = self::A<Null>*> = (X*) →* dynamic;
 typedef FinvCyclicBound<invariant X extends self::A<X*>* = self::A<dynamic>*> = (X*) →* X*;
-typedef FcovCyclicCoBound<X extends (X*) →* dynamic = (core::Null?) →* dynamic> = () →* X*;
+typedef FcovCyclicCoBound<X extends (X*) →* dynamic = (Null) →* dynamic> = () →* X*;
 typedef FconCyclicCoBound<contravariant X extends (X*) →* dynamic = (dynamic) →* dynamic> = (X*) →* dynamic;
 typedef FinvCyclicCoBound<invariant X extends (X*) →* dynamic = (dynamic) →* dynamic> = (X*) →* X*;
 class Acov<X extends () →* self::Acov::Y* = () →* dynamic, Y extends core::Object* = dynamic> extends core::Object {
@@ -29,7 +29,7 @@ class Acov<X extends () →* self::Acov::Y* = () →* dynamic, Y extends core::O
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Acon<X extends (self::Acon::Y*) →* dynamic = (core::Null?) →* dynamic, Y extends core::Object* = dynamic> extends core::Object {
+class Acon<X extends (self::Acon::Y*) →* dynamic = (Null) →* dynamic, Y extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Acon<self::Acon::X*, self::Acon::Y*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -71,7 +71,7 @@ class AcovBound<X extends () →* self::AcovBound::Y* = () →* core::num*, Y ex
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AconBound<X extends (self::AconBound::Y*) →* dynamic = (core::Null?) →* dynamic, Y extends core::num* = core::num*> extends core::Object {
+class AconBound<X extends (self::AconBound::Y*) →* dynamic = (Null) →* dynamic, Y extends core::num* = core::num*> extends core::Object {
   synthetic constructor •() → self::AconBound<self::AconBound::X*, self::AconBound::Y*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -127,7 +127,7 @@ class AcovCyclicBound<X extends () →* self::AcovCyclicBound::Y* = () →* self
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AconCyclicBound<X extends (self::AconCyclicBound::Y*) →* dynamic = (core::Null?) →* dynamic, Y extends self::A<self::AconCyclicBound::Y*>* = self::A<dynamic>*> extends core::Object {
+class AconCyclicBound<X extends (self::AconCyclicBound::Y*) →* dynamic = (Null) →* dynamic, Y extends self::A<self::AconCyclicBound::Y*>* = self::A<dynamic>*> extends core::Object {
   synthetic constructor •() → self::AconCyclicBound<self::AconCyclicBound::X*, self::AconCyclicBound::Y*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -155,7 +155,7 @@ class AinvCyclicBound<X extends (self::AinvCyclicBound::Y*) →* self::AinvCycli
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AcovCyclicCoBound<X extends () →* self::AcovCyclicCoBound::Y* = () →* (core::Null?) →* dynamic, Y extends (self::AcovCyclicCoBound::Y*) →* dynamic = (core::Null?) →* dynamic> extends core::Object {
+class AcovCyclicCoBound<X extends () →* self::AcovCyclicCoBound::Y* = () →* (Null) →* dynamic, Y extends (self::AcovCyclicCoBound::Y*) →* dynamic = (Null) →* dynamic> extends core::Object {
   synthetic constructor •() → self::AcovCyclicCoBound<self::AcovCyclicCoBound::X*, self::AcovCyclicCoBound::Y*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -169,7 +169,7 @@ class AcovCyclicCoBound<X extends () →* self::AcovCyclicCoBound::Y* = () →* 
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AconCyclicCoBound<X extends (self::AconCyclicCoBound::Y*) →* dynamic = (core::Null?) →* dynamic, Y extends (self::AconCyclicCoBound::Y*) →* dynamic = (core::Null?) →* dynamic> extends core::Object {
+class AconCyclicCoBound<X extends (self::AconCyclicCoBound::Y*) →* dynamic = (Null) →* dynamic, Y extends (self::AconCyclicCoBound::Y*) →* dynamic = (Null) →* dynamic> extends core::Object {
   synthetic constructor •() → self::AconCyclicCoBound<self::AconCyclicCoBound::X*, self::AconCyclicCoBound::Y*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -183,7 +183,7 @@ class AconCyclicCoBound<X extends (self::AconCyclicCoBound::Y*) →* dynamic = (
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AinvCyclicCoBound<X extends (self::AinvCyclicCoBound::Y*) →* self::AinvCyclicCoBound::Y* = ((core::Null?) →* dynamic) →* (core::Null?) →* dynamic, Y extends (self::AinvCyclicCoBound::Y*) →* dynamic = (core::Null?) →* dynamic> extends core::Object {
+class AinvCyclicCoBound<X extends (self::AinvCyclicCoBound::Y*) →* self::AinvCyclicCoBound::Y* = ((Null) →* dynamic) →* (Null) →* dynamic, Y extends (self::AinvCyclicCoBound::Y*) →* dynamic = (Null) →* dynamic> extends core::Object {
   synthetic constructor •() → self::AinvCyclicCoBound<self::AinvCyclicCoBound::X*, self::AinvCyclicCoBound::Y*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

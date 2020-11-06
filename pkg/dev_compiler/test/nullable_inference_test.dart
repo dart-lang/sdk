@@ -52,7 +52,7 @@ void main() {
     });
     test('Map', () async {
       await expectNotNull('main() { print({"x": null}); }',
-          '<dart.core::String*, dart.core::Null?>{"x": null}, "x"');
+          '<dart.core::String*, Null>{"x": null}, "x"');
     });
 
     test('Symbol', () async {
@@ -258,7 +258,7 @@ void main() {
 
   test('function expression', () async {
     await expectNotNull(
-        'main() { () => null; f() {}; f; }', 'dart.core::Null? () => null, f');
+        'main() { () => null; f() {}; f; }', 'Null () => null, f');
   });
 
   test('cascades (kernel BlockExpression)', () async {
@@ -399,7 +399,7 @@ void main() {
       await expectNotNull('''main() {
         var x = () => 42;
         var y = (() => x = null);
-      }''', 'dart.core::int* () => 42, 42, dart.core::Null? () => x = null');
+      }''', 'dart.core::int* () => 42, 42, Null () => x = null');
     });
     test('do not depend on unrelated variables', () async {
       await expectNotNull('''main() {

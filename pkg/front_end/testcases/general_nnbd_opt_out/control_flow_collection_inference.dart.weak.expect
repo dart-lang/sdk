@@ -1162,10 +1162,10 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   core::Map<dynamic, dynamic>* map11 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:111:70: Error: Expected ':' after this.
   Map<dynamic, dynamic> map11 = {if (oracle(\"foo\")) \"bar\": 3.14 else 42};
                                                                      ^": null};
-  core::Map<dynamic, core::Null?>* map12 = <dynamic, core::Null?>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:112:35: Error: Expected ':' after this.
+  core::Map<dynamic, Null>* map12 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:112:35: Error: Expected ':' after this.
   var map12 = {if (oracle(\"foo\")) 42 else \"bar\": 3.14};
                                   ^": null};
-  core::Map<dynamic, core::Null?>* map13 = <dynamic, core::Null?>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:113:52: Error: Expected ':' after this.
+  core::Map<dynamic, Null>* map13 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/control_flow_collection_inference.dart:113:52: Error: Expected ':' after this.
   var map13 = {if (oracle(\"foo\")) \"bar\": 3.14 else 42};
                                                    ^": null};
   core::List<core::int*>* list20 = block {

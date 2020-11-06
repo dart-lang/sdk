@@ -20,13 +20,18 @@ void pub() {
   void _assertPubHelpInvoked(ProcessResult result) {
     expect(result, isNotNull);
     expect(result.exitCode, 0);
-    expect(result.stdout, contains('Pub is a package manager for Dart'));
-    expect(result.stdout, contains('Available commands:'));
+    expect(result.stdout, contains('Work with packages'));
+    expect(result.stdout, contains('Available subcommands:'));
     expect(result.stderr, isEmpty);
   }
 
   test('implicit --help', () {
-    _assertPubHelpInvoked(project().runSync('pub', []));
+    final result = project().runSync('pub', []);
+    expect(result, isNotNull);
+    expect(result.exitCode, 64);
+    expect(result.stderr, contains('Missing subcommand for "dart pub".'));
+    expect(result.stderr, contains('Available subcommands:'));
+    expect(result.stdout, isEmpty);
   });
 
   test('--help', () {
@@ -39,7 +44,7 @@ void pub() {
 
   test('help cache', () {
     p = project();
-    var result = p.runSync('pub', ['help', 'cache']);
+    var result = p.runSync('help', ['pub', 'cache']);
     var result2 = p.runSync('pub', ['cache', '--help']);
 
     expect(result.exitCode, 0);
@@ -53,7 +58,7 @@ void pub() {
 
   test('help publish', () {
     p = project();
-    var result = p.runSync('pub', ['help', 'publish']);
+    var result = p.runSync('help', ['pub', 'publish']);
     var result2 = p.runSync('pub', ['publish', '--help']);
 
     expect(result.exitCode, 0);

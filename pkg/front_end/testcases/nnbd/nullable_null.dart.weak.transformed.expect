@@ -7,7 +7,7 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class B extends self::A<core::Null?> {
+class B extends self::A<Null> {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
@@ -16,18 +16,18 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  method foo(core::Null? n, self::A<core::Null?> an) → core::Null?
+  method foo(Null n, self::A<Null> an) → Null
     return n;
 }
 static method foo() → dynamic {
-  return <core::List<self::A<core::Null?>?>>[<core::Null?>[], <self::A<core::Null?>>[]];
+  return <core::List<self::A<Null>?>>[<Null>[], <self::A<Null>>[]];
 }
 static method bar() → dynamic {
-  return <core::List<self::A<core::Null?>?>>[#C1, #C2];
+  return <core::List<self::A<Null>?>>[#C1, #C2];
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = <core::Null?>[]
-  #C2 = <self::A<core::Null?>*>[]
+  #C1 = <Null>[]
+  #C2 = <self::A<Null>*>[]
 }

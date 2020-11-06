@@ -276,6 +276,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         ir.DartType typeArgument = _readDartTypeNode(functionTypeVariables);
         return new ir.FutureOrType(typeArgument, nullability);
+      case DartTypeNodeKind.nullType:
+        return const ir.NullType();
     }
     throw new UnsupportedError("Unexpected DartTypeKind $kind");
   }

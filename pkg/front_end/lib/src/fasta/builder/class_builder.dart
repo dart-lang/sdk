@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Member,
         Name,
+        NullType,
         Nullability,
         Supertype,
         TypeParameter,
@@ -538,7 +539,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       Nullability nullability, List<DartType> arguments) {
     assert(arguments == null || cls.typeParameters.length == arguments.length);
     if (isNullClass) {
-      nullability = Nullability.nullable;
+      return const NullType();
     }
     if (name == "FutureOr") {
       LibraryBuilder parentLibrary = parent;
@@ -781,7 +782,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
       InterfaceType implementedInterface = hierarchy.getTypeAsInstanceOf(
-          supertype, requiredInterface.classNode, library.library, coreTypes);
+          supertype, requiredInterface.classNode, library.library);
       if (implementedInterface == null ||
           !typeEnvironment.areMutualSubtypes(
               implementedInterface,

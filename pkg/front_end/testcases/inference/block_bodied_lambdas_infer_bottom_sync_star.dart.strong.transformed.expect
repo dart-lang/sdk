@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  () →* core::Iterable<core::Null?>* f = () → core::Iterable<core::Null?>* /* originally sync* */ {
+  () →* core::Iterable<Null>* f = () → core::Iterable<Null>* /* originally sync* */ {
     function :sync_op_gen() → (core::_SyncIterator<dynamic>*, dynamic, dynamic) →* core::bool* {
       core::int* :await_jump_var = 0;
       dynamic :await_ctx_var;
@@ -18,7 +18,7 @@ static method main() → dynamic {
       }
       return :sync_op;
     }
-    return new core::_SyncIterable::•<core::Null?>(:sync_op_gen);
+    return new core::_SyncIterable::•<Null>(:sync_op_gen);
   };
   core::Iterable<dynamic>* y = f.call();
   core::Iterable<core::String*>* z = f.call();

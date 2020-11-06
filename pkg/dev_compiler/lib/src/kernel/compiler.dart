@@ -1070,7 +1070,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             c == _coreTypes.stringClass ||
             c == _coreTypes.functionClass ||
             c == _coreTypes.intClass ||
-            c == _coreTypes.nullClass ||
+            c == _coreTypes.deprecatedNullClass ||
             c == _coreTypes.numClass ||
             c == _coreTypes.doubleClass ||
             c == _coreTypes.boolClass)) {
@@ -2567,12 +2567,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitBottomType(BottomType type) =>
-      _emitType(_types.nullType);
+      _emitType(const NullType());
+
+  @override
+  js_ast.Expression visitNullType(NullType type) =>
+      _emitInterfaceType(_coreTypes.deprecatedNullType);
 
   @override
   js_ast.Expression visitNeverType(NeverType type) =>
       type.nullability == Nullability.nullable
-          ? visitInterfaceType(_coreTypes.nullType)
+          ? visitNullType(const NullType())
           : _emitNullabilityWrapper(runtimeCall('Never'), type.nullability);
 
   /// Normalizes `FutureOr` types and emits the normalized version.
@@ -2605,8 +2609,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // FutureOr<Never> --> Future<Never>
       return _emitInterfaceType(InterfaceType(
           _coreTypes.futureClass, futureOr.nullability, [typeArgument]));
-    } else if (typeArgument is InterfaceType &&
-        typeArgument.classNode == _coreTypes.nullClass) {
+    } else if (typeArgument is NullType) {
       // FutureOr<Null> --> Future<Null>?
       return _emitInterfaceType(InterfaceType(
           _coreTypes.futureClass, Nullability.nullable, [typeArgument]));
@@ -2690,7 +2693,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // * The types were written in JS context or as part of the dart:_runtime
     //   library.
     if (!emitNullability ||
-        type == _coreTypes.nullType ||
+        type == _coreTypes.deprecatedNullType ||
         // TODO(38701) Remove these once the SDK has unforked and is running
         // "opted-in"
         !coreLibrary.isNonNullableByDefault &&
@@ -5134,8 +5137,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           importUri.path == 'html_common');
 
   bool _isNull(Expression expr) =>
-      expr is NullLiteral ||
-      expr.getStaticType(_staticTypeContext) == _coreTypes.nullType;
+      expr is NullLiteral || expr.getStaticType(_staticTypeContext) is NullType;
 
   bool _doubleEqIsIdentity(Expression left, Expression right) {
     // If we statically know LHS or RHS is null we can use ==.

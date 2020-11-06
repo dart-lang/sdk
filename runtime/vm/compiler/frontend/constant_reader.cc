@@ -19,6 +19,19 @@ ConstantReader::ConstantReader(KernelReaderHelper* helper,
       script_(helper->script()),
       result_(Instance::Handle(zone_)) {}
 
+InstancePtr ConstantReader::ReadConstantInitializer() {
+  Tag tag = helper_->ReadTag();  // read tag.
+  switch (tag) {
+    case kSomething:
+      return ReadConstantExpression();
+    default:
+      H.ReportError(script_, TokenPosition::kNoSource,
+                    "Not a constant expression: unexpected kernel tag %s (%d)",
+                    Reader::TagName(tag), tag);
+  }
+  return result_.raw();
+}
+
 InstancePtr ConstantReader::ReadConstantExpression() {
   Tag tag = helper_->ReadTag();  // read tag.
   switch (tag) {

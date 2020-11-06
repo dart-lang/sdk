@@ -192,6 +192,8 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
       if (classDetails.name == "ConstructorScope") return true;
       if (classDetails.name == "ScopeBuilder") return true;
       if (classDetails.name == "ConstructorScopeBuilder") return true;
+      if (classDetails.name == "NullTypeDeclarationBuilder") return true;
+      if (classDetails.name == "NullabilityBuilder") return true;
 
       return false;
     } else if (uriString.startsWith("package:kernel/")) {

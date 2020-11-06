@@ -429,7 +429,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     Library library = libraryBuilder.library;
     final DartType bottomType = library.isNonNullableByDefault
         ? const NeverType(Nullability.nonNullable)
-        : typeEnvironment.nullType;
+        : const NullType();
 
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssues(

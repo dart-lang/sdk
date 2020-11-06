@@ -164,6 +164,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         -1);
   }
 
+  void addSyntheticDeclarationOfNull() {
+    // The name "Null" is declared by the class Null.
+  }
+
   void addClass(Class cls) {
     DillClassBuilder classBulder = new DillClassBuilder(cls, this);
     addBuilder(cls.name, classBulder, cls.fileOffset);

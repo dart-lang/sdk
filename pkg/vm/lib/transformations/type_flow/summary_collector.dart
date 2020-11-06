@@ -587,10 +587,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     assert(_genericInterfacesInfo != null);
     constantAllocationCollector = new ConstantAllocationCollector(this);
     _nullMethodsAndGetters.addAll(getSelectors(
-        _hierarchy, _environment.coreTypes.nullClass,
+        _hierarchy, _environment.coreTypes.deprecatedNullClass,
         setters: false));
     _nullSetters.addAll(getSelectors(
-        _hierarchy, _environment.coreTypes.nullClass,
+        _hierarchy, _environment.coreTypes.deprecatedNullClass,
         setters: true));
   }
 

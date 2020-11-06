@@ -21,6 +21,8 @@ dependencies:
     path: ../nnbd_migration
   path: ^1.0.0
   pedantic: ^1.9.0
+  pub:
+    path: ../../third_party/pkg/pub
   stagehand: 3.3.7
   telemetry:
     path: ../telemetry

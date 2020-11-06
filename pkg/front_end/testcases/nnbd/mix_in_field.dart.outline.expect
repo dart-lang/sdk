@@ -5,7 +5,7 @@ import "dart:core" as core;
 import "dart:async";
 
 class Mixin extends core::Object {
-  field FutureOr<core::Null?>m;
+  field FutureOr<Null>m;
   synthetic constructor •() → self::Mixin
     ;
 }

@@ -658,7 +658,7 @@ class TypeSchemaEnvironmentTest {
           [
             coreTypes.intNonNullableRawType,
             coreTypes.doubleNonNullableRawType,
-            coreTypes.nullType
+            const NullType()
           ],
           null,
           inferredTypes,

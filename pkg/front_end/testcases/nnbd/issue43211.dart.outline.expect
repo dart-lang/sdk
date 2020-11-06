@@ -112,10 +112,10 @@ class D<X extends core::num = core::num> extends core::Object {
   synthetic constructor •() → self::D<self::D::X>
     ;
 }
-class B<X extends self::A<core::Null?>? = self::A<core::Null?>?> extends core::Object implements self::A<self::B::X%> {
+class B<X extends self::A<Null>? = self::A<Null>?> extends core::Object implements self::A<self::B::X%> {
   synthetic constructor •() → self::B<self::B::X%>
     ;
-  method method1<Y extends self::A<core::Null?>? = self::A<core::Null?>?>(self::A<self::B::method1::Y%> a, self::A<self::A<core::Null?>>? b) → void
+  method method1<Y extends self::A<Null>? = self::A<Null>?>(self::A<self::B::method1::Y%> a, self::A<self::A<Null>>? b) → void
     ;
   method method2<Y extends core::String = core::String>(self::D<self::B::method2::Y> a, self::D<core::String>? b) → void
     ;
@@ -124,9 +124,9 @@ class C extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::C::redirect]/*isNullableByDefault*/;
   constructor internal(dynamic _) → self::C
     ;
-  static factory redirect(self::A<self::A<core::Null?>>? a) → self::C
+  static factory redirect(self::A<self::A<Null>>? a) → self::C
     let dynamic #redirecting_factory = self::C::internal in invalid-expression;
-  static factory fact(self::A<self::A<core::Null?>>? a) → self::C
+  static factory fact(self::A<self::A<Null>>? a) → self::C
     ;
 }
 extension Extension1<X extends self::A<X%>? = self::A<dynamic>?> on self::A<X%> {
@@ -135,12 +135,12 @@ extension Extension1<X extends self::A<X%>? = self::A<dynamic>?> on self::A<X%> 
   method method2 = self::Extension1|method2;
   tearoff method2 = self::Extension1|get#method2;
 }
-extension ext2<X extends self::A<core::Null?>? = self::A<core::Null?>?> on self::A<X%> {
+extension ext2<X extends self::A<Null>? = self::A<Null>?> on self::A<X%> {
 }
-static method Extension1|method1<X extends self::A<self::Extension1|method1::X%>? = self::A<dynamic>?, Y extends self::A<self::Extension1|method1::Y%>? = self::A<dynamic>?>(final self::A<self::Extension1|method1::X%> #this, self::A<self::Extension1|method1::Y%> a, self::A<self::A<core::Null?>>? b) → void
+static method Extension1|method1<X extends self::A<self::Extension1|method1::X%>? = self::A<dynamic>?, Y extends self::A<self::Extension1|method1::Y%>? = self::A<dynamic>?>(final self::A<self::Extension1|method1::X%> #this, self::A<self::Extension1|method1::Y%> a, self::A<self::A<Null>>? b) → void
   ;
-static method Extension1|get#method1<X extends self::A<self::Extension1|get#method1::X%>? = self::A<dynamic>?>(final self::A<self::Extension1|get#method1::X%> #this) → <Y extends self::A<Y%>? = self::A<dynamic>?>(self::A<Y%>, self::A<self::A<core::Null?>>?) → void
-  return <Y extends self::A<Y%>? = self::A<dynamic>?>(self::A<Y%> a, self::A<self::A<core::Null?>>? b) → void => self::Extension1|method1<self::Extension1|get#method1::X%, Y%>(#this, a, b);
+static method Extension1|get#method1<X extends self::A<self::Extension1|get#method1::X%>? = self::A<dynamic>?>(final self::A<self::Extension1|get#method1::X%> #this) → <Y extends self::A<Y%>? = self::A<dynamic>?>(self::A<Y%>, self::A<self::A<Null>>?) → void
+  return <Y extends self::A<Y%>? = self::A<dynamic>?>(self::A<Y%> a, self::A<self::A<Null>>? b) → void => self::Extension1|method1<self::Extension1|get#method1::X%, Y%>(#this, a, b);
 static method Extension1|method2<X extends self::A<self::Extension1|method2::X%>? = self::A<dynamic>?, Y extends core::String = core::String>(final self::A<self::Extension1|method2::X%> #this, self::D<self::Extension1|method2::Y> a, self::D<core::String>? b) → void
   ;
 static method Extension1|get#method2<X extends self::A<self::Extension1|get#method2::X%>? = self::A<dynamic>?>(final self::A<self::Extension1|get#method2::X%> #this) → <Y extends core::String = core::String>(self::D<Y>, self::D<core::String>?) → void

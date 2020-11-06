@@ -141,6 +141,12 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     if (receiverType is ir.InterfaceType) {
       return new StrongModeConstraint(commonElements, _nativeBasicData,
           elementMap.getClass(receiverType.classNode), relation);
+    } else if (receiverType is ir.NullType) {
+      return new StrongModeConstraint(
+          commonElements,
+          _nativeBasicData,
+          elementMap.getClass(typeEnvironment.coreTypes.deprecatedNullClass),
+          relation);
     }
     return null;
   }

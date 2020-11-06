@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class D<X extends (self::D::X*, self::D::Y*) →* void = (core::Null?, core::Null?) →* void, Y extends (self::D::X*, self::D::Y*) →* void = (core::Null?, core::Null?) →* void> extends core::Object {
+class D<X extends (self::D::X*, self::D::Y*) →* void = (Null, Null) →* void, Y extends (self::D::X*, self::D::Y*) →* void = (Null, Null) →* void> extends core::Object {
   synthetic constructor •() → self::D<self::D::X*, self::D::Y*>*
     : super core::Object::•()
     ;
@@ -17,7 +17,7 @@ class D<X extends (self::D::X*, self::D::Y*) →* void = (core::Null?, core::Nul
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class E<X extends (self::E::X*) →* void = (core::Null?) →* void> extends core::Object {
+class E<X extends (self::E::X*) →* void = (Null) →* void> extends core::Object {
   synthetic constructor •() → self::E<self::E::X*>*
     : super core::Object::•()
     ;
@@ -32,8 +32,8 @@ class E<X extends (self::E::X*) →* void = (core::Null?) →* void> extends cor
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field core::List<self::D<(core::Null?, core::Null?) →* void, (core::Null?, core::Null?) →* void>*>* ld = <self::D<(core::Null?, core::Null?) →* void, (core::Null?, core::Null?) →* void>*>[];
-static field core::Map<self::D<(core::Null?, core::Null?) →* void, (core::Null?, core::Null?) →* void>*, self::D<(core::Null?, core::Null?) →* void, (core::Null?, core::Null?) →* void>*>* md = <self::D<(core::Null?, core::Null?) →* void, (core::Null?, core::Null?) →* void>*, self::D<(core::Null?, core::Null?) →* void, (core::Null?, core::Null?) →* void>*>{};
-static field core::List<self::E<(core::Null?) →* void>*>* le = <self::E<(core::Null?) →* void>*>[];
-static field core::Map<self::E<(core::Null?) →* void>*, self::E<(core::Null?) →* void>*>* me = <self::E<(core::Null?) →* void>*, self::E<(core::Null?) →* void>*>{};
+static field core::List<self::D<(Null, Null) →* void, (Null, Null) →* void>*>* ld = <self::D<(Null, Null) →* void, (Null, Null) →* void>*>[];
+static field core::Map<self::D<(Null, Null) →* void, (Null, Null) →* void>*, self::D<(Null, Null) →* void, (Null, Null) →* void>*>* md = <self::D<(Null, Null) →* void, (Null, Null) →* void>*, self::D<(Null, Null) →* void, (Null, Null) →* void>*>{};
+static field core::List<self::E<(Null) →* void>*>* le = <self::E<(Null) →* void>*>[];
+static field core::Map<self::E<(Null) →* void>*, self::E<(Null) →* void>*>* me = <self::E<(Null) →* void>*, self::E<(Null) →* void>*>{};
 static method main() → dynamic {}

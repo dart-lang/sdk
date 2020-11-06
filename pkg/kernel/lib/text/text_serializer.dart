@@ -822,6 +822,7 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitNeverType(NeverType _) => "never";
   String visitTypedefType(TypedefType _) => "typedef";
   String visitFutureOrType(FutureOrType _) => "futureor";
+  String visitNullType(NullType _) => "null-type";
 }
 
 const TextSerializer<InvalidType> invalidTypeSerializer =
@@ -960,6 +961,13 @@ DartType unwrapFutureOrType(FutureOrType node) {
 FutureOrType wrapFutureOrType(DartType typeArgument) {
   return new FutureOrType(typeArgument, Nullability.legacy);
 }
+
+TextSerializer<NullType> nullTypeSerializer =
+    new Wrapped(unwrapNullType, wrapNullType, const Nothing());
+
+void unwrapNullType(NullType type) {}
+
+NullType wrapNullType(void ignored) => const NullType();
 
 Case<DartType> dartTypeSerializer =
     new Case.uninitialized(const DartTypeTagger());
@@ -2065,6 +2073,7 @@ void initializeSerializers() {
     "never": neverTypeSerializer,
     "typedef": typedefTypeSerializer,
     "futureor": futureOrTypeSerializer,
+    "null-type": nullTypeSerializer,
   });
   statementSerializer.registerTags({
     "expr": expressionStatementSerializer,
