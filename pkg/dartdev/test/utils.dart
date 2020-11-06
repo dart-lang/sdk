@@ -42,7 +42,14 @@ class TestProject {
     this.logAnalytics = false,
   }) {
     dir = Directory.systemTemp.createTempSync('dartdev');
-    file('pubspec.yaml', 'name: $name\ndev_dependencies:\n  test: any\n');
+    file('pubspec.yaml', '''
+name: $name
+environment:
+  sdk: '>=2.10.0 <3.0.0'
+
+dev_dependencies:
+  test: any
+''');
     if (analysisOptions != null) {
       file('analysis_options.yaml', analysisOptions);
     }

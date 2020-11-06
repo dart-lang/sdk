@@ -85,15 +85,31 @@ Updated the Linter to `0.1.123`, which includes:
 
 #### Pub
 
+* **Breaking**: The Dart SDK constraint is now **required** in `pubspec.yaml`.
+
+  You now have to include a section like:
+
+  ```yaml
+  environment:
+    sdk: '>=2.10.0 <3.0.0'
+  ```
+
+  See [#44072][].
 * The top level `pub` executable has been deprecated. Use `dart pub` instead.
-* New commands `dart pub add` and `dart pub remove` that adds and removes new
-  dependencies to your `pubspec.yaml`.
-* New option `dart pub outdated mode=null-safety` that will analyze your
+  See [dart tool][].
+* New command `dart pub add` that adds  new dependencies to your `pubspec.yaml`.
+  
+  And a corresponding `dart pub remove` that removes dependencies.
+* New option `dart pub outdated --mode=null-safety` that will analyze your
   dependencies for null-safety.
 * `dart pub publish` will now check your pubspec keys for likely typos.
-* `dart pub get` will print a warning if the resolution is in mixed-mode requiring
-  the code to run with `dart --no-sound-null-safety`.
 * New command `dart pub login` that logs in to pub.dev.
+* The `--server` option to `dart pub publish` and `dart pub uploader` have been
+  deprecated. Use `publish_to` in your `pubspec.yaml` or set the 
+  `$PUB_HOSTED_URL` environment variable.
+
+[#44072]: https://github.com/dart-lang/sdk/issues/44072
+[dart tool]: https://dart.dev/tools/dart-tool
 
 ## 2.10.3 - 2020-10-29
 

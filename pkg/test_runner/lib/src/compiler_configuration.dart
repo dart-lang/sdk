@@ -1085,8 +1085,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
-  static final noCausalAsyncStacksRegExp =
-      RegExp('--no[_-]causal[_-]async[_-]stacks');
+  static final causalAsyncStacksRegExp = RegExp('--causal[_-]async[_-]stacks');
 
   TestConfiguration get _configuration;
 
@@ -1117,7 +1116,7 @@ abstract class VMKernelCompilerMixin {
 
     var isProductMode = _configuration.configuration.mode == Mode.product;
 
-    var causalAsyncStacks = !arguments.any(noCausalAsyncStacksRegExp.hasMatch);
+    var causalAsyncStacks = arguments.any(causalAsyncStacksRegExp.hasMatch);
 
     var args = [
       _isAot ? '--aot' : '--no-aot',

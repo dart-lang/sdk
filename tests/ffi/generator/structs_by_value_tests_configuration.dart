@@ -189,6 +189,58 @@ The double will be backfilled into the xmm register."""),
 On various architectures, first struct is allocated on stack.
 Check that the other two arguments are allocated on registers."""),
   FunctionType(
+      [
+        // Exhaust integer registers on all architectures
+        int32,
+        int32,
+        int32,
+        int32,
+        int32,
+        int32,
+        int32,
+        int32,
+        // Exhaust floating point registers on all architectures.
+        double_,
+        double_,
+        double_,
+        double_,
+        double_,
+        double_,
+        double_,
+        double_,
+        // Pass all kinds of structs to exercise stack placement behavior.
+        //
+        // For all structs, align stack with int64, then align to 1-byte with
+        // int8, then pass struct.
+        int64,
+        int8,
+        struct1byteInt,
+        int64,
+        int8,
+        struct4bytesInt,
+        int64,
+        int8,
+        struct8bytesInt,
+        int64,
+        int8,
+        struct8bytesFloat,
+        int64,
+        int8,
+        struct8BytesMixed,
+        int64,
+        int8,
+        structAlignmentInt16,
+        int64,
+        int8,
+        structAlignmentInt32,
+        int64,
+        int8,
+        structAlignmentInt64,
+      ],
+      double_,
+      """
+Test alignment and padding of 16 byte int within struct."""),
+  FunctionType(
       [structAlignmentInt16],
       int64,
       """

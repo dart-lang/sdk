@@ -151,7 +151,7 @@ mixin ElementsTypesMixin {
 
   LibraryElementImpl get testLibrary => null;
 
-  TypeProvider get typeProvider;
+  TypeProvider /*!*/ get typeProvider;
 
   VoidTypeImpl get voidNone => VoidTypeImpl.instance;
 
