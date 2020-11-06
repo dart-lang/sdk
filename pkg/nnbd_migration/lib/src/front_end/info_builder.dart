@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
@@ -22,11 +23,15 @@ import 'package:nnbd_migration/src/front_end/driver_provider_impl.dart';
 import 'package:nnbd_migration/src/front_end/instrumentation_information.dart';
 import 'package:nnbd_migration/src/front_end/migration_info.dart';
 import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
+import 'package:nnbd_migration/src/utilities/progress_bar.dart';
 
 /// A builder used to build the migration information for a library.
 class InfoBuilder {
   /// The node mapper for the migration state.
   NodeMapper nodeMapper;
+
+  /// The logger to use for showing progress when explaining the migration.
+  final Logger _logger;
 
   /// The resource provider used to access the file system.
   ResourceProvider provider;
@@ -49,7 +54,7 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      this.migration, this.nodeMapper);
+      this.migration, this.nodeMapper, this._logger);
 
   /// The provider used to get information about libraries.
   DriverProviderImpl get driverProvider => listener.server;
@@ -60,7 +65,10 @@ class InfoBuilder {
     var sourceInfoMap = info.sourceInformation;
     Set<UnitInfo> units =
         SplayTreeSet<UnitInfo>((u1, u2) => u1.path.compareTo(u2.path));
+    var progressBar = ProgressBar(_logger, sourceInfoMap.length);
+
     for (var source in sourceInfoMap.keys) {
+      progressBar.tick();
       var filePath = source.fullName;
       var session = driverProvider.getAnalysisSession(filePath);
       if (!session.getFile(filePath).isPart) {
@@ -86,6 +94,7 @@ class InfoBuilder {
         }
       }
     }
+    progressBar.complete();
     return units;
   }
 

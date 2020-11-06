@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -63,6 +64,13 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// parameter into their "OrNull" equivalents if possible.
   final bool transformWhereOrNull;
 
+  /// Map from [Source] object to a boolean indicating whether the source is
+  /// opted in to null safety.
+  final Map<Source, bool> _libraryOptInStatus = {};
+
+  /// Indicates whether the client has used the [unmigratedDependencies] getter.
+  bool _queriedUnmigratedDependencies = false;
+
   /// Prepares to perform nullability migration.
   ///
   /// If [permissive] is `true`, exception handling logic will try to proceed
@@ -113,6 +121,23 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @override
   bool get isPermissive => _permissive;
+
+  @override
+  List<String> get unmigratedDependencies {
+    _queriedUnmigratedDependencies = true;
+    var unmigratedDependencies = <Source>[];
+    for (var entry in _libraryOptInStatus.entries) {
+      if (_graph.isBeingMigrated(entry.key)) continue;
+      if (!entry.value) {
+        unmigratedDependencies.add(entry.key);
+      }
+    }
+    var badUris = {
+      for (var dependency in unmigratedDependencies) dependency.uri.toString()
+    }.toList();
+    badUris.sort();
+    return badUris;
+  }
 
   @override
   void finalizeInput(ResolvedUnitResult result) {
@@ -183,11 +208,16 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void prepareInput(ResolvedUnitResult result) {
+    assert(
+        !_queriedUnmigratedDependencies,
+        'Should only query unmigratedDependencies after all calls to '
+        'prepareInput');
     if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
     ExperimentStatusException.sanityCheck(result);
+    _recordTransitiveImportOptInStatus(result.libraryElement.importedLibraries);
     if (_variables == null) {
       _variables = Variables(_graph, result.typeProvider, _getLineInfo,
           instrumentation: _instrumentation,
@@ -237,6 +267,18 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   @override
   void update() {
     _graph.update(_postmortemFileWriter);
+  }
+
+  /// Records the opt in/out status of all libraries in [libraries], and any
+  /// libraries they transitively import, in [_libraryOptInStatus].
+  void _recordTransitiveImportOptInStatus(Iterable<LibraryElement> libraries) {
+    var librariesToCheck = libraries.toList();
+    while (librariesToCheck.isNotEmpty) {
+      var library = librariesToCheck.removeLast();
+      if (_libraryOptInStatus.containsKey(library.source)) continue;
+      _libraryOptInStatus[library.source] = library.isNonNullableByDefault;
+      librariesToCheck.addAll(library.importedLibraries);
+    }
   }
 
   static Location _computeLocation(

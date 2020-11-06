@@ -151,6 +151,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
     source = result.unit.declaredElement.source;
     findNode = FindNode(content, result.unit);
     migration.prepareInput(result);
+    expect(migration.unmigratedDependencies, isEmpty);
     migration.processInput(result);
     migration.finalizeInput(result);
     migration.finish();

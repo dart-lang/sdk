@@ -18,6 +18,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
+import '../utilities/test_logger.dart';
 
 @reflectiveTest
 class NnbdMigrationTestBase extends AbstractAnalysisTest {
@@ -218,13 +219,15 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     }
 
     await _forEachPath(migration.prepareInput);
+    expect(migration.unmigratedDependencies, isEmpty);
     await _forEachPath(migration.processInput);
     await _forEachPath(migration.finalizeInput);
     migration.finish();
     // Build the migration info.
     var info = instrumentationListener.data;
-    var builder = InfoBuilder(
-        resourceProvider, includedRoot, info, listener, migration, nodeMapper);
+    var logger = TestLogger(false);
+    var builder = InfoBuilder(resourceProvider, includedRoot, info, listener,
+        migration, nodeMapper, logger);
     infos = await builder.explainMigration();
   }
 

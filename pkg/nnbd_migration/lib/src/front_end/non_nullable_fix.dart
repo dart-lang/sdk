@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/charcodes.dart';
@@ -35,6 +36,8 @@ class NonNullableFix {
   /// passing to HttpServer.bind, i.e. either a [String] or an
   /// [InternetAddress].
   final Object bindAddress;
+
+  final Logger _logger;
 
   final int preferredPort;
 
@@ -76,8 +79,8 @@ class NonNullableFix {
   /// A list of the URLs corresponding to the included roots.
   List<String> previewUrls;
 
-  NonNullableFix(
-      this.listener, this.resourceProvider, this._getLineInfo, this.bindAddress,
+  NonNullableFix(this.listener, this.resourceProvider, this._getLineInfo,
+      this.bindAddress, this._logger,
       {List<String> included = const [],
       this.preferredPort,
       this.summaryPath,
@@ -113,7 +116,7 @@ class NonNullableFix {
     migration.finish();
     final state = MigrationState(
         migration, includedRoot, listener, instrumentationListener);
-    await state.refresh();
+    await state.refresh(_logger);
     return state;
   }
 
@@ -167,7 +170,7 @@ class NonNullableFix {
   Future<MigrationState> rerun() async {
     reset();
     var state = await rerunFunction();
-    await state.refresh();
+    await state.refresh(_logger);
     return state;
   }
 

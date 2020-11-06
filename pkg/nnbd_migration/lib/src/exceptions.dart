@@ -13,6 +13,10 @@ class ExperimentStatusException extends StateError {
   /// The SDK does not contain the NNBD sources, it is the pre-unfork copy.
   ExperimentStatusException.sdkPreforkSources() : super(sdkNnbdOff);
 
+  /// The user's code imports unmigrated dependencies.
+  ExperimentStatusException.unmigratedDependencies(List<String> uris)
+      : super(unmigratedDependenciesError(uris));
+
   /// Throw an [ExperimentStatusException] if the [result] seems to have
   /// incorrectly configured experiment flags/nnbd sources.
   static void sanityCheck(ResolvedUnitResult result) {

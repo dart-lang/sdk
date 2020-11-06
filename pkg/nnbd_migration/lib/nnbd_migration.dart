@@ -334,6 +334,11 @@ abstract class NullabilityMigration {
 
   void finish();
 
+  /// Use this getter after any calls to [prepareInput] to obtain a list of URIs
+  /// of unmigrated dependencies.  Ideally, this list should be empty before the
+  /// user tries to migrate their package.
+  List<String> get unmigratedDependencies;
+
   void prepareInput(ResolvedUnitResult result);
 
   void processInput(ResolvedUnitResult result);

@@ -148,6 +148,30 @@ A f() => A();
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44080')
+  Future<void> test_unnecessaryNew_collectionLiteral_overlap() async {
+    addAnalysisOptionsFile('''
+linter:
+  rules:
+    - prefer_collection_literals
+    - unnecessary_new
+''');
+
+    addTestFile('''
+class A {
+  Map<String, Object> _map = {};
+  Set<String> _set = new Set<String>();
+}
+''');
+
+    await assertEditEquals('''
+class A {
+  Map<String, Object> _map = {};
+  Set<String> _set = <String>{};
+}
+''');
+  }
+
   Future<void> test_unnecessaryNew_ignoredInOptions() async {
     addAnalysisOptionsFile('''
 analyzer:
