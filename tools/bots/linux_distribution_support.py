@@ -12,6 +12,7 @@ Archive tarball and debian package to google cloud storage.
 
 import os
 import re
+import subprocess
 import sys
 
 import bot_utils
