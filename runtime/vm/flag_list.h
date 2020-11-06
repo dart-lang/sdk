@@ -55,8 +55,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
 #define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
-  P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
-  P(lazy_async_stacks, bool, false, "Reconstruct async stacks from listeners") \
+  P(causal_async_stacks, bool, false, "Improved async stacks")                 \
+  P(lazy_async_stacks, bool, true, "Reconstruct async stacks from listeners")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
   R(dedup_instructions, true, bool, false,                                     \
