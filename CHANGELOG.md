@@ -1,3 +1,8 @@
+# 0.1.124
+
+* fixed false positives in `prefer_constructors_over_static_methods`
+* updated `package_names` to allow leading underscores
+
 # 0.1.123
 
 * fixed NPEs in `unnecessary_null_checks`
