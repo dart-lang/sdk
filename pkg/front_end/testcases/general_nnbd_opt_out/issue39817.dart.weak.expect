@@ -1,9 +1,8 @@
 library;
 import self as self;
-import "dart:core" as core;
 
 static method foo() → dynamic {
-  core::Null? _null;
+  Null _null;
   for (dynamic i in _null) {
   }
   ;

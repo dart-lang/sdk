@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart'
         Member,
         NamedType,
         NeverType,
+        NullType,
         Nullability,
         Statement,
         TreeNode,
@@ -270,7 +271,7 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
     } else if (isSubtypeOf(
         type, typeEnvironment.coreTypes.objectNonNullableRawType)) {
       return TypeClassification.nonNullable;
-    } else if (isSubtypeOf(type, typeEnvironment.coreTypes.nullType)) {
+    } else if (isSubtypeOf(type, const NullType())) {
       return TypeClassification.nullOrEquivalent;
     } else {
       return TypeClassification.potentiallyNullable;
@@ -308,7 +309,7 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
             type.parameter, type.declaredNullability, bound);
       }
       return type;
-    } else if (type == typeEnvironment.nullType) {
+    } else if (type is NullType) {
       return const NeverType(Nullability.nonNullable);
     }
     return type.withDeclaredNullability(Nullability.nonNullable);

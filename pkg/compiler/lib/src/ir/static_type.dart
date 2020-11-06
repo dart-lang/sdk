@@ -195,7 +195,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
-    return type is ir.InterfaceType ? type : null;
+    if (type is ir.InterfaceType) {
+      return type;
+    } else if (type is ir.NullType) {
+      return typeEnvironment.coreTypes.deprecatedNullType;
+    }
+    return null;
   }
 
   /// Returns the static type of the expression as an instantiation of
@@ -222,7 +227,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
-    if (type == typeEnvironment.nullType) {
+    if (type is ir.NullType) {
       return typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, currentLibrary.nullable);
     }
@@ -711,7 +716,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType promotedType = typeMap.typeOf(node, typeEnvironment);
     assert(
         node.promotedType == null ||
-            promotedType == typeEnvironment.nullType ||
+            promotedType is ir.NullType ||
             promotedType is ir.FutureOrType ||
             typeEnvironment.isSubtypeOf(promotedType, node.promotedType,
                 ir.SubtypeCheckMode.ignoringNullabilities),
@@ -1003,7 +1008,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitNullCheck(ir.NullCheck node) {
     ir.DartType operandType = visitNode(node.operand);
     handleNullCheck(node, operandType);
-    ir.DartType resultType = operandType == typeEnvironment.nullType
+    ir.DartType resultType = operandType is ir.NullType
         ? const ir.NeverType(ir.Nullability.nonNullable)
         : operandType.withDeclaredNullability(ir.Nullability.nonNullable);
     _staticTypeCache._expressionTypes[node] = resultType;
@@ -1502,13 +1507,13 @@ class TypeHolder {
       for (ir.DartType type in falseTypes) {
         if (typeEnvironment.isSubtypeOf(
             declaredType, type, ir.SubtypeCheckMode.ignoringNullabilities)) {
-          return typeEnvironment.nullType;
+          return const ir.NullType();
         }
       }
     }
     if (trueTypes != null) {
       for (ir.DartType type in trueTypes) {
-        if (type == typeEnvironment.nullType) {
+        if (type is ir.NullType) {
           return type;
         }
         if (typeEnvironment.isSubtypeOf(
@@ -1770,9 +1775,9 @@ class TargetInfo {
       if (candidate == null) {
         candidate = type;
       } else {
-        if (type == typeEnvironment.nullType) {
+        if (type is ir.NullType) {
           // Keep the current candidate.
-        } else if (candidate == typeEnvironment.nullType) {
+        } else if (candidate is ir.NullType) {
           candidate = type;
         } else if (typeEnvironment.isSubtypeOf(
             candidate, type, ir.SubtypeCheckMode.ignoringNullabilities)) {

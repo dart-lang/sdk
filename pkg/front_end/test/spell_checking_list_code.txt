@@ -1213,6 +1213,7 @@ unifiable
 unification
 unifier
 unify
+uninstantiable
 unions
 uniqueness
 unittest

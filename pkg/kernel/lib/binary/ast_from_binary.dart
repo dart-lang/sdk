@@ -2119,7 +2119,7 @@ class BinaryBuilder {
   }
 
   Supertype readSupertype() {
-    InterfaceType type = readDartType();
+    InterfaceType type = readDartType(forSupertype: true);
     assert(
         type.nullability == _currentLibrary.nonNullable,
         "In serialized form supertypes should have Nullability.legacy if they "
@@ -2174,7 +2174,7 @@ class BinaryBuilder {
     return readAndCheckOptionTag() ? readDartType() : null;
   }
 
-  DartType readDartType() {
+  DartType readDartType({bool forSupertype: false}) {
     int tag = readByte();
     switch (tag) {
       case Tag.TypedefType:
@@ -2211,7 +2211,18 @@ class BinaryBuilder {
             reference, Nullability.values[nullabilityIndex], typeArguments);
       case Tag.SimpleInterfaceType:
         int nullabilityIndex = readByte();
-        return new InterfaceType.byReference(readClassReference(),
+        Reference classReference = readClassReference();
+        {
+          CanonicalName canonicalName = classReference.canonicalName;
+          if (canonicalName != null &&
+              !forSupertype &&
+              canonicalName.name == "Null" &&
+              canonicalName.parent?.name == "dart:core" &&
+              (canonicalName.parent?.parent?.isRoot ?? false)) {
+            return const NullType();
+          }
+        }
+        return new InterfaceType.byReference(classReference,
             Nullability.values[nullabilityIndex], const <DartType>[]);
       case Tag.FunctionType:
         int typeParameterStackHeight = typeParameterStack.length;
@@ -2455,9 +2466,9 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  DartType readDartType() {
+  DartType readDartType({bool forSupertype = false}) {
     final nodeOffset = _byteOffset;
-    final result = super.readDartType();
+    final result = super.readDartType(forSupertype: forSupertype);
     return _associateMetadata(result, nodeOffset);
   }
 

@@ -222,6 +222,9 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   bool visitNeverType(ir.NeverType node) => false;
 
   @override
+  bool visitNullType(ir.NullType node) => false;
+
+  @override
   bool visitVoidType(ir.VoidType node) => false;
 
   @override

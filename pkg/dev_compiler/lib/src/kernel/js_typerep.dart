@@ -39,10 +39,10 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
 
     // Note that this should be changed if Dart gets non-nullable types
     if (type == const BottomType()) return JSType.jsNull;
+    if (type == const NullType()) return JSType.jsNull;
 
     if (type is InterfaceType) {
       var c = type.classNode;
-      if (c == coreTypes.nullClass) return JSType.jsNull;
       if (c == coreTypes.numClass ||
           c == coreTypes.intClass ||
           c == coreTypes.doubleClass ||

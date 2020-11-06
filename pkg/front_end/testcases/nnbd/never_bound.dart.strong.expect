@@ -37,7 +37,7 @@ class GenericNever<T extends Never = Never> extends core::Object {
     return self::GenericNever::T;
 }
 static method errors() → dynamic {
-  new self::GenericNever::•<core::Null?>();
+  new self::GenericNever::•<Null>();
   new self::GenericNever::•<void>();
   new self::GenericNever::•<core::int>();
 }

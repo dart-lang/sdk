@@ -529,7 +529,8 @@ class _DispatchableInvocation extends _Invocation {
   // TODO(alexmarkov): Consider caching targets for Null type.
   void _collectTargetsForNull(Map<Member, _ReceiverTypeBuilder> targets,
       TypeFlowAnalysis typeFlowAnalysis) {
-    Class nullClass = typeFlowAnalysis.environment.coreTypes.nullClass;
+    Class nullClass =
+        typeFlowAnalysis.environment.coreTypes.deprecatedNullClass;
 
     Member target = typeFlowAnalysis.hierarchyCache.hierarchy
         .getDispatchTarget(nullClass, selector.name, setter: selector.isSetter);

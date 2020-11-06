@@ -434,6 +434,7 @@ checker
 checking
 checkpoints
 checks
+chian
 child
 children
 choice
@@ -863,6 +864,7 @@ directory
 disable
 disabled
 disabling
+disallowed
 disambiguate
 disambiguated
 disappear
@@ -2913,6 +2915,7 @@ supposed
 suppress
 suppressed
 sure
+surface
 surrogate
 surrogates
 surrounding

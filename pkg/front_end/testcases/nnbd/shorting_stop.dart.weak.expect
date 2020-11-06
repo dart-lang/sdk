@@ -82,7 +82,7 @@ Try accessing using ?. instead.
                        ^" in (let final self::Class? #t26 = c in #t26.{core::Object::==}(null) ?{core::int?} null : #t26{self::Class}.{self::Class::next}.{self::Class::[]}(0)).{core::int::unary-}());
 }
 static method _inStrongMode() → core::bool {
-  (core::String?) → core::Null? f = (core::String? s) → core::Null? {
+  (core::String?) → Null f = (core::String? s) → Null {
     let final<BottomType> #t27 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:36:7: Error: Property 'length' cannot be accessed on 'String?' because it is potentially null.
 Try accessing using ?. instead.
     s.length; // This will be an invalid expression in strong mode.

@@ -417,7 +417,7 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   field core::int property = 0;
-  field core::Function functionField = () → core::Null? {};
+  field core::Function functionField = () → Null {};
   field () → void functionTypeField = () → void {};
   synthetic constructor •() → self::Class
     : super core::Object::•()
@@ -425,7 +425,7 @@ class Class extends core::Object {
   method method() → core::int
     return 0;
   get functionGetter() → core::Function
-    return () → core::Null? {};
+    return () → Null {};
   get functionTypeGetter() → () → void
     return () → void {};
 }
@@ -636,11 +636,11 @@ static method Extension|extensionMethod(final self::Class #this) → core::int
 static method Extension|get#extensionMethod(final self::Class #this) → () → core::int
   return () → core::int => self::Extension|extensionMethod(#this);
 static method Extension|get#extensionFunctionGetter(final self::Class #this) → core::Function
-  return () → core::Null? {};
+  return () → Null {};
 static method Extension|get#extensionFunctionTypeGetter(final self::Class #this) → () → void
   return () → void {};
 static get nullableFunction() → core::Function?
-  return () → core::Null? {};
+  return () → Null {};
 static get nullableFunctionType() → () →? void
   return () → void {};
 static get nullableInt() → core::int?

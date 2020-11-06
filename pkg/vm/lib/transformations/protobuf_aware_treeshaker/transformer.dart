@@ -243,9 +243,7 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
               NullLiteral(), // valueOf
               NullLiteral(), // enumValues
             ],
-            types: <DartType>[
-              InterfaceType(coreTypes.nullClass, Nullability.nullable)
-            ],
+            types: <DartType>[const NullType()],
           ),
         );
       }

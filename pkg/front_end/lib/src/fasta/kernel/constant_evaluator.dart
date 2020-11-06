@@ -824,7 +824,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       coreTypes.internalSymbolClass: true,
       coreTypes.listClass: true,
       coreTypes.mapClass: true,
-      coreTypes.nullClass: true,
       coreTypes.objectClass: true,
       coreTypes.setClass: true,
       coreTypes.stringClass: true,
@@ -2426,13 +2425,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         if (constant is NullConstant) {
           if (type.nullability == Nullability.legacy) {
             // `null is Null` is handled below.
-            return typeEnvironment.isSubtypeOf(type, typeEnvironment.nullType,
+            return typeEnvironment.isSubtypeOf(type, const NullType(),
                     SubtypeCheckMode.ignoringNullabilities) ||
                 typeEnvironment.isSubtypeOf(typeEnvironment.objectLegacyRawType,
                     type, SubtypeCheckMode.ignoringNullabilities);
           } else {
-            return typeEnvironment.isSubtypeOf(typeEnvironment.nullType, type,
-                SubtypeCheckMode.withNullabilities);
+            return typeEnvironment.isSubtypeOf(
+                const NullType(), type, SubtypeCheckMode.withNullabilities);
           }
         }
         return isSubtype(
@@ -3116,6 +3115,9 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
 
   @override
   bool visitBottomType(BottomType node) => true;
+
+  @override
+  bool visitNullType(NullType node) => true;
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {

@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class D<X extends (self::D::X*, self::D::Y*) →* void = (core::Null?, core::Null?) →* void, Y extends (self::D::X*, self::D::Y*) →* void = (core::Null?, core::Null?) →* void> extends core::Object {
+class D<X extends (self::D::X*, self::D::Y*) →* void = (Null, Null) →* void, Y extends (self::D::X*, self::D::Y*) →* void = (Null, Null) →* void> extends core::Object {
   synthetic constructor •() → self::D<self::D::X*, self::D::Y*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -16,7 +16,7 @@ class D<X extends (self::D::X*, self::D::Y*) →* void = (core::Null?, core::Nul
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class E<X extends (self::E::X*) →* void = (core::Null?) →* void> extends core::Object {
+class E<X extends (self::E::X*) →* void = (Null) →* void> extends core::Object {
   synthetic constructor •() → self::E<self::E::X*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -30,7 +30,7 @@ class E<X extends (self::E::X*) →* void = (core::Null?) →* void> extends cor
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field self::D<(core::Null?, core::Null?) →* void, (core::Null?, core::Null?) →* void>* d;
-static field self::E<(core::Null?) →* void>* e;
+static field self::D<(Null, Null) →* void, (Null, Null) →* void>* d;
+static field self::E<(Null) →* void>* e;
 static method main() → dynamic
   ;

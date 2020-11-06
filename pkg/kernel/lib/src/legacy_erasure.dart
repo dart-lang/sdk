@@ -71,11 +71,5 @@ class _LegacyErasure extends ReplacementVisitor {
   }
 
   @override
-  DartType visitInterfaceType(InterfaceType node) {
-    if (node.classNode == coreTypes.nullClass) return null;
-    return super.visitInterfaceType(node);
-  }
-
-  @override
-  DartType visitNeverType(NeverType node) => coreTypes.nullType;
+  DartType visitNeverType(NeverType node) => const NullType();
 }

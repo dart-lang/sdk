@@ -82,6 +82,12 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
   }
 
   @override
+  DartType visitNullType(DartType node, CoreTypes coreTypes) {
+    // Otherwise, for all S, futureValueType(S) = Object?.
+    return coreTypes.objectNullableRawType;
+  }
+
+  @override
   DartType visitTypeParameterType(DartType node, CoreTypes coreTypes) {
     // Otherwise, for all S, futureValueType(S) = Object?.
     return coreTypes.objectNullableRawType;

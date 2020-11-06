@@ -53,8 +53,8 @@ static method invariantListInfer<T extends core::Object* = dynamic>(self::Invari
 static method main() → dynamic {
   self::Covariant<dynamic>* cov = new self::Covariant::•<dynamic>();
   self::covariantListInfer<dynamic>(new self::Covariant::•<core::List<dynamic>*>());
-  self::Contravariant<core::Null?>* contra = new self::Contravariant::•<core::Null?>();
-  self::contravariantListInfer<core::Null?>(new self::Contravariant::•<core::List<core::Null?>*>());
+  self::Contravariant<Null>* contra = new self::Contravariant::•<Null>();
+  self::contravariantListInfer<Null>(new self::Contravariant::•<core::List<Null>*>());
   self::Invariant<dynamic>* inv = new self::Invariant::•<dynamic>();
-  self::invariantListInfer<core::Null?>(new self::Invariant::•<core::List<core::Null?>*>());
+  self::invariantListInfer<Null>(new self::Invariant::•<core::List<Null>*>());
 }

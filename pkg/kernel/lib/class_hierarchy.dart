@@ -29,8 +29,8 @@ abstract class ClassHierarchyBase {
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes);
+  InterfaceType getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, Library clientLibrary);
 
   /// Returns the type arguments of the instantiation of [superclass] that is
   /// implemented by [type], or `null` if [type] does not implement [superclass]
@@ -613,8 +613,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-in libraries the
     // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
     if (!clientLibrary.isNonNullableByDefault) {
-      if (type1 == coreTypes.nullType) return type2;
-      if (type2 == coreTypes.nullType) return type1;
+      if (type1 is NullType) return type2;
+      if (type2 is NullType) return type1;
     }
 
     _ClassInfo info1 = infoFor(type1.classNode);
@@ -722,16 +722,15 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes) {
+  InterfaceType getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, Library clientLibrary) {
     List<DartType> typeArguments =
         getTypeArgumentsAsInstanceOf(type, superclass);
     if (typeArguments == null) return null;
     // The return value should be a legacy type if it's computed for an
     // opted-out library, unless the return value is Null? which is always
     // nullable.
-    Nullability nullability = superclass == coreTypes.nullClass ||
-            clientLibrary.isNonNullableByDefault
+    Nullability nullability = clientLibrary.isNonNullableByDefault
         ? type.nullability
         : Nullability.legacy;
     return new InterfaceType(superclass, nullability, typeArguments);

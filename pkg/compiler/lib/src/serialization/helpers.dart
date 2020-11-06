@@ -120,6 +120,7 @@ enum DartTypeNodeKind {
   doesNotComplete,
   neverType,
   futureOrType,
+  nullType,
 }
 
 const String functionTypeNodeTag = 'function-type-node';
@@ -178,6 +179,12 @@ class DartTypeNodeWriter
       ir.NeverType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.neverType);
     _sink.writeEnum(node.nullability);
+  }
+
+  @override
+  void visitNullType(
+      ir.NullType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.nullType);
   }
 
   @override

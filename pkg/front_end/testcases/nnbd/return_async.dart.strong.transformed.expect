@@ -118,10 +118,10 @@ static method customErrorZone() → asy::Future<void> /* originally async */ {
       #L4:
       {
         final asy::Completer<void> completer = asy::Completer::•<void>();
-        asy::runZonedGuarded<asy::Future<core::Null?>>(() → asy::Future<core::Null?> /* originally async */ {
-          final asy::_Future<core::Null?> :async_future = new asy::_Future::•<core::Null?>();
+        asy::runZonedGuarded<asy::Future<Null>>(() → asy::Future<Null> /* originally async */ {
+          final asy::_Future<Null> :async_future = new asy::_Future::•<Null>();
           core::bool* :is_sync = false;
-          FutureOr<core::Null?>? :return_value;
+          FutureOr<Null>? :return_value;
           dynamic :async_stack_trace;
           (dynamic) → dynamic :async_op_then;
           (core::Object, core::StackTrace) → dynamic :async_op_error;

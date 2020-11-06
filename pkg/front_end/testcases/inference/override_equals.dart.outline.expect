@@ -6,7 +6,7 @@ class NullEquality extends core::Object {
   synthetic constructor •() → self::NullEquality*
     ;
   @core::override
-  operator ==(core::Object* other) → core::Null?
+  operator ==(core::Object* other) → Null
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

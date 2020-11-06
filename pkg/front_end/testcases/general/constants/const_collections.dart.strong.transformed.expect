@@ -505,10 +505,10 @@ constants  {
   #C10 = <core::String*>[#C6, #C7, #C9]
   #C11 = self::CustomIterable {}
   #C12 = <dynamic>[#C6, #C3, #C7, #C3]
-  #C13 = core::_ImmutableMap<core::String*, core::Null?> {_kvPairs:#C12}
+  #C13 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C12}
   #C14 = col::_UnmodifiableSet<core::String*> {_map:#C13}
   #C15 = <dynamic>[#C6, #C3, #C7, #C3, #C9, #C3]
-  #C16 = core::_ImmutableMap<core::String*, core::Null?> {_kvPairs:#C15}
+  #C16 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C15}
   #C17 = col::_UnmodifiableSet<core::String*> {_map:#C16}
   #C18 = <dynamic>[#C6, #C7]
   #C19 = core::_ImmutableMap<core::String*, core::String*> {_kvPairs:#C18}
@@ -517,6 +517,6 @@ constants  {
   #C22 = core::_ImmutableMap<core::String*, core::String*> {_kvPairs:#C21}
   #C23 = self::CustomMap {}
   #C24 = <dynamic>[#C6, #C3]
-  #C25 = core::_ImmutableMap<core::String*, core::Null?> {_kvPairs:#C24}
+  #C25 = core::_ImmutableMap<core::String*, Null> {_kvPairs:#C24}
   #C26 = col::_UnmodifiableSet<core::String*> {_map:#C25}
 }

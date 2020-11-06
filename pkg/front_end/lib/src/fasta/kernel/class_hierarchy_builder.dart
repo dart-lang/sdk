@@ -352,8 +352,6 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
   final Class functionClass;
 
-  final Class nullClass;
-
   final List<DelayedTypeComputation> _delayedTypeComputations =
       <DelayedTypeComputation>[];
 
@@ -368,8 +366,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
   ClassHierarchyBuilder(this.objectClassBuilder, this.loader, this.coreTypes)
       : objectClass = objectClassBuilder.cls,
         futureClass = coreTypes.futureClass,
-        functionClass = coreTypes.functionClass,
-        nullClass = coreTypes.nullClass {
+        functionClass = coreTypes.functionClass {
     types = new Types(this);
   }
 
@@ -500,23 +497,9 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     return null;
   }
 
-  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
-      Library clientLibrary, CoreTypes coreTypes) {
-    Class kernelClass = type.classNode;
-    if (kernelClass == superclass) return type;
-    if (kernelClass == nullClass) {
-      if (superclass.typeParameters.isEmpty) {
-        return coreTypes.rawType(superclass, clientLibrary.nullable);
-      } else {
-        // This is a safe fall-back for dealing with `Null`. It will likely be
-        // faster to check for `Null` before calling this method.
-        return new InterfaceType(
-            superclass,
-            clientLibrary.nullable,
-            new List<DartType>.filled(
-                superclass.typeParameters.length, coreTypes.nullType));
-      }
-    }
+  InterfaceType getTypeAsInstanceOf(
+      InterfaceType type, Class superclass, Library clientLibrary) {
+    if (type.classNode == superclass) return type;
     return asSupertypeOf(type, superclass)
         .asInterfaceType
         .withDeclaredNullability(type.nullability);
@@ -524,13 +507,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
   List<DartType> getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
-    Class kernelClass = type.classNode;
-    if (kernelClass == superclass) return type.typeArguments;
-    if (kernelClass == nullClass) {
-      if (superclass.typeParameters.isEmpty) return const <DartType>[];
-      return new List<DartType>.filled(
-          superclass.typeParameters.length, coreTypes.nullType);
-    }
+    if (type.classNode == superclass) return type.typeArguments;
     return asSupertypeOf(type, superclass)?.typeArguments;
   }
 
@@ -544,10 +521,10 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-out libraries the
     // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
     if (!clientLibrary.isNonNullableByDefault) {
-      if (type1 is InterfaceType && type1.classNode == nullClass) {
+      if (type1 is NullType) {
         return type2;
       }
-      if (type2 is InterfaceType && type2.classNode == nullClass) {
+      if (type2 is NullType) {
         return type1;
       }
     }
@@ -566,10 +543,10 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
         continue;
       }
       if (nodes1.contains(node)) {
-        DartType candidate1 = getTypeAsInstanceOf(
-            type1, node.classBuilder.cls, clientLibrary, coreTypes);
-        DartType candidate2 = getTypeAsInstanceOf(
-            type2, node.classBuilder.cls, clientLibrary, coreTypes);
+        DartType candidate1 =
+            getTypeAsInstanceOf(type1, node.classBuilder.cls, clientLibrary);
+        DartType candidate2 =
+            getTypeAsInstanceOf(type2, node.classBuilder.cls, clientLibrary);
         if (candidate1 == candidate2) {
           common.add(node);
         }
@@ -585,8 +562,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     for (int i = 0; i < common.length - 1; i++) {
       ClassHierarchyNode node = common[i];
       if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
-        return getTypeAsInstanceOf(
-                type1, node.classBuilder.cls, clientLibrary, coreTypes)
+        return getTypeAsInstanceOf(type1, node.classBuilder.cls, clientLibrary)
             .withDeclaredNullability(
                 uniteNullabilities(type1.nullability, type2.nullability));
       } else {
@@ -2776,8 +2752,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   @override
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes) {
-    return hierarchy.getTypeAsInstanceOf(
-        type, superclass, clientLibrary, coreTypes);
+    return hierarchy.getTypeAsInstanceOf(type, superclass, clientLibrary);
   }
 
   @override

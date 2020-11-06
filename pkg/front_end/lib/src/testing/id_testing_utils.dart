@@ -467,6 +467,10 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
+  void visitNullType(NullType node) {
+    sb.write('Null');
+  }
+
   void visitInterfaceType(InterfaceType node) {
     sb.write(node.classNode.name);
     if (node.typeArguments.isNotEmpty) {
@@ -570,11 +574,7 @@ bool isObject(DartType type) {
 }
 
 /// Returns `true` if [type] is `Null` from `dart:core`.
-bool isNull(DartType type) {
-  return type is InterfaceType &&
-      type.classNode.name == 'Null' &&
-      '${type.classNode.enclosingLibrary.importUri}' == 'dart:core';
-}
+bool isNull(DartType type) => type is NullType;
 
 /// Returns a textual representation of the [typeParameter] to be used in
 /// testing.

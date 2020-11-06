@@ -44,7 +44,7 @@ class CoreTypes {
 
   Library _coreLibrary;
   Class _objectClass;
-  Class _nullClass;
+  Class _deprecatedNullClass;
   Class _boolClass;
   Class _intClass;
   Class _numClass;
@@ -113,7 +113,7 @@ class CoreTypes {
   InterfaceType _objectLegacyRawType;
   InterfaceType _objectNullableRawType;
   InterfaceType _objectNonNullableRawType;
-  InterfaceType _nullType;
+  InterfaceType _deprecatedNullType;
   InterfaceType _boolLegacyRawType;
   InterfaceType _boolNullableRawType;
   InterfaceType _boolNonNullableRawType;
@@ -384,8 +384,8 @@ class CoreTypes {
         index.getMember('dart:core', 'NoSuchMethodError', 'withInvocation');
   }
 
-  Class get nullClass {
-    return _nullClass ??= index.getClass('dart:core', 'Null');
+  Class get deprecatedNullClass {
+    return _deprecatedNullClass ??= index.getClass('dart:core', 'Null');
   }
 
   Class get numClass {
@@ -531,9 +531,10 @@ class CoreTypes {
   }
 
   /// Null is always nullable, so there's only one raw type for that class.
-  InterfaceType get nullType {
-    return _nullType ??= _nullableRawTypes[nullClass] ??=
-        new InterfaceType(nullClass, Nullability.nullable, const <DartType>[]);
+  InterfaceType get deprecatedNullType {
+    return _deprecatedNullType ??= _nullableRawTypes[deprecatedNullClass] ??=
+        new InterfaceType(
+            deprecatedNullClass, Nullability.nullable, const <DartType>[]);
   }
 
   InterfaceType get boolLegacyRawType {
@@ -1357,7 +1358,7 @@ class CoreTypes {
     if (type is InvalidType) return false;
 
     // NULL(Null) is true.
-    if (type == nullType) return true;
+    if (type is NullType) return true;
 
     // NULL(T?) is true iff NULL(T) or BOTTOM(T).
     // NULL(T*) is true iff NULL(T) or BOTTOM(T).

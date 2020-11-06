@@ -119,6 +119,7 @@ class _CacheTable {
     if (type is VoidType) return 'void';
     if (type is NeverType) return 'Never$nullability';
     if (type is BottomType) return 'bottom';
+    if (type is NullType) return 'Null';
     return 'invalid';
   }
 

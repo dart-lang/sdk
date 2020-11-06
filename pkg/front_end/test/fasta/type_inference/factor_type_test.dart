@@ -63,7 +63,7 @@ class FactorTypeTest extends FactorTypeTestMixin<DartType> {
   DartType get intStar => coreTypes.intLegacyRawType;
 
   @override
-  DartType get nullNone => coreTypes.nullType;
+  DartType get nullNone => const NullType();
 
   @override
   DartType get numNone => coreTypes.numNonNullableRawType;

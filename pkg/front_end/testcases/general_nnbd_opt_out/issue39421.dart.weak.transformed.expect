@@ -57,7 +57,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-  method foo(core::List<core::Null?>* a) → dynamic {}
+  method foo(core::List<Null>* a) → dynamic {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

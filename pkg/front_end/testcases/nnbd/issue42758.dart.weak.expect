@@ -79,7 +79,7 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 import "dart:collection" as col;
 
-static method test1(Never n1, Never? n2, core::Null? n3) → dynamic {
+static method test1(Never n1, Never? n2, Null n3) → dynamic {
   core::List<Never> l1 = block {
     final core::List<Never> #t1 = <Never>[];
     for (final Never #t2 in let final Never #t3 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."))
@@ -193,7 +193,7 @@ static method test1(Never n1, Never? n2, core::Null? n3) → dynamic {
     #t55.{core::Map::[]=}(let final Never #t58 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."), let final Never #t59 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
   } =>#t55;
 }
-static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 extends core::Null? = core::Null?>(self::test2::N1 n1, self::test2::N2% n2, self::test2::N3% n3) → dynamic {
+static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 extends Null = Null>(self::test2::N1 n1, self::test2::N2% n2, self::test2::N3% n3) → dynamic {
   core::List<Never> l1 = block {
     final core::List<Never> #t60 = <Never>[];
     for (final Never #t61 in let final self::test2::N1 #t62 = n1 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."))

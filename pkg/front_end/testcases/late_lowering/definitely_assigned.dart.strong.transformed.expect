@@ -64,7 +64,7 @@ import "dart:_internal" as _in;
 
 import "dart:async";
 
-static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect = <T extends core::Object? = dynamic>(T% value) → core::Null? {
+static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T extends core::Object? = dynamic>(T% value) → Null {
   final T? local2;
   core::bool #local2#isSet = false;
   function #local2#get() → T%
@@ -105,7 +105,7 @@ static field <T extends core::Object? = dynamic>(T%) → core::Null? fieldDirect
   local6 = 0; // error
   ^^^^^^" in #local6#set.call(0);
 };
-static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null? fieldConditional = <T extends core::Object? = dynamic>(core::bool b, T% value) → core::Null? {
+static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldConditional = <T extends core::Object? = dynamic>(core::bool b, T% value) → Null {
   final T? local2;
   core::bool #local2#isSet = false;
   function #local2#get() → T%
@@ -151,7 +151,7 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → core::Null?
   local6 = 0; // error
   ^^^^^^" in #local6#set.call(0);
 };
-static field () → core::Null? fieldCompound = () → core::Null? {
+static field () → Null fieldCompound = () → Null {
   final core::int? local4;
   function #local4#get() → core::int
     return let final core::int? #t17 = local4 in #t17.==(null) ?{core::int} throw new _in::LateError::localNI("local4") : #t17{core::int};

@@ -82,7 +82,7 @@ main() {
   data.forEach((String input, String output) {
     DartType inputType = env.parseType(input);
     DartType expectedOutputType = env.parseType(output);
-    DartType actualOutputType = computeNonNull(env.coreTypes, inputType);
+    DartType actualOutputType = computeNonNull(inputType);
     print('legacyErasure($inputType) = $actualOutputType: $expectedOutputType');
     Expect.equals(
         expectedOutputType,

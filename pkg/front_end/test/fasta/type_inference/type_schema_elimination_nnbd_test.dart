@@ -24,7 +24,7 @@ class TypeSchemaEliminationTest {
 
   DartType get dynamicType => const DynamicType();
 
-  DartType get nullType => coreTypes.nullType;
+  DartType get nullType => new NullType();
 
   DartType greatestClosure(DartType schema) {
     return typeSchemaElimination.greatestClosure(
@@ -140,19 +140,11 @@ class _MockCoreTypes implements CoreTypes {
   final Class listClass = new Class(name: 'List');
 
   @override
-  final Class nullClass = new Class(name: 'Null');
-
-  @override
   final Class objectClass = new Class(name: 'Object');
 
-  @override
-  InterfaceType nullType;
-
   _MockCoreTypes() {
-    nullType = new InterfaceType(
-        nullClass, Nullability.nullable, const <DynamicType>[]);
     new Library(Uri.parse('dart:core'),
-        name: 'dart.core', classes: [listClass, nullClass, objectClass]);
+        name: 'dart.core', classes: [listClass, objectClass]);
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

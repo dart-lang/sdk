@@ -17,5 +17,5 @@ class C extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  self::C* c = new self::C::•(() → core::Null? {});
+  self::C* c = new self::C::•(() → Null {});
 }

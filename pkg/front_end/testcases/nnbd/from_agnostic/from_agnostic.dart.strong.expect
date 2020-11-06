@@ -31,6 +31,6 @@ constants  {
   #C7 = core::_ImmutableMap<core::List<core::int?>, core::int> {_kvPairs:#C6}
   #C8 = null
   #C9 = <dynamic>[#C2, #C8, #C4, #C8]
-  #C10 = core::_ImmutableMap<core::List<core::int?>, core::Null?> {_kvPairs:#C9}
+  #C10 = core::_ImmutableMap<core::List<core::int?>, Null> {_kvPairs:#C9}
   #C11 = col::_UnmodifiableSet<core::List<core::int?>> {_map:#C10}
 }

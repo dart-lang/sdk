@@ -23,7 +23,7 @@ typedef fnTypeWithNullableObjectBound = <T extends core::Object? = core::Object?
 typedef fnTypeWithNeverBound = <T extends Never = dynamic>() → void;
 static method fnWithNonNullObjectBound<T extends core::Object = core::Object>() → void
   return null;
-static method fnWithNullBound<T extends core::Null? = core::Null?>() → void
+static method fnWithNullBound<T extends Null = Null>() → void
   return null;
 
 constants  {

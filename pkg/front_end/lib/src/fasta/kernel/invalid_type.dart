@@ -57,6 +57,9 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
       false;
 
   @override
+  bool visitNullType(NullType node, Set<TypedefType> visitedTypedefs) => false;
+
+  @override
   bool visitBottomType(BottomType node, Set<TypedefType> visitedTypedefs) =>
       false;
 

@@ -1330,7 +1330,7 @@ class InferenceVisitor
       if (inferrer.isNonNullableByDefault) {
         return isNullAware ? const NeverType(Nullability.nonNullable) : null;
       } else {
-        return isNullAware ? inferrer.coreTypes.nullType : null;
+        return isNullAware ? const NullType() : null;
       }
     }
     if (spreadTypeBound is InterfaceType) {
@@ -1389,7 +1389,7 @@ class InferenceVisitor
             if (inferrer.isNonNullableByDefault &&
                 spreadType.isPotentiallyNullable &&
                 spreadType is! DynamicType &&
-                spreadType != inferrer.coreTypes.nullType &&
+                spreadType is! NullType &&
                 !element.isNullAware) {
               replacement = inferrer.helper.buildProblem(
                   messageNullableSpreadError, element.expression.fileOffset, 1);
@@ -1452,7 +1452,7 @@ class InferenceVisitor
           if (inferrer.isNonNullableByDefault &&
               spreadType.isPotentiallyNullable &&
               spreadType is! DynamicType &&
-              spreadType != inferrer.coreTypes.nullType &&
+              spreadType is! NullType &&
               !element.isNullAware) {
             replacement = inferrer.helper.buildProblem(
                 messageNullableSpreadError, element.expression.fileOffset, 1);
@@ -1800,7 +1800,7 @@ class InferenceVisitor
           output[offset] =
               output[offset + 1] = const NeverType(Nullability.nonNullable);
         } else {
-          output[offset] = output[offset + 1] = inferrer.coreTypes.nullType;
+          output[offset] = output[offset + 1] = const NullType();
         }
       }
     } else if (typeBound is InterfaceType) {
@@ -1874,7 +1874,7 @@ class InferenceVisitor
             if (inferrer.isNonNullableByDefault &&
                 spreadType.isPotentiallyNullable &&
                 spreadType is! DynamicType &&
-                spreadType != inferrer.coreTypes.nullType &&
+                spreadType is! NullType &&
                 !entry.isNullAware) {
               replacement = new SpreadMapEntry(
                   inferrer.helper.buildProblem(messageNullableSpreadError,
@@ -1993,7 +1993,7 @@ class InferenceVisitor
           if (inferrer.isNonNullableByDefault &&
               spreadType.isPotentiallyNullable &&
               spreadType is! DynamicType &&
-              spreadType != inferrer.coreTypes.nullType &&
+              spreadType is! NullType &&
               !entry.isNullAware) {
             keyError = inferrer.helper.buildProblem(
                 messageNullableSpreadError, entry.expression.fileOffset, 1);
@@ -5002,7 +5002,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitNullLiteral(
       NullLiteral node, DartType typeContext) {
     inferrer.flowAnalysis.nullLiteral(node);
-    return new ExpressionInferenceResult(inferrer.coreTypes.nullType, node);
+    return new ExpressionInferenceResult(const NullType(), node);
   }
 
   @override
@@ -5247,7 +5247,7 @@ class InferenceVisitor
       node.expression = expressionResult.expression..parent = node;
       inferredType = expressionResult.inferredType;
     } else {
-      inferredType = inferrer.coreTypes.nullType;
+      inferredType = const NullType();
     }
     closureContext.handleReturn(inferrer, node, inferredType, node.isArrow);
     inferrer.flowAnalysis.handleExit();
@@ -5483,8 +5483,7 @@ class InferenceVisitor
     DartType receiverType = inferrer.classHierarchy.getTypeAsInstanceOf(
         inferrer.thisType,
         inferrer.thisType.classNode.supertype.classNode,
-        inferrer.library.library,
-        inferrer.coreTypes);
+        inferrer.library.library);
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
         receiverType, node.name, node.fileOffset,

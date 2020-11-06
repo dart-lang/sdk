@@ -267,7 +267,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         returnContextType = new TypeVariableEliminator(
                 clientLibrary.isNonNullableByDefault
                     ? const NeverType(Nullability.nonNullable)
-                    : nullType,
+                    : const NullType(),
                 clientLibrary.isNonNullableByDefault
                     ? objectNullableRawType
                     : objectLegacyRawType)
@@ -431,7 +431,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       TypeConstraint constraint, DartType topType, DartType bottomType,
       {bool grounded: false, bool isContravariant: false}) {
     assert(bottomType == const NeverType(Nullability.nonNullable) ||
-        bottomType == coreTypes.nullType);
+        bottomType == const NullType());
     if (!isContravariant) {
       // Prefer the known bound, if any.
       if (isKnown(constraint.lower)) return constraint.lower;
@@ -504,7 +504,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             : const DynamicType(),
         clientLibrary.isNonNullableByDefault
             ? const NeverType(Nullability.nonNullable)
-            : nullType,
+            : const NullType(),
         grounded: true,
         isContravariant: isContravariant);
   }
@@ -518,7 +518,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             : const DynamicType(),
         clientLibrary.isNonNullableByDefault
             ? const NeverType(Nullability.nonNullable)
-            : nullType);
+            : const NullType());
     if (!isKnown(t)) {
       return t;
     }
@@ -540,7 +540,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
               : const DynamicType(),
           clientLibrary.isNonNullableByDefault
               ? const NeverType(Nullability.nonNullable)
-              : nullType);
+              : const NullType());
     }
     return t;
   }

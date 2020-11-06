@@ -65,7 +65,7 @@ library from "org-dartlang-test:///main.dart" as main {
         #L2:
         {
           [yield] let dynamic #t2 = dart.async::_awaitHelper(null, :async_op_then, :async_op_error, :async_op) in null;
-          dart._internal::unsafeCast<dart.core::Null?>(:result);
+          dart._internal::unsafeCast<Null>(:result);
           :return_value = "hello";
           break #L2;
         }

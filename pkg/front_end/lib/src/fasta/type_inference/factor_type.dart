@@ -23,7 +23,7 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
     }
     DartType factor_RS = factorType(typeEnvironment, R, S);
     if (typeEnvironment.isSubtypeOf(
-        typeEnvironment.nullType, S, SubtypeCheckMode.withNullabilities)) {
+        const NullType(), S, SubtypeCheckMode.withNullabilities)) {
       return factor_RS;
     } else {
       return factor_RS.withDeclaredNullability(Nullability.nullable);
@@ -36,7 +36,7 @@ DartType factorType(TypeEnvironment typeEnvironment, DartType T, DartType S) {
     DartType R = T.withDeclaredNullability(Nullability.nonNullable);
     DartType factor_RS = factorType(typeEnvironment, R, S);
     if (typeEnvironment.isSubtypeOf(
-        typeEnvironment.nullType, S, SubtypeCheckMode.withNullabilities)) {
+        const NullType(), S, SubtypeCheckMode.withNullabilities)) {
       return factor_RS;
     } else {
       return factor_RS.withDeclaredNullability(Nullability.legacy);

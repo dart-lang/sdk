@@ -240,7 +240,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   DartType get bottomType => isNonNullableByDefault
       ? const NeverType(Nullability.nonNullable)
-      : engine.coreTypes.nullType;
+      : const NullType();
 
   DartType computeGreatestClosure(DartType type) {
     return greatestClosure(type, const DynamicType(), bottomType);
@@ -256,14 +256,14 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   DartType computeNullable(DartType type) {
-    if (type == coreTypes.nullType || type is NeverType) {
-      return coreTypes.nullType;
+    if (type is NullType || type is NeverType) {
+      return const NullType();
     }
     return type.withDeclaredNullability(library.nullable);
   }
 
   DartType computeNonNullable(DartType type) {
-    if (type == coreTypes.nullType) {
+    if (type is NullType) {
       return isNonNullableByDefault
           ? const NeverType(Nullability.nonNullable)
           : type;
@@ -734,7 +734,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   bool isNull(DartType type) {
-    return type is InterfaceType && type.classNode == coreTypes.nullClass;
+    return type is NullType;
   }
 
   /// Computes the type arguments for an access to an extension instance member
@@ -976,7 +976,7 @@ class TypeInferrerImpl implements TypeInferrer {
         case Nullability.nullable:
         case Nullability.legacy:
           // Never? and Never* are equivalent to Null.
-          return findInterfaceMember(coreTypes.nullType, name, fileOffset);
+          return findInterfaceMember(const NullType(), name, fileOffset);
         case Nullability.undetermined:
           return internalProblem(
               templateInternalProblemUnsupportedNullability.withArguments(
@@ -1570,9 +1570,7 @@ class TypeInferrerImpl implements TypeInferrer {
       assert(isTopLevel, "No initializer type provided.");
       return null;
     }
-    if (initializerType is BottomType ||
-        (initializerType is InterfaceType &&
-            initializerType.classNode == coreTypes.nullClass)) {
+    if (initializerType is BottomType || initializerType is NullType) {
       // If the initializer type is Null or bottom, the inferred type is
       // dynamic.
       // TODO(paulberry): this rule is inherited from analyzer behavior but is
@@ -2260,7 +2258,7 @@ class TypeInferrerImpl implements TypeInferrer {
               substitution.substituteType(formalTypesFromContext[i]));
           if (typeSchemaEnvironment.isSubtypeOf(
               inferredType,
-              coreTypes.nullType,
+              const NullType(),
               isNonNullableByDefault
                   ? SubtypeCheckMode.withNullabilities
                   : SubtypeCheckMode.ignoringNullabilities)) {

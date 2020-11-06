@@ -21,7 +21,7 @@ static method main() → dynamic {
   }
   self::expect(123, #lateLocal#get.call());
   self::throws(() → core::int => #lateLocal#set.call(124), "Write value to initialized lateLocal");
-  function local<T extends core::Object? = dynamic>(T? value) → core::Null? {
+  function local<T extends core::Object? = dynamic>(T? value) → Null {
     final T? lateGenericLocal;
     core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T?

@@ -639,10 +639,7 @@ abstract class CombinedMemberSignatureBase<T> {
       return type;
     }
     InterfaceType instance = hierarchy.getTypeAsInstanceOf(
-        thisType,
-        member.enclosingClass,
-        classBuilder.library.library,
-        hierarchy.coreTypes);
+        thisType, member.enclosingClass, classBuilder.library.library);
     assert(
         instance != null,
         "No instance of $thisType as ${member.enclosingClass} found for "

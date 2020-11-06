@@ -38,6 +38,7 @@ import 'package:kernel/ast.dart'
         Name,
         NeverType,
         NonNullableByDefaultCompiledMode,
+        NullType,
         Nullability,
         Procedure,
         ProcedureKind,
@@ -1377,6 +1378,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new NeverTypeDeclarationBuilder(
             const NeverType(Nullability.nonNullable), this, -1),
         -1);
+  }
+
+  void addSyntheticDeclarationOfNull() {
+    // TODO(dmitryas): Uncomment the following when the Null class is removed
+    // from the SDK.
+    //addBuilder("Null", new NullTypeBuilder(const NullType(), this, -1), -1);
   }
 
   TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
@@ -3340,7 +3347,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeParameter> typeParameters, Uri fileUri) {
     final DartType bottomType = library.isNonNullableByDefault
         ? const NeverType(Nullability.nonNullable)
-        : typeEnvironment.nullType;
+        : const NullType();
 
     // Check in bounds of own type variables.
     for (TypeParameter parameter in typeParameters) {
@@ -3426,7 +3433,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (returnType != null) {
       final DartType bottomType = isNonNullableByDefault
           ? const NeverType(Nullability.nonNullable)
-          : typeEnvironment.nullType;
+          : const NullType();
       Set<TypeArgumentIssue> issues = {};
       issues.addAll(findTypeArgumentIssues(library, returnType, typeEnvironment,
               SubtypeCheckMode.ignoringNullabilities, bottomType,
@@ -3536,7 +3543,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool inferred, bool allowSuperBounded = true}) {
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType(Nullability.nonNullable)
-        : typeEnvironment.nullType;
+        : const NullType();
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssues(library, type, typeEnvironment,
             SubtypeCheckMode.ignoringNullabilities, bottomType,
@@ -3603,7 +3610,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType(Nullability.nonNullable)
-        : typeEnvironment.nullType;
+        : const NullType();
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssuesForInvocation(
             library,
@@ -3690,7 +3697,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType(Nullability.nonNullable)
-        : typeEnvironment.nullType;
+        : const NullType();
     Set<TypeArgumentIssue> issues = {};
     issues.addAll(findTypeArgumentIssuesForInvocation(
             library,

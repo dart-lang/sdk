@@ -15,7 +15,7 @@ static method main() → dynamic {
   self::throws(() → core::int? => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
   self::expect(123, #lateLocal#set.call(123));
   self::expect(123, #lateLocal#get.call());
-  function local<T extends core::Object? = dynamic>(T? value) → core::Null? {
+  function local<T extends core::Object? = dynamic>(T? value) → Null {
     T? lateGenericLocal;
     core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T?

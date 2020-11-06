@@ -2103,6 +2103,24 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitNullType(NullType node) {
+    // TODO(dmitryas): Remove special treatment of Null when the VM supports the
+    // new encoding: just write the tag.
+    assert(_knownCanonicalNameNonRootTops != null &&
+        _knownCanonicalNameNonRootTops.isNotEmpty);
+    CanonicalName root = _knownCanonicalNameNonRootTops.first;
+    while (!root.isRoot) {
+      root = root.parent;
+    }
+    CanonicalName canonicalNameOfNull =
+        root.getChild("dart:core").getChild("Null");
+    writeByte(Tag.SimpleInterfaceType);
+    writeByte(node.declaredNullability.index);
+    checkCanonicalName(canonicalNameOfNull);
+    writeUInt30(canonicalNameOfNull.index + 1);
+  }
+
+  @override
   void visitSupertype(Supertype node) {
     // Writing nullability below is only necessary because
     // BinaryBuilder.readSupertype reads the supertype as an InterfaceType and

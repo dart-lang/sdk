@@ -10,9 +10,9 @@ typedef FcovBound<X extends core::num* = core::num*> = () →* X*;
 typedef FconBound<contravariant X extends core::num* = core::num*> = (X*) →* dynamic;
 typedef FinvBound<invariant X extends core::num* = core::num*> = (X*) →* X*;
 typedef FcovCyclicBound<X extends self::A<X*>* = self::A<dynamic>*> = () →* X*;
-typedef FconCyclicBound<contravariant X extends self::A<X*>* = self::A<core::Null?>*> = (X*) →* dynamic;
+typedef FconCyclicBound<contravariant X extends self::A<X*>* = self::A<Null>*> = (X*) →* dynamic;
 typedef FinvCyclicBound<invariant X extends self::A<X*>* = self::A<dynamic>*> = (X*) →* X*;
-typedef FcovCyclicCoBound<X extends (X*) →* dynamic = (core::Null?) →* dynamic> = () →* X*;
+typedef FcovCyclicCoBound<X extends (X*) →* dynamic = (Null) →* dynamic> = () →* X*;
 typedef FconCyclicCoBound<contravariant X extends (X*) →* dynamic = (dynamic) →* dynamic> = (X*) →* dynamic;
 typedef FinvCyclicCoBound<invariant X extends (X*) →* dynamic = (dynamic) →* dynamic> = (X*) →* X*;
 class Acov<X extends () →* self::Acov::Y* = () →* dynamic, Y extends core::Object* = dynamic> extends core::Object {
@@ -30,7 +30,7 @@ class Acov<X extends () →* self::Acov::Y* = () →* dynamic, Y extends core::O
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Acon<X extends (self::Acon::Y*) →* dynamic = (core::Null?) →* dynamic, Y extends core::Object* = dynamic> extends core::Object {
+class Acon<X extends (self::Acon::Y*) →* dynamic = (Null) →* dynamic, Y extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Acon<self::Acon::X*, self::Acon::Y*>*
     : super core::Object::•()
     ;
@@ -75,7 +75,7 @@ class AcovBound<X extends () →* self::AcovBound::Y* = () →* core::num*, Y ex
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AconBound<X extends (self::AconBound::Y*) →* dynamic = (core::Null?) →* dynamic, Y extends core::num* = core::num*> extends core::Object {
+class AconBound<X extends (self::AconBound::Y*) →* dynamic = (Null) →* dynamic, Y extends core::num* = core::num*> extends core::Object {
   synthetic constructor •() → self::AconBound<self::AconBound::X*, self::AconBound::Y*>*
     : super core::Object::•()
     ;
@@ -135,7 +135,7 @@ class AcovCyclicBound<X extends () →* self::AcovCyclicBound::Y* = () →* self
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AconCyclicBound<X extends (self::AconCyclicBound::Y*) →* dynamic = (core::Null?) →* dynamic, Y extends self::A<self::AconCyclicBound::Y*>* = self::A<dynamic>*> extends core::Object {
+class AconCyclicBound<X extends (self::AconCyclicBound::Y*) →* dynamic = (Null) →* dynamic, Y extends self::A<self::AconCyclicBound::Y*>* = self::A<dynamic>*> extends core::Object {
   synthetic constructor •() → self::AconCyclicBound<self::AconCyclicBound::X*, self::AconCyclicBound::Y*>*
     : super core::Object::•()
     ;
@@ -165,7 +165,7 @@ class AinvCyclicBound<X extends (self::AinvCyclicBound::Y*) →* self::AinvCycli
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AcovCyclicCoBound<X extends () →* self::AcovCyclicCoBound::Y* = () →* (core::Null?) →* dynamic, Y extends (self::AcovCyclicCoBound::Y*) →* dynamic = (core::Null?) →* dynamic> extends core::Object {
+class AcovCyclicCoBound<X extends () →* self::AcovCyclicCoBound::Y* = () →* (Null) →* dynamic, Y extends (self::AcovCyclicCoBound::Y*) →* dynamic = (Null) →* dynamic> extends core::Object {
   synthetic constructor •() → self::AcovCyclicCoBound<self::AcovCyclicCoBound::X*, self::AcovCyclicCoBound::Y*>*
     : super core::Object::•()
     ;
@@ -180,7 +180,7 @@ class AcovCyclicCoBound<X extends () →* self::AcovCyclicCoBound::Y* = () →* 
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AconCyclicCoBound<X extends (self::AconCyclicCoBound::Y*) →* dynamic = (core::Null?) →* dynamic, Y extends (self::AconCyclicCoBound::Y*) →* dynamic = (core::Null?) →* dynamic> extends core::Object {
+class AconCyclicCoBound<X extends (self::AconCyclicCoBound::Y*) →* dynamic = (Null) →* dynamic, Y extends (self::AconCyclicCoBound::Y*) →* dynamic = (Null) →* dynamic> extends core::Object {
   synthetic constructor •() → self::AconCyclicCoBound<self::AconCyclicCoBound::X*, self::AconCyclicCoBound::Y*>*
     : super core::Object::•()
     ;
@@ -195,7 +195,7 @@ class AconCyclicCoBound<X extends (self::AconCyclicCoBound::Y*) →* dynamic = (
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AinvCyclicCoBound<X extends (self::AinvCyclicCoBound::Y*) →* self::AinvCyclicCoBound::Y* = ((core::Null?) →* dynamic) →* (core::Null?) →* dynamic, Y extends (self::AinvCyclicCoBound::Y*) →* dynamic = (core::Null?) →* dynamic> extends core::Object {
+class AinvCyclicCoBound<X extends (self::AinvCyclicCoBound::Y*) →* self::AinvCyclicCoBound::Y* = ((Null) →* dynamic) →* (Null) →* dynamic, Y extends (self::AinvCyclicCoBound::Y*) →* dynamic = (Null) →* dynamic> extends core::Object {
   synthetic constructor •() → self::AinvCyclicCoBound<self::AinvCyclicCoBound::X*, self::AinvCyclicCoBound::Y*>*
     : super core::Object::•()
     ;
@@ -231,69 +231,69 @@ static method testTypeAliasAsTypeArgument() → void {
   self::Acov<() →* dynamic, dynamic>* source1;
   <Y extends self::Acov<() →* dynamic, dynamic>* = dynamic>() →* void fsource1 = self::toF<self::Acov<() →* dynamic, dynamic>*>(source1);
   <Y extends self::Acov<() →* dynamic, dynamic>* = dynamic>() →* void target1 = fsource1;
-  self::Acon<(core::Null?) →* dynamic, dynamic>* source2;
-  <Y extends self::Acon<(core::Null?) →* dynamic, dynamic>* = dynamic>() →* void fsource2 = self::toF<self::Acon<(core::Null?) →* dynamic, dynamic>*>(source2);
-  <Y extends self::Acon<(core::Null?) →* dynamic, dynamic>* = dynamic>() →* void target2 = fsource2;
+  self::Acon<(Null) →* dynamic, dynamic>* source2;
+  <Y extends self::Acon<(Null) →* dynamic, dynamic>* = dynamic>() →* void fsource2 = self::toF<self::Acon<(Null) →* dynamic, dynamic>*>(source2);
+  <Y extends self::Acon<(Null) →* dynamic, dynamic>* = dynamic>() →* void target2 = fsource2;
   self::Ainv<(dynamic) →* dynamic, dynamic>* source3;
   <Y extends self::Ainv<(dynamic) →* dynamic, dynamic>* = dynamic>() →* void fsource3 = self::toF<self::Ainv<(dynamic) →* dynamic, dynamic>*>(source3);
   <Y extends self::Ainv<(dynamic) →* dynamic, dynamic>* = dynamic>() →* void target3 = fsource3;
   self::AcovBound<() →* core::num*, core::num*>* source4;
   <Y extends self::AcovBound<() →* core::num*, core::num*>* = dynamic>() →* void fsource4 = self::toF<self::AcovBound<() →* core::num*, core::num*>*>(source4);
   <Y extends self::AcovBound<() →* core::num*, core::num*>* = dynamic>() →* void target4 = fsource4;
-  self::AconBound<(core::Null?) →* dynamic, core::num*>* source5;
-  <Y extends self::AconBound<(core::Null?) →* dynamic, core::num*>* = dynamic>() →* void fsource5 = self::toF<self::AconBound<(core::Null?) →* dynamic, core::num*>*>(source5);
-  <Y extends self::AconBound<(core::Null?) →* dynamic, core::num*>* = dynamic>() →* void target5 = fsource5;
+  self::AconBound<(Null) →* dynamic, core::num*>* source5;
+  <Y extends self::AconBound<(Null) →* dynamic, core::num*>* = dynamic>() →* void fsource5 = self::toF<self::AconBound<(Null) →* dynamic, core::num*>*>(source5);
+  <Y extends self::AconBound<(Null) →* dynamic, core::num*>* = dynamic>() →* void target5 = fsource5;
   self::AinvBound<(core::num*) →* core::num*, core::num*>* source6;
   <Y extends self::AinvBound<(core::num*) →* core::num*, core::num*>* = dynamic>() →* void fsource6 = self::toF<self::AinvBound<(core::num*) →* core::num*, core::num*>*>(source6);
   <Y extends self::AinvBound<(core::num*) →* core::num*, core::num*>* = dynamic>() →* void target6 = fsource6;
   self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>* source7;
   <Y extends self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>* = dynamic>() →* void fsource7 = self::toF<self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>*>(source7);
   <Y extends self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>* = dynamic>() →* void target7 = fsource7;
-  self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>* source8;
-  <Y extends self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>* = dynamic>() →* void fsource8 = self::toF<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>(source8);
-  <Y extends self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>* = dynamic>() →* void target8 = fsource8;
+  self::AconCyclicBound<(Null) →* dynamic, self::A<dynamic>*>* source8;
+  <Y extends self::AconCyclicBound<(Null) →* dynamic, self::A<dynamic>*>* = dynamic>() →* void fsource8 = self::toF<self::AconCyclicBound<(Null) →* dynamic, self::A<dynamic>*>*>(source8);
+  <Y extends self::AconCyclicBound<(Null) →* dynamic, self::A<dynamic>*>* = dynamic>() →* void target8 = fsource8;
   self::AinvCyclicBound<(self::A<dynamic>*) →* self::A<dynamic>*, self::A<dynamic>*>* source9;
-  self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>* source10;
-  <Y extends self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>* = dynamic>() →* void fsource10 = self::toF<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>(source10);
-  <Y extends self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>* = dynamic>() →* void target10 = fsource10;
-  self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>* source11;
-  <Y extends self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>* = dynamic>() →* void fsource11 = self::toF<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>(source11);
-  <Y extends self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>* = dynamic>() →* void target11 = fsource11;
-  self::AinvCyclicCoBound<((core::Null?) →* dynamic) →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>* source12;
+  self::AcovCyclicCoBound<() →* (Null) →* dynamic, (Null) →* dynamic>* source10;
+  <Y extends self::AcovCyclicCoBound<() →* (Null) →* dynamic, (Null) →* dynamic>* = dynamic>() →* void fsource10 = self::toF<self::AcovCyclicCoBound<() →* (Null) →* dynamic, (Null) →* dynamic>*>(source10);
+  <Y extends self::AcovCyclicCoBound<() →* (Null) →* dynamic, (Null) →* dynamic>* = dynamic>() →* void target10 = fsource10;
+  self::AconCyclicCoBound<(Null) →* dynamic, (Null) →* dynamic>* source11;
+  <Y extends self::AconCyclicCoBound<(Null) →* dynamic, (Null) →* dynamic>* = dynamic>() →* void fsource11 = self::toF<self::AconCyclicCoBound<(Null) →* dynamic, (Null) →* dynamic>*>(source11);
+  <Y extends self::AconCyclicCoBound<(Null) →* dynamic, (Null) →* dynamic>* = dynamic>() →* void target11 = fsource11;
+  self::AinvCyclicCoBound<((Null) →* dynamic) →* (Null) →* dynamic, (Null) →* dynamic>* source12;
 }
 static method testNested() → void {
   self::B<self::Acov<() →* dynamic, dynamic>*>* source1;
   <Y extends self::B<self::Acov<() →* dynamic, dynamic>*>* = dynamic>() →* void fsource1 = self::toF<self::B<self::Acov<() →* dynamic, dynamic>*>*>(source1);
   <Y extends self::B<self::Acov<() →* dynamic, dynamic>*>* = dynamic>() →* void target1 = fsource1;
-  self::B<self::Acon<(core::Null?) →* dynamic, dynamic>*>* source2;
-  <Y extends self::B<self::Acon<(core::Null?) →* dynamic, dynamic>*>* = dynamic>() →* void fsource2 = self::toF<self::B<self::Acon<(core::Null?) →* dynamic, dynamic>*>*>(source2);
-  <Y extends self::B<self::Acon<(core::Null?) →* dynamic, dynamic>*>* = dynamic>() →* void target2 = fsource2;
+  self::B<self::Acon<(Null) →* dynamic, dynamic>*>* source2;
+  <Y extends self::B<self::Acon<(Null) →* dynamic, dynamic>*>* = dynamic>() →* void fsource2 = self::toF<self::B<self::Acon<(Null) →* dynamic, dynamic>*>*>(source2);
+  <Y extends self::B<self::Acon<(Null) →* dynamic, dynamic>*>* = dynamic>() →* void target2 = fsource2;
   self::B<self::Ainv<(dynamic) →* dynamic, dynamic>*>* source3;
   <Y extends self::B<self::Ainv<(dynamic) →* dynamic, dynamic>*>* = dynamic>() →* void fsource3 = self::toF<self::B<self::Ainv<(dynamic) →* dynamic, dynamic>*>*>(source3);
   <Y extends self::B<self::Ainv<(dynamic) →* dynamic, dynamic>*>* = dynamic>() →* void target3 = fsource3;
   self::B<self::AcovBound<() →* core::num*, core::num*>*>* source4;
   <Y extends self::B<self::AcovBound<() →* core::num*, core::num*>*>* = dynamic>() →* void fsource4 = self::toF<self::B<self::AcovBound<() →* core::num*, core::num*>*>*>(source4);
   <Y extends self::B<self::AcovBound<() →* core::num*, core::num*>*>* = dynamic>() →* void target4 = fsource4;
-  self::B<self::AconBound<(core::Null?) →* dynamic, core::num*>*>* source5;
-  <Y extends self::B<self::AconBound<(core::Null?) →* dynamic, core::num*>*>* = dynamic>() →* void fsource5 = self::toF<self::B<self::AconBound<(core::Null?) →* dynamic, core::num*>*>*>(source5);
-  <Y extends self::B<self::AconBound<(core::Null?) →* dynamic, core::num*>*>* = dynamic>() →* void target5 = fsource5;
+  self::B<self::AconBound<(Null) →* dynamic, core::num*>*>* source5;
+  <Y extends self::B<self::AconBound<(Null) →* dynamic, core::num*>*>* = dynamic>() →* void fsource5 = self::toF<self::B<self::AconBound<(Null) →* dynamic, core::num*>*>*>(source5);
+  <Y extends self::B<self::AconBound<(Null) →* dynamic, core::num*>*>* = dynamic>() →* void target5 = fsource5;
   self::B<self::AinvBound<(core::num*) →* core::num*, core::num*>*>* source6;
   <Y extends self::B<self::AinvBound<(core::num*) →* core::num*, core::num*>*>* = dynamic>() →* void fsource6 = self::toF<self::B<self::AinvBound<(core::num*) →* core::num*, core::num*>*>*>(source6);
   <Y extends self::B<self::AinvBound<(core::num*) →* core::num*, core::num*>*>* = dynamic>() →* void target6 = fsource6;
   self::B<self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>*>* source7;
   <Y extends self::B<self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>*>* = dynamic>() →* void fsource7 = self::toF<self::B<self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>*>*>(source7);
   <Y extends self::B<self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>*>* = dynamic>() →* void target7 = fsource7;
-  self::B<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>* source8;
-  <Y extends self::B<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>* = dynamic>() →* void fsource8 = self::toF<self::B<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>*>(source8);
-  <Y extends self::B<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>* = dynamic>() →* void target8 = fsource8;
+  self::B<self::AconCyclicBound<(Null) →* dynamic, self::A<dynamic>*>*>* source8;
+  <Y extends self::B<self::AconCyclicBound<(Null) →* dynamic, self::A<dynamic>*>*>* = dynamic>() →* void fsource8 = self::toF<self::B<self::AconCyclicBound<(Null) →* dynamic, self::A<dynamic>*>*>*>(source8);
+  <Y extends self::B<self::AconCyclicBound<(Null) →* dynamic, self::A<dynamic>*>*>* = dynamic>() →* void target8 = fsource8;
   self::B<self::AinvCyclicBound<(self::A<dynamic>*) →* self::A<dynamic>*, self::A<dynamic>*>*>* source9;
-  self::B<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* source10;
-  <Y extends self::B<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* = dynamic>() →* void fsource10 = self::toF<self::B<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>*>(source10);
-  <Y extends self::B<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* = dynamic>() →* void target10 = fsource10;
-  self::B<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* source11;
-  <Y extends self::B<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* = dynamic>() →* void fsource11 = self::toF<self::B<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>*>(source11);
-  <Y extends self::B<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* = dynamic>() →* void target11 = fsource11;
-  self::B<self::AinvCyclicCoBound<((core::Null?) →* dynamic) →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* source12;
+  self::B<self::AcovCyclicCoBound<() →* (Null) →* dynamic, (Null) →* dynamic>*>* source10;
+  <Y extends self::B<self::AcovCyclicCoBound<() →* (Null) →* dynamic, (Null) →* dynamic>*>* = dynamic>() →* void fsource10 = self::toF<self::B<self::AcovCyclicCoBound<() →* (Null) →* dynamic, (Null) →* dynamic>*>*>(source10);
+  <Y extends self::B<self::AcovCyclicCoBound<() →* (Null) →* dynamic, (Null) →* dynamic>*>* = dynamic>() →* void target10 = fsource10;
+  self::B<self::AconCyclicCoBound<(Null) →* dynamic, (Null) →* dynamic>*>* source11;
+  <Y extends self::B<self::AconCyclicCoBound<(Null) →* dynamic, (Null) →* dynamic>*>* = dynamic>() →* void fsource11 = self::toF<self::B<self::AconCyclicCoBound<(Null) →* dynamic, (Null) →* dynamic>*>*>(source11);
+  <Y extends self::B<self::AconCyclicCoBound<(Null) →* dynamic, (Null) →* dynamic>*>* = dynamic>() →* void target11 = fsource11;
+  self::B<self::AinvCyclicCoBound<((Null) →* dynamic) →* (Null) →* dynamic, (Null) →* dynamic>*>* source12;
 }
 static method main() → dynamic {
   self::testTypeAliasAsTypeArgument();

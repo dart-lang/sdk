@@ -15,6 +15,7 @@ import '../ast.dart'
         Library,
         NamedType,
         NeverType,
+        NullType,
         Nullability,
         TypeParameter,
         TypeParameterType,
@@ -267,7 +268,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
     DartType bottomType,
     {bool allowSuperBounded = false}) {
   assert(bottomType == const NeverType(Nullability.nonNullable) ||
-      bottomType == typeEnvironment.nullType);
+      bottomType is NullType);
   List<TypeParameter> variables;
   List<DartType> arguments;
   List<TypeArgumentIssue> typedefRhsResult;
@@ -435,7 +436,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     {Map<FunctionType, List<DartType>> typedefInstantiations}) {
   assert(arguments.length == parameters.length);
   assert(bottomType == const NeverType(Nullability.nonNullable) ||
-      bottomType == typeEnvironment.nullType);
+      bottomType is NullType);
   List<TypeArgumentIssue> result;
   var substitutionMap = <TypeParameter, DartType>{};
   for (int i = 0; i < arguments.length; ++i) {
@@ -684,6 +685,12 @@ class VarianceCalculator
   @override
   int visitNeverType(NeverType node,
       Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    return Variance.unrelated;
+  }
+
+  @override
+  int visitNullType(
+      NullType node, Map<TypeParameter, Map<DartType, int>> computedVariances) {
     return Variance.unrelated;
   }
 

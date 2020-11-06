@@ -293,7 +293,7 @@ abstract class TypeConstraintGatherer {
     // it return `true` for both Null and bottom types?  Revisit this once
     // enough functionality is implemented that we can compare the behavior with
     // the old analyzer-based implementation.
-    return type == coreTypes.nullType;
+    return type is NullType;
   }
 
   /// Matches [p] against [q] as a subtype against supertype.
@@ -405,9 +405,7 @@ abstract class TypeConstraintGatherer {
     // Only if P0 is a subtype match for Q under constraint set C.
     if (isLegacyTypeConstructorApplication(p, _currentLibrary)) {
       return _isNullabilityAwareSubtypeMatch(
-          computeTypeWithoutNullabilityMarker(p, _currentLibrary,
-              nullType: coreTypes.nullType),
-          q,
+          computeTypeWithoutNullabilityMarker(p, _currentLibrary), q,
           constrainSupertype: constrainSupertype);
     }
 
@@ -422,9 +420,7 @@ abstract class TypeConstraintGatherer {
 
       if ((p is DynamicType || p is VoidType) &&
           _isNullabilityAwareSubtypeMatch(
-              p,
-              computeTypeWithoutNullabilityMarker(q, _currentLibrary,
-                  nullType: coreTypes.nullType),
+              p, computeTypeWithoutNullabilityMarker(q, _currentLibrary),
               constrainSupertype: constrainSupertype)) {
         return true;
       }
@@ -487,17 +483,14 @@ abstract class TypeConstraintGatherer {
     // Or if P is a subtype match for Q0 under non-empty constraint set C.
     // Or if P is a subtype match for Null under constraint set C.
     // Or if P is a subtype match for Q0 under empty constraint set C.
-    if (isNullableTypeConstructorApplication(q, nullType: coreTypes.nullType)) {
+    if (isNullableTypeConstructorApplication(q)) {
       final int baseConstraintCount = _protoConstraints.length;
-      final DartType rawP = computeTypeWithoutNullabilityMarker(
-          p, _currentLibrary,
-          nullType: coreTypes.nullType);
-      final DartType rawQ = computeTypeWithoutNullabilityMarker(
-          q, _currentLibrary,
-          nullType: coreTypes.nullType);
+      final DartType rawP =
+          computeTypeWithoutNullabilityMarker(p, _currentLibrary);
+      final DartType rawQ =
+          computeTypeWithoutNullabilityMarker(q, _currentLibrary);
 
-      if (isNullableTypeConstructorApplication(p,
-              nullType: coreTypes.nullType) &&
+      if (isNullableTypeConstructorApplication(p) &&
           _isNullabilityAwareSubtypeMatch(rawP, rawQ,
               constrainSupertype: constrainSupertype)) {
         return true;
@@ -521,7 +514,7 @@ abstract class TypeConstraintGatherer {
       }
       _protoConstraints.length = baseConstraintCount;
 
-      if (_isNullabilityAwareSubtypeMatch(p, coreTypes.nullType,
+      if (_isNullabilityAwareSubtypeMatch(p, const NullType(),
           constrainSupertype: constrainSupertype)) {
         return true;
       }
@@ -553,14 +546,12 @@ abstract class TypeConstraintGatherer {
     //
     // If P0 is a subtype match for Q under constraint set C1.
     // And if Null is a subtype match for Q under constraint set C2.
-    if (isNullableTypeConstructorApplication(p, nullType: coreTypes.nullType)) {
+    if (isNullableTypeConstructorApplication(p)) {
       final int baseConstraintCount = _protoConstraints.length;
       if (_isNullabilityAwareSubtypeMatch(
-              computeTypeWithoutNullabilityMarker(p, _currentLibrary,
-                  nullType: coreTypes.nullType),
-              q,
+              computeTypeWithoutNullabilityMarker(p, _currentLibrary), q,
               constrainSupertype: constrainSupertype) &&
-          _isNullabilityAwareSubtypeMatch(coreTypes.nullType, q,
+          _isNullabilityAwareSubtypeMatch(const NullType(), q,
               constrainSupertype: constrainSupertype)) {
         return true;
       }
@@ -590,7 +581,7 @@ abstract class TypeConstraintGatherer {
     // If P is Null, then the match holds under no constraints:
     //
     // Only if Q is nullable.
-    if (p == coreTypes.nullType) {
+    if (p is NullType) {
       return q.nullability == Nullability.nullable;
     }
 

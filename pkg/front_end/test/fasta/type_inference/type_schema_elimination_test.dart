@@ -24,16 +24,16 @@ class TypeSchemaEliminationTest {
 
   DartType get dynamicType => const DynamicType();
 
-  DartType get nullType => coreTypes.nullType;
-
   DartType get objectType => coreTypes.objectLegacyRawType;
 
   DartType greatestClosure(DartType schema) {
-    return typeSchemaElimination.greatestClosure(schema, dynamicType, nullType);
+    return typeSchemaElimination.greatestClosure(
+        schema, dynamicType, const NullType());
   }
 
   DartType leastClosure(DartType schema) {
-    return typeSchemaElimination.leastClosure(schema, dynamicType, nullType);
+    return typeSchemaElimination.leastClosure(
+        schema, dynamicType, const NullType());
   }
 
   void test_greatestClosure_contravariant() {
@@ -41,12 +41,12 @@ class TypeSchemaEliminationTest {
         greatestClosure(new FunctionType(
                 [unknownType], dynamicType, Nullability.legacy))
             .leakingDebugToString(),
-        '(dart.core::Null?) →* dynamic');
+        '(Null) →* dynamic');
     expect(
         greatestClosure(new FunctionType([], dynamicType, Nullability.legacy,
                 namedParameters: [new NamedType('foo', unknownType)]))
             .leakingDebugToString(),
-        '({foo: dart.core::Null?}) →* dynamic');
+        '({foo: Null}) →* dynamic');
   }
 
   void test_greatestClosure_contravariant_contravariant() {
@@ -78,8 +78,7 @@ class TypeSchemaEliminationTest {
               new NamedType('a', unknownType),
               new NamedType('b', unknownType)
             ])).leakingDebugToString(),
-        '(dart.core::Null?, dart.core::Null?, {a: dart.core::Null?, '
-        'b: dart.core::Null?}) →* dynamic');
+        '(Null, Null, {a: Null, b: Null}) →* dynamic');
   }
 
   void test_greatestClosure_simple() {
@@ -105,19 +104,19 @@ class TypeSchemaEliminationTest {
           new FunctionType([unknownType], dynamicType, Nullability.legacy)
         ], dynamicType, Nullability.legacy))
             .leakingDebugToString(),
-        '((dart.core::Null?) →* dynamic) →* dynamic');
+        '((Null) →* dynamic) →* dynamic');
   }
 
   void test_leastClosure_covariant() {
     expect(
         leastClosure(new FunctionType([], unknownType, Nullability.legacy))
             .leakingDebugToString(),
-        '() →* dart.core::Null?');
+        '() →* Null');
     expect(
         leastClosure(new InterfaceType(
                 coreTypes.listClass, Nullability.legacy, [unknownType]))
             .leakingDebugToString(),
-        'dart.core::List<dart.core::Null?>*');
+        'dart.core::List<Null>*');
   }
 
   void test_leastClosure_function_multipleUnknown() {
@@ -128,12 +127,11 @@ class TypeSchemaEliminationTest {
               new NamedType('a', unknownType),
               new NamedType('b', unknownType)
             ])).leakingDebugToString(),
-        '(dynamic, dynamic, {a: dynamic, b: dynamic}) →* dart.core::Null?');
+        '(dynamic, dynamic, {a: dynamic, b: dynamic}) →* Null');
   }
 
   void test_leastClosure_simple() {
-    expect(
-        leastClosure(unknownType).leakingDebugToString(), 'dart.core::Null?');
+    expect(leastClosure(unknownType).leakingDebugToString(), 'Null');
   }
 }
 
@@ -142,19 +140,11 @@ class _MockCoreTypes implements CoreTypes {
   final Class listClass = new Class(name: 'List');
 
   @override
-  final Class nullClass = new Class(name: 'Null');
-
-  @override
   final Class objectClass = new Class(name: 'Object');
 
-  @override
-  InterfaceType nullType;
-
   _MockCoreTypes() {
-    nullType = new InterfaceType(
-        nullClass, Nullability.nullable, const <DynamicType>[]);
     new Library(Uri.parse('dart:core'),
-        name: 'dart.core', classes: [listClass, nullClass, objectClass]);
+        name: 'dart.core', classes: [listClass, objectClass]);
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -311,7 +311,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     ir.DartType staticType = node?.accept(this);
     assert(
         node is! ir.Expression ||
-            staticType == typeEnvironment.nullType ||
+            staticType is ir.NullType ||
             staticType is ir.FutureOrType ||
             typeEnvironment.isSubtypeOf(
                 staticType,

@@ -10,9 +10,9 @@ typedef FcovBound<X extends core::num* = core::num*> = () →* X*;
 typedef FconBound<contravariant X extends core::num* = core::num*> = (X*) →* dynamic;
 typedef FinvBound<invariant X extends core::num* = core::num*> = (X*) →* X*;
 typedef FcovCyclicBound<X extends self::A<X*>* = self::A<dynamic>*> = () →* X*;
-typedef FconCyclicBound<contravariant X extends self::A<X*>* = self::A<core::Null?>*> = (X*) →* dynamic;
+typedef FconCyclicBound<contravariant X extends self::A<X*>* = self::A<Null>*> = (X*) →* dynamic;
 typedef FinvCyclicBound<invariant X extends self::A<X*>* = self::A<dynamic>*> = (X*) →* X*;
-typedef FcovCyclicCoBound<X extends (X*) →* dynamic = (core::Null?) →* dynamic> = () →* X*;
+typedef FcovCyclicCoBound<X extends (X*) →* dynamic = (Null) →* dynamic> = () →* X*;
 typedef FconCyclicCoBound<contravariant X extends (X*) →* dynamic = (dynamic) →* dynamic> = (X*) →* dynamic;
 typedef FinvCyclicCoBound<invariant X extends (X*) →* dynamic = (dynamic) →* dynamic> = (X*) →* X*;
 class A<X extends core::Object* = dynamic> extends core::Object {

@@ -30,11 +30,11 @@ static method main() → dynamic {
   non::expect(null, c.{non::Class::finalInstanceTypeVariable});
   non::expect(null, non::Class::staticField);
   non::expect(null, non::Class::staticFinalField);
-  non::throws(() → core::Null? => non::finalTopLevelField = null);
-  non::throws(() → core::Null? => c.{non::Class::finalInstanceField} = null);
-  non::throws(() → core::Null? => c.{non::Class::finalInstanceTypeVariable} = null);
-  non::throws(() → core::Null? => non::Class::staticFinalField = null);
-  non::method<core::Null?>(true, null, null);
+  non::throws(() → Null => non::finalTopLevelField = null);
+  non::throws(() → Null => c.{non::Class::finalInstanceField} = null);
+  non::throws(() → Null => c.{non::Class::finalInstanceTypeVariable} = null);
+  non::throws(() → Null => non::Class::staticFinalField = null);
+  non::method<Null>(true, null, null);
 }
 
 library /*isNonNullableByDefault*/;

@@ -192,7 +192,7 @@ class _MetadataTransformer extends Transformer {
             NullLiteral(), // valueOf
             NullLiteral(), // enumValues
           ],
-          types: <DartType>[ph.coreTypes.nullType],
+          types: <DartType>[const NullType()],
         ),
         ph._builderInfoAddMethod)
       ..fileOffset = node.fileOffset;
