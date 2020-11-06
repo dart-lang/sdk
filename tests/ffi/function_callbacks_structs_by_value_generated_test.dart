@@ -172,6 +172,12 @@ final testCases = [
           passStruct40BytesHomogeneousDoubleStruct4BytesHomo, 0.0),
       passStruct40BytesHomogeneousDoubleStruct4BytesHomoAfterCallback),
   CallbackTest.withCheck(
+      "PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int",
+      Pointer.fromFunction<
+              PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntType>(
+          passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int, 0.0),
+      passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntAfterCallback),
+  CallbackTest.withCheck(
       "PassStructAlignmentInt16",
       Pointer.fromFunction<PassStructAlignmentInt16Type>(
           passStructAlignmentInt16, 0),
@@ -3702,6 +3708,277 @@ void passStruct40BytesHomogeneousDoubleStruct4BytesHomoAfterCallback() {
   print("after callback result = $result");
 
   Expect.approxEquals(-5.0, result);
+}
+
+typedef PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntType
+    = Double Function(
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Int32,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Double,
+        Int64,
+        Int8,
+        Struct1ByteInt,
+        Int64,
+        Int8,
+        Struct4BytesHomogeneousInt16,
+        Int64,
+        Int8,
+        Struct8BytesInt,
+        Int64,
+        Int8,
+        Struct8BytesHomogeneousFloat,
+        Int64,
+        Int8,
+        Struct8BytesMixed,
+        Int64,
+        Int8,
+        StructAlignmentInt16,
+        Int64,
+        Int8,
+        StructAlignmentInt32,
+        Int64,
+        Int8,
+        StructAlignmentInt64);
+
+// Global variables to be able to test inputs after callback returned.
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a0 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a1 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a2 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a3 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a4 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a5 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a6 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a7 = 0;
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a8 = 0.0;
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a9 = 0.0;
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a10 = 0.0;
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a11 = 0.0;
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a12 = 0.0;
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a13 = 0.0;
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a14 = 0.0;
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a15 = 0.0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a16 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a17 = 0;
+Struct1ByteInt passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a18 =
+    Struct1ByteInt();
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a19 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a20 = 0;
+Struct4BytesHomogeneousInt16
+    passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a21 =
+    Struct4BytesHomogeneousInt16();
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a22 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a23 = 0;
+Struct8BytesInt passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a24 =
+    Struct8BytesInt();
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a25 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a26 = 0;
+Struct8BytesHomogeneousFloat
+    passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a27 =
+    Struct8BytesHomogeneousFloat();
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a28 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a29 = 0;
+Struct8BytesMixed passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a30 =
+    Struct8BytesMixed();
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a31 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a32 = 0;
+StructAlignmentInt16 passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a33 =
+    StructAlignmentInt16();
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a34 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a35 = 0;
+StructAlignmentInt32 passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a36 =
+    StructAlignmentInt32();
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a37 = 0;
+int passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a38 = 0;
+StructAlignmentInt64 passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a39 =
+    StructAlignmentInt64();
+
+// Result variable also global, so we can delete it after the callback.
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntResult = 0.0;
+
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntCalculateResult() {
+  double result = 0;
+
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a0;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a1;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a2;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a3;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a4;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a5;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a6;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a7;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a8;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a9;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a10;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a11;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a12;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a13;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a14;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a15;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a16;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a17;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a18.a0;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a19;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a20;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a21.a0;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a21.a1;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a22;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a23;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a24.a0;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a24.a1;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a24.a2;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a25;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a26;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a27.a0;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a27.a1;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a28;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a29;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a30.a0;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a30.a1;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a30.a2;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a31;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a32;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a33.a0;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a33.a1;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a33.a2;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a34;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a35;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a36.a0;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a36.a1;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a36.a2;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a37;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a38;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a39.a0;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a39.a1;
+  result += passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a39.a2;
+
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntResult = result;
+
+  return result;
+}
+
+/// Test alignment and padding of 16 byte int within struct.
+double passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
+    int a0,
+    int a1,
+    int a2,
+    int a3,
+    int a4,
+    int a5,
+    int a6,
+    int a7,
+    double a8,
+    double a9,
+    double a10,
+    double a11,
+    double a12,
+    double a13,
+    double a14,
+    double a15,
+    int a16,
+    int a17,
+    Struct1ByteInt a18,
+    int a19,
+    int a20,
+    Struct4BytesHomogeneousInt16 a21,
+    int a22,
+    int a23,
+    Struct8BytesInt a24,
+    int a25,
+    int a26,
+    Struct8BytesHomogeneousFloat a27,
+    int a28,
+    int a29,
+    Struct8BytesMixed a30,
+    int a31,
+    int a32,
+    StructAlignmentInt16 a33,
+    int a34,
+    int a35,
+    StructAlignmentInt32 a36,
+    int a37,
+    int a38,
+    StructAlignmentInt64 a39) {
+  print(
+      "passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19}, ${a20}, ${a21}, ${a22}, ${a23}, ${a24}, ${a25}, ${a26}, ${a27}, ${a28}, ${a29}, ${a30}, ${a31}, ${a32}, ${a33}, ${a34}, ${a35}, ${a36}, ${a37}, ${a38}, ${a39})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int throwing on purpuse!");
+  }
+
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a0 = a0;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a1 = a1;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a2 = a2;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a3 = a3;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a4 = a4;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a5 = a5;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a6 = a6;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a7 = a7;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a8 = a8;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a9 = a9;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a10 = a10;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a11 = a11;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a12 = a12;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a13 = a13;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a14 = a14;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a15 = a15;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a16 = a16;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a17 = a17;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a18 = a18;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a19 = a19;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a20 = a20;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a21 = a21;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a22 = a22;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a23 = a23;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a24 = a24;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a25 = a25;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a26 = a26;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a27 = a27;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a28 = a28;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a29 = a29;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a30 = a30;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a31 = a31;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a32 = a32;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a33 = a33;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a34 = a34;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a35 = a35;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a36 = a36;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a37 = a37;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a38 = a38;
+  passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int_a39 = a39;
+
+  final result =
+      passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntAfterCallback() {
+  final result =
+      passInt32x8Doublex8Int64Int8Struct1ByteIntInt64IntCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.approxEquals(26.0, result);
 }
 
 typedef PassStructAlignmentInt16Type = Int64 Function(StructAlignmentInt16);

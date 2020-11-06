@@ -48,6 +48,7 @@ void main() {
     testPassDoublex6Struct16BytesMixedx4Int32();
     testPassInt32x4Struct16BytesMixedx4Double();
     testPassStruct40BytesHomogeneousDoubleStruct4BytesHomo();
+    testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int();
     testPassStructAlignmentInt16();
     testPassStructAlignmentInt32();
     testPassStructAlignmentInt64();
@@ -3355,6 +3356,245 @@ void testPassStruct40BytesHomogeneousDoubleStruct4BytesHomo() {
   free(a0.addressOf);
   free(a1.addressOf);
   free(a2.addressOf);
+}
+
+final passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int =
+    ffiTestFunctions.lookupFunction<
+        Double Function(
+            Int32,
+            Int32,
+            Int32,
+            Int32,
+            Int32,
+            Int32,
+            Int32,
+            Int32,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Double,
+            Int64,
+            Int8,
+            Struct1ByteInt,
+            Int64,
+            Int8,
+            Struct4BytesHomogeneousInt16,
+            Int64,
+            Int8,
+            Struct8BytesInt,
+            Int64,
+            Int8,
+            Struct8BytesHomogeneousFloat,
+            Int64,
+            Int8,
+            Struct8BytesMixed,
+            Int64,
+            Int8,
+            StructAlignmentInt16,
+            Int64,
+            Int8,
+            StructAlignmentInt32,
+            Int64,
+            Int8,
+            StructAlignmentInt64),
+        double Function(
+            int,
+            int,
+            int,
+            int,
+            int,
+            int,
+            int,
+            int,
+            double,
+            double,
+            double,
+            double,
+            double,
+            double,
+            double,
+            double,
+            int,
+            int,
+            Struct1ByteInt,
+            int,
+            int,
+            Struct4BytesHomogeneousInt16,
+            int,
+            int,
+            Struct8BytesInt,
+            int,
+            int,
+            Struct8BytesHomogeneousFloat,
+            int,
+            int,
+            Struct8BytesMixed,
+            int,
+            int,
+            StructAlignmentInt16,
+            int,
+            int,
+            StructAlignmentInt32,
+            int,
+            int,
+            StructAlignmentInt64)>("PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int");
+
+/// Test alignment and padding of 16 byte int within struct.
+void testPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int() {
+  int a0;
+  int a1;
+  int a2;
+  int a3;
+  int a4;
+  int a5;
+  int a6;
+  int a7;
+  double a8;
+  double a9;
+  double a10;
+  double a11;
+  double a12;
+  double a13;
+  double a14;
+  double a15;
+  int a16;
+  int a17;
+  Struct1ByteInt a18 = allocate<Struct1ByteInt>().ref;
+  int a19;
+  int a20;
+  Struct4BytesHomogeneousInt16 a21 =
+      allocate<Struct4BytesHomogeneousInt16>().ref;
+  int a22;
+  int a23;
+  Struct8BytesInt a24 = allocate<Struct8BytesInt>().ref;
+  int a25;
+  int a26;
+  Struct8BytesHomogeneousFloat a27 =
+      allocate<Struct8BytesHomogeneousFloat>().ref;
+  int a28;
+  int a29;
+  Struct8BytesMixed a30 = allocate<Struct8BytesMixed>().ref;
+  int a31;
+  int a32;
+  StructAlignmentInt16 a33 = allocate<StructAlignmentInt16>().ref;
+  int a34;
+  int a35;
+  StructAlignmentInt32 a36 = allocate<StructAlignmentInt32>().ref;
+  int a37;
+  int a38;
+  StructAlignmentInt64 a39 = allocate<StructAlignmentInt64>().ref;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7 = 8;
+  a8 = -9.0;
+  a9 = 10.0;
+  a10 = -11.0;
+  a11 = 12.0;
+  a12 = -13.0;
+  a13 = 14.0;
+  a14 = -15.0;
+  a15 = 16.0;
+  a16 = -17;
+  a17 = 18;
+  a18.a0 = -19;
+  a19 = 20;
+  a20 = -21;
+  a21.a0 = 22;
+  a21.a1 = -23;
+  a22 = 24;
+  a23 = -25;
+  a24.a0 = 26;
+  a24.a1 = -27;
+  a24.a2 = 28;
+  a25 = -29;
+  a26 = 30;
+  a27.a0 = -31.0;
+  a27.a1 = 32.0;
+  a28 = -33;
+  a29 = 34;
+  a30.a0 = -35.0;
+  a30.a1 = 36;
+  a30.a2 = -37;
+  a31 = 38;
+  a32 = -39;
+  a33.a0 = 40;
+  a33.a1 = -41;
+  a33.a2 = 42;
+  a34 = -43;
+  a35 = 44;
+  a36.a0 = -45;
+  a36.a1 = 46;
+  a36.a2 = -47;
+  a37 = 48;
+  a38 = -49;
+  a39.a0 = 50;
+  a39.a1 = -51;
+  a39.a2 = 52;
+
+  final result = passInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
+      a0,
+      a1,
+      a2,
+      a3,
+      a4,
+      a5,
+      a6,
+      a7,
+      a8,
+      a9,
+      a10,
+      a11,
+      a12,
+      a13,
+      a14,
+      a15,
+      a16,
+      a17,
+      a18,
+      a19,
+      a20,
+      a21,
+      a22,
+      a23,
+      a24,
+      a25,
+      a26,
+      a27,
+      a28,
+      a29,
+      a30,
+      a31,
+      a32,
+      a33,
+      a34,
+      a35,
+      a36,
+      a37,
+      a38,
+      a39);
+
+  print("result = $result");
+
+  Expect.approxEquals(26.0, result);
+
+  free(a18.addressOf);
+  free(a21.addressOf);
+  free(a24.addressOf);
+  free(a27.addressOf);
+  free(a30.addressOf);
+  free(a33.addressOf);
+  free(a36.addressOf);
+  free(a39.addressOf);
 }
 
 final passStructAlignmentInt16 = ffiTestFunctions.lookupFunction<

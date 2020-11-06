@@ -2388,6 +2388,131 @@ DART_EXPORT double PassStruct40BytesHomogeneousDoubleStruct4BytesHomo(
 
 // Used for testing structs by value.
 // Test alignment and padding of 16 byte int within struct.
+DART_EXPORT double PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
+    int32_t a0,
+    int32_t a1,
+    int32_t a2,
+    int32_t a3,
+    int32_t a4,
+    int32_t a5,
+    int32_t a6,
+    int32_t a7,
+    double a8,
+    double a9,
+    double a10,
+    double a11,
+    double a12,
+    double a13,
+    double a14,
+    double a15,
+    int64_t a16,
+    int8_t a17,
+    Struct1ByteInt a18,
+    int64_t a19,
+    int8_t a20,
+    Struct4BytesHomogeneousInt16 a21,
+    int64_t a22,
+    int8_t a23,
+    Struct8BytesInt a24,
+    int64_t a25,
+    int8_t a26,
+    Struct8BytesHomogeneousFloat a27,
+    int64_t a28,
+    int8_t a29,
+    Struct8BytesMixed a30,
+    int64_t a31,
+    int8_t a32,
+    StructAlignmentInt16 a33,
+    int64_t a34,
+    int8_t a35,
+    StructAlignmentInt32 a36,
+    int64_t a37,
+    int8_t a38,
+    StructAlignmentInt64 a39) {
+  std::cout << "PassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int"
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", "
+            << a9 << ", " << a10 << ", " << a11 << ", " << a12 << ", " << a13
+            << ", " << a14 << ", " << a15 << ", " << a16 << ", "
+            << static_cast<int>(a17) << ", (" << static_cast<int>(a18.a0)
+            << "), " << a19 << ", " << static_cast<int>(a20) << ", (" << a21.a0
+            << ", " << a21.a1 << "), " << a22 << ", " << static_cast<int>(a23)
+            << ", (" << a24.a0 << ", " << a24.a1 << ", " << a24.a2 << "), "
+            << a25 << ", " << static_cast<int>(a26) << ", (" << a27.a0 << ", "
+            << a27.a1 << "), " << a28 << ", " << static_cast<int>(a29) << ", ("
+            << a30.a0 << ", " << a30.a1 << ", " << a30.a2 << "), " << a31
+            << ", " << static_cast<int>(a32) << ", ("
+            << static_cast<int>(a33.a0) << ", " << a33.a1 << ", "
+            << static_cast<int>(a33.a2) << "), " << a34 << ", "
+            << static_cast<int>(a35) << ", (" << static_cast<int>(a36.a0)
+            << ", " << a36.a1 << ", " << static_cast<int>(a36.a2) << "), "
+            << a37 << ", " << static_cast<int>(a38) << ", ("
+            << static_cast<int>(a39.a0) << ", " << a39.a1 << ", "
+            << static_cast<int>(a39.a2) << "))"
+            << "\n";
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7;
+  result += a8;
+  result += a9;
+  result += a10;
+  result += a11;
+  result += a12;
+  result += a13;
+  result += a14;
+  result += a15;
+  result += a16;
+  result += a17;
+  result += a18.a0;
+  result += a19;
+  result += a20;
+  result += a21.a0;
+  result += a21.a1;
+  result += a22;
+  result += a23;
+  result += a24.a0;
+  result += a24.a1;
+  result += a24.a2;
+  result += a25;
+  result += a26;
+  result += a27.a0;
+  result += a27.a1;
+  result += a28;
+  result += a29;
+  result += a30.a0;
+  result += a30.a1;
+  result += a30.a2;
+  result += a31;
+  result += a32;
+  result += a33.a0;
+  result += a33.a1;
+  result += a33.a2;
+  result += a34;
+  result += a35;
+  result += a36.a0;
+  result += a36.a1;
+  result += a36.a2;
+  result += a37;
+  result += a38;
+  result += a39.a0;
+  result += a39.a1;
+  result += a39.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of 16 byte int within struct.
 DART_EXPORT int64_t PassStructAlignmentInt16(StructAlignmentInt16 a0) {
   std::cout << "PassStructAlignmentInt16"
             << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
@@ -6351,6 +6476,196 @@ DART_EXPORT intptr_t TestPassStruct40BytesHomogeneousDoubleStruct4BytesHomo(
   a0.a0 = 84;
 
   result = f(a0, a1, a2);
+
+  CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs by value.
+// Test alignment and padding of 16 byte int within struct.
+DART_EXPORT intptr_t TestPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
+    // NOLINTNEXTLINE(whitespace/parens)
+    double (*f)(int32_t a0,
+                int32_t a1,
+                int32_t a2,
+                int32_t a3,
+                int32_t a4,
+                int32_t a5,
+                int32_t a6,
+                int32_t a7,
+                double a8,
+                double a9,
+                double a10,
+                double a11,
+                double a12,
+                double a13,
+                double a14,
+                double a15,
+                int64_t a16,
+                int8_t a17,
+                Struct1ByteInt a18,
+                int64_t a19,
+                int8_t a20,
+                Struct4BytesHomogeneousInt16 a21,
+                int64_t a22,
+                int8_t a23,
+                Struct8BytesInt a24,
+                int64_t a25,
+                int8_t a26,
+                Struct8BytesHomogeneousFloat a27,
+                int64_t a28,
+                int8_t a29,
+                Struct8BytesMixed a30,
+                int64_t a31,
+                int8_t a32,
+                StructAlignmentInt16 a33,
+                int64_t a34,
+                int8_t a35,
+                StructAlignmentInt32 a36,
+                int64_t a37,
+                int8_t a38,
+                StructAlignmentInt64 a39)) {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
+  int32_t a4;
+  int32_t a5;
+  int32_t a6;
+  int32_t a7;
+  double a8;
+  double a9;
+  double a10;
+  double a11;
+  double a12;
+  double a13;
+  double a14;
+  double a15;
+  int64_t a16;
+  int8_t a17;
+  Struct1ByteInt a18;
+  int64_t a19;
+  int8_t a20;
+  Struct4BytesHomogeneousInt16 a21;
+  int64_t a22;
+  int8_t a23;
+  Struct8BytesInt a24;
+  int64_t a25;
+  int8_t a26;
+  Struct8BytesHomogeneousFloat a27;
+  int64_t a28;
+  int8_t a29;
+  Struct8BytesMixed a30;
+  int64_t a31;
+  int8_t a32;
+  StructAlignmentInt16 a33;
+  int64_t a34;
+  int8_t a35;
+  StructAlignmentInt32 a36;
+  int64_t a37;
+  int8_t a38;
+  StructAlignmentInt64 a39;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7 = 8;
+  a8 = -9.0;
+  a9 = 10.0;
+  a10 = -11.0;
+  a11 = 12.0;
+  a12 = -13.0;
+  a13 = 14.0;
+  a14 = -15.0;
+  a15 = 16.0;
+  a16 = -17;
+  a17 = 18;
+  a18.a0 = -19;
+  a19 = 20;
+  a20 = -21;
+  a21.a0 = 22;
+  a21.a1 = -23;
+  a22 = 24;
+  a23 = -25;
+  a24.a0 = 26;
+  a24.a1 = -27;
+  a24.a2 = 28;
+  a25 = -29;
+  a26 = 30;
+  a27.a0 = -31.0;
+  a27.a1 = 32.0;
+  a28 = -33;
+  a29 = 34;
+  a30.a0 = -35.0;
+  a30.a1 = 36;
+  a30.a2 = -37;
+  a31 = 38;
+  a32 = -39;
+  a33.a0 = 40;
+  a33.a1 = -41;
+  a33.a2 = 42;
+  a34 = -43;
+  a35 = 44;
+  a36.a0 = -45;
+  a36.a1 = 46;
+  a36.a2 = -47;
+  a37 = 48;
+  a38 = -49;
+  a39.a0 = 50;
+  a39.a1 = -51;
+  a39.a2 = 52;
+
+  std::cout << "Calling TestPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", "
+            << a9 << ", " << a10 << ", " << a11 << ", " << a12 << ", " << a13
+            << ", " << a14 << ", " << a15 << ", " << a16 << ", "
+            << static_cast<int>(a17) << ", (" << static_cast<int>(a18.a0)
+            << "), " << a19 << ", " << static_cast<int>(a20) << ", (" << a21.a0
+            << ", " << a21.a1 << "), " << a22 << ", " << static_cast<int>(a23)
+            << ", (" << a24.a0 << ", " << a24.a1 << ", " << a24.a2 << "), "
+            << a25 << ", " << static_cast<int>(a26) << ", (" << a27.a0 << ", "
+            << a27.a1 << "), " << a28 << ", " << static_cast<int>(a29) << ", ("
+            << a30.a0 << ", " << a30.a1 << ", " << a30.a2 << "), " << a31
+            << ", " << static_cast<int>(a32) << ", ("
+            << static_cast<int>(a33.a0) << ", " << a33.a1 << ", "
+            << static_cast<int>(a33.a2) << "), " << a34 << ", "
+            << static_cast<int>(a35) << ", (" << static_cast<int>(a36.a0)
+            << ", " << a36.a1 << ", " << static_cast<int>(a36.a2) << "), "
+            << a37 << ", " << static_cast<int>(a38) << ", ("
+            << static_cast<int>(a39.a0) << ", " << a39.a1 << ", "
+            << static_cast<int>(a39.a2) << "))"
+            << ")\n";
+
+  double result =
+      f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15,
+        a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29,
+        a30, a31, a32, a33, a34, a35, a36, a37, a38, a39);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_APPROX(26.0, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14,
+             a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27,
+             a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39);
+
+  CHECK_APPROX(0.0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14,
+             a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27,
+             a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39);
 
   CHECK_APPROX(0.0, result);
 
