@@ -11,7 +11,7 @@ import '../analyzer.dart';
 import '../ast.dart';
 
 const _desc =
-    r'AVOID overloading operator == and hashCode on classes not marked `@immutable`.';
+    r'Avoid overloading operator == and hashCode on classes not marked `@immutable`.';
 
 const _details = r'''
 

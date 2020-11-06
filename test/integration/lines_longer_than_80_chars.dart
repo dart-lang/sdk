@@ -32,10 +32,10 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            'a.dart 7:1 [lint] AVOID lines longer than 80 characters',
-            'a.dart 11:1 [lint] AVOID lines longer than 80 characters',
-            'a.dart 20:1 [lint] AVOID lines longer than 80 characters',
-            'a.dart 25:1 [lint] AVOID lines longer than 80 characters',
+            'a.dart 7:1 [lint] Avoid lines longer than 80 characters',
+            'a.dart 11:1 [lint] Avoid lines longer than 80 characters',
+            'a.dart 20:1 [lint] Avoid lines longer than 80 characters',
+            'a.dart 25:1 [lint] Avoid lines longer than 80 characters',
             "a.dart 32:40 [hint] The diagnostic 'lines_longer_than_80_chars' does not need to be ignored here because it is already being ignored.",
             "a.dart 32:68 [hint] The diagnostic 'lines_longer_than_80_chars' does not need to be ignored here because it is already being ignored.",
             '1 file analyzed, 6 issues found, in'

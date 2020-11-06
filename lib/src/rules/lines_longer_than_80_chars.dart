@@ -10,7 +10,7 @@ import '../analyzer.dart';
 
 const _cr = '\r';
 
-const _desc = r'AVOID lines longer than 80 characters.';
+const _desc = r'Avoid lines longer than 80 characters.';
 
 const _details = r'''
 
