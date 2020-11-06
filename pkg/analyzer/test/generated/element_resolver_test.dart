@@ -58,10 +58,10 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
       expect(name1.staticElement, isClassElement);
       expect(name1.staticElement.displayName, 'A');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isConstructorElement);
       expect(name2.staticElement.displayName, 'named');
       expect(name3, isNull);
@@ -87,13 +87,13 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
+      assert(name3 != null);
       expect(name1.staticElement, isPrefixElement);
       expect(name1.staticElement.displayName, 'p');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isClassElement);
       expect(name2.staticElement.displayName, 'A');
-      expect(name3, isNotNull);
       expect(name3.staticElement, isConstructorElement);
       expect(name3.staticElement.displayName, 'named');
       if (annotationElement is ConstructorElement) {
@@ -118,13 +118,13 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
+      assert(name3 != null);
       expect(name1.staticElement, isPrefixElement);
       expect(name1.staticElement.displayName, 'p');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isClassElement);
       expect(name2.staticElement.displayName, 'A');
-      expect(name3, isNotNull);
       expect(name3.staticElement, isPropertyAccessorElement);
       expect(name3.staticElement.displayName, 'V');
       if (annotationElement is PropertyAccessorElement) {
@@ -148,10 +148,10 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
       expect(name1.staticElement, isPrefixElement);
       expect(name1.staticElement.displayName, 'p');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isClassElement);
       expect(name2.staticElement.displayName, 'A');
       expect(name3, isNull);
@@ -176,10 +176,10 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
       expect(name1.staticElement, isClassElement);
       expect(name1.staticElement.displayName, 'A');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isPropertyAccessorElement);
       expect(name2.staticElement.displayName, 'V');
       expect(name3, isNull);
@@ -204,7 +204,7 @@ class A {
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
       expect(name1.staticElement, isClassElement);
       expect(name1.staticElement.displayName, 'A');
       expect(name2, isNull);
@@ -228,7 +228,7 @@ const V = 0;
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
       expect(name1.staticElement, isPropertyAccessorElement);
       expect(name1.staticElement.displayName, 'V');
       expect(name2, isNull);
@@ -252,10 +252,10 @@ const V = 0;
         SimpleIdentifier name2,
         SimpleIdentifier name3,
         Element annotationElement) {
-      expect(name1, isNotNull);
+      assert(name1 != null);
+      assert(name2 != null);
       expect(name1.staticElement, isPrefixElement);
       expect(name1.staticElement.displayName, 'p');
-      expect(name2, isNotNull);
       expect(name2.staticElement, isPropertyAccessorElement);
       expect(name2.staticElement.displayName, 'V');
       expect(name3, isNull);
@@ -299,19 +299,19 @@ class C {}
 @reflectiveTest
 class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// The error listener to which errors will be reported.
-  GatheringErrorListener _listener;
+  /*late*/ GatheringErrorListener _listener;
 
   /// The type provider used to access the types.
-  TypeProvider _typeProvider;
+  /*late*/ TypeProvider _typeProvider;
 
   /// The library containing the code being resolved.
-  LibraryElementImpl _definingLibrary;
+  /*late*/ LibraryElementImpl _definingLibrary;
 
   /// The resolver visitor that maintains the state for the resolver.
-  ResolverVisitor _visitor;
+  /*late*/ ResolverVisitor _visitor;
 
   /// The resolver being used to resolve the test cases.
-  ElementResolver _resolver;
+  /*late*/ ElementResolver _resolver;
 
   @override
   TypeProvider get typeProvider => _typeProvider;

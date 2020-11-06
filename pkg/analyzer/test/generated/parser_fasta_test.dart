@@ -120,17 +120,17 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     CompilationUnitImpl unit = parseCompilationUnit(
         'class C { foo(int value) { x >>>= value; } }',
         featureSet: tripleShift);
-    ClassDeclaration declaration = unit.declarations[0];
-    MethodDeclaration method = declaration.members[0];
-    BlockFunctionBody blockFunctionBody = method.body;
+    var declaration = unit.declarations[0] as ClassDeclaration;
+    var method = declaration.members[0] as MethodDeclaration;
+    var blockFunctionBody = method.body as BlockFunctionBody;
     NodeList<Statement> statements = blockFunctionBody.block.statements;
     expect(statements, hasLength(1));
-    ExpressionStatement statement = statements[0];
-    AssignmentExpression assignment = statement.expression;
-    SimpleIdentifier leftHandSide = assignment.leftHandSide;
+    var statement = statements[0] as ExpressionStatement;
+    var assignment = statement.expression as AssignmentExpression;
+    var leftHandSide = assignment.leftHandSide as SimpleIdentifier;
     expect(leftHandSide.name, 'x');
     expect(assignment.operator.lexeme, '>>>=');
-    SimpleIdentifier rightHandSide = assignment.rightHandSide;
+    var rightHandSide = assignment.rightHandSide as SimpleIdentifier;
     expect(rightHandSide.name, 'value');
   }
 
@@ -178,7 +178,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(member, isNotNull);
     assertNoErrors();
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
   }
 
@@ -190,7 +190,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 0, 8),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
     expect(field.externalKeyword, isNotNull);
   }
@@ -203,7 +203,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
   }
 
@@ -215,7 +215,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.ABSTRACT_LATE_FIELD, 0, 8),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
   }
 
@@ -227,7 +227,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.ABSTRACT_STATIC_FIELD, 0, 8),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
   }
 
@@ -239,7 +239,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 6, 4),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
     expect(field.documentationComment, isNull);
     expect(field.metadata, hasLength(0));
@@ -263,7 +263,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(member, isNotNull);
     assertNoErrors();
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.externalKeyword, isNotNull);
   }
 
@@ -275,7 +275,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 9, 8),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNotNull);
     expect(field.externalKeyword, isNotNull);
   }
@@ -288,7 +288,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.externalKeyword, isNotNull);
   }
 
@@ -300,7 +300,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.externalKeyword, isNotNull);
   }
 
@@ -310,7 +310,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(member, isNotNull);
     assertNoErrors();
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.externalKeyword, isNotNull);
   }
 
@@ -322,7 +322,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     ]);
     expect(member, isNotNull);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
     expect(field.documentationComment, isNull);
     expect(field.metadata, hasLength(0));
@@ -346,7 +346,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(member, isNotNull);
     assertNoErrors();
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
     expect(field.documentationComment, isNull);
     expect(field.metadata, hasLength(0));
@@ -372,7 +372,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 5, 5),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
     expect(field.documentationComment, isNull);
     expect(field.metadata, hasLength(0));
@@ -396,7 +396,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(member, isNotNull);
     assertNoErrors();
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
     expect(field.documentationComment, isNull);
     expect(field.metadata, hasLength(0));
@@ -419,7 +419,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
     expect(field.documentationComment, isNull);
     expect(field.metadata, hasLength(0));
@@ -443,7 +443,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(member, isNotNull);
     assertNoErrors();
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.abstractKeyword, isNull);
   }
 
@@ -453,7 +453,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(member, isNotNull);
     assertNoErrors();
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.externalKeyword, isNull);
   }
 
@@ -465,7 +465,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 4, 4),
     ]);
     expect(member, isFieldDeclaration);
-    FieldDeclaration field = member;
+    var field = member as FieldDeclaration;
     expect(field.covariantKeyword, isNull);
     expect(field.documentationComment, isNull);
     expect(field.metadata, hasLength(0));
