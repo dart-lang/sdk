@@ -12,6 +12,7 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 import 'package:pedantic/pedantic.dart';
+import 'package:pub/pub.dart';
 import 'package:usage/usage.dart';
 
 import 'src/analytics.dart';
@@ -19,7 +20,6 @@ import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
 import 'src/commands/fix.dart';
-import 'src/commands/pub.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
@@ -194,7 +194,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(FixCommand());
     addCommand(FormatCommand(verbose: verbose));
     addCommand(MigrateCommand(verbose: verbose));
-    addCommand(PubCommand());
+    addCommand(pubCommand());
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
   }

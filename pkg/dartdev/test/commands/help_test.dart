@@ -37,10 +37,10 @@ void help() {
     }
   });
 
-  test('(help pub == pub help)', () {
+  test('(help pub == pub --help)', () {
     p = project();
     var result = p.runSync('help', ['pub']);
-    var pubHelpResult = p.runSync('pub', ['help']);
+    var pubHelpResult = p.runSync('pub', ['--help']);
 
     expect(result.stdout, contains(pubHelpResult.stdout));
     expect(result.stderr, contains(pubHelpResult.stderr));

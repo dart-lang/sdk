@@ -65,9 +65,11 @@ void run() {
     ProcessResult result = p.runSync('run', []);
 
     expect(result.stdout, isEmpty);
-    expect(result.stderr,
-        contains('Could not find the implicit file to run: bin'));
-    expect(result.exitCode, 64);
+    expect(
+        result.stderr,
+        contains(
+            'Could not find `bin/dartdev_temp.dart` in package `dartdev_temp`.'));
+    expect(result.exitCode, 255);
   });
 
   test('arguments are properly passed', () {

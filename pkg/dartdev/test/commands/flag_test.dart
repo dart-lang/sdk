@@ -42,6 +42,11 @@ void command() {
             command.name != 'pub') {
           expect(command.argParser.usageLineLength,
               stdout.hasTerminal ? stdout.terminalColumns : null);
+        } else if (command.name == 'pub') {
+          // TODO(sigurdm): Avoid special casing here.
+          // https://github.com/dart-lang/pub/issues/2700
+          expect(command.argParser.usageLineLength,
+              stdout.hasTerminal ? stdout.terminalColumns : 80);
         } else {
           expect(command.argParser.usageLineLength, isNull);
         }
