@@ -23,6 +23,7 @@ class ConstantReader {
 
   virtual ~ConstantReader() {}
 
+  InstancePtr ReadConstantInitializer();
   InstancePtr ReadConstantExpression();
   ObjectPtr ReadAnnotations();
 

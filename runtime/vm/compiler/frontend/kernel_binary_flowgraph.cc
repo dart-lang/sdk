@@ -33,6 +33,17 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   FieldHelper field_helper(this);
   field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
 
+  // Constants are directly accessed at use sites of Dart code. In C++ - if
+  // we need to access static constants - we do so directly using the kernel
+  // evaluation instead of invoking the initializer function in Dart code.
+  //
+  // If the field is marked as @pragma('vm:entry-point') then the embedder might
+  // invoke the getter, so we'll generate the initializer function.
+  ASSERT(!field_helper.IsConst() ||
+         Field::Handle(Z, parsed_function()->function().accessor_field())
+                 .VerifyEntryPoint(EntryPointPragma::kGetterOnly) ==
+             Error::null());
+
   Tag initializer_tag = ReadTag();  // read first part of initializer.
   if (initializer_tag != kSomething) {
     UNREACHABLE();
@@ -45,14 +56,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
 
   Fragment body(normal_entry);
   body += B->CheckStackOverflowInPrologue(field_helper.position_);
-  if (field_helper.IsConst()) {
-    // This will read the initializer.
-    body += Constant(
-        Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression()));
-  } else {
-    body += SetupCapturedParameters(parsed_function()->function());
-    body += BuildExpression();  // read initializer.
-  }
+  body += SetupCapturedParameters(parsed_function()->function());
+  body += BuildExpression();  // read initializer.
   body += Return(TokenPosition::kNoSource);
 
   PrologueInfo prologue_info(-1, -1);

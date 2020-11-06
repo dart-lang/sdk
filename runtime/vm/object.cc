@@ -10611,6 +10611,14 @@ ErrorPtr Field::InitializeStatic() const {
 ObjectPtr Field::EvaluateInitializer() const {
   Thread* const thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_static() && is_const()) {
+    ASSERT(!FLAG_precompiled_mode);
+    return kernel::EvaluateStaticConstFieldInitializer(*this);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   NoOOBMessageScope no_msg_scope(thread);
   NoReloadScope no_reload_scope(thread->isolate(), thread);
   const Function& initializer = Function::Handle(EnsureInitializerFunction());
