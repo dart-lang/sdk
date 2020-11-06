@@ -322,11 +322,11 @@ class SafepointRwLock {
 
 #if defined(DEBUG)
   bool IsCurrentThreadReader() {
-    SafepointMonitorLocker ml(&monitor_);
     ThreadId id = OSThread::GetCurrentThreadId();
     if (IsCurrentThreadWriter()) {
       return true;
     }
+    MutexLocker ml(&reader_ids_mutex_);
     for (intptr_t i = readers_ids_.length() - 1; i >= 0; i--) {
       if (readers_ids_.At(i) == id) {
         return true;
@@ -356,7 +356,10 @@ class SafepointRwLock {
       ml.Wait();
     }
 #if defined(DEBUG)
-    readers_ids_.Add(OSThread::GetCurrentThreadId());
+    {
+      MutexLocker ml(&reader_ids_mutex_);
+      readers_ids_.Add(OSThread::GetCurrentThreadId());
+    }
 #endif
     ++state_;
     return true;
@@ -365,16 +368,19 @@ class SafepointRwLock {
     SafepointMonitorLocker ml(&monitor_);
     ASSERT(state_ > 0);
 #if defined(DEBUG)
-    intptr_t i = readers_ids_.length() - 1;
-    ThreadId id = OSThread::GetCurrentThreadId();
-    while (i >= 0) {
-      if (readers_ids_.At(i) == id) {
-        readers_ids_.RemoveAt(i);
-        break;
+    {
+      MutexLocker ml(&reader_ids_mutex_);
+      intptr_t i = readers_ids_.length() - 1;
+      ThreadId id = OSThread::GetCurrentThreadId();
+      while (i >= 0) {
+        if (readers_ids_.At(i) == id) {
+          readers_ids_.RemoveAt(i);
+          break;
+        }
+        i--;
       }
-      i--;
+      ASSERT(i >= 0);
     }
-    ASSERT(i >= 0);
 #endif
     if (--state_ == 0) {
       ml.NotifyAll();
@@ -411,6 +417,7 @@ class SafepointRwLock {
   intptr_t state_ = 0;
 
 #if defined(DEBUG)
+  Mutex reader_ids_mutex_;
   MallocGrowableArray<ThreadId> readers_ids_;
 #endif
   ThreadId writer_id_ = OSThread::kInvalidThreadId;
