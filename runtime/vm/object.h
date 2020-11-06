@@ -10559,11 +10559,13 @@ class ReceivePort : public Instance {
   InstancePtr handler() const { return raw_ptr()->handler_; }
   void set_handler(const Instance& value) const;
 
+#if !defined(PRODUCT)
   StackTracePtr allocation_location() const {
     return raw_ptr()->allocation_location_;
   }
 
   StringPtr debug_name() const { return raw_ptr()->debug_name_; }
+#endif
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(ReceivePortLayout));
