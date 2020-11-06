@@ -44,8 +44,7 @@ def CreateDartTestFile(tempdir):
 def Run(command):
     print "Running: %s" % ' '.join(command)
     sys.stdout.flush()
-    no_color_env['TERM'] = 'nocolor'
-
+    no_color_env = {'TERM': 'nocolor'}
     exit_code = subprocess.call(command, env=no_color_env)
     if exit_code != 0:
         raise OSError(exit_code)
