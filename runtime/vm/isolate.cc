@@ -426,7 +426,7 @@ void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
 }
 
 bool IsolateGroup::ContainsOnlyOneIsolate() {
-  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
   return isolate_count_ == 0;
 }
 

@@ -1194,6 +1194,8 @@ class Class : public Object {
 
   // Returns the list of classes directly implementing this class.
   GrowableObjectArrayPtr direct_implementors() const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
     return raw_ptr()->direct_implementors_;
   }
   void AddDirectImplementor(const Class& subclass, bool is_mixin) const;
@@ -1201,6 +1203,11 @@ class Class : public Object {
 
   // Returns the list of classes having this class as direct superclass.
   GrowableObjectArrayPtr direct_subclasses() const {
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
+    return direct_subclasses_unsafe();
+  }
+  GrowableObjectArrayPtr direct_subclasses_unsafe() const {
     return raw_ptr()->direct_subclasses_;
   }
   void AddDirectSubclass(const Class& subclass) const;

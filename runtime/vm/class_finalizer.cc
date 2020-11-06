@@ -1386,6 +1386,7 @@ void ClassFinalizer::SortClasses() {
   // Prevent background compiler from adding deferred classes or canonicalizing
   // new types while classes are being sorted and type hashes are modified.
   BackgroundCompiler::Stop(I);
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
 
   ClassTable* table = I->class_table();
   intptr_t num_cids = table->NumCids();

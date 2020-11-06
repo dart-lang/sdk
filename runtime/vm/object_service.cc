@@ -154,7 +154,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   {
     JSONArray subclasses_array(&jsobj, "subclasses");
     const GrowableObjectArray& subclasses =
-        GrowableObjectArray::Handle(direct_subclasses());
+        GrowableObjectArray::Handle(direct_subclasses_unsafe());
     if (!subclasses.IsNull()) {
       Class& subclass = Class::Handle();
       for (intptr_t i = 0; i < subclasses.Length(); ++i) {
