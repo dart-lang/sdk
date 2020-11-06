@@ -44,7 +44,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "2111e4f933e262e8b127bbbae766609463364a67",
+  "co19_rev": "de1f3498dff1091b7ca715eb7f831e24ec1a8c64",
   "co19_2_rev": "e48b3090826cf40b8037648f19d211e8eab1b4b6",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
