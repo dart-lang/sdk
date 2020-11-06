@@ -42,7 +42,7 @@ def CreateDartTestFile(tempdir):
 
 
 def Run(command):
-    print "Running: %s" % ' '.join(args)
+    print "Running: %s" % ' '.join(command)
     sys.stdout.flush()
     no_color_env['TERM'] = 'nocolor'
 
