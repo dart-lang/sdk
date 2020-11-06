@@ -104,8 +104,8 @@ class FileSystemExceptionTest {
 
 @reflectiveTest
 class MemoryFileSourceExistingTest extends BaseTest {
-  String sourcePath;
-  Source source;
+  /*late*/ String sourcePath;
+  /*late*/ Source source;
 
   @override
   setUp() {
@@ -184,8 +184,8 @@ class MemoryFileSourceExistingTest extends BaseTest {
 
 @reflectiveTest
 class MemoryFileSourceNotExistingTest extends BaseTest {
-  String sourcePath;
-  Source source;
+  /*late*/ String sourcePath;
+  /*late*/ Source source;
 
   @override
   setUp() {
@@ -516,7 +516,7 @@ class MemoryResourceProviderTest extends BaseTest
 
   _watchingFolder(
       String path, Function(List<WatchEvent> changesReceived) test) {
-    Folder folder = provider.getResource(path);
+    var folder = provider.getResource(path) as Folder;
     var changesReceived = <WatchEvent>[];
     folder.changes.listen(changesReceived.add);
     return test(changesReceived);
