@@ -1056,9 +1056,9 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
   }
 }
 
-const intptr_t kInitialCallbackIdsReserved = 1024;
+const intptr_t kInitialCallbackIdsReserved = 16;
 int32_t Thread::AllocateFfiCallbackId() {
-  Zone* Z = isolate()->current_zone();
+  Zone* Z = Thread::Current()->zone();
   if (ffi_callback_code_ == GrowableObjectArray::null()) {
     ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
   }
@@ -1079,7 +1079,7 @@ int32_t Thread::AllocateFfiCallbackId() {
 }
 
 void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
-  Zone* Z = isolate()->current_zone();
+  Zone* Z = Thread::Current()->zone();
 
   /// In AOT the callback ID might have been allocated during compilation but
   /// 'ffi_callback_code_' is initialized to empty again when the program
@@ -1093,8 +1093,12 @@ void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
   const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
 
   if (callback_id >= array.Length()) {
-    if (callback_id >= array.Capacity()) {
-      array.Grow(callback_id + 1);
+    const int32_t capacity = array.Capacity();
+    if (callback_id >= capacity) {
+      // Ensure both that we grow enough and an exponential growth strategy.
+      const int32_t new_capacity =
+          Utils::Maximum(callback_id + 1, capacity * 2);
+      array.Grow(new_capacity);
     }
     array.SetLength(callback_id + 1);
   }
