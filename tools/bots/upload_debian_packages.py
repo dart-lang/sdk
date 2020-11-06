@@ -6,7 +6,6 @@
 
 import os
 
-import bot
 import bot_utils
 
 utils = bot_utils.GetUtils()
@@ -35,7 +34,7 @@ def ArchiveArtifacts(tarfile, builddir, channel):
 
 
 if __name__ == '__main__':
-    bot_name, _ = bot.GetBotName()
+    bot_name = os.environ.get('BUILDBOT_BUILDERNAME')
     channel = bot_utils.GetChannelFromName(bot_name)
     if channel != bot_utils.Channel.BLEEDING_EDGE:
         builddir = os.path.join(bot_utils.DART_DIR, utils.GetBuildDir(HOST_OS),
