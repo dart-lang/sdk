@@ -86,8 +86,9 @@ void pub() {
     expect(result.stdout, isEmpty);
     expect(
         result.stderr,
-        contains('bin/main.dart:1:18: Error: This requires the \'non-nullable\''
-            ' language feature to be enabled.\n'));
+        contains('bin/main.dart:1:18: Error: This requires the null safety '
+            'language feature, which requires language version of 2.12 or '
+            'higher.\n'));
   });
 
   test('failure', () {
