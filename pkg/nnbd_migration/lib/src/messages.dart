@@ -18,7 +18,7 @@ const String unmigratedDependenciesWarning = '''
 Warning: package has unmigrated dependencies.
 
 Continuing due to the presence of `$_skipImportCheckFlag`.  To see a complete
- list of these libraries, re-run without the `$_skipImportCheckFlag` flag.
+list of these libraries, re-run without the `$_skipImportCheckFlag` flag.
 ''';
 
 String unmigratedDependenciesError(List<String> uris) => '''
