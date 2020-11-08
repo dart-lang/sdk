@@ -21,8 +21,8 @@ main() {
 
 @reflectiveTest
 class CompilationUnitImplTest extends ParserTestCase {
-  String testSource;
-  CompilationUnitImpl testUnit;
+  /*late*/ String testSource;
+  /*late*/ CompilationUnitImpl testUnit;
 
   parse(String source) {
     testSource = source;
@@ -84,7 +84,7 @@ class ExpressionImplTest extends ParserTestCase {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
     NodeLocator visitor = NodeLocator(index);
-    AstNodeImpl node = visitor.searchWithin(testUnit);
+    var node = visitor.searchWithin(testUnit) as AstNodeImpl;
     expect(node, TypeMatcher<ExpressionImpl>());
     expect((node as ExpressionImpl).inConstantContext,
         isInContext ? isTrue : isFalse);

@@ -91,17 +91,17 @@ mixin ElementsTypesMixin {
 
   InterfaceTypeImpl get nullNone {
     var element = typeProvider.nullType.element;
-    return interfaceTypeNone(element);
+    return interfaceTypeNone(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullQuestion {
     var element = typeProvider.nullType.element;
-    return interfaceTypeQuestion(element);
+    return interfaceTypeQuestion(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullStar {
     var element = typeProvider.nullType.element;
-    return interfaceTypeStar(element);
+    return interfaceTypeStar(element) as InterfaceTypeImpl;
   }
 
   InterfaceType get numNone {
@@ -222,7 +222,7 @@ mixin ElementsTypesMixin {
   }) {
     return FunctionTypeAliasElementImpl(name, 0)
       ..typeParameters = typeParameters
-      ..function = function;
+      ..function = function as GenericFunctionTypeElementImpl;
   }
 
   FunctionType functionTypeAliasType(
@@ -279,42 +279,42 @@ mixin ElementsTypesMixin {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureOrNone(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureOrQuestion(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureOrStar(DartType type) {
     return typeProvider.futureOrElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureQuestion(DartType type) {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl futureStar(DartType type) {
     return typeProvider.futureElement.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
-    );
+    ) as InterfaceTypeImpl;
   }
 
   DartType futureType(DartType T) {
