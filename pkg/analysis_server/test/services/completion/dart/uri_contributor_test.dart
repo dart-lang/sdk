@@ -88,30 +88,6 @@ class UriContributorTest extends DartCompletionContributorTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  Future<void> test_export_package2_off() async {
-    try {
-      UriContributor.suggestFilePaths = false;
-
-      var fooRootPath = '$workspaceRootPath/foo';
-      var barRootPath = '$workspaceRootPath/bar';
-      newFile('$fooRootPath/lib/foo.dart', content: 'library foo;');
-      newFile('$fooRootPath/lib/baz/too.dart', content: 'library too;');
-      newFile('$barRootPath/lib/bar.dart', content: 'library bar;');
-
-      writeTestPackageConfig(
-        config: PackageConfigFileBuilder()
-          ..add(name: 'foo', rootPath: fooRootPath)
-          ..add(name: 'bar', rootPath: barRootPath),
-      );
-
-      addTestSource('export "package:foo/baz/^" import');
-      await computeSuggestions();
-      assertNotSuggested('package:foo/baz/too.dart');
-    } finally {
-      UriContributor.suggestFilePaths = true;
-    }
-  }
-
   Future<void> test_import() async {
     addTestSource('import "^"');
     await computeSuggestions();
@@ -197,30 +173,6 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertSuggest('foo/', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo/bar.dart');
     assertNotSuggested('../blat.dart');
-  }
-
-  Future<void> test_import_file2_off() async {
-    try {
-      UriContributor.suggestFilePaths = false;
-
-      testFile = convertPath('$testPackageRootPath/test.dart');
-      newFile('$testPackageRootPath/other.dart');
-      newFile('$testPackageRootPath/foo/bar.dart');
-      newFile('$workspaceRootPath/blat.dart');
-
-      addTestSource('import "..^" import');
-      await computeSuggestions();
-      expect(replacementOffset, completionOffset - 2);
-      expect(replacementLength, 2);
-      assertNotSuggested('completion.dart');
-      assertNotSuggested('other.dart');
-      assertNotSuggested('foo');
-      assertNotSuggested('foo/');
-      assertNotSuggested('foo/bar.dart');
-      assertNotSuggested('../blat.dart');
-    } finally {
-      UriContributor.suggestFilePaths = true;
-    }
   }
 
   Future<void> test_import_file_child() async {
@@ -363,30 +315,6 @@ class UriContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
         csKind: CompletionSuggestionKind.IMPORT);
-  }
-
-  Future<void> test_import_package2_off() async {
-    try {
-      UriContributor.suggestFilePaths = false;
-
-      var fooRootPath = '$workspaceRootPath/foo';
-      var barRootPath = '$workspaceRootPath/bar';
-      newFile('$fooRootPath/lib/foo.dart');
-      newFile('$fooRootPath/lib/baz/too.dart');
-      newFile('$barRootPath/lib/bar.dart');
-
-      writeTestPackageConfig(
-        config: PackageConfigFileBuilder()
-          ..add(name: 'foo', rootPath: fooRootPath)
-          ..add(name: 'bar', rootPath: barRootPath),
-      );
-
-      addTestSource('import "package:foo/baz/^" import');
-      await computeSuggestions();
-      assertNotSuggested('package:foo/baz/too.dart');
-    } finally {
-      UriContributor.suggestFilePaths = true;
-    }
   }
 
   Future<void> test_import_package2_raw() async {
