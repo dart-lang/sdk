@@ -762,6 +762,50 @@ int? f() => null
     });
   }
 
+  test_lifecycle_import_check_via_export() async {
+    // If the user's code exports a library that imports a non-migrated library,
+    // that's a problem too.
+    var projectContents = simpleProject(
+        sourceText: "export 'package:foo/foo.dart';",
+        packageConfigText: _getPackageConfigText(
+            migrated: false, packagesMigrated: {'foo': true, 'bar': false}));
+    var projectDir = createProjectDir(projectContents);
+    resourceProvider.newFile(
+        packagePath('foo/lib/foo.dart'), "import 'package:bar/bar.dart';");
+    resourceProvider.newFile(packagePath('bar/lib/bar.dart'), '');
+    await assertRunFailure([projectDir], expectedExitCode: 1);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('Error: package has unmigrated dependencies'));
+    // Output should mention bar.dart, since it's unmigrated
+    expect(output, contains('package:bar/bar.dart'));
+    // But it should not mention foo.dart, which is migrated
+    expect(output, isNot(contains('package:foo/foo.dart')));
+  }
+
+  test_lifecycle_import_check_via_indirect_export() async {
+    // If the user's code imports a library that exports a library that imports
+    // a non-migrated library, that's a problem too.
+    var projectContents = simpleProject(
+        sourceText: "import 'package:foo/foo.dart';",
+        packageConfigText: _getPackageConfigText(
+            migrated: false,
+            packagesMigrated: {'foo': true, 'bar': true, 'baz': false}));
+    var projectDir = createProjectDir(projectContents);
+    resourceProvider.newFile(
+        packagePath('foo/lib/foo.dart'), "export 'package:bar/bar.dart';");
+    resourceProvider.newFile(
+        packagePath('bar/lib/bar.dart'), "import 'package:baz/baz.dart';");
+    resourceProvider.newFile(packagePath('baz/lib/baz.dart'), '');
+    await assertRunFailure([projectDir], expectedExitCode: 1);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('Error: package has unmigrated dependencies'));
+    // Output should mention baz.dart, since it's unmigrated
+    expect(output, contains('package:baz/baz.dart'));
+    // But it should not mention foo.dart or bar.dart, which are migrated
+    expect(output, isNot(contains('package:foo/foo.dart')));
+    expect(output, isNot(contains('package:bar/bar.dart')));
+  }
+
   test_lifecycle_no_preview() async {
     var projectContents = simpleProject();
     var projectDir = createProjectDir(projectContents);

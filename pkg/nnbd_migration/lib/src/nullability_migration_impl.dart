@@ -217,7 +217,10 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       return;
     }
     ExperimentStatusException.sanityCheck(result);
-    _recordTransitiveImportOptInStatus(result.libraryElement.importedLibraries);
+    _recordTransitiveImportExportOptInStatus(
+        result.libraryElement.importedLibraries);
+    _recordTransitiveImportExportOptInStatus(
+        result.libraryElement.exportedLibraries);
     if (_variables == null) {
       _variables = Variables(_graph, result.typeProvider, _getLineInfo,
           instrumentation: _instrumentation,
@@ -270,14 +273,16 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   /// Records the opt in/out status of all libraries in [libraries], and any
-  /// libraries they transitively import, in [_libraryOptInStatus].
-  void _recordTransitiveImportOptInStatus(Iterable<LibraryElement> libraries) {
+  /// libraries they transitively import or export, in [_libraryOptInStatus].
+  void _recordTransitiveImportExportOptInStatus(
+      Iterable<LibraryElement> libraries) {
     var librariesToCheck = libraries.toList();
     while (librariesToCheck.isNotEmpty) {
       var library = librariesToCheck.removeLast();
       if (_libraryOptInStatus.containsKey(library.source)) continue;
       _libraryOptInStatus[library.source] = library.isNonNullableByDefault;
       librariesToCheck.addAll(library.importedLibraries);
+      librariesToCheck.addAll(library.exportedLibraries);
     }
   }
 
