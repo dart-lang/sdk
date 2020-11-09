@@ -582,18 +582,22 @@ abstract class CombinedMemberSignatureBase<T> {
       NamedType namedType = functionType.namedParameters.first;
       VariableDeclaration parameter = function.namedParameters.first;
       namedParameters.add(new VariableDeclaration(parameter.name,
-          type: namedType.type, isCovariant: parameter.isCovariant)
+          type: namedType.type,
+          isRequired: namedType.isRequired,
+          isCovariant: parameter.isCovariant)
         ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);
     } else if (namedParameterCount > 1) {
-      Map<String, DartType> namedTypes = {};
+      Map<String, NamedType> namedTypes = {};
       for (NamedType namedType in functionType.namedParameters) {
-        namedTypes[namedType.name] = namedType.type;
+        namedTypes[namedType.name] = namedType;
       }
       for (int i = 0; i < namedParameterCount; i++) {
         VariableDeclaration parameter = function.namedParameters[i];
-        DartType parameterType = namedTypes[parameter.name];
+        NamedType namedParameterType = namedTypes[parameter.name];
         namedParameters.add(new VariableDeclaration(parameter.name,
-            type: parameterType, isCovariant: parameter.isCovariant)
+            type: namedParameterType.type,
+            isRequired: namedParameterType.isRequired,
+            isCovariant: parameter.isCovariant)
           ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);
       }
     }

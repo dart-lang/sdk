@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method method1({required core::int a}) → void
+    ;
+  method method2({core::int? a, required core::int b}) → void
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+  method method1({required covariant core::int a}) → void
+    ;
+  method method2({covariant core::int? a, required core::int b}) → void
+    ;
+}
+class C extends self::A implements self::B {
+  synthetic constructor •() → self::C
+    ;
+  forwarding-stub method method1({required covariant core::int a}) → void
+    return super.{self::A::method1}(a: a);
+  forwarding-stub method method2({covariant core::int? a, required core::int b}) → void
+    return super.{self::A::method2}(a: a, b: b);
+}
+class D extends self::C {
+  synthetic constructor •() → self::D
+    ;
+  method method1({required covariant core::int a}) → void
+    ;
+  method method2({covariant core::int? a, required core::int b}) → void
+    ;
+}
+static method main() → dynamic
+  ;
