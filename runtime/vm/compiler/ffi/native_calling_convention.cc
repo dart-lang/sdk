@@ -16,9 +16,6 @@ namespace compiler {
 
 namespace ffi {
 
-// Argument #0 is the function pointer.
-const intptr_t kNativeParamsStartAt = 1;
-
 const intptr_t kNoFpuRegister = -1;
 
 // In Soft FP, floats and doubles get passed in integer registers.
@@ -44,29 +41,6 @@ static const NativeType& ConvertIfSoftFp(Zone* zone, const NativeType& rep) {
   return rep;
 }
 
-// Representations of the arguments to a C signature function.
-static ZoneGrowableArray<const NativeType*>& ArgumentRepresentations(
-    Zone* zone,
-    const Function& signature) {
-  const intptr_t num_arguments =
-      signature.num_fixed_parameters() - kNativeParamsStartAt;
-  auto& result = *new ZoneGrowableArray<const NativeType*>(zone, num_arguments);
-  for (intptr_t i = 0; i < num_arguments; i++) {
-    AbstractType& arg_type = AbstractType::Handle(
-        zone, signature.ParameterTypeAt(i + kNativeParamsStartAt));
-    const auto& rep = NativeType::FromAbstractType(zone, arg_type);
-    result.Add(&rep);
-  }
-  return result;
-}
-
-// Representation of the result of a C signature function.
-static NativeType& ResultRepresentation(Zone* zone, const Function& signature) {
-  AbstractType& result_type =
-      AbstractType::Handle(zone, signature.result_type());
-  return NativeType::FromAbstractType(zone, result_type);
-}
-
 // Represents the state of a stack frame going into a call, between allocations
 // of argument locations.
 class ArgumentAllocator : public ValueObject {
@@ -90,9 +64,9 @@ class ArgumentAllocator : public ValueObject {
         if (CallingConventions::kArgumentIntRegXorFpuReg) {
           ASSERT(cpu_regs_used == CallingConventions::kNumArgRegs);
         }
+        // Transfer on stack.
       }
-    } else {
-      ASSERT(payload_type_converted.IsInt());
+    } else if (payload_type_converted.IsInt()) {
       // Some calling conventions require the callee to make the lowest 32 bits
       // in registers non-garbage.
       const auto& container_type =
@@ -115,8 +89,12 @@ class ArgumentAllocator : public ValueObject {
         if (cpu_regs_used + 1 <= CallingConventions::kNumArgRegs) {
           return *new (zone_) NativeRegistersLocation(
               payload_type, container_type, AllocateCpuRegister());
+        } else {
+          // Transfer on stack.
         }
       }
+    } else {
+      UNREACHABLE();
     }
 
     return AllocateStack(payload_type);
@@ -227,7 +205,7 @@ static NativeLocations& ArgumentLocations(
     Zone* zone,
     const ZoneGrowableArray<const NativeType*>& arg_reps) {
   intptr_t num_arguments = arg_reps.length();
-  auto& result = *new NativeLocations(zone, num_arguments);
+  auto& result = *new (zone) NativeLocations(zone, num_arguments);
 
   // Loop through all arguments and assign a register or a stack location.
   ArgumentAllocator frame_state(zone);
@@ -239,8 +217,8 @@ static NativeLocations& ArgumentLocations(
 }
 
 // Location for the result of a C signature function.
-static NativeLocation& ResultLocation(Zone* zone,
-                                      const NativeType& payload_type) {
+static const NativeLocation& ResultLocation(Zone* zone,
+                                            const NativeType& payload_type) {
   const auto& payload_type_converted = ConvertIfSoftFp(zone, payload_type);
   const auto& container_type =
       CallingConventions::kReturnRegisterExtension == kExtendedTo4
@@ -263,44 +241,43 @@ static NativeLocation& ResultLocation(Zone* zone,
                                              CallingConventions::kReturnReg);
 }
 
-NativeCallingConvention::NativeCallingConvention(Zone* zone,
-                                                 const Function& c_signature)
-    : zone_(ASSERT_NOTNULL(zone)),
-      c_signature_(c_signature),
-      arg_locs_(
-          ArgumentLocations(zone_,
-                            ArgumentRepresentations(zone_, c_signature_))),
-      result_loc_(
-          ResultLocation(zone_, ResultRepresentation(zone_, c_signature_))) {}
-
-intptr_t NativeCallingConvention::num_args() const {
-  ASSERT(c_signature_.NumOptionalParameters() == 0);
-  ASSERT(c_signature_.NumOptionalPositionalParameters() == 0);
-
-  // Subtract the #0 argument, the function pointer.
-  return c_signature_.num_fixed_parameters() - kNativeParamsStartAt;
-}
-
-AbstractTypePtr NativeCallingConvention::CType(intptr_t arg_index) const {
-  if (arg_index == kResultIndex) {
-    return c_signature_.result_type();
-  }
-
-  // Skip #0 argument, the function pointer.
-  return c_signature_.ParameterTypeAt(arg_index + kNativeParamsStartAt);
+const NativeCallingConvention& NativeCallingConvention::FromSignature(
+    Zone* zone,
+    const NativeFunctionType& signature) {
+  const auto& argument_locations =
+      ArgumentLocations(zone, signature.argument_types());
+  const auto& return_location = ResultLocation(zone, signature.return_type());
+  return *new (zone)
+      NativeCallingConvention(argument_locations, return_location);
 }
 
 intptr_t NativeCallingConvention::StackTopInBytes() const {
-  const intptr_t num_arguments = arg_locs_.length();
+  const intptr_t num_arguments = argument_locations_.length();
   intptr_t max_height_in_bytes = 0;
   for (intptr_t i = 0; i < num_arguments; i++) {
-    if (Location(i).IsStack()) {
-      const intptr_t height = Location(i).AsStack().offset_in_bytes() +
-                              Location(i).container_type().SizeInBytes();
-      max_height_in_bytes = Utils::Maximum(height, max_height_in_bytes);
-    }
+    max_height_in_bytes = Utils::Maximum(
+        max_height_in_bytes, argument_locations_[i]->StackTopInBytes());
   }
   return Utils::RoundUp(max_height_in_bytes, compiler::target::kWordSize);
+}
+
+const char* NativeCallingConvention::ToCString() const {
+  char buffer[1024];
+  BufferFormatter bf(buffer, 1024);
+  PrintTo(&bf);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+}
+
+void NativeCallingConvention::PrintTo(BaseTextBuffer* f) const {
+  f->AddString("(");
+  for (intptr_t i = 0; i < argument_locations_.length(); i++) {
+    if (i > 0) {
+      f->AddString(", ");
+    }
+    argument_locations_[i]->PrintTo(f);
+  }
+  f->AddString(") => ");
+  return_location_.PrintTo(f);
 }
 
 }  // namespace ffi

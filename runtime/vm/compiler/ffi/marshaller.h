@@ -11,6 +11,7 @@
 
 #include <platform/globals.h>
 
+#include "platform/assert.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
@@ -24,16 +25,32 @@ namespace compiler {
 
 namespace ffi {
 
+// Values below 0 index result (result might be multiple if composite).
+const intptr_t kResultIndex = -1;
+
 // Provides the mapping from the native calling convention to the Dart calling
 // convention.
 //
 // This class is set up in a query-able way so that it's underlying logic can
 // be extended to support more native ABI features and calling conventions.
-//
-// TODO(36730): Add a way to query arguments that are broken into multiple
-// parts.
-class BaseMarshaller : public NativeCallingConvention {
+class BaseMarshaller : public ZoneAllocated {
  public:
+  intptr_t num_args() const {
+    return native_calling_convention_.argument_locations().length();
+  }
+
+  intptr_t StackTopInBytes() const {
+    return native_calling_convention_.StackTopInBytes();
+  }
+
+  // The location of the argument at `arg_index`.
+  const NativeLocation& Location(intptr_t arg_index) const {
+    if (arg_index == kResultIndex) {
+      return native_calling_convention_.return_location();
+    }
+    return *native_calling_convention_.argument_locations().At(arg_index);
+  }
+
   // Unboxed representation on how the value is passed or received from regular
   // Dart code.
   Representation RepInDart(intptr_t arg_index) const {
@@ -62,6 +79,11 @@ class BaseMarshaller : public NativeCallingConvention {
     return Location(arg_index).payload_type();
   }
 
+  // The C Type (expressed in a Dart Type) of the argument at `arg_index`.
+  //
+  // Excluding the #0 argument which is the function pointer.
+  AbstractTypePtr CType(intptr_t arg_index) const;
+
   // Requires boxing or unboxing.
   bool IsPointer(intptr_t arg_index) const {
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
@@ -83,18 +105,16 @@ class BaseMarshaller : public NativeCallingConvention {
   StringPtr function_name() const { return dart_signature_.name(); }
 
  protected:
-  BaseMarshaller(Zone* zone, const Function& dart_signature)
-      : NativeCallingConvention(
-            zone,
-            Function::ZoneHandle(zone, dart_signature.FfiCSignature())),
-        dart_signature_(dart_signature) {
-    ASSERT(dart_signature_.IsZoneHandle());
-  }
+  BaseMarshaller(Zone* zone, const Function& dart_signature);
 
- private:
+  ~BaseMarshaller() {}
+
+  Zone* zone_;
   // Contains the function pointer as argument #0.
   // The Dart signature is used for the function and argument names.
   const Function& dart_signature_;
+  const Function& c_signature_;
+  const NativeCallingConvention& native_calling_convention_;
 };
 
 class CallMarshaller : public BaseMarshaller {
@@ -103,6 +123,9 @@ class CallMarshaller : public BaseMarshaller {
       : BaseMarshaller(zone, dart_signature) {}
 
   dart::Location LocInFfiCall(intptr_t arg_index) const;
+
+ protected:
+  ~CallMarshaller() {}
 };
 
 class CallbackMarshaller : public BaseMarshaller {
@@ -125,6 +148,8 @@ class CallbackMarshaller : public BaseMarshaller {
   }
 
  protected:
+  ~CallbackMarshaller() {}
+
   const NativeLocations& callback_locs_;
 };
 

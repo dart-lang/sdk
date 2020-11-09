@@ -4,9 +4,13 @@
 
 #include "vm/compiler/ffi/marshaller.h"
 
+#include "platform/assert.h"
+#include "platform/globals.h"
 #include "vm/compiler/ffi/frame_rebase.h"
+#include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
+#include "vm/log.h"
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
@@ -16,6 +20,56 @@ namespace dart {
 namespace compiler {
 
 namespace ffi {
+
+// Argument #0 is the function pointer.
+const intptr_t kNativeParamsStartAt = 1;
+
+// Representations of the arguments and return value of a C signature function.
+static const NativeFunctionType& NativeFunctionSignature(
+    Zone* zone,
+    const Function& c_signature) {
+  ASSERT(c_signature.NumOptionalParameters() == 0);
+  ASSERT(c_signature.NumOptionalPositionalParameters() == 0);
+
+  const intptr_t num_arguments =
+      c_signature.num_fixed_parameters() - kNativeParamsStartAt;
+  auto& argument_representations =
+      *new ZoneGrowableArray<const NativeType*>(zone, num_arguments);
+  for (intptr_t i = 0; i < num_arguments; i++) {
+    AbstractType& arg_type = AbstractType::Handle(
+        zone, c_signature.ParameterTypeAt(i + kNativeParamsStartAt));
+    const auto& rep = NativeType::FromAbstractType(zone, arg_type);
+    argument_representations.Add(&rep);
+  }
+
+  const auto& result_type =
+      AbstractType::Handle(zone, c_signature.result_type());
+  const auto& result_representation =
+      NativeType::FromAbstractType(zone, result_type);
+
+  const auto& result = *new (zone) NativeFunctionType(argument_representations,
+                                                      result_representation);
+  return result;
+}
+
+BaseMarshaller::BaseMarshaller(Zone* zone, const Function& dart_signature)
+    : zone_(zone),
+      dart_signature_(dart_signature),
+      c_signature_(Function::ZoneHandle(zone, dart_signature.FfiCSignature())),
+      native_calling_convention_(NativeCallingConvention::FromSignature(
+          zone,
+          NativeFunctionSignature(zone_, c_signature_))) {
+  ASSERT(dart_signature_.IsZoneHandle());
+}
+
+AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
+  if (arg_index == kResultIndex) {
+    return c_signature_.result_type();
+  }
+
+  // Skip #0 argument, the function pointer.
+  return c_signature_.ParameterTypeAt(arg_index + kNativeParamsStartAt);
+}
 
 bool BaseMarshaller::ContainsHandles() const {
   return dart_signature_.FfiCSignatureContainsHandles();
@@ -80,14 +134,14 @@ class CallbackArgumentTranslator : public ValueObject {
   static NativeLocations& TranslateArgumentLocations(
       Zone* zone,
       const NativeLocations& arg_locs) {
-    auto& pushed_locs = *(new NativeLocations(arg_locs.length()));
+    auto& pushed_locs = *(new (zone) NativeLocations(arg_locs.length()));
 
     CallbackArgumentTranslator translator;
     for (intptr_t i = 0, n = arg_locs.length(); i < n; i++) {
       translator.AllocateArgument(*arg_locs[i]);
     }
     for (intptr_t i = 0, n = arg_locs.length(); i < n; ++i) {
-      pushed_locs.Add(&translator.TranslateArgument(*arg_locs[i], zone));
+      pushed_locs.Add(&translator.TranslateArgument(zone, *arg_locs[i]));
     }
 
     return pushed_locs;
@@ -97,16 +151,17 @@ class CallbackArgumentTranslator : public ValueObject {
   void AllocateArgument(const NativeLocation& arg) {
     if (arg.IsStack()) return;
 
-    ASSERT(arg.IsRegisters() || arg.IsFpuRegisters());
     if (arg.IsRegisters()) {
       argument_slots_required_ += arg.AsRegisters().num_regs();
-    } else {
+    } else if (arg.IsFpuRegisters()) {
       argument_slots_required_ += 8 / target::kWordSize;
+    } else {
+      UNREACHABLE();
     }
   }
 
-  const NativeLocation& TranslateArgument(const NativeLocation& arg,
-                                          Zone* zone) {
+  const NativeLocation& TranslateArgument(Zone* zone,
+                                          const NativeLocation& arg) {
     if (arg.IsStack()) {
       // Add extra slots after the saved arguments for the return address and
       // frame pointer of the dummy arguments frame, which will be between the
@@ -152,10 +207,9 @@ class CallbackArgumentTranslator : public ValueObject {
 CallbackMarshaller::CallbackMarshaller(Zone* zone,
                                        const Function& dart_signature)
     : BaseMarshaller(zone, dart_signature),
-      callback_locs_(
-          CallbackArgumentTranslator::TranslateArgumentLocations(zone_,
-                                                                 arg_locs_)) {}
-
+      callback_locs_(CallbackArgumentTranslator::TranslateArgumentLocations(
+          zone_,
+          native_calling_convention_.argument_locations())) {}
 }  // namespace ffi
 
 }  // namespace compiler
