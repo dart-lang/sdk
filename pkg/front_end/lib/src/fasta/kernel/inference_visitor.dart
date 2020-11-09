@@ -3742,7 +3742,11 @@ class InferenceVisitor
         errorTemplate: templateArgumentTypeNotAssignable,
         nullabilityErrorTemplate: templateArgumentTypeNotAssignableNullability,
         nullabilityPartErrorTemplate:
-            templateArgumentTypeNotAssignablePartNullability);
+            templateArgumentTypeNotAssignablePartNullability,
+        nullabilityNullErrorTemplate:
+            templateArgumentTypeNotAssignableNullabilityNull,
+        nullabilityNullTypeErrorTemplate:
+            templateArgumentTypeNotAssignableNullabilityNullType);
 
     Expression equals = new MethodInvocation(
         left,

@@ -29,7 +29,7 @@ void testNullSafeCalls() {
     takesNever(nil);
     //         ^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Never' because 'Null' is nullable and 'Never' isn't.
+    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Never' because 'Never' is not nullable.
     takesNever(never);
     takesNever(3 as dynamic);
     (takesNever as dynamic)(3);
@@ -41,7 +41,7 @@ void testNullSafeCalls() {
     takesInt(nil);
     //       ^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'int' because 'Null' is nullable and 'int' isn't.
+    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
     takesInt(nil as dynamic);
     (takesInt as dynamic)(nil);
     (takesInt as dynamic)("hello");
@@ -53,7 +53,7 @@ void testNullSafeCalls() {
     takesObject(nil);
     //          ^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Object' because 'Null' is nullable and 'Object' isn't.
+    // [cfe] The argument type 'Null' can't be assigned to the parameter type 'Object' because 'Object' is not nullable.
     takesObject(nil as dynamic);
     (takesObject as dynamic)(nil);
   }
@@ -205,12 +205,12 @@ void main() {
   // ^
   // [analyzer] unspecified
   //      ^
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Never' because 'Null' is nullable and 'Never' isn't.
+  // [cfe] The value 'null' can't be assigned to a variable of type 'Never' because 'Never' is not nullable.
   never = nil;
   // ^
   // [analyzer] unspecified
   //      ^
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Never' because 'Null' is nullable and 'Never' isn't.
+  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'Never' because 'Never' is not nullable.
   nil = never;
   testNullSafeCalls();
   testNullSafeApply();

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+A boz(Null x) {}
 A foo(B? x, List<B?> l, Map<B?, B?> m, List<B>? l2, Map<B, B>? m2) {}
 List<A> bar(List<B?> x, List<List<B?>> l, Map<List<B?>, List<B?>> m) {}
 

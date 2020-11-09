@@ -450,8 +450,12 @@ InvalidPackageUri/example: Fail
 InvalidReturn/analyzerCode: Fail
 InvalidReturnAsync/analyzerCode: Fail
 InvalidReturnAsyncNullability/analyzerCode: Fail
+InvalidReturnAsyncNullabilityNull/analyzerCode: Fail
+InvalidReturnAsyncNullabilityNullType/analyzerCode: Fail
 InvalidReturnAsyncPartNullability/analyzerCode: Fail
 InvalidReturnNullability/analyzerCode: Fail
+InvalidReturnNullabilityNull/analyzerCode: Fail
+InvalidReturnNullabilityNullType/analyzerCode: Fail
 InvalidReturnPartNullability/analyzerCode: Fail
 InvalidSuperInInitializer/example: Fail
 InvalidThisInInitializer/example: Fail

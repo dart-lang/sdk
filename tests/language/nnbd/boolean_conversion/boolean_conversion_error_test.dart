@@ -57,47 +57,47 @@ void main() {
     if (nil) {}
     //  ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     [if (nil) 3];
     //   ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     nil ? 3 : 4;
 //  ^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     while (nil) {}
     //     ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     do {} while (nil);
     //           ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     nil || true;
 //  ^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     nil && true;
 //  ^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+// [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     true || nil;
     //      ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     true && nil;
     //      ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     for (int i = 0; nil; i++) {}
     //              ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
     [for (int i = 0; nil; i++) 3];
     //               ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
-    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+    // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
   }
   {
     // Check that values of type `Object` are not usable as booleans.

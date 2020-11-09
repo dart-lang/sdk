@@ -3318,6 +3318,27 @@ ArgumentTypeNotAssignablePartNullability:
       method(j);
     }
 
+ArgumentTypeNotAssignableNullabilityNull:
+  template: "The value 'null' can't be assigned to the parameter type '#type' because '#type' is not nullable."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(int i) {}
+    main() {
+      method(null);
+    }
+
+ArgumentTypeNotAssignableNullabilityNullType:
+  template: "The argument type '#type' can't be assigned to the parameter type '#type2' because '#type2' is not nullable."
+  analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
+  configuration: nnbd-strong
+  script: >
+    method(int i) {}
+    main() {
+      Null n;
+      method(n);
+    }
+
 InvalidAssignmentError:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   analyzerCode: INVALID_ASSIGNMENT
@@ -3347,6 +3368,27 @@ InvalidAssignmentErrorPartNullability:
       List<int> i = [];
       List<int?> j = [null];
       i = j;
+    }
+
+InvalidAssignmentErrorNullabilityNull:
+  template: "The value 'null' can't be assigned to a variable of type '#type' because '#type' is not nullable."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      int i = 0;
+      i = null;
+    }
+
+InvalidAssignmentErrorNullabilityNullType:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2' because '#type2' is not nullable."
+  analyzerCode: INVALID_ASSIGNMENT
+  configuration: nnbd-strong
+  script: >
+    main() {
+      Null n;
+      int i = 0;
+      i = n;
     }
 
 PatchClassTypeVariablesMismatch:
@@ -3882,6 +3924,16 @@ InvalidReturnPartNullability:
   configuration: nnbd-strong
   declaration: "List<int> foo(List<int?> list) { return list; }"
 
+InvalidReturnNullabilityNull:
+  template: "The value 'null' can't be returned from a function with return type '#type' because '#type' is not nullable."
+  configuration: nnbd-strong
+  declaration: "int foo() { return null; }"
+
+InvalidReturnNullabilityNullType:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2' because '#type2' is not nullable."
+  configuration: nnbd-strong
+  declaration: "int foo(Null i) { return i; }"
+
 InvalidReturnAsync:
   template: "A value of type '#type' can't be returned from an async function with return type '#type2'."
   configuration: nnbd-strong
@@ -3896,6 +3948,16 @@ InvalidReturnAsyncPartNullability:
   template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type3' is nullable and '#type4' isn't."
   configuration: nnbd-strong
   declaration: "Future<List<int>> foo(List<int?> list) async { return list; }"
+
+InvalidReturnAsyncNullabilityNull:
+  template: "The value 'null' can't be returned from an async function with return type '#type' because '#type' is not nullable."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return null; }"
+
+InvalidReturnAsyncNullabilityNullType:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2' because '#type2' is not nullable."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo(Null n) async { return n; }"
 
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."

@@ -56,7 +56,7 @@ main() {
   // [cfe] Operand of null-aware operation '??' has type 'bool' which excludes null.
   //                                         ^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
-  // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool' because 'Null' is nullable and 'bool' isn't.
+  // [cfe] The value 'null' can't be assigned to a variable of type 'bool' because 'bool' is not nullable.
   //                                                 ^^^^
   // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
 }
