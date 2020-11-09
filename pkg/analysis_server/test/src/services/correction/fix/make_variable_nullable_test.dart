@@ -21,6 +21,57 @@ class MakeVariableNullableTest extends FixProcessorTest
   @override
   FixKind get kind => DartFixKind.MAKE_VARIABLE_NULLABLE;
 
+  Future<void> test_fieldFormalParameter() async {
+    await resolveTestCode('''
+class C {
+  String? s;
+  C({String this.s});
+}
+''');
+    // TODO(srawlins): Remove the type if the quick fix as is would use the same
+    // type as the field's type.
+    await assertHasFix('''
+class C {
+  String? s;
+  C({String? this.s});
+}
+''');
+  }
+
+  Future<void> test_fieldFormalParameter_functionTyped() async {
+    await resolveTestCode('''
+class C {
+  String Function()? s;
+  C({String this.s()});
+}
+''');
+    await assertHasFix('''
+class C {
+  String Function()? s;
+  C({String this.s()?});
+}
+''');
+  }
+
+  Future<void> test_fieldFormalParameter_untyped() async {
+    await resolveTestCode('''
+class C {
+  String s;
+  C({this.s});
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_functionTypedFormalParameter() async {
+    await resolveTestCode('''
+void f({String s()}) {}
+''');
+    await assertHasFix('''
+void f({String s()?}) {}
+''');
+  }
+
   Future<void> test_lhsNotIdentifier() async {
     await resolveTestCode('''
 void f(C c) {
@@ -70,6 +121,42 @@ void f() {
   s = null;
   print(s);
 }
+''');
+  }
+
+  Future<void> test_simpleFormalParameter() async {
+    await resolveTestCode('''
+void f({String s}) {}
+''');
+    await assertHasFix('''
+void f({String? s}) {}
+''');
+  }
+
+  Future<void> test_simpleFormalParameter_final() async {
+    await resolveTestCode('''
+void f({final String s}) {}
+''');
+    await assertHasFix('''
+void f({final String? s}) {}
+''');
+  }
+
+  Future<void> test_simpleFormalParameter_functionType() async {
+    await resolveTestCode('''
+void f({String Function() s}) {}
+''');
+    await assertHasFix('''
+void f({String Function()? s}) {}
+''');
+  }
+
+  Future<void> test_simpleFormalParameter_typeVariable() async {
+    await resolveTestCode('''
+void f<T>({T s}) {}
+''');
+    await assertHasFix('''
+void f<T>({T? s}) {}
 ''');
   }
 
