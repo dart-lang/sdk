@@ -572,6 +572,16 @@ class HintCode extends AnalyzerErrorCode {
           "rename the function in the imported library.");
 
   /**
+   * https://github.com/dart-lang/sdk/issues/44063
+   */
+  static const HintCode IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE = HintCode(
+    'IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE',
+    "The library '{0}' is legacy, and should not be imported into "
+        "a null safe library.",
+    correction: "Try migrating the imported library.",
+  );
+
+  /**
    * When "strict-inference" is enabled, collection literal types must be
    * inferred via the context type, or have type arguments.
    */
