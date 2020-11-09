@@ -470,8 +470,6 @@ class Debugger {
   void NotifyIsolateCreated();
   void Shutdown();
 
-  void OnIsolateRunnable();
-
   void NotifyCompilation(const Function& func);
   void NotifyDoneLoading();
 
