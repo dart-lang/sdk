@@ -323,13 +323,15 @@ class A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 class B extends A {
   void foo([int a = 0]) {}
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_concrete_equal_optOut_extends_optIn() async {

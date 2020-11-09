@@ -136,7 +136,7 @@ mixin M5 on M2 {}
   }
 
   test_isExtendedBy_ClassDeclaration_isQualified() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -169,7 +169,7 @@ class C = A with B;
   }
 
   test_isExtendedBy_ClassTypeAlias_isQualified() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -195,7 +195,7 @@ class B implements A {} // 2
   }
 
   test_isImplementedBy_ClassDeclaration_isQualified() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -243,7 +243,7 @@ mixin M on A {} // 2
   }
 
   test_isInvokedBy_FunctionElement() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 library lib;
 foo() {}
 ''');
@@ -419,7 +419,7 @@ class B extends Object with A {} // 2
   }
 
   test_isMixedInBy_ClassDeclaration_isQualified() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -547,7 +547,7 @@ main() {
   }
 
   test_isReferencedBy_ClassElement_invocation_isQualified() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 class A {}
 ''');
     await _indexTestUnit('''
@@ -586,7 +586,7 @@ main(B p) {
   }
 
   test_isReferencedBy_CompilationUnitElement_export() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
@@ -597,7 +597,7 @@ export 'lib.dart';
   }
 
   test_isReferencedBy_CompilationUnitElement_import() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 library lib;
 ''');
     await _indexTestUnit('''
@@ -608,7 +608,7 @@ import 'lib.dart';
   }
 
   test_isReferencedBy_CompilationUnitElement_part() async {
-    newFile('$testProject/my_unit.dart', content: 'part of my_lib;');
+    newFile('$testProject2/my_unit.dart', content: 'part of my_lib;');
     await _indexTestUnit('''
 library my_lib;
 part 'my_unit.dart';
@@ -618,8 +618,8 @@ part 'my_unit.dart';
   }
 
   test_isReferencedBy_CompilationUnitElement_part_inPart() async {
-    newFile('$testProject/a.dart', content: 'part of lib;');
-    newFile('$testProject/b.dart', content: '''
+    newFile('$testProject2/a.dart', content: 'part of lib;');
+    newFile('$testProject2/b.dart', content: '''
 library lib;
 part 'a.dart';
 ''');
@@ -899,7 +899,7 @@ main() {
   }
 
   test_isReferencedBy_FunctionElement_with_LibraryElement() async {
-    newFile('$testProject/foo.dart', content: r'''
+    newFile('$testProject2/foo.dart', content: r'''
 bar() {}
 ''');
     await _indexTestUnit('''
@@ -957,8 +957,8 @@ class A {
   }
 
   test_isReferencedBy_MultiplyDefinedElement() async {
-    newFile('$testProject/a1.dart', content: 'class A {}');
-    newFile('$testProject/a2.dart', content: 'class A {}');
+    newFile('$testProject2/a1.dart', content: 'class A {}');
+    newFile('$testProject2/a2.dart', content: 'class A {}');
     await _indexTestUnit('''
 import 'a1.dart';
 import 'a2.dart';
@@ -1153,7 +1153,7 @@ main(bool b) {
   }
 
   test_isReferencedBy_TopLevelVariableElement() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 library lib;
 var V;
 ''');
@@ -1177,7 +1177,7 @@ main() {
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasGetterSetter() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 int get V => 0;
 void set V(_) {}
 ''');
@@ -1189,7 +1189,7 @@ import 'lib.dart' show V;
   }
 
   test_isReferencedBy_TopLevelVariableElement_synthetic_hasSetter() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 void set V(_) {}
 ''');
     await _indexTestUnit('''
@@ -1224,7 +1224,7 @@ class A {
 
   test_subtypes_classDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1274,7 +1274,7 @@ class Z implements E, D {
 
   test_subtypes_classTypeAlias() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 class A {}
 class B {}
 class C {}
@@ -1312,7 +1312,7 @@ class X extends dynamic {
 
   test_subtypes_mixinDeclaration() async {
     String libP = 'package:test/lib.dart;package:test/lib.dart';
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 class A {}
 class B {}
 class C {}

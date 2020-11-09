@@ -472,11 +472,13 @@ f(F<int> a) {}
 class A {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(A a) {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     assertTypeName(
       findNode.typeName('A a'),
@@ -491,11 +493,13 @@ f(A a) {}
 class A<T extends num> {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(A a) {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     assertTypeName(
       findNode.typeName('A a'),
@@ -510,11 +514,13 @@ f(A a) {}
 class A<T> {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(A a) {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     assertTypeName(
       findNode.typeName('A a'),
@@ -529,11 +535,13 @@ f(A a) {}
 class A<T> {}
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(A<int> a) {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     assertTypeName(
       findNode.typeName('A<int> a'),
@@ -548,11 +556,13 @@ f(A<int> a) {}
 typedef F = int Function();
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(F a) {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     assertTypeName(
       findNode.typeName('F a'),
@@ -567,11 +577,13 @@ f(F a) {}
 typedef F<T extends num> = T Function();
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(F a) {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     assertTypeName(
       findNode.typeName('F a'),
@@ -586,11 +598,13 @@ f(F a) {}
 typedef F<T> = T Function();
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(F a) {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     assertTypeName(
       findNode.typeName('F a'),
@@ -605,11 +619,13 @@ f(F a) {}
 typedef F<T> = T Function();
 ''');
 
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(F<int> a) {}
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
     assertTypeName(
       findNode.typeName('F<int> a'),
