@@ -77,6 +77,17 @@ class CompilerOptions implements DiagnosticOptions {
   /// If this is set, the compilation stops after type inference.
   Uri writeDataUri;
 
+  /// Location from which the serialized closed world is read.
+  ///
+  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// frontend work is skipped.
+  Uri readClosedWorldUri;
+
+  /// Location to which inference data is serialized.
+  ///
+  /// If this is set, the compilation stops after computing the closed world.
+  Uri writeClosedWorldUri;
+
   /// Location from which codegen data is read.
   ///
   /// If this is set, the compilation starts at codegen enqueueing.
@@ -497,6 +508,10 @@ class CompilerOptions implements DiagnosticOptions {
           _extractUriListOption(options, '${Flags.dillDependencies}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
+      ..readClosedWorldUri =
+          _extractUriOption(options, '${Flags.readClosedWorld}=')
+      ..writeClosedWorldUri =
+          _extractUriOption(options, '${Flags.writeClosedWorld}=')
       ..readCodegenUri = _extractUriOption(options, '${Flags.readCodegen}=')
       ..writeCodegenUri = _extractUriOption(options, '${Flags.writeCodegen}=')
       ..codegenShard = _extractIntOption(options, '${Flags.codegenShard}=')
