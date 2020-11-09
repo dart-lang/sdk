@@ -99,10 +99,6 @@ class CommandLineOptions {
   static const previewPortOption = 'preview-port';
   static const sdkPathOption = 'sdk-path';
   static const skipImportCheckFlag = 'skip-import-check';
-
-  /// TODO(paulberry): remove this flag once internal sources have been updated.
-  @Deprecated('The migration tool no longer performs "pub outdated" checks')
-  static const skipPubOutdatedFlag = 'skip-pub-outdated';
   static const summaryOption = 'summary';
   static const verboseFlag = 'verbose';
   static const webPreviewFlag = 'web-preview';
@@ -128,36 +124,16 @@ class CommandLineOptions {
   final bool webPreview;
 
   CommandLineOptions(
-      {@required
-          this.applyChanges,
-      @required
-          this.directory,
-      @required
-          this.ignoreErrors,
-      @required
-          this.ignoreExceptions,
-      @required
-          this.previewHostname,
-      @required
-          this.previewPort,
-      @required
-          this.sdkPath,
-      // TODO(paulberry): make this parameter required once internal sources
-      // have been updated.
-      bool skipImportCheck,
-      // TODO(paulberry): remove this flag once internal sources have been
-      // updated.
-      @Deprecated('The migration tool no longer performs "pub outdated" checks')
-          bool skipPubOutdated = false,
-      @required
-          this.summary,
-      @required
-          this.webPreview})
-      // `skipImportCheck` has replaced `skipPubOutdated`, so if the caller
-      // specifies the latter but not the former, carry it over.
-      // TODO(paulberry): remove this logic once internal sources have been
-      // updated.
-      : skipImportCheck = skipImportCheck ?? skipPubOutdated;
+      {@required this.applyChanges,
+      @required this.directory,
+      @required this.ignoreErrors,
+      @required this.ignoreExceptions,
+      @required this.previewHostname,
+      @required this.previewPort,
+      @required this.sdkPath,
+      @required this.skipImportCheck,
+      @required this.summary,
+      @required this.webPreview});
 }
 
 // TODO(devoncarew): Refactor so this class extends DartdevCommand.
