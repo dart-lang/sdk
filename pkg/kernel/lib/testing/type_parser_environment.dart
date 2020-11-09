@@ -114,8 +114,10 @@ class Env {
     coreTypes = new CoreTypes(component);
   }
 
-  DartType parseType(String text) {
-    return _libraryEnvironment.parseType(text);
+  DartType parseType(String text,
+      {Map<String, DartType Function()> additionalTypes}) {
+    return _libraryEnvironment.parseType(text,
+        additionalTypes: additionalTypes);
   }
 
   void extendWithTypeParameters(String typeParameters) {
@@ -154,13 +156,17 @@ class TypeParserEnvironment {
 
   TypeParserEnvironment(this.uri, this.fileUri, [this._parent]);
 
-  Node _kernelFromParsedType(ParsedType type) {
-    Node node = type.accept(const _KernelFromParsedType(), this);
+  Node _kernelFromParsedType(ParsedType type,
+      {Map<String, DartType Function()> additionalTypes}) {
+    Node node = type.accept(
+        new _KernelFromParsedType(additionalTypes: additionalTypes), this);
     return node;
   }
 
-  DartType parseType(String text) {
-    return _kernelFromParsedType(type_parser.parse(text).single);
+  DartType parseType(String text,
+      {Map<String, DartType Function()> additionalTypes}) {
+    return _kernelFromParsedType(type_parser.parse(text).single,
+        additionalTypes: additionalTypes);
   }
 
   bool isObject(String name) => name == "Object" && "$uri" == "dart:core";
@@ -209,7 +215,9 @@ class TypeParserEnvironment {
 }
 
 class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
-  const _KernelFromParsedType();
+  final Map<String, DartType Function()> additionalTypes; // Can be null.
+
+  const _KernelFromParsedType({this.additionalTypes});
 
   DartType visitInterfaceType(
       ParsedInterfaceType node, TypeParserEnvironment environment) {
@@ -237,6 +245,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new NullType();
+    } else if (additionalTypes != null && additionalTypes.containsKey(name)) {
+      return additionalTypes[name].call();
     }
     TreeNode declaration = environment.lookupDeclaration(name);
     List<ParsedType> arguments = node.arguments;
