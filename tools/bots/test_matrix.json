@@ -3200,6 +3200,8 @@
             "--arch=ia32",
             "create_sdk",
             "runtime",
+            "dart2js_platform.dill",
+            "dart2js_nnbd_strong_platform.dill",
             "kernel-service.dart.snapshot"
           ]
         },
@@ -3234,6 +3236,8 @@
             "runtime",
             "gen_snapshot",
             "dart_precompiled_runtime",
+            "dart2js_platform.dill",
+            "dart2js_nnbd_strong_platform.dill",
             "kernel-service.dart.snapshot",
             "dartdevc_test"
           ]
