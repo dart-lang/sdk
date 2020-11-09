@@ -148,7 +148,7 @@
       "name": "cli_util",
       "rootUri": "../third_party/pkg/cli_util",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "clock",

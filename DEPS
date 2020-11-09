@@ -78,7 +78,7 @@ vars = {
   "browser-compat-data_tag": "v1.0.22",
   "charcode_rev": "bcd8a12c315b7a83390e4865ad847ecd9344cba2",
   "chrome_rev" : "19997",
-  "cli_util_rev" : "335ed165887d0ec97c2a09173ebf22dcf56a6c4e",
+  "cli_util_rev" : "50cc840b146615899e97b892578848401b2028d5",
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
   "collection_rev": "e4bb038ce2d8e66fb15818aa40685c68d53692ab",
   "convert_rev": "dd3bd28f63be7cb8ab961f38bc73229e4473b555",
