@@ -147,7 +147,7 @@ vars = {
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
   "source_span_rev": "49ff31eabebed0da0ae6634124f8ba5c6fbf57f1",
   "sse_tag": "e5cf68975e8e87171a3dc297577aa073454a91dc",
-  "stack_trace_tag": "c9c867fa9d5b9c8a059e33d3efe759698aa49d60",
+  "stack_trace_tag": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
   "stagehand_tag": "v3.3.9",
   "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
