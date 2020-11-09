@@ -987,8 +987,8 @@ class ToSourceVisitor2Test {
   }
 
   void test_visitFieldFormalParameter_type_covariant() {
-    FieldFormalParameterImpl expected = AstTestFactory.fieldFormalParameter(
-        null, AstTestFactory.typeName4("A"), "a");
+    var expected = AstTestFactory.fieldFormalParameter(
+        null, AstTestFactory.typeName4("A"), "a") as FieldFormalParameterImpl;
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant A this.a", expected);
@@ -1570,9 +1570,8 @@ class ToSourceVisitor2Test {
   }
 
   void test_visitFunctionTypedFormalParameter_type_covariant() {
-    FunctionTypedFormalParameterImpl expected =
-        AstTestFactory.functionTypedFormalParameter(
-            AstTestFactory.typeName4("T"), "f");
+    var expected = AstTestFactory.functionTypedFormalParameter(
+        AstTestFactory.typeName4("T"), "f") as FunctionTypedFormalParameterImpl;
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant T f()", expected);
@@ -2471,8 +2470,8 @@ class ToSourceVisitor2Test {
   }
 
   void test_visitSimpleFormalParameter_type_covariant() {
-    SimpleFormalParameterImpl expected = AstTestFactory.simpleFormalParameter4(
-        AstTestFactory.typeName4("A"), "a");
+    var expected = AstTestFactory.simpleFormalParameter4(
+        AstTestFactory.typeName4("A"), "a") as SimpleFormalParameterImpl;
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant A a", expected);

@@ -51,7 +51,7 @@ class Scanner {
 
   final List<int> lineStarts = <int>[];
 
-  Token firstToken;
+  /*late final*/ Token firstToken;
 
   /// A flag indicating whether the scanner should recognize the `>>>` operator
   /// and the `>>>=` operator.

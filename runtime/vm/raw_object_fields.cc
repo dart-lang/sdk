@@ -171,8 +171,6 @@ namespace dart {
   F(ExternalTypedData, length_)                                                \
   F(ReceivePort, send_port_)                                                   \
   F(ReceivePort, handler_)                                                     \
-  F(ReceivePort, debug_name_)                                                  \
-  F(ReceivePort, allocation_location_)                                         \
   F(StackTrace, async_link_)                                                   \
   F(StackTrace, code_array_)                                                   \
   F(StackTrace, pc_offset_array_)                                              \
@@ -211,6 +209,10 @@ namespace dart {
   F(Field, type_test_cache_)                                                   \
   F(WeakSerializationReference, target_)
 
+#define NON_PRODUCT_CLASSES_AND_FIELDS(F)                                      \
+  F(ReceivePort, debug_name_)                                                  \
+  F(ReceivePort, allocation_location_)
+
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {
     OffsetsTableEntry entry = offsets_table[i];
@@ -230,6 +232,10 @@ const char* OffsetsTable::FieldNameForOffset(intptr_t class_id,
 // clang-format off
 OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
     COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#if !defined(PRODUCT)
+    NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#endif
+
 #if defined(DART_PRECOMPILED_RUNTIME)
     AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #else

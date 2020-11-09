@@ -61,11 +61,11 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
       sdkVersion: '2.0.0', additionalFeatures: [Feature.triple_shift]);
 
   void test_parse_member_called_late() {
-    CompilationUnitImpl unit = parseCompilationUnit(
+    var unit = parseCompilationUnit(
         'class C { void late() { new C().late(); } }',
         featureSet: nonNullable);
-    ClassDeclaration declaration = unit.declarations[0];
-    MethodDeclaration method = declaration.members[0];
+    var declaration = unit.declarations[0] as ClassDeclaration;
+    var method = declaration.members[0] as MethodDeclaration;
 
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNull);
@@ -78,9 +78,9 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
 
-    BlockFunctionBody body = method.body;
-    ExpressionStatement statement = body.block.statements[0];
-    MethodInvocation invocation = statement.expression;
+    var body = method.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var invocation = statement.expression as MethodInvocation;
     expect(invocation.operator.lexeme, '.');
     expect(invocation.toSource(), 'new C().late()');
   }
@@ -98,11 +98,11 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseClassMember_operator_gtgtgt() {
-    CompilationUnitImpl unit = parseCompilationUnit(
+    var unit = parseCompilationUnit(
         'class C { bool operator >>>(other) => false; }',
         featureSet: tripleShift);
-    ClassDeclaration declaration = unit.declarations[0];
-    MethodDeclaration method = declaration.members[0];
+    var declaration = unit.declarations[0] as ClassDeclaration;
+    var method = declaration.members[0] as MethodDeclaration;
 
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNull);
@@ -117,7 +117,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_parseClassMember_operator_gtgtgteq() {
-    CompilationUnitImpl unit = parseCompilationUnit(
+    var unit = parseCompilationUnit(
         'class C { foo(int value) { x >>>= value; } }',
         featureSet: tripleShift);
     var declaration = unit.declarations[0] as ClassDeclaration;
@@ -506,376 +506,377 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   }
 
   void test_listLiteral_for() {
-    ListLiteral list = parseCollectionLiteral(
+    var list = parseCollectionLiteral(
       '[1, await for (var x in list) 2]',
       inAsync: true,
-    );
+    ) as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    ForElement second = list.elements[1];
+    var second = list.elements[1] as ForElement;
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
     expect(second.rightParenthesis.lexeme, ')');
-    ForEachPartsWithDeclaration forLoopParts = second.forLoopParts;
+    var forLoopParts = second.forLoopParts as ForEachPartsWithDeclaration;
     DeclaredIdentifier forLoopVar = forLoopParts.loopVariable;
     expect(forLoopVar.identifier.name, 'x');
     expect(forLoopParts.inKeyword, isNotNull);
-    SimpleIdentifier iterable = forLoopParts.iterable;
+    var iterable = forLoopParts.iterable as SimpleIdentifier;
     expect(iterable.name, 'list');
   }
 
   void test_listLiteral_forIf() {
-    ListLiteral list = parseCollectionLiteral(
+    var list = parseCollectionLiteral(
       '[1, await for (var x in list) if (c) 2]',
       inAsync: true,
-    );
+    ) as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    ForElement second = list.elements[1];
+    var second = list.elements[1] as ForElement;
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
     expect(second.rightParenthesis.lexeme, ')');
-    ForEachPartsWithDeclaration forLoopParts = second.forLoopParts;
+    var forLoopParts = second.forLoopParts as ForEachPartsWithDeclaration;
     DeclaredIdentifier forLoopVar = forLoopParts.loopVariable;
     expect(forLoopVar.identifier.name, 'x');
     expect(forLoopParts.inKeyword, isNotNull);
-    SimpleIdentifier iterable = forLoopParts.iterable;
+    var iterable = forLoopParts.iterable as SimpleIdentifier;
     expect(iterable.name, 'list');
 
-    IfElement body = second.body;
-    SimpleIdentifier condition = body.condition;
+    var body = second.body as IfElement;
+    var condition = body.condition as SimpleIdentifier;
     expect(condition.name, 'c');
-    IntegerLiteral thenElement = body.thenElement;
+    var thenElement = body.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
   }
 
   void test_listLiteral_forSpread() {
-    ListLiteral list =
-        parseCollectionLiteral('[1, for (int x = 0; x < 10; ++x) ...[2]]');
+    var list =
+        parseCollectionLiteral('[1, for (int x = 0; x < 10; ++x) ...[2]]')
+            as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    ForElement second = list.elements[1];
+    var second = list.elements[1] as ForElement;
     expect(second.awaitKeyword, isNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
     expect(second.rightParenthesis.lexeme, ')');
-    ForPartsWithDeclarations forLoopParts = second.forLoopParts;
+    var forLoopParts = second.forLoopParts as ForPartsWithDeclarations;
     VariableDeclaration forLoopVar = forLoopParts.variables.variables[0];
     expect(forLoopVar.name.name, 'x');
-    BinaryExpression condition = forLoopParts.condition;
-    IntegerLiteral rightOperand = condition.rightOperand;
+    var condition = forLoopParts.condition as BinaryExpression;
+    var rightOperand = condition.rightOperand as IntegerLiteral;
     expect(rightOperand.value, 10);
-    PrefixExpression updater = forLoopParts.updaters[0];
-    SimpleIdentifier updaterOperand = updater.operand;
+    var updater = forLoopParts.updaters[0] as PrefixExpression;
+    var updaterOperand = updater.operand as SimpleIdentifier;
     expect(updaterOperand.name, 'x');
   }
 
   void test_listLiteral_if() {
-    ListLiteral list = parseCollectionLiteral('[1, if (true) 2]');
+    var list = parseCollectionLiteral('[1, if (true) 2]') as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = list.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = list.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    IntegerLiteral thenElement = second.thenElement;
+    var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
     expect(second.elseElement, isNull);
   }
 
   void test_listLiteral_ifElse() {
-    ListLiteral list = parseCollectionLiteral('[1, if (true) 2 else 5]');
+    var list = parseCollectionLiteral('[1, if (true) 2 else 5]') as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = list.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = list.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    IntegerLiteral thenElement = second.thenElement;
+    var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
-    IntegerLiteral elseElement = second.elseElement;
+    var elseElement = second.elseElement as IntegerLiteral;
     expect(elseElement.value, 5);
   }
 
   void test_listLiteral_ifElseFor() {
-    ListLiteral list =
-        parseCollectionLiteral('[1, if (true) 2 else for (a in b) 5]');
+    var list = parseCollectionLiteral('[1, if (true) 2 else for (a in b) 5]')
+        as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = list.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = list.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    IntegerLiteral thenElement = second.thenElement;
+    var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
 
-    ForElement elseElement = second.elseElement;
-    ForEachPartsWithIdentifier forLoopParts = elseElement.forLoopParts;
+    var elseElement = second.elseElement as ForElement;
+    var forLoopParts = elseElement.forLoopParts as ForEachPartsWithIdentifier;
     expect(forLoopParts.identifier.name, 'a');
 
-    IntegerLiteral forValue = elseElement.body;
+    var forValue = elseElement.body as IntegerLiteral;
     expect(forValue.value, 5);
   }
 
   void test_listLiteral_ifElseSpread() {
-    ListLiteral list =
-        parseCollectionLiteral('[1, if (true) ...[2] else ...?[5]]');
+    var list = parseCollectionLiteral('[1, if (true) ...[2] else ...?[5]]')
+        as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = list.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = list.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    SpreadElement thenElement = second.thenElement;
+    var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
-    SpreadElement elseElement = second.elseElement;
+    var elseElement = second.elseElement as SpreadElement;
     expect(elseElement.spreadOperator.lexeme, '...?');
   }
 
   void test_listLiteral_ifFor() {
-    ListLiteral list = parseCollectionLiteral('[1, if (true) for (a in b) 2]');
+    var list =
+        parseCollectionLiteral('[1, if (true) for (a in b) 2]') as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = list.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = list.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
 
-    ForElement thenElement = second.thenElement;
-    ForEachPartsWithIdentifier forLoopParts = thenElement.forLoopParts;
+    var thenElement = second.thenElement as ForElement;
+    var forLoopParts = thenElement.forLoopParts as ForEachPartsWithIdentifier;
     expect(forLoopParts.identifier.name, 'a');
 
-    IntegerLiteral forValue = thenElement.body;
+    var forValue = thenElement.body as IntegerLiteral;
     expect(forValue.value, 2);
     expect(second.elseElement, isNull);
   }
 
   void test_listLiteral_ifSpread() {
-    ListLiteral list = parseCollectionLiteral('[1, if (true) ...[2]]');
+    var list = parseCollectionLiteral('[1, if (true) ...[2]]') as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = list.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = list.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    SpreadElement thenElement = second.thenElement;
+    var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
     expect(second.elseElement, isNull);
   }
 
   void test_listLiteral_spread() {
-    ListLiteral list = parseCollectionLiteral('[1, ...[2]]');
+    var list = parseCollectionLiteral('[1, ...[2]]') as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    SpreadElement element = list.elements[1];
+    var element = list.elements[1] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...');
-    ListLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as ListLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_listLiteral_spreadQ() {
-    ListLiteral list = parseCollectionLiteral('[1, ...?[2]]');
+    var list = parseCollectionLiteral('[1, ...?[2]]') as ListLiteral;
     expect(list.elements, hasLength(2));
-    IntegerLiteral first = list.elements[0];
+    var first = list.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    SpreadElement element = list.elements[1];
+    var element = list.elements[1] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...?');
-    ListLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as ListLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_for() {
-    SetOrMapLiteral map = parseCollectionLiteral(
-        '{1:7, await for (y in list) 2:3}',
-        inAsync: true);
+    var map = parseCollectionLiteral('{1:7, await for (y in list) 2:3}',
+        inAsync: true) as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
-    MapLiteralEntry first = map.elements[0];
-    IntegerLiteral firstValue = first.value;
+    var first = map.elements[0] as MapLiteralEntry;
+    var firstValue = first.value as IntegerLiteral;
     expect(firstValue.value, 7);
 
-    ForElement second = map.elements[1];
+    var second = map.elements[1] as ForElement;
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
     expect(second.rightParenthesis.lexeme, ')');
-    ForEachPartsWithIdentifier forLoopParts = second.forLoopParts;
+    var forLoopParts = second.forLoopParts as ForEachPartsWithIdentifier;
     SimpleIdentifier forLoopVar = forLoopParts.identifier;
     expect(forLoopVar.name, 'y');
     expect(forLoopParts.inKeyword, isNotNull);
-    SimpleIdentifier iterable = forLoopParts.iterable;
+    var iterable = forLoopParts.iterable as SimpleIdentifier;
     expect(iterable.name, 'list');
   }
 
   void test_mapLiteral_forIf() {
-    SetOrMapLiteral map = parseCollectionLiteral(
-        '{1:7, await for (y in list) if (c) 2:3}',
-        inAsync: true);
+    var map = parseCollectionLiteral('{1:7, await for (y in list) if (c) 2:3}',
+        inAsync: true) as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
-    MapLiteralEntry first = map.elements[0];
-    IntegerLiteral firstValue = first.value;
+    var first = map.elements[0] as MapLiteralEntry;
+    var firstValue = first.value as IntegerLiteral;
     expect(firstValue.value, 7);
 
-    ForElement second = map.elements[1];
+    var second = map.elements[1] as ForElement;
     expect(second.awaitKeyword, isNotNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
     expect(second.rightParenthesis.lexeme, ')');
-    ForEachPartsWithIdentifier forLoopParts = second.forLoopParts;
+    var forLoopParts = second.forLoopParts as ForEachPartsWithIdentifier;
     SimpleIdentifier forLoopVar = forLoopParts.identifier;
     expect(forLoopVar.name, 'y');
     expect(forLoopParts.inKeyword, isNotNull);
-    SimpleIdentifier iterable = forLoopParts.iterable;
+    var iterable = forLoopParts.iterable as SimpleIdentifier;
     expect(iterable.name, 'list');
 
-    IfElement body = second.body;
-    SimpleIdentifier condition = body.condition;
+    var body = second.body as IfElement;
+    var condition = body.condition as SimpleIdentifier;
     expect(condition.name, 'c');
-    MapLiteralEntry thenElement = body.thenElement;
-    IntegerLiteral thenValue = thenElement.value;
+    var thenElement = body.thenElement as MapLiteralEntry;
+    var thenValue = thenElement.value as IntegerLiteral;
     expect(thenValue.value, 3);
   }
 
   void test_mapLiteral_forSpread() {
-    SetOrMapLiteral map =
-        parseCollectionLiteral('{1:7, for (x = 0; x < 10; ++x) ...{2:3}}');
+    var map = parseCollectionLiteral('{1:7, for (x = 0; x < 10; ++x) ...{2:3}}')
+        as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
-    MapLiteralEntry first = map.elements[0];
-    IntegerLiteral firstValue = first.value;
+    var first = map.elements[0] as MapLiteralEntry;
+    var firstValue = first.value as IntegerLiteral;
     expect(firstValue.value, 7);
 
-    ForElement second = map.elements[1];
+    var second = map.elements[1] as ForElement;
     expect(second.awaitKeyword, isNull);
     expect(second.forKeyword.isKeyword, isTrue);
     expect(second.leftParenthesis.lexeme, '(');
     expect(second.rightParenthesis.lexeme, ')');
-    ForPartsWithExpression forLoopParts = second.forLoopParts;
-    AssignmentExpression forLoopInit = forLoopParts.initialization;
-    SimpleIdentifier forLoopVar = forLoopInit.leftHandSide;
+    var forLoopParts = second.forLoopParts as ForPartsWithExpression;
+    var forLoopInit = forLoopParts.initialization as AssignmentExpression;
+    var forLoopVar = forLoopInit.leftHandSide as SimpleIdentifier;
     expect(forLoopVar.name, 'x');
-    BinaryExpression condition = forLoopParts.condition;
-    IntegerLiteral rightOperand = condition.rightOperand;
+    var condition = forLoopParts.condition as BinaryExpression;
+    var rightOperand = condition.rightOperand as IntegerLiteral;
     expect(rightOperand.value, 10);
-    PrefixExpression updater = forLoopParts.updaters[0];
-    SimpleIdentifier updaterOperand = updater.operand;
+    var updater = forLoopParts.updaters[0] as PrefixExpression;
+    var updaterOperand = updater.operand as SimpleIdentifier;
     expect(updaterOperand.name, 'x');
   }
 
   void test_mapLiteral_if() {
-    SetOrMapLiteral map = parseCollectionLiteral('{1:1, if (true) 2:4}');
+    var map = parseCollectionLiteral('{1:1, if (true) 2:4}') as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
-    MapLiteralEntry first = map.elements[0];
-    IntegerLiteral firstValue = first.value;
+    var first = map.elements[0] as MapLiteralEntry;
+    var firstValue = first.value as IntegerLiteral;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = map.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    MapLiteralEntry thenElement = second.thenElement;
-    IntegerLiteral thenElementValue = thenElement.value;
+    var thenElement = second.thenElement as MapLiteralEntry;
+    var thenElementValue = thenElement.value as IntegerLiteral;
     expect(thenElementValue.value, 4);
     expect(second.elseElement, isNull);
   }
 
   void test_mapLiteral_ifElse() {
-    SetOrMapLiteral map =
-        parseCollectionLiteral('{1:1, if (true) 2:4 else 5:6}');
+    var map = parseCollectionLiteral('{1:1, if (true) 2:4 else 5:6}')
+        as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
-    MapLiteralEntry first = map.elements[0];
-    IntegerLiteral firstValue = first.value;
+    var first = map.elements[0] as MapLiteralEntry;
+    var firstValue = first.value as IntegerLiteral;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = map.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    MapLiteralEntry thenElement = second.thenElement;
-    IntegerLiteral thenElementValue = thenElement.value;
+    var thenElement = second.thenElement as MapLiteralEntry;
+    var thenElementValue = thenElement.value as IntegerLiteral;
     expect(thenElementValue.value, 4);
-    MapLiteralEntry elseElement = second.elseElement;
-    IntegerLiteral elseElementValue = elseElement.value;
+    var elseElement = second.elseElement as MapLiteralEntry;
+    var elseElementValue = elseElement.value as IntegerLiteral;
     expect(elseElementValue.value, 6);
   }
 
   void test_mapLiteral_ifElseFor() {
-    SetOrMapLiteral map =
-        parseCollectionLiteral('{1:1, if (true) 2:4 else for (c in d) 5:6}');
+    var map =
+        parseCollectionLiteral('{1:1, if (true) 2:4 else for (c in d) 5:6}')
+            as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
-    MapLiteralEntry first = map.elements[0];
-    IntegerLiteral firstValue = first.value;
+    var first = map.elements[0] as MapLiteralEntry;
+    var firstValue = first.value as IntegerLiteral;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = map.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    MapLiteralEntry thenElement = second.thenElement;
-    IntegerLiteral thenElementValue = thenElement.value;
+    var thenElement = second.thenElement as MapLiteralEntry;
+    var thenElementValue = thenElement.value as IntegerLiteral;
     expect(thenElementValue.value, 4);
 
-    ForElement elseElement = second.elseElement;
-    ForEachPartsWithIdentifier forLoopParts = elseElement.forLoopParts;
+    var elseElement = second.elseElement as ForElement;
+    var forLoopParts = elseElement.forLoopParts as ForEachPartsWithIdentifier;
     expect(forLoopParts.identifier.name, 'c');
 
-    MapLiteralEntry body = elseElement.body;
-    IntegerLiteral bodyValue = body.value;
+    var body = elseElement.body as MapLiteralEntry;
+    var bodyValue = body.value as IntegerLiteral;
     expect(bodyValue.value, 6);
   }
 
   void test_mapLiteral_ifElseSpread() {
-    SetOrMapLiteral map =
-        parseCollectionLiteral('{1:7, if (true) ...{2:4} else ...?{5:6}}');
+    var map = parseCollectionLiteral('{1:7, if (true) ...{2:4} else ...?{5:6}}')
+        as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
-    MapLiteralEntry first = map.elements[0];
-    IntegerLiteral firstValue = first.value;
+    var first = map.elements[0] as MapLiteralEntry;
+    var firstValue = first.value as IntegerLiteral;
     expect(firstValue.value, 7);
 
-    IfElement second = map.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = map.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    SpreadElement thenElement = second.thenElement;
+    var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
-    SpreadElement elseElement = second.elseElement;
+    var elseElement = second.elseElement as SpreadElement;
     expect(elseElement.spreadOperator.lexeme, '...?');
-    SetOrMapLiteral elseElementExpression = elseElement.expression;
+    var elseElementExpression = elseElement.expression as SetOrMapLiteral;
     expect(elseElementExpression.elements, hasLength(1));
-    MapLiteralEntry entry = elseElementExpression.elements[0];
-    IntegerLiteral entryValue = entry.value;
+    var entry = elseElementExpression.elements[0] as MapLiteralEntry;
+    var entryValue = entry.value as IntegerLiteral;
     expect(entryValue.value, 6);
   }
 
   void test_mapLiteral_ifFor() {
-    SetOrMapLiteral map =
-        parseCollectionLiteral('{1:1, if (true) for (a in b) 2:4}');
+    var map = parseCollectionLiteral('{1:1, if (true) for (a in b) 2:4}')
+        as SetOrMapLiteral;
     expect(map.elements, hasLength(2));
-    MapLiteralEntry first = map.elements[0];
-    IntegerLiteral firstValue = first.value;
+    var first = map.elements[0] as MapLiteralEntry;
+    var firstValue = first.value as IntegerLiteral;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = map.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
 
-    ForElement thenElement = second.thenElement;
-    ForEachPartsWithIdentifier forLoopParts = thenElement.forLoopParts;
+    var thenElement = second.thenElement as ForElement;
+    var forLoopParts = thenElement.forLoopParts as ForEachPartsWithIdentifier;
     expect(forLoopParts.identifier.name, 'a');
 
-    MapLiteralEntry body = thenElement.body;
-    IntegerLiteral thenElementValue = body.value;
+    var body = thenElement.body as MapLiteralEntry;
+    var thenElementValue = body.value as IntegerLiteral;
     expect(thenElementValue.value, 4);
     expect(second.elseElement, isNull);
   }
@@ -883,229 +884,234 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
   void test_mapLiteral_ifSpread() {
     SetOrMapLiteral map = parseCollectionLiteral('{1:1, if (true) ...{2:4}}');
     expect(map.elements, hasLength(2));
-    MapLiteralEntry first = map.elements[0];
-    IntegerLiteral firstValue = first.value;
+    var first = map.elements[0] as MapLiteralEntry;
+    var firstValue = first.value as IntegerLiteral;
     expect(firstValue.value, 1);
 
-    IfElement second = map.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = map.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    SpreadElement thenElement = second.thenElement;
+    var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
     expect(second.elseElement, isNull);
   }
 
   void test_mapLiteral_spread() {
-    SetOrMapLiteral map = parseCollectionLiteral('{1: 2, ...{3: 4}}');
+    var map = parseCollectionLiteral('{1: 2, ...{3: 4}}') as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
     expect(map.elements, hasLength(2));
 
-    SpreadElement element = map.elements[1];
+    var element = map.elements[1] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...');
-    SetOrMapLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as SetOrMapLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spread2_typed() {
-    SetOrMapLiteral map = parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}');
+    var map = parseCollectionLiteral('<int, int>{1: 2, ...{3: 4}}')
+        as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(2));
 
-    SpreadElement element = map.elements[1];
+    var element = map.elements[1] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...');
-    SetOrMapLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as SetOrMapLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spread_typed() {
-    SetOrMapLiteral map = parseCollectionLiteral('<int, int>{...{3: 4}}');
+    var map =
+        parseCollectionLiteral('<int, int>{...{3: 4}}') as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(1));
 
-    SpreadElement element = map.elements[0];
+    var element = map.elements[0] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...');
-    SetOrMapLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as SetOrMapLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ() {
-    SetOrMapLiteral map = parseCollectionLiteral('{1: 2, ...?{3: 4}}');
+    var map = parseCollectionLiteral('{1: 2, ...?{3: 4}}') as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
     expect(map.elements, hasLength(2));
 
-    SpreadElement element = map.elements[1];
+    var element = map.elements[1] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...?');
-    SetOrMapLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as SetOrMapLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ2_typed() {
-    SetOrMapLiteral map =
-        parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}');
+    var map = parseCollectionLiteral('<int, int>{1: 2, ...?{3: 4}}')
+        as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(2));
 
-    SpreadElement element = map.elements[1];
+    var element = map.elements[1] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...?');
-    SetOrMapLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as SetOrMapLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_mapLiteral_spreadQ_typed() {
-    SetOrMapLiteral map = parseCollectionLiteral('<int, int>{...?{3: 4}}');
+    var map =
+        parseCollectionLiteral('<int, int>{...?{3: 4}}') as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(1));
 
-    SpreadElement element = map.elements[0];
+    var element = map.elements[0] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...?');
-    SetOrMapLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as SetOrMapLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_if() {
-    SetOrMapLiteral setLiteral = parseCollectionLiteral('{1, if (true) 2}');
+    var setLiteral =
+        parseCollectionLiteral('{1, if (true) 2}') as SetOrMapLiteral;
     expect(setLiteral.elements, hasLength(2));
-    IntegerLiteral first = setLiteral.elements[0];
+    var first = setLiteral.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = setLiteral.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    IntegerLiteral thenElement = second.thenElement;
+    var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
     expect(second.elseElement, isNull);
   }
 
   void test_setLiteral_ifElse() {
-    SetOrMapLiteral setLiteral =
-        parseCollectionLiteral('{1, if (true) 2 else 5}');
+    var setLiteral =
+        parseCollectionLiteral('{1, if (true) 2 else 5}') as SetOrMapLiteral;
     expect(setLiteral.elements, hasLength(2));
-    IntegerLiteral first = setLiteral.elements[0];
+    var first = setLiteral.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = setLiteral.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    IntegerLiteral thenElement = second.thenElement;
+    var thenElement = second.thenElement as IntegerLiteral;
     expect(thenElement.value, 2);
-    IntegerLiteral elseElement = second.elseElement;
+    var elseElement = second.elseElement as IntegerLiteral;
     expect(elseElement.value, 5);
   }
 
   void test_setLiteral_ifElseSpread() {
-    SetOrMapLiteral setLiteral =
-        parseCollectionLiteral('{1, if (true) ...{2} else ...?[5]}');
+    var setLiteral =
+        parseCollectionLiteral('{1, if (true) ...{2} else ...?[5]}')
+            as SetOrMapLiteral;
     expect(setLiteral.elements, hasLength(2));
-    IntegerLiteral first = setLiteral.elements[0];
+    var first = setLiteral.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = setLiteral.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    SpreadElement thenElement = second.thenElement;
+    var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
-    SetOrMapLiteral theExpression = thenElement.expression;
+    var theExpression = thenElement.expression as SetOrMapLiteral;
     expect(theExpression.elements, hasLength(1));
-    SpreadElement elseElement = second.elseElement;
+    var elseElement = second.elseElement as SpreadElement;
     expect(elseElement.spreadOperator.lexeme, '...?');
-    ListLiteral elseExpression = elseElement.expression;
+    var elseExpression = elseElement.expression as ListLiteral;
     expect(elseExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_ifSpread() {
-    SetOrMapLiteral setLiteral =
-        parseCollectionLiteral('{1, if (true) ...[2]}');
+    var setLiteral =
+        parseCollectionLiteral('{1, if (true) ...[2]}') as SetOrMapLiteral;
     expect(setLiteral.elements, hasLength(2));
-    IntegerLiteral first = setLiteral.elements[0];
+    var first = setLiteral.elements[0] as IntegerLiteral;
     expect(first.value, 1);
 
-    IfElement second = setLiteral.elements[1];
-    BooleanLiteral condition = second.condition;
+    var second = setLiteral.elements[1] as IfElement;
+    var condition = second.condition as BooleanLiteral;
     expect(condition.value, isTrue);
-    SpreadElement thenElement = second.thenElement;
+    var thenElement = second.thenElement as SpreadElement;
     expect(thenElement.spreadOperator.lexeme, '...');
     expect(second.elseElement, isNull);
   }
 
   void test_setLiteral_spread2() {
-    SetOrMapLiteral set = parseCollectionLiteral('{3, ...[4]}');
+    var set = parseCollectionLiteral('{3, ...[4]}') as SetOrMapLiteral;
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
     expect(set.elements, hasLength(2));
-    IntegerLiteral value = set.elements[0];
+    var value = set.elements[0] as IntegerLiteral;
     expect(value.value, 3);
 
-    SpreadElement element = set.elements[1];
+    var element = set.elements[1] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...');
-    ListLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as ListLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_spread2Q() {
-    SetOrMapLiteral set = parseCollectionLiteral('{3, ...?[4]}');
+    var set = parseCollectionLiteral('{3, ...?[4]}') as SetOrMapLiteral;
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
     expect(set.elements, hasLength(2));
-    IntegerLiteral value = set.elements[0];
+    var value = set.elements[0] as IntegerLiteral;
     expect(value.value, 3);
 
-    SpreadElement element = set.elements[1];
+    var element = set.elements[1] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...?');
-    ListLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as ListLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_spread_typed() {
-    SetOrMapLiteral set = parseCollectionLiteral('<int>{...[3]}');
+    var set = parseCollectionLiteral('<int>{...[3]}') as SetOrMapLiteral;
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
     expect(set.elements, hasLength(1));
 
-    SpreadElement element = set.elements[0];
+    var element = set.elements[0] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...');
-    ListLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as ListLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setLiteral_spreadQ_typed() {
-    SetOrMapLiteral set = parseCollectionLiteral('<int>{...?[3]}');
+    var set = parseCollectionLiteral('<int>{...?[3]}') as SetOrMapLiteral;
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
     expect(set.elements, hasLength(1));
 
-    SpreadElement element = set.elements[0];
+    var element = set.elements[0] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...?');
-    ListLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as ListLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setOrMapLiteral_spread() {
-    SetOrMapLiteral map = parseCollectionLiteral('{...{3: 4}}');
+    var map = parseCollectionLiteral('{...{3: 4}}') as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
     expect(map.elements, hasLength(1));
 
-    SpreadElement element = map.elements[0];
+    var element = map.elements[0] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...');
-    SetOrMapLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as SetOrMapLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 
   void test_setOrMapLiteral_spreadQ() {
-    SetOrMapLiteral map = parseCollectionLiteral('{...?{3: 4}}');
+    var map = parseCollectionLiteral('{...?{3: 4}}') as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
     expect(map.elements, hasLength(1));
 
-    SpreadElement element = map.elements[0];
+    var element = map.elements[0] as SpreadElement;
     expect(element.spreadOperator.lexeme, '...?');
-    SetOrMapLiteral spreadExpression = element.expression;
+    var spreadExpression = element.expression as SetOrMapLiteral;
     expect(spreadExpression.elements, hasLength(1));
   }
 }
@@ -1115,21 +1121,22 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
 class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
   void test_binary_operator_written_out_expression() {
-    BinaryExpression expression = parseExpression('x xor y', errors: [
+    var expression = parseExpression('x xor y', errors: [
       expectedError(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 2, 3),
-    ]);
-    SimpleIdentifier lhs = expression.leftOperand;
+    ]) as BinaryExpression;
+    var lhs = expression.leftOperand as SimpleIdentifier;
     expect(lhs.name, 'x');
     expect(expression.operator.lexeme, '^');
-    SimpleIdentifier rhs = expression.rightOperand;
+    var rhs = expression.rightOperand as SimpleIdentifier;
     expect(rhs.name, 'y');
   }
 
   void test_conditionalExpression_precedence_nullableType_as2() {
-    ExpressionStatement statement = parseStatement('x as bool? ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
-    AsExpression asExpression = expression.condition;
-    TypeName type = asExpression.type;
+    var statement =
+        parseStatement('x as bool? ? (x + y) : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
+    var asExpression = expression.condition as AsExpression;
+    var type = asExpression.type as TypeName;
     expect(type.question.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
@@ -1140,12 +1147,12 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_conditionalExpression_precedence_nullableType_as3() {
-    ExpressionStatement statement =
-        parseStatement('(x as bool?) ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
-    ParenthesizedExpression condition = expression.condition;
-    AsExpression asExpression = condition.expression;
-    TypeName type = asExpression.type;
+    var statement =
+        parseStatement('(x as bool?) ? (x + y) : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
+    var condition = expression.condition as ParenthesizedExpression;
+    var asExpression = condition.expression as AsExpression;
+    var type = asExpression.type as TypeName;
     expect(type.question.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
@@ -1156,11 +1163,11 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_conditionalExpression_precedence_nullableType_is2() {
-    ExpressionStatement statement =
-        parseStatement('x is String? ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
-    IsExpression isExpression = expression.condition;
-    TypeName type = isExpression.type;
+    var statement =
+        parseStatement('x is String? ? (x + y) : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
+    var isExpression = expression.condition as IsExpression;
+    var type = isExpression.type as TypeName;
     expect(type.question.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
@@ -1171,12 +1178,12 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_conditionalExpression_precedence_nullableType_is3() {
-    ExpressionStatement statement =
-        parseStatement('(x is String?) ? (x + y) : z;');
-    ConditionalExpression expression = statement.expression;
-    ParenthesizedExpression condition = expression.condition;
-    IsExpression isExpression = condition.expression;
-    TypeName type = isExpression.type;
+    var statement =
+        parseStatement('(x is String?) ? (x + y) : z;') as ExpressionStatement;
+    var expression = statement.expression as ConditionalExpression;
+    var condition = expression.condition as ParenthesizedExpression;
+    var isExpression = condition.expression as IsExpression;
+    var type = isExpression.type as TypeName;
     expect(type.question.lexeme, '?');
     Expression thenExpression = expression.thenExpression;
     expect(thenExpression, isParenthesizedExpression);
@@ -1447,53 +1454,53 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   void test_lt_dot_bracket_quote() {
     // https://github.com/dart-lang/sdk/issues/37674
-    ListLiteral list = parseExpression('<.["', errors: [
+    var list = parseExpression('<.["', errors: [
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 1, 1),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 1),
       expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 3, 1),
       expectedError(ScannerErrorCode.EXPECTED_TOKEN, 4, 1),
-    ]);
+    ]) as ListLiteral;
     expect(list.elements, hasLength(1));
-    StringLiteral first = list.elements[0];
+    var first = list.elements[0] as StringLiteral;
     expect(first.length, 1);
   }
 
   void test_lt_dot_listLiteral() {
     // https://github.com/dart-lang/sdk/issues/37674
-    ListLiteral list = parseExpression('<.[]', errors: [
+    var list = parseExpression('<.[]', errors: [
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 1, 1),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 2),
-    ]);
+    ]) as ListLiteral;
     expect(list.elements, hasLength(0));
   }
 
   void test_mapLiteral() {
-    SetOrMapLiteral map = parseExpression('{3: 6}');
+    var map = parseExpression('{3: 6}') as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
     expect(map.elements, hasLength(1));
-    MapLiteralEntry entry = map.elements[0];
-    IntegerLiteral key = entry.key;
+    var entry = map.elements[0] as MapLiteralEntry;
+    var key = entry.key as IntegerLiteral;
     expect(key.value, 3);
-    IntegerLiteral value = entry.value;
+    var value = entry.value as IntegerLiteral;
     expect(value.value, 6);
   }
 
   void test_mapLiteral_const() {
-    SetOrMapLiteral map = parseExpression('const {3: 6}');
+    var map = parseExpression('const {3: 6}') as SetOrMapLiteral;
     expect(map.constKeyword, isNotNull);
     expect(map.typeArguments, isNull);
     expect(map.elements, hasLength(1));
-    MapLiteralEntry entry = map.elements[0];
-    IntegerLiteral key = entry.key;
+    var entry = map.elements[0] as MapLiteralEntry;
+    var key = entry.key as IntegerLiteral;
     expect(key.value, 3);
-    IntegerLiteral value = entry.value;
+    var value = entry.value as IntegerLiteral;
     expect(value.value, 6);
   }
 
   @failingTest
   void test_mapLiteral_invalid_too_many_type_arguments1() {
-    SetOrMapLiteral map = parseExpression('<int, int, int>{}', errors: [
+    var map = parseExpression('<int, int, int>{}', errors: [
       // TODO(danrubel): Currently the resolver reports invalid number of
       // type arguments, but the parser could report this.
       expectedError(
@@ -1501,14 +1508,14 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
           ParserErrorCode.EXPECTED_TOKEN,
           11,
           3),
-    ]);
+    ]) as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.elements, hasLength(0));
   }
 
   @failingTest
   void test_mapLiteral_invalid_too_many_type_arguments2() {
-    SetOrMapLiteral map = parseExpression('<int, int, int>{1}', errors: [
+    var map = parseExpression('<int, int, int>{1}', errors: [
       // TODO(danrubel): Currently the resolver reports invalid number of
       // type arguments, but the parser could report this.
       expectedError(
@@ -1516,7 +1523,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
           ParserErrorCode.EXPECTED_TOKEN,
           11,
           3),
-    ]);
+    ]) as SetOrMapLiteral;
     expect(map.constKeyword, isNull);
     expect(map.elements, hasLength(0));
   }
@@ -1535,7 +1542,7 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 4)
     ]);
     expect(expression, isStringInterpolation);
-    StringInterpolation literal = expression;
+    var literal = expression as StringInterpolation;
     NodeList<InterpolationElement> elements = literal.elements;
     expect(elements, hasLength(3));
     expect(elements[0] is InterpolationString, isTrue);

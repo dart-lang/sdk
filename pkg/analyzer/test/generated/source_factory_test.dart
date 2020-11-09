@@ -40,15 +40,6 @@ class AbsoluteUriResolver extends UriResolver {
   }
 }
 
-class CustomUriResolver extends UriResolver {
-  String uriPath;
-  CustomUriResolver({this.uriPath});
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) =>
-      createSource(path: uriPath);
-}
-
 @reflectiveTest
 class SourceFactoryTest with ResourceProviderMixin {
   void test_creation() {

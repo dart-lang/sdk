@@ -2726,9 +2726,13 @@ class ReceivePortLayout : public InstanceLayout {
   VISIT_FROM(ObjectPtr, send_port_)
   SendPortPtr send_port_;
   InstancePtr handler_;
+#if !defined(PRODUCT)
   StringPtr debug_name_;
   StackTracePtr allocation_location_;
   VISIT_TO(ObjectPtr, allocation_location_)
+#else
+  VISIT_TO(ObjectPtr, handler_);
+#endif  // !defined(PRODUCT)
 };
 
 class TransferableTypedDataLayout : public InstanceLayout {

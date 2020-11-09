@@ -1,0 +1,21 @@
+// @dart = 2.9
+import 'issue31767_lib.dart';
+
+StringBuffer sb;
+
+class C {
+  final int w;
+  C.foo(int x, [int y = 0, int z = 0]) : w = p("x", x) + p("y", y) + p("z", z);
+}
+
+int p(String name, int value) {}
+mixin M on C {
+  int get w2 => w * w;
+}
+class D = C with M;
+mixin N on A {
+  int get w2 => w * w;
+}
+class E = A with N;
+main() {}
+expect(expected, actual) {}

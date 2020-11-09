@@ -71,7 +71,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
                  ^" in i2).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int x = :sync-for-iterator.{core::Iterator::current};
-        #t2.{core::List::add}(x);
+        #t2.{core::List::add}{Invariant}(x);
       }
     }
   } =>#t2;
@@ -96,7 +96,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
                  ^" in l2).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int x = :sync-for-iterator.{core::Iterator::current};
-        #t5.{core::List::add}(x);
+        #t5.{core::List::add}{Invariant}(x);
       }
     }
   } =>#t5;
@@ -126,7 +126,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
         final dynamic #t11 = :sync-for-iterator.{core::Iterator::current};
         {
           core::int x = #t11 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-          #t9.{core::List::add}(x);
+          #t9.{core::List::add}{Invariant}(x);
         }
       }
     }
@@ -157,7 +157,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
         final dynamic #t16 = :sync-for-iterator.{core::Iterator::current};
         {
           core::int x = #t16 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-          #t14.{core::List::add}(x);
+          #t14.{core::List::add}{Invariant}(x);
         }
       }
     }
@@ -177,7 +177,7 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
       core::Iterator<core::int> :sync-for-iterator = i1.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int x = :sync-for-iterator.{core::Iterator::current};
-        #t17.{core::List::add}(x);
+        #t17.{core::List::add}{Invariant}(x);
       }
     }
   } =>#t17;
@@ -194,7 +194,7 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
       core::Iterator<core::int> :sync-for-iterator = l1.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int x = :sync-for-iterator.{core::Iterator::current};
-        #t18.{core::List::add}(x);
+        #t18.{core::List::add}{Invariant}(x);
       }
     }
   } =>#t18;
@@ -216,7 +216,7 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
         final dynamic #t21 = :sync-for-iterator.{core::Iterator::current};
         {
           core::int x = #t21 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-          #t20.{core::List::add}(x);
+          #t20.{core::List::add}{Invariant}(x);
         }
       }
     }

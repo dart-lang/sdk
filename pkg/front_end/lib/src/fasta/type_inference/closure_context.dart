@@ -202,7 +202,11 @@ class _SyncClosureContext implements ClosureContext {
               errorTemplate: templateInvalidReturn,
               nullabilityErrorTemplate: templateInvalidReturnNullability,
               nullabilityPartErrorTemplate:
-                  templateInvalidReturnPartNullability);
+                  templateInvalidReturnPartNullability,
+              nullabilityNullErrorTemplate:
+                  templateInvalidReturnNullabilityNull,
+              nullabilityNullTypeErrorTemplate:
+                  templateInvalidReturnNullabilityNullType);
           statement.expression = expression..parent = statement;
         }
       }
@@ -558,7 +562,11 @@ class _AsyncClosureContext implements ClosureContext {
               errorTemplate: templateInvalidReturnAsync,
               nullabilityErrorTemplate: templateInvalidReturnAsyncNullability,
               nullabilityPartErrorTemplate:
-                  templateInvalidReturnAsyncPartNullability)
+                  templateInvalidReturnAsyncPartNullability,
+              nullabilityNullErrorTemplate:
+                  templateInvalidReturnAsyncNullabilityNull,
+              nullabilityNullTypeErrorTemplate:
+                  templateInvalidReturnAsyncNullabilityNullType)
             ..parent = statement;
         }
       }

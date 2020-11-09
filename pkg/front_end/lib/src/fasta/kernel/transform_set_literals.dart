@@ -79,7 +79,8 @@ class SetLiteralTransformer extends Transformer {
           new Name("add"),
           new Arguments([entry]),
           addMethod)
-        ..fileOffset = entry.fileOffset;
+        ..fileOffset = entry.fileOffset
+        ..isInvariant = true;
       statements.add(new ExpressionStatement(methodInvocation)
         ..fileOffset = methodInvocation.fileOffset);
     }

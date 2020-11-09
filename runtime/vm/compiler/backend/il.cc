@@ -269,10 +269,14 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
   Zone* zone = thread()->zone();
   GrowableArray<intptr_t> cids;
   SubclassFinder finder(zone, &cids, include_abstract);
-  if (use_subtype_test) {
-    finder.ScanImplementorClasses(dst_klass);
-  } else {
-    finder.ScanSubClasses(dst_klass);
+  {
+    SafepointReadRwLocker ml(thread(),
+                             thread()->isolate_group()->program_lock());
+    if (use_subtype_test) {
+      finder.ScanImplementorClasses(dst_klass);
+    } else {
+      finder.ScanSubClasses(dst_klass);
+    }
   }
 
   // Sort all collected cids.

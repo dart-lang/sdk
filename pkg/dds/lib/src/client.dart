@@ -140,7 +140,9 @@ class _DartDevelopmentServiceClient {
         'getLogHistorySize',
         (parameters) => {
               'type': 'Size',
-              'size': dds.loggingRepository.bufferSize,
+              'size': _StreamManager
+                  .loggingRepositories[_StreamManager.kLoggingStream]
+                  .bufferSize,
             });
 
     _clientPeer.registerMethod('setLogHistorySize', (parameters) {
@@ -150,7 +152,8 @@ class _DartDevelopmentServiceClient {
           "'size' must be greater or equal to zero",
         );
       }
-      dds.loggingRepository.resize(size);
+      _StreamManager.loggingRepositories[_StreamManager.kLoggingStream]
+          .resize(size);
       return _RPCResponses.success;
     });
 

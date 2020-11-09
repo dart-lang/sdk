@@ -395,6 +395,9 @@ class TypeInferrerImpl implements TypeInferrer {
       Template<Message Function(DartType, DartType, bool)> errorTemplate,
       Template<Message Function(DartType, DartType, bool)>
           nullabilityErrorTemplate,
+      Template<Message Function(DartType, bool)> nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType, bool)>
+          nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType, bool)>
           nullabilityPartErrorTemplate}) {
     return ensureAssignable(
@@ -403,6 +406,8 @@ class TypeInferrerImpl implements TypeInferrer {
         isVoidAllowed: isVoidAllowed,
         errorTemplate: errorTemplate,
         nullabilityErrorTemplate: nullabilityErrorTemplate,
+        nullabilityNullErrorTemplate: nullabilityNullErrorTemplate,
+        nullabilityNullTypeErrorTemplate: nullabilityNullTypeErrorTemplate,
         nullabilityPartErrorTemplate: nullabilityPartErrorTemplate);
   }
 
@@ -433,6 +438,9 @@ class TypeInferrerImpl implements TypeInferrer {
       Template<Message Function(DartType, DartType, bool)> errorTemplate,
       Template<Message Function(DartType, DartType, bool)>
           nullabilityErrorTemplate,
+      Template<Message Function(DartType, bool)> nullabilityNullErrorTemplate,
+      Template<Message Function(DartType, DartType, bool)>
+          nullabilityNullTypeErrorTemplate,
       Template<Message Function(DartType, DartType, DartType, DartType, bool)>
           nullabilityPartErrorTemplate}) {
     assert(contextType != null);
@@ -442,7 +450,19 @@ class TypeInferrerImpl implements TypeInferrer {
     assert((errorTemplate == null) == (nullabilityErrorTemplate == null) &&
         (nullabilityErrorTemplate == null) ==
             (nullabilityPartErrorTemplate == null));
+    // [nullabilityNullErrorTemplate] and [nullabilityNullTypeErrorTemplate]
+    // should be provided together.
+    assert((nullabilityNullErrorTemplate == null) ==
+        (nullabilityNullTypeErrorTemplate == null));
     errorTemplate ??= templateInvalidAssignmentError;
+    if (nullabilityErrorTemplate == null) {
+      // Use [templateInvalidAssignmentErrorNullabilityNull] only if no
+      // specific [nullabilityErrorTemplate] template was passed.
+      nullabilityNullErrorTemplate ??=
+          templateInvalidAssignmentErrorNullabilityNull;
+    }
+    nullabilityNullTypeErrorTemplate ??= nullabilityErrorTemplate ??
+        templateInvalidAssignmentErrorNullabilityNullType;
     nullabilityErrorTemplate ??= templateInvalidAssignmentErrorNullability;
     nullabilityPartErrorTemplate ??=
         templateInvalidAssignmentErrorPartNullability;
@@ -532,12 +552,34 @@ class TypeInferrerImpl implements TypeInferrer {
       case AssignabilityKind.unassignableNullability:
         if (expressionType == assignabilityResult.subtype &&
             contextType == assignabilityResult.supertype) {
-          result = _wrapUnassignableExpression(
-              expression,
-              expressionType,
-              contextType,
-              nullabilityErrorTemplate.withArguments(expressionType,
-                  declaredContextType ?? contextType, isNonNullableByDefault));
+          if (expression is NullLiteral &&
+              nullabilityNullErrorTemplate != null) {
+            result = _wrapUnassignableExpression(
+                expression,
+                expressionType,
+                contextType,
+                nullabilityNullErrorTemplate.withArguments(
+                    declaredContextType ?? contextType,
+                    isNonNullableByDefault));
+          } else if (expressionType is NullType) {
+            result = _wrapUnassignableExpression(
+                expression,
+                expressionType,
+                contextType,
+                nullabilityNullTypeErrorTemplate.withArguments(
+                    expressionType,
+                    declaredContextType ?? contextType,
+                    isNonNullableByDefault));
+          } else {
+            result = _wrapUnassignableExpression(
+                expression,
+                expressionType,
+                contextType,
+                nullabilityErrorTemplate.withArguments(
+                    expressionType,
+                    declaredContextType ?? contextType,
+                    isNonNullableByDefault));
+          }
         } else {
           result = _wrapUnassignableExpression(
               expression,
@@ -2130,7 +2172,11 @@ class TypeInferrerImpl implements TypeInferrer {
               nullabilityErrorTemplate:
                   templateArgumentTypeNotAssignableNullability,
               nullabilityPartErrorTemplate:
-                  templateArgumentTypeNotAssignablePartNullability);
+                  templateArgumentTypeNotAssignablePartNullability,
+              nullabilityNullErrorTemplate:
+                  templateArgumentTypeNotAssignableNullabilityNull,
+              nullabilityNullTypeErrorTemplate:
+                  templateArgumentTypeNotAssignableNullabilityNullType);
           if (namedExpression == null) {
             arguments.positional[positionalShift + i] = expression
               ..parent = arguments;

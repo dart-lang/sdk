@@ -801,6 +801,7 @@ parenteses
 particularly
 patchup
 path
+patterns
 paulberry
 pay
 payload

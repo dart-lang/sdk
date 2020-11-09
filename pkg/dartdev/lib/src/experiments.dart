@@ -39,13 +39,22 @@ void addExperimentalFlags(ArgParser argParser, bool verbose) {
 extension EnabledExperimentsArg on ArgResults {
   List<String> get enabledExperiments {
     List<String> enabledExperiments = [];
+    // Check to see if the ArgParser which generated this result accepts
+    // --enable-experiment as an option. If so, return the result if it was
+    // provided.
     if (options.contains(experimentFlagName)) {
       if (wasParsed(experimentFlagName)) {
         enabledExperiments = this[experimentFlagName];
       }
     } else {
-      String experiments = arguments.firstWhere(
-        (e) => e.startsWith('--enable-experiment'),
+      // In the case where a command uses ArgParser.allowAnything() as its
+      // parser the valid set of options for the command isn't specified and
+      // isn't enforced. Instead, we have to manually parse the arguments to
+      // look for --enable-experiment=. Currently, this path is only taken for
+      // the pub and test commands, as well as when we are trying to send
+      // analytics.
+      final String experiments = arguments.firstWhere(
+        (e) => e.startsWith('--enable-experiment='),
         orElse: () => null,
       );
       if (experiments == null) {

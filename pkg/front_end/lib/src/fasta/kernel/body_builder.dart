@@ -507,7 +507,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Statement popBlock(int count, Token openBrace, Token closeBrace) {
-    return forest.createBlock(offsetForToken(openBrace),
+    return forest.createBlock(
+        offsetForToken(openBrace),
+        offsetForToken(closeBrace),
         const GrowableList<Statement>().pop(stack, count) ?? <Statement>[]);
   }
 
@@ -1015,9 +1017,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             statements.add(parameter.variable);
           }
           statements.add(body);
-          body = forest.createBlock(charOffset, statements);
+          body = forest.createBlock(charOffset, noLocation, statements);
         }
-        body = forest.createBlock(charOffset, <Statement>[
+        body = forest.createBlock(charOffset, noLocation, <Statement>[
           forest.createExpressionStatement(
               noLocation,
               // This error is added after type inference is done, so we
@@ -3777,7 +3779,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (compileTimeErrors == null) {
       push(NullValue.Block);
     } else {
-      push(forest.createBlock(noLocation, compileTimeErrors));
+      push(forest.createBlock(noLocation, noLocation, compileTimeErrors));
     }
   }
 
@@ -3824,7 +3826,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     if (compileTimeErrors != null) {
       compileTimeErrors.add(result);
-      push(forest.createBlock(noLocation, compileTimeErrors));
+      push(forest.createBlock(noLocation, noLocation, compileTimeErrors));
     } else {
       push(result);
     }
@@ -4919,7 +4921,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           // This must have been a compile-time error.
           assert(isErroneousNode(variable.initializer));
 
-          push(forest.createBlock(declaration.fileOffset, <Statement>[
+          push(forest
+              .createBlock(declaration.fileOffset, noLocation, <Statement>[
             forest.createExpressionStatement(
                 offsetForToken(token), variable.initializer),
             declaration
@@ -5156,6 +5159,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         Statement effects;
         if (forest.isVariablesDeclaration(lvalue)) {
           effects = forest.createBlock(
+              noLocation,
               noLocation,
               // New list because the declarations are not a growable list.
               new List<Statement>.from(
@@ -6083,7 +6087,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (member.isNative) {
       push(NullValue.FunctionBody);
     } else {
-      push(forest.createBlock(offsetForToken(token), <Statement>[
+      push(forest.createBlock(offsetForToken(token), noLocation, <Statement>[
         buildProblemStatement(
             fasta.templateExpectedFunctionBody.withArguments(token),
             token.charOffset,

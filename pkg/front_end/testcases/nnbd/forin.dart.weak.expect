@@ -63,7 +63,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
  - 'Iterable' is from 'dart:core'.
   [for (int x in i2) x];
                  ^" in i2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>)
-      #t2.{core::List::add}(x);
+      #t2.{core::List::add}{Invariant}(x);
   } =>#t2;
   for (core::int x in let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:12:17: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'List' is from 'dart:core'.
@@ -78,7 +78,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
  - 'Iterable' is from 'dart:core'.
   [for (int x in l2) x];
                  ^" in l2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>)
-      #t5.{core::List::add}(x);
+      #t5.{core::List::add}{Invariant}(x);
   } =>#t5;
   for (final dynamic #t7 in let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:15:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Object' is from 'dart:core'.
@@ -96,7 +96,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
   [for (int x in o1) x];
                  ^" in o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>) {
       core::int x = #t10 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-      #t9.{core::List::add}(x);
+      #t9.{core::List::add}{Invariant}(x);
     }
   } =>#t9;
   for (final dynamic #t12 in let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:18:17: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
@@ -115,7 +115,7 @@ static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, co
   [for (int x in o2) x];
                  ^" in o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>) {
       core::int x = #t15 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-      #t14.{core::List::add}(x);
+      #t14.{core::List::add}{Invariant}(x);
     }
   } =>#t14;
 }
@@ -125,14 +125,14 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
   block {
     final core::List<core::int> #t17 = <core::int>[];
     for (core::int x in i1)
-      #t17.{core::List::add}(x);
+      #t17.{core::List::add}{Invariant}(x);
   } =>#t17;
   for (core::int x in l1)
     x;
   block {
     final core::List<core::int> #t18 = <core::int>[];
     for (core::int x in l1)
-      #t18.{core::List::add}(x);
+      #t18.{core::List::add}{Invariant}(x);
   } =>#t18;
   for (final dynamic #t19 in d as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
     core::int x = #t19 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
@@ -142,7 +142,7 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
     final core::List<core::int> #t20 = <core::int>[];
     for (final dynamic #t21 in d as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
       core::int x = #t21 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-      #t20.{core::List::add}(x);
+      #t20.{core::List::add}{Invariant}(x);
     }
   } =>#t20;
 }

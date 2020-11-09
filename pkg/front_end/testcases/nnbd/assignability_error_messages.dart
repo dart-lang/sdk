@@ -5,6 +5,8 @@
 // The test checks that if one type isn't assignable to the other only because
 // of the nullability modifiers, the error message reflects that.
 
+import 'dart:async';
+
 class A {
   const A();
 }
@@ -36,6 +38,14 @@ A foo(B? x, List<B?> l, Map<B?, B?> m, List<B>? l2, Map<B, B>? m2) {
     default:
       break;
   }
+  FutureOr<A> local() async {
+    if (true) {
+      return x; // Error.
+    } else {
+      return new Future<B?>.value(x); // Error.
+    }
+  }
+
   return x; // Error.
 }
 
@@ -50,6 +60,25 @@ List<A> bar(List<B?> x, List<List<B?>> l, Map<List<B?>, List<B?>> m) {
 
 void baz(C c) {
   bazContext(c);
+}
+
+A boz(Null x) {
+  fooContext(x); // Error.
+  fooContext(null); // Error.
+  A a1 = x; // Error.
+  A a2 = null; // Error.
+  if (true) {
+    return x; // Error.
+  } else {
+    return null; // Error.
+  }
+  FutureOr<A> local() async {
+    if (true) {
+      return null; // Error.
+    } else {
+      return new Future<Null>.value(null); // Error.
+    }
+  }
 }
 
 main() {}

@@ -2364,7 +2364,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Success) {
 
   // Keep track of how many subclasses an Stopwatch has.
   auto& subclasses =
-      GrowableObjectArray::Handle(stopwatch_cls.direct_subclasses());
+      GrowableObjectArray::Handle(stopwatch_cls.direct_subclasses_unsafe());
   intptr_t saved_subclass_count = subclasses.IsNull() ? 0 : subclasses.Length();
 
   const char* kScript =
@@ -2383,7 +2383,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Success) {
   }
 
   // Stopwatch has one non-core subclass.
-  subclasses = stopwatch_cls.direct_subclasses();
+  subclasses = stopwatch_cls.direct_subclasses_unsafe();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
   // The new subclass is named AStopwatch.
@@ -2410,7 +2410,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Success) {
   }
 
   // Stopwatch still has only one non-core subclass (AStopwatch is gone).
-  subclasses = stopwatch_cls.direct_subclasses();
+  subclasses = stopwatch_cls.direct_subclasses_unsafe();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
   // The new subclass is named BStopwatch.
@@ -2431,7 +2431,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
 
   // Keep track of how many subclasses an Stopwatch has.
   auto& subclasses =
-      GrowableObjectArray::Handle(stopwatch_cls.direct_subclasses());
+      GrowableObjectArray::Handle(stopwatch_cls.direct_subclasses_unsafe());
   intptr_t saved_subclass_count = subclasses.IsNull() ? 0 : subclasses.Length();
 
   const char* kScript =
@@ -2450,7 +2450,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
   }
 
   // Stopwatch has one new subclass.
-  subclasses = stopwatch_cls.direct_subclasses();
+  subclasses = stopwatch_cls.direct_subclasses_unsafe();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
   // The new subclass is named AStopwatch.
@@ -2474,7 +2474,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
   }
 
   // Stopwatch has two non-core subclasses.
-  subclasses = stopwatch_cls.direct_subclasses();
+  subclasses = stopwatch_cls.direct_subclasses_unsafe();
   EXPECT_EQ(saved_subclass_count + 2, subclasses.Length());
 
   // The non-core subclasses are AStopwatch and BStopwatch.
@@ -2500,7 +2500,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
 
   // Keep track of how many subclasses an Stopwatch has.
   auto& subclasses =
-      GrowableObjectArray::Handle(stopwatch_cls.direct_subclasses());
+      GrowableObjectArray::Handle(stopwatch_cls.direct_subclasses_unsafe());
   intptr_t saved_subclass_count = subclasses.IsNull() ? 0 : subclasses.Length();
 
   const char* kScript =
@@ -2524,11 +2524,11 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
   }
 
   // Stopwatch has one non-core subclass...
-  subclasses = stopwatch_cls.direct_subclasses();
+  subclasses = stopwatch_cls.direct_subclasses_unsafe();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
   // ... and the non-core subclass is named AStopwatch.
-  subclasses = stopwatch_cls.direct_subclasses();
+  subclasses = stopwatch_cls.direct_subclasses_unsafe();
   new_subclass = subclasses.At(subclasses.Length() - 1);
   name = Class::Cast(new_subclass).Name();
   EXPECT_STREQ("AStopwatch", name.ToCString());
@@ -2556,7 +2556,7 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
   // If we don't clean up the subclasses, we would find BStopwatch in
   // the list of subclasses, which would be bad.  Make sure that
   // Stopwatch still has only one non-core subclass...
-  subclasses = stopwatch_cls.direct_subclasses();
+  subclasses = stopwatch_cls.direct_subclasses_unsafe();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
   // ...and the non-core subclass is still named AStopwatch.

@@ -23821,8 +23821,10 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   Zone* zone = thread->zone();
   const SendPort& send_port =
       SendPort::Handle(zone, SendPort::New(id, thread->isolate()->origin_id()));
+#if !defined(PRODUCT)
   const StackTrace& allocation_location_ =
       HasStack() ? GetCurrentStackTrace(0) : StackTrace::Handle();
+#endif  // !defined(PRODUCT)
 
   ReceivePort& result = ReceivePort::Handle(zone);
   {
@@ -23831,9 +23833,11 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StorePointer(&result.raw_ptr()->send_port_, send_port.raw());
+#if !defined(PRODUCT)
     result.StorePointer(&result.raw_ptr()->debug_name_, debug_name.raw());
     result.StorePointer(&result.raw_ptr()->allocation_location_,
                         allocation_location_.raw());
+#endif  // !defined(PRODUCT)
   }
   if (is_control_port) {
     PortMap::SetPortState(id, PortMap::kControlPort);

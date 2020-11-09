@@ -58,9 +58,9 @@ class ErrorCodeValuesTest extends ParserTestCase {
     List<String> listedCodes = <String>[];
     CompilationUnit listingUnit = parseFile(['lib', 'error', 'error.dart']);
     TopLevelVariableDeclaration declaration = listingUnit.declarations
+        .whereType<TopLevelVariableDeclaration>()
         .firstWhere(
             (member) =>
-                member is TopLevelVariableDeclaration &&
                 member.variables.variables[0].name.name == 'errorCodeValues',
             orElse: () => null);
     ListLiteral listLiteral = declaration.variables.variables[0].initializer;

@@ -242,6 +242,73 @@ Message _withArgumentsArgumentTypeNotAssignableNullability(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateArgumentTypeNotAssignableNullabilityNull = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The value 'null' can't be assigned to the parameter type '#type' because '#type' is not nullable.""",
+        withArguments: _withArgumentsArgumentTypeNotAssignableNullabilityNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeArgumentTypeNotAssignableNullabilityNull =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignableNullabilityNull",
+        templateArgumentTypeNotAssignableNullabilityNull,
+        analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsArgumentTypeNotAssignableNullabilityNull(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeArgumentTypeNotAssignableNullabilityNull,
+      message:
+          """The value 'null' can't be assigned to the parameter type '${type}' because '${type}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateArgumentTypeNotAssignableNullabilityNullType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The argument type '#type' can't be assigned to the parameter type '#type2' because '#type2' is not nullable.""",
+        withArguments:
+            _withArgumentsArgumentTypeNotAssignableNullabilityNullType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeArgumentTypeNotAssignableNullabilityNullType = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "ArgumentTypeNotAssignableNullabilityNullType",
+        templateArgumentTypeNotAssignableNullabilityNullType,
+        analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsArgumentTypeNotAssignableNullabilityNullType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeArgumentTypeNotAssignableNullabilityNullType,
+      message:
+          """The argument type '${type}' can't be assigned to the parameter type '${type2}' because '${type2}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(DartType _type, DartType _type2, DartType _type3,
             DartType _type4, bool isNonNullableByDefault)>
@@ -1978,6 +2045,72 @@ Message _withArgumentsInvalidAssignmentErrorNullability(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateInvalidAssignmentErrorNullabilityNull = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The value 'null' can't be assigned to a variable of type '#type' because '#type' is not nullable.""",
+        withArguments: _withArgumentsInvalidAssignmentErrorNullabilityNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeInvalidAssignmentErrorNullabilityNull =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorNullabilityNull",
+        templateInvalidAssignmentErrorNullabilityNull,
+        analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidAssignmentErrorNullabilityNull(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeInvalidAssignmentErrorNullabilityNull,
+      message:
+          """The value 'null' can't be assigned to a variable of type '${type}' because '${type}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidAssignmentErrorNullabilityNullType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be assigned to a variable of type '#type2' because '#type2' is not nullable.""",
+        withArguments: _withArgumentsInvalidAssignmentErrorNullabilityNullType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidAssignmentErrorNullabilityNullType = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidAssignmentErrorNullabilityNullType",
+        templateInvalidAssignmentErrorNullabilityNullType,
+        analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidAssignmentErrorNullabilityNullType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidAssignmentErrorNullabilityNullType,
+      message:
+          """A value of type '${type}' can't be assigned to a variable of type '${type2}' because '${type2}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(DartType _type, DartType _type2, DartType _type3,
             DartType _type4, bool isNonNullableByDefault)>
@@ -3168,6 +3301,72 @@ Message _withArgumentsInvalidReturnAsyncNullability(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateInvalidReturnAsyncNullabilityNull = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The value 'null' can't be returned from an async function with return type '#type' because '#type' is not nullable.""",
+        withArguments: _withArgumentsInvalidReturnAsyncNullabilityNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeInvalidReturnAsyncNullabilityNull =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "InvalidReturnAsyncNullabilityNull",
+  templateInvalidReturnAsyncNullabilityNull,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnAsyncNullabilityNull(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeInvalidReturnAsyncNullabilityNull,
+      message:
+          """The value 'null' can't be returned from an async function with return type '${type}' because '${type}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidReturnAsyncNullabilityNullType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be returned from an async function with return type '#type2' because '#type2' is not nullable.""",
+        withArguments: _withArgumentsInvalidReturnAsyncNullabilityNullType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidReturnAsyncNullabilityNullType = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "InvalidReturnAsyncNullabilityNullType",
+  templateInvalidReturnAsyncNullabilityNullType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnAsyncNullabilityNullType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidReturnAsyncNullabilityNullType,
+      message:
+          """A value of type '${type}' can't be returned from an async function with return type '${type2}' because '${type2}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(DartType _type, DartType _type2, DartType _type3,
             DartType _type4, bool isNonNullableByDefault)>
@@ -3250,6 +3449,72 @@ Message _withArgumentsInvalidReturnNullability(
   return new Message(codeInvalidReturnNullability,
       message:
           """A value of type '${type}' can't be returned from a function with return type '${type2}' because '${type}' is nullable and '${type2}' isn't.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateInvalidReturnNullabilityNull = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The value 'null' can't be returned from a function with return type '#type' because '#type' is not nullable.""",
+        withArguments: _withArgumentsInvalidReturnNullabilityNull);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeInvalidReturnNullabilityNull =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "InvalidReturnNullabilityNull",
+  templateInvalidReturnNullabilityNull,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnNullabilityNull(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeInvalidReturnNullabilityNull,
+      message:
+          """The value 'null' can't be returned from a function with return type '${type}' because '${type}' is not nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidReturnNullabilityNullType = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be returned from a function with return type '#type2' because '#type2' is not nullable.""",
+        withArguments: _withArgumentsInvalidReturnNullabilityNullType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidReturnNullabilityNullType = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "InvalidReturnNullabilityNullType",
+  templateInvalidReturnNullabilityNullType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidReturnNullabilityNullType(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidReturnNullabilityNullType,
+      message:
+          """A value of type '${type}' can't be returned from a function with return type '${type2}' because '${type2}' is not nullable.""" +
               labeler.originMessages,
       arguments: {'type': _type, 'type2': _type2});
 }

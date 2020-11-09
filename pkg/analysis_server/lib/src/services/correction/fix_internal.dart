@@ -727,6 +727,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.newInstance,
+      MakeVariableNullable.newInstance,
     ],
     CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
       AddMissingRequiredArgument.newInstance,

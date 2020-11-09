@@ -631,6 +631,7 @@ type NamedExpression {
 
 type MethodInvocation extends Expression {
   Byte tag = 28;
+  Byte flags;
   FileOffset fileOffset;
   Expression receiver;
   Name name;
@@ -1024,6 +1025,7 @@ type ExpressionStatement extends Statement {
 type Block extends Statement {
   Byte tag = 62;
   FileOffset fileOffset;
+  FileOffset fileEndOffset;
   List<Statement> statements;
 }
 

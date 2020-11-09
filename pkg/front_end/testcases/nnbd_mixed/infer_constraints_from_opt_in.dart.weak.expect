@@ -37,83 +37,83 @@ static method main() → dynamic {
   core::List<Null>* local1i = <Null>[null];
   core::Set<inf::C<dynamic>*>* local2a = block {
     final core::Set<inf::C<dynamic>*>* #t1 = col::LinkedHashSet::•<inf::C<dynamic>*>();
-    #t1.{core::Set::add}(inf::field1);
-    #t1.{core::Set::add}(null);
+    #t1.{core::Set::add}{Invariant}(inf::field1);
+    #t1.{core::Set::add}{Invariant}(null);
   } =>#t1;
   core::Set<inf::C<dynamic>*>* local2b = block {
     final core::Set<inf::C<dynamic>*>* #t2 = col::LinkedHashSet::•<inf::C<dynamic>*>();
-    #t2.{core::Set::add}(inf::field2);
-    #t2.{core::Set::add}(null);
+    #t2.{core::Set::add}{Invariant}(inf::field2);
+    #t2.{core::Set::add}{Invariant}(null);
   } =>#t2;
   core::Set<inf::C<core::int*>*>* local2c = block {
     final core::Set<inf::C<core::int*>*>* #t3 = col::LinkedHashSet::•<inf::C<core::int*>*>();
-    #t3.{core::Set::add}(inf::field3);
-    #t3.{core::Set::add}(null);
+    #t3.{core::Set::add}{Invariant}(inf::field3);
+    #t3.{core::Set::add}{Invariant}(null);
   } =>#t3;
   core::Set<inf::C<core::int*>*>* local2d = block {
     final core::Set<inf::C<core::int*>*>* #t4 = col::LinkedHashSet::•<inf::C<core::int*>*>();
-    #t4.{core::Set::add}(inf::field4);
-    #t4.{core::Set::add}(null);
+    #t4.{core::Set::add}{Invariant}(inf::field4);
+    #t4.{core::Set::add}{Invariant}(null);
   } =>#t4;
   core::Set<inf::C<core::int*>*>* local2e = block {
     final core::Set<inf::C<core::int*>*>* #t5 = col::LinkedHashSet::•<inf::C<core::int*>*>();
-    #t5.{core::Set::add}(inf::field5);
-    #t5.{core::Set::add}(null);
+    #t5.{core::Set::add}{Invariant}(inf::field5);
+    #t5.{core::Set::add}{Invariant}(null);
   } =>#t5;
   core::Set<inf::C<core::int*>*>* local2f = block {
     final core::Set<inf::C<core::int*>*>* #t6 = col::LinkedHashSet::•<inf::C<core::int*>*>();
-    #t6.{core::Set::add}(inf::field6);
-    #t6.{core::Set::add}(null);
+    #t6.{core::Set::add}{Invariant}(inf::field6);
+    #t6.{core::Set::add}{Invariant}(null);
   } =>#t6;
   core::Set<core::int*>* local2g = block {
     final core::Set<core::int*>* #t7 = col::LinkedHashSet::•<core::int*>();
-    #t7.{core::Set::add}(inf::field7);
-    #t7.{core::Set::add}(null);
+    #t7.{core::Set::add}{Invariant}(inf::field7);
+    #t7.{core::Set::add}{Invariant}(null);
   } =>#t7;
   core::Set<core::int*>* local2h = block {
     final core::Set<core::int*>* #t8 = col::LinkedHashSet::•<core::int*>();
-    #t8.{core::Set::add}(inf::field8);
-    #t8.{core::Set::add}(null);
+    #t8.{core::Set::add}{Invariant}(inf::field8);
+    #t8.{core::Set::add}{Invariant}(null);
   } =>#t8;
   core::Set<inf::C<dynamic>*>* local3a = block {
     final core::Set<inf::C<dynamic>*>* #t9 = col::LinkedHashSet::•<inf::C<dynamic>*>();
-    #t9.{core::Set::add}(null);
-    #t9.{core::Set::add}(inf::field1);
+    #t9.{core::Set::add}{Invariant}(null);
+    #t9.{core::Set::add}{Invariant}(inf::field1);
   } =>#t9;
   core::Set<inf::C<dynamic>*>* local3b = block {
     final core::Set<inf::C<dynamic>*>* #t10 = col::LinkedHashSet::•<inf::C<dynamic>*>();
-    #t10.{core::Set::add}(null);
-    #t10.{core::Set::add}(inf::field2);
+    #t10.{core::Set::add}{Invariant}(null);
+    #t10.{core::Set::add}{Invariant}(inf::field2);
   } =>#t10;
   core::Set<inf::C<core::int*>*>* local3c = block {
     final core::Set<inf::C<core::int*>*>* #t11 = col::LinkedHashSet::•<inf::C<core::int*>*>();
-    #t11.{core::Set::add}(null);
-    #t11.{core::Set::add}(inf::field3);
+    #t11.{core::Set::add}{Invariant}(null);
+    #t11.{core::Set::add}{Invariant}(inf::field3);
   } =>#t11;
   core::Set<inf::C<core::int*>*>* local3d = block {
     final core::Set<inf::C<core::int*>*>* #t12 = col::LinkedHashSet::•<inf::C<core::int*>*>();
-    #t12.{core::Set::add}(null);
-    #t12.{core::Set::add}(inf::field4);
+    #t12.{core::Set::add}{Invariant}(null);
+    #t12.{core::Set::add}{Invariant}(inf::field4);
   } =>#t12;
   core::Set<inf::C<core::int*>*>* local3e = block {
     final core::Set<inf::C<core::int*>*>* #t13 = col::LinkedHashSet::•<inf::C<core::int*>*>();
-    #t13.{core::Set::add}(null);
-    #t13.{core::Set::add}(inf::field5);
+    #t13.{core::Set::add}{Invariant}(null);
+    #t13.{core::Set::add}{Invariant}(inf::field5);
   } =>#t13;
   core::Set<inf::C<core::int*>*>* local3f = block {
     final core::Set<inf::C<core::int*>*>* #t14 = col::LinkedHashSet::•<inf::C<core::int*>*>();
-    #t14.{core::Set::add}(null);
-    #t14.{core::Set::add}(inf::field6);
+    #t14.{core::Set::add}{Invariant}(null);
+    #t14.{core::Set::add}{Invariant}(inf::field6);
   } =>#t14;
   core::Set<core::int*>* local3g = block {
     final core::Set<core::int*>* #t15 = col::LinkedHashSet::•<core::int*>();
-    #t15.{core::Set::add}(null);
-    #t15.{core::Set::add}(inf::field7);
+    #t15.{core::Set::add}{Invariant}(null);
+    #t15.{core::Set::add}{Invariant}(inf::field7);
   } =>#t15;
   core::Set<core::int*>* local3h = block {
     final core::Set<core::int*>* #t16 = col::LinkedHashSet::•<core::int*>();
-    #t16.{core::Set::add}(null);
-    #t16.{core::Set::add}(inf::field8);
+    #t16.{core::Set::add}{Invariant}(null);
+    #t16.{core::Set::add}{Invariant}(inf::field8);
   } =>#t16;
 }
 
@@ -167,82 +167,82 @@ static method method() → dynamic {
   core::List<Null> local1i = <Null>[null];
   core::Set<inf::C<dynamic>?> local2a = block {
     final core::Set<inf::C<dynamic>?> #t17 = col::LinkedHashSet::•<inf::C<dynamic>?>();
-    #t17.{core::Set::add}(inf::field1);
-    #t17.{core::Set::add}(null);
+    #t17.{core::Set::add}{Invariant}(inf::field1);
+    #t17.{core::Set::add}{Invariant}(null);
   } =>#t17;
   core::Set<inf::C<dynamic>?> local2b = block {
     final core::Set<inf::C<dynamic>?> #t18 = col::LinkedHashSet::•<inf::C<dynamic>?>();
-    #t18.{core::Set::add}(inf::field2);
-    #t18.{core::Set::add}(null);
+    #t18.{core::Set::add}{Invariant}(inf::field2);
+    #t18.{core::Set::add}{Invariant}(null);
   } =>#t18;
   core::Set<inf::C<core::int>?> local2c = block {
     final core::Set<inf::C<core::int>?> #t19 = col::LinkedHashSet::•<inf::C<core::int>?>();
-    #t19.{core::Set::add}(inf::field3);
-    #t19.{core::Set::add}(null);
+    #t19.{core::Set::add}{Invariant}(inf::field3);
+    #t19.{core::Set::add}{Invariant}(null);
   } =>#t19;
   core::Set<inf::C<core::int>?> local2d = block {
     final core::Set<inf::C<core::int>?> #t20 = col::LinkedHashSet::•<inf::C<core::int>?>();
-    #t20.{core::Set::add}(inf::field4);
-    #t20.{core::Set::add}(null);
+    #t20.{core::Set::add}{Invariant}(inf::field4);
+    #t20.{core::Set::add}{Invariant}(null);
   } =>#t20;
   core::Set<inf::C<core::int?>?> local2e = block {
     final core::Set<inf::C<core::int?>?> #t21 = col::LinkedHashSet::•<inf::C<core::int?>?>();
-    #t21.{core::Set::add}(inf::field5);
-    #t21.{core::Set::add}(null);
+    #t21.{core::Set::add}{Invariant}(inf::field5);
+    #t21.{core::Set::add}{Invariant}(null);
   } =>#t21;
   core::Set<inf::C<core::int?>?> local2f = block {
     final core::Set<inf::C<core::int?>?> #t22 = col::LinkedHashSet::•<inf::C<core::int?>?>();
-    #t22.{core::Set::add}(inf::field6);
-    #t22.{core::Set::add}(null);
+    #t22.{core::Set::add}{Invariant}(inf::field6);
+    #t22.{core::Set::add}{Invariant}(null);
   } =>#t22;
   core::Set<core::int?> local2g = block {
     final core::Set<core::int?> #t23 = col::LinkedHashSet::•<core::int?>();
-    #t23.{core::Set::add}(inf::field7);
-    #t23.{core::Set::add}(null);
+    #t23.{core::Set::add}{Invariant}(inf::field7);
+    #t23.{core::Set::add}{Invariant}(null);
   } =>#t23;
   core::Set<core::int?> local2h = block {
     final core::Set<core::int?> #t24 = col::LinkedHashSet::•<core::int?>();
-    #t24.{core::Set::add}(inf::field8);
-    #t24.{core::Set::add}(null);
+    #t24.{core::Set::add}{Invariant}(inf::field8);
+    #t24.{core::Set::add}{Invariant}(null);
   } =>#t24;
   core::Set<inf::C<dynamic>?> local3a = block {
     final core::Set<inf::C<dynamic>?> #t25 = col::LinkedHashSet::•<inf::C<dynamic>?>();
-    #t25.{core::Set::add}(null);
-    #t25.{core::Set::add}(inf::field1);
+    #t25.{core::Set::add}{Invariant}(null);
+    #t25.{core::Set::add}{Invariant}(inf::field1);
   } =>#t25;
   core::Set<inf::C<dynamic>?> local3b = block {
     final core::Set<inf::C<dynamic>?> #t26 = col::LinkedHashSet::•<inf::C<dynamic>?>();
-    #t26.{core::Set::add}(null);
-    #t26.{core::Set::add}(inf::field2);
+    #t26.{core::Set::add}{Invariant}(null);
+    #t26.{core::Set::add}{Invariant}(inf::field2);
   } =>#t26;
   core::Set<inf::C<core::int>?> local3c = block {
     final core::Set<inf::C<core::int>?> #t27 = col::LinkedHashSet::•<inf::C<core::int>?>();
-    #t27.{core::Set::add}(null);
-    #t27.{core::Set::add}(inf::field3);
+    #t27.{core::Set::add}{Invariant}(null);
+    #t27.{core::Set::add}{Invariant}(inf::field3);
   } =>#t27;
   core::Set<inf::C<core::int>?> local3d = block {
     final core::Set<inf::C<core::int>?> #t28 = col::LinkedHashSet::•<inf::C<core::int>?>();
-    #t28.{core::Set::add}(null);
-    #t28.{core::Set::add}(inf::field4);
+    #t28.{core::Set::add}{Invariant}(null);
+    #t28.{core::Set::add}{Invariant}(inf::field4);
   } =>#t28;
   core::Set<inf::C<core::int?>?> local3e = block {
     final core::Set<inf::C<core::int?>?> #t29 = col::LinkedHashSet::•<inf::C<core::int?>?>();
-    #t29.{core::Set::add}(null);
-    #t29.{core::Set::add}(inf::field5);
+    #t29.{core::Set::add}{Invariant}(null);
+    #t29.{core::Set::add}{Invariant}(inf::field5);
   } =>#t29;
   core::Set<inf::C<core::int?>?> local3f = block {
     final core::Set<inf::C<core::int?>?> #t30 = col::LinkedHashSet::•<inf::C<core::int?>?>();
-    #t30.{core::Set::add}(null);
-    #t30.{core::Set::add}(inf::field6);
+    #t30.{core::Set::add}{Invariant}(null);
+    #t30.{core::Set::add}{Invariant}(inf::field6);
   } =>#t30;
   core::Set<core::int?> local3g = block {
     final core::Set<core::int?> #t31 = col::LinkedHashSet::•<core::int?>();
-    #t31.{core::Set::add}(null);
-    #t31.{core::Set::add}(inf::field7);
+    #t31.{core::Set::add}{Invariant}(null);
+    #t31.{core::Set::add}{Invariant}(inf::field7);
   } =>#t31;
   core::Set<core::int?> local3h = block {
     final core::Set<core::int?> #t32 = col::LinkedHashSet::•<core::int?>();
-    #t32.{core::Set::add}(null);
-    #t32.{core::Set::add}(inf::field8);
+    #t32.{core::Set::add}{Invariant}(null);
+    #t32.{core::Set::add}{Invariant}(inf::field8);
   } =>#t32;
 }

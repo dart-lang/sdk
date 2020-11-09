@@ -158,7 +158,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitMethodInvocation(MethodInvocation node) {
     return new MethodInvocation.byReference(clone(node.receiver), node.name,
-        clone(node.arguments), node.interfaceTargetReference);
+        clone(node.arguments), node.interfaceTargetReference)
+      ..flags = node.flags;
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {

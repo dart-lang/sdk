@@ -7498,7 +7498,7 @@ mixin TypeParameterizedElementMixin
           typeParameters.typeParameters.map<TypeParameterElement>((node) {
         var reference = containerRef.getChild(node.name.name);
         if (reference.hasElementFor(node)) {
-          return reference.element as TypeParameterElement;
+          return reference.element as TypeParameterElement /*!*/;
         }
         return TypeParameterElementImpl.forLinkedNode(this, reference, node);
       }).toList();

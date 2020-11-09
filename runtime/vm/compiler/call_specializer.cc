@@ -1515,6 +1515,7 @@ void TypedDataSpecializer::EnsureIsInitialized() {
 
   auto& td_class = Class::Handle(Z);
   auto& direct_implementors = GrowableObjectArray::Handle(Z);
+  SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
 
 #define INIT_HANDLE(iface, member_name, type, cid)                             \
   td_class = typed_data.LookupClass(Symbols::iface());                         \

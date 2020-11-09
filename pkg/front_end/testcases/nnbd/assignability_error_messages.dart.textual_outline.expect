@@ -1,3 +1,5 @@
+import 'dart:async';
+
 class A {
   const A();
 }
@@ -14,4 +16,5 @@ void bazContext(num Function() f) {}
 A foo(B? x, List<B?> l, Map<B?, B?> m, List<B>? l2, Map<B, B>? m2) {}
 List<A> bar(List<B?> x, List<List<B?>> l, Map<List<B?>, List<B?>> m) {}
 void baz(C c) {}
+A boz(Null x) {}
 main() {}

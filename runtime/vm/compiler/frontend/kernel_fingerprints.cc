@@ -410,6 +410,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();     // read expression.
       return;
     case kMethodInvocation:
+      ReadFlags();                               // read flags.
       ReadPosition();                            // read position.
       CalculateExpressionFingerprint();          // read receiver.
       BuildHash(ReadNameAsMethodName().Hash());  // read name.
@@ -583,7 +584,8 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kBlock:
-      ReadPosition();
+      ReadPosition();  // read file offset.
+      ReadPosition();  // read file end offset.
       CalculateStatementListFingerprint();
       return;
     case kEmptyStatement:
