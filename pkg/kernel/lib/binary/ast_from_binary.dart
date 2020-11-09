@@ -1711,10 +1711,12 @@ class BinaryBuilder {
             readMemberReference(), readExpression())
           ..fileOffset = offset;
       case Tag.MethodInvocation:
+        int flags = readByte();
         int offset = readOffset();
         return new MethodInvocation.byReference(readExpression(), readName(),
             readArguments(), readInstanceMemberReference(allowNull: true))
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -2106,9 +2108,12 @@ class BinaryBuilder {
   Block readBlock() {
     int stackHeight = variableStack.length;
     var offset = readOffset();
+    var endOffset = readOffset();
     var body = readStatementList();
     variableStack.length = stackHeight;
-    return new Block(body)..fileOffset = offset;
+    return new Block(body)
+      ..fileOffset = offset
+      ..fileEndOffset = endOffset;
   }
 
   AssertBlock readAssertBlock() {

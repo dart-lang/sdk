@@ -2345,6 +2345,7 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();              // read expression.
       return;
     case kMethodInvocation:
+      ReadFlags();                   // read flags.
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
@@ -2513,7 +2514,8 @@ void KernelReaderHelper::SkipStatement() {
       SkipExpression();  // read expression.
       return;
     case kBlock:
-      ReadPosition();
+      ReadPosition();  // read file offset.
+      ReadPosition();  // read file end offset.
       SkipStatementList();
       return;
     case kEmptyStatement:

@@ -410,10 +410,10 @@ static field core::List<core::String*>* barAsVar = block {
     core::Iterator<core::String*>* :sync-for-iterator = (#C8).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final core::String* #t2 = :sync-for-iterator.{core::Iterator::current};
-      #t1.{core::List::add}(#t2);
+      #t1.{core::List::add}{Invariant}(#t2);
     }
   }
-  #t1.{core::List::add}("!");
+  #t1.{core::List::add}{Invariant}("!");
 } =>#t1;
 static const field core::List<core::String*>* barWithNullSpread = invalid-expression "Null value during constant evaluation.";
 static const field core::List<core::String*>* barWithIntSpread = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
@@ -487,7 +487,7 @@ static method main() → dynamic {
   core::print(#C22);
   core::print( block {
     final core::Set<core::String*>* #t3 = new col::_CompactLinkedHashSet::•<core::String*>();
-    #t3.{core::Set::add}("hello");
+    #t3.{core::Set::add}{Invariant}("hello");
   } =>#t3);
   core::print(#C26);
 }

@@ -3778,9 +3778,14 @@ abstract class InvocationExpression extends Expression {
 
 /// Expression of form `x.foo(y)`.
 class MethodInvocation extends InvocationExpression {
+  // Must match serialized bit positions.
+  static const int FlagInvariant = 1 << 0;
+  static const int FlagBoundsSafe = 1 << 1;
+
   Expression receiver;
   Name name;
   Arguments arguments;
+  int flags = 0;
 
   Reference interfaceTargetReference;
 
@@ -3804,6 +3809,41 @@ class MethodInvocation extends InvocationExpression {
   void set interfaceTarget(Member target) {
     // An invocation doesn't refer to the setter.
     interfaceTargetReference = getMemberReferenceGetter(target);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List<int> list = <int>[];
+  ///     list.add(0);
+  ///
+  /// where the `list` variable is known to hold a value of the same type as
+  /// the static type. In contrast the would not be the case in code patterns
+  /// like this
+  ///
+  ///     List<num> list = <double>[];
+  ///     list.add(0); // Runtime error `int` is not a subtype of `double`.
+  ///
+  bool get isInvariant => flags & FlagInvariant != 0;
+
+  void set isInvariant(bool value) {
+    flags = value ? (flags | FlagInvariant) : (flags & ~FlagInvariant);
+  }
+
+  /// If `true`, this call is known to be safe wrt. parameter covariance checks.
+  ///
+  /// This is for instance the case in code patterns like this
+  ///
+  ///     List list = new List.filled(2, 0);
+  ///     list[1] = 42;
+  ///
+  /// where the `list` is known to have a sufficient length for the update
+  /// in `list[1] = 42`.
+  bool get isBoundsSafe => flags & FlagBoundsSafe != 0;
+
+  void set isBoundsSafe(bool value) {
+    flags = value ? (flags | FlagBoundsSafe) : (flags & ~FlagBoundsSafe);
   }
 
   DartType getStaticTypeInternal(StaticTypeContext context) {
@@ -5878,6 +5918,11 @@ class ExpressionStatement extends Statement {
 
 class Block extends Statement {
   final List<Statement> statements;
+
+  /// End offset in the source file it comes from. Valid values are from 0 and
+  /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
+  /// (this is the default if none is specifically set).
+  int fileEndOffset = TreeNode.noOffset;
 
   Block(this.statements) {
     // Ensure statements is mutable.

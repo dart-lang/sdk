@@ -1466,6 +1466,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     writeByte(Tag.MethodInvocation);
+    writeByte(node.flags);
     writeOffset(node.fileOffset);
     writeNode(node.receiver);
     writeName(node.name);
@@ -1812,6 +1813,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _variableIndexer.pushScope();
     writeByte(Tag.Block);
     writeOffset(node.fileOffset);
+    writeOffset(node.fileEndOffset);
     writeNodeList(node.statements);
     _variableIndexer.popScope();
   }

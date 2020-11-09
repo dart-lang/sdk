@@ -1349,6 +1349,16 @@ class Printer extends Visitor<Null> {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
+    List<String> flags = <String>[];
+    if (node.isInvariant) {
+      flags.add('Invariant');
+    }
+    if (node.isBoundsSafe) {
+      flags.add('BoundsSafe');
+    }
+    if (flags.isNotEmpty) {
+      write('{${flags.join(',')}}');
+    }
     writeNode(node.arguments);
   }
 

@@ -805,6 +805,7 @@ void ScopeBuilder::VisitExpression() {
       VisitExpression();                     // read expression.
       return;
     case kMethodInvocation:
+      helper_.ReadFlags();     // read flags.
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read receiver.
       helper_.SkipName();      // read name.
@@ -1021,6 +1022,7 @@ void ScopeBuilder::VisitStatement() {
 
       EnterScope(offset);
       helper_.ReadPosition();  // read block start offset.
+      helper_.ReadPosition();  // read block end offset.
       intptr_t list_length =
           helper_.ReadListLength();  // read number of statements.
       for (intptr_t i = 0; i < list_length; ++i) {

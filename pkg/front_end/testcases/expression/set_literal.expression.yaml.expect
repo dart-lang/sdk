@@ -3,5 +3,5 @@ Errors: {
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
   return block {
     final dart.core::Set<dart.core::String*>* #t1 = dart.collection::LinkedHashSet::•<dart.core::String*>();
-    #t1.{dart.core::Set::add}("a");
+    #t1.{dart.core::Set::add}{Invariant}("a");
   } =>#t1;

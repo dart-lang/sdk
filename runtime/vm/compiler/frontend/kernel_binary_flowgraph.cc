@@ -2687,6 +2687,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
 
 Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
+  ReadFlags();                                    // read flags.
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
@@ -3927,7 +3928,8 @@ Fragment StreamingFlowGraphBuilder::BuildBlock() {
   Fragment instructions;
 
   instructions += EnterScope(offset);
-  ReadPosition();
+  ReadPosition();                           // read file offset.
+  ReadPosition();                           // read file end offset.
   intptr_t list_length = ReadListLength();  // read number of statements.
   for (intptr_t i = 0; i < list_length; ++i) {
     if (instructions.is_open()) {

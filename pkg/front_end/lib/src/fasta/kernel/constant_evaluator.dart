@@ -1770,7 +1770,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return unevaluated(
           node,
           new MethodInvocation(extract(receiver), node.name,
-              unevaluatedArguments(arguments, {}, node.arguments.types)));
+              unevaluatedArguments(arguments, {}, node.arguments.types))
+            ..fileOffset = node.fileOffset
+            ..flags = node.flags);
     }
 
     final String op = node.name.text;

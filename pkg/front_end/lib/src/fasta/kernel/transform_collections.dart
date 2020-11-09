@@ -754,7 +754,8 @@ class CollectionTransformer extends Transformer {
         "No fileOffset on ${argument}.");
     return new MethodInvocation(receiver, new Name('add'),
         new Arguments([argument]), isSet ? setAdd : listAdd)
-      ..fileOffset = argument.fileOffset;
+      ..fileOffset = argument.fileOffset
+      ..isInvariant = true;
   }
 
   Expression _createEqualsNull(Expression expression, {bool notEquals: false}) {
@@ -778,7 +779,8 @@ class CollectionTransformer extends Transformer {
     assert(fileOffset != TreeNode.noOffset);
     return new MethodInvocation(
         receiver, new Name('[]='), new Arguments([key, value]), mapPut)
-      ..fileOffset = fileOffset;
+      ..fileOffset = fileOffset
+      ..isInvariant = true;
   }
 
   AsExpression _createImplicitAs(

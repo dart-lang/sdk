@@ -10,7 +10,7 @@ class C extends core::Object {
       final core::Set<core::int*>* #t1 = col::LinkedHashSet::•<core::int*>();
       for (core::int* e in ell)
         if(e.{core::int::isOdd})
-          #t1.{core::Set::add}(2.{core::num::*}(e));
+          #t1.{core::Set::add}{Invariant}(2.{core::num::*}(e));
     } =>#t1, super core::Object::•()
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

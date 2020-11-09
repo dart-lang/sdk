@@ -142,7 +142,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     final core::Iterable<core::String>? #t6 = l;
     if(!#t6.{core::Object::==}(null))
       for (final core::String #t7 in #t6{core::Iterable<core::String>})
-        #t5.{core::List::add}(#t7);
+        #t5.{core::List::add}{Invariant}(#t7);
   } =>#t5;
   core::Set<core::String> a = block {
     final core::Set<core::String> #t8 = col::LinkedHashSet::•<core::String>();
@@ -150,7 +150,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     if(!#t9.{core::Object::==}(null))
       for (final dynamic #t10 in #t9{core::Iterable<dynamic>}) {
         final core::String #t11 = #t10 as{TypeError,ForNonNullableByDefault} core::String;
-        #t8.{core::Set::add}(#t11);
+        #t8.{core::Set::add}{Invariant}(#t11);
       }
   } =>#t8;
   block {
@@ -158,21 +158,21 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
     final core::Iterable<core::String>? #t13 = l;
     if(!#t13.{core::Object::==}(null))
       for (final core::String #t14 in #t13{core::Iterable<core::String>})
-        #t12.{core::Set::add}(#t14);
+        #t12.{core::Set::add}{Invariant}(#t14);
   } =>#t12;
   core::Map<core::String, core::int> b = block {
     final core::Map<core::String, core::int> #t15 = <core::String, core::int>{};
     final core::Map<core::String, core::int>? #t16 = m;
     if(!#t16.{core::Object::==}(null))
       for (final core::MapEntry<core::String, core::int> #t17 in #t16{core::Map<core::String, core::int>}.{core::Map::entries})
-        #t15.{core::Map::[]=}(#t17.{core::MapEntry::key}, #t17.{core::MapEntry::value});
+        #t15.{core::Map::[]=}{Invariant}(#t17.{core::MapEntry::key}, #t17.{core::MapEntry::value});
   } =>#t15;
   block {
     final core::Map<core::String, core::int> #t18 = <core::String, core::int>{};
     final core::Map<core::String, core::int>? #t19 = m;
     if(!#t19.{core::Object::==}(null))
       for (final core::MapEntry<core::String, core::int> #t20 in #t19{core::Map<core::String, core::int>}.{core::Map::entries})
-        #t18.{core::Map::[]=}(#t20.{core::MapEntry::key}, #t20.{core::MapEntry::value});
+        #t18.{core::Map::[]=}{Invariant}(#t20.{core::MapEntry::key}, #t20.{core::MapEntry::value});
   } =>#t18;
   s!;
   let final core::String #t21 = s in #t21.{core::String::==}(null) ?{core::String?} null : #t21.{core::String::substring}(0, 0);
