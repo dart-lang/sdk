@@ -332,7 +332,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitBlock(Block node) {
     return new Block(node.statements.map(clone).toList())
-      ..fileOffset = _cloneFileOffset(node.fileOffset);
+      ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
   }
 
   visitAssertBlock(AssertBlock node) {
@@ -498,7 +498,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         returnType: visitType(node.returnType),
         asyncMarker: node.asyncMarker,
         dartAsyncMarker: node.dartAsyncMarker)
-      ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
   }
 
