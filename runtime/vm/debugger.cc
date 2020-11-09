@@ -1555,8 +1555,6 @@ void Debugger::Shutdown() {
   }
 }
 
-void Debugger::OnIsolateRunnable() {}
-
 bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
   ActivationFrame* top_frame = TopDartFrame();
   if (!IsAtAsyncJump(top_frame)) {

@@ -9,6 +9,7 @@
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#include "platform/assert.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/ffi/native_type.h"
 #include "vm/growable_array.h"
@@ -34,14 +35,15 @@ class NativeStackLocation;
 // * The container type, equal to or larger than the payload. If the
 //   container is larger than the payload, the upper bits are defined by sign
 //   or zero extension.
+//   Container type is also used to denote an integer container when floating
+//   point values are passed in integer registers.
 //
 // NativeLocations can express things that dart::Locations cannot express:
 // * Multiple consecutive registers.
 // * Multiple sizes of FPU registers (e.g. S, D, and Q on Arm32).
 // * Arbitrary byte-size stack locations, at byte-size offsets.
 //   (The Location class uses word-size offsets.)
-// * Pointers including a backing location on the stack.
-// * No location.
+// * Pointers to a memory location.
 // * Split between multiple registers and stack.
 //
 // NativeLocations cannot express the following dart::Locations:
@@ -105,6 +107,9 @@ class NativeLocation : public ZoneAllocated {
     ASSERT(index == 0 || index == 1);
     UNREACHABLE();
   }
+
+  // Return the top of the stack in bytes.
+  virtual intptr_t StackTopInBytes() const { return 0; }
 
   // Equality of location, ignores the payload and container native types.
   virtual bool Equals(const NativeLocation& other) const { UNREACHABLE(); }
@@ -302,6 +307,10 @@ class NativeStackLocation : public NativeLocation {
   }
 
   virtual NativeStackLocation& Split(Zone* zone, intptr_t index) const;
+
+  virtual intptr_t StackTopInBytes() const {
+    return offset_in_bytes() + container_type().SizeInBytes();
+  }
 
   virtual void PrintTo(BaseTextBuffer* f) const;
 

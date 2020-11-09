@@ -6,8 +6,12 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "vm/class_id.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/growable_array.h"
+#include "vm/log.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/locations.h"
@@ -322,6 +326,25 @@ void NativeType::PrintTo(BaseTextBuffer* f) const {
 
 void NativePrimitiveType::PrintTo(BaseTextBuffer* f) const {
   f->Printf("%s", PrimitiveTypeToCString(representation_));
+}
+
+const char* NativeFunctionType::ToCString() const {
+  char buffer[1024];
+  BufferFormatter bf(buffer, 1024);
+  PrintTo(&bf);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
+}
+
+void NativeFunctionType::PrintTo(BaseTextBuffer* f) const {
+  f->AddString("(");
+  for (intptr_t i = 0; i < argument_types_.length(); i++) {
+    if (i > 0) {
+      f->AddString(", ");
+    }
+    argument_types_[i]->PrintTo(f);
+  }
+  f->AddString(") => ");
+  return_type_.PrintTo(f);
 }
 
 const NativeType& NativeType::WidenTo4Bytes(Zone* zone) const {

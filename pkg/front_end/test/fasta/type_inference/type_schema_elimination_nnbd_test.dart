@@ -6,7 +6,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart'
     as typeSchemaElimination;
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/testing/type_parser_environment.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,13 +18,10 @@ main() {
 
 @reflectiveTest
 class TypeSchemaEliminationTest {
-  static const DartType unknownType = const UnknownType();
-
-  CoreTypes coreTypes = new _MockCoreTypes();
-
-  DartType get dynamicType => const DynamicType();
-
-  DartType get nullType => new NullType();
+  final Env env = new Env("");
+  final Map<String, DartType Function()> additionalTypes = {
+    "UNKNOWN": () => new UnknownType()
+  };
 
   DartType greatestClosure(DartType schema) {
     return typeSchemaElimination.greatestClosure(
@@ -36,116 +33,62 @@ class TypeSchemaEliminationTest {
         schema, const DynamicType(), const NeverType(Nullability.nonNullable));
   }
 
+  void testGreatest(String type, String expectedClosure) {
+    expect(
+        greatestClosure(env.parseType(type, additionalTypes: additionalTypes)),
+        env.parseType(expectedClosure, additionalTypes: additionalTypes));
+  }
+
+  void testLeast(String type, String expectedClosure) {
+    expect(leastClosure(env.parseType(type, additionalTypes: additionalTypes)),
+        env.parseType(expectedClosure, additionalTypes: additionalTypes));
+  }
+
   void test_greatestClosure_contravariant() {
-    expect(
-        greatestClosure(new FunctionType(
-                [unknownType], dynamicType, Nullability.legacy))
-            .leakingDebugToString(),
-        '(Never) →* dynamic');
-    expect(
-        greatestClosure(new FunctionType([], dynamicType, Nullability.legacy,
-                namedParameters: [new NamedType('foo', unknownType)]))
-            .leakingDebugToString(),
-        '({foo: Never}) →* dynamic');
+    testGreatest("(UNKNOWN) ->* dynamic", "(Never) ->* dynamic");
+    testGreatest("({UNKNOWN foo}) ->* dynamic", "({Never foo}) ->* dynamic");
   }
 
   void test_greatestClosure_contravariant_contravariant() {
-    expect(
-        greatestClosure(new FunctionType([
-          new FunctionType([unknownType], dynamicType, Nullability.legacy)
-        ], dynamicType, Nullability.legacy))
-            .leakingDebugToString(),
-        '((dynamic) →* dynamic) →* dynamic');
+    testGreatest("((UNKNOWN) ->* dynamic) ->* dynamic",
+        "((dynamic) ->* dynamic) ->* dynamic");
   }
 
   void test_greatestClosure_covariant() {
-    expect(
-        greatestClosure(new FunctionType([], unknownType, Nullability.legacy))
-            .leakingDebugToString(),
-        '() →* dynamic');
-    expect(
-        greatestClosure(new InterfaceType(
-                coreTypes.listClass, Nullability.legacy, [unknownType]))
-            .leakingDebugToString(),
-        'dart.core::List<dynamic>*');
+    testGreatest("() ->* UNKNOWN", "() ->* dynamic");
+    testGreatest("List<UNKNOWN>*", "List<dynamic>*");
   }
 
   void test_greatestClosure_function_multipleUnknown() {
-    expect(
-        greatestClosure(new FunctionType(
-            [unknownType, unknownType], unknownType, Nullability.legacy,
-            namedParameters: [
-              new NamedType('a', unknownType),
-              new NamedType('b', unknownType)
-            ])).leakingDebugToString(),
-        '(Never, Never, {a: Never, b: Never}) →* dynamic');
+    testGreatest("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) ->* UNKNOWN",
+        "(Never, Never, {Never a, Never b}) ->* dynamic");
   }
 
   void test_greatestClosure_simple() {
-    expect(greatestClosure(unknownType).leakingDebugToString(), 'dynamic');
+    testGreatest("UNKNOWN", "dynamic");
   }
 
   void test_leastClosure_contravariant() {
-    expect(
-        leastClosure(new FunctionType(
-                [unknownType], dynamicType, Nullability.legacy))
-            .leakingDebugToString(),
-        '(dynamic) →* dynamic');
-    expect(
-        leastClosure(new FunctionType([], dynamicType, Nullability.legacy,
-                namedParameters: [new NamedType('foo', unknownType)]))
-            .leakingDebugToString(),
-        '({foo: dynamic}) →* dynamic');
+    testLeast("(UNKNOWN) ->* dynamic", "(dynamic) ->* dynamic");
+    testLeast("({UNKNOWN foo}) ->* dynamic", "({dynamic foo}) ->* dynamic");
   }
 
   void test_leastClosure_contravariant_contravariant() {
-    expect(
-        leastClosure(new FunctionType([
-          new FunctionType([unknownType], dynamicType, Nullability.legacy)
-        ], dynamicType, Nullability.legacy))
-            .leakingDebugToString(),
-        '((Never) →* dynamic) →* dynamic');
+    testLeast("((UNKNOWN) ->* dynamic) ->* dynamic",
+        "((Never) ->* dynamic) ->* dynamic");
   }
 
   void test_leastClosure_covariant() {
-    expect(
-        leastClosure(new FunctionType([], unknownType, Nullability.legacy))
-            .leakingDebugToString(),
-        '() →* Never');
-    expect(
-        leastClosure(new InterfaceType(
-                coreTypes.listClass, Nullability.legacy, [unknownType]))
-            .leakingDebugToString(),
-        'dart.core::List<Never>*');
+    testLeast("() ->* UNKNOWN", "() ->* Never");
+    testLeast("List<UNKNOWN>*", "List<Never>*");
   }
 
   void test_leastClosure_function_multipleUnknown() {
-    expect(
-        leastClosure(new FunctionType(
-            [unknownType, unknownType], unknownType, Nullability.legacy,
-            namedParameters: [
-              new NamedType('a', unknownType),
-              new NamedType('b', unknownType)
-            ])).leakingDebugToString(),
-        '(dynamic, dynamic, {a: dynamic, b: dynamic}) →* Never');
+    testLeast("(UNKNOWN, UNKNOWN, {UNKNOWN a, UNKNOWN b}) ->* UNKNOWN",
+        "(dynamic, dynamic, {dynamic a, dynamic b}) ->* Never");
   }
 
   void test_leastClosure_simple() {
-    expect(leastClosure(unknownType).leakingDebugToString(), 'Never');
+    testLeast("UNKNOWN", "Never");
   }
-}
-
-class _MockCoreTypes implements CoreTypes {
-  @override
-  final Class listClass = new Class(name: 'List');
-
-  @override
-  final Class objectClass = new Class(name: 'Object');
-
-  _MockCoreTypes() {
-    new Library(Uri.parse('dart:core'),
-        name: 'dart.core', classes: [listClass, objectClass]);
-  }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

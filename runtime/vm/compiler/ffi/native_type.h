@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/growable_array.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/backend/locations.h"
@@ -66,7 +67,7 @@ class NativeType : public ZoneAllocated {
   virtual bool IsFloat() const { return false; }
   virtual bool IsVoid() const { return false; }
 
-  virtual bool IsSigned() const = 0;
+  virtual bool IsSigned() const { return false; }
 
   // The size in bytes of this representation.
   //
@@ -84,7 +85,7 @@ class NativeType : public ZoneAllocated {
   virtual bool IsExpressibleAsRepresentation() const { return false; }
 
   // Unboxed Representation if it exists.
-  virtual Representation AsRepresentation() const = 0;
+  virtual Representation AsRepresentation() const { UNREACHABLE(); }
 
   // Unboxed Representation, over approximates if needed.
   Representation AsRepresentationOverApprox(Zone* zone_) const {
@@ -165,6 +166,25 @@ class NativePrimitiveType : public NativeType {
 
  private:
   const PrimitiveType representation_;
+};
+
+using NativeTypes = ZoneGrowableArray<const NativeType*>;
+
+class NativeFunctionType : public ZoneAllocated {
+ public:
+  NativeFunctionType(const NativeTypes& argument_types,
+                     const NativeType& return_type)
+      : argument_types_(argument_types), return_type_(return_type) {}
+
+  const NativeTypes& argument_types() const { return argument_types_; }
+  const NativeType& return_type() const { return return_type_; }
+
+  void PrintTo(BaseTextBuffer* f) const;
+  const char* ToCString() const;
+
+ private:
+  const NativeTypes& argument_types_;
+  const NativeType& return_type_;
 };
 
 }  // namespace ffi

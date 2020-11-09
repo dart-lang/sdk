@@ -2061,7 +2061,6 @@ const char* Isolate::MakeRunnable() {
   set_is_runnable(true);
 #ifndef PRODUCT
   if (!Isolate::IsSystemIsolate(this)) {
-    debugger()->OnIsolateRunnable();
     if (FLAG_pause_isolates_on_unhandled_exceptions) {
       debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
     }

@@ -830,7 +830,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         if (!is_remembered_) {
           FATAL3(
-              "Old object %#" Px "references new object %#" Px
+              "Old object %#" Px " references new object %#" Px
               ", but it is not"
               " in any store buffer. Consider using rr to watch the slot %p and"
               " reverse-continue to find the store with a missing barrier.\n",
