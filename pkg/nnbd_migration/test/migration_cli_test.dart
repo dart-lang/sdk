@@ -144,7 +144,8 @@ class _MigrationCliRunner extends MigrationCliRunner {
 
   @override
   Set<String> computePathsToProcess(DriverBasedAnalysisContext context) =>
-      cli._test.overridePathsToProcess ?? super.computePathsToProcess(context);
+      cli._test.overridePathsToProcess ??
+      _sortPaths(super.computePathsToProcess(context));
 
   @override
   NonNullableFix createNonNullableFix(
@@ -185,6 +186,13 @@ class _MigrationCliRunner extends MigrationCliRunner {
   bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) =>
       cli._test.overrideShouldBeMigrated?.call(path) ??
       super.shouldBeMigrated(context, path);
+
+  /// Sorts the paths in [paths] for repeatability of migration tests.
+  Set<String> _sortPaths(Set<String> paths) {
+    var pathList = paths.toList();
+    pathList.sort();
+    return pathList.toSet();
+  }
 }
 
 abstract class _MigrationCliTestBase {
@@ -804,6 +812,30 @@ int? f() => null
     // But it should not mention foo.dart or bar.dart, which are migrated
     expect(output, isNot(contains('package:foo/foo.dart')));
     expect(output, isNot(contains('package:bar/bar.dart')));
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44118')
+  test_lifecycle_issue_44118() async {
+    var projectContents = simpleProject(sourceText: '''
+int f() => null
+''');
+    projectContents['lib/foo.dart'] = '''
+import 'test.dart';
+''';
+    var projectDir = createProjectDir(projectContents);
+    await assertRunFailure([projectDir]);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('1 analysis issue found'));
+    var sep = resourceProvider.pathContext.separator;
+    expect(
+        output,
+        contains("error • Expected to find ';' at lib${sep}test.dart:1:12 • "
+            '(expected_token)'));
+    expect(
+        output,
+        contains(
+            'analysis errors will result in erroneous migration suggestions'));
+    expect(output, contains('Please fix the analysis issues'));
   }
 
   test_lifecycle_no_preview() async {
