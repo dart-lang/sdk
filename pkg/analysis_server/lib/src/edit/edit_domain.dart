@@ -106,7 +106,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       }
 
       var workspace = DartChangeWorkspace(server.currentSessions);
-      var processor = BulkFixProcessor(workspace);
+      var processor =
+          BulkFixProcessor(server.instrumentationService, workspace);
 
       String sdkPath;
       var sdk = server.findSdk();
@@ -232,6 +233,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
     if (result != null) {
       var context = DartAssistContextImpl(
+        server.instrumentationService,
         DartChangeWorkspace(server.currentSessions),
         result,
         offset,
@@ -643,7 +645,8 @@ class EditDomainHandler extends AbstractRequestHandler {
         var errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(server.currentSessions);
-          var context = DartFixContextImpl(workspace, result, error, (name) {
+          var context = DartFixContextImpl(
+              server.instrumentationService, workspace, result, error, (name) {
             var tracker = server.declarationsTracker;
             var provider = TopLevelDeclarationsProvider(tracker);
             return provider.get(

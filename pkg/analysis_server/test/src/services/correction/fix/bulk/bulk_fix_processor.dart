@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -65,7 +66,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
     var changeBuilder =
-        await BulkFixProcessor(workspace).fixErrors([analysisContext]);
+        await BulkFixProcessor(InstrumentationService.NULL_SERVICE, workspace)
+            .fixErrors([analysisContext]);
     return changeBuilder.sourceChange;
   }
 

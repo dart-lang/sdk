@@ -152,16 +152,16 @@ class AssistProcessor extends BaseProcessor {
     SurroundWith.newInstance,
   ];
 
-  final DartAssistContext context;
+  final DartAssistContext assistContext;
 
   final List<Assist> assists = <Assist>[];
 
-  AssistProcessor(this.context)
+  AssistProcessor(this.assistContext)
       : super(
-          selectionOffset: context.selectionOffset,
-          selectionLength: context.selectionLength,
-          resolvedResult: context.resolveResult,
-          workspace: context.workspace,
+          selectionOffset: assistContext.selectionOffset,
+          selectionLength: assistContext.selectionLength,
+          resolvedResult: assistContext.resolveResult,
+          workspace: assistContext.workspace,
         );
 
   Future<List<Assist>> compute() async {
@@ -251,10 +251,11 @@ class AssistProcessor extends BaseProcessor {
         await producer.compute(builder);
         _addAssistFromBuilder(builder, producer.assistKind,
             args: producer.assistArguments);
-      } on ConflictingEditException {
-        // Handle the exception by not adding an assist based on the producer.
-        // TODO(brianwilkerson) Report the exception to the instrumentation
-        //  service so that we can fix the bug in the producer.
+      } on ConflictingEditException catch (exception, stackTrace) {
+        // Handle the exception by (a) not adding an assist based on the
+        // producer and (b) logging the exception.
+        assistContext.instrumentationService
+            .logException(exception, stackTrace);
       }
     }
 
@@ -276,7 +277,7 @@ class AssistProcessor extends BaseProcessor {
 
   bool _containsErrorCode(Set<String> errorCodes) {
     final fileOffset = node.offset;
-    for (var error in context.resolveResult.errors) {
+    for (var error in assistContext.resolveResult.errors) {
       final errorSource = error.source;
       if (file == errorSource.fullName) {
         if (fileOffset >= error.offset &&
