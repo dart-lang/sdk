@@ -61,6 +61,8 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   }
 
   Future<void> _computeCompletion(int offset) async {
+    // TODO(brianwilkerson) I'm fairly confident that `result` is equivalent to
+    //  `testAnalysisResult` and that we're resolving the file twice.
     var result = await session.getResolvedUnit(testFile);
     var context = StatementCompletionContext(result, offset);
     var processor = StatementCompletionProcessor(context);

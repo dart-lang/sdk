@@ -160,6 +160,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 
 /// A function that can be executed to create a multi-correction producer.
@@ -1134,9 +1135,15 @@ class FixProcessor extends BaseProcessor {
       producer.configure(context);
       var builder = ChangeBuilder(
           workspace: context.workspace, eol: context.utils.endOfLine);
-      await producer.compute(builder);
-      _addFixFromBuilder(builder, producer.fixKind,
-          args: producer.fixArguments);
+      try {
+        await producer.compute(builder);
+        _addFixFromBuilder(builder, producer.fixKind,
+            args: producer.fixArguments);
+      } on ConflictingEditException {
+        // Handle the exception by not adding a fix based on the producer.
+        // TODO(brianwilkerson) Report the exception to the instrumentation
+        //  service so that we can fix the bug in the producer.
+      }
     }
 
     var errorCode = error.errorCode;

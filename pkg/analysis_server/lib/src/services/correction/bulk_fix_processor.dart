@@ -71,6 +71,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 /// A fix producer that produces changes to fix multiple diagnostics.
 class BulkFixProcessor {
@@ -415,7 +416,11 @@ class BulkFixProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-      await producer.compute(builder);
+      try {
+        await producer.compute(builder);
+      } on ConflictingEditException {
+        // TODO(brianwilkerson) Roll back the changes made by this producer.
+      }
     }
 
     var errorCode = diagnostic.errorCode;

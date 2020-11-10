@@ -73,6 +73,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart'
     hide AssistContributor;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 /// The computer for Dart assists.
 class AssistProcessor extends BaseProcessor {
@@ -241,29 +242,34 @@ class AssistProcessor extends BaseProcessor {
     if (!setupSuccess) {
       return;
     }
+
+    Future<void> compute(CorrectionProducer producer) async {
+      producer.configure(context);
+      var builder = ChangeBuilder(
+          workspace: context.workspace, eol: context.utils.endOfLine);
+      try {
+        await producer.compute(builder);
+        _addAssistFromBuilder(builder, producer.assistKind,
+            args: producer.assistArguments);
+      } on ConflictingEditException {
+        // Handle the exception by not adding an assist based on the producer.
+        // TODO(brianwilkerson) Report the exception to the instrumentation
+        //  service so that we can fix the bug in the producer.
+      }
+    }
+
     for (var generator in generators) {
       var ruleNames = lintRuleMap[generator] ?? {};
       if (!_containsErrorCode(ruleNames)) {
         var producer = generator();
-        producer.configure(context);
-
-        var builder = ChangeBuilder(
-            workspace: context.workspace, eol: context.utils.endOfLine);
-        await producer.compute(builder);
-        _addAssistFromBuilder(builder, producer.assistKind,
-            args: producer.assistArguments);
+        await compute(producer);
       }
     }
     for (var multiGenerator in multiGenerators) {
       var multiProducer = multiGenerator();
       multiProducer.configure(context);
       for (var producer in multiProducer.producers) {
-        var builder = ChangeBuilder(
-            workspace: context.workspace, eol: context.utils.endOfLine);
-        producer.configure(context);
-        await producer.compute(builder);
-        _addAssistFromBuilder(builder, producer.assistKind,
-            args: producer.assistArguments);
+        await compute(producer);
       }
     }
   }
