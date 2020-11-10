@@ -3338,20 +3338,9 @@ void TypeTranslator::LoadAndSetupTypeParameters(
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
 
-    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
-    // by the frontend.
     parameter ^= type_parameters.TypeAt(i);
-    const Tag tag = helper_->PeekTag();  // peek ith bound type.
-    if (tag == kDynamicType) {
-      helper_->SkipDartType();  // read ith bound.
-      parameter.set_bound(
-          Type::Handle(Z, nnbd_mode == NNBDMode::kOptedInLib
-                              ? I->object_store()->nullable_object_type()
-                              : I->object_store()->legacy_object_type()));
-    } else {
-      AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
-      parameter.set_bound(bound);
-    }
+    AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
+    parameter.set_bound(bound);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
     const AbstractType* default_arg = &Object::dynamic_type();
     if (helper_->ReadTag() == kSomething) {
