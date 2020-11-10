@@ -333,6 +333,17 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withDocumentSymbolKinds(
+    TextDocumentClientCapabilities source,
+    List<SymbolKind> kinds,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'documentSymbol': {
+        'symbolKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
+      }
+    });
+  }
+
   TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
     TextDocumentClientCapabilities source,
   ) {
