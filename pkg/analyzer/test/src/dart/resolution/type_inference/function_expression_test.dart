@@ -468,7 +468,7 @@ class FunctionExpressionWithNullSafetyTest extends FunctionExpressionTest
 int Function(int a) v;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 T foo<T>() => throw 0;
@@ -478,7 +478,9 @@ void f() {
     return foo();
   };
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
     assertType(findElement.parameter('a').type, 'int');
     _assertReturnType('(a) {', 'int');
   }
@@ -489,13 +491,15 @@ void f() {
 
 void foo(int Function() x) {}
 ''');
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 void test(int? a) {
   foo(() => a);
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
     _assertReturnType('() => a', 'int?');
   }
 
@@ -505,13 +509,15 @@ void test(int? a) {
 
 void foo(int Function() x) {}
 ''');
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 void test(dynamic a) {
   foo(() => a);
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
     _assertReturnType('() => a', 'int');
   }
 

@@ -230,6 +230,8 @@ import 'implicit_this_reference_in_initializer_test.dart'
 import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
 import 'import_internal_library_test.dart' as import_internal_library;
+import 'import_of_legacy_library_into_null_safe_test.dart'
+    as mport_of_legacy_library_into_null_safe;
 import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'inconsistent_case_expression_types_test.dart'
     as inconsistent_case_expression_types;
@@ -808,6 +810,7 @@ main() {
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_internal_library.main();
+    mport_of_legacy_library_into_null_safe.main();
     import_of_non_library.main();
     inconsistent_case_expression_types.main();
     inconsistent_inheritance_getter_and_method.main();

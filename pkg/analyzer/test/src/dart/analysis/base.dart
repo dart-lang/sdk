@@ -63,6 +63,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   String testProject;
+  String testProject2;
   String testFile;
   String testCode;
 
@@ -81,7 +82,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       {Map<String, List<Folder>> packageMap,
       SummaryDataStore externalSummaries}) {
     packageMap ??= <String, List<Folder>>{
-      'test': [getFolder(testProject)],
+      'test': [getFolder('$testProject/lib')],
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],
     };
@@ -161,7 +162,8 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   void setUp() {
     sdk = MockSdk(resourceProvider: resourceProvider);
-    testProject = convertPath('/test/lib');
+    testProject = convertPath('/test');
+    testProject2 = convertPath('/test/lib');
     testFile = convertPath('/test/lib/test.dart');
     logger = PerformanceLog(logBuffer);
     scheduler = AnalysisDriverScheduler(logger);

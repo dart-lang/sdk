@@ -22,13 +22,15 @@ class UnnecessaryNonNullAssertionTest extends PubPackageResolutionTest
 var x = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 f() {
   x!;
 }
-''');
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
   }
 
   test_nonNull_function() async {

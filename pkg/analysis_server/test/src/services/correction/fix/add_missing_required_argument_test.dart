@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -517,7 +518,9 @@ main() {
   A a = new A(callback: (int a) {  });
   print(a);
 }
-''');
+''',
+        errorFilter: (error) =>
+            error.errorCode == HintCode.MISSING_REQUIRED_PARAM);
   }
 
   Future<void> test_constructor_single_closure_nnbd_into_legacy() async {

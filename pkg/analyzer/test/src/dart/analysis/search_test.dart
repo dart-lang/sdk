@@ -261,7 +261,7 @@ List<A> v2 = null;
   }
 
   test_searchReferences_ClassElement_definedOutside() async {
-    newFile('$testProject/lib.dart', content: r'''
+    newFile('$testProject2/lib.dart', content: r'''
 class A {};
 ''');
     await _resolveTestUnit('''
@@ -317,7 +317,7 @@ class B extends Object with A {} // with
   }
 
   test_searchReferences_CompilationUnitElement() async {
-    newFile('$testProject/foo.dart');
+    newFile('$testProject2/foo.dart');
     await _resolveTestUnit('''
 import 'foo.dart'; // import
 export 'foo.dart'; // export
@@ -354,7 +354,7 @@ main() {
   }
 
   test_searchReferences_ConstructorElement_default_otherFile() async {
-    String other = convertPath('$testProject/other.dart');
+    String other = convertPath('$testProject2/other.dart');
     String otherCode = '''
 import 'test.dart';
 main() {
@@ -686,8 +686,8 @@ label:
   test_searchReferences_LibraryElement() async {
     var codeA = 'part of lib; // A';
     var codeB = 'part of lib; // B';
-    newFile('$testProject/unitA.dart', content: codeA);
-    newFile('$testProject/unitB.dart', content: codeB);
+    newFile('$testProject2/unitA.dart', content: codeA);
+    newFile('$testProject2/unitB.dart', content: codeB);
     await _resolveTestUnit('''
 library lib;
 part 'unitA.dart';
@@ -1103,7 +1103,7 @@ main() {
 part of my_lib;
 ppp.Future c;
 ''';
-    newFile('$testProject/my_part.dart', content: partCode);
+    newFile('$testProject2/my_part.dart', content: partCode);
     await _resolveTestUnit('''
 library my_lib;
 import 'dart:async' as ppp;
@@ -1156,9 +1156,9 @@ main() {
   }
 
   test_searchReferences_private_declaredInDefiningUnit() async {
-    String p1 = convertPath('$testProject/part1.dart');
-    String p2 = convertPath('$testProject/part2.dart');
-    String p3 = convertPath('$testProject/part3.dart');
+    String p1 = convertPath('$testProject2/part1.dart');
+    String p2 = convertPath('$testProject2/part2.dart');
+    String p3 = convertPath('$testProject2/part3.dart');
     String code1 = 'part of lib; _C v1;';
     String code2 = 'part of lib; _C v2;';
     newFile(p1, content: code1);
@@ -1192,9 +1192,9 @@ _C v;
   }
 
   test_searchReferences_private_declaredInPart() async {
-    String p = convertPath('$testProject/lib.dart');
-    String p1 = convertPath('$testProject/part1.dart');
-    String p2 = convertPath('$testProject/part2.dart');
+    String p = convertPath('$testProject2/lib.dart');
+    String p1 = convertPath('$testProject2/part1.dart');
+    String p2 = convertPath('$testProject2/part2.dart');
 
     var code = '''
 library lib;
@@ -1369,7 +1369,7 @@ class A {
   }
 
   test_searchReferences_TopLevelVariableElement() async {
-    newFile('$testProject/lib.dart', content: '''
+    newFile('$testProject2/lib.dart', content: '''
 library lib;
 var V;
 ''');
@@ -1654,8 +1654,8 @@ class A {
   }
 
   test_subtypes_files() async {
-    String pathB = convertPath('$testProject/b.dart');
-    String pathC = convertPath('$testProject/c.dart');
+    String pathB = convertPath('$testProject2/b.dart');
+    String pathC = convertPath('$testProject2/c.dart');
     newFile(pathB, content: r'''
 import 'test.dart';
 class B extends A {}
