@@ -2639,6 +2639,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       {bool emitNullability = true}) {
     var c = type.classNode;
     _declareBeforeUse(c);
+    js_ast.Expression typeRep;
 
     // Type parameters don't matter as JS interop types cannot be reified.
     // We have to use lazy JS types because until we have proper module
@@ -2654,17 +2655,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Anonymous JS types do not have a corresponding concrete JS type so we
     // have to use a helper to define them.
     if (isJSAnonymousType(c)) {
-      return runtimeCall(
+      typeRep = runtimeCall(
           'anonymousJSType(#)', [js.escapedString(getLocalClassName(c))]);
+    } else {
+      var jsName = _jsNameWithoutGlobal(c);
+      if (jsName != null) {
+        typeRep = runtimeCall('lazyJSType(() => #, #)',
+            [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
+      }
     }
-    var jsName = _jsNameWithoutGlobal(c);
-    if (jsName != null) {
-      return runtimeCall('lazyJSType(() => #, #)',
-          [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
+
+    if (typeRep != null) {
+      // JS types are not currently cached in the type table like other types
+      // are below.
+      return emitNullability
+          ? _emitNullabilityWrapper(typeRep, type.nullability)
+          : typeRep;
     }
 
     var args = type.typeArguments;
-    js_ast.Expression typeRep;
     Iterable<js_ast.Expression> jsArgs;
     if (args.any((a) => a != const DynamicType())) {
       jsArgs = args.map(_emitType);
