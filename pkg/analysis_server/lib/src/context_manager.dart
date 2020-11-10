@@ -887,9 +887,9 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _checkForPackagespecUpdate(String path, ContextInfo info) {
-    // Check to see if this is the .packages file for this context and if so,
-    // update the context's source factory.
-    if (pathContext.basename(path) == PACKAGE_SPEC_NAME) {
+    // Check to see if this is `.dart_tool/package_config.json` or `.packages`
+    // file for this context and if so, update the context's source factory.
+    if (_isPackageConfigJsonFilePath(path) || _isDotPackagesFilePath(path)) {
       var driver = info.analysisDriver;
       if (driver == null) {
         // I suspect that this happens as a result of a race condition: server
@@ -1249,6 +1249,9 @@ class ContextManagerImpl implements ContextManager {
     if (info.hasDependency(path)) {
       _recomputeFolderDisposition(info);
     }
+
+    _checkForPackagespecUpdate(path, info);
+
     // maybe excluded globally
     if (_isExcluded(path) ||
         _isContainedInDotFolder(info.folder.path, path) ||
@@ -1283,7 +1286,7 @@ class ContextManagerImpl implements ContextManager {
                 return;
               }
             }
-            if (_isPackagespec(path)) {
+            if (_isDotPackagesFilePath(path)) {
               // Check for a sibling pubspec.yaml file.
               if (!resourceProvider
                   .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
@@ -1323,7 +1326,7 @@ class ContextManagerImpl implements ContextManager {
                 return;
               }
             }
-            if (_isPackagespec(path)) {
+            if (_isDotPackagesFilePath(path)) {
               // Check for a sibling pubspec.yaml file.
               if (!resourceProvider
                   .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
@@ -1352,7 +1355,6 @@ class ContextManagerImpl implements ContextManager {
           }
         }
     }
-    _checkForPackagespecUpdate(path, info);
     _checkForAnalysisOptionsUpdate(path, info);
     _checkForDataFileUpdate(path, info);
     _checkForPubspecUpdate(path, info);
@@ -1388,6 +1390,10 @@ class ContextManagerImpl implements ContextManager {
   /// to specify data-driven fixes.
   bool _isDataFile(String path) => pathContext.basename(path) == dataFileName;
 
+  bool _isDotPackagesFilePath(String path) {
+    return pathContext.basename(path) == PACKAGE_SPEC_NAME;
+  }
+
   /// Returns `true` if the given [path] is excluded by [excludedPaths].
   bool _isExcluded(String path) => _isExcludedBy(excludedPaths, path);
 
@@ -1415,8 +1421,12 @@ class ContextManagerImpl implements ContextManager {
 
   bool _isManifest(String path) => pathContext.basename(path) == MANIFEST_NAME;
 
-  bool _isPackagespec(String path) =>
-      pathContext.basename(path) == PACKAGE_SPEC_NAME;
+  bool _isPackageConfigJsonFilePath(String path) {
+    var components = pathContext.split(path);
+    return components.length > 2 &&
+        components[components.length - 1] == 'package_config.json' &&
+        components[components.length - 2] == '.dart_tool';
+  }
 
   bool _isPubspec(String path) => pathContext.basename(path) == PUBSPEC_NAME;
 
@@ -1477,8 +1487,13 @@ class ContextManagerImpl implements ContextManager {
     var builder = callbacks.createContextBuilder(info.folder);
     var options = builder.getAnalysisOptions(contextRoot,
         contextRoot: driver.contextRoot);
+    var packages = builder.createPackageMap(contextRoot);
     var factory = builder.createSourceFactory(contextRoot);
-    driver.configure(analysisOptions: options, sourceFactory: factory);
+    driver.configure(
+      analysisOptions: options,
+      packages: packages,
+      sourceFactory: factory,
+    );
     callbacks.analysisOptionsUpdated(driver);
   }
 
