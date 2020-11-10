@@ -41,7 +41,6 @@ final testSuiteDirectories = [
   Path('tests/dart2js_2'),
   Path('tests/dartdevc'),
   Path('tests/dartdevc_2'),
-  Path('tests/kernel'),
   Path('tests/language'),
   Path('tests/language_2'),
   Path('tests/lib'),
