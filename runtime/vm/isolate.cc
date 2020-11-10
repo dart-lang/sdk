@@ -2068,6 +2068,11 @@ const char* Isolate::MakeRunnable() {
 #endif  // !PRODUCT
   IsolateSpawnState* state = spawn_state();
   if (state != nullptr) {
+    // If the embedder does not make the isolate runnable during the
+    // `create_isolate_group`/`initialize_isolate` embedder callbacks but rather
+    // some time in the future, we'll hit this case.
+    // WARNING: This is currently untested - we might consider changing our APIs
+    // to disallow two different flows.
     ASSERT(this == state->isolate());
     Run();
   }
