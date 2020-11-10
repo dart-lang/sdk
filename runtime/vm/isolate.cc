@@ -2091,15 +2091,6 @@ const char* Isolate::MakeRunnable() {
     Service::HandleEvent(&runnableEvent);
   }
   GetRunnableLatencyMetric()->set_value(UptimeMicros());
-  if (FLAG_print_benchmarking_metrics) {
-    {
-      StartIsolateScope scope(this);
-      heap()->CollectAllGarbage();
-    }
-    int64_t heap_size = (heap()->UsedInWords(Heap::kNew) * kWordSize) +
-                        (heap()->UsedInWords(Heap::kOld) * kWordSize);
-    GetRunnableHeapSizeMetric()->set_value(heap_size);
-  }
 #endif  // !PRODUCT
   return nullptr;
 }
@@ -2553,7 +2544,7 @@ void Isolate::LowLevelShutdown() {
         "\tisolate:    %s\n",
         name());
   }
-  if (FLAG_print_metrics || FLAG_print_benchmarking_metrics) {
+  if (FLAG_print_metrics) {
     LogBlock lb;
     OS::PrintErr("Printing metrics for %s\n", name());
 #define ISOLATE_GROUP_METRIC_PRINT(type, variable, name, unit)                 \

@@ -206,7 +206,7 @@ void Metric::Init() {
 }
 
 void Metric::Cleanup() {
-  if (FLAG_print_metrics || FLAG_print_benchmarking_metrics) {
+  if (FLAG_print_metrics) {
     // Create a zone to allocate temporary strings in.
     StackZone sz(Thread::Current());
     OS::PrintErr("Printing metrics for VM\n");

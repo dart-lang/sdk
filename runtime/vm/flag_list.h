@@ -167,8 +167,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
   P(print_snapshot_sizes_verbose, bool, false,                                 \
     "Print cluster sizes of generated snapshots.")                             \
-  P(print_benchmarking_metrics, bool, false,                                   \
-    "Print additional memory and latency metrics for benchmarking.")           \
   R(print_ssa_liveranges, false, bool, false,                                  \
     "Print live ranges after allocation.")                                     \
   R(print_stacktrace_at_api_error, false, bool, false,                         \
