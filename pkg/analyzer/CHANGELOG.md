@@ -10,10 +10,6 @@
 * The value of`FunctionType.element` for types created from a `typedef`
   is now `FunctionTypeAliasElement`, not its function element.
 * Removed deprecated `GenericTypeAliasElement`.
-* Removed `PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS`.
-* Changed the default `PhysicalResourceProvider` constructor to no longer take a
-  required positional parameter (removed the existing `fileReadMode` positional
-  parameter).
 
 ## 0.40.6
 * The non_nullable feature is released in 2.12 language version.

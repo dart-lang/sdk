@@ -112,8 +112,7 @@ class CommandLineParser {
       List<String> allowed,
       Map<String, String> allowedHelp,
       String defaultsTo,
-      void Function(Object) callback,
-      bool hide = false}) {
+      void Function(Object) callback}) {
     _knownFlags.add(name);
     _parser.addOption(name,
         abbr: abbr,
@@ -122,8 +121,7 @@ class CommandLineParser {
         allowed: allowed,
         allowedHelp: allowedHelp,
         defaultsTo: defaultsTo,
-        callback: callback,
-        hide: hide);
+        callback: callback);
   }
 
   /// Generates a string displaying usage information for the defined options.
@@ -231,6 +229,9 @@ class Driver implements ServerStarter {
   static const String DISABLE_SERVER_FEATURE_SEARCH =
       'disable-server-feature-search';
 
+  /// The name of the option used to set the file read mode.
+  static const String FILE_READ_MODE = 'file-read-mode';
+
   /// The name of the option used to print usage information.
   static const String HELP_OPTION = 'help';
 
@@ -310,6 +311,7 @@ class Driver implements ServerStarter {
     var analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALYSIS_HIGHLIGHT2];
+    analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
     analysisServerOptions.newAnalysisDriverLog =
         results[NEW_ANALYSIS_DRIVER_LOG];
     analysisServerOptions.clientId = results[CLIENT_ID];
@@ -771,6 +773,18 @@ class Driver implements ServerStarter {
         help: 'enable version 2 of semantic highlight',
         defaultsTo: false,
         negatable: false);
+    parser.addOption(FILE_READ_MODE,
+        help: 'an option for reading files (some clients normalize eol '
+            'characters, which make the file offset and range information '
+            'incorrect)',
+        valueHelp: 'mode',
+        allowed: ['as-is', 'normalize-eol-always'],
+        allowedHelp: {
+          'as-is': 'file contents are read as-is',
+          'normalize-eol-always':
+              r"eol characters normalized to the single character new line ('\n')"
+        },
+        defaultsTo: 'as-is');
     parser.addOption(CACHE_FOLDER,
         valueHelp: 'path', help: 'Path to the location to write cache data');
     parser.addFlag(USE_LSP,
@@ -804,8 +818,6 @@ class Driver implements ServerStarter {
     parser.addMultiOption('enable-experiment', hide: true);
     // Removed 9/23/2020.
     parser.addFlag('enable-instrumentation', hide: true);
-    // Removed 11/9/2020.
-    parser.addOption('file-read-mode', hide: true);
     // Removed 11/8/2020.
     parser.addFlag('preview-dart-2', hide: true);
     // Removed 9/23/2020.

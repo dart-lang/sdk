@@ -13,6 +13,9 @@ export 'package:analyzer/src/generated/source.dart';
 /// Instances of the class `FileBasedSource` implement a source that represents
 /// a file.
 class FileBasedSource extends Source {
+  /// A function that changes the way that files are read off of disk.
+  static Function fileReadMode = (String s) => s;
+
   /// Map from encoded URI/filepath pair to a unique integer identifier.  This
   /// identifier is used for equality tests and hash codes.
   ///
@@ -62,7 +65,7 @@ class FileBasedSource extends Source {
   /// See [contents].
   TimestampedData<String> get contentsFromFile {
     return TimestampedData<String>(
-        file.lastModified(), file.readAsStringSync());
+        file.lastModified(), fileReadMode(file.readAsStringSync()));
   }
 
   @override
