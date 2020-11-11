@@ -19,7 +19,6 @@ import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -1012,13 +1011,15 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
   Token get endToken => _block.endToken;
 
   @override
-  bool get isAsynchronous => keyword != null && keyword.lexeme == Parser.ASYNC;
+  bool get isAsynchronous =>
+      keyword != null && keyword.lexeme == Keyword.ASYNC.lexeme;
 
   @override
   bool get isGenerator => star != null;
 
   @override
-  bool get isSynchronous => keyword == null || keyword.lexeme != Parser.ASYNC;
+  bool get isSynchronous =>
+      keyword == null || keyword.lexeme != Keyword.ASYNC.lexeme;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
