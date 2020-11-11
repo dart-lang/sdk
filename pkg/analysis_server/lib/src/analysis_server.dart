@@ -603,7 +603,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 class AnalysisServerOptions {
   bool useAnalysisHighlight2 = false;
 
-  String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
 
   String clientId;

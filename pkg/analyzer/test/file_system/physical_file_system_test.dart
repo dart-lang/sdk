@@ -56,7 +56,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   /// Create the resource provider to be used by the tests. Subclasses can
   /// override this method to change the class of resource provider that is
   /// used.
-  PhysicalResourceProvider createProvider() => PhysicalResourceProvider(null);
+  PhysicalResourceProvider createProvider() => PhysicalResourceProvider();
 
   @override
   File getFile({@required bool exists, String content, String filePath}) {
