@@ -43,6 +43,12 @@ Language/Functions/syntax_t03: Skip # Triple shift is not implemented yet
 LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t02: Skip # Type aliases are not supported by analyzer
 LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t04: Skip # Type aliases are not supported by analyzer
 LanguageFeatures/Subtyping/static/tests/left_bottom_A01_t06: Skip # Type aliases are not supported by analyzer
+LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_dynamic_t01: Skip # Type aliases are not fully supported by analyzer yet
+LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_dynamic_t02: Skip # Type aliases are not fully supported by analyzer yet
+LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_dynamic_t03: Skip # Type aliases are not fully supported by analyzer yet
+LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_static_t01: Skip # Type aliases are not fully supported by analyzer yet
+LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_static_t02: Skip # Type aliases are not fully supported by analyzer yet
+LanguageFeatures/nnbd/Least-greatest-closure/nonfunction_typedef/nonfunction_static_t03: Skip # Type aliases are not fully supported by analyzer yet
 
 [ $compiler == fasta ]
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t10: Skip # Type aliases are not fully implemented
