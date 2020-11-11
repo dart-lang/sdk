@@ -1,3 +1,12 @@
+## 2.10.4 - 2020-11-12
+
+This is a patch release that fixes a crash in the Dart VM (issues [#43941][],
+[flutter/flutter#43620][], and [Dart-Code/Dart-Code#2814][]).
+
+[#43941]: https://github.com/dart-lang/sdk/issues/43941
+[flutter/flutter#43620]: https://github.com/flutter/flutter/issues/43620
+[Dart-Code/Dart-Code#2814]: https://github.com/Dart-Code/Dart-Code/issues/2814
+
 ## 2.10.3 - 2020-10-29
 
 This is a patch release that fixes the following issues:
