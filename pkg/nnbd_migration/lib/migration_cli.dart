@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' hide File;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -50,9 +51,10 @@ class AnalysisResult {
   final Map<String, LineInfo> lineInfo;
   final Context pathContext;
   final String rootDirectory;
+  final bool allSourcesAlreadyMigrated;
 
-  AnalysisResult(
-      this.errors, this.lineInfo, this.pathContext, this.rootDirectory) {
+  AnalysisResult(this.errors, this.lineInfo, this.pathContext,
+      this.rootDirectory, this.allSourcesAlreadyMigrated) {
     errors.sort((AnalysisError one, AnalysisError two) {
       if (one.source != two.source) {
         return one.source.fullName.compareTo(two.source.fullName);
@@ -876,6 +878,14 @@ Exception details:
             .stdout('Unresolved URIs found.  Did you forget to run "pub get"?');
         logger.stdout('');
       }
+      if (analysisResult.allSourcesAlreadyMigrated) {
+        logger.stdout('''
+All files appear to have null safety already enabled.  Did you update the
+language version prior to running "dart migrate"?  If so, you need to un-do this
+(and re-run "pub get") prior to performing the migration.
+''');
+        logger.stdout('');
+      }
       logger.stdout(
           'Please fix the analysis issues (or, force generation of migration '
           'suggestions by re-running with '
@@ -1037,7 +1047,11 @@ class _FixCodeProcessor extends Object {
     _progressBar = ProgressBar(_migrationCli.logger, pathsToProcess.length);
 
     // Process each source file.
+    bool allSourcesAlreadyMigrated = true;
     await processResources((ResolvedUnitResult result) async {
+      if (!result.unit.featureSet.isEnabled(Feature.non_nullable)) {
+        allSourcesAlreadyMigrated = false;
+      }
       _progressBar.tick();
       List<AnalysisError> errors = result.errors
           .where((error) => error.severity == Severity.error)
@@ -1061,8 +1075,12 @@ class _FixCodeProcessor extends Object {
       }
     }
 
-    return AnalysisResult(analysisErrors, _migrationCli.lineInfo,
-        _migrationCli.pathContext, _migrationCli.options.directory);
+    return AnalysisResult(
+        analysisErrors,
+        _migrationCli.lineInfo,
+        _migrationCli.pathContext,
+        _migrationCli.options.directory,
+        allSourcesAlreadyMigrated);
   }
 
   Future<MigrationState> runLaterPhases() async {
