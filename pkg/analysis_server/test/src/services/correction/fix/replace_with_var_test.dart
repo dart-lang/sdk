@@ -74,6 +74,21 @@ void f(List<int> list) {
 ''');
   }
 
+  Future<void> test_generic_instanceCreation_cascade() async {
+    await resolveTestCode('''
+Set f() {
+  Set<String> s = Set<String>()..addAll([]);
+  return s;
+}
+''');
+    await assertHasFix('''
+Set f() {
+  var s = Set<String>()..addAll([]);
+  return s;
+}
+''');
+  }
+
   Future<void> test_generic_instanceCreation_withArguments() async {
     await resolveTestCode('''
 C<int> f() {
@@ -191,6 +206,21 @@ Set f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_generic_setLiteral_cascade() async {
+    await resolveTestCode('''
+Set f() {
+  Set<String> s = {}..addAll([]);
+  return s;
+}
+''');
+    await assertHasFix('''
+Set f() {
+  var s = <String>{}..addAll([]);
+  return s;
+}
+''');
   }
 
   Future<void> test_generic_setLiteral_const() async {
