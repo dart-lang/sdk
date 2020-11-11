@@ -103,6 +103,24 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     return result;
   }
 
+  /// Root entry point for cloning a subtree within the same context where the
+  /// file offsets are valid.
+  T cloneInContext<T extends TreeNode>(T node) {
+    assert(_activeFileUri == null);
+    _activeFileUri = _activeFileUriFromContext(node);
+    final TreeNode result = clone<T>(node);
+    _activeFileUri = null;
+    return result;
+  }
+
+  Uri _activeFileUriFromContext(TreeNode node) {
+    while (node != null) {
+      if (node is FileUriNode && node.fileUri != null) return node.fileUri;
+      node = node.parent;
+    }
+    return null;
+  }
+
   DartType visitType(DartType type) {
     return substitute(type, typeSubstitution);
   }

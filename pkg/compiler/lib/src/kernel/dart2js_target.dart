@@ -17,6 +17,7 @@ import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 
 import 'invocation_mirror_constants.dart';
+import 'transformations/lowering.dart' as lowering show transformLibraries;
 
 const Iterable<String> _allowedDartSchemePaths = const <String>[
   'async',
@@ -83,6 +84,12 @@ class Dart2jsTarget extends Target {
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
 
   @override
+  List<String> get extraIndexedLibraries => const [
+        'dart:_interceptors',
+        'dart:_js_helper',
+      ];
+
+  @override
   bool mayDefineRestrictedType(Uri uri) =>
       uri.scheme == 'dart' &&
       (uri.path == 'core' || uri.path == '_interceptors');
@@ -118,6 +125,9 @@ class Dart2jsTarget extends Target {
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
           .visitLibrary(library);
     }
+    lowering.transformLibraries(
+        libraries, coreTypes, hierarchy, flags.enableNullSafety);
+    logger?.call("Lowering transformations performed");
   }
 
   @override

@@ -1296,10 +1296,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       // We have something like `List.empty(growable: true)`.
       TypeInformation baseType =
           _listBaseType(arguments, defaultGrowable: false);
+      TypeInformation elementType = _types.nonNullEmpty(); // No elements!
       return _inferrer.concreteTypes.putIfAbsent(
           node,
           () => _types.allocateList(
-              baseType, node, _analyzedMember, _types.nonNullEmpty(), 0));
+              baseType, node, _analyzedMember, elementType, 0));
     }
     if (commonElements.isNamedListConstructor('of', constructor) ||
         commonElements.isNamedListConstructor('from', constructor)) {
@@ -1314,6 +1315,44 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           () => _types.allocateList(
               baseType, node, _analyzedMember, elementType));
     }
+
+    // `JSArray.fixed` corresponds to `new Array(length)`, which is a list
+    // filled with `null`.
+    if (commonElements.isNamedJSArrayConstructor('fixed', constructor)) {
+      int length = _findLength(arguments);
+      TypeInformation elementType = _types.nullType;
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(_types.fixedListType, node, _analyzedMember,
+              elementType, length));
+    }
+
+    // `JSArray.allocateFixed` creates an array with 'no elements'. The contract
+    // is that the caller will assign a value to each member before any element
+    // is accessed. We can start tracking the element type as 'bottom'.
+    if (commonElements.isNamedJSArrayConstructor(
+        'allocateFixed', constructor)) {
+      int length = _findLength(arguments);
+      TypeInformation elementType = _types.nonNullEmpty();
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(_types.fixedListType, node, _analyzedMember,
+              elementType, length));
+    }
+
+    // `JSArray.allocateGrowable` creates an array with 'no elements'. The
+    // contract is that the caller will assign a value to each member before any
+    // element is accessed. We can start tracking the element type as 'bottom'.
+    if (commonElements.isNamedJSArrayConstructor(
+        'allocateGrowable', constructor)) {
+      int length = _findLength(arguments);
+      TypeInformation elementType = _types.nonNullEmpty();
+      return _inferrer.concreteTypes.putIfAbsent(
+          node,
+          () => _types.allocateList(_types.growableListType, node,
+              _analyzedMember, elementType, length));
+    }
+
     if (_isConstructorOfTypedArraySubclass(constructor)) {
       // We have something like `Uint32List(len)`.
       int length = _findLength(arguments);

@@ -3882,7 +3882,10 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       if (_abstractValueDomain.isFixedArray(resultType).isDefinitelyTrue) {
         // These constructors all take a length as the first argument.
         if (_commonElements.isNamedListConstructor('filled', function) ||
-            _commonElements.isNamedListConstructor('generate', function)) {
+            _commonElements.isNamedListConstructor('generate', function) ||
+            _commonElements.isNamedJSArrayConstructor('fixed', function) ||
+            _commonElements.isNamedJSArrayConstructor(
+                'allocateFixed', function)) {
           isFixedList = true;
         }
       }
