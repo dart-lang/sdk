@@ -704,7 +704,7 @@
       "name": "usage",
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "vector_math",

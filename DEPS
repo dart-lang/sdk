@@ -159,7 +159,7 @@ vars = {
   "test_rev": "e37a93bbeae23b215972d1659ac865d71287ff6a",
   "tflite_native_rev": "0.4.0+1",
   "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
-  "usage_tag": "3.4.0",
+  "usage_tag": "16fbfd90c58f16e016a295a880bc722d2547d2c9",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
   "watcher_rev": "64e254eba16f56d41f10d72c0b1cb24e130e1f8b",
   "webdriver_rev": "5a8d6805d9cf8a3cbb4fcd64849b538b7491e50e",
