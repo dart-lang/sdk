@@ -15,6 +15,7 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
+    defineReflectiveTests(CompletionTestWithNullSafetyTest);
   });
 }
 
@@ -87,6 +88,93 @@ main() {
     reg = registration(Method.textDocument_completion);
     options = CompletionRegistrationOptions.fromJson(reg.registerOptions);
     expect(options.allCommitCharacters, equals(dartCompletionCommitCharacters));
+  }
+
+  Future<void> test_completeFunctionCalls() async {
+    final content = '''
+    void myFunction(String a, int b, {String c}) {}
+
+    main() {
+      [[myFu^]]
+    }
+    ''';
+
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b})'));
+    expect(item.textEdit.newText, equals(item.insertText));
+    expect(
+      item.textEdit.range,
+      equals(rangeFromMarkers(content)),
+    );
+  }
+
+  Future<void> test_completeFunctionCalls_noRequiredParameters() async {
+    final content = '''
+    void myFunction({int a}) {}
+
+    main() {
+      [[myFu^]]
+    }
+    ''';
+
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
+    // With no required params, there should still be parens and a tabstop inside.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'myFunction(${1:})'));
+    expect(item.textEdit.newText, equals(item.insertText));
+    expect(
+      item.textEdit.range,
+      equals(rangeFromMarkers(content)),
+    );
+  }
+
+  Future<void> test_completeFunctionCalls_show() async {
+    final content = '''
+    import 'dart:math' show mi^
+    ''';
+
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'min(…)');
+    // Ensure the snippet does not include the parens/args as it doesn't
+    // make sense in the show clause. There will still be a trailing tabstop.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'min${1:}'));
+    expect(item.textEdit.newText, equals(item.insertText));
   }
 
   Future<void> test_completionKinds_default() async {
@@ -1235,5 +1323,46 @@ main() {
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
+  }
+}
+
+@reflectiveTest
+class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
+  @override
+  String get testPackageLanguageVersion => latestLanguageVersion;
+
+  @failingTest
+  Future<void> test_completeFunctionCalls_requiredNamed() async {
+    // TODO(dantup): Find out how we can tell this parameter is required
+    // (in the completion mapping).
+    final content = '''
+    void myFunction(String a, int b, {required String c, String d = ''}) {}
+
+    main() {
+      [[myFu^]]
+    }
+    ''';
+
+    await provideConfig(
+      () => initialize(
+        textDocumentCapabilities: withCompletionItemSnippetSupport(
+            emptyTextDocumentClientCapabilities),
+        workspaceCapabilities:
+            withConfigurationSupport(emptyWorkspaceClientCapabilities),
+      ),
+      {'completeFunctionCalls': true},
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = res.singleWhere((c) => c.label == 'myFunction(…)');
+    // Ensure the snippet comes through in the expected format with the expected
+    // placeholders.
+    expect(item.insertTextFormat, equals(InsertTextFormat.Snippet));
+    expect(item.insertText, equals(r'myFunction(${1:a}, ${2:b}, ${2:c})'));
+    expect(item.textEdit.newText, equals(item.insertText));
+    expect(
+      item.textEdit.range,
+      equals(rangeFromMarkers(content)),
+    );
   }
 }

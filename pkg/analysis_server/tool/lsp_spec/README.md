@@ -31,6 +31,7 @@ Client workspace settings are requested with `workspace/configuration` during in
 
 - `dart.enableSdkFormatter`: When set to `false`, prevents registration (or unregisters) the SDK formatter. When set to `true` or not supplied, will register/reregister the SDK formatter.
 - `dart.lineLength`: The number of characters the formatter should wrap code at. If unspecified, code will be wrapped at `80` characters.
+- `dart.completeFunctionCalls`: Completes functions/methods with their required parameters.
 
 ## Method Status
 
