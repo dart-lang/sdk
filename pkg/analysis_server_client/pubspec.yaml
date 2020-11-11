@@ -15,4 +15,6 @@ dev_dependencies:
     path: ../analyzer
   analysis_server:
     path: ../analysis_server
+  analysis_tool:
+    path: ../analysis_tool
   test: ^1.14.2

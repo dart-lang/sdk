@@ -5,14 +5,13 @@
 import 'dart:io';
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
+import 'package:analysis_tool/package_root.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:test/test.dart';
-
-import 'utils/package_root.dart';
 
 void main() {
   var provider = PhysicalResourceProvider.INSTANCE;
