@@ -635,7 +635,9 @@ class MigrationCliRunner {
     logger.stdout(ansi.emphasized('Analyzing project...'));
     _fixCodeProcessor = _FixCodeProcessor(context, this);
     _dartFixListener = DartFixListener(
-        DriverProviderImpl(resourceProvider, context), _exceptionReported);
+        DriverProviderImpl(resourceProvider, context),
+        _exceptionReported,
+        _fatalErrorReported);
     nonNullableFix = createNonNullableFix(_dartFixListener, resourceProvider,
         _fixCodeProcessor.getLineInfo, computeBindAddress(),
         included: [options.directory],
@@ -801,6 +803,11 @@ When finished with the preview, hit ctrl-c to terminate this process.
         }
       }
     }
+  }
+
+  void _fatalErrorReported(String detail) {
+    logger.stderr(detail);
+    throw MigrationExit(1);
   }
 
   void _exceptionReported(String detail) {

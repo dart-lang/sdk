@@ -201,7 +201,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     // Compute the analysis results.
     var server = DriverProviderImpl(resourceProvider, driver.analysisContext);
     // Run the migration engine.
-    var listener = DartFixListener(server, _exceptionReported);
+    var listener =
+        DartFixListener(server, _exceptionReported, _exceptionReported);
     var instrumentationListener = InstrumentationListener();
     var adapter = NullabilityMigrationAdapter(listener);
     var migration = NullabilityMigration(adapter, getLineInfo,

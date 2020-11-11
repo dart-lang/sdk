@@ -1816,7 +1816,10 @@ name: test
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
         .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
-    expect(() async => await cliRunner.run(), throwsUnsupportedError);
+    var message = await assertErrorExit(
+        cliRunner, () async => await cliRunner.run(),
+        withUsage: false);
+    expect(message, contains('Failed to parse pubspec file'));
   }
 
   test_pubspec_with_sdk_version_beta() async {
