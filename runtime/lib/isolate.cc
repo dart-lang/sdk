@@ -76,6 +76,15 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 0, 1) {
   return Integer::New(id);
 }
 
+DEFINE_NATIVE_ENTRY(RawReceivePortImpl_setActive, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, active, arguments->NativeArgAt(1));
+  Dart_Port id = port.Id();
+  PortMap::SetPortState(
+      id, active.value() ? PortMap::kLivePort : PortMap::kInactivePort);
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(SendPortImpl_get_id, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   return Integer::New(port.Id());

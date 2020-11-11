@@ -58,6 +58,7 @@ namespace dart {
   V(RawReceivePortImpl_get_id, 1)                                              \
   V(RawReceivePortImpl_get_sendport, 1)                                        \
   V(RawReceivePortImpl_closeInternal, 1)                                       \
+  V(RawReceivePortImpl_setActive, 2)                                           \
   V(SendPortImpl_get_id, 1)                                                    \
   V(SendPortImpl_get_hashcode, 1)                                              \
   V(SendPortImpl_sendInternal_, 2)                                             \

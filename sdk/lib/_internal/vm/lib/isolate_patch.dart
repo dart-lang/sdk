@@ -188,6 +188,12 @@ class _RawReceivePortImpl implements RawReceivePort {
   // Call into the VM to close the VM maintained mappings.
   _closeInternal() native "RawReceivePortImpl_closeInternal";
 
+  // Set this port as active or inactive in the VM. If inactive, this port
+  // will not be considered live even if it hasn't been explicitly closed.
+  // TODO(bkonyi): determine if we want to expose this as an option through
+  // RawReceivePort.
+  _setActive(bool active) native "RawReceivePortImpl_setActive";
+
   void set handler(Function? value) {
     final id = this._get_id();
     if (!_portMap.containsKey(id)) {
