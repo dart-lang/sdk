@@ -34,7 +34,7 @@ class DevCompilerTarget extends Target {
   bool get enableSuperMixins => true;
 
   @override
-  bool get supportsLateFields => false;
+  int get enabledLateLowerings => LateLowering.all;
 
   @override
   bool get supportsLateLoweringSentinel => false;

@@ -25,7 +25,8 @@ main(List<String> args) async {
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
-            targetFlags: const TargetFlags(forceLateLoweringForTesting: true))
+            targetFlags: const TargetFlags(
+                forceLateLoweringsForTesting: LateLowering.all))
       ]));
 }
 

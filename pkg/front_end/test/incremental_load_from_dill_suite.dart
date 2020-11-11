@@ -68,7 +68,7 @@ import 'package:kernel/kernel.dart'
         Version;
 
 import 'package:kernel/target/targets.dart'
-    show NoneTarget, Target, TargetFlags;
+    show NoneTarget, LateLowering, Target, TargetFlags;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer, componentToString;
 
@@ -392,7 +392,8 @@ class NewWorldTest {
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
 
     TargetFlags targetFlags = new TargetFlags(
-        forceLateLoweringForTesting: forceLateLoweringForTesting,
+        forceLateLoweringsForTesting:
+            forceLateLoweringForTesting ? LateLowering.all : LateLowering.none,
         trackWidgetCreation: trackWidgetCreation);
     Target target = new VmTarget(targetFlags);
     String sdkSummary = "vm_platform_strong.dill";

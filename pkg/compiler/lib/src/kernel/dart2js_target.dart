@@ -67,7 +67,7 @@ class Dart2jsTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  bool get supportsLateFields => false;
+  int get enabledLateLowerings => LateLowering.all;
 
   @override
   bool get supportsLateLoweringSentinel => false;

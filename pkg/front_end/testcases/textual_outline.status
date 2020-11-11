@@ -163,6 +163,7 @@ late_lowering/late_final_field_without_initializer: FormatterCrash
 late_lowering/late_final_nullable_field_with_initializer: FormatterCrash
 late_lowering/late_final_nullable_field_without_initializer: FormatterCrash
 late_lowering/late_future_or: FormatterCrash
+late_lowering/late_lowering_bitmasks: FormatterCrash
 late_lowering/late_nullable_field_with_initializer: FormatterCrash
 late_lowering/late_nullable_field_without_initializer: FormatterCrash
 late_lowering/later: FormatterCrash
@@ -170,6 +171,7 @@ late_lowering/override: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
 late_lowering_sentinel/late_fields: FormatterCrash
+late_lowering/skip_late_final_uninitialized_instance_fields/main: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
 nnbd/definitely_unassigned: FormatterCrash

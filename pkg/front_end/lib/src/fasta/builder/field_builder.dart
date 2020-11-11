@@ -136,7 +136,10 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
           isCovariant: isCovariant,
           isNonNullableByDefault: library.isNonNullableByDefault);
     } else if (isLate &&
-        !libraryBuilder.loader.target.backendTarget.supportsLateFields) {
+        libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(
+            hasInitializer: hasInitializer,
+            isFinal: isFinal,
+            isStatic: (isStatic || isTopLevel))) {
       if (hasInitializer) {
         if (isFinal) {
           _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
@@ -228,6 +231,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
           charEndOffset, reference, library.isNonNullableByDefault);
     }
   }
+
+  bool get isLateLowered => _fieldEncoding.isLateLowering;
 
   bool _typeEnsured = false;
   Set<ClassMember> _overrideDependencies;
@@ -570,6 +575,9 @@ abstract class FieldEncoding {
   /// Ensures that the signatures all members created by this field encoding
   /// are fully typed.
   void completeSignature(CoreTypes coreTypes);
+
+  /// Returns `true` if this encoding is a late lowering.
+  bool get isLateLowering;
 }
 
 class RegularFieldEncoding implements FieldEncoding {
@@ -695,6 +703,9 @@ class RegularFieldEncoding implements FieldEncoding {
       fieldBuilder.isAssignable
           ? <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: true)]
           : const <ClassMember>[];
+
+  @override
+  bool get isLateLowering => false;
 }
 
 class SourceFieldMember extends BuilderClassMember {
@@ -1146,6 +1157,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
     return list;
   }
+
+  @override
+  bool get isLateLowering => true;
 }
 
 mixin NonFinalLate on AbstractLateFieldEncoding {
@@ -1684,6 +1698,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
                   forSetter: true, isInternalImplementation: false)
             ]
           : const <ClassMember>[];
+
+  @override
+  bool get isLateLowering => false;
 }
 
 enum _SynthesizedFieldMemberKind {
