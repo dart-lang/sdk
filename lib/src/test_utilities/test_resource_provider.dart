@@ -7,8 +7,10 @@ import 'dart:io';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+
 // ignore: implementation_imports
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
 
@@ -36,26 +38,42 @@ DartLinter buildDriver(LintRule rule, File file, {String analysisOptions}) {
 
 /// A resource provider that accesses entities in a MemoryResourceProvider,
 /// falling back to the PhysicalResourceProvider when they don't exist.
-class TestResourceProvider extends PhysicalResourceProvider {
-  MemoryResourceProvider memoryResourceProvider;
+class TestResourceProvider extends file_system.ResourceProvider {
+  static final PhysicalResourceProvider physicalResourceProvider =
+      PhysicalResourceProvider.INSTANCE;
 
-  TestResourceProvider(this.memoryResourceProvider) : super(null);
+  final MemoryResourceProvider memoryResourceProvider;
+
+  TestResourceProvider(this.memoryResourceProvider);
 
   @override
   file_system.File getFile(String path) {
     final file = memoryResourceProvider.getFile(path);
-    return file.exists ? file : super.getFile(path);
+    return file.exists ? file : physicalResourceProvider.getFile(path);
   }
 
   @override
   file_system.Folder getFolder(String path) {
     final folder = memoryResourceProvider.getFolder(path);
-    return folder.exists ? folder : super.getFolder(path);
+    return folder.exists ? folder : physicalResourceProvider.getFolder(path);
   }
 
   @override
   file_system.Resource getResource(String path) {
     final resource = memoryResourceProvider.getResource(path);
-    return resource.exists ? resource : super.getResource(path);
+    return resource.exists
+        ? resource
+        : physicalResourceProvider.getResource(path);
   }
+
+  @override
+  Future<List<int>> getModificationTimes(List<Source> sources) =>
+      physicalResourceProvider.getModificationTimes(sources);
+
+  @override
+  file_system.Folder getStateLocation(String pluginId) =>
+      physicalResourceProvider.getStateLocation(pluginId);
+
+  @override
+  path.Context get pathContext => physicalResourceProvider.pathContext;
 }
