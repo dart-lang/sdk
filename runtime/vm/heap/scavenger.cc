@@ -762,6 +762,7 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
 Scavenger::~Scavenger() {
   ASSERT(!scavenging_);
   delete to_;
+  ASSERT(blocks_ == nullptr);
 }
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
@@ -1024,9 +1025,8 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
   // Grab the deduplication sets out of the isolate's consolidated store buffer.
   StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
   StoreBufferBlock* pending = blocks_;
-  blocks_ = nullptr;
   intptr_t total_count = 0;
-  while (pending != NULL) {
+  while (pending != nullptr) {
     StoreBufferBlock* next = pending->next();
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(pending, sizeof(*pending));
@@ -1045,10 +1045,10 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
     pending->Reset();
     // Return the emptied block for recycling (no need to check threshold).
     store_buffer->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
-    pending = next;
+    blocks_ = pending = next;
   }
   // Done iterating through old objects remembered in the store buffers.
-  visitor->VisitingOldObject(NULL);
+  visitor->VisitingOldObject(nullptr);
 
   heap_->RecordData(kStoreBufferEntries, total_count);
   heap_->RecordData(kDataUnused1, 0);
@@ -1645,9 +1645,23 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   to_ = *from;
   *from = temp;
 
+  // Release any remaining part of the promotion worklist that wasn't completed.
   promotion_stack_.Reset();
 
-  // This also rebuilds the remembered set.
+  // Release any remaining part of the rememebred set that wasn't completed.
+  StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
+  StoreBufferBlock* pending = blocks_;
+  while (pending != nullptr) {
+    StoreBufferBlock* next = pending->next();
+    pending->Reset();
+    // Return the emptied block for recycling (no need to check threshold).
+    store_buffer->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
+    pending = next;
+  }
+  blocks_ = nullptr;
+
+  // Reverse the partial forwarding from the aborted scavenge. This also
+  // rebuilds the remembered set.
   Become::FollowForwardingPointers(thread);
 
   // Don't scavenge again until the next old-space GC has occurred. Prevents
