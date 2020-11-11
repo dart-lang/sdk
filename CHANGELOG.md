@@ -56,8 +56,9 @@ opted out of null safety by adding `// @dart=2.9` to the beginning of the file.
 
 #### Linter
 
-Updated the Linter to `0.1.124`, which includes:
+Updated the Linter to `0.1.125`, which includes:
 
+* (Internal): test updates to the new `PhysicalResourceProvider` API.
 * Fixed false positives in `prefer_constructors_over_static_methods`.
 * Updates to `package_names` to allow leading underscores.
 * Fixed NPEs in `unnecessary_null_checks`.
