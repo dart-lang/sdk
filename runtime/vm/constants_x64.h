@@ -155,13 +155,17 @@ struct TypeTestABI {
   static const Register kSubtypeTestCacheReg = R9;
   static const Register kScratchReg = RSI;
 
+  // For calls to InstanceOfStub.
+  static const Register kInstanceOfResultReg = kInstanceReg;
+  // For calls to SubtypeNTestCacheStub. Must not overlap with any other
+  // registers above, for it is also used internally as kNullReg in those stubs.
+  static const Register kSubtypeTestCacheResultReg = R8;
+
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg);
-
-  // For call to InstanceOfStub.
-  static const Register kResultReg = RAX;
+      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg) |
+      (1 << kSubtypeTestCacheResultReg);
 };
 
 // Calling convention when calling AssertSubtypeStub.

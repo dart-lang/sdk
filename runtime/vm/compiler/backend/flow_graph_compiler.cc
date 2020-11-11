@@ -2304,6 +2304,38 @@ FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
 }
 
 #if !defined(TARGET_ARCH_IA32)
+// Expected inputs (from TypeTestABI):
+// - kInstanceReg: instance (preserved).
+// - kInstantiatorTypeArgumentsReg: instantiator type arguments
+//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
+// - kFunctionTypeArgumentsReg: function type arguments
+//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
+//
+// See the arch-specific GenerateSubtypeNTestCacheStub method to see which
+// registers may need saving across this call.
+SubtypeTestCachePtr FlowGraphCompiler::GenerateCallSubtypeTestStub(
+    TypeTestStubKind test_kind,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New());
+  __ LoadUniqueObject(TypeTestABI::kSubtypeTestCacheReg, type_test_cache);
+  if (test_kind == kTestTypeOneArg) {
+    __ Call(StubCode::Subtype1TestCache());
+  } else if (test_kind == kTestTypeTwoArgs) {
+    __ Call(StubCode::Subtype2TestCache());
+  } else if (test_kind == kTestTypeFourArgs) {
+    __ Call(StubCode::Subtype4TestCache());
+  } else if (test_kind == kTestTypeSixArgs) {
+    __ Call(StubCode::Subtype6TestCache());
+  } else {
+    UNREACHABLE();
+  }
+  GenerateBoolToJump(TypeTestABI::kSubtypeTestCacheResultReg, is_instance_lbl,
+                     is_not_instance_lbl);
+  return type_test_cache.raw();
+}
+
 // Generates an assignable check for a given object. Emits no code if the
 // destination type is known at compile time and is a top type. See
 // GenerateCallerChecksForAssertAssignable for other optimized cases.

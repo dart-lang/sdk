@@ -1085,12 +1085,10 @@ class FlowGraphCompiler : public ValueObject {
   TypeTestStubKind GetTypeTestStubKindForTypeParameter(
       const TypeParameter& type_param);
 
+  // Takes input from TypeTestABI registers (or stack on IA32), see
+  // StubCodeCompiler::GenerateSubtypeNTestCacheStub for caller-save registers.
   SubtypeTestCachePtr GenerateCallSubtypeTestStub(
       TypeTestStubKind test_kind,
-      Register instance_reg,
-      Register instantiator_type_arguments_reg,
-      Register function_type_arguments_reg,
-      Register temp_reg,
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 

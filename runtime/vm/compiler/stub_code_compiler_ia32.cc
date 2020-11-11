@@ -2186,29 +2186,69 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 // TOS + 2: instantiator type arguments (only if n == 4, can be raw_null).
 // TOS + 3: instance.
 // TOS + 4: SubtypeTestCache.
-// Result in ECX: null -> not found, otherwise result (true or false).
+//
+// No registers are preserved by this stub.
+//
+// Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
+// result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
 
-  static intptr_t kFunctionTypeArgumentsInBytes = 1 * target::kWordSize;
-  static intptr_t kInstantiatorTypeArgumentsInBytes = 2 * target::kWordSize;
-  static intptr_t kInstanceOffsetInBytes = 3 * target::kWordSize;
-  static intptr_t kCacheOffsetInBytes = 4 * target::kWordSize;
+  // We represent the depth of as a depth from the top of the stack at the
+  // start of the stub. That is, depths for input values are non-negative and
+  // depths for values pushed during the stub are negative.
 
-  const Register kInstanceCidOrFunction = ECX;
-  const Register kInstanceInstantiatorTypeArgumentsReg = EBX;
+  // Used to initialize depths for conditionally-pushed values.
+  const intptr_t kNoDepth = kIntptrMin;
+  // Offset of the original top of the stack from the current top of stack.
+  intptr_t original_tos_offset = 0;
+
+  // Inputs use relative depths.
+  static constexpr intptr_t kFunctionTypeArgumentsDepth = 1;
+  static constexpr intptr_t kInstantiatorTypeArgumentsDepth = 2;
+  static constexpr intptr_t kInstanceDepth = 3;
+  static constexpr intptr_t kCacheDepth = 4;
+  // Others use absolute depths. We initialize conditionally pushed values to
+  // kNoInput for extra checking.
+  intptr_t kInstanceParentFunctionTypeArgumentsDepth = kNoDepth;
+  intptr_t kInstanceDelayedFunctionTypeArgumentsDepth = kNoDepth;
+
+  // Other values are stored in non-kInstanceReg registers from TypeTestABI.
+  const Register kCacheArrayReg = TypeTestABI::kInstantiatorTypeArgumentsReg;
+  const Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
+  const Register kInstanceCidOrFunction =
+      TypeTestABI::kFunctionTypeArgumentsReg;
+  const Register kInstanceInstantiatorTypeArgumentsReg =
+      TypeTestABI::kDstTypeReg;
+
+  // Loads a value at the given depth from the stack into dst.
+  auto load_from_stack = [&](Register dst, intptr_t depth) {
+    ASSERT(depth != kNoDepth);
+    __ movl(dst,
+            Address(ESP, (original_tos_offset + depth) * target::kWordSize));
+  };
+
+  // Compares a value at the given depth from the stack to the value in src.
+  auto compare_to_stack = [&](Register src, intptr_t depth) {
+    ASSERT(depth != kNoDepth);
+    __ cmpl(src,
+            Address(ESP, (original_tos_offset + depth) * target::kWordSize));
+  };
 
   const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
 
-  __ movl(TypeTestABI::kInstanceReg, Address(ESP, kInstanceOffsetInBytes));
+  load_from_stack(TypeTestABI::kInstanceReg, kInstanceDepth);
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other)
-  __ movl(EDX, Address(ESP, kCacheOffsetInBytes));
+  load_from_stack(kCacheArrayReg, kCacheDepth);
   // We avoid a load-acquire barrier here by relying on the fact that all other
   // loads from the array are data-dependent loads.
-  __ movl(EDX, FieldAddress(EDX, target::SubtypeTestCache::cache_offset()));
-  __ addl(EDX, Immediate(target::Array::data_offset() - kHeapObjectTag));
+  __ movl(
+      kCacheArrayReg,
+      FieldAddress(kCacheArrayReg, target::SubtypeTestCache::cache_offset()));
+  __ addl(kCacheArrayReg,
+          Immediate(target::Array::data_offset() - kHeapObjectTag));
 
   Label loop, not_closure;
   if (n >= 4) {
@@ -2246,16 +2286,17 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ Bind(&not_closure);
     if (n >= 2) {
       Label has_no_type_arguments;
-      __ LoadClassById(EDI, kInstanceCidOrFunction);
+      __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
       __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
-      __ movl(EDI,
-              FieldAddress(
-                  EDI, target::Class::
+      __ movl(
+          kScratchReg,
+          FieldAddress(kScratchReg,
+                       target::Class::
                            host_type_arguments_field_offset_in_words_offset()));
-      __ cmpl(EDI, Immediate(target::Class::kNoTypeArguments));
+      __ cmpl(kScratchReg, Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
       __ movl(kInstanceInstantiatorTypeArgumentsReg,
-              FieldAddress(TypeTestABI::kInstanceReg, EDI, TIMES_4, 0));
+              FieldAddress(TypeTestABI::kInstanceReg, kScratchReg, TIMES_4, 0));
       __ Bind(&has_no_type_arguments);
 
       if (n >= 6) {
@@ -2266,84 +2307,91 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ SmiTag(kInstanceCidOrFunction);
   }
 
-  const intptr_t kInstanceParentFunctionTypeArgumentsFromSp = 0;
-  const intptr_t kInstanceDelayedFunctionTypeArgumentsFromSp =
-      target::kWordSize;
-  const intptr_t args_offset = n >= 6 ? 2 * target::kWordSize : 0;
+  if (n >= 6) {
+    // Now that instance handling is done, both the delayed and parent function
+    // type arguments stack slots have been set, so any input uses must be
+    // offset by the new values and the new values can now be accessed in
+    // the following code without issue when n >= 6.
+    original_tos_offset = 2;
+    kInstanceDelayedFunctionTypeArgumentsDepth = -1;
+    kInstanceParentFunctionTypeArgumentsDepth = -2;
+  }
 
-  Label found, not_found, next_iteration;
+  Label done, next_iteration;
 
   // Loop header.
   __ Bind(&loop);
-  __ movl(
-      EDI,
-      Address(EDX, target::kWordSize *
-                       target::SubtypeTestCache::kInstanceClassIdOrFunction));
-  __ cmpl(EDI, raw_null);
-  __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ cmpl(EDI, kInstanceCidOrFunction);
+  __ movl(kScratchReg,
+          Address(kCacheArrayReg,
+                  target::kWordSize *
+                      target::SubtypeTestCache::kInstanceClassIdOrFunction));
+  __ cmpl(kScratchReg, raw_null);
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ cmpl(kScratchReg, kInstanceCidOrFunction);
   if (n == 1) {
-    __ j(EQUAL, &found, Assembler::kNearJump);
+    __ j(EQUAL, &done, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
     __ cmpl(kInstanceInstantiatorTypeArgumentsReg,
-            Address(EDX, target::kWordSize *
-                             target::SubtypeTestCache::kInstanceTypeArguments));
+            Address(kCacheArrayReg,
+                    target::kWordSize *
+                        target::SubtypeTestCache::kInstanceTypeArguments));
     if (n == 2) {
-      __ j(EQUAL, &found, Assembler::kNearJump);
+      __ j(EQUAL, &done, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ movl(
-          EDI,
-          Address(EDX,
+          kScratchReg,
+          Address(kCacheArrayReg,
                   target::kWordSize *
                       target::SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmpl(EDI,
-              Address(ESP, args_offset + kInstantiatorTypeArgumentsInBytes));
+      compare_to_stack(kScratchReg, kInstantiatorTypeArgumentsDepth);
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ movl(
-          EDI,
-          Address(EDX, target::kWordSize *
-                           target::SubtypeTestCache::kFunctionTypeArguments));
-      __ cmpl(EDI, Address(ESP, args_offset + kFunctionTypeArgumentsInBytes));
+      __ movl(kScratchReg,
+              Address(kCacheArrayReg,
+                      target::kWordSize *
+                          target::SubtypeTestCache::kFunctionTypeArguments));
+      compare_to_stack(kScratchReg, kFunctionTypeArgumentsDepth);
       if (n == 4) {
-        __ j(EQUAL, &found, Assembler::kNearJump);
+        __ j(EQUAL, &done, Assembler::kNearJump);
       } else {
         ASSERT(n == 6);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
 
-        __ movl(EDI,
-                Address(EDX, target::kWordSize *
-                                 target::SubtypeTestCache::
-                                     kInstanceParentFunctionTypeArguments));
-        __ cmpl(EDI, Address(ESP, kInstanceParentFunctionTypeArgumentsFromSp));
+        __ movl(kScratchReg,
+                Address(kCacheArrayReg,
+                        target::kWordSize *
+                            target::SubtypeTestCache::
+                                kInstanceParentFunctionTypeArguments));
+        compare_to_stack(kScratchReg,
+                         kInstanceParentFunctionTypeArgumentsDepth);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-        __ movl(EDI,
-                Address(EDX, target::kWordSize *
-                                 target::SubtypeTestCache::
-                                     kInstanceDelayedFunctionTypeArguments));
-        __ cmpl(EDI, Address(ESP, kInstanceDelayedFunctionTypeArgumentsFromSp));
-        __ j(EQUAL, &found, Assembler::kNearJump);
+        __ movl(kScratchReg,
+                Address(kCacheArrayReg,
+                        target::kWordSize *
+                            target::SubtypeTestCache::
+                                kInstanceDelayedFunctionTypeArguments));
+        compare_to_stack(kScratchReg,
+                         kInstanceDelayedFunctionTypeArgumentsDepth);
+        __ j(EQUAL, &done, Assembler::kNearJump);
       }
     }
   }
   __ Bind(&next_iteration);
-  __ addl(EDX, Immediate(target::kWordSize *
-                         target::SubtypeTestCache::kTestEntryLength));
+  __ addl(kCacheArrayReg,
+          Immediate(target::kWordSize *
+                    target::SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
 
-  __ Bind(&found);
-  __ movl(ECX, Address(EDX, target::kWordSize *
-                                target::SubtypeTestCache::kTestResult));
-  if (n == 6) {
+  __ Bind(&done);
+  // In the not found case, the test result slot is null, so we can
+  // unconditionally load from the cache entry.
+  __ movl(TypeTestABI::kSubtypeTestCacheResultReg,
+          Address(kCacheArrayReg,
+                  target::kWordSize * target::SubtypeTestCache::kTestResult));
+  if (n >= 6) {
     __ Drop(2);
-  }
-  __ ret();
-
-  __ Bind(&not_found);
-  __ movl(ECX, raw_null);
-  if (n == 6) {
-    __ Drop(2);
+    original_tos_offset = 0;  // In case we add any input uses after this point.
   }
   __ ret();
 }

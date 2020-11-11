@@ -2786,36 +2786,47 @@ void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 }
 
 // Used to check class and type arguments. Arguments passed in registers:
-// LR: return address.
-// R0: instance (must be preserved).
-// R2: instantiator type arguments (only if n == 4, can be raw_null).
-// R1: function type arguments (only if n == 4, can be raw_null).
-// R3: target::SubtypeTestCache.
 //
-// Preserves R0/R2/R8.
+// Inputs (mostly from TypeTestABI struct):
+//   - kSubtypeTestCacheReg: SubtypeTestCacheLayout
+//   - kInstanceReg: instance to test against.
+//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n=4).
+//   - kFunctionTypeArgumentsReg: function type arguments (for n=4).
+//   - LR: return address.
 //
-// Result in R1: null -> not found, otherwise result (true or false).
+// All input registers are preserved except for kSubtypeTestCacheReg, which
+// should be saved by the caller if needed.
+//
+// Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
+// result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
 
+  // Until we have the result, we use the result register to store the null
+  // value for quick access. This has the side benefit of initializing the
+  // result to null, so it only needs to be changed if found.
+  const Register kNullReg = TypeTestABI::kSubtypeTestCacheResultReg;
+  __ LoadObject(kNullReg, NullObject());
+
+  const Register kCacheArrayReg = TypeTestABI::kSubtypeTestCacheReg;
+  const Register kScratchReg = TypeTestABI::kScratchReg;
   const Register kInstanceCidOrFunction = R6;
-  const Register kInstanceInstantiatorTypeArgumentsReg = R4;
+  const Register kInstanceInstantiatorTypeArgumentsReg = R5;
   const Register kInstanceParentFunctionTypeArgumentsReg = R9;
   const Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
 
-  const Register kNullReg = R7;
-
-  __ LoadObject(kNullReg, NullObject());
+  // All of these must be distinct from TypeTestABI::kSubtypeTestCacheResultReg
+  // since it is used for kNullReg as well.
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other).
 
   // We avoid a load-acquire barrier here by relying on the fact that all other
   // loads from the array are data-dependent loads.
-  __ ldr(TypeTestABI::kSubtypeTestCacheReg,
+  __ ldr(kCacheArrayReg,
          FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
                       target::SubtypeTestCache::cache_offset()));
-  __ AddImmediate(TypeTestABI::kSubtypeTestCacheReg,
+  __ AddImmediate(kCacheArrayReg,
                   target::Array::data_offset() - kHeapObjectTag);
 
   Label loop, not_closure;
@@ -2856,16 +2867,18 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ Bind(&not_closure);
     if (n >= 2) {
       Label has_no_type_arguments;
-      __ LoadClassById(R5, kInstanceCidOrFunction);
+      __ LoadClassById(kScratchReg, kInstanceCidOrFunction);
       __ mov(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ LoadFieldFromOffset(
-          R5, R5,
+          kScratchReg, kScratchReg,
           target::Class::host_type_arguments_field_offset_in_words_offset(),
           kWord);
-      __ CompareImmediate(R5, target::Class::kNoTypeArguments);
+      __ CompareImmediate(kScratchReg, target::Class::kNoTypeArguments);
       __ b(&has_no_type_arguments, EQ);
-      __ add(R5, TypeTestABI::kInstanceReg, Operand(R5, LSL, 3));
-      __ ldr(kInstanceInstantiatorTypeArgumentsReg, FieldAddress(R5, 0));
+      __ add(kScratchReg, TypeTestABI::kInstanceReg,
+             Operand(kScratchReg, LSL, 3));
+      __ ldr(kInstanceInstantiatorTypeArgumentsReg,
+             FieldAddress(kScratchReg, 0));
       __ Bind(&has_no_type_arguments);
 
       if (n >= 6) {
@@ -2876,74 +2889,76 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ SmiTag(kInstanceCidOrFunction);
   }
 
-  Label found, not_found, next_iteration;
+  Label found, done, next_iteration;
 
   // Loop header
   __ Bind(&loop);
-  __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                     target::kWordSize *
-                         target::SubtypeTestCache::kInstanceClassIdOrFunction));
-  __ cmp(R5, Operand(kNullReg));
-  __ b(&not_found, EQ);
-  __ cmp(R5, Operand(kInstanceCidOrFunction));
+  __ ldr(kScratchReg,
+         Address(kCacheArrayReg,
+                 target::kWordSize *
+                     target::SubtypeTestCache::kInstanceClassIdOrFunction));
+  __ cmp(kScratchReg, Operand(kNullReg));
+  __ b(&done, EQ);
+  __ cmp(kScratchReg, Operand(kInstanceCidOrFunction));
   if (n == 1) {
     __ b(&found, EQ);
   } else {
     __ b(&next_iteration, NE);
-    __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                       target::kWordSize *
-                           target::SubtypeTestCache::kInstanceTypeArguments));
-    __ cmp(R5, Operand(kInstanceInstantiatorTypeArgumentsReg));
+    __ ldr(kScratchReg,
+           Address(kCacheArrayReg,
+                   target::kWordSize *
+                       target::SubtypeTestCache::kInstanceTypeArguments));
+    __ cmp(kScratchReg, Operand(kInstanceInstantiatorTypeArgumentsReg));
     if (n == 2) {
       __ b(&found, EQ);
     } else {
       __ b(&next_iteration, NE);
-      __ ldr(R5,
-             Address(TypeTestABI::kSubtypeTestCacheReg,
+      __ ldr(kScratchReg,
+             Address(kCacheArrayReg,
                      target::kWordSize *
                          target::SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmp(R5, Operand(TypeTestABI::kInstantiatorTypeArgumentsReg));
+      __ cmp(kScratchReg, Operand(TypeTestABI::kInstantiatorTypeArgumentsReg));
       __ b(&next_iteration, NE);
-      __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                         target::kWordSize *
-                             target::SubtypeTestCache::kFunctionTypeArguments));
-      __ cmp(R5, Operand(TypeTestABI::kFunctionTypeArgumentsReg));
+      __ ldr(kScratchReg,
+             Address(kCacheArrayReg,
+                     target::kWordSize *
+                         target::SubtypeTestCache::kFunctionTypeArguments));
+      __ cmp(kScratchReg, Operand(TypeTestABI::kFunctionTypeArgumentsReg));
       if (n == 4) {
         __ b(&found, EQ);
       } else {
         ASSERT(n == 6);
         __ b(&next_iteration, NE);
 
-        __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                           target::kWordSize *
-                               target::SubtypeTestCache::
-                                   kInstanceParentFunctionTypeArguments));
-        __ cmp(R5, Operand(kInstanceParentFunctionTypeArgumentsReg));
+        __ ldr(kScratchReg,
+               Address(kCacheArrayReg,
+                       target::kWordSize *
+                           target::SubtypeTestCache::
+                               kInstanceParentFunctionTypeArguments));
+        __ cmp(kScratchReg, Operand(kInstanceParentFunctionTypeArgumentsReg));
         __ b(&next_iteration, NE);
 
-        __ ldr(R5, Address(TypeTestABI::kSubtypeTestCacheReg,
-                           target::kWordSize *
-                               target::SubtypeTestCache::
-                                   kInstanceDelayedFunctionTypeArguments));
-        __ cmp(R5, Operand(kInstanceDelayedFunctionTypeArgumentsReg));
+        __ ldr(kScratchReg,
+               Address(kCacheArrayReg,
+                       target::kWordSize *
+                           target::SubtypeTestCache::
+                               kInstanceDelayedFunctionTypeArguments));
+        __ cmp(kScratchReg, Operand(kInstanceDelayedFunctionTypeArgumentsReg));
         __ b(&found, EQ);
       }
     }
   }
   __ Bind(&next_iteration);
   __ AddImmediate(
-      TypeTestABI::kSubtypeTestCacheReg,
+      kCacheArrayReg,
       target::kWordSize * target::SubtypeTestCache::kTestEntryLength);
   __ b(&loop);
 
   __ Bind(&found);
-  __ ldr(R1,
-         Address(TypeTestABI::kSubtypeTestCacheReg,
+  __ ldr(TypeTestABI::kSubtypeTestCacheResultReg,
+         Address(kCacheArrayReg,
                  target::kWordSize * target::SubtypeTestCache::kTestResult));
-  __ ret();
-
-  __ Bind(&not_found);
-  __ mov(R1, kNullReg);
+  __ Bind(&done);
   __ ret();
 }
 
@@ -2967,20 +2982,22 @@ void StubCodeCompiler::GenerateSubtype6TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 6);
 }
 
-// Used to test whether a given value is of a given type (different variants,
-// all have the same calling convention).
+// The <X>TypeTestStubs are used to test whether a given value is of a given
+// type. All variants have the same calling convention:
 //
-// Inputs:
-//   - R0 : instance to test against.
-//   - R2 : instantiator type arguments (if needed).
-//   - R1 : function type arguments (if needed).
+// Inputs (from TypeTestABI struct):
+//   - kSubtypeTestCacheReg: RawSubtypeTestCache
+//   - kInstanceReg: instance to test against.
+//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (if needed).
+//   - kFunctionTypeArgumentsReg : function type arguments (if needed).
 //
-//   - R3 : subtype test cache.
+// See GenerateSubtypeNTestCacheStub for registers that may need saving by the
+// caller.
 //
-//   - R8 : type to test against.
-//   - R4 : name of destination variable.
+// Output (from TypeTestABI struct):
+//   - kResultReg: checked instance.
 //
-// Preserves R0/R2.
+// Throws if the check is unsuccessful.
 //
 // Note of warning: The caller will not populate CODE_REG and we have therefore
 // no access to the pool.
@@ -3136,27 +3153,26 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
   __ BranchIf(EQUAL, &call_runtime);
 
-  const Register kTmp = R9;
-
   // If this is not a [Type] object, we'll go to the runtime.
   Label is_simple_case, is_complex_case;
-  __ LoadClassId(kTmp, TypeTestABI::kDstTypeReg);
-  __ cmp(kTmp, Operand(kTypeCid));
+  __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg);
+  __ cmp(TypeTestABI::kScratchReg, Operand(kTypeCid));
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is instantiated/uninstantiated.
-  __ ldr(kTmp,
+  __ ldr(TypeTestABI::kScratchReg,
          FieldAddress(TypeTestABI::kDstTypeReg,
                       target::Type::type_state_offset(), kByte),
          kByte);
-  __ cmp(kTmp,
+  __ cmp(TypeTestABI::kScratchReg,
          Operand(target::AbstractTypeLayout::kTypeStateFinalizedInstantiated));
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is a function type.
-  __ ldr(kTmp, FieldAddress(TypeTestABI::kDstTypeReg,
-                            target::Type::signature_offset()));
-  __ CompareObject(kTmp, NullObject());
+  __ ldr(
+      TypeTestABI::kScratchReg,
+      FieldAddress(TypeTestABI::kDstTypeReg, target::Type::signature_offset()));
+  __ CompareObject(TypeTestABI::kScratchReg, NullObject());
   __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
@@ -3169,7 +3185,8 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
     __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
                 TypeTestABI::kSubtypeTestCacheReg);
     __ BranchLink(StubCodeSubtype2TestCache());
-    __ CompareObject(R1, CastHandle<Object>(TrueObject()));
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
     __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
                TypeTestABI::kSubtypeTestCacheReg);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
@@ -3181,7 +3198,8 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
     __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
                 TypeTestABI::kSubtypeTestCacheReg);
     __ BranchLink(StubCodeSubtype6TestCache());
-    __ CompareObject(R1, CastHandle<Object>(TrueObject()));
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
     __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
                TypeTestABI::kSubtypeTestCacheReg);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.

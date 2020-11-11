@@ -183,7 +183,7 @@ void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
   __ PushRegister(TypeTestABI::kSubtypeTestCacheReg);
   __ CallRuntime(kInstanceofRuntimeEntry, /*argument_count=*/5);
   __ Drop(5);
-  __ PopRegister(TypeTestABI::kResultReg);
+  __ PopRegister(TypeTestABI::kInstanceOfResultReg);
   __ LeaveStubFrame();
   __ Ret();
 }
