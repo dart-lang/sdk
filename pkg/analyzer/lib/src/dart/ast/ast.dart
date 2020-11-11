@@ -5363,15 +5363,15 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
 ///        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? =
 ///        [FunctionType] ';'
 class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
+  /// The type being defined by the alias.
+  TypeAnnotationImpl _type;
+
   /// The type parameters for the function type, or `null` if the function
   /// type does not have any type parameters.
   TypeParameterListImpl _typeParameters;
 
   @override
   Token equals;
-
-  /// The type of function being defined by the alias.
-  GenericFunctionTypeImpl _functionType;
 
   /// Returns a newly created generic type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the variable list does not have
@@ -5384,11 +5384,11 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
       SimpleIdentifierImpl name,
       TypeParameterListImpl typeParameters,
       this.equals,
-      GenericFunctionTypeImpl functionType,
+      TypeAnnotationImpl type,
       Token semicolon)
       : super(comment, metadata, typedefToken, name, semicolon) {
     _typeParameters = _becomeParentOf(typeParameters);
-    _functionType = _becomeParentOf(functionType);
+    _type = _becomeParentOf(type);
   }
 
   @override
@@ -5398,18 +5398,29 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     ..add(name)
     ..add(_typeParameters)
     ..add(equals)
-    ..add(_functionType);
+    ..add(_type);
 
   @override
   Element get declaredElement => name.staticElement;
 
+  /// The type of function being defined by the alias.
+  ///
+  /// If the non-function type aliases feature is enabled, a type alias may have
+  /// a [_type] which is not a [GenericFunctionTypeImpl].  In that case `null`
+  /// is returned.
   @override
-  GenericFunctionType get functionType => _functionType;
+  GenericFunctionType get functionType {
+    var t = _type;
+    return t is GenericFunctionTypeImpl ? t : null;
+  }
 
   @override
   set functionType(GenericFunctionType functionType) {
-    _functionType = _becomeParentOf(functionType as GenericFunctionTypeImpl);
+    _type = _becomeParentOf(functionType as TypeAnnotationImpl);
   }
+
+  @override
+  TypeAnnotation get type => _type;
 
   @override
   TypeParameterList get typeParameters => _typeParameters;
@@ -5429,7 +5440,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     super.visitChildren(visitor);
     name?.accept(visitor);
     _typeParameters?.accept(visitor);
-    _functionType?.accept(visitor);
+    _type?.accept(visitor);
   }
 }
 

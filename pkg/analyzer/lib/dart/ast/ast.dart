@@ -2933,11 +2933,17 @@ abstract class GenericTypeAlias implements TypeAlias {
   set equals(Token token);
 
   /// Return the type of function being defined by the alias.
+  ///
+  /// When the non-function type aliases feature is enabled and the denoted
+  /// type is not a [GenericFunctionType], return `null`.
   GenericFunctionType get functionType;
 
   /// Set the type of function being defined by the alias to the given
   /// [functionType].
   set functionType(GenericFunctionType functionType);
+
+  /// Return the type being defined by the alias.
+  TypeAnnotation get type;
 
   /// Return the type parameters for the function type, or `null` if the
   /// function type does not have any type parameters.

@@ -511,7 +511,7 @@ abstract class AstFactory {
       SimpleIdentifier name,
       TypeParameterList typeParameters,
       Token equals,
-      GenericFunctionType functionType,
+      TypeAnnotation type,
       Token semicolon);
 
   /// Returns a newly created import show combinator.
