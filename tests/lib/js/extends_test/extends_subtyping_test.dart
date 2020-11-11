@@ -5,6 +5,6 @@
 import 'extends_test_util.dart';
 
 void main() {
-  setUpWithES6Syntax();
-  testInheritance();
+  setUpWithoutES6Syntax();
+  testSubtyping();
 }

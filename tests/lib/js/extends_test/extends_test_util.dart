@@ -60,6 +60,108 @@ class AnonymousExtendJSClass extends JSClass {
 external AnonymousExtendAnonymousClass get anonExtendAnon;
 external AnonymousExtendJSClass get anonExtendJS;
 
+void useJSClass(JSClass js) {}
+void useAnonymousClass(AnonymousClass a) {}
+
+void setUpWithoutES6Syntax() {
+  // Use the old way to define inheritance between JS objects.
+  eval(r"""
+    function inherits(child, parent) {
+      if (child.prototype.__proto__) {
+        child.prototype.__proto__ = parent.prototype;
+      } else {
+        function tmp() {};
+        tmp.prototype = parent.prototype;
+        child.prototype = new tmp();
+        child.prototype.constructor = child;
+      }
+    }
+    function JSClass(a) {
+      this.a = a;
+      this.getA = function() {
+        return this.a;
+      }
+      this.getAOrB = function() {
+        return this.getA();
+      }
+    }
+    function JSExtendJSClass(a, b) {
+      JSClass.call(this, a);
+      this.b = b;
+      this.getB = function() {
+        return this.b;
+      }
+      this.getAOrB = function() {
+        return this.getB();
+      }
+    }
+    inherits(JSExtendJSClass, JSClass);
+    function JSExtendAnonymousClass(a, b) {
+      this.a = a;
+      this.b = b;
+      this.getA = function() {
+        return this.a;
+      }
+      this.getB = function() {
+        return this.b;
+      }
+      this.getAOrB = function() {
+        return this.getB();
+      }
+    }
+    self.anonExtendAnon = new JSExtendAnonymousClass(1, 2);
+    self.anonExtendJS = new JSExtendJSClass(1, 2);
+  """);
+}
+
+void setUpWithES6Syntax() {
+  // Use the ES6 syntax for classes to make inheritance easier.
+  eval(r"""
+    class JSClass {
+      constructor(a) {
+        this.a = a;
+      }
+      getA() {
+        return this.a;
+      }
+      getAOrB() {
+        return this.getA();
+      }
+    }
+    class JSExtendJSClass extends JSClass {
+      constructor(a, b) {
+        super(a);
+        this.b = b;
+      }
+      getB() {
+        return this.b;
+      }
+      getAOrB() {
+        return this.getB();
+      }
+    }
+    self.JSExtendJSClass = JSExtendJSClass;
+    class JSExtendAnonymousClass {
+      constructor(a, b) {
+        this.a = a;
+        this.b = b;
+      }
+      getA() {
+        return this.a;
+      }
+      getB() {
+        return this.b;
+      }
+      getAOrB() {
+        return this.getB();
+      }
+    }
+    self.JSExtendAnonymousClass = JSExtendAnonymousClass;
+    self.anonExtendAnon = new JSExtendAnonymousClass(1, 2);
+    self.anonExtendJS = new JSExtendJSClass(1, 2);
+  """);
+}
+
 void testInheritance() {
   // Note that for the following, there are no meaningful tests for is checks or
   // as casts, since the web compilers should return true and succeed for all JS
@@ -91,4 +193,18 @@ void testInheritance() {
   expect(anonExtendJS.getB(), 2);
   expect(anonExtendJS.getAOrB(), 2);
   expect((anonExtendJS as JSClass).getAOrB(), 2);
+}
+
+void testSubtyping() {
+  // Test subtyping for inheritance between JS and anonymous classes.
+  expect(useJSClass is void Function(JSExtendJSClass js), true);
+  expect(useAnonymousClass is void Function(AnonymousExtendAnonymousClass a),
+      true);
+  expect(useJSClass is void Function(AnonymousExtendJSClass a), true);
+  expect(useAnonymousClass is void Function(JSExtendAnonymousClass js), true);
+
+  expect(useJSClass is void Function(AnonymousExtendAnonymousClass a), false);
+  expect(useAnonymousClass is void Function(JSExtendJSClass js), false);
+  expect(useJSClass is void Function(JSExtendAnonymousClass js), false);
+  expect(useAnonymousClass is void Function(AnonymousExtendJSClass a), false);
 }
