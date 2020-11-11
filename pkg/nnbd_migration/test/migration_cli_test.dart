@@ -742,6 +742,10 @@ int f() => null
         contains(
             'analysis errors will result in erroneous migration suggestions'));
     expect(output, contains('Please fix the analysis issues'));
+    expect(
+        output,
+        isNot(
+            contains('All files appear to have null safety already enabled')));
   }
 
   test_lifecycle_ignore_errors_enable() async {
@@ -1459,6 +1463,10 @@ int f() => null;
     expect(output,
         contains('Unresolved URIs found.  Did you forget to run "pub get"?'));
     expect(output, contains('Please fix the analysis issues'));
+    expect(
+        output,
+        isNot(
+            contains('All files appear to have null safety already enabled')));
   }
 
   test_migrate_path_absolute() {
@@ -1869,6 +1877,9 @@ environment:
         errorOutput,
         contains("A value of type 'Null' can't be returned from function 'f' "
             "because it has a return type of 'int'"));
+    expect(errorOutput, contains('''
+All files appear to have null safety already enabled.  Did you update the
+language version prior to running "dart migrate"?'''));
   }
 
   String _getHelpText({@required bool verbose}) {
