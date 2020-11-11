@@ -386,7 +386,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   FeatureSet get contextFeatures => _contextFeatures;
 
   set contextFeatures(FeatureSet featureSet) {
-    _contextFeatures = featureSet;
+    _contextFeatures = featureSet as ExperimentStatus;
     nonPackageFeatureSet = featureSet;
   }
 
