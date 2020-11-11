@@ -40,13 +40,18 @@ const Map<String, String> data = {
   'FutureOr<Object*>*': 'FutureOr<Object>',
   'FutureOr<FutureOr<Object?>>': 'FutureOr<FutureOr<Object>>',
   '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>':
-      '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>',
+      '(List<Object>, {required List<Object> a, List<Object> b})'
+          ' -> List<Object>',
   '(List<Object>, {required List<Object> a, List<Object> b}) ->? List<Object>':
-      '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>',
+      '(List<Object>, {required List<Object> a, List<Object> b})'
+          ' -> List<Object>',
   '(List<Object>, {required List<Object> a, List<Object> b}) ->* List<Object>':
-      '(List<Object>, {required List<Object> a, List<Object> b}) -> List<Object>',
-  '(List<Object>?, {required List<Object?> a, List<Object?>? b}) ->? List<Object?>':
-      '(List<Object>?, {required List<Object?> a, List<Object?>? b}) -> List<Object?>',
+      '(List<Object>, {required List<Object> a, List<Object> b})'
+          ' -> List<Object>',
+  '(List<Object>?, {required List<Object?> a, List<Object?>? b})'
+          ' ->? List<Object?>':
+      '(List<Object>?, {required List<Object?> a, List<Object?>? b})'
+          ' -> List<Object?>',
   'X': 'X & Object',
   'X?': 'X & Object',
   'X*': 'X & Object',

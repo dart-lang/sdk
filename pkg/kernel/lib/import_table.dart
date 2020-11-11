@@ -76,8 +76,8 @@ class _ImportTableBuilder extends RecursiveVisitor {
   void addLibraryImport(Library target) {
     if (target == referenceLibrary) return; // Self-reference is special.
     if (target == null) return;
-    var referenceUri = referenceLibrary.importUri;
-    var targetUri = target.importUri;
+    Uri referenceUri = referenceLibrary.importUri;
+    Uri targetUri = target.importUri;
     if (targetUri == null) {
       throw '$referenceUri cannot refer to library without an import URI';
     }

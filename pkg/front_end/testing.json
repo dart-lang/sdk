@@ -284,9 +284,11 @@
       "status": "test/lint_test.status",
       "pattern": [
         "_fe_analyzer_shared/lib/.*\\.dart$",
+        "kernel/lib/.*\\.dart$",
         "front_end/lib/.*\\.dart$"
       ],
       "exclude": [
+        "kernel/lib/transformations/.*\\.dart$",
         "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
         "front_end/lib/src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]

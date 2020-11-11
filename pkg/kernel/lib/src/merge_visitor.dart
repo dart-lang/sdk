@@ -283,8 +283,9 @@ class MergeVisitor implements DartTypeVisitor1<DartType, DartType> {
       TypedefType a, TypedefType b, Nullability nullability) {
     assert(a.typedefNode == b.typedefNode);
     assert(a.typeArguments.length == b.typeArguments.length);
-    if (a.typeArguments.isEmpty)
+    if (a.typeArguments.isEmpty) {
       return new TypedefType(a.typedefNode, nullability);
+    }
     List<DartType> newTypeArguments =
         new List<DartType>(a.typeArguments.length);
     for (int i = 0; i < a.typeArguments.length; i++) {

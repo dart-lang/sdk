@@ -34,11 +34,11 @@ Map<TypeParameter, DartType> getSubstitutionMap(Supertype type) {
 
 Map<TypeParameter, DartType> getUpperBoundSubstitutionMap(Class host) {
   if (host.typeParameters.isEmpty) return const <TypeParameter, DartType>{};
-  var result = <TypeParameter, DartType>{};
-  for (var parameter in host.typeParameters) {
+  Map<TypeParameter, DartType> result = <TypeParameter, DartType>{};
+  for (TypeParameter parameter in host.typeParameters) {
     result[parameter] = const DynamicType();
   }
-  for (var parameter in host.typeParameters) {
+  for (TypeParameter parameter in host.typeParameters) {
     result[parameter] = substitute(parameter.bound, result);
   }
   return result;
@@ -63,8 +63,8 @@ Map<TypeParameter, DartType> getUpperBoundSubstitutionMap(Class host) {
 DartType substituteDeep(
     DartType type, Map<TypeParameter, DartType> substitution) {
   if (substitution.isEmpty) return type;
-  var substitutor = new _DeepTypeSubstitutor(substitution);
-  var result = substitutor.visit(type);
+  _DeepTypeSubstitutor substitutor = new _DeepTypeSubstitutor(substitution);
+  DartType result = substitutor.visit(type);
   return substitutor.isInfinite ? null : result;
 }
 
@@ -110,7 +110,8 @@ bool containsFreeFunctionTypeVariables(DartType type) {
 ///   would create the infinite type `List<List<List<...>>>`.
 Map<TypeParameter, DartType> unifyTypes(
     DartType type1, DartType type2, Set<TypeParameter> quantifiedVariables) {
-  var unifier = new _TypeUnification(type1, type2, quantifiedVariables);
+  _TypeUnification unifier =
+      new _TypeUnification(type1, type2, quantifiedVariables);
   return unifier.success ? unifier.substitution : null;
 }
 
@@ -120,10 +121,10 @@ Map<TypeParameter, DartType> unifyTypes(
 /// The returned object contains the fresh type parameter list as well as a
 /// mapping to be used for replacing other types to use the new type parameters.
 FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
-  var freshParameters = new List<TypeParameter>.generate(
+  List<TypeParameter> freshParameters = new List<TypeParameter>.generate(
       typeParameters.length, (i) => new TypeParameter(typeParameters[i].name),
       growable: true);
-  var map = <TypeParameter, DartType>{};
+  Map<TypeParameter, DartType> map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = new TypeParameterType.forAlphaRenaming(
         typeParameters[i], freshParameters[i]);
@@ -255,11 +256,11 @@ abstract class Substitution {
   /// been replaced by dynamic.
   static Substitution upperBoundForClass(Class class_) {
     if (class_.typeParameters.isEmpty) return _NullSubstitution.instance;
-    var upper = <TypeParameter, DartType>{};
-    for (var parameter in class_.typeParameters) {
+    Map<TypeParameter, DartType> upper = <TypeParameter, DartType>{};
+    for (TypeParameter parameter in class_.typeParameters) {
       upper[parameter] = const DynamicType();
     }
-    for (var parameter in class_.typeParameters) {
+    for (TypeParameter parameter in class_.typeParameters) {
       upper[parameter] = substitute(parameter.bound, upper);
     }
     return fromUpperAndLowerBounds(upper, {});
@@ -483,14 +484,14 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   Supertype visitSupertype(Supertype node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
-    var typeArguments = node.typeArguments.map(visit).toList();
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new Supertype(node.classNode, typeArguments);
   }
 
   NamedType visitNamedType(NamedType node) {
     int before = useCounter;
-    var type = visit(node.type);
+    DartType type = visit(node.type);
     if (useCounter == before) return node;
     return new NamedType(node.name, type, isRequired: node.isRequired);
   }
@@ -508,7 +509,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
-    var typeArguments = node.typeArguments.map(visit).toList();
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new InterfaceType(node.classNode, node.nullability, typeArguments);
   }
@@ -523,7 +524,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitTypedefType(TypedefType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
-    var typeArguments = node.typeArguments.map(visit).toList();
+    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
     return new TypedefType(node.typedefNode, node.nullability, typeArguments);
   }
@@ -554,19 +555,21 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
         "Function type variables cannot be substituted while still attached "
         "to the function. Perform substitution on "
         "`FunctionType.withoutTypeParameters` instead.");
-    var inner = node.typeParameters.isEmpty ? this : newInnerEnvironment();
+    _TypeSubstitutor inner =
+        node.typeParameters.isEmpty ? this : newInnerEnvironment();
     int before = this.useCounter;
     // Invert the variance when translating parameters.
     inner.invertVariance();
-    var typeParameters = inner.freshTypeParameters(node.typeParameters);
-    var positionalParameters = node.positionalParameters.isEmpty
+    List<TypeParameter> typeParameters =
+        inner.freshTypeParameters(node.typeParameters);
+    List<DartType> positionalParameters = node.positionalParameters.isEmpty
         ? const <DartType>[]
         : node.positionalParameters.map(inner.visit).toList();
-    var namedParameters = node.namedParameters.isEmpty
+    List<NamedType> namedParameters = node.namedParameters.isEmpty
         ? const <NamedType>[]
         : node.namedParameters.map(inner.visitNamedType).toList();
     inner.invertVariance();
-    var returnType = inner.visit(node.returnType);
+    DartType returnType = inner.visit(node.returnType);
     DartType typedefType =
         node.typedefType == null ? null : inner.visit(node.typedefType);
     if (this.useCounter == before) return node;
@@ -578,7 +581,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
-    var node = this;
+    _TypeSubstitutor node = this;
     while (node != target) {
       ++node.useCounter;
       node = node.outer;
@@ -587,7 +590,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   DartType getSubstitute(TypeParameter variable) {
-    var environment = this;
+    _TypeSubstitutor environment = this;
     while (environment != null) {
       DartType replacement = environment.lookup(variable, covariantContext);
       if (replacement != null) {
@@ -681,7 +684,7 @@ class _TypeUnification {
   _TypeUnification(DartType type1, DartType type2, this.quantifiedVariables) {
     _unify(type1, type2);
     if (success && substitution.length >= 2) {
-      for (var key in substitution.keys) {
+      for (TypeParameter key in substitution.keys) {
         substitution[key] = substituteDeep(substitution[key], substitution);
       }
     }
@@ -742,36 +745,41 @@ class _TypeUnification {
       // functions and try to unify the instantiated function types.
       assert(!type1.typeParameters.any(quantifiedVariables.contains));
       assert(!type2.typeParameters.any(quantifiedVariables.contains));
-      var leftInstance = <TypeParameter, DartType>{};
-      var rightInstance = <TypeParameter, DartType>{};
+      Map<TypeParameter, DartType> leftInstance = <TypeParameter, DartType>{};
+      Map<TypeParameter, DartType> rightInstance = <TypeParameter, DartType>{};
       for (int i = 0; i < type1.typeParameters.length; ++i) {
-        var instantiator = new TypeParameter(type1.typeParameters[i].name);
-        var instantiatorType = new TypeParameterType.forAlphaRenaming(
-            type1.typeParameters[i], instantiator);
+        TypeParameter instantiator =
+            new TypeParameter(type1.typeParameters[i].name);
+        TypeParameterType instantiatorType =
+            new TypeParameterType.forAlphaRenaming(
+                type1.typeParameters[i], instantiator);
         leftInstance[type1.typeParameters[i]] = instantiatorType;
         rightInstance[type2.typeParameters[i]] = instantiatorType;
         _universallyQuantifiedVariables.add(instantiator);
       }
       for (int i = 0; i < type1.typeParameters.length; ++i) {
-        var left = substitute(type1.typeParameters[i].bound, leftInstance);
-        var right = substitute(type2.typeParameters[i].bound, rightInstance);
+        DartType left = substitute(type1.typeParameters[i].bound, leftInstance);
+        DartType right =
+            substitute(type2.typeParameters[i].bound, rightInstance);
         if (!_unify(left, right)) return false;
       }
       for (int i = 0; i < type1.positionalParameters.length; ++i) {
-        var left = substitute(type1.positionalParameters[i], leftInstance);
-        var right = substitute(type2.positionalParameters[i], rightInstance);
+        DartType left = substitute(type1.positionalParameters[i], leftInstance);
+        DartType right =
+            substitute(type2.positionalParameters[i], rightInstance);
         if (!_unify(left, right)) return false;
       }
       for (int i = 0; i < type1.namedParameters.length; ++i) {
         if (type1.namedParameters[i].name != type2.namedParameters[i].name) {
           return false;
         }
-        var left = substitute(type1.namedParameters[i].type, leftInstance);
-        var right = substitute(type2.namedParameters[i].type, rightInstance);
+        DartType left = substitute(type1.namedParameters[i].type, leftInstance);
+        DartType right =
+            substitute(type2.namedParameters[i].type, rightInstance);
         if (!_unify(left, right)) return false;
       }
-      var leftReturn = substitute(type1.returnType, leftInstance);
-      var rightReturn = substitute(type2.returnType, rightInstance);
+      DartType leftReturn = substitute(type1.returnType, leftInstance);
+      DartType rightReturn = substitute(type2.returnType, rightInstance);
       if (!_unify(leftReturn, rightReturn)) return false;
       return true;
     }

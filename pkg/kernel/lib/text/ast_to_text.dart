@@ -44,7 +44,7 @@ class ConstantNamer extends RecursiveVisitor<Null> with Namer<Constant> {
       //
       if (constant is InstanceConstant) {
         // Avoid visiting `InstanceConstant.classReference`.
-        for (final value in constant.fieldValues.values) {
+        for (final Constant value in constant.fieldValues.values) {
           // Name everything in post-order visit of DAG.
           getName(value);
         }
@@ -76,8 +76,8 @@ class Disambiguator<T, U> {
   final Set<String> usedNames = new Set<String>();
 
   String disambiguate(T key1, U key2, String proposeName()) {
-    getNewName() {
-      var proposedName = proposeName();
+    String getNewName() {
+      String proposedName = proposeName();
       if (usedNames.add(proposedName)) return proposedName;
       int i = 2;
       while (!usedNames.add('$proposedName$i')) {
@@ -209,13 +209,13 @@ class NameSystem {
 
   final RegExp pathSeparator = new RegExp('[\\/]');
 
-  nameLibraryPrefix(Library node, {String proposedName}) {
+  String nameLibraryPrefix(Library node, {String proposedName}) {
     return prefixes.disambiguate(node.reference, node.reference.canonicalName,
         () {
       if (proposedName != null) return proposedName;
       if (node.name != null) return abbreviateName(node.name);
       if (node.importUri != null) {
-        var path = node.importUri.hasEmptyPath
+        String path = node.importUri.hasEmptyPath
             ? '${node.importUri}'
             : node.importUri.pathSegments.last;
         if (path.endsWith('.dart')) {
@@ -233,7 +233,7 @@ class NameSystem {
       if (proposedName != null) return proposedName;
       CanonicalName canonicalName = name ?? node.canonicalName;
       if (canonicalName?.name != null) {
-        var path = canonicalName.name;
+        String path = canonicalName.name;
         int slash = path.lastIndexOf(pathSeparator);
         if (slash >= 0) {
           path = path.substring(slash + 1);
@@ -436,14 +436,14 @@ class Printer extends Visitor<Null> {
   }
 
   void printLibraryImportTable(LibraryImportTable imports) {
-    for (var library in imports.importedLibraries) {
-      var importPath = imports.getImportPath(library);
+    for (Library library in imports.importedLibraries) {
+      String importPath = imports.getImportPath(library);
       if (importPath == "") {
-        var prefix =
+        String prefix =
             syntheticNames.nameLibraryPrefix(library, proposedName: 'self');
         endLine('import self as $prefix;');
       } else {
-        var prefix = syntheticNames.nameLibraryPrefix(library);
+        String prefix = syntheticNames.nameLibraryPrefix(library);
         endLine('import "$importPath" as $prefix;');
       }
     }
@@ -476,7 +476,7 @@ class Printer extends Visitor<Null> {
     write('additionalExports = (');
     for (int i = 0; i < additionalExports.length; i++) {
       Reference reference = additionalExports[i];
-      var node = reference.node;
+      NamedNode node = reference.node;
       if (node is Class) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
@@ -514,7 +514,7 @@ class Printer extends Visitor<Null> {
 
   void writeComponentFile(Component component) {
     ImportTable imports = new ComponentImportTable(component);
-    var inner = createInner(imports, component.metadata);
+    Printer inner = createInner(imports, component.metadata);
     writeWord('main');
     writeSpaced('=');
     inner.writeMemberReferenceFromReference(component.mainMethodName);
@@ -523,7 +523,7 @@ class Printer extends Visitor<Null> {
       inner.writeMetadata(component);
     }
     writeComponentProblems(component);
-    for (var library in component.libraries) {
+    for (Library library in component.libraries) {
       if (showMetadata) {
         inner.writeMetadata(library);
       }
@@ -536,7 +536,7 @@ class Printer extends Visitor<Null> {
         writeSpaced('from');
         writeWord('"${library.importUri}"');
       }
-      var prefix = syntheticNames.nameLibraryPrefix(library);
+      String prefix = syntheticNames.nameLibraryPrefix(library);
       writeSpaced('as');
       writeWord(prefix);
       endLine(' {');
@@ -552,7 +552,7 @@ class Printer extends Visitor<Null> {
   void writeConstantTable(Component component) {
     if (syntheticNames.constants.map.isEmpty) return;
     ImportTable imports = new ComponentImportTable(component);
-    var inner = createInner(imports, component.metadata);
+    Printer inner = createInner(imports, component.metadata);
     writeWord('constants ');
     endLine(' {');
     ++inner.indentation;
@@ -619,7 +619,7 @@ class Printer extends Visitor<Null> {
     if (node == null) {
       writeSymbol("<Null>");
     } else {
-      final highlight = shouldHighlight(node);
+      final bool highlight = shouldHighlight(node);
       if (highlight) {
         startHighlight(node);
       }
@@ -647,8 +647,8 @@ class Printer extends Visitor<Null> {
 
   void writeMetadata(TreeNode node) {
     if (metadata != null) {
-      for (var md in metadata.values) {
-        final nodeMetadata = md.mapping[node];
+      for (MetadataRepository<Object> md in metadata.values) {
+        final Object nodeMetadata = md.mapping[node];
         if (nodeMetadata != null) {
           writeWord("[@${md.tag}=${nodeMetadata}]");
         }
@@ -931,7 +931,7 @@ class Printer extends Visitor<Null> {
   void writeList<T>(Iterable<T> nodes, void callback(T x),
       {String separator: ','}) {
     bool first = true;
-    for (var node in nodes) {
+    for (T node in nodes) {
       if (first) {
         first = false;
       } else {
@@ -948,8 +948,9 @@ class Printer extends Visitor<Null> {
   String getClassReferenceFromReference(Reference reference) {
     if (reference == null) return '<No Class>';
     if (reference.node != null) return getClassReference(reference.asClass);
-    if (reference.canonicalName != null)
+    if (reference.canonicalName != null) {
       return getCanonicalNameString(reference.canonicalName);
+    }
     throw "Neither node nor canonical name found";
   }
 
@@ -960,8 +961,9 @@ class Printer extends Visitor<Null> {
   String getMemberReferenceFromReference(Reference reference) {
     if (reference == null) return '<No Member>';
     if (reference.node != null) return getMemberReference(reference.asMember);
-    if (reference.canonicalName != null)
+    if (reference.canonicalName != null) {
       return getCanonicalNameString(reference.canonicalName);
+    }
     throw "Neither node nor canonical name found";
   }
 
@@ -970,8 +972,9 @@ class Printer extends Visitor<Null> {
     if (name.name.startsWith('@')) throw 'unexpected @';
 
     libraryString(CanonicalName lib) {
-      if (lib.reference?.node != null)
+      if (lib.reference?.node != null) {
         return getLibraryReference(lib.reference.asLibrary);
+      }
       return syntheticNames.nameCanonicalNameAsLibraryPrefix(
           lib.reference, lib);
     }
@@ -983,7 +986,9 @@ class Printer extends Visitor<Null> {
     if (name.parent.parent.isRoot) return classString(name);
 
     CanonicalName atNode = name.parent;
-    while (!atNode.name.startsWith('@')) atNode = atNode.parent;
+    while (!atNode.name.startsWith('@')) {
+      atNode = atNode.parent;
+    }
 
     String parent = "";
     if (atNode.parent.parent.isRoot) {
@@ -1001,7 +1006,7 @@ class Printer extends Visitor<Null> {
   }
 
   void writeVariableReference(VariableDeclaration variable) {
-    final highlight = shouldHighlight(variable);
+    final bool highlight = shouldHighlight(variable);
     if (highlight) {
       startHighlight(variable);
     }
@@ -1016,7 +1021,7 @@ class Printer extends Visitor<Null> {
   }
 
   void writeExpression(Expression node, [int minimumPrecedence]) {
-    final highlight = shouldHighlight(node);
+    final bool highlight = shouldHighlight(node);
     if (highlight) {
       startHighlight(node);
     }
@@ -1252,7 +1257,7 @@ class Printer extends Visitor<Null> {
     if (features.isNotEmpty) {
       writeSpaced('/*${features.join(',')}*/');
     }
-    var endLineString = ' {';
+    String endLineString = ' {';
     if (node.enclosingLibrary.fileUri != node.fileUri) {
       endLineString += ' // from ${node.fileUri}';
     }
@@ -1274,7 +1279,7 @@ class Printer extends Visitor<Null> {
     writeTypeParameterList(node.typeParameters);
     writeSpaced('on');
     writeType(node.onType);
-    var endLineString = ' {';
+    String endLineString = ' {';
     if (node.enclosingLibrary.fileUri != node.fileUri) {
       endLineString += ' // from ${node.fileUri}';
     }
@@ -1415,7 +1420,7 @@ class Printer extends Visitor<Null> {
       writeSpace();
     }
     write('"');
-    for (var part in node.expressions) {
+    for (Expression part in node.expressions) {
       if (part is StringLiteral) {
         writeSymbol(escapeString(part.value));
       } else {
@@ -1677,7 +1682,7 @@ class Printer extends Visitor<Null> {
   visitLibraryDependency(LibraryDependency node) {
     writeIndentation();
     writeWord(node.isImport ? 'import' : 'export');
-    var uriString;
+    String uriString;
     if (node.importedLibraryReference?.node != null) {
       uriString = '${node.targetLibrary.importUri}';
     } else {
@@ -1925,7 +1930,7 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeWord(label);
     endLine(':');
-    for (var expression in node.expressions) {
+    for (Expression expression in node.expressions) {
       writeIndentation();
       writeWord('case');
       writeExpression(expression);
@@ -2072,7 +2077,7 @@ class Printer extends Visitor<Null> {
       writeSymbol('>');
     }
     writeSymbol('(');
-    var allArgs =
+    Iterable<TreeNode> allArgs =
         <List<TreeNode>>[node.positional, node.named].expand((x) => x);
     writeList(allArgs, writeNode);
     writeSymbol(')');

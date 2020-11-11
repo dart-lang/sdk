@@ -20,7 +20,7 @@ String getExternalName(Member procedure) {
     return null;
   }
   for (final Expression annotation in procedure.annotations) {
-    final value = _getExternalNameValue(annotation);
+    final String value = _getExternalNameValue(annotation);
     if (value != null) {
       return value;
     }
@@ -30,9 +30,9 @@ String getExternalName(Member procedure) {
 
 /// Returns native extension URIs for given [library].
 List<String> getNativeExtensionUris(Library library) {
-  final uris = <String>[];
-  for (var annotation in library.annotations) {
-    final value = _getExternalNameValue(annotation);
+  final List<String> uris = <String>[];
+  for (Expression annotation in library.annotations) {
+    final String value = _getExternalNameValue(annotation);
     if (value != null) {
       uris.add(value);
     }
@@ -46,7 +46,7 @@ String _getExternalNameValue(Expression annotation) {
       return (annotation.arguments.positional.single as StringLiteral).value;
     }
   } else if (annotation is ConstantExpression) {
-    final constant = annotation.constant;
+    final Constant constant = annotation.constant;
     if (constant is InstanceConstant) {
       if (_isExternalName(constant.classNode)) {
         return (constant.fieldValues.values.single as StringConstant).value;

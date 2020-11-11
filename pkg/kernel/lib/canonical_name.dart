@@ -105,7 +105,7 @@ class CanonicalName {
   }
 
   CanonicalName getChild(String name) {
-    var map = _children ??= <String, CanonicalName>{};
+    Map<String, CanonicalName> map = _children ??= <String, CanonicalName>{};
     return map[name] ??= new CanonicalName._(this, name);
   }
 

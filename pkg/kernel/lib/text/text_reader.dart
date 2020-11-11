@@ -40,7 +40,7 @@ class TextIterator implements Iterator<Object /* String | TextIterator */ > {
   void skipToEndOfNested() {
     if (current is TextIterator) {
       TextIterator it = current;
-      while (it.moveNext());
+      while (it.moveNext()) {}
       index = it.index + 1;
     }
   }
