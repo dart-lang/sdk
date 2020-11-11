@@ -2400,27 +2400,8 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
 }
 
 static void ShutdownIsolate(uword parameter) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  {
-    // Print the error if there is one.  This may execute dart code to
-    // print the exception object, so we need to use a StartIsolateScope.
-    StartIsolateScope start_scope(isolate);
-    Thread* thread = Thread::Current();
-    ASSERT(thread->isolate() == isolate);
-
-    // We must wait for any outstanding spawn calls to complete before
-    // running the shutdown callback.
-    isolate->WaitForOutstandingSpawns();
-
-    StackZone zone(thread);
-    HandleScope handle_scope(thread);
-#if defined(DEBUG)
-    isolate->ValidateConstants();
-#endif  // defined(DEBUG)
-    Dart::RunShutdownCallback();
-  }
-  // Shut the isolate down.
-  Dart::ShutdownIsolate(isolate);
+  Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(parameter));
+  Dart_ShutdownIsolate();
 }
 
 void Isolate::SetStickyError(ErrorPtr sticky_error) {
