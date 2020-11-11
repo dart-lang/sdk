@@ -268,7 +268,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   E elementAt(int index) {
-    ArgumentError.checkNotNull(index, "index");
+    checkNotNullable(index, "index");
     RangeError.checkNotNegative(index, "index");
     int elementIndex = 0;
     for (E element in this) {

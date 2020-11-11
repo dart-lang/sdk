@@ -152,7 +152,7 @@ abstract class Stream<T> {
   @Since("2.5")
   factory Stream.error(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     return (_AsyncStreamController<T>(null, null, null, null)
           .._addError(error, stackTrace ?? AsyncError.defaultStackTrace(error))
           .._closeUnchecked())

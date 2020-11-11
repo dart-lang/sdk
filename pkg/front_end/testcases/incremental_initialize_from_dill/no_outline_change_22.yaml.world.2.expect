@@ -479,7 +479,7 @@ library from "org-dartlang-test:///main.dart" as main {
       return 1.{dart.core::int::unary-}();
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ insert(dart.core::int index, generic-covariant-impl dart.core::int* element) → void {
-      dart.core::ArgumentError::checkNotNull<dart.core::int>(index, "index");
+      dart._internal::checkNotNullable<dart.core::int>(index, "index");
       dart.core::int length = this.{dart.core::List::length};
       dart.core::RangeError::checkValueInInterval(index, 0, length, "index");
       this.{dart.collection::ListMixin::add}(element);

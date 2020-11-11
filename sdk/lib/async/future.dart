@@ -275,7 +275,7 @@ abstract class Future<T> {
    */
   factory Future.error(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     if (!identical(Zone.current, _rootZone)) {
       AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {

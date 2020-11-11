@@ -523,7 +523,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void insert(int index, E element) {
-    ArgumentError.checkNotNull(index, "index");
+    checkNotNullable(index, "index");
     var length = this.length;
     RangeError.checkValueInInterval(index, 0, length, "index");
     add(element);

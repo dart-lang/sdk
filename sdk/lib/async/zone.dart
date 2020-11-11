@@ -36,16 +36,14 @@ typedef void PrintHandler(
 typedef Zone ForkHandler(Zone self, ZoneDelegate parent, Zone zone,
     ZoneSpecification? specification, Map<Object?, Object?>? zoneValues);
 
-/** Pair of error and stack trace. Returned by [Zone.errorCallback]. */
+/// Pair of error and stack trace. Returned by [Zone.errorCallback].
 class AsyncError implements Error {
   final Object error;
   final StackTrace stackTrace;
 
-  AsyncError(this.error, StackTrace? stackTrace)
-      : stackTrace = stackTrace ?? defaultStackTrace(error) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
-  }
+  AsyncError(Object error, StackTrace? stackTrace)
+      : error = checkNotNullable(error, "error"),
+        stackTrace = stackTrace ?? defaultStackTrace(error);
 
   /// A default stack trace for an error.
   ///
@@ -795,8 +793,7 @@ class _ZoneDelegate implements ZoneDelegate {
   }
 
   AsyncError? errorCallback(Zone zone, Object error, StackTrace? stackTrace) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     var implementation = _delegationTarget._errorCallback;
     _Zone implZone = implementation.zone;
     if (identical(implZone, _rootZone)) return null;
@@ -1130,8 +1127,7 @@ class _CustomZone extends _Zone {
   }
 
   AsyncError? errorCallback(Object error, StackTrace? stackTrace) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     var implementation = this._errorCallback;
     final _Zone implementationZone = implementation.zone;
     if (identical(implementationZone, _rootZone)) return null;
@@ -1532,7 +1528,7 @@ R runZoned<R>(R body(),
     {Map<Object?, Object?>? zoneValues,
     ZoneSpecification? zoneSpecification,
     @Deprecated("Use runZonedGuarded instead") Function? onError}) {
-  ArgumentError.checkNotNull(body, "body");
+  checkNotNullable(body, "body");
   if (onError != null) {
     // TODO: Remove this when code have been migrated off using [onError].
     if (onError is! void Function(Object, StackTrace)) {
@@ -1592,8 +1588,8 @@ R runZoned<R>(R body(),
 @Since("2.8")
 R? runZonedGuarded<R>(R body(), void onError(Object error, StackTrace stack),
     {Map<Object?, Object?>? zoneValues, ZoneSpecification? zoneSpecification}) {
-  ArgumentError.checkNotNull(body, "body");
-  ArgumentError.checkNotNull(onError, "onError");
+  checkNotNullable(body, "body");
+  checkNotNullable(onError, "onError");
   _Zone parentZone = Zone._current;
   HandleUncaughtErrorHandler errorHandler = (Zone self, ZoneDelegate parent,
       Zone zone, Object error, StackTrace stackTrace) {

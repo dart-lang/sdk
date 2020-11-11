@@ -618,19 +618,6 @@ class Expect {
         f, (error) => error.toString().startsWith('ReachabilityError'), reason);
   }
 
-  /// Checks that [f] throws an appropriate error on a null argument.
-  ///
-  /// With sound null safety, this is expected to be a [TypeError] when casting
-  /// the `null` to some non-nullable type. In weak mode, that cast is ignored
-  /// and some later explicit validation should handle it and [ArgumentError].
-  static void throwsNullCheckError(void f()) {
-    if (hasSoundNullSafety) {
-      throwsTypeError(f);
-    } else {
-      throwsArgumentError(f);
-    }
-  }
-
   static void throwsRangeError(void f(), [String reason = "RangeError"]) {
     Expect.throws(f, (error) => error is RangeError, reason);
   }
