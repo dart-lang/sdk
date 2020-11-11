@@ -23,7 +23,7 @@ dependencies:
   pedantic: ^1.9.0
   pub:
     path: ../../third_party/pkg/pub
-  stagehand: 3.3.7
+  stagehand: any
   telemetry:
     path: ../telemetry
   usage: ^3.4.0
