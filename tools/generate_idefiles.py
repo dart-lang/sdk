@@ -111,7 +111,6 @@ def GenerateAnalysisOptions(options):
     - tests/dartdevc_2/**
     - tests/ffi/**
     - tests/ffi_2/**
-    - tests/kernel/**
     - tests/language/**
     - tests/language_2/**
     - tests/lib/**

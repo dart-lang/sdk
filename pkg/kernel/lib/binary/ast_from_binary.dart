@@ -64,7 +64,7 @@ class CanonicalNameSdkError extends CanonicalNameError {
 }
 
 class _ComponentIndex {
-  static const numberOfFixedFields = 10;
+  static const int numberOfFixedFields = 10;
 
   int binaryOffsetForSourceTable;
   int binaryOffsetForCanonicalNames;
@@ -145,7 +145,7 @@ class BinaryBuilder {
   int readByte() => _bytes[_byteOffset++];
 
   int readUInt() {
-    var byte = readByte();
+    int byte = readByte();
     if (byte & 0x80 == 0) {
       // 0xxxxxxx
       return byte;
@@ -354,7 +354,8 @@ class BinaryBuilder {
         }
         return new InstanceConstant(classReference, typeArguments, fieldValues);
       case ConstantTag.PartialInstantiationConstant:
-        final tearOffConstant = readConstantReference() as TearOffConstant;
+        final TearOffConstant tearOffConstant =
+            readConstantReference() as TearOffConstant;
         final int length = readUInt();
         final List<DartType> types = new List<DartType>(length);
         for (int i = 0; i < length; i++) {
@@ -400,7 +401,7 @@ class BinaryBuilder {
   }
 
   String readStringOrNullIfEmpty() {
-    var string = readStringReference();
+    String string = readStringReference();
     return string.isEmpty ? null : string;
   }
 
@@ -428,7 +429,7 @@ class BinaryBuilder {
 
   void _fillTreeNodeList(
       List<TreeNode> list, TreeNode buildObject(int index), TreeNode parent) {
-    var length = readUInt();
+    int length = readUInt();
     list.length = length;
     for (int i = 0; i < length; ++i) {
       TreeNode object = buildObject(i);
@@ -437,7 +438,7 @@ class BinaryBuilder {
   }
 
   void _fillNonTreeNodeList(List<Node> list, Node buildObject()) {
-    var length = readUInt();
+    int length = readUInt();
     list.length = length;
     for (int i = 0; i < length; ++i) {
       Node object = buildObject();
@@ -465,7 +466,7 @@ class BinaryBuilder {
     for (int i = 0; i < length; ++i) {
       int biasedParentIndex = readUInt();
       String name = readStringReference();
-      var parent =
+      CanonicalName parent =
           biasedParentIndex == 0 ? linkRoot : _linkTable[biasedParentIndex - 1];
       _linkTable[i] = parent.getChild(name);
     }
@@ -497,7 +498,7 @@ class BinaryBuilder {
   }
 
   void _readAndVerifySdkHash() {
-    final sdkHash = ascii.decode(readBytes(sdkHashLength));
+    final String sdkHash = ascii.decode(readBytes(sdkHashLength));
     if (!isValidSdkHash(sdkHash)) {
       throw InvalidKernelSdkVersionError(sdkHash);
     }
@@ -519,8 +520,8 @@ class BinaryBuilder {
         "BinaryBuilder.readComponent", () {
       _checkEmptyInput();
 
-      // Check that we have a .dill file and it has the correct version before we
-      // start decoding it.  Otherwise we will fail for cryptic reasons.
+      // Check that we have a .dill file and it has the correct version before
+      // we start decoding it.  Otherwise we will fail for cryptic reasons.
       int offset = _byteOffset;
       int magic = readUint32();
       if (magic != Tag.ComponentFile) {
@@ -578,8 +579,8 @@ class BinaryBuilder {
     }
   }
 
-  /// Reads a single component file from the input and loads it into [component],
-  /// overwriting and reusing any existing data in the component.
+  /// Reads a single component file from the input and loads it into
+  /// [component], overwriting and reusing any existing data in the component.
   ///
   /// When linking with a non-empty component, canonical names must have been
   /// computed ahead of time.
@@ -674,9 +675,9 @@ class BinaryBuilder {
     result.libraryOffsets = new List<int>(result.libraryCount + 1);
     result.componentFileSizeInBytes = readUint32();
     if (result.componentFileSizeInBytes != componentFileSize) {
-      throw "Malformed binary: This component file's component index indicates that"
-          " the file size should be $componentFileSize but other component indexes"
-          " has indicated that the size should be "
+      throw "Malformed binary: This component file's component index indicates "
+          "that the file size should be $componentFileSize but other component "
+          "indexes has indicated that the size should be "
           "${result.componentFileSizeInBytes}.";
     }
 
@@ -868,7 +869,7 @@ class BinaryBuilder {
   }
 
   CanonicalName readCanonicalNameReference() {
-    var index = readUInt();
+    int index = readUInt();
     if (index == 0) return null;
     return _linkTable[index - 1];
   }
@@ -891,7 +892,7 @@ class BinaryBuilder {
   }
 
   Reference readClassReference({bool allowNull: false}) {
-    var name = readCanonicalNameReference();
+    CanonicalName name = readCanonicalNameReference();
     if (name == null && !allowNull) {
       throw 'Expected a class reference to be valid but was `null`.';
     }
@@ -899,7 +900,7 @@ class BinaryBuilder {
   }
 
   Reference readMemberReference({bool allowNull: false}) {
-    var name = readCanonicalNameReference();
+    CanonicalName name = readCanonicalNameReference();
     if (name == null && !allowNull) {
       throw 'Expected a member reference to be valid but was `null`.';
     }
@@ -907,13 +908,13 @@ class BinaryBuilder {
   }
 
   Reference readInstanceMemberReference({bool allowNull: false}) {
-    var reference = readMemberReference(allowNull: allowNull);
+    Reference reference = readMemberReference(allowNull: allowNull);
     readMemberReference(allowNull: true); // Skip origin
     return reference;
   }
 
   Reference getMemberReferenceFromInt(int index, {bool allowNull: false}) {
-    var name = getCanonicalNameReferenceFromInt(index);
+    CanonicalName name = getCanonicalNameReferenceFromInt(index);
     if (name == null && !allowNull) {
       throw 'Expected a member reference to be valid but was `null`.';
     }
@@ -965,7 +966,7 @@ class BinaryBuilder {
     int languageVersionMajor = readUInt();
     int languageVersionMinor = readUInt();
 
-    var canonicalName = readCanonicalNameReference();
+    CanonicalName canonicalName = readCanonicalNameReference();
     Reference reference = canonicalName.getReference();
     Library library = reference.node;
     if (alwaysCreateNewNamedNodes) {
@@ -1041,12 +1042,12 @@ class BinaryBuilder {
   }
 
   LibraryDependency readLibraryDependency(Library library) {
-    var fileOffset = readOffset();
-    var flags = readByte();
-    var annotations = readExpressionList();
-    var targetLibrary = readLibraryReference(allowNull: true);
-    var prefixName = readStringOrNullIfEmpty();
-    var names = readCombinatorList();
+    int fileOffset = readOffset();
+    int flags = readByte();
+    List<Expression> annotations = readExpressionList();
+    Reference targetLibrary = readLibraryReference(allowNull: true);
+    String prefixName = readStringOrNullIfEmpty();
+    List<Combinator> names = readCombinatorList();
     return new LibraryDependency.byReference(
         flags, annotations, targetLibrary, prefixName, names)
       ..fileOffset = fileOffset
@@ -1066,8 +1067,8 @@ class BinaryBuilder {
   }
 
   Combinator readCombinator() {
-    var isShow = readByte() == 1;
-    var names = readStringReferenceList();
+    bool isShow = readByte() == 1;
+    List<String> names = readStringReferenceList();
     return new Combinator(isShow, names);
   }
 
@@ -1096,8 +1097,8 @@ class BinaryBuilder {
   }
 
   Typedef readTypedef() {
-    var canonicalName = readCanonicalNameReference();
-    var reference = canonicalName.getReference();
+    CanonicalName canonicalName = readCanonicalNameReference();
+    Reference reference = canonicalName.getReference();
     Typedef node = reference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1110,7 +1111,7 @@ class BinaryBuilder {
     String name = readStringReference();
     node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
-    var type = readDartType();
+    DartType type = readDartType();
     readAndPushTypeParameterList(node.typeParametersOfFunctionType, node);
     node.positionalParameters.clear();
     node.positionalParameters.addAll(readAndPushVariableDeclarationList());
@@ -1143,8 +1144,8 @@ class BinaryBuilder {
     }
     _byteOffset = savedByteOffset;
 
-    var canonicalName = readCanonicalNameReference();
-    var reference = canonicalName.getReference();
+    CanonicalName canonicalName = readCanonicalNameReference();
+    Reference reference = canonicalName.getReference();
     Class node = reference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1153,14 +1154,14 @@ class BinaryBuilder {
       node = new Class(reference: reference)..dirty = false;
     }
 
-    var fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     node.startFileOffset = readOffset();
     node.fileOffset = readOffset();
     node.fileEndOffset = readOffset();
     int flags = readByte();
     node.flags = flags;
-    var name = readStringOrNullIfEmpty();
-    var annotations = readAnnotationList(node);
+    String name = readStringOrNullIfEmpty();
+    List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name ?? 'normal-class');
       return true;
@@ -1169,8 +1170,8 @@ class BinaryBuilder {
     assert(typeParameterStack.length == 0);
 
     readAndPushTypeParameterList(node.typeParameters, node);
-    var supertype = readSupertypeOption();
-    var mixedInType = readSupertypeOption();
+    Supertype supertype = readSupertypeOption();
+    Supertype mixedInType = readSupertypeOption();
     _fillNonTreeNodeList(node.implementedTypes, readSupertype);
     if (_disableLazyClassReading) {
       readClassPartialContent(node, procedureOffsets);
@@ -1297,18 +1298,18 @@ class BinaryBuilder {
       node = new Field(null,
           getterReference: getterReference, setterReference: setterReference);
     }
-    var fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
     int flags = readUInt();
-    var name = readName();
-    var annotations = readAnnotationList(node);
+    Name name = readName();
+    List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name?.text ?? 'field');
       return true;
     }());
-    var type = readDartType();
-    var initializer = readExpressionOption();
+    DartType type = readDartType();
+    Expression initializer = readExpressionOption();
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.fileOffset = fileOffset;
@@ -1327,8 +1328,8 @@ class BinaryBuilder {
   Constructor readConstructor() {
     int tag = readByte();
     assert(tag == Tag.Constructor);
-    var canonicalName = readCanonicalNameReference();
-    var reference = canonicalName.getReference();
+    CanonicalName canonicalName = readCanonicalNameReference();
+    Reference reference = canonicalName.getReference();
     Constructor node = reference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1336,23 +1337,23 @@ class BinaryBuilder {
     if (node == null) {
       node = new Constructor(null, reference: reference);
     }
-    var fileUri = readUriReference();
-    var startFileOffset = readOffset();
-    var fileOffset = readOffset();
-    var fileEndOffset = readOffset();
-    var flags = readByte();
-    var name = readName();
-    var annotations = readAnnotationList(node);
+    Uri fileUri = readUriReference();
+    int startFileOffset = readOffset();
+    int fileOffset = readOffset();
+    int fileEndOffset = readOffset();
+    int flags = readByte();
+    Name name = readName();
+    List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name?.text ?? 'constructor');
       return true;
     }());
-    var function = readFunctionNode();
+    FunctionNode function = readFunctionNode();
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
     _fillTreeNodeList(node.initializers, (index) => readInitializer(), node);
     variableStack.length = 0;
-    var transformerFlags = getAndResetTransformerFlags();
+    int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.startFileOffset = startFileOffset;
     node.fileOffset = fileOffset;
@@ -1369,26 +1370,26 @@ class BinaryBuilder {
   Procedure readProcedure(int endOffset) {
     int tag = readByte();
     assert(tag == Tag.Procedure);
-    var canonicalName = readCanonicalNameReference();
-    var reference = canonicalName.getReference();
+    CanonicalName canonicalName = readCanonicalNameReference();
+    Reference reference = canonicalName.getReference();
     Procedure node = reference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
-    var fileUri = readUriReference();
-    var startFileOffset = readOffset();
-    var fileOffset = readOffset();
-    var fileEndOffset = readOffset();
+    Uri fileUri = readUriReference();
+    int startFileOffset = readOffset();
+    int fileOffset = readOffset();
+    int fileEndOffset = readOffset();
     int kindIndex = readByte();
-    var kind = ProcedureKind.values[kindIndex];
+    ProcedureKind kind = ProcedureKind.values[kindIndex];
     if (node == null) {
       node = new Procedure(null, kind, null, reference: reference);
     } else {
       assert(node.kind == kind);
     }
-    var flags = readUInt();
-    var name = readName();
-    var annotations = readAnnotationList(node);
+    int flags = readUInt();
+    Name name = readName();
+    List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name?.text ?? 'procedure');
       return true;
@@ -1398,13 +1399,15 @@ class BinaryBuilder {
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
-    var forwardingStubSuperTargetReference =
+    Reference forwardingStubSuperTargetReference =
         readMemberReference(allowNull: true);
-    var forwardingStubInterfaceTargetReference =
+    Reference forwardingStubInterfaceTargetReference =
         readMemberReference(allowNull: true);
-    var memberSignatureTargetReference = readMemberReference(allowNull: true);
-    var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
-    var transformerFlags = getAndResetTransformerFlags();
+    Reference memberSignatureTargetReference =
+        readMemberReference(allowNull: true);
+    FunctionNode function =
+        readFunctionNodeOption(!readFunctionNodeNow, endOffset);
+    int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
     node.startFileOffset = startFileOffset;
     node.fileOffset = fileOffset;
@@ -1434,8 +1437,8 @@ class BinaryBuilder {
   RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
     int tag = readByte();
     assert(tag == Tag.RedirectingFactoryConstructor);
-    var canonicalName = readCanonicalNameReference();
-    var reference = canonicalName.getReference();
+    CanonicalName canonicalName = readCanonicalNameReference();
+    Reference reference = canonicalName.getReference();
     RedirectingFactoryConstructor node = reference.node;
     if (alwaysCreateNewNamedNodes) {
       node = null;
@@ -1443,25 +1446,25 @@ class BinaryBuilder {
     if (node == null) {
       node = new RedirectingFactoryConstructor(null, reference: reference);
     }
-    var fileUri = readUriReference();
-    var fileOffset = readOffset();
-    var fileEndOffset = readOffset();
-    var flags = readByte();
-    var name = readName();
-    var annotations = readAnnotationList(node);
+    Uri fileUri = readUriReference();
+    int fileOffset = readOffset();
+    int fileEndOffset = readOffset();
+    int flags = readByte();
+    Name name = readName();
+    List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(node.name?.text ?? 'redirecting-factory-constructor');
       return true;
     }());
-    var targetReference = readMemberReference();
-    var typeArguments = readDartTypeList();
+    Reference targetReference = readMemberReference();
+    List<DartType> typeArguments = readDartTypeList();
     int typeParameterStackHeight = typeParameterStack.length;
-    var typeParameters = readAndPushTypeParameterList();
+    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
     readUInt(); // Total parameter count.
-    var requiredParameterCount = readUInt();
+    int requiredParameterCount = readUInt();
     int variableStackHeight = variableStack.length;
-    var positional = readAndPushVariableDeclarationList();
-    var named = readAndPushVariableDeclarationList();
+    List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
+    List<VariableDeclaration> named = readAndPushVariableDeclarationList();
     variableStack.length = variableStackHeight;
     typeParameterStack.length = typeParameterStackHeight;
     debugPath.removeLast();
@@ -1487,14 +1490,14 @@ class BinaryBuilder {
       case Tag.InvalidInitializer:
         return new InvalidInitializer();
       case Tag.FieldInitializer:
-        var reference = readMemberReference();
-        var value = readExpression();
+        Reference reference = readMemberReference();
+        Expression value = readExpression();
         return new FieldInitializer.byReference(reference, value)
           ..isSynthetic = isSynthetic;
       case Tag.SuperInitializer:
         int offset = readOffset();
-        var reference = readMemberReference();
-        var arguments = readArguments();
+        Reference reference = readMemberReference();
+        Arguments arguments = readArguments();
         return new SuperInitializer.byReference(reference, arguments)
           ..isSynthetic = isSynthetic
           ..fileOffset = offset;
@@ -1528,13 +1531,13 @@ class BinaryBuilder {
     AsyncMarker asyncMarker = AsyncMarker.values[readByte()];
     AsyncMarker dartAsyncMarker = AsyncMarker.values[readByte()];
     int typeParameterStackHeight = typeParameterStack.length;
-    var typeParameters = readAndPushTypeParameterList();
+    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
     readUInt(); // total parameter count.
-    var requiredParameterCount = readUInt();
+    int requiredParameterCount = readUInt();
     int variableStackHeight = variableStack.length;
-    var positional = readAndPushVariableDeclarationList();
-    var named = readAndPushVariableDeclarationList();
-    var returnType = readDartType();
+    List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
+    List<VariableDeclaration> named = readAndPushVariableDeclarationList();
+    DartType returnType = readDartType();
     int oldLabelStackBase = labelStackBase;
     int oldSwitchCaseStackBase = switchCaseStackBase;
 
@@ -1543,7 +1546,7 @@ class BinaryBuilder {
           2; // e.g. outline has Tag.Something and Tag.EmptyStatement
     }
 
-    var body;
+    Statement body;
     if (!lazyLoadBody) {
       labelStackBase = labelStack.length;
       switchCaseStackBase = switchCaseStack.length;
@@ -1764,20 +1767,20 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.ListConcatenation:
         int offset = readOffset();
-        var typeArgument = readDartType();
+        DartType typeArgument = readDartType();
         return new ListConcatenation(readExpressionList(),
             typeArgument: typeArgument)
           ..fileOffset = offset;
       case Tag.SetConcatenation:
         int offset = readOffset();
-        var typeArgument = readDartType();
+        DartType typeArgument = readDartType();
         return new SetConcatenation(readExpressionList(),
             typeArgument: typeArgument)
           ..fileOffset = offset;
       case Tag.MapConcatenation:
         int offset = readOffset();
-        var keyType = readDartType();
-        var valueType = readDartType();
+        DartType keyType = readDartType();
+        DartType valueType = readDartType();
         return new MapConcatenation(readExpressionList(),
             keyType: keyType, valueType: valueType)
           ..fileOffset = offset;
@@ -1852,39 +1855,39 @@ class BinaryBuilder {
         return new Throw(readExpression())..fileOffset = offset;
       case Tag.ListLiteral:
         int offset = readOffset();
-        var typeArgument = readDartType();
+        DartType typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
             typeArgument: typeArgument, isConst: false)
           ..fileOffset = offset;
       case Tag.ConstListLiteral:
         int offset = readOffset();
-        var typeArgument = readDartType();
+        DartType typeArgument = readDartType();
         return new ListLiteral(readExpressionList(),
             typeArgument: typeArgument, isConst: true)
           ..fileOffset = offset;
       case Tag.SetLiteral:
         int offset = readOffset();
-        var typeArgument = readDartType();
+        DartType typeArgument = readDartType();
         return new SetLiteral(readExpressionList(),
             typeArgument: typeArgument, isConst: false)
           ..fileOffset = offset;
       case Tag.ConstSetLiteral:
         int offset = readOffset();
-        var typeArgument = readDartType();
+        DartType typeArgument = readDartType();
         return new SetLiteral(readExpressionList(),
             typeArgument: typeArgument, isConst: true)
           ..fileOffset = offset;
       case Tag.MapLiteral:
         int offset = readOffset();
-        var keyType = readDartType();
-        var valueType = readDartType();
+        DartType keyType = readDartType();
+        DartType valueType = readDartType();
         return new MapLiteral(readMapEntryList(),
             keyType: keyType, valueType: valueType, isConst: false)
           ..fileOffset = offset;
       case Tag.ConstMapLiteral:
         int offset = readOffset();
-        var keyType = readDartType();
-        var valueType = readDartType();
+        DartType keyType = readDartType();
+        DartType valueType = readDartType();
         return new MapLiteral(readMapEntryList(),
             keyType: keyType, valueType: valueType, isConst: true)
           ..fileOffset = offset;
@@ -1894,21 +1897,21 @@ class BinaryBuilder {
         int offset = readOffset();
         return new FunctionExpression(readFunctionNode())..fileOffset = offset;
       case Tag.Let:
-        var variable = readVariableDeclaration();
+        VariableDeclaration variable = readVariableDeclaration();
         int stackHeight = variableStack.length;
         pushVariableDeclaration(variable);
-        var body = readExpression();
+        Expression body = readExpression();
         variableStack.length = stackHeight;
         return new Let(variable, body);
       case Tag.BlockExpression:
         int stackHeight = variableStack.length;
-        var statements = readStatementList();
-        var value = readExpression();
+        List<Statement> statements = readStatementList();
+        Expression value = readExpression();
         variableStack.length = stackHeight;
         return new BlockExpression(new Block(statements), value);
       case Tag.Instantiation:
-        var expression = readExpression();
-        var typeArguments = readDartTypeList();
+        Expression expression = readExpression();
+        List<DartType> typeArguments = readDartTypeList();
         return new Instantiation(expression, typeArguments);
       case Tag.ConstantExpression:
         int offset = readOffset();
@@ -1945,7 +1948,7 @@ class BinaryBuilder {
   }
 
   Statement readStatementOrNullIfEmpty() {
-    var node = readStatement();
+    Statement node = readStatement();
     if (node is EmptyStatement) {
       return null;
     } else {
@@ -1974,7 +1977,7 @@ class BinaryBuilder {
             conditionEndOffset: readOffset(),
             message: readExpressionOption());
       case Tag.LabeledStatement:
-        var label = new LabeledStatement(null);
+        LabeledStatement label = new LabeledStatement(null);
         labelStack.add(label);
         label.body = readStatement()..parent = label;
         labelStack.removeLast();
@@ -1985,20 +1988,21 @@ class BinaryBuilder {
         return new BreakStatement(labelStack[labelStackBase + index])
           ..fileOffset = offset;
       case Tag.WhileStatement:
-        var offset = readOffset();
+        int offset = readOffset();
         return new WhileStatement(readExpression(), readStatement())
           ..fileOffset = offset;
       case Tag.DoStatement:
-        var offset = readOffset();
+        int offset = readOffset();
         return new DoStatement(readStatement(), readExpression())
           ..fileOffset = offset;
       case Tag.ForStatement:
         int variableStackHeight = variableStack.length;
-        var offset = readOffset();
-        var variables = readAndPushVariableDeclarationList();
-        var condition = readExpressionOption();
-        var updates = readExpressionList();
-        var body = readStatement();
+        int offset = readOffset();
+        List<VariableDeclaration> variables =
+            readAndPushVariableDeclarationList();
+        Expression condition = readExpressionOption();
+        List<Expression> updates = readExpressionList();
+        Statement body = readStatement();
         variableStack.length = variableStackHeight;
         return new ForStatement(variables, condition, updates, body)
           ..fileOffset = offset;
@@ -2006,18 +2010,18 @@ class BinaryBuilder {
       case Tag.AsyncForInStatement:
         bool isAsync = tag == Tag.AsyncForInStatement;
         int variableStackHeight = variableStack.length;
-        var offset = readOffset();
-        var bodyOffset = readOffset();
-        var variable = readAndPushVariableDeclaration();
-        var iterable = readExpression();
-        var body = readStatement();
+        int offset = readOffset();
+        int bodyOffset = readOffset();
+        VariableDeclaration variable = readAndPushVariableDeclaration();
+        Expression iterable = readExpression();
+        Statement body = readStatement();
         variableStack.length = variableStackHeight;
         return new ForInStatement(variable, iterable, body, isAsync: isAsync)
           ..fileOffset = offset
           ..bodyOffset = bodyOffset;
       case Tag.SwitchStatement:
-        var offset = readOffset();
-        var expression = readExpression();
+        int offset = readOffset();
+        Expression expression = readExpression();
         int count = readUInt();
         List<SwitchCase> cases =
             new List<SwitchCase>.filled(count, null, growable: true);
@@ -2058,14 +2062,14 @@ class BinaryBuilder {
             isNative: flags & YieldStatement.FlagNative != 0)
           ..fileOffset = offset;
       case Tag.VariableDeclaration:
-        var variable = readVariableDeclaration();
+        VariableDeclaration variable = readVariableDeclaration();
         variableStack.add(variable); // Will be popped by the enclosing scope.
         return variable;
       case Tag.FunctionDeclaration:
         int offset = readOffset();
-        var variable = readVariableDeclaration();
+        VariableDeclaration variable = readVariableDeclaration();
         variableStack.add(variable); // Will be popped by the enclosing scope.
-        var function = readFunctionNode();
+        FunctionNode function = readFunctionNode();
         return new FunctionDeclaration(variable, function)..fileOffset = offset;
       default:
         throw fail('unexpected statement tag: $tag');
@@ -2095,11 +2099,11 @@ class BinaryBuilder {
 
   Catch readCatch() {
     int variableStackHeight = variableStack.length;
-    var offset = readOffset();
-    var guard = readDartType();
-    var exception = readAndPushVariableDeclarationOption();
-    var stackTrace = readAndPushVariableDeclarationOption();
-    var body = readStatement();
+    int offset = readOffset();
+    DartType guard = readDartType();
+    VariableDeclaration exception = readAndPushVariableDeclarationOption();
+    VariableDeclaration stackTrace = readAndPushVariableDeclarationOption();
+    Statement body = readStatement();
     variableStack.length = variableStackHeight;
     return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
       ..fileOffset = offset;
@@ -2107,9 +2111,9 @@ class BinaryBuilder {
 
   Block readBlock() {
     int stackHeight = variableStack.length;
-    var offset = readOffset();
-    var endOffset = readOffset();
-    var body = readStatementList();
+    int offset = readOffset();
+    int endOffset = readOffset();
+    List<Statement> body = readStatementList();
     variableStack.length = stackHeight;
     return new Block(body)
       ..fileOffset = offset
@@ -2118,7 +2122,7 @@ class BinaryBuilder {
 
   AssertBlock readAssertBlock() {
     int stackHeight = variableStack.length;
-    var body = readStatementList();
+    List<Statement> body = readStatementList();
     variableStack.length = stackHeight;
     return new AssertBlock(body);
   }
@@ -2232,14 +2236,14 @@ class BinaryBuilder {
       case Tag.FunctionType:
         int typeParameterStackHeight = typeParameterStack.length;
         int nullabilityIndex = readByte();
-        var typeParameters = readAndPushTypeParameterList();
-        var requiredParameterCount = readUInt();
-        var totalParameterCount = readUInt();
-        var positional = readDartTypeList();
-        var named = readNamedTypeList();
-        var typedefType = readDartTypeOption();
+        List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+        int requiredParameterCount = readUInt();
+        int totalParameterCount = readUInt();
+        List<DartType> positional = readDartTypeList();
+        List<NamedType> named = readNamedTypeList();
+        DartType typedefType = readDartTypeOption();
         assert(positional.length + named.length == totalParameterCount);
-        var returnType = readDartType();
+        DartType returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
         return new FunctionType(
             positional, returnType, Nullability.values[nullabilityIndex],
@@ -2249,14 +2253,14 @@ class BinaryBuilder {
             typedefType: typedefType);
       case Tag.SimpleFunctionType:
         int nullabilityIndex = readByte();
-        var positional = readDartTypeList();
-        var returnType = readDartType();
+        List<DartType> positional = readDartTypeList();
+        DartType returnType = readDartType();
         return new FunctionType(
             positional, returnType, Nullability.values[nullabilityIndex]);
       case Tag.TypeParameterType:
         int declaredNullabilityIndex = readByte();
         int index = readUInt();
-        var bound = readDartTypeOption();
+        DartType bound = readDartTypeOption();
         return new TypeParameterType(typeParameterStack[index],
             Nullability.values[declaredNullabilityIndex], bound);
       default:
@@ -2301,10 +2305,10 @@ class BinaryBuilder {
   }
 
   Arguments readArguments() {
-    var numArguments = readUInt();
-    var typeArguments = readDartTypeList();
-    var positional = readExpressionList();
-    var named = readNamedExpressionList();
+    int numArguments = readUInt();
+    List<DartType> typeArguments = readDartTypeList();
+    List<Expression> positional = readExpressionList();
+    List<NamedExpression> named = readNamedExpressionList();
     assert(numArguments == positional.length + named.length);
     return new Arguments(positional, types: typeArguments, named: named);
   }
@@ -2338,7 +2342,7 @@ class BinaryBuilder {
   }
 
   VariableDeclaration readAndPushVariableDeclaration() {
-    var variable = readVariableDeclaration();
+    VariableDeclaration variable = readVariableDeclaration();
     variableStack.add(variable);
     return variable;
   }
@@ -2348,15 +2352,18 @@ class BinaryBuilder {
     int fileEqualsOffset = readOffset();
     // The [VariableDeclaration] instance is not created at this point yet,
     // so `null` is temporarily set as the parent of the annotation nodes.
-    var annotations = readAnnotationList(null);
+    List<Expression> annotations = readAnnotationList(null);
     int flags = readByte();
-    var node = new VariableDeclaration(readStringOrNullIfEmpty(),
-        type: readDartType(), initializer: readExpressionOption(), flags: flags)
+    VariableDeclaration node = new VariableDeclaration(
+        readStringOrNullIfEmpty(),
+        type: readDartType(),
+        initializer: readExpressionOption(),
+        flags: flags)
       ..fileOffset = offset
       ..fileEqualsOffset = fileEqualsOffset;
     if (annotations.isNotEmpty) {
       for (int i = 0; i < annotations.length; ++i) {
-        var annotation = annotations[i];
+        Expression annotation = annotations[i];
         annotation.parent = node;
       }
       node.annotations = annotations;
@@ -2395,27 +2402,28 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
 
     // Read the length of metadataMappings.
     _byteOffset -= 4;
-    final subSectionCount = readUint32();
+    final int subSectionCount = readUint32();
 
     int endOffset = _byteOffset - 4; // End offset of the current subsection.
-    for (var i = 0; i < subSectionCount; i++) {
+    for (int i = 0; i < subSectionCount; i++) {
       // RList<Pair<UInt32, UInt32>> nodeOffsetToMetadataOffset
       _byteOffset = endOffset - 4;
-      final mappingLength = readUint32();
-      final mappingStart = (endOffset - 4) - 4 * 2 * mappingLength;
+      final int mappingLength = readUint32();
+      final int mappingStart = (endOffset - 4) - 4 * 2 * mappingLength;
       _byteOffset = mappingStart - 4;
 
       // UInt32 tag (fixed size StringReference)
-      final tag = _stringTable[readUint32()];
+      final String tag = _stringTable[readUint32()];
 
-      final repository = component.metadata[tag];
+      final MetadataRepository repository = component.metadata[tag];
       if (repository != null) {
         // Read nodeOffsetToMetadataOffset mapping.
-        final mapping = <int, int>{};
+        final Map<int, int> mapping = <int, int>{};
         _byteOffset = mappingStart;
-        for (var j = 0; j < mappingLength; j++) {
-          final nodeOffset = readUint32();
-          final metadataOffset = binaryOffsetForMetadataPayloads + readUint32();
+        for (int j = 0; j < mappingLength; j++) {
+          final int nodeOffset = readUint32();
+          final int metadataOffset =
+              binaryOffsetForMetadataPayloads + readUint32();
           mapping[nodeOffset] = metadataOffset;
         }
 
@@ -2432,7 +2440,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
     final int savedOffset = _byteOffset;
     _byteOffset = offset;
 
-    final metadata = repository.readFromBinary(node, this);
+    final Object metadata = repository.readFromBinary(node, this);
 
     _byteOffset = savedOffset;
     return metadata;
@@ -2458,9 +2466,9 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
       return node;
     }
 
-    for (var subsection in _subsections) {
+    for (_MetadataSubsection subsection in _subsections) {
       // First check if there is any metadata associated with this node.
-      final metadataOffset = subsection.mapping[nodeOffset];
+      final int metadataOffset = subsection.mapping[nodeOffset];
       if (metadataOffset != null) {
         subsection.repository.mapping[node] =
             _readMetadata(node, subsection.repository, metadataOffset);
@@ -2472,136 +2480,137 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
 
   @override
   DartType readDartType({bool forSupertype = false}) {
-    final nodeOffset = _byteOffset;
-    final result = super.readDartType(forSupertype: forSupertype);
+    final int nodeOffset = _byteOffset;
+    final DartType result = super.readDartType(forSupertype: forSupertype);
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Library readLibrary(Component component, int endOffset) {
-    final nodeOffset = _byteOffset;
-    final result = super.readLibrary(component, endOffset);
+    final int nodeOffset = _byteOffset;
+    final Library result = super.readLibrary(component, endOffset);
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Typedef readTypedef() {
-    final nodeOffset = _byteOffset;
-    final result = super.readTypedef();
+    final int nodeOffset = _byteOffset;
+    final Typedef result = super.readTypedef();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Class readClass(int endOffset) {
-    final nodeOffset = _byteOffset;
-    final result = super.readClass(endOffset);
+    final int nodeOffset = _byteOffset;
+    final Class result = super.readClass(endOffset);
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Extension readExtension() {
-    final nodeOffset = _byteOffset;
-    final result = super.readExtension();
+    final int nodeOffset = _byteOffset;
+    final Extension result = super.readExtension();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Field readField() {
-    final nodeOffset = _byteOffset;
-    final result = super.readField();
+    final int nodeOffset = _byteOffset;
+    final Field result = super.readField();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Constructor readConstructor() {
-    final nodeOffset = _byteOffset;
-    final result = super.readConstructor();
+    final int nodeOffset = _byteOffset;
+    final Constructor result = super.readConstructor();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Procedure readProcedure(int endOffset) {
-    final nodeOffset = _byteOffset;
-    final result = super.readProcedure(endOffset);
+    final int nodeOffset = _byteOffset;
+    final Procedure result = super.readProcedure(endOffset);
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
-    final nodeOffset = _byteOffset;
-    final result = super.readRedirectingFactoryConstructor();
+    final int nodeOffset = _byteOffset;
+    final RedirectingFactoryConstructor result =
+        super.readRedirectingFactoryConstructor();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Initializer readInitializer() {
-    final nodeOffset = _byteOffset;
-    final result = super.readInitializer();
+    final int nodeOffset = _byteOffset;
+    final Initializer result = super.readInitializer();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   FunctionNode readFunctionNode(
       {bool lazyLoadBody: false, int outerEndOffset: -1}) {
-    final nodeOffset = _byteOffset;
-    final result = super.readFunctionNode(
+    final int nodeOffset = _byteOffset;
+    final FunctionNode result = super.readFunctionNode(
         lazyLoadBody: lazyLoadBody, outerEndOffset: outerEndOffset);
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Expression readExpression() {
-    final nodeOffset = _byteOffset;
-    final result = super.readExpression();
+    final int nodeOffset = _byteOffset;
+    final Expression result = super.readExpression();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Arguments readArguments() {
-    final nodeOffset = _byteOffset;
-    final result = super.readArguments();
+    final int nodeOffset = _byteOffset;
+    final Arguments result = super.readArguments();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   NamedExpression readNamedExpression() {
-    final nodeOffset = _byteOffset;
-    final result = super.readNamedExpression();
+    final int nodeOffset = _byteOffset;
+    final NamedExpression result = super.readNamedExpression();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   VariableDeclaration readVariableDeclaration() {
-    final nodeOffset = _byteOffset;
-    final result = super.readVariableDeclaration();
+    final int nodeOffset = _byteOffset;
+    final VariableDeclaration result = super.readVariableDeclaration();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Statement readStatement() {
-    final nodeOffset = _byteOffset;
-    final result = super.readStatement();
+    final int nodeOffset = _byteOffset;
+    final Statement result = super.readStatement();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   Combinator readCombinator() {
-    final nodeOffset = _byteOffset;
-    final result = super.readCombinator();
+    final int nodeOffset = _byteOffset;
+    final Combinator result = super.readCombinator();
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   LibraryDependency readLibraryDependency(Library library) {
-    final nodeOffset = _byteOffset;
-    final result = super.readLibraryDependency(library);
+    final int nodeOffset = _byteOffset;
+    final LibraryDependency result = super.readLibraryDependency(library);
     return _associateMetadata(result, nodeOffset);
   }
 
   @override
   LibraryPart readLibraryPart(Library library) {
-    final nodeOffset = _byteOffset;
-    final result = super.readLibraryPart(library);
+    final int nodeOffset = _byteOffset;
+    final LibraryPart result = super.readLibraryPart(library);
     return _associateMetadata(result, nodeOffset);
   }
 
@@ -2619,7 +2628,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
 
   @override
   Supertype readSupertype() {
-    final nodeOffset = _byteOffset;
+    final int nodeOffset = _byteOffset;
     InterfaceType type = super.readDartType();
     return _associateMetadata(
         new Supertype.byReference(type.className, type.typeArguments),
@@ -2628,8 +2637,8 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
 
   @override
   Name readName() {
-    final nodeOffset = _byteOffset;
-    final result = super.readName();
+    final int nodeOffset = _byteOffset;
+    final Name result = super.readName();
     return _associateMetadata(result, nodeOffset);
   }
 

@@ -1009,7 +1009,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
   bool _hasValue = false;
 
   _StreamIterator(final Stream<T> stream)
-      : _stateData = ArgumentError.checkNotNull(stream, "stream");
+      : _stateData = checkNotNullable(stream, "stream");
 
   T get current {
     if (_hasValue) return _stateData as dynamic;

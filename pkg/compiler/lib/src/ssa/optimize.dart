@@ -679,12 +679,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
         if (applies(commonElements.jsArrayRemoveLast)) {
           target = commonElements.jsArrayRemoveLast;
         } else if (applies(commonElements.jsArrayAdd)) {
-          // The codegen special cases array calls, but does not
-          // inline argument type checks.
-          if (!_closedWorld.annotationsData
+          // Codegen special cases array calls to `Array.push`, but does not
+          // inline argument type checks. We lower if the check always passes
+          // (due to invariance or being a top-type), or if the check is not
+          // emitted.
+          if (node.isInvariant ||
+              input is HLiteralList ||
+              !_closedWorld.annotationsData
                   .getParameterCheckPolicy(commonElements.jsArrayAdd)
-                  .isEmitted ||
-              input is HLiteralList) {
+                  .isEmitted) {
             target = commonElements.jsArrayAdd;
           }
         }

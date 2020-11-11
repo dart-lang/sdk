@@ -64,6 +64,8 @@
 ///
 library kernel.ast;
 
+import 'dart:core';
+import 'dart:core' as core show MapEntry;
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
@@ -1030,7 +1032,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 
   List<Supertype> superclassConstraints() {
-    var constraints = <Supertype>[];
+    List<Supertype> constraints = <Supertype>[];
 
     // Not a mixin declaration.
     if (!isMixinDeclaration) return constraints;
@@ -1077,7 +1079,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// done automatically when accessing the lists.
   void ensureLoaded() {
     if (lazyBuilder != null) {
-      var lazyBuilderLocal = lazyBuilder;
+      void Function() lazyBuilderLocal = lazyBuilder;
       lazyBuilder = null;
       lazyBuilderLocal();
     }
@@ -2770,7 +2772,7 @@ class FunctionNode extends TreeNode {
 
   void _buildLazy() {
     if (lazyBuilder != null) {
-      var lazyBuilderLocal = lazyBuilder;
+      void Function() lazyBuilderLocal = lazyBuilder;
       lazyBuilder = null;
       lazyBuilderLocal();
     }
@@ -2829,9 +2831,10 @@ class FunctionNode extends TreeNode {
     named.sort();
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
-    var typeParametersCopy = new List<TypeParameter>.from(parent is Constructor
-        ? parent.enclosingClass.typeParameters
-        : typeParameters);
+    List<TypeParameter> typeParametersCopy = new List<TypeParameter>.from(
+        parent is Constructor
+            ? parent.enclosingClass.typeParameters
+            : typeParameters);
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
         returnType,
@@ -3062,7 +3065,7 @@ abstract class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .rawType(superclass, context.nonNullable);
     }
-    var type = getStaticType(context);
+    DartType type = getStaticType(context);
     while (type is TypeParameterType) {
       TypeParameterType typeParameterType = type;
       type =
@@ -3292,10 +3295,10 @@ class PropertyGet extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    var interfaceTarget = this.interfaceTarget;
+    Member interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
       Class superclass = interfaceTarget.enclosingClass;
-      var receiverType =
+      InterfaceType receiverType =
           receiver.getStaticTypeAsInstanceOf(superclass, context);
       return Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
@@ -3847,7 +3850,7 @@ class MethodInvocation extends InvocationExpression {
   }
 
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    var interfaceTarget = this.interfaceTarget;
+    Member interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
       if (interfaceTarget is Procedure &&
           context.typeEnvironment
@@ -3857,9 +3860,9 @@ class MethodInvocation extends InvocationExpression {
             arguments.positional[0].getStaticType(context));
       }
       Class superclass = interfaceTarget.enclosingClass;
-      var receiverType =
+      DartType receiverType =
           receiver.getStaticTypeAsInstanceOf(superclass, context);
-      var getterType = Substitution.fromInterfaceType(receiverType)
+      DartType getterType = Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
       if (getterType is FunctionType) {
         Substitution substitution;
@@ -3898,7 +3901,7 @@ class MethodInvocation extends InvocationExpression {
       return const DynamicType();
     }
     if (name.text == 'call') {
-      var receiverType = receiver.getStaticType(context);
+      DartType receiverType = receiver.getStaticType(context);
       if (receiverType is FunctionType) {
         if (receiverType.typeParameters.length != arguments.types.length) {
           return const BottomType();
@@ -7923,7 +7926,7 @@ class FunctionType extends DartType {
     int upper = namedParameters.length - 1;
     while (lower <= upper) {
       int pivot = (lower + upper) ~/ 2;
-      var namedParameter = namedParameters[pivot];
+      NamedType namedParameter = namedParameters[pivot];
       int comparison = name.compareTo(namedParameter.name);
       if (comparison == 0) {
         return namedParameter.type;
@@ -8499,9 +8502,10 @@ class TypeParameterType extends DartType {
       throw new StateError("Can't compute nullability from an absent bound.");
     }
 
-    // If a type parameter's nullability depends on itself, it is deemed 'undetermined'.
-    // Currently, it's possible if the type parameter has a possibly nested FutureOr containing that type parameter.
-    // If there are other ways for such a dependency to exist, they should be checked here.
+    // If a type parameter's nullability depends on itself, it is deemed
+    // 'undetermined'. Currently, it's possible if the type parameter has a
+    // possibly nested FutureOr containing that type parameter.  If there are
+    // other ways for such a dependency to exist, they should be checked here.
     bool nullabilityDependsOnItself = false;
     {
       DartType type = typeParameter.bound;
@@ -9446,8 +9450,8 @@ class PartialInstantiationConstant extends Constant {
 
   DartType getType(StaticTypeContext context) {
     final FunctionType type = tearOffConstant.getType(context);
-    final mapping = <TypeParameter, DartType>{};
-    for (final parameter in type.typeParameters) {
+    final Map<TypeParameter, DartType> mapping = <TypeParameter, DartType>{};
+    for (final TypeParameter parameter in type.typeParameters) {
       mapping[parameter] = types[mapping.length];
     }
     return substitute(type.withoutTypeParameters, mapping);
@@ -9859,7 +9863,7 @@ void visitList(List<Node> nodes, Visitor visitor) {
 }
 
 void visitIterable(Iterable<Node> nodes, Visitor visitor) {
-  for (var node in nodes) {
+  for (Node node in nodes) {
     node.accept(visitor);
   }
 }
@@ -9867,7 +9871,7 @@ void visitIterable(Iterable<Node> nodes, Visitor visitor) {
 void transformTypeList(List<DartType> nodes, Transformer visitor) {
   int storeIndex = 0;
   for (int i = 0; i < nodes.length; ++i) {
-    var result = visitor.visitDartType(nodes[i]);
+    DartType result = visitor.visitDartType(nodes[i]);
     if (result != null) {
       nodes[storeIndex] = result;
       ++storeIndex;
@@ -9881,7 +9885,7 @@ void transformTypeList(List<DartType> nodes, Transformer visitor) {
 void transformSupertypeList(List<Supertype> nodes, Transformer visitor) {
   int storeIndex = 0;
   for (int i = 0; i < nodes.length; ++i) {
-    var result = visitor.visitSupertype(nodes[i]);
+    Supertype result = visitor.visitSupertype(nodes[i]);
     if (result != null) {
       nodes[storeIndex] = result;
       ++storeIndex;
@@ -9895,7 +9899,7 @@ void transformSupertypeList(List<Supertype> nodes, Transformer visitor) {
 void transformList(List<TreeNode> nodes, Transformer visitor, TreeNode parent) {
   int storeIndex = 0;
   for (int i = 0; i < nodes.length; ++i) {
-    var result = nodes[i].accept(visitor);
+    TreeNode result = nodes[i].accept(visitor);
     if (result != null) {
       nodes[storeIndex] = result;
       result.parent = parent;
@@ -9999,7 +10003,7 @@ class Source {
       return -1;
     }
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
-    var offset = lineStarts[line - 1] + column - 1;
+    int offset = lineStarts[line - 1] + column - 1;
     RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
     return offset;
   }
@@ -10174,15 +10178,15 @@ class _Hash {
     return combine2Finish(object2.hashCode, object2.hashCode, 0);
   }
 
-  static int combineListHash(List list, [int hash = 1]) {
-    for (var item in list) {
+  static int combineListHash(List<Object> list, [int hash = 1]) {
+    for (Object item in list) {
       hash = _Hash.combine(item.hashCode, hash);
     }
     return hash;
   }
 
   static int combineList(List<int> hashes, int hash) {
-    for (var item in hashes) {
+    for (int item in hashes) {
       hash = combine(item, hash);
     }
     return hash;
@@ -10192,7 +10196,7 @@ class _Hash {
     if (map == null || map.isEmpty) return hash;
     List<int> entryHashes = List(map.length);
     int i = 0;
-    for (var entry in map.entries) {
+    for (core.MapEntry entry in map.entries) {
       entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);
     }
     entryHashes.sort();
@@ -10216,8 +10220,12 @@ int mapHashCode(Map map) {
 }
 
 int mapHashCodeOrdered(Map map, [int hash = 2]) {
-  for (final Object x in map.keys) hash = _Hash.combine(x.hashCode, hash);
-  for (final Object x in map.values) hash = _Hash.combine(x.hashCode, hash);
+  for (final Object x in map.keys) {
+    hash = _Hash.combine(x.hashCode, hash);
+  }
+  for (final Object x in map.values) {
+    hash = _Hash.combine(x.hashCode, hash);
+  }
   return _Hash.finish(hash);
 }
 
@@ -10256,7 +10264,7 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
 /// Annotation describing information which is not part of Dart semantics; in
 /// other words, if this information (or any information it refers to) changes,
 /// static analysis and runtime behavior of the library are unaffected.
-const informative = null;
+const Null informative = null;
 
 Location _getLocationInComponent(Component component, Uri fileUri, int offset) {
   if (component != null) {

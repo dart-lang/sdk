@@ -275,7 +275,7 @@ class ResolverVisitor extends ScopedVisitor {
             inheritanceManager,
             definingLibrary,
             source,
-            definingLibrary.typeSystem,
+            definingLibrary.typeSystem as TypeSystemImpl,
             typeProvider,
             errorListener,
             featureSet ??
@@ -301,7 +301,8 @@ class ResolverVisitor extends ScopedVisitor {
       MigrationResolutionHooks migrationResolutionHooks)
       : _featureSet = featureSet,
         migrationResolutionHooks = migrationResolutionHooks,
-        super(definingLibrary, source, typeProvider, errorListener,
+        super(definingLibrary, source, typeProvider as TypeProviderImpl,
+            errorListener,
             nameScope: nameScope) {
     _promoteManager = TypePromotionManager(typeSystem);
 
@@ -463,7 +464,8 @@ class ResolverVisitor extends ScopedVisitor {
     }
 
     if (element is VariableElement) {
-      var assigned = _flowAnalysis.isDefinitelyAssigned(node, element);
+      var assigned = _flowAnalysis.isDefinitelyAssigned(
+          node, element as PromotableElement);
       var unassigned = _flowAnalysis.isDefinitelyUnassigned(node, element);
 
       if (element.isLate) {
@@ -546,7 +548,7 @@ class ResolverVisitor extends ScopedVisitor {
         _flowAnalysis.flow.nullAwareAccess_end();
       } while (identical(_unfinishedNullShorts.last, node));
       if (node is! CascadeExpression && !discardType) {
-        node.staticType = typeSystem.makeNullable(node.staticType);
+        node.staticType = typeSystem.makeNullable(node.staticType as TypeImpl);
       }
     }
   }
@@ -670,7 +672,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (element is PropertyAccessorElement && element.isGetter) {
         readType = element.returnType;
       } else if (element is VariableElement) {
-        readType = localVariableTypeProvider.getType(node);
+        readType = localVariableTypeProvider.getType(node as SimpleIdentifier);
       }
     }
 
@@ -764,7 +766,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// Otherwise, return the original element.
   T toLegacyElement<T extends Element>(T element) {
     if (_isNonNullableByDefault) return element;
-    return Member.legacy(element);
+    return Member.legacy(element) as T;
   }
 
   /// If in a legacy library, return the legacy version of the [type].
@@ -877,7 +879,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _assignmentExpressionResolver.resolve(node);
+    _assignmentExpressionResolver.resolve(node as AssignmentExpressionImpl);
   }
 
   @override
@@ -892,7 +894,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    _binaryExpressionResolver.resolve(node);
+    _binaryExpressionResolver.resolve(node as BinaryExpressionImpl);
   }
 
   @override
@@ -1127,7 +1129,7 @@ class ResolverVisitor extends ScopedVisitor {
       _promoteManager.exitFunctionBody();
     }
 
-    ConstructorElementImpl constructor = node.declaredElement;
+    var constructor = node.declaredElement as ConstructorElementImpl;
     constructor.constantInitializers =
         _createCloner().cloneNodeList(node.initializers);
 
@@ -1315,12 +1317,12 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitForElementInScope(ForElement node) {
-    _forResolver.resolveElement(node);
+    _forResolver.resolveElement(node as ForElementImpl);
   }
 
   @override
   void visitForStatementInScope(ForStatement node) {
-    _forResolver.resolveStatement(node);
+    _forResolver.resolveStatement(node as ForStatementImpl);
     nullSafetyDeadCodeVerifier?.flowEnd(node.body);
   }
 
@@ -1415,7 +1417,8 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.function?.accept(this);
-    _functionExpressionInvocationResolver.resolve(node);
+    _functionExpressionInvocationResolver
+        .resolve(node as FunctionExpressionInvocationImpl);
   }
 
   @override
@@ -1540,7 +1543,7 @@ class ResolverVisitor extends ScopedVisitor {
     );
 
     var element = result.readElement;
-    node.staticElement = element;
+    node.staticElement = element as MethodElement;
 
     InferenceContext.setType(node.index, result.indexContextType);
     node.index?.accept(this);
@@ -1708,7 +1711,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _postfixExpressionResolver.resolve(node);
+    _postfixExpressionResolver.resolve(node as PostfixExpressionImpl);
   }
 
   @override
@@ -1718,7 +1721,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _prefixExpressionResolver.resolve(node);
+    _prefixExpressionResolver.resolve(node as PrefixExpressionImpl);
   }
 
   @override
@@ -1927,8 +1930,8 @@ class ResolverVisitor extends ScopedVisitor {
         var catchClause = catchClauses[i];
         nullSafetyDeadCodeVerifier.verifyCatchClause(catchClause);
         flow.tryCatchStatement_catchBegin(
-          catchClause.exceptionParameter?.staticElement,
-          catchClause.stackTraceParameter?.staticElement,
+          catchClause.exceptionParameter?.staticElement as PromotableElement,
+          catchClause.stackTraceParameter?.staticElement as PromotableElement,
         );
         catchClause.accept(this);
         flow.tryCatchStatement_catchEnd();
@@ -1952,7 +1955,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _variableDeclarationResolver.resolve(node);
+    _variableDeclarationResolver.resolve(node as VariableDeclarationImpl);
 
     var declaredElement = node.declaredElement;
     if (node.parent.parent is ForParts) {
@@ -1966,10 +1969,12 @@ class ResolverVisitor extends ScopedVisitor {
       var initializerStaticType = initializer.staticType;
       if (declaredType == null) {
         if (initializerStaticType is TypeParameterType) {
-          _flowAnalysis?.flow?.promote(declaredElement, initializerStaticType);
+          _flowAnalysis?.flow?.promote(
+              declaredElement as PromotableElement, initializerStaticType);
         }
       } else if (!parent.isFinal) {
-        _flowAnalysis?.flow?.write(declaredElement, initializerStaticType,
+        _flowAnalysis?.flow?.write(
+            declaredElement as PromotableElement, initializerStaticType,
             viaInitializer: true);
       }
     }
@@ -2102,7 +2107,7 @@ class ResolverVisitor extends ScopedVisitor {
         // as computing constant values. It is stored in two places.
         var constructorElement = ConstructorMember.from(
           rawElement,
-          inferred.returnType,
+          inferred.returnType as InterfaceType,
         );
         constructorElement = toLegacyElement(constructorElement);
         constructor.staticElement = constructorElement;
@@ -2111,7 +2116,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     if (inferred == null) {
       var type = originalElement?.type;
-      type = toLegacyTypeIfOptOut(type);
+      type = toLegacyTypeIfOptOut(type) as FunctionType;
       InferenceContext.setType(node.argumentList, type);
     }
   }
@@ -2141,7 +2146,8 @@ class ResolverVisitor extends ScopedVisitor {
       }
     }
 
-    _functionExpressionInvocationResolver.resolve(node);
+    _functionExpressionInvocationResolver
+        .resolve(node as FunctionExpressionInvocationImpl);
 
     nullShortingTermination(node);
   }
@@ -2804,7 +2810,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     Scope outerScope = nameScope;
     try {
-      FunctionTypeAliasElement element = node.declaredElement;
+      var element = node.declaredElement as FunctionTypeAliasElement;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       super.visitGenericTypeAlias(node);
 
@@ -3053,7 +3059,8 @@ class VariableResolverVisitor extends ScopedVisitor {
   VariableResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope})
-      : super(definingLibrary, source, typeProvider, errorListener,
+      : super(definingLibrary, source, typeProvider as TypeProviderImpl,
+            errorListener,
             nameScope: nameScope);
 
   @override

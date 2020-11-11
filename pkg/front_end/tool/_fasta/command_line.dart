@@ -51,7 +51,7 @@ import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 
 import 'package:kernel/target/targets.dart'
-    show Target, getTarget, TargetFlags, targets;
+    show LateLowering, Target, getTarget, TargetFlags, targets;
 
 class CommandLineProblem {
   final Message message;
@@ -242,7 +242,9 @@ ProcessedOptions analyzeCommandLine(String programName,
           onWarning: print);
 
   final TargetFlags flags = new TargetFlags(
-      forceLateLoweringForTesting: options[Flags.forceLateLowering],
+      forceLateLoweringsForTesting: options[Flags.forceLateLowering]
+          ? LateLowering.all
+          : LateLowering.none,
       forceStaticFieldLoweringForTesting:
           options[Flags.forceStaticFieldLowering],
       forceNoExplicitGetterCallsForTesting:

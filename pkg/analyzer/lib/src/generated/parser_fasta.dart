@@ -72,7 +72,7 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser
         .parseMetadata(fastaParser.syntheticPreviousToken(currentToken))
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as Annotation;
   }
 
   @override
@@ -82,7 +82,7 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser
         .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
         .next;
-    MethodInvocation invocation = astBuilder.pop();
+    var invocation = astBuilder.pop() as MethodInvocation;
     return invocation.argumentList.arguments[0];
   }
 
@@ -92,7 +92,9 @@ abstract class ParserAdapter implements Parser {
         .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
         .next;
     var result = astBuilder.pop();
-    return result is MethodInvocation ? result.argumentList : result;
+    return result is MethodInvocation
+        ? result.argumentList
+        : result as ArgumentList;
   }
 
   @override
@@ -124,7 +126,7 @@ abstract class ParserAdapter implements Parser {
       null /* leftBracket */,
       <ClassMember>[],
       null /* rightBracket */,
-    );
+    ) as ClassDeclarationImpl;
     // TODO(danrubel): disambiguate between class and mixin
     currentToken = fastaParser.parseClassMember(currentToken, className);
     //currentToken = fastaParser.parseMixinMember(currentToken);
@@ -138,7 +140,7 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser
         .parseCombinatorStar(fastaParser.syntheticPreviousToken(currentToken))
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as List<Combinator>;
   }
 
   @override
@@ -150,7 +152,7 @@ abstract class ParserAdapter implements Parser {
   @override
   CompilationUnit parseCompilationUnit2() {
     currentToken = fastaParser.parseUnit(currentToken);
-    return astBuilder.pop();
+    return astBuilder.pop() as CompilationUnit;
   }
 
   @override
@@ -161,7 +163,7 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser
         .parseConditionalUri(fastaParser.syntheticPreviousToken(currentToken))
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as Configuration;
   }
 
   @override
@@ -176,7 +178,7 @@ abstract class ParserAdapter implements Parser {
   @override
   CompilationUnit parseDirectives2() {
     currentToken = fastaParser.parseDirectives(currentToken);
-    return astBuilder.pop();
+    return astBuilder.pop() as CompilationUnit;
   }
 
   @override
@@ -184,7 +186,7 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser
         .parseDottedName(fastaParser.syntheticPreviousToken(currentToken))
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as DottedName;
   }
 
   @override
@@ -201,7 +203,7 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser
         .parseExpression(fastaParser.syntheticPreviousToken(currentToken))
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as Expression;
   }
 
   @override
@@ -216,7 +218,7 @@ abstract class ParserAdapter implements Parser {
                 ? fasta.MemberKind.GeneralizedFunctionType
                 : fasta.MemberKind.NonStaticMethod)
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as FormalParameterList;
   }
 
   @override
@@ -226,11 +228,12 @@ abstract class ParserAdapter implements Parser {
         fastaParser.syntheticPreviousToken(currentToken));
     currentToken =
         fastaParser.parseFunctionBody(currentToken, inExpression, mayBeEmpty);
-    return astBuilder.pop();
+    return astBuilder.pop() as FunctionBody;
   }
 
   @override
-  FunctionExpression parseFunctionExpression() => parseExpression2();
+  FunctionExpression parseFunctionExpression() =>
+      parseExpression2() as FunctionExpression;
 
   @override
   Expression parseLogicalAndExpression() => parseExpression2();
@@ -242,13 +245,14 @@ abstract class ParserAdapter implements Parser {
   Expression parseMultiplicativeExpression() => parseExpression2();
 
   @override
-  InstanceCreationExpression parseNewExpression() => parseExpression2();
+  InstanceCreationExpression parseNewExpression() =>
+      parseExpression2() as InstanceCreationExpression;
 
   @override
   Expression parsePostfixExpression() => parseExpression2();
 
   @override
-  Identifier parsePrefixedIdentifier() => parseExpression2();
+  Identifier parsePrefixedIdentifier() => parseExpression2() as Identifier;
 
   @override
   Expression parsePrimaryExpression() {
@@ -256,7 +260,7 @@ abstract class ParserAdapter implements Parser {
         .parsePrimary(fastaParser.syntheticPreviousToken(currentToken),
             fasta.IdentifierContext.expression)
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as Expression;
   }
 
   @override
@@ -271,7 +275,7 @@ abstract class ParserAdapter implements Parser {
   @override
   SimpleIdentifier parseSimpleIdentifier(
           {bool allowKeyword = false, bool isDeclaration = false}) =>
-      parseExpression2();
+      parseExpression2() as SimpleIdentifier;
 
   @override
   Statement parseStatement(Token token) {
@@ -284,14 +288,14 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser
         .parseStatement(fastaParser.syntheticPreviousToken(currentToken))
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as Statement;
   }
 
   @override
-  StringLiteral parseStringLiteral() => parseExpression2();
+  StringLiteral parseStringLiteral() => parseExpression2() as StringLiteral;
 
   @override
-  SymbolLiteral parseSymbolLiteral() => parseExpression2();
+  SymbolLiteral parseSymbolLiteral() => parseExpression2() as SymbolLiteral;
 
   @override
   Expression parseThrowExpression() => parseExpression2();
@@ -312,7 +316,7 @@ abstract class ParserAdapter implements Parser {
         .computeType(previous, true, !inExpression)
         .parseType(previous, fastaParser)
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as TypeAnnotation;
   }
 
   @override
@@ -322,7 +326,7 @@ abstract class ParserAdapter implements Parser {
         .computeTypeParamOrArg(previous)
         .parseArguments(previous, fastaParser)
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as TypeArgumentList;
   }
 
   @override
@@ -332,7 +336,7 @@ abstract class ParserAdapter implements Parser {
         .computeType(previous, true, !inExpression)
         .parseType(previous, fastaParser)
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as TypeName;
   }
 
   @override
@@ -352,7 +356,7 @@ abstract class ParserAdapter implements Parser {
         .computeTypeParamOrArg(token, true)
         .parseVariables(token, fastaParser)
         .next;
-    return astBuilder.pop();
+    return astBuilder.pop() as TypeParameterList;
   }
 
   @override

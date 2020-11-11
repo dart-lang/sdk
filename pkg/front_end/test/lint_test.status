@@ -39,3 +39,8 @@ front_end/lib/src/fasta/source/value_kinds/ImportsTwice: Fail
 front_end/lib/src/fasta/type_inference/type_constraint_gatherer/ImportsTwice: Fail
 front_end/lib/src/fasta/type_inference/type_inferrer/ImportsTwice: Fail
 front_end/lib/src/testing/id_testing_helper/Exports: Fail
+kernel/lib/ast/ImportsTwice: Fail
+kernel/lib/ast/Exports: Fail
+kernel/lib/kernel/Exports: Fail
+kernel/lib/testing/type_parser_environment/ImportsTwice: Fail
+kernel/lib/text/ast_to_text/ImportsTwice: Fail

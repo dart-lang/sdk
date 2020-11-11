@@ -103,6 +103,24 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     return result;
   }
 
+  /// Root entry point for cloning a subtree within the same context where the
+  /// file offsets are valid.
+  T cloneInContext<T extends TreeNode>(T node) {
+    assert(_activeFileUri == null);
+    _activeFileUri = _activeFileUriFromContext(node);
+    final TreeNode result = clone<T>(node);
+    _activeFileUri = null;
+    return result;
+  }
+
+  Uri _activeFileUriFromContext(TreeNode node) {
+    while (node != null) {
+      if (node is FileUriNode && node.fileUri != null) return node.fileUri;
+      node = node.parent;
+    }
+    return null;
+  }
+
   DartType visitType(DartType type) {
     return substitute(type, typeSubstitution);
   }
@@ -318,7 +336,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitLet(Let node) {
-    var newVariable = clone(node.variable);
+    VariableDeclaration newVariable = clone(node.variable);
     return new Let(newVariable, clone(node.body));
   }
 
@@ -370,13 +388,13 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitForStatement(ForStatement node) {
-    var variables = node.variables.map(clone).toList();
+    List<VariableDeclaration> variables = node.variables.map(clone).toList();
     return new ForStatement(variables, cloneOptional(node.condition),
         node.updates.map(clone).toList(), clone(node.body));
   }
 
   visitForInStatement(ForInStatement node) {
-    var newVariable = clone(node.variable);
+    VariableDeclaration newVariable = clone(node.variable);
     return new ForInStatement(
         newVariable, clone(node.iterable), clone(node.body),
         isAsync: node.isAsync)
@@ -396,7 +414,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitSwitchCase(SwitchCase node) {
-    var switchCase = switchCases[node];
+    SwitchCase switchCase = switchCases[node];
     switchCase.body = clone(node.body)..parent = switchCase;
     return switchCase;
   }
@@ -420,8 +438,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitCatch(Catch node) {
-    var newException = cloneOptional(node.exception);
-    var newStackTrace = cloneOptional(node.stackTrace);
+    VariableDeclaration newException = cloneOptional(node.exception);
+    VariableDeclaration newStackTrace = cloneOptional(node.stackTrace);
     return new Catch(newException, clone(node.body),
         stackTrace: newStackTrace, guard: visitType(node.guard));
   }
@@ -446,7 +464,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    var newVariable = clone(node.variable);
+    VariableDeclaration newVariable = clone(node.variable);
     return new FunctionDeclaration(newVariable, clone(node.function));
   }
 
@@ -487,9 +505,11 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitFunctionNode(FunctionNode node) {
     prepareTypeParameters(node.typeParameters);
-    var typeParameters = node.typeParameters.map(clone).toList();
-    var positional = node.positionalParameters.map(clone).toList();
-    var named = node.namedParameters.map(clone).toList();
+    List<TypeParameter> typeParameters =
+        node.typeParameters.map(clone).toList();
+    List<VariableDeclaration> positional =
+        node.positionalParameters.map(clone).toList();
+    List<VariableDeclaration> named = node.namedParameters.map(clone).toList();
     return new FunctionNode(cloneFunctionNodeBody(node),
         typeParameters: typeParameters,
         positionalParameters: positional,

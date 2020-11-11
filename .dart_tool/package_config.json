@@ -148,7 +148,7 @@
       "name": "cli_util",
       "rootUri": "../third_party/pkg/cli_util",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "clock",
@@ -704,7 +704,7 @@
       "name": "usage",
       "rootUri": "../third_party/pkg/usage",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "vector_math",
@@ -764,7 +764,7 @@
       "name": "yaml",
       "rootUri": "../third_party/pkg/yaml",
       "packageUri": "lib/",
-      "languageVersion": "2.4"
+      "languageVersion": "2.12"
     }
   ]
 }

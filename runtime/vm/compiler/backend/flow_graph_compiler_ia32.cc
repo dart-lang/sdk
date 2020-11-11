@@ -195,52 +195,48 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   __ Bind(&fall_through);
 }
 
-// Clobbers ECX.
+// Input registers (from TypeTestABI):
+// - kInstanceReg: instance.
+// - kInstantiatorTypeArgumentsReg: instantiator type arguments
+//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
+// - kFunctionTypeArgumentsReg: function type arguments
+//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
+//
+// Only preserves kInstanceReg from TypeTestABI, all other TypeTestABI
+// registers may be used and thus must be saved by the caller.
 SubtypeTestCachePtr FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
-    Register instance_reg,
-    Register instantiator_type_arguments_reg,
-    Register function_type_arguments_reg,
-    Register temp_reg,
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New());
-  const compiler::Immediate& raw_null =
-      compiler::Immediate(static_cast<intptr_t>(Object::null()));
-  __ LoadObject(temp_reg, type_test_cache);
-  __ pushl(temp_reg);      // Subtype test cache.
-  __ pushl(instance_reg);  // Instance.
+  __ LoadObject(TypeTestABI::kSubtypeTestCacheReg, type_test_cache);
+  __ pushl(TypeTestABI::kSubtypeTestCacheReg);
+  __ pushl(TypeTestABI::kInstanceReg);
   if (test_kind == kTestTypeOneArg) {
-    ASSERT(instantiator_type_arguments_reg == kNoRegister);
-    ASSERT(function_type_arguments_reg == kNoRegister);
-    __ pushl(raw_null);
-    __ pushl(raw_null);
+    __ PushObject(Object::null_object());
+    __ PushObject(Object::null_object());
     __ Call(StubCode::Subtype1TestCache());
   } else if (test_kind == kTestTypeTwoArgs) {
-    ASSERT(instantiator_type_arguments_reg == kNoRegister);
-    ASSERT(function_type_arguments_reg == kNoRegister);
-    __ pushl(raw_null);
-    __ pushl(raw_null);
+    __ PushObject(Object::null_object());
+    __ PushObject(Object::null_object());
     __ Call(StubCode::Subtype2TestCache());
   } else if (test_kind == kTestTypeFourArgs) {
-    __ pushl(instantiator_type_arguments_reg);
-    __ pushl(function_type_arguments_reg);
+    __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
+    __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
     __ Call(StubCode::Subtype4TestCache());
   } else if (test_kind == kTestTypeSixArgs) {
-    __ pushl(instantiator_type_arguments_reg);
-    __ pushl(function_type_arguments_reg);
+    __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
+    __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
     __ Call(StubCode::Subtype6TestCache());
   } else {
     UNREACHABLE();
   }
-  // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
-  ASSERT(instance_reg != ECX);
-  ASSERT(temp_reg != ECX);
   __ Drop(2);
-  __ popl(instance_reg);  // Restore receiver.
-  __ popl(temp_reg);      // Discard.
-  GenerateBoolToJump(ECX, is_instance_lbl, is_not_instance_lbl);
+  __ popl(TypeTestABI::kInstanceReg);  // Restore receiver.
+  __ Drop(1);
+  GenerateBoolToJump(TypeTestABI::kSubtypeTestCacheResultReg, is_instance_lbl,
+                     is_not_instance_lbl);
   return type_test_cache.raw();
 }
 
@@ -300,13 +296,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     }
   }
   // Regular subtype test cache involving instance's type arguments.
-  const Register kInstantiatorTypeArgumentsReg = kNoRegister;
-  const Register kFunctionTypeArgumentsReg = kNoRegister;
-  const Register kTempReg = EDI;
-  return GenerateCallSubtypeTestStub(
-      kTestTypeTwoArgs, TypeTestABI::kInstanceReg,
-      kInstantiatorTypeArgumentsReg, kFunctionTypeArgumentsReg, kTempReg,
-      is_instance_lbl, is_not_instance_lbl);
+  return GenerateCallSubtypeTestStub(kTestTypeTwoArgs, is_instance_lbl,
+                                     is_not_instance_lbl);
 }
 
 void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
@@ -415,13 +406,8 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     __ j(EQUAL, is_instance_lbl);
   }
 
-  const Register kInstantiatorTypeArgumentsReg = kNoRegister;
-  const Register kFunctionTypeArgumentsReg = kNoRegister;
-  const Register kTempReg = EDI;
-  return GenerateCallSubtypeTestStub(kTestTypeOneArg, TypeTestABI::kInstanceReg,
-                                     kInstantiatorTypeArgumentsReg,
-                                     kFunctionTypeArgumentsReg, kTempReg,
-                                     is_instance_lbl, is_not_instance_lbl);
+  return GenerateCallSubtypeTestStub(kTestTypeOneArg, is_instance_lbl,
+                                     is_not_instance_lbl);
 }
 
 // Generates inlined check if 'type' is a type parameter or type itself
@@ -433,18 +419,19 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
   __ Comment("UninstantiatedTypeTest");
-  const Register kTempReg = EDI;
   ASSERT(!type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
   // Skip check if destination is a dynamic type.
   const compiler::Immediate& raw_null =
       compiler::Immediate(static_cast<intptr_t>(Object::null()));
   if (type.IsTypeParameter()) {
+    const Register kTempReg = EDI;
     const TypeParameter& type_param = TypeParameter::Cast(type);
 
-    __ movl(EDX, compiler::Address(
-                     ESP, 1 * kWordSize));  // Get instantiator type args.
-    __ movl(ECX,
+    __ movl(
+        TypeTestABI::kInstantiatorTypeArgumentsReg,
+        compiler::Address(ESP, 1 * kWordSize));  // Get instantiator type args.
+    __ movl(TypeTestABI::kFunctionTypeArgumentsReg,
             compiler::Address(ESP, 0 * kWordSize));  // Get function type args.
     // EDX: instantiator type arguments.
     // ECX: function type arguments.
@@ -455,39 +442,36 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ cmpl(kTypeArgumentsReg, raw_null);
     __ j(EQUAL, is_instance_lbl);
-    __ movl(EDI, compiler::FieldAddress(
-                     kTypeArgumentsReg,
-                     TypeArguments::type_at_offset(type_param.index())));
+    __ movl(kTempReg, compiler::FieldAddress(
+                          kTypeArgumentsReg,
+                          TypeArguments::type_at_offset(type_param.index())));
     // EDI: concrete type of type.
     // Check if type argument is dynamic, Object?, or void.
-    __ CompareObject(EDI, Object::dynamic_type());
+    __ CompareObject(kTempReg, Object::dynamic_type());
     __ j(EQUAL, is_instance_lbl);
     __ CompareObject(
-        EDI, Type::ZoneHandle(
-                 zone(), isolate()->object_store()->nullable_object_type()));
+        kTempReg,
+        Type::ZoneHandle(zone(),
+                         isolate()->object_store()->nullable_object_type()));
     __ j(EQUAL, is_instance_lbl);
-    __ CompareObject(EDI, Object::void_type());
+    __ CompareObject(kTempReg, Object::void_type());
     __ j(EQUAL, is_instance_lbl);
 
     // For Smi check quickly against int and num interfaces.
     compiler::Label not_smi;
-    __ testl(EAX, compiler::Immediate(kSmiTagMask));  // Value is Smi?
+    __ testl(TypeTestABI::kInstanceReg,
+             compiler::Immediate(kSmiTagMask));  // Value is Smi?
     __ j(NOT_ZERO, &not_smi, compiler::Assembler::kNearJump);
-    __ CompareObject(EDI, Type::ZoneHandle(zone(), Type::IntType()));
+    __ CompareObject(kTempReg, Type::ZoneHandle(zone(), Type::IntType()));
     __ j(EQUAL, is_instance_lbl);
-    __ CompareObject(EDI, Type::ZoneHandle(zone(), Type::Number()));
+    __ CompareObject(kTempReg, Type::ZoneHandle(zone(), Type::Number()));
     __ j(EQUAL, is_instance_lbl);
     // Smi can be handled by type test cache.
     __ Bind(&not_smi);
 
     const auto test_kind = GetTypeTestStubKindForTypeParameter(type_param);
-    const SubtypeTestCache& type_test_cache = SubtypeTestCache::ZoneHandle(
-        zone(), GenerateCallSubtypeTestStub(
-                    test_kind, TypeTestABI::kInstanceReg,
-                    TypeTestABI::kInstantiatorTypeArgumentsReg,
-                    TypeTestABI::kFunctionTypeArgumentsReg, kTempReg,
-                    is_instance_lbl, is_not_instance_lbl));
-    return type_test_cache.raw();
+    return GenerateCallSubtypeTestStub(test_kind, is_instance_lbl,
+                                       is_not_instance_lbl);
   }
   if (type.IsType()) {
     // Smi is FutureOr<T>, when T is a top type or int or num.
@@ -502,11 +486,8 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
             compiler::Address(ESP, 0 * kWordSize));
     // Uninstantiated type class is known at compile time, but the type
     // arguments are determined at runtime by the instantiator(s).
-    return GenerateCallSubtypeTestStub(
-        kTestTypeFourArgs, TypeTestABI::kInstanceReg,
-        TypeTestABI::kInstantiatorTypeArgumentsReg,
-        TypeTestABI::kFunctionTypeArgumentsReg, kTempReg, is_instance_lbl,
-        is_not_instance_lbl);
+    return GenerateCallSubtypeTestStub(kTestTypeFourArgs, is_instance_lbl,
+                                       is_not_instance_lbl);
   }
   return SubtypeTestCache::null();
 }
@@ -525,12 +506,8 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateFunctionTypeTest(
   __ j(ZERO, is_not_instance_lbl);
   // Uninstantiated type class is known at compile time, but the type
   // arguments are determined at runtime by the instantiator(s).
-  const Register kTempReg = EDI;
-  return GenerateCallSubtypeTestStub(
-      kTestTypeSixArgs, TypeTestABI::kInstanceReg,
-      TypeTestABI::kInstantiatorTypeArgumentsReg,
-      TypeTestABI::kFunctionTypeArgumentsReg, kTempReg, is_instance_lbl,
-      is_not_instance_lbl);
+  return GenerateCallSubtypeTestStub(kTestTypeSixArgs, is_instance_lbl,
+                                     is_not_instance_lbl);
 }
 
 // Inputs:

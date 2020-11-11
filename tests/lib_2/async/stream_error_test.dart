@@ -73,7 +73,7 @@ void main() async {
   }
 
   // A null error argument is a synchronous error.
-  Expect.throwsArgumentError(() {
+  Expect.throwsTypeError(() {
     Stream.error(null);
   });
 

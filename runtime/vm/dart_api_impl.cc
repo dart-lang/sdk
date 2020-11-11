@@ -1590,6 +1590,9 @@ DART_EXPORT void Dart_ShutdownIsolate() {
   {
     StackZone zone(T);
     HandleScope handle_scope(T);
+#if defined(DEBUG)
+    I->ValidateConstants();
+#endif
     Dart::RunShutdownCallback();
   }
   Dart::ShutdownIsolate();

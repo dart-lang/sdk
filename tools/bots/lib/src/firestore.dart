@@ -70,7 +70,7 @@ class FirestoreDatabase {
     var response = await _client.get(url, headers: _headers);
     if (response.statusCode == HttpStatus.ok) {
       var document = jsonDecode(response.body);
-      if (!document is Map) {
+      if (document is! Map) {
         throw _error(response, message: 'Expected a Map');
       }
       return document;

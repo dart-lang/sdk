@@ -18,7 +18,7 @@ abstract class _Completer<T> implements Completer<T> {
 
   void completeError(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(error, "error");
+    checkNotNullable(error, "error");
     if (!future._mayComplete) throw new StateError("Future already completed");
     AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
     if (replacement != null) {

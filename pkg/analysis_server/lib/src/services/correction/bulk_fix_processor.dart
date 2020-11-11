@@ -66,11 +66,13 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 /// A fix producer that produces changes to fix multiple diagnostics.
 class BulkFixProcessor {
@@ -338,6 +340,9 @@ class BulkFixProcessor {
         RemoveNonNullAssertion.newInstance,
   };
 
+  /// The service used to report errors when building fixes.
+  final InstrumentationService instrumentationService;
+
   /// Information about the workspace containing the libraries in which changes
   /// will be produced.
   final DartChangeWorkspace workspace;
@@ -348,7 +353,7 @@ class BulkFixProcessor {
 
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [workspace].
-  BulkFixProcessor(this.workspace) {
+  BulkFixProcessor(this.instrumentationService, this.workspace) {
     builder = ChangeBuilder(workspace: workspace);
   }
 
@@ -378,6 +383,7 @@ class BulkFixProcessor {
     var analysisOptions = result.session.analysisContext.analysisOptions;
     for (var unitResult in result.units) {
       final fixContext = DartFixContextImpl(
+        instrumentationService,
         workspace,
         unitResult,
         null,
@@ -415,7 +421,14 @@ class BulkFixProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-      await producer.compute(builder);
+      try {
+        var localBuilder = builder.copy();
+        await producer.compute(localBuilder);
+        builder = localBuilder;
+      } on ConflictingEditException {
+        // If a conflicting edit was added in [compute], then the [localBuilder]
+        // is discarded and we revert to the previous state of the builder.
+      }
     }
 
     var errorCode = diagnostic.errorCode;

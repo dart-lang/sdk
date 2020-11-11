@@ -18,6 +18,12 @@ class TransformSetErrorCode extends ErrorCode {
       "The key '{0}' can't be used when '{1}' is also used.");
 
   /**
+   * No parameters.
+   */
+  static const TransformSetErrorCode expectedPrimary = TransformSetErrorCode(
+      'expected_primary', "Expected either an identifier or a string literal.");
+
+  /**
    * Parameters:
    * 0: the character that is invalid
    */
@@ -97,7 +103,14 @@ class TransformSetErrorCode extends ErrorCode {
    * 0: the missing key
    */
   static const TransformSetErrorCode undefinedVariable = TransformSetErrorCode(
-      'undefined_variable', "The variable '{0}' is not defined.");
+      'undefined_variable', "The variable '{0}' isn't defined.");
+
+  /**
+   * Parameters:
+   * 0: the token that was unexpectedly found
+   */
+  static const TransformSetErrorCode unexpectedToken =
+      TransformSetErrorCode('unexpected_token', "Didn't expect to find {0}.");
 
   /**
    * Parameters:
@@ -122,7 +135,7 @@ class TransformSetErrorCode extends ErrorCode {
   /**
    * Parameters:
    * 0: a description of the expected kind of token
-   * 1: a description of the actial kind of token
+   * 1: a description of the actual kind of token
    */
   static const TransformSetErrorCode wrongToken = TransformSetErrorCode(
       'wrong_token', "Expected to find {0}, but found {1}.");

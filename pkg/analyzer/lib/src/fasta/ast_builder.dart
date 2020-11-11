@@ -128,6 +128,9 @@ class AstBuilder extends StackListener {
   /// `true` if triple-shift behavior is enabled
   final bool enableTripleShift;
 
+  /// `true` if nonfunction-type-aliases behavior is enabled
+  final bool enableNonFunctionTypeAliases;
+
   /// `true` if variance behavior is enabled
   final bool enableVariance;
 
@@ -143,6 +146,8 @@ class AstBuilder extends StackListener {
         enableControlFlowCollections =
             _featureSet.isEnabled(Feature.control_flow_collections),
         enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
+        enableNonFunctionTypeAliases =
+            _featureSet.isEnabled(Feature.nonfunction_type_aliases),
         enableVariance = _featureSet.isEnabled(Feature.variance),
         uri = uri ?? fileUri;
 
@@ -1532,10 +1537,8 @@ class AstBuilder extends StackListener {
       SimpleIdentifier name = pop();
       List<Annotation> metadata = pop();
       Comment comment = _findComment(metadata, typedefKeyword);
-      if (type is! GenericFunctionType) {
-        // This error is also reported in the OutlineBuilder.
+      if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
         handleRecoverableError(messageTypedefNotFunction, equals, equals);
-        type = null;
       }
       declarations.add(ast.genericTypeAlias(
           comment,
@@ -1544,7 +1547,7 @@ class AstBuilder extends StackListener {
           name,
           templateParameters,
           equals,
-          type as GenericFunctionType,
+          type,
           semicolon));
     }
   }
@@ -3042,8 +3045,11 @@ class AstBuilder extends StackListener {
 
       // Determine if this is a set or map based on type args and content
       final typeArgCount = typeArguments?.arguments?.length;
-      bool isSet =
-          typeArgCount == 1 ? true : typeArgCount != null ? false : null;
+      bool isSet = typeArgCount == 1
+          ? true
+          : typeArgCount != null
+              ? false
+              : null;
       isSet ??= hasSetEntry;
 
       // Build the set or map

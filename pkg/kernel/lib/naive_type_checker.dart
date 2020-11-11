@@ -41,9 +41,9 @@ class NaiveTypeChecker extends type_checker.TypeChecker {
   @override
   void checkOverride(
       Class host, Member ownMember, Member superMember, bool isSetter) {
-    final ownMemberIsFieldOrAccessor =
+    final bool ownMemberIsFieldOrAccessor =
         ownMember is Field || (ownMember as Procedure).isAccessor;
-    final superMemberIsFieldOrAccessor =
+    final bool superMemberIsFieldOrAccessor =
         superMember is Field || (superMember as Procedure).isAccessor;
 
     // TODO: move to error reporting code
@@ -51,7 +51,7 @@ class NaiveTypeChecker extends type_checker.TypeChecker {
       if (m is Field) {
         return 'field';
       } else {
-        final p = m as Procedure;
+        final Procedure p = m as Procedure;
         if (p.isGetter) {
           return 'getter';
         } else if (p.isSetter) {
@@ -75,7 +75,7 @@ ${superMember} is a ${_memberKind(superMember)}
       if (isSetter) {
         final DartType ownType = setterType(host, ownMember);
         final DartType superType = setterType(host, superMember);
-        final isCovariant = ownMember is Field
+        final bool isCovariant = ownMember is Field
             ? ownMember.isCovariant
             : ownMember.function.positionalParameters[0].isCovariant;
         if (!_isValidParameterOverride(isCovariant, ownType, superType)) {
@@ -99,7 +99,7 @@ ${ownType} is not a subtype of ${superType}
         }
       }
     } else {
-      final msg = _checkFunctionOverride(host, ownMember, superMember);
+      final String msg = _checkFunctionOverride(host, ownMember, superMember);
       if (msg != null) {
         return failures.reportInvalidOverride(ownMember, superMember, msg);
       }
@@ -119,7 +119,7 @@ ${ownType} is not a subtype of ${superType}
   }
 
   Substitution _makeSubstitutionForMember(Class host, Member member) {
-    final hostType =
+    final Supertype hostType =
         hierarchy.getClassAsInstanceOf(host, member.enclosingClass);
     return Substitution.fromSupertype(hostType);
   }
@@ -158,10 +158,11 @@ ${ownType} is not a subtype of ${superType}
     }
 
     if (ownFunction.typeParameters.isNotEmpty) {
-      final typeParameterMap = <TypeParameter, DartType>{};
+      final Map<TypeParameter, DartType> typeParameterMap =
+          <TypeParameter, DartType>{};
       for (int i = 0; i < ownFunction.typeParameters.length; ++i) {
-        var subParameter = ownFunction.typeParameters[i];
-        var superParameter = superFunction.typeParameters[i];
+        TypeParameter subParameter = ownFunction.typeParameters[i];
+        TypeParameter superParameter = superFunction.typeParameters[i];
         typeParameterMap[subParameter] = new TypeParameterType.forAlphaRenaming(
             subParameter, superParameter);
       }
@@ -169,9 +170,9 @@ ${ownType} is not a subtype of ${superType}
       ownSubstitution = Substitution.combine(
           ownSubstitution, Substitution.fromMap(typeParameterMap));
       for (int i = 0; i < ownFunction.typeParameters.length; ++i) {
-        var subParameter = ownFunction.typeParameters[i];
-        var superParameter = superFunction.typeParameters[i];
-        var subBound = ownSubstitution.substituteType(subParameter.bound);
+        TypeParameter subParameter = ownFunction.typeParameters[i];
+        TypeParameter superParameter = superFunction.typeParameters[i];
+        DartType subBound = ownSubstitution.substituteType(subParameter.bound);
         if (!_isSubtypeOf(
             superSubstitution.substituteType(superParameter.bound), subBound)) {
           return 'type parameters have incompatible bounds';
@@ -181,13 +182,15 @@ ${ownType} is not a subtype of ${superType}
 
     if (!_isSubtypeOf(ownSubstitution.substituteType(ownFunction.returnType),
         superSubstitution.substituteType(superFunction.returnType))) {
-      return 'return type of override ${ownFunction.returnType} is not a subtype'
-          ' of ${superFunction.returnType}';
+      return 'return type of override ${ownFunction.returnType} is not a'
+          ' subtype of ${superFunction.returnType}';
     }
 
     for (int i = 0; i < superFunction.positionalParameters.length; ++i) {
-      final ownParameter = ownFunction.positionalParameters[i];
-      final superParameter = superFunction.positionalParameters[i];
+      final VariableDeclaration ownParameter =
+          ownFunction.positionalParameters[i];
+      final VariableDeclaration superParameter =
+          superFunction.positionalParameters[i];
       if (!_isValidParameterOverride(
           ownParameter.isCovariant,
           ownSubstitution.substituteType(ownParameter.type),
@@ -206,11 +209,13 @@ super method declares ${superParameter.type}
 
     // Note: FunctionNode.namedParameters are not sorted so we convert them
     // to map to make lookup faster.
-    final ownParameters = new Map<String, VariableDeclaration>.fromIterable(
-        ownFunction.namedParameters,
-        key: (v) => v.name);
+    final Map<String, VariableDeclaration> ownParameters =
+        new Map<String, VariableDeclaration>.fromIterable(
+            ownFunction.namedParameters,
+            key: (v) => v.name);
     for (VariableDeclaration superParameter in superFunction.namedParameters) {
-      final ownParameter = ownParameters[superParameter.name];
+      final VariableDeclaration ownParameter =
+          ownParameters[superParameter.name];
       if (ownParameter == null) {
         return 'override is missing ${superParameter.name} parameter';
       }

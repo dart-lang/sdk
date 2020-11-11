@@ -1312,6 +1312,23 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
+  DartFileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder,
+      {Map<DartFileEditBuilderImpl, DartFileEditBuilderImpl> editBuilderMap =
+          const {}}) {
+    var copy = DartFileEditBuilderImpl(changeBuilder, resolvedUnit,
+        fileEdit.fileStamp, editBuilderMap[libraryChangeBuilder]);
+    copy.fileEdit.edits.addAll(fileEdit.edits);
+    copy.importPrefixGenerator = importPrefixGenerator;
+    for (var entry in librariesToImport.entries) {
+      copy.librariesToImport[entry.key] = entry.value;
+    }
+    for (var entry in librariesToRelativelyImport.entries) {
+      copy.librariesToRelativelyImport[entry.key] = entry.value;
+    }
+    return copy;
+  }
+
+  @override
   DartEditBuilderImpl createEditBuilder(int offset, int length) {
     return DartEditBuilderImpl(this, offset, length);
   }

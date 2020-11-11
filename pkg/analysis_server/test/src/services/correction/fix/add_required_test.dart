@@ -45,11 +45,131 @@ class AddRequiredWithNullSafetyTest extends FixProcessorTest
   @override
   FixKind get kind => DartFixKind.ADD_REQUIRED2;
 
-  Future<void> test_withAssert() async {
+  Future<void> test_nonNullable() async {
     await resolveTestCode('''
 void function({String param}) {}
 ''');
     await assertHasFix('''
+void function({required String param}) {}
+''');
+  }
+
+  Future<void> test_withRequiredAnnotation() async {
+    writeTestPackageConfig(meta: true);
+
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+void function({@required String param}) {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+void function({required String param}) {}
+''');
+  }
+
+  Future<void> test_withRequiredAnnotation_constructor() async {
+    writeTestPackageConfig(meta: true);
+
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  String foo;
+  A({@required this.foo});
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {
+  String foo;
+  A({required this.foo});
+}
+''');
+  }
+
+  Future<void> test_withRequiredAnnotation_functionParam() async {
+    writeTestPackageConfig(meta: true);
+
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+void f({@required int g(String)}) { }
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+void f({required int g(String)}) { }
+''');
+  }
+
+  Future<void> test_withRequiredAnnotationInList_first() async {
+    writeTestPackageConfig(meta: true);
+
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class Foo {
+  const Foo();
+}
+
+const foo = Foo();
+
+void function({@required @foo String param}) {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class Foo {
+  const Foo();
+}
+
+const foo = Foo();
+
+void function({@foo required String param}) {}
+''');
+  }
+
+  Future<void> test_withRequiredAnnotationInList_last() async {
+    writeTestPackageConfig(meta: true);
+
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class Foo {
+  const Foo();
+}
+
+const foo = Foo();
+
+void function({@foo @required String param}) {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class Foo {
+  const Foo();
+}
+
+const foo = Foo();
+
+void function({@foo required String param}) {}
+''');
+  }
+
+  Future<void> test_withRequiredAnnotationWithReason() async {
+    writeTestPackageConfig(meta: true);
+
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+void function({@Required('reason') String param}) {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
 void function({required String param}) {}
 ''');
   }

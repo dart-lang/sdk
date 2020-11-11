@@ -150,6 +150,9 @@ A f() => A();
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44080')
   Future<void> test_unnecessaryNew_collectionLiteral_overlap() async {
+    // The test case currently drops the 'new' but does not convert the code to
+    // use a set literal. The code is no longer mangled, but we need to run the
+    // BulkFixProcessor iteratively to solve the second case.
     addAnalysisOptionsFile('''
 linter:
   rules:

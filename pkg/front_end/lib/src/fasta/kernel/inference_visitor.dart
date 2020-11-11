@@ -5886,7 +5886,10 @@ class InferenceVisitor
       }
     }
     if (node.isLate &&
-        !inferrer.library.loader.target.backendTarget.supportsLateFields) {
+        inferrer.library.loader.target.backendTarget.isLateLocalLoweringEnabled(
+            hasInitializer: node.hasDeclaredInitializer,
+            isFinal: node.isFinal,
+            isPotentiallyNullable: node.type.isPotentiallyNullable)) {
       int fileOffset = node.fileOffset;
 
       List<Statement> result = <Statement>[];

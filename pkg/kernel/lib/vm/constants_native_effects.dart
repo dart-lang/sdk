@@ -38,7 +38,8 @@ class VmConstantsBackend extends ConstantsBackend {
     }
     // This is a bit fishy, since we merge the key and the value type by
     // putting both into the same list.
-    final kvListConstant = new ListConstant(const DynamicType(), kvListPairs);
+    final ListConstant kvListConstant =
+        new ListConstant(const DynamicType(), kvListPairs);
     assert(immutableMapClass.fields.length == 1);
     final Field kvPairListField = immutableMapClass.fields[0];
     return new InstanceConstant(immutableMapClass.reference, <DartType>[

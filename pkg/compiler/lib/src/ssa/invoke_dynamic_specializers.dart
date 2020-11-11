@@ -192,6 +192,9 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       HInstruction value,
       JCommonElements commonElements,
       JClosedWorld closedWorld) {
+    if (instruction.isInvariant) {
+      return true;
+    }
     // Handle typed arrays by recognizing the exact implementation of `[]=` and
     // checking if [value] has the appropriate type.
     if (instruction.element != null) {

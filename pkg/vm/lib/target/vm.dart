@@ -50,7 +50,7 @@ class VmTarget extends Target {
   bool get supportsSetLiterals => false;
 
   @override
-  bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+  int get enabledLateLowerings => flags.forceLateLoweringsForTesting;
 
   @override
   bool get supportsLateLoweringSentinel =>

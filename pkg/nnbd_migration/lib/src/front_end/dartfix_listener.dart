@@ -19,7 +19,10 @@ class DartFixListener {
   /// client.
   final void Function(String detail) reportException;
 
-  DartFixListener(this.server, this.reportException);
+  /// Callback that reports a fatal error to the client.
+  final void Function(String detail) reportFatalError;
+
+  DartFixListener(this.server, this.reportException, this.reportFatalError);
 
   /// Record an edit to be sent to the client.
   ///
@@ -27,11 +30,6 @@ class DartFixListener {
   /// [addSuggestion].
   void addEditWithoutSuggestion(Source source, SourceEdit edit) {
     sourceChange.addEdit(source.fullName, -1, edit);
-  }
-
-  /// Record a recommendation to be sent to the client.
-  void addRecommendation(String description, [Location location]) {
-    throw UnimplementedError('TODO(paulberry)');
   }
 
   /// Record a source change to be sent to the client.

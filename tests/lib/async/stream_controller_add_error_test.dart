@@ -9,41 +9,41 @@ import 'package:expect/expect.dart';
 main() {
   // Single-cast async.
   var controller = StreamController();
-  Expect.throwsNullCheckError(() {
+  Expect.throwsTypeError(() {
     controller.addError(null as dynamic);
   });
 
-  Expect.throwsNullCheckError(() {
+  Expect.throwsTypeError(() {
     controller.sink.addError(null as dynamic);
   });
 
   // Single-cast sync.
   controller = StreamController(sync: true);
-  Expect.throwsNullCheckError(() {
+  Expect.throwsTypeError(() {
     controller.addError(null as dynamic);
   });
 
-  Expect.throwsNullCheckError(() {
+  Expect.throwsTypeError(() {
     controller.sink.addError(null as dynamic);
   });
 
   // Broadcast async.
   controller = StreamController.broadcast();
-  Expect.throwsNullCheckError(() {
+  Expect.throwsTypeError(() {
     controller.addError(null as dynamic);
   });
 
-  Expect.throwsNullCheckError(() {
+  Expect.throwsTypeError(() {
     controller.sink.addError(null as dynamic);
   });
 
   // Broadcast sync.
   controller = StreamController.broadcast(sync: true);
-  Expect.throwsNullCheckError(() {
+  Expect.throwsTypeError(() {
     controller.addError(null as dynamic);
   });
 
-  Expect.throwsNullCheckError(() {
+  Expect.throwsTypeError(() {
     controller.sink.addError(null as dynamic);
   });
 }

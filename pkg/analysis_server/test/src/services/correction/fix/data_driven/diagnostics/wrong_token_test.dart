@@ -9,12 +9,12 @@ import '../code_fragment_parser_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MissingTokenTest);
+    defineReflectiveTests(WrongTokenTest);
   });
 }
 
 @reflectiveTest
-class MissingTokenTest extends AbstractCodeFragmentParserTest {
+class WrongTokenTest extends AbstractCodeFragmentParserTest {
   void test_closeBracket() {
     assertErrors('arguments[2 3', [
       error(TransformSetErrorCode.wrongToken, 12, 1),

@@ -55,7 +55,7 @@ library dart.convert;
 
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:_internal' show CastConverter, parseHexByte;
+import 'dart:_internal' show CastConverter, checkNotNullable, parseHexByte;
 
 part 'ascii.dart';
 part 'base64.dart';

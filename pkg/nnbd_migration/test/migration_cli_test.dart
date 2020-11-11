@@ -144,7 +144,8 @@ class _MigrationCliRunner extends MigrationCliRunner {
 
   @override
   Set<String> computePathsToProcess(DriverBasedAnalysisContext context) =>
-      cli._test.overridePathsToProcess ?? super.computePathsToProcess(context);
+      cli._test.overridePathsToProcess ??
+      _sortPaths(super.computePathsToProcess(context));
 
   @override
   NonNullableFix createNonNullableFix(
@@ -185,6 +186,13 @@ class _MigrationCliRunner extends MigrationCliRunner {
   bool shouldBeMigrated(DriverBasedAnalysisContext context, String path) =>
       cli._test.overrideShouldBeMigrated?.call(path) ??
       super.shouldBeMigrated(context, path);
+
+  /// Sorts the paths in [paths] for repeatability of migration tests.
+  Set<String> _sortPaths(Set<String> paths) {
+    var pathList = paths.toList();
+    pathList.sort();
+    return pathList.toSet();
+  }
 }
 
 abstract class _MigrationCliTestBase {
@@ -742,6 +750,10 @@ int f() => null
         contains(
             'analysis errors will result in erroneous migration suggestions'));
     expect(output, contains('Please fix the analysis issues'));
+    expect(
+        output,
+        isNot(
+            contains('All files appear to have null safety already enabled')));
   }
 
   test_lifecycle_ignore_errors_enable() async {
@@ -804,6 +816,30 @@ int? f() => null
     // But it should not mention foo.dart or bar.dart, which are migrated
     expect(output, isNot(contains('package:foo/foo.dart')));
     expect(output, isNot(contains('package:bar/bar.dart')));
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44118')
+  test_lifecycle_issue_44118() async {
+    var projectContents = simpleProject(sourceText: '''
+int f() => null
+''');
+    projectContents['lib/foo.dart'] = '''
+import 'test.dart';
+''';
+    var projectDir = createProjectDir(projectContents);
+    await assertRunFailure([projectDir]);
+    var output = logger.stdoutBuffer.toString();
+    expect(output, contains('1 analysis issue found'));
+    var sep = resourceProvider.pathContext.separator;
+    expect(
+        output,
+        contains("error • Expected to find ';' at lib${sep}test.dart:1:12 • "
+            '(expected_token)'));
+    expect(
+        output,
+        contains(
+            'analysis errors will result in erroneous migration suggestions'));
+    expect(output, contains('Please fix the analysis issues'));
   }
 
   test_lifecycle_no_preview() async {
@@ -1459,6 +1495,10 @@ int f() => null;
     expect(output,
         contains('Unresolved URIs found.  Did you forget to run "pub get"?'));
     expect(output, contains('Please fix the analysis issues'));
+    expect(
+        output,
+        isNot(
+            contains('All files appear to have null safety already enabled')));
   }
 
   test_migrate_path_absolute() {
@@ -1784,7 +1824,10 @@ name: test
     var projectDir = createProjectDir(projectContents);
     var cliRunner = _createCli()
         .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
-    expect(() async => await cliRunner.run(), throwsUnsupportedError);
+    var message = await assertErrorExit(
+        cliRunner, () async => await cliRunner.run(),
+        withUsage: false);
+    expect(message, contains('Failed to parse pubspec file'));
   }
 
   test_pubspec_with_sdk_version_beta() async {
@@ -1869,6 +1912,9 @@ environment:
         errorOutput,
         contains("A value of type 'Null' can't be returned from function 'f' "
             "because it has a return type of 'int'"));
+    expect(errorOutput, contains('''
+All files appear to have null safety already enabled.  Did you update the
+language version prior to running "dart migrate"?'''));
   }
 
   String _getHelpText({@required bool verbose}) {

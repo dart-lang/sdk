@@ -81,8 +81,8 @@ class SerializationEnvironment<T extends Node> {
       prefix = "ID";
     }
     String distinctName = "$prefix$separator${nameCount++}";
-    // The following checks for an internal error, not an error caused by the user.
-    // So, an assert is used instead of an exception.
+    // The following checks for an internal error, not an error caused by the
+    // user. So, an assert is used instead of an exception.
     assert(
         lookupDistinctName(node) == null,
         "Can't assign distinct name '${distinctName}' "
@@ -667,7 +667,7 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
   const Bind(this.pattern, this.term);
 
   Tuple2<P, T> readFrom(Iterator<Object> stream, DeserializationState state) {
-    var bindingState = new DeserializationState(
+    DeserializationState bindingState = new DeserializationState(
         new DeserializationEnvironment(state.environment), state.nameRoot);
     P first = pattern.readFrom(stream, bindingState);
     bindingState.environment.extend();
@@ -677,7 +677,7 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
 
   void writeTo(
       StringBuffer buffer, Tuple2<P, T> tuple, SerializationState state) {
-    var bindingState =
+    SerializationState bindingState =
         new SerializationState(new SerializationEnvironment(state.environment));
     pattern.writeTo(buffer, tuple.first, bindingState);
     bindingState.environment.extend();
@@ -699,7 +699,7 @@ class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
 
   Tuple2<P, T> readFrom(Iterator<Object> stream, DeserializationState state) {
     P first = pattern1.readFrom(stream, state);
-    var closedState = new DeserializationState(
+    DeserializationState closedState = new DeserializationState(
         new DeserializationEnvironment(state.environment)
           ..binders.addAll(state.environment.binders)
           ..extend(),
@@ -712,7 +712,7 @@ class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
   void writeTo(
       StringBuffer buffer, Tuple2<P, T> tuple, SerializationState state) {
     pattern1.writeTo(buffer, tuple.first, state);
-    var closedState =
+    SerializationState closedState =
         new SerializationState(new SerializationEnvironment(state.environment)
           ..binders.addAll(state.environment.binders)
           ..extend());

@@ -6,6 +6,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,6 +21,75 @@ void main() {
 
 @reflectiveTest
 class ChangeBuilderImplTest {
+  void test_copy_empty() {
+    var builder = ChangeBuilderImpl();
+    var copy = builder.copy() as ChangeBuilderImpl;
+    expect(identical(copy, builder), isFalse);
+    expect(copy.workspace, builder.workspace);
+    expect(copy.eol, builder.eol);
+  }
+
+  Future<void> test_copy_newEdit() async {
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit('/test.dart', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    var copy = builder.copy() as ChangeBuilderImpl;
+    await copy.addGenericFileEdit('/test.dart', (builder) {
+      builder.addSimpleInsertion(10, 'x');
+    });
+    var change = builder.sourceChange;
+    expect(change.edits[0].edits, hasLength(1));
+  }
+
+  Future<void> test_copy_newFile() async {
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit('/test1.dart', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    var copy = builder.copy() as ChangeBuilderImpl;
+    await copy.addGenericFileEdit('/test2.dart', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    var change = builder.sourceChange;
+    expect(change.edits, hasLength(1));
+  }
+
+  Future<void> test_copy_newLinkedEditGroup() async {
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit('/test.dart', (builder) {
+      builder.addLinkedPosition(SourceRange(1, 2), 'a');
+    });
+    var copy = builder.copy() as ChangeBuilderImpl;
+    await copy.addGenericFileEdit('/test.dart', (builder) {
+      builder.addLinkedPosition(SourceRange(3, 4), 'b');
+    });
+    var change = builder.sourceChange;
+    expect(change.linkedEditGroups, hasLength(1));
+  }
+
+  Future<void> test_copy_newLinkedPosition() async {
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit('/test.dart', (builder) {
+      builder.addLinkedPosition(SourceRange(1, 2), 'a');
+    });
+    var copy = builder.copy() as ChangeBuilderImpl;
+    await copy.addGenericFileEdit('/test.dart', (builder) {
+      builder.addLinkedPosition(SourceRange(3, 4), 'a');
+    });
+    var change = builder.sourceChange;
+    expect(change.linkedEditGroups[0].positions, hasLength(1));
+  }
+
+  Future<void> test_copy_selection() async {
+    var builder = ChangeBuilderImpl();
+    builder.setSelection(Position('/test.dart', 5));
+    var copy = builder.copy() as ChangeBuilderImpl;
+    copy.setSelection(Position('/test.dart', 10));
+    var change = builder.sourceChange;
+    expect(change.selection.offset, 5);
+  }
+
   Future<void> test_createFileEditBuilder() async {
     var builder = ChangeBuilderImpl();
     var path = '/test.dart';
@@ -259,6 +329,71 @@ class FileEditBuilderImplTest {
     expect(edits[0].replacement, isEmpty);
   }
 
+  Future<void> test_addDeletion_adjacent_lowerOffsetFirst() async {
+    // TODO(brianwilkerson) This should also merge the deletions, but is written
+    //  to ensure that existing uses of FileEditBuilder continue to work even
+    //  without that change.
+    var firstOffset = 23;
+    var firstLength = 7;
+    var secondOffset = 30;
+    var secondLength = 5;
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addDeletion(SourceRange(firstOffset, firstLength));
+      builder.addDeletion(SourceRange(secondOffset, secondLength));
+    });
+    var edits = builder.sourceChange.edits[0].edits;
+    expect(edits, hasLength(2));
+    expect(edits[0].offset, secondOffset);
+    expect(edits[0].length, secondLength);
+    expect(edits[0].replacement, isEmpty);
+    expect(edits[1].offset, firstOffset);
+    expect(edits[1].length, firstLength);
+    expect(edits[1].replacement, isEmpty);
+  }
+
+  Future<void> test_addDeletion_adjacent_lowerOffsetSecond() async {
+    // TODO(brianwilkerson) This should also merge the deletions, but is written
+    //  to ensure that existing uses of FileEditBuilder continue to work even
+    //  without that change.
+    var firstOffset = 23;
+    var firstLength = 7;
+    var secondOffset = 30;
+    var secondLength = 5;
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addDeletion(SourceRange(secondOffset, secondLength));
+      builder.addDeletion(SourceRange(firstOffset, firstLength));
+    });
+    var edits = builder.sourceChange.edits[0].edits;
+    expect(edits, hasLength(2));
+    expect(edits[0].offset, secondOffset);
+    expect(edits[0].length, secondLength);
+    expect(edits[0].replacement, isEmpty);
+    expect(edits[1].offset, firstOffset);
+    expect(edits[1].length, firstLength);
+    expect(edits[1].replacement, isEmpty);
+  }
+
+  @failingTest
+  Future<void> test_addDeletion_overlapping() async {
+    // This support is not yet implemented.
+    var firstOffset = 23;
+    var firstLength = 7;
+    var secondOffset = 27;
+    var secondLength = 8;
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addDeletion(SourceRange(firstOffset, firstLength));
+      builder.addDeletion(SourceRange(secondOffset, secondLength));
+    });
+    var edits = builder.sourceChange.edits[0].edits;
+    expect(edits, hasLength(1));
+    expect(edits[0].offset, firstOffset);
+    expect(edits[0].length, secondOffset + secondLength - firstOffset);
+    expect(edits[0].replacement, isEmpty);
+  }
+
   Future<void> test_addInsertion() async {
     var builder = ChangeBuilderImpl();
     await builder.addGenericFileEdit(path, (builder) {
@@ -307,6 +442,24 @@ class FileEditBuilderImplTest {
     expect(edits[0].replacement, text);
   }
 
+  Future<void> test_addSimpleInsertion_sameOffset() async {
+    var offset = 23;
+    var text = 'xyz';
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleInsertion(offset, text);
+      builder.addSimpleInsertion(offset, 'abc');
+    });
+    var edits = builder.sourceChange.edits[0].edits;
+    expect(edits, hasLength(2));
+    expect(edits[0].offset, offset);
+    expect(edits[0].length, 0);
+    expect(edits[0].replacement, 'abc');
+    expect(edits[1].offset, offset);
+    expect(edits[1].length, 0);
+    expect(edits[1].replacement, text);
+  }
+
   Future<void> test_addSimpleReplacement() async {
     var offset = 23;
     var length = 7;
@@ -314,6 +467,64 @@ class FileEditBuilderImplTest {
     var builder = ChangeBuilderImpl();
     await builder.addGenericFileEdit(path, (builder) {
       builder.addSimpleReplacement(SourceRange(offset, length), text);
+    });
+    var edits = builder.sourceChange.edits[0].edits;
+    expect(edits, hasLength(1));
+    expect(edits[0].offset, offset);
+    expect(edits[0].length, length);
+    expect(edits[0].replacement, text);
+  }
+
+  Future<void> test_addSimpleReplacement_adjacent() async {
+    var firstOffset = 23;
+    var firstLength = 7;
+    var secondOffset = firstOffset + firstLength;
+    var secondLength = 5;
+    var text = 'xyz';
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleReplacement(SourceRange(firstOffset, firstLength), text);
+      builder.addSimpleReplacement(
+          SourceRange(secondOffset, secondLength), text);
+    });
+    var edits = builder.sourceChange.edits[0].edits;
+    expect(edits, hasLength(2));
+    expect(edits[0].offset, secondOffset);
+    expect(edits[0].length, secondLength);
+    expect(edits[0].replacement, text);
+    expect(edits[1].offset, firstOffset);
+    expect(edits[1].length, firstLength);
+    expect(edits[1].replacement, text);
+  }
+
+  Future<void> test_addSimpleReplacement_overlapsHead() async {
+    var offset = 23;
+    var length = 7;
+    var text = 'xyz';
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleReplacement(SourceRange(offset, length), text);
+      expect(() {
+        builder.addSimpleReplacement(SourceRange(offset - 2, length), text);
+      }, throwsA(isA<ConflictingEditException>()));
+    });
+    var edits = builder.sourceChange.edits[0].edits;
+    expect(edits, hasLength(1));
+    expect(edits[0].offset, offset);
+    expect(edits[0].length, length);
+    expect(edits[0].replacement, text);
+  }
+
+  Future<void> test_addSimpleReplacement_overlapsTail() async {
+    var offset = 23;
+    var length = 7;
+    var text = 'xyz';
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleReplacement(SourceRange(offset, length), text);
+      expect(() {
+        builder.addSimpleReplacement(SourceRange(offset + 2, length), text);
+      }, throwsA(isA<ConflictingEditException>()));
     });
     var edits = builder.sourceChange.edits[0].edits;
     expect(edits, hasLength(1));

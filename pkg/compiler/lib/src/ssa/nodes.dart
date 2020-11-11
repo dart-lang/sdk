@@ -1709,6 +1709,17 @@ abstract class HInvokeDynamic extends HInvoke {
   AbstractValue _receiverType;
   final AbstractValue _originalReceiverType;
 
+  /// `true` if the type parameters at the call known to be invariant with
+  /// respect to the type parameters of the receiver instance. This corresponds
+  /// to the [ir.MethodInvocation.isInvariant] property and may be updated with
+  /// additional analysis.
+  bool isInvariant = false;
+
+  /// `true` for an indexed getter or setter if the index is known to be in
+  /// range. This corresponds to the [ir.MethodInvocation.isBoundsSafe] property
+  /// but and may updated with additional analysis.
+  bool isBoundsSafe = false;
+
   // Cached target when non-nullable receiver type and selector determine a
   // single target. This is in effect a direct call (except for a possible
   // `null` receiver). The element should only be set if the inputs are correct

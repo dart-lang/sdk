@@ -414,7 +414,8 @@ class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
 
   /// Visits [node] if not already visited to compute a value for [node].
   ///
-  /// If the value has already been computed the cached value is returned immediately.
+  /// If the value has already been computed the cached value is returned
+  /// immediately.
   ///
   /// Call this method to compute values for subnodes recursively, while only
   /// visiting each subnode once.

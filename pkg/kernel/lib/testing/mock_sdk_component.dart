@@ -4,11 +4,12 @@
 
 import 'package:kernel/ast.dart';
 
-/// Returns a [Component] object containing empty definitions of core SDK classes.
+/// Returns a [Component] object containing empty definitions of core SDK
+/// classes.
 Component createMockSdkComponent() {
-  var coreLib = new Library(Uri.parse('dart:core'), name: 'dart.core');
-  var asyncLib = new Library(Uri.parse('dart:async'), name: 'dart.async');
-  var internalLib =
+  Library coreLib = new Library(Uri.parse('dart:core'), name: 'dart.core');
+  Library asyncLib = new Library(Uri.parse('dart:async'), name: 'dart.async');
+  Library internalLib =
       new Library(Uri.parse('dart:_internal'), name: 'dart._internal');
 
   Class addClass(Library lib, Class c) {
@@ -16,8 +17,9 @@ Component createMockSdkComponent() {
     return c;
   }
 
-  var objectClass = addClass(coreLib, new Class(name: 'Object'));
-  var objectType = new InterfaceType(objectClass, coreLib.nonNullable);
+  Class objectClass = addClass(coreLib, new Class(name: 'Object'));
+  InterfaceType objectType =
+      new InterfaceType(objectClass, coreLib.nonNullable);
 
   TypeParameter typeParam(String name, [DartType bound]) {
     return new TypeParameter(name, bound ?? objectType);
@@ -36,12 +38,12 @@ Component createMockSdkComponent() {
 
   addClass(coreLib, class_('Null'));
   addClass(coreLib, class_('bool'));
-  var num = addClass(coreLib, class_('num'));
+  Class num = addClass(coreLib, class_('num'));
   addClass(coreLib, class_('String'));
-  var iterable =
+  Class iterable =
       addClass(coreLib, class_('Iterable', typeParameters: [typeParam('T')]));
   {
-    var T = typeParam('T');
+    TypeParameter T = typeParam('T');
     addClass(
         coreLib,
         class_('List', typeParameters: [

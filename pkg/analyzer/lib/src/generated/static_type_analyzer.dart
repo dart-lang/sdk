@@ -411,7 +411,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         isConst: node.isConst);
 
     if (inferred != null && inferred != originalElement.type) {
-      inferred = _resolver.toLegacyTypeIfOptOut(inferred);
+      inferred = _resolver.toLegacyTypeIfOptOut(inferred) as FunctionType;
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
@@ -421,7 +421,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // computing constant values. It is stored in two places.
       var constructorElement = ConstructorMember.from(
         rawElement,
-        inferred.returnType,
+        inferred.returnType as InterfaceType,
       );
       constructorElement = _resolver.toLegacyElement(constructorElement);
       constructor.staticElement = constructorElement;

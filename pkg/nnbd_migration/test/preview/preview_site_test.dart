@@ -36,7 +36,8 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
   }
 
   void setUp() {
-    dartfixListener = DartFixListener(null, _exceptionReported);
+    dartfixListener =
+        DartFixListener(null, _exceptionReported, _exceptionReported);
     resourceProvider = MemoryResourceProvider();
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
@@ -190,7 +191,8 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
   @override
   void setUp() {
     super.setUp();
-    dartfixListener = DartFixListener(null, _exceptionReported);
+    dartfixListener =
+        DartFixListener(null, _exceptionReported, _exceptionReported);
     final migrationInfo = MigrationInfo({}, {}, null, null);
     state = MigrationState(null, null, dartfixListener, null);
     nodeMapper = state.nodeMapper;

@@ -4,6 +4,7 @@
 
 import 'dart:io' as io;
 
+import 'package:analysis_tool/package_root.dart' as package_root;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:path/path.dart' as path;
@@ -12,7 +13,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/parser_fasta_test.dart';
-import '../../utils/package_root.dart' as package_root;
 
 main() {
   defineReflectiveSuite(() {

@@ -162,10 +162,10 @@ class ElementFactory {
     // Build the enum.
     //
     EnumElementImpl enumElement = EnumElementImpl(enumName, -1);
-    InterfaceTypeImpl enumType = enumElement.instantiate(
+    var enumType = enumElement.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.star,
-    );
+    ) as InterfaceTypeImpl;
     //
     // Populate the fields.
     //
@@ -462,11 +462,12 @@ class ElementFactory {
     if (isConst) {
       ConstTopLevelVariableElementImpl constant =
           ConstTopLevelVariableElementImpl(name, -1);
+      var typeElement = type.element as ClassElement;
       InstanceCreationExpression initializer =
           AstTestFactory.instanceCreationExpression2(
-              Keyword.CONST, AstTestFactory.typeName(type.element));
+              Keyword.CONST, AstTestFactory.typeName(typeElement));
       if (type is InterfaceType) {
-        ConstructorElement element = type.element.unnamedConstructor;
+        ConstructorElement element = typeElement.unnamedConstructor;
         initializer.constructorName.staticElement = element;
       }
       constant.constantInitializer = initializer;

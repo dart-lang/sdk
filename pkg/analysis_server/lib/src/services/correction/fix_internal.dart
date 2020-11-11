@@ -160,6 +160,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 
 /// A function that can be executed to create a multi-correction producer.
@@ -209,13 +210,14 @@ class DartFixContributor implements FixContributor {
     // one.
     // For each fix, put the fix into the HashMap.
     for (var i = 0; i < allAnalysisErrors.length; i++) {
-      final FixContext fixContextI = DartFixContextImpl(
+      final FixContext fixContext = DartFixContextImpl(
+        context.instrumentationService,
         context.workspace,
         context.resolveResult,
         allAnalysisErrors[i],
         (name) => [],
       );
-      var processorI = FixProcessor(fixContextI);
+      var processorI = FixProcessor(fixContext);
       var fixesListI = await processorI.compute();
       for (var f in fixesListI) {
         if (!map.containsKey(f.kind)) {
@@ -227,11 +229,11 @@ class DartFixContributor implements FixContributor {
     }
 
     // For each FixKind in the HashMap, union each list together, then return
-    // the set of unioned Fixes.
+    // the set of unioned fixes.
     var result = <Fix>[];
-    map.forEach((FixKind kind, List<Fix> fixesListJ) {
-      if (fixesListJ.first.kind.canBeAppliedTogether()) {
-        var unionFix = _unionFixList(fixesListJ);
+    map.forEach((FixKind kind, List<Fix> fixesList) {
+      if (fixesList.first.kind.canBeAppliedTogether()) {
+        var unionFix = _unionFixList(fixesList);
         if (unionFix != null) {
           result.add(unionFix);
         }
@@ -1134,9 +1136,15 @@ class FixProcessor extends BaseProcessor {
       producer.configure(context);
       var builder = ChangeBuilder(
           workspace: context.workspace, eol: context.utils.endOfLine);
-      await producer.compute(builder);
-      _addFixFromBuilder(builder, producer.fixKind,
-          args: producer.fixArguments);
+      try {
+        await producer.compute(builder);
+        _addFixFromBuilder(builder, producer.fixKind,
+            args: producer.fixArguments);
+      } on ConflictingEditException catch (exception, stackTrace) {
+        // Handle the exception by (a) not adding a fix based on the producer
+        // and (b) logging the exception.
+        fixContext.instrumentationService.logException(exception, stackTrace);
+      }
     }
 
     var errorCode = error.errorCode;

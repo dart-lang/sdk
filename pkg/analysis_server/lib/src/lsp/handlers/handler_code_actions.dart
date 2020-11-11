@@ -168,6 +168,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     try {
       var context = DartAssistContextImpl(
+        server.instrumentationService,
         DartChangeWorkspace(server.currentSessions),
         unit,
         offset,
@@ -237,7 +238,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         var errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
         if (errorLine >= range.start.line && errorLine <= range.end.line) {
           var workspace = DartChangeWorkspace(server.currentSessions);
-          var context = DartFixContextImpl(workspace, unit, error, (name) {
+          var context = DartFixContextImpl(
+              server.instrumentationService, workspace, unit, error, (name) {
             var tracker = server.declarationsTracker;
             return TopLevelDeclarationsProvider(tracker).get(
               unit.session.analysisContext,

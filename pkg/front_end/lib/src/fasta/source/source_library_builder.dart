@@ -2119,7 +2119,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Procedure getterReferenceFrom;
     Procedure setterReferenceFrom;
     final bool fieldIsLateWithLowering = (modifiers & lateMask) != 0 &&
-        !loader.target.backendTarget.supportsLateFields;
+        loader.target.backendTarget.isLateFieldLoweringEnabled(
+            hasInitializer: hasInitializer,
+            isFinal: (modifiers & finalMask) != 0,
+            isStatic: isTopLevel || (modifiers & staticMask) != 0);
     final bool isInstanceMember = currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.classDeclaration &&
         (modifiers & staticMask) == 0;

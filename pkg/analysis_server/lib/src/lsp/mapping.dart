@@ -156,8 +156,9 @@ lsp.SymbolKind declarationKindToSymbolKind(
       case server.DeclarationKind.CONSTRUCTOR:
         return const [lsp.SymbolKind.Constructor];
       case server.DeclarationKind.ENUM:
-      case server.DeclarationKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.Enum];
+      case server.DeclarationKind.ENUM_CONSTANT:
+        return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.DeclarationKind.FIELD:
         return const [lsp.SymbolKind.Field];
       case server.DeclarationKind.FUNCTION:
@@ -380,8 +381,9 @@ lsp.SymbolKind elementKindToSymbolKind(
       case server.ElementKind.CONSTRUCTOR_INVOCATION:
         return const [lsp.SymbolKind.Constructor];
       case server.ElementKind.ENUM:
-      case server.ElementKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.Enum];
+      case server.ElementKind.ENUM_CONSTANT:
+        return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.ElementKind.EXTENSION:
         return const [lsp.SymbolKind.Namespace];
       case server.ElementKind.FIELD:

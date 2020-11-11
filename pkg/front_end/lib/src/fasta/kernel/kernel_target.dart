@@ -1184,8 +1184,8 @@ class KernelTarget extends TargetImplementation {
           name,
           isInstanceMember: fieldBuilder.isClassInstanceMember,
           className: builder.name,
-          isSynthesized: fieldBuilder.isLate &&
-              !builder.library.loader.target.backendTarget.supportsLateFields,
+          isSynthesized:
+              fieldBuilder is SourceFieldBuilder && fieldBuilder.isLateLowered,
         ));
       });
       builder.forEach((String name, Builder builder) {

@@ -22,7 +22,7 @@ typedef Future<CompilerOutcome> BatchCallback(List<String> arguments);
 Future runBatch(BatchCallback callback) async {
   int totalTests = 0;
   int testsFailed = 0;
-  var watch = new Stopwatch()..start();
+  Stopwatch watch = new Stopwatch()..start();
   print('>>> BATCH START');
   Stream input = stdin.transform(utf8.decoder).transform(new LineSplitter());
   await for (String line in input) {
@@ -33,9 +33,9 @@ Future runBatch(BatchCallback callback) async {
       break;
     }
     ++totalTests;
-    var arguments = line.split(new RegExp(r'\s+'));
+    List<String> arguments = line.split(new RegExp(r'\s+'));
     try {
-      var outcome = await callback(arguments);
+      CompilerOutcome outcome = await callback(arguments);
       stderr.writeln('>>> EOF STDERR');
       if (outcome == CompilerOutcome.Ok) {
         print('>>> TEST PASS ${watch.elapsedMilliseconds}ms');

@@ -575,10 +575,10 @@ class AstFactoryImpl extends AstFactory {
           SimpleIdentifier name,
           TypeParameterList typeParameters,
           Token equals,
-          GenericFunctionType functionType,
+          TypeAnnotation type,
           Token semicolon) =>
       GenericTypeAliasImpl(comment, metadata, typedefKeyword, name,
-          typeParameters, equals, functionType, semicolon);
+          typeParameters, equals, type, semicolon);
 
   @override
   HideCombinator hideCombinator(

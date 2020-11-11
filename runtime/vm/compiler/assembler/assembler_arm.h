@@ -768,6 +768,7 @@ class Assembler : public AssemblerBase {
     ldr(LR, target);
     blx(LR);
   }
+  void Call(const Code& code) { BranchLink(code); }
 
   void CallCFunction(Address target) { Call(target); }
 

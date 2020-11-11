@@ -293,11 +293,8 @@ static void ThrowIsolateSpawnException(const String& message) {
 class SpawnIsolateTask : public ThreadPool::Task {
  public:
   SpawnIsolateTask(Isolate* parent_isolate,
-                   std::unique_ptr<IsolateSpawnState> state,
-                   bool in_new_isolate_group)
-      : parent_isolate_(parent_isolate),
-        state_(std::move(state)),
-        in_new_isolate_group_(in_new_isolate_group) {
+                   std::unique_ptr<IsolateSpawnState> state)
+      : parent_isolate_(parent_isolate), state_(std::move(state)) {
     parent_isolate->IncrementSpawnCount();
   }
 
@@ -308,68 +305,37 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
   void Run() override {
-    auto group = state_->isolate_group();
+    const char* name = (state_->debug_name() == nullptr)
+                           ? state_->function_name()
+                           : state_->debug_name();
+    ASSERT(name != nullptr);
 
-    // The create isolate group call back is mandatory.  If not provided we
+    auto group = state_->isolate_group();
+    if (!FLAG_enable_isolate_groups || group == nullptr) {
+      RunHeavyweight(name);
+    } else {
+      RunLightweight(name);
+    }
+  }
+
+  void RunHeavyweight(const char* name) {
+    // The create isolate group callback is mandatory.  If not provided we
     // cannot spawn isolates.
-    Dart_IsolateGroupCreateCallback create_group_callback =
-        Isolate::CreateGroupCallback();
+    auto create_group_callback = Isolate::CreateGroupCallback();
     if (create_group_callback == nullptr) {
       FailedSpawn("Isolate spawn is not supported by this Dart embedder\n");
       return;
     }
 
-    // The initialize callback is optional atm, we fall back to creating isolate
-    // groups if it was not provided.
-    Dart_InitializeIsolateCallback initialize_callback =
-        Isolate::InitializeCallback();
-
-    const char* name = (state_->debug_name() == NULL) ? state_->function_name()
-                                                      : state_->debug_name();
-    ASSERT(name != NULL);
-
-    // Create a new isolate.
     char* error = nullptr;
-    Isolate* isolate = nullptr;
-    if (!FLAG_enable_isolate_groups || group == nullptr ||
-        initialize_callback == nullptr || in_new_isolate_group_) {
-      // Make a copy of the state's isolate flags and hand it to the callback.
-      Dart_IsolateFlags api_flags = *(state_->isolate_flags());
-      isolate = reinterpret_cast<Isolate*>((create_group_callback)(
-          state_->script_url(), name, nullptr, state_->package_config(),
-          &api_flags, parent_isolate_->init_callback_data(), &error));
-      parent_isolate_->DecrementSpawnCount();
-      parent_isolate_ = nullptr;
-    } else {
-      if (initialize_callback == nullptr) {
-        FailedSpawn("Isolate spawn is not supported by this embedder.");
-        return;
-      }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-      isolate = CreateWithinExistingIsolateGroupAOT(group, name, &error);
-#else
-      isolate = CreateWithinExistingIsolateGroup(group, name, &error);
-#endif
-      parent_isolate_->DecrementSpawnCount();
-      parent_isolate_ = nullptr;
-      if (isolate == nullptr) {
-        FailedSpawn(error);
-        free(error);
-        return;
-      }
-
-      void* child_isolate_data = nullptr;
-      bool success = initialize_callback(&child_isolate_data, &error);
-      isolate->set_init_callback_data(child_isolate_data);
-      if (!success) {
-        Dart_ShutdownIsolate();
-        FailedSpawn(error);
-        free(error);
-        return;
-      }
-      Dart_ExitIsolate();
-    }
+    // Make a copy of the state's isolate flags and hand it to the callback.
+    Dart_IsolateFlags api_flags = *(state_->isolate_flags());
+    Isolate* isolate = reinterpret_cast<Isolate*>((create_group_callback)(
+        state_->script_url(), name, nullptr, state_->package_config(),
+        &api_flags, parent_isolate_->init_callback_data(), &error));
+    parent_isolate_->DecrementSpawnCount();
+    parent_isolate_ = nullptr;
 
     if (isolate == nullptr) {
       FailedSpawn(error);
@@ -377,20 +343,66 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return;
     }
 
-    if (state_->origin_id() != ILLEGAL_PORT) {
-      // For isolates spawned using spawnFunction we set the origin_id
-      // to the origin_id of the parent isolate.
-      isolate->set_origin_id(state_->origin_id());
+    Run(isolate);
+  }
+
+  void RunLightweight(const char* name) {
+    // The create isolate initialize callback is mandatory if
+    // --enable-isolate-groups was passed.
+    auto initialize_callback = Isolate::InitializeCallback();
+    if (initialize_callback == nullptr) {
+      FailedSpawn(
+          "Lightweight isolate spawn is not supported by this Dart embedder\n");
+      return;
     }
-    MutexLocker ml(isolate->mutex());
-    state_->set_isolate(isolate);
-    isolate->set_spawn_state(std::move(state_));
-    if (isolate->is_runnable()) {
-      isolate->Run();
+
+    char* error = nullptr;
+
+    auto group = state_->isolate_group();
+#if defined(DART_PRECOMPILED_RUNTIME)
+    Isolate* isolate = CreateWithinExistingIsolateGroupAOT(group, name, &error);
+#else
+    Isolate* isolate = CreateWithinExistingIsolateGroup(group, name, &error);
+#endif
+    parent_isolate_->DecrementSpawnCount();
+    parent_isolate_ = nullptr;
+
+    if (isolate == nullptr) {
+      FailedSpawn(error);
+      free(error);
+      return;
     }
+
+    void* child_isolate_data = nullptr;
+    const bool success = initialize_callback(&child_isolate_data, &error);
+    if (!success) {
+      Dart_ShutdownIsolate();
+      FailedSpawn(error);
+      free(error);
+      return;
+    }
+
+    isolate->set_init_callback_data(child_isolate_data);
+    Dart_ExitIsolate();
+    Run(isolate);
   }
 
  private:
+  void Run(Isolate* child) {
+    state_->set_isolate(child);
+
+    MutexLocker ml(child->mutex());
+    child->set_origin_id(state_->origin_id());
+    child->set_spawn_state(std::move(state_));
+
+    // If the isolate is not marked as runnable, then the embedder might do so
+    // later on and the launch of the isolate will happen inside
+    // `Dart_IsolateMakeRunnable`.
+    if (child->is_runnable()) {
+      child->Run();
+    }
+  }
+
   void FailedSpawn(const char* error) {
     ReportError(error != nullptr
                     ? error
@@ -410,7 +422,6 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
   Isolate* parent_isolate_;
   std::unique_ptr<IsolateSpawnState> state_;
-  bool in_new_isolate_group_;
 
   DISALLOW_COPY_AND_ASSIGN(SpawnIsolateTask);
 };
@@ -466,18 +477,19 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
       const char* utf8_debug_name =
           debugName.IsNull() ? NULL : String2UTF8(debugName);
+      const bool in_new_isolate_group = newIsolateGroup.value();
 
       std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
           port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
           &message_buffer, utf8_package_config, paused.value(), fatal_errors,
-          on_exit_port, on_error_port, utf8_debug_name, isolate->group()));
+          on_exit_port, on_error_port, utf8_debug_name,
+          in_new_isolate_group ? nullptr : isolate->group()));
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
 
-      const bool in_new_isolate_group = newIsolateGroup.value();
-      isolate->group()->thread_pool()->Run<SpawnIsolateTask>(
-          isolate, std::move(state), in_new_isolate_group);
+      isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
+                                                             std::move(state));
       return Object::null();
     }
   }
@@ -581,9 +593,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
   state->isolate_flags()->copy_parent_code = false;
 
-  const bool in_new_isolate_group = false;
-  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(
-      isolate, std::move(state), in_new_isolate_group);
+  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
+                                                         std::move(state));
   return Object::null();
 }
 

@@ -69,11 +69,6 @@ class NonNullableFix {
 
   NullabilityMigration migration;
 
-  /// If this flag has a value of `false`, then something happened to prevent
-  /// at least one package from being marked as non-nullable.
-  /// If this occurs, then don't update any code.
-  bool _packageIsNNBD = true;
-
   Future<MigrationState> Function() rerunFunction;
 
   /// A list of the URLs corresponding to the included roots.
@@ -106,9 +101,6 @@ class NonNullableFix {
       InstrumentationListener(migrationSummary: migrationSummary);
 
   Future<void> finalizeUnit(ResolvedUnitResult result) async {
-    if (!_packageIsNNBD) {
-      return;
-    }
     migration.finalizeInput(result);
   }
 
@@ -121,9 +113,6 @@ class NonNullableFix {
   }
 
   Future<void> prepareUnit(ResolvedUnitResult result) async {
-    if (!_packageIsNNBD) {
-      return;
-    }
     migration.prepareInput(result);
   }
 
@@ -132,10 +121,6 @@ class NonNullableFix {
   /// This means updating the pubspec.yaml file, the package_config.json
   /// file, and the analysis_options.yaml file, each only if necessary.
   void processPackage(Folder pkgFolder) {
-    if (!_packageIsNNBD) {
-      return;
-    }
-
     var pubspecFile = pkgFolder.getChildAssumingFile('pubspec.yaml');
     if (!pubspecFile.exists) {
       // If the pubspec file cannot be found, we do not attempt to change the
@@ -161,9 +146,6 @@ class NonNullableFix {
   }
 
   Future<void> processUnit(ResolvedUnitResult result) async {
-    if (!_packageIsNNBD) {
-      return;
-    }
     migration.processInput(result);
   }
 
@@ -217,10 +199,6 @@ class NonNullableFix {
   /// Updates the Package Config file to specify a minimum Dart SDK version
   /// which supports null safety.
   void _processConfigFile(Folder pkgFolder, _YamlFile pubspec) {
-    if (!_packageIsNNBD) {
-      return;
-    }
-
     var packageName = pubspec._getName();
     if (packageName == null) {
       return;
@@ -352,7 +330,7 @@ environment:
   }
 
   void _processPubspecException(String action, String pubspecPath, error) {
-    listener.addRecommendation('''Failed to $action pubspec file
+    listener.reportFatalError('''Failed to $action pubspec file
   $pubspecPath
   $error
 
@@ -362,7 +340,7 @@ environment:
     environment:
       sdk: '$_intendedSdkVersionConstraint';
 ''');
-    _packageIsNNBD = false;
+    throw StateError('listener.reportFatalError should never return');
   }
 
   /// Allows unit tests to shut down any rogue servers that have been started,

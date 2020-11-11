@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix/dart/top_level_decla
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -115,6 +116,9 @@ class AnalysisOptionsFixKind {
 /// The implementation of [DartFixContext].
 class DartFixContextImpl implements DartFixContext {
   @override
+  final InstrumentationService instrumentationService;
+
+  @override
   final ChangeWorkspace workspace;
 
   @override
@@ -126,8 +130,8 @@ class DartFixContextImpl implements DartFixContext {
   final List<TopLevelDeclaration> Function(String name)
       getTopLevelDeclarationsFunction;
 
-  DartFixContextImpl(this.workspace, this.resolveResult, this.error,
-      this.getTopLevelDeclarationsFunction);
+  DartFixContextImpl(this.instrumentationService, this.workspace,
+      this.resolveResult, this.error, this.getTopLevelDeclarationsFunction);
 
   @override
   List<TopLevelDeclaration> getTopLevelDeclarations(String name) {

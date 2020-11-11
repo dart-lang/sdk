@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/correction/fix/dart/top_level_decla
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
@@ -277,6 +278,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     tracker.addContext(analysisContext);
 
     var context = DartFixContextImpl(
+      InstrumentationService.NULL_SERVICE,
       workspace,
       testAnalysisResult,
       error,

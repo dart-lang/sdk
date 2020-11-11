@@ -438,7 +438,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
   assert(bottomType == const NeverType(Nullability.nonNullable) ||
       bottomType is NullType);
   List<TypeArgumentIssue> result;
-  var substitutionMap = <TypeParameter, DartType>{};
+  Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
   for (int i = 0; i < arguments.length; ++i) {
     substitutionMap[parameters[i]] = arguments[i];
   }
@@ -519,10 +519,10 @@ DartType convertSuperBoundedToRegularBounded(Library clientLibrary,
     return new TypedefType(
         type.typedefNode, type.nullability, replacedTypeArguments);
   } else if (type is FunctionType) {
-    var replacedReturnType = convertSuperBoundedToRegularBounded(
+    DartType replacedReturnType = convertSuperBoundedToRegularBounded(
         clientLibrary, typeEnvironment, type.returnType, bottomType,
         isCovariant: isCovariant);
-    var replacedPositionalParameters =
+    List<DartType> replacedPositionalParameters =
         new List<DartType>(type.positionalParameters.length);
     for (int i = 0; i < replacedPositionalParameters.length; i++) {
       replacedPositionalParameters[i] = convertSuperBoundedToRegularBounded(
@@ -532,7 +532,7 @@ DartType convertSuperBoundedToRegularBounded(Library clientLibrary,
           bottomType,
           isCovariant: !isCovariant);
     }
-    var replacedNamedParameters =
+    List<NamedType> replacedNamedParameters =
         new List<NamedType>(type.namedParameters.length);
     for (int i = 0; i < replacedNamedParameters.length; i++) {
       replacedNamedParameters[i] = new NamedType(

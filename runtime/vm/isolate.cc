@@ -2068,6 +2068,11 @@ const char* Isolate::MakeRunnable() {
 #endif  // !PRODUCT
   IsolateSpawnState* state = spawn_state();
   if (state != nullptr) {
+    // If the embedder does not make the isolate runnable during the
+    // `create_isolate_group`/`initialize_isolate` embedder callbacks but rather
+    // some time in the future, we'll hit this case.
+    // WARNING: This is currently untested - we might consider changing our APIs
+    // to disallow two different flows.
     ASSERT(this == state->isolate());
     Run();
   }
@@ -2086,15 +2091,6 @@ const char* Isolate::MakeRunnable() {
     Service::HandleEvent(&runnableEvent);
   }
   GetRunnableLatencyMetric()->set_value(UptimeMicros());
-  if (FLAG_print_benchmarking_metrics) {
-    {
-      StartIsolateScope scope(this);
-      heap()->CollectAllGarbage();
-    }
-    int64_t heap_size = (heap()->UsedInWords(Heap::kNew) * kWordSize) +
-                        (heap()->UsedInWords(Heap::kOld) * kWordSize);
-    GetRunnableHeapSizeMetric()->set_value(heap_size);
-  }
 #endif  // !PRODUCT
   return nullptr;
 }
@@ -2404,27 +2400,8 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
 }
 
 static void ShutdownIsolate(uword parameter) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  {
-    // Print the error if there is one.  This may execute dart code to
-    // print the exception object, so we need to use a StartIsolateScope.
-    StartIsolateScope start_scope(isolate);
-    Thread* thread = Thread::Current();
-    ASSERT(thread->isolate() == isolate);
-
-    // We must wait for any outstanding spawn calls to complete before
-    // running the shutdown callback.
-    isolate->WaitForOutstandingSpawns();
-
-    StackZone zone(thread);
-    HandleScope handle_scope(thread);
-#if defined(DEBUG)
-    isolate->ValidateConstants();
-#endif  // defined(DEBUG)
-    Dart::RunShutdownCallback();
-  }
-  // Shut the isolate down.
-  Dart::ShutdownIsolate(isolate);
+  Dart_EnterIsolate(reinterpret_cast<Dart_Isolate>(parameter));
+  Dart_ShutdownIsolate();
 }
 
 void Isolate::SetStickyError(ErrorPtr sticky_error) {
@@ -2548,7 +2525,7 @@ void Isolate::LowLevelShutdown() {
         "\tisolate:    %s\n",
         name());
   }
-  if (FLAG_print_metrics || FLAG_print_benchmarking_metrics) {
+  if (FLAG_print_metrics) {
     LogBlock lb;
     OS::PrintErr("Printing metrics for %s\n", name());
 #define ISOLATE_GROUP_METRIC_PRINT(type, variable, name, unit)                 \
