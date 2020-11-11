@@ -2212,20 +2212,22 @@ abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {
 }
 
 /**
- * An [Iterator] like interface for the values of a [Stream].
+ * An [Iterator]-like interface for the values of a [Stream].
  *
  * This wraps a [Stream] and a subscription on the stream. It listens
  * on the stream, and completes the future returned by [moveNext] when the
  * next value becomes available.
  *
  * The stream may be paused between calls to [moveNext].
+ *
+ * The [current] value must only be used after a future returned by [moveNext]
+ * has completed with `true`, and only until [moveNext] is called again.
  */
 abstract class StreamIterator<T> {
   /** Create a [StreamIterator] on [stream]. */
-  factory StreamIterator(Stream<T> stream)
+  factory StreamIterator(Stream<T> stream) =>
       // TODO(lrn): use redirecting factory constructor when type
       // arguments are supported.
-      =>
       new _StreamIterator<T>(stream);
 
   /**
@@ -2247,14 +2249,16 @@ abstract class StreamIterator<T> {
   /**
    * The current value of the stream.
    *
-   * Is `null` before the first call to [moveNext] and after a call to
-   * `moveNext` completes with a `false` result or an error.
-   *
-   * When a `moveNext` call completes with `true`, the `current` field holds
+   * When a [moveNext] call completes with `true`, the [current] field holds
    * the most recent event of the stream, and it stays like that until the next
-   * call to `moveNext`.
-   * Between a call to `moveNext` and when its returned future completes,
-   * the value is unspecified.
+   * call to [moveNext]. This value must only be read after a call to [moveNext]
+   * has completed with `true`, and only until the [moveNext] is called again.
+   *
+   * If the StreamIterator has not yet been moved to the first element
+   * ([moveNext] has not been called and completed yet), or if the
+   * StreamIterator has been moved past the last element ([moveNext] has
+   * returned `false`), then [current] is unspecified. A [StreamIterator] may
+   * either throw or return an iterator-specific default value in that case.
    */
   T get current;
 
