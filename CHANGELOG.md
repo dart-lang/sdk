@@ -100,18 +100,27 @@ Updated the Linter to `0.1.124`, which includes:
 * The top level `pub` executable has been deprecated. Use `dart pub` instead.
   See [dart tool][].
 * New command `dart pub add` that adds  new dependencies to your `pubspec.yaml`.
-  
+
   And a corresponding `dart pub remove` that removes dependencies.
 * New option `dart pub outdated --mode=null-safety` that will analyze your
   dependencies for null-safety.
 * `dart pub publish` will now check your pubspec keys for likely typos.
 * New command `dart pub login` that logs in to pub.dev.
 * The `--server` option to `dart pub publish` and `dart pub uploader` have been
-  deprecated. Use `publish_to` in your `pubspec.yaml` or set the 
+  deprecated. Use `publish_to` in your `pubspec.yaml` or set the
   `$PUB_HOSTED_URL` environment variable.
 
 [#44072]: https://github.com/dart-lang/sdk/issues/44072
 [dart tool]: https://dart.dev/tools/dart-tool
+
+## 2.10.4 - 2020-11-12
+
+This is a patch release that fixes a crash in the Dart VM (issues [#43941][],
+[flutter/flutter#43620][], and [Dart-Code/Dart-Code#2814][]).
+
+[#43941]: https://github.com/dart-lang/sdk/issues/43941
+[flutter/flutter#43620]: https://github.com/flutter/flutter/issues/43620
+[Dart-Code/Dart-Code#2814]: https://github.com/Dart-Code/Dart-Code/issues/2814
 
 ## 2.10.3 - 2020-10-29
 
