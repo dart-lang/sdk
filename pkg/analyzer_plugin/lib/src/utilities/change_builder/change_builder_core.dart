@@ -128,6 +128,43 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
   }
 
+  @override
+  ChangeBuilder copy() {
+    var copy = ChangeBuilderImpl(workspace: workspace, eol: eol);
+    for (var entry in _linkedEditGroups.entries) {
+      copy._linkedEditGroups[entry.key] = _copyLinkedEditGroup(entry.value);
+    }
+    copy._selection = _copyPosition(_selection);
+    copy._selectionRange = _selectionRange;
+    copy._lockedPositions.addAll(_lockedPositions);
+    for (var entry in _genericFileEditBuilders.entries) {
+      copy._genericFileEditBuilders[entry.key] = entry.value.copyWith(copy);
+    }
+    //
+    // The file edit builders for libraries (those whose [libraryChangeBuilder]
+    // is `null`) are copied first so that the copies exist when we copy the
+    // builders for parts and the structure can be preserved.
+    //
+    var editBuilderMap = <DartFileEditBuilderImpl, DartFileEditBuilderImpl>{};
+    for (var entry in _dartFileEditBuilders.entries) {
+      var oldBuilder = entry.value;
+      if (oldBuilder.libraryChangeBuilder == null) {
+        var newBuilder = oldBuilder.copyWith(copy);
+        copy._dartFileEditBuilders[entry.key] = newBuilder;
+        editBuilderMap[oldBuilder] = newBuilder;
+      }
+    }
+    for (var entry in _dartFileEditBuilders.entries) {
+      var oldBuilder = entry.value;
+      if (oldBuilder.libraryChangeBuilder != null) {
+        var newBuilder =
+            oldBuilder.copyWith(copy, editBuilderMap: editBuilderMap);
+        copy._dartFileEditBuilders[entry.key] = newBuilder;
+      }
+    }
+    return copy;
+  }
+
   /// Create and return a [DartFileEditBuilder] that can be used to build edits
   /// to the Dart file with the given [path].
   Future<DartFileEditBuilderImpl> createDartFileEditBuilder(String path) async {
@@ -186,6 +223,17 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   void setSelection(Position position) {
     _selection = position;
+  }
+
+  /// Return a copy of the linked edit [group].
+  LinkedEditGroup _copyLinkedEditGroup(LinkedEditGroup group) {
+    return LinkedEditGroup(group.positions.map(_copyPosition).toList(),
+        group.length, group.suggestions.toList());
+  }
+
+  /// Return a copy of the [position].
+  Position _copyPosition(Position position) {
+    return position == null ? null : Position(position.file, position.offset);
   }
 
   void _setSelectionRange(SourceRange range) {
@@ -391,6 +439,13 @@ class FileEditBuilderImpl implements FileEditBuilder {
     } finally {
       _addEditBuilder(builder);
     }
+  }
+
+  FileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder) {
+    var copy =
+        FileEditBuilderImpl(changeBuilder, fileEdit.file, fileEdit.fileStamp);
+    copy.fileEdit.edits.addAll(fileEdit.edits);
+    return copy;
   }
 
   EditBuilderImpl createEditBuilder(int offset, int length) {

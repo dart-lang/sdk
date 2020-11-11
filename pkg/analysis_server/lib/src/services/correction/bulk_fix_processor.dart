@@ -422,9 +422,12 @@ class BulkFixProcessor {
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
       try {
-        await producer.compute(builder);
+        var localBuilder = builder.copy();
+        await producer.compute(localBuilder);
+        builder = localBuilder;
       } on ConflictingEditException {
-        // TODO(brianwilkerson) Roll back the changes made by this producer.
+        // If a conflicting edit was added in [compute], then the [localBuilder]
+        // is discarded and we revert to the previous state of the builder.
       }
     }
 

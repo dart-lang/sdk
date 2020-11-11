@@ -56,6 +56,10 @@ abstract class ChangeBuilder {
   Future<void> addGenericFileEdit(
       String path, void Function(FileEditBuilder builder) buildFileEdit);
 
+  /// Return a copy of this change builder that is constructed in such as was
+  /// that changes to the copy will not effect this change builder.
+  ChangeBuilder copy();
+
   /// Set the selection for the change being built to the given [position].
   void setSelection(Position position);
 }

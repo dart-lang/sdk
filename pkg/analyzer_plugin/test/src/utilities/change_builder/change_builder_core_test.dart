@@ -21,6 +21,75 @@ void main() {
 
 @reflectiveTest
 class ChangeBuilderImplTest {
+  void test_copy_empty() {
+    var builder = ChangeBuilderImpl();
+    var copy = builder.copy() as ChangeBuilderImpl;
+    expect(identical(copy, builder), isFalse);
+    expect(copy.workspace, builder.workspace);
+    expect(copy.eol, builder.eol);
+  }
+
+  Future<void> test_copy_newEdit() async {
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit('/test.dart', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    var copy = builder.copy() as ChangeBuilderImpl;
+    await copy.addGenericFileEdit('/test.dart', (builder) {
+      builder.addSimpleInsertion(10, 'x');
+    });
+    var change = builder.sourceChange;
+    expect(change.edits[0].edits, hasLength(1));
+  }
+
+  Future<void> test_copy_newFile() async {
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit('/test1.dart', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    var copy = builder.copy() as ChangeBuilderImpl;
+    await copy.addGenericFileEdit('/test2.dart', (builder) {
+      builder.addSimpleInsertion(0, 'x');
+    });
+    var change = builder.sourceChange;
+    expect(change.edits, hasLength(1));
+  }
+
+  Future<void> test_copy_newLinkedEditGroup() async {
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit('/test.dart', (builder) {
+      builder.addLinkedPosition(SourceRange(1, 2), 'a');
+    });
+    var copy = builder.copy() as ChangeBuilderImpl;
+    await copy.addGenericFileEdit('/test.dart', (builder) {
+      builder.addLinkedPosition(SourceRange(3, 4), 'b');
+    });
+    var change = builder.sourceChange;
+    expect(change.linkedEditGroups, hasLength(1));
+  }
+
+  Future<void> test_copy_newLinkedPosition() async {
+    var builder = ChangeBuilderImpl();
+    await builder.addGenericFileEdit('/test.dart', (builder) {
+      builder.addLinkedPosition(SourceRange(1, 2), 'a');
+    });
+    var copy = builder.copy() as ChangeBuilderImpl;
+    await copy.addGenericFileEdit('/test.dart', (builder) {
+      builder.addLinkedPosition(SourceRange(3, 4), 'a');
+    });
+    var change = builder.sourceChange;
+    expect(change.linkedEditGroups[0].positions, hasLength(1));
+  }
+
+  Future<void> test_copy_selection() async {
+    var builder = ChangeBuilderImpl();
+    builder.setSelection(Position('/test.dart', 5));
+    var copy = builder.copy() as ChangeBuilderImpl;
+    copy.setSelection(Position('/test.dart', 10));
+    var change = builder.sourceChange;
+    expect(change.selection.offset, 5);
+  }
+
   Future<void> test_createFileEditBuilder() async {
     var builder = ChangeBuilderImpl();
     var path = '/test.dart';
