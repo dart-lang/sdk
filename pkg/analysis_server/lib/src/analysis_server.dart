@@ -15,7 +15,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/computer/computer_highlights2.dart';
+import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -825,7 +825,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
-    return DartUnitHighlightsComputer2(unit).compute();
+    return DartUnitHighlightsComputer(unit).compute();
   }
 
   server.AnalysisNavigationParams _computeNavigationParams(

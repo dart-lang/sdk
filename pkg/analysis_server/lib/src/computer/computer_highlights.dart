@@ -10,16 +10,16 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A computer for [HighlightRegion]s in a Dart [CompilationUnit].
-class DartUnitHighlightsComputer2 {
+class DartUnitHighlightsComputer {
   final CompilationUnit _unit;
 
   final List<HighlightRegion> _regions = <HighlightRegion>[];
 
-  DartUnitHighlightsComputer2(this._unit);
+  DartUnitHighlightsComputer(this._unit);
 
   /// Returns the computed highlight regions, not `null`.
   List<HighlightRegion> compute() {
-    _unit.accept(_DartUnitHighlightsComputerVisitor2(this));
+    _unit.accept(_DartUnitHighlightsComputerVisitor(this));
     _addCommentRanges();
     return _regions;
   }
@@ -429,11 +429,11 @@ class DartUnitHighlightsComputer2 {
   }
 }
 
-/// An AST visitor for [DartUnitHighlightsComputer2].
-class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
-  final DartUnitHighlightsComputer2 computer;
+/// An AST visitor for [DartUnitHighlightsComputer].
+class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
+  final DartUnitHighlightsComputer computer;
 
-  _DartUnitHighlightsComputerVisitor2(this.computer);
+  _DartUnitHighlightsComputerVisitor(this.computer);
 
   @override
   void visitAnnotation(Annotation node) {
