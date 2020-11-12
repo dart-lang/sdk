@@ -217,6 +217,7 @@ mixin ClientCapabilitiesHelperMixin {
       'documentSymbol': {'dynamicRegistration': true},
       'formatting': {'dynamicRegistration': true},
       'onTypeFormatting': {'dynamicRegistration': true},
+      'rangeFormatting': {'dynamicRegistration': true},
       'declaration': {'dynamicRegistration': true},
       'definition': {'dynamicRegistration': true},
       'implementation': {'dynamicRegistration': true},
@@ -330,6 +331,7 @@ mixin ClientCapabilitiesHelperMixin {
     return extendTextDocumentCapabilities(source, {
       'formatting': {'dynamicRegistration': true},
       'onTypeFormatting': {'dynamicRegistration': true},
+      'rangeFormatting': {'dynamicRegistration': true},
     });
   }
 
@@ -615,12 +617,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
 
     validateChangesCanBeApplied();
-    changes.sort(
-      (c1, c2) =>
-          positionCompare(c1.range.start, c2.range.start) *
-          -1, // Multiply by -1 to get descending sort.
-    );
-    for (final change in changes) {
+    final sortedChanges = changes.toList() // Don't mutate the original list.
+      ..sort(
+        // Multiply by -1 to get descending sort.
+        (c1, c2) => positionCompare(c1.range.start, c2.range.start) * -1,
+      );
+
+    for (final change in sortedChanges) {
       newContent = applyTextEdit(newContent, change);
     }
 
@@ -800,6 +803,21 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
             insertSpaces: true), // These currently don't do anything
         textDocument: TextDocumentIdentifier(uri: fileUri),
         position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TextEdit.fromJson));
+  }
+
+  Future<List<TextEdit>> formatRange(String fileUri, Range range) {
+    final request = makeRequest(
+      Method.textDocument_rangeFormatting,
+      DocumentRangeFormattingParams(
+        options: FormattingOptions(
+            tabSize: 2,
+            insertSpaces: true), // These currently don't do anything
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+        range: range,
       ),
     );
     return expectSuccessfulResponseTo(

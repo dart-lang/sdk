@@ -17,8 +17,11 @@ abstract class LegacyUpperBoundTest {
   Library coreLibrary;
   Library testLibrary;
 
+  bool get isNonNullableByDefault;
+
   void parseComponent(String source) {
-    env = new parser.Env(source);
+    env =
+        new parser.Env(source, isNonNullableByDefault: isNonNullableByDefault);
     assert(
         env.component.libraries.length == 2,
         "The test component is expected to have exactly two libraries: "
@@ -30,6 +33,10 @@ abstract class LegacyUpperBoundTest {
       coreLibrary = firstLibrary;
       testLibrary = secondLibrary;
     } else {
+      assert(
+          secondLibrary.importUri.scheme == "dart" &&
+              secondLibrary.importUri.path == "core",
+          "One of the libraries is expected to be 'dart:core'.");
       coreLibrary = secondLibrary;
       testLibrary = firstLibrary;
     }

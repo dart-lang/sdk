@@ -68,7 +68,7 @@ const Map<String, String> data = {
 };
 
 main() {
-  Env env = new Env('')
+  Env env = new Env('', isNonNullableByDefault: true)
     ..extendWithTypeParameters('X,'
         'X_extends_FutureInt extends Future<int>,'
         'X_extends_FutureOrInt extends FutureOr<int>');

@@ -252,10 +252,6 @@ class Driver implements ServerStarter {
   /// The name of the option used to describe the new analysis driver logger.
   static const String NEW_ANALYSIS_DRIVER_LOG = 'new-analysis-driver-log';
 
-  /// The name of the flag used to enable version 2 of semantic highlight
-  /// notification.
-  static const String USE_ANALYSIS_HIGHLIGHT2 = 'useAnalysisHighlight2';
-
   /// The option for specifying the http diagnostic port.
   /// If specified, users can review server status and performance information
   /// by opening a web browser on http://localhost:<port>
@@ -309,8 +305,6 @@ class Driver implements ServerStarter {
     var results = parser.parse(arguments, <String, String>{});
 
     var analysisServerOptions = AnalysisServerOptions();
-    analysisServerOptions.useAnalysisHighlight2 =
-        results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
     analysisServerOptions.newAnalysisDriverLog =
         results[NEW_ANALYSIS_DRIVER_LOG];
@@ -769,10 +763,6 @@ class Driver implements ServerStarter {
             ' status and performance information');
     parser.addOption(SDK_OPTION,
         valueHelp: 'path', help: 'Path to the Dart sdk');
-    parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
-        help: 'enable version 2 of semantic highlight',
-        defaultsTo: false,
-        negatable: false);
     parser.addOption(FILE_READ_MODE,
         help: 'an option for reading files (some clients normalize eol '
             'characters, which make the file offset and range information '
@@ -820,6 +810,8 @@ class Driver implements ServerStarter {
     parser.addFlag('enable-instrumentation', hide: true);
     // Removed 11/8/2020.
     parser.addFlag('preview-dart-2', hide: true);
+    // Removed 11/11/2020.
+    parser.addFlag('useAnalysisHighlight2', hide: true);
     // Removed 9/23/2020.
     parser.addFlag('use-fasta-parser', hide: true);
 

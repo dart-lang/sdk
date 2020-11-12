@@ -287,7 +287,6 @@ void StackTraceUtils::CollectFramesLazy(
     const GrowableObjectArray& code_array,
     const GrowableObjectArray& pc_offset_array,
     int skip_frames,
-    std::function<void(StackFrame*)>* on_sync_frames,
     bool* has_async) {
   if (has_async != nullptr) {
     *has_async = false;
@@ -327,9 +326,6 @@ void StackTraceUtils::CollectFramesLazy(
     ASSERT(pc_offset > 0 && pc_offset <= code.Size());
     offset = Smi::New(pc_offset);
     pc_offset_array.Add(offset);
-    if (on_sync_frames != nullptr) {
-      (*on_sync_frames)(frame);
-    }
 
     // Either continue the loop (sync-async case) or find all await'ers and
     // return.

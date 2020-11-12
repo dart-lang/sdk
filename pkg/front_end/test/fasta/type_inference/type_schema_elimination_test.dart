@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class TypeSchemaEliminationTest {
-  final Env env = new Env("");
+  final Env env = new Env("", isNonNullableByDefault: false);
   final Map<String, DartType Function()> additionalTypes = {
     "UNKNOWN": () => new UnknownType()
   };

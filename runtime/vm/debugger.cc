@@ -1919,21 +1919,13 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
 DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
 
   Code& code = Code::Handle(zone);
-  Code& inlined_code = Code::Handle(zone);
-  Smi& offset = Smi::Handle();
-  Array& deopt_frame = Array::Handle(zone);
+  Smi& offset = Smi::Handle(zone);
+  Function& function = Function::Handle(zone);
 
   constexpr intptr_t kDefaultStackAllocation = 8;
   auto stack_trace = new DebuggerStackTrace(kDefaultStackAllocation);
-
-  std::function<void(StackFrame*)> on_sync_frame = [&](StackFrame* frame) {
-    code = frame->LookupDartCode();
-    AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
-                     &inlined_code, &deopt_frame);
-  };
 
   const auto& code_array = GrowableObjectArray::ZoneHandle(
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
@@ -1941,9 +1933,9 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
   bool has_async = false;
   StackTraceUtils::CollectFramesLazy(thread, code_array, pc_offset_array,
-                                     /*skip_frames=*/0, &on_sync_frame,
-                                     &has_async);
+                                     /*skip_frames=*/0, &has_async);
 
+  // If the entire stack is sync, return no trace.
   if (!has_async) {
     return nullptr;
   }
@@ -1951,13 +1943,25 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
   const intptr_t length = code_array.Length();
   for (intptr_t i = stack_trace->Length(); i < length; ++i) {
     code ^= code_array.At(i);
-    offset ^= pc_offset_array.At(i);
+
     if (code.raw() == StubCode::AsynchronousGapMarker().raw()) {
       stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
-    } else {
-      const uword absolute_pc = code.PayloadStart() + offset.Value();
-      stack_trace->AddAsyncCausalFrame(absolute_pc, code);
+      continue;
     }
+
+    if (!code.IsFunctionCode()) {
+      continue;
+    }
+
+    // Skip invisible function frames.
+    function ^= code.function();
+    if (!function.is_visible()) {
+      continue;
+    }
+
+    offset ^= pc_offset_array.At(i);
+    const uword absolute_pc = code.PayloadStart() + offset.Value();
+    stack_trace->AddAsyncCausalFrame(absolute_pc, code);
   }
 
   return stack_trace;

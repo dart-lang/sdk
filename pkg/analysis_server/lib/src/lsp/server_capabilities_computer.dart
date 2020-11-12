@@ -30,6 +30,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_documentHighlight,
     Method.textDocument_formatting,
     Method.textDocument_onTypeFormatting,
+    Method.textDocument_rangeFormatting,
     Method.textDocument_definition,
     Method.textDocument_codeAction,
     Method.textDocument_rename,
@@ -70,6 +71,9 @@ class ClientDynamicRegistrations {
 
   bool get implementation =>
       _capabilities.textDocument?.implementation?.dynamicRegistration ?? false;
+
+  bool get rangeFormatting =>
+      _capabilities.textDocument?.rangeFormatting?.dynamicRegistration ?? false;
 
   bool get references =>
       _capabilities.textDocument?.references?.dynamicRegistration ?? false;
@@ -187,6 +191,9 @@ class ServerCapabilitiesComputer {
                   moreTriggerCharacter:
                       dartTypeFormattingCharacters.skip(1).toList())
               : null,
+      documentRangeFormattingProvider: dynamicRegistrations.typeFormatting
+          ? null
+          : Either2<bool, DocumentRangeFormattingOptions>.t1(enableFormatter),
       renameProvider: dynamicRegistrations.rename
           ? null
           : renameOptionsSupport
@@ -337,6 +344,13 @@ class ServerCapabilitiesComputer {
         documentSelector: [dartFiles], // This one is currently Dart-specific
         firstTriggerCharacter: dartTypeFormattingCharacters.first,
         moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList(),
+      ),
+    );
+    register(
+      enableFormatter && dynamicRegistrations.rangeFormatting,
+      Method.textDocument_rangeFormatting,
+      DocumentRangeFormattingRegistrationOptions(
+        documentSelector: [dartFiles], // This one is currently Dart-specific
       ),
     );
     register(

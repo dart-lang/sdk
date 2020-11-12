@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,17 +11,17 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
-class FormattingHandler
-    extends MessageHandler<DocumentFormattingParams, List<TextEdit>> {
-  FormattingHandler(LspAnalysisServer server) : super(server);
+class FormatRangeHandler
+    extends MessageHandler<DocumentRangeFormattingParams, List<TextEdit>> {
+  FormatRangeHandler(LspAnalysisServer server) : super(server);
   @override
-  Method get handlesMessage => Method.textDocument_formatting;
+  Method get handlesMessage => Method.textDocument_rangeFormatting;
 
   @override
-  LspJsonHandler<DocumentFormattingParams> get jsonHandler =>
-      DocumentFormattingParams.jsonHandler;
+  LspJsonHandler<DocumentRangeFormattingParams> get jsonHandler =>
+      DocumentRangeFormattingParams.jsonHandler;
 
-  ErrorOr<List<TextEdit>> formatFile(String path) {
+  ErrorOr<List<TextEdit>> formatRange(String path, Range range) {
     final file = server.resourceProvider.getFile(path);
     if (!file.exists) {
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
@@ -33,12 +33,13 @@ class FormattingHandler
     }
 
     return generateEditsForFormatting(
-        result, server.clientConfiguration.lineLength);
+        result, server.clientConfiguration.lineLength,
+        range: range);
   }
 
   @override
   Future<ErrorOr<List<TextEdit>>> handle(
-      DocumentFormattingParams params, CancellationToken token) async {
+      DocumentRangeFormattingParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -49,6 +50,6 @@ class FormattingHandler
     }
 
     final path = pathOfDoc(params.textDocument);
-    return path.mapResult((path) => formatFile(path));
+    return path.mapResult((path) => formatRange(path, params.range));
   }
 }

@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_folding.dart';
-import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
@@ -100,12 +99,7 @@ void sendAnalysisNotificationFolding(AnalysisServer server, String file,
 void sendAnalysisNotificationHighlights(
     AnalysisServer server, String file, CompilationUnit dartUnit) {
   _sendNotification(server, () {
-    List<protocol.HighlightRegion> regions;
-    if (server.options.useAnalysisHighlight2) {
-      regions = DartUnitHighlightsComputer2(dartUnit).compute();
-    } else {
-      regions = DartUnitHighlightsComputer(dartUnit).compute();
-    }
+    var regions = DartUnitHighlightsComputer2(dartUnit).compute();
     var params = protocol.AnalysisHighlightsParams(file, regions);
     server.sendNotification(params.toNotification());
   });

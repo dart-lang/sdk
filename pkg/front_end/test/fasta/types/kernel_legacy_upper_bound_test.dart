@@ -12,6 +12,9 @@ class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
   ClassHierarchy hierarchy;
 
   @override
+  bool get isNonNullableByDefault => true;
+
+  @override
   Future<void> parseComponent(String source) {
     super.parseComponent(source);
     hierarchy = new ClassHierarchy(env.component, env.coreTypes);

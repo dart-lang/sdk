@@ -66,13 +66,14 @@ class Test {
 }
 
 main() {
-  Env env = new Env('');
+  Env env = new Env('', isNonNullableByDefault: true);
   ClassHierarchy classHierarchy =
       new ClassHierarchy(env.component, env.coreTypes);
   TypeEnvironment typeEnvironment =
       new TypeEnvironment(env.coreTypes, classHierarchy);
   data.forEach((Test test) {
-    env.withTypeParameters(test.typeParameters, () {
+    env.withTypeParameters(test.typeParameters,
+        (List<TypeParameter> typeParameterNodes) {
       String input = test.input;
       String output = test.output;
       DartType inputType = env.parseType(input);
