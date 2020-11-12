@@ -187,6 +187,7 @@ step_through_setter_test: SkipByDesign
 step_through_switch_test: SkipByDesign
 step_through_switch_with_continue_test: SkipByDesign
 valid_source_locations_test: Skip, Timeout
+validate_timer_port_behavior_test: SkipByDesign, Timeout # Debugger disabled in AOT
 vm_timeline_flags_test: Skip, Timeout
 weak_properties_test: CompileTimeError
 yield_positions_with_finally_test: SkipByDesign
