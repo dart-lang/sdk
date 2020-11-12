@@ -421,20 +421,7 @@ namespace dart {
   V(DartApiDLMinorVersion, 0)                                                  \
   V(DartNativeApiFunctionPointer, 1)                                           \
   V(TransferableTypedData_factory, 2)                                          \
-  V(TransferableTypedData_materialize, 1)                                      \
-  V(Wasm_initModule, 2)                                                        \
-  V(Wasm_describeModule, 1)                                                    \
-  V(Wasm_initImports, 1)                                                       \
-  V(Wasm_addMemoryImport, 4)                                                   \
-  V(Wasm_addGlobalImport, 6)                                                   \
-  V(Wasm_addFunctionImport, 5)                                                 \
-  V(Wasm_initMemory, 3)                                                        \
-  V(Wasm_growMemory, 2)                                                        \
-  V(Wasm_initInstance, 3)                                                      \
-  V(Wasm_initMemoryFromInstance, 2)                                            \
-  V(Wasm_getMemoryPages, 1)                                                    \
-  V(Wasm_initFunction, 4)                                                      \
-  V(Wasm_callFunction, 2)
+  V(TransferableTypedData_materialize, 1)
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \

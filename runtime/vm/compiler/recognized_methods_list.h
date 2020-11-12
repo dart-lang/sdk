@@ -89,8 +89,8 @@ namespace dart {
   V(_Double, _div, DoubleDiv, 0x813d6a94)                                      \
   V(::, min, MathMin, 0xe6a2f504)                                              \
   V(::, max, MathMax, 0x4cfa6f6b)                                              \
-  V(::, _doublePow, MathDoublePow, 0x973546e3)                                 \
-  V(::, _intPow, MathIntPow, 0x5449a6fb)                                       \
+  V(::, _doublePow, MathDoublePow, 0x9772a8c1)                                 \
+  V(::, _intPow, MathIntPow, 0x65762a89)                                       \
   V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0x4ddbf1d0)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 0x730d827d)                      \
   V(Float32x4, _Float32x4Splat, Float32x4Splat, 0x36ae87e8)                    \
@@ -158,7 +158,7 @@ namespace dart {
   V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 0x5371ef57)         \
   V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 0xd55a64df)   \
   V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 0x5570ec5b)   \
-  V(::, _classRangeCheck, ClassRangeCheck, 0x44ba948a)                         \
+  V(::, _classRangeCheck, ClassRangeCheck, 0x5ee76871)                         \
   V(::, _asyncStackTraceHelper, AsyncStackTraceHelper, 0x92cea920)             \
   V(::, _abi, FfiAbi, 0x00a48dda)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x4ea3f661)                \
@@ -190,7 +190,7 @@ namespace dart {
   V(::, _fromAddress, FfiFromAddress, 0xab4ae553)                              \
   V(Pointer, get:address, FfiGetAddress, 0x012b2b9f)                           \
   V(::, reachabilityFence, ReachabilityFence, 0xad39d0a6)                      \
-  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x78f44c3c)                          \
+  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x288d0078)                          \
   V(_Future, timeout, FutureTimeout, 0xdea67258)                               \
   V(Future, wait, FutureWait, 0x6c0c3295)                                      \
 
@@ -284,7 +284,7 @@ namespace dart {
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
   V(::, sqrt, MathSqrt, 0x98d7cb39)                                            \
-  V(_Random, _nextState, Random_nextState, 0x3077323d)                         \
+  V(_Random, _nextState, Random_nextState, 0x2c1cf0e2)                         \
 
 #define GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                       \
   V(::, sin, MathSin, 0x859e6680)                                              \

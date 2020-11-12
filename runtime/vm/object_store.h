@@ -28,8 +28,7 @@ class ObjectPointerVisitor;
   M(Math, math)                                                                \
   M(Mirrors, mirrors)                                                          \
   M(TypedData, typed_data)                                                     \
-  M(VMService, _vmservice)                                                     \
-  M(Wasm, wasm)
+  M(VMService, _vmservice)
 
 // TODO(liama): Once NNBD is enabled, *_type will be deleted and all uses will
 // be replaced with *_type_non_nullable. Later, once we drop support for opted
@@ -151,7 +150,6 @@ class ObjectPointerVisitor;
   RW(Library, root_library)                                                    \
   RW(Library, typed_data_library)                                              \
   RW(Library, _vmservice_library)                                              \
-  RW(Library, wasm_library)                                                    \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
   RW(Array, loading_units)                                                     \
