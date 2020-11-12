@@ -348,6 +348,49 @@ transforms:
     expect(parameter.index, 2);
   }
 
+  void test_addTypeParameter_fromPositionalArgument_variableInOuterScope() {
+    parse('''
+version: 1
+transforms:
+- title: 'Add'
+  date: 2020-09-03
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'T'
+      extends:
+        expression: 'Object'
+      argumentValue:
+        expression: '{% t %}'
+  variables:
+    t:
+      kind: 'fragment'
+      value: 'arguments[2]'
+''');
+    var transforms = _transforms('A');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    expect(transform.changes, hasLength(1));
+    var change = transform.changes[0] as AddTypeParameter;
+    expect(change.index, 0);
+    expect(change.name, 'T');
+
+    var extendsComponents = change.extendedType.components;
+    expect(extendsComponents, hasLength(1));
+    expect((extendsComponents[0] as TemplateText).text, 'Object');
+
+    var argumentComponents = change.argumentValue.components;
+    expect(argumentComponents, hasLength(1));
+    var value = _accessor(argumentComponents[0]) as ArgumentAccessor;
+    var parameter = value.parameter as PositionalParameterReference;
+    expect(parameter.index, 2);
+  }
+
   void test_bulkApply() {
     parse('''
 version: 1

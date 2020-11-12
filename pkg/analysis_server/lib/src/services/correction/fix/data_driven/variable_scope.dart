@@ -6,6 +6,9 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/value_ge
 
 /// A scope in which the generators associated with variables can be looked up.
 class VariableScope {
+  /// An empty variable scope.
+  static final empty = VariableScope(null, {});
+
   /// The outer scope in which this scope is nested.
   final VariableScope outerScope;
 
