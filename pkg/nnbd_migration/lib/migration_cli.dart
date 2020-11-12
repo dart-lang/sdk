@@ -878,35 +878,41 @@ Exception details:
     for (AnalysisError error in analysisResult.errors) {
       renderer.render(error);
     }
-
     logger.stdout('');
-    logger.stdout('Note: analysis errors will result in erroneous migration '
-        'suggestions.');
-
     _hasAnalysisErrors = true;
+
     if (options.ignoreErrors) {
+      logger.stdout('Note: analysis errors will result in erroneous migration '
+          'suggestions.');
       logger.stdout('Continuing with migration suggestions due to the use of '
           '--${CommandLineOptions.ignoreErrorsFlag}.');
     } else {
       // Fail with how to continue.
+      logger.stdout("The migration tool didn't start, due to analysis errors.");
       logger.stdout('');
       if (analysisResult.hasImportErrors) {
-        logger
-            .stdout('Unresolved URIs found.  Did you forget to run "pub get"?');
-        logger.stdout('');
-      }
-      if (analysisResult.allSourcesAlreadyMigrated) {
         logger.stdout('''
-All files appear to have null safety already enabled.  Did you update the
-language version prior to running "dart migrate"?  If so, you need to un-do this
-(and re-run "pub get") prior to performing the migration.
+The following steps might fix your problem:
+1. Run `dart pub get`.
+2. Try running `dart migrate` again.
 ''');
-        logger.stdout('');
+      } else if (analysisResult.allSourcesAlreadyMigrated) {
+        logger.stdout('''
+The following steps might fix your problem:
+1. Set the lower SDK constraint (in pubspec.yaml) to a version before 2.12.
+2. Run `dart pub get`.
+3. Try running `dart migrate` again.
+''');
+      } else {
+        const ignoreErrors = CommandLineOptions.ignoreErrorsFlag;
+        logger.stdout('''
+We recommend fixing the analysis issues before running `dart migrate`.
+Alternatively, you can run `dart migrate --$ignoreErrors`, but you might
+get erroneous migration suggestions.
+''');
       }
       logger.stdout(
-          'Please fix the analysis issues (or, force generation of migration '
-          'suggestions by re-running with '
-          '--${CommandLineOptions.ignoreErrorsFlag}).');
+          'More information: https://dart.dev/go/null-safety-migration');
     }
   }
 
