@@ -27,7 +27,7 @@ abstract class AbstractCodeFragmentParserTest {
   List<Accessor> assertErrors(
       String content, List<ExpectedError> expectedErrors) {
     var errorListener = GatheringErrorListener();
-    var accessors = _parser(errorListener).parse(content, 0);
+    var accessors = _parser(errorListener).parseAccessors(content, 0);
     errorListener.assertErrors(expectedErrors);
     return accessors;
   }
@@ -43,7 +43,7 @@ abstract class AbstractCodeFragmentParserTest {
 
   List<Accessor> assertNoErrors(String content) {
     var errorListener = GatheringErrorListener();
-    var accessors = _parser(errorListener).parse(content, 0);
+    var accessors = _parser(errorListener).parseAccessors(content, 0);
     errorListener.assertNoErrors();
     return accessors;
   }

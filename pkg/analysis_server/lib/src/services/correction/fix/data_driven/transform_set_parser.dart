@@ -451,7 +451,7 @@ class TransformSetParser {
       return null;
     }
     var accessors = CodeFragmentParser(errorReporter)
-        .parse(value, _offsetOfString(valueNode));
+        .parseAccessors(value, _offsetOfString(valueNode));
     if (accessors == null) {
       // The error has already been reported.
       return null;
