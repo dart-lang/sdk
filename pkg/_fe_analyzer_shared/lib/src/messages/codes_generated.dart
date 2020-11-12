@@ -8714,13 +8714,12 @@ const Template<
             _names)> templateStrongModeNNBDPackageOptOut = const Template<
         Message Function(List<String> _names)>(
     messageTemplate:
-        r"""This project cannot run with sound null safety, because one or more project dependencies do not
-support null safety:
+        r"""Cannot run with sound null safety, because the following dependencies
+don't support null safety:
 
 #names
 
-Run 'pub outdated --mode=null-safety' to determine if versions of your
-dependencies supporting null safety are available.""",
+For solutions, see https://dart.dev/go/unsound-null-safety""",
     withArguments: _withArgumentsStrongModeNNBDPackageOptOut);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8737,13 +8736,12 @@ Message _withArgumentsStrongModeNNBDPackageOptOut(List<String> _names) {
   String names = itemizeNames(_names);
   return new Message(codeStrongModeNNBDPackageOptOut,
       message:
-          """This project cannot run with sound null safety, because one or more project dependencies do not
-support null safety:
+          """Cannot run with sound null safety, because the following dependencies
+don't support null safety:
 
 ${names}
 
-Run 'pub outdated --mode=null-safety' to determine if versions of your
-dependencies supporting null safety are available.""",
+For solutions, see https://dart.dev/go/unsound-null-safety""",
       arguments: {'names': _names});
 }
 
