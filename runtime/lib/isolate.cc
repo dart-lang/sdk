@@ -352,6 +352,13 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return;
     }
 
+    if (isolate->object_store()->root_library() == Library::null()) {
+      Dart_ShutdownIsolate();
+      FailedSpawn(
+          "The embedder has to ensure there is a root library (e.g. by calling "
+          "Dart_LoadScriptFromKernel).");
+    }
+
     Run(isolate);
   }
 
@@ -401,15 +408,19 @@ class SpawnIsolateTask : public ThreadPool::Task {
     state_->set_isolate(child);
 
     MutexLocker ml(child->mutex());
+
+    // We called out to the embedder to create/initialize a new isolate. The
+    // embedder callback sucessfully did so. It is now our responsibility to
+    // run the isolate.
+    // If the isolate was not marked as runnable, we'll do so here and run it
+    if (!child->is_runnable()) {
+      child->MakeRunnableLocked();
+    }
+    ASSERT(child->is_runnable());
+
     child->set_origin_id(state_->origin_id());
     child->set_spawn_state(std::move(state_));
-
-    // If the isolate is not marked as runnable, then the embedder might do so
-    // later on and the launch of the isolate will happen inside
-    // `Dart_IsolateMakeRunnable`.
-    if (child->is_runnable()) {
-      child->Run();
-    }
+    child->Run();
   }
 
   void FailedSpawn(const char* error) {

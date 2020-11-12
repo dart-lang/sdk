@@ -245,12 +245,8 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     if (Dart_IsError(result)) goto failed;
   }
 
-  // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
-  Dart_ExitIsolate();
-  *error = Dart_IsolateMakeRunnable(isolate);
-  Dart_EnterIsolate(isolate);
-  return *error == nullptr;
+  return true;
 
 failed:
   *error = Utils::StrDup(Dart_GetError(result));

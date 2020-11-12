@@ -2055,9 +2055,26 @@ const char* Isolate::MakeRunnable() {
   if (is_runnable() == true) {
     return "Isolate is already runnable";
   }
+  if (spawn_state() != nullptr) {
+    return "The embedder has to make the isolate runnable during isolate "
+           "creation / initialization callback.";
+  }
+  if (object_store()->root_library() == Library::null()) {
+    return "The embedder has to ensure there is a root library (e.g. by "
+           "calling Dart_LoadScriptFromKernel ).";
+  }
+  MakeRunnableLocked();
+  return nullptr;
+}
+
+void Isolate::MakeRunnableLocked() {
+  ASSERT(mutex_.IsOwnedByCurrentThread());
+  ASSERT(!is_runnable());
+  ASSERT(spawn_state() == nullptr);
+  ASSERT(object_store()->root_library() != Library::null());
+
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
-  ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
 #ifndef PRODUCT
   if (!Isolate::IsSystemIsolate(this)) {
@@ -2066,16 +2083,6 @@ const char* Isolate::MakeRunnable() {
     }
   }
 #endif  // !PRODUCT
-  IsolateSpawnState* state = spawn_state();
-  if (state != nullptr) {
-    // If the embedder does not make the isolate runnable during the
-    // `create_isolate_group`/`initialize_isolate` embedder callbacks but rather
-    // some time in the future, we'll hit this case.
-    // WARNING: This is currently untested - we might consider changing our APIs
-    // to disallow two different flows.
-    ASSERT(this == state->isolate());
-    Run();
-  }
 #if defined(SUPPORT_TIMELINE)
   TimelineStream* stream = Timeline::GetIsolateStream();
   ASSERT(stream != nullptr);
@@ -2092,7 +2099,6 @@ const char* Isolate::MakeRunnable() {
   }
   GetRunnableLatencyMetric()->set_value(UptimeMicros());
 #endif  // !PRODUCT
-  return nullptr;
 }
 
 bool Isolate::VerifyPauseCapability(const Object& capability) const {

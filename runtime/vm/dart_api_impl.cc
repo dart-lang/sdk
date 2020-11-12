@@ -2001,18 +2001,11 @@ DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
     FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(16615): Validate isolate parameter.
-  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  const char* error;
-  if (iso->object_store()->root_library() == Library::null()) {
-    // The embedder should have called Dart_LoadScriptFromKernel by now.
-    error = "Missing root library";
-  } else {
-    error = iso->MakeRunnable();
-  }
-  if (error != NULL) {
+  const char* error = reinterpret_cast<Isolate*>(isolate)->MakeRunnable();
+  if (error != nullptr) {
     return Utils::StrDup(error);
   }
-  return NULL;
+  return nullptr;
 }
 
 // --- Messages and Ports ---

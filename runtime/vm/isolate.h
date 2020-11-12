@@ -923,6 +923,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void ScheduleInterrupts(uword interrupt_bits);
 
   const char* MakeRunnable();
+  void MakeRunnableLocked();
   void Run();
 
   MessageHandler* message_handler() const { return message_handler_; }
