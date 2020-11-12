@@ -415,14 +415,12 @@ sky_engine:lib/''');
     expect(callbacks.currentContextRoots, contains(projPath));
     var projSources = callbacks.currentFileSources(projPath);
     expect(projSources, hasLength(1));
-    expect(projSources.first.uri.toString(),
-        (Uri.file(join(libPath, 'main.dart')).toString()));
+    expect(projSources.first.uri, toUri('$libPath/main.dart'));
 
     expect(callbacks.currentContextRoots, contains(examplePath));
     var exampleSources = callbacks.currentFileSources(examplePath);
     expect(exampleSources, hasLength(1));
-    expect(exampleSources.first.uri.toString(),
-        (Uri.file(join(examplePath, 'example.dart')).toString()));
+    expect(exampleSources.first.uri, toUri('$examplePath/example.dart'));
   }
 
   void test_setRoots_addFolderWithNestedPubspec() {
@@ -449,8 +447,7 @@ sky_engine:lib/''');
     expect(callbacks.currentContextRoots, contains(examplePath));
     var exampleSources = callbacks.currentFileSources(examplePath);
     expect(exampleSources, hasLength(1));
-    expect(exampleSources.first.uri.toString(),
-        (Uri.file('$examplePath/example.dart').toString()));
+    expect(exampleSources.first.uri, toUri('$examplePath/example.dart'));
   }
 
   void test_setRoots_addFolderWithoutPubspec() {
@@ -521,10 +518,10 @@ sky_engine:lib/''');
     expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
     expect(sources, hasLength(4));
     var uris = sources.map((Source source) => source.uri.toString()).toList();
-    expect(uris, contains((Uri.file(appPath)).toString()));
+    expect(uris, contains(toUriStr(appPath)));
     expect(uris, contains('package:proj/main.dart'));
     expect(uris, contains('package:proj/src/internal.dart'));
-    expect(uris, contains((Uri.file(testFilePath)).toString()));
+    expect(uris, contains(toUriStr(testFilePath)));
   }
 
   void test_setRoots_addFolderWithPubspecAndPackagespecFolders() {
@@ -1495,8 +1492,8 @@ sky_engine:lib/''');
     var packageConfigPath = '$projPath/.dart_tool/package_config.json';
     var filePath = convertPath('$projPath/bin/main.dart');
 
-    resourceProvider.newFile(packageConfigPath, '');
-    resourceProvider.newFile(filePath, 'library main;');
+    newFile(packageConfigPath, content: '');
+    newFile(filePath, content: 'library main;');
 
     manager.setRoots(<String>[projPath], <String>[]);
 
@@ -1507,7 +1504,7 @@ sky_engine:lib/''');
 
     // update .dart_tool/package_config.json
     callbacks.now++;
-    resourceProvider.modifyFile(
+    modifyFile(
       packageConfigPath,
       (PackageConfigFileBuilder()..add(name: 'my', rootPath: '../'))
           .toContent(toUriStr: toUriStr),
