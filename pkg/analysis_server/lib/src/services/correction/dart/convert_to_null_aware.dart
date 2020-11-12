@@ -86,7 +86,7 @@ class ConvertToNullAware extends CorrectionProducer {
       } else {
         return;
       }
-      if (operator.type != TokenType.PERIOD) {
+      if (operator == null || operator.type != TokenType.PERIOD) {
         return;
       }
       if (!(target is SimpleIdentifier &&
