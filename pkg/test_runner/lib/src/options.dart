@@ -164,6 +164,8 @@ simarm, simarmv6, simarm64, arm_x64''',
 test options, specifying how tests should be run.''',
         abbr: 'n',
         hide: true),
+    _Option.bool(
+        'build', 'Build the necessary targets to test this configuration'),
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
     // matrix.
     _Option.bool('host_checked', 'Run compiler with assertions enabled.',
@@ -355,6 +357,7 @@ compiler.''',
   /// For printing out reproducing command lines, we don't want to add these
   /// options.
   static final _denylistedOptions = {
+    'build',
     'build_directory',
     'chrome',
     'clean_exit',
@@ -749,6 +752,7 @@ compiler.''',
           configuration: innerConfiguration,
           progress: progress,
           selectors: selectors,
+          build: data["build"] as bool,
           testList: data["test_list_contents"] as List<String>,
           repeat: data["repeat"] as int,
           batch: !(data["noBatch"] as bool),
