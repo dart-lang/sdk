@@ -11,6 +11,7 @@ pause_on_exceptions_test: Pass, RuntimeError # Issue 33049
 pause_on_start_and_exit_with_child_test: Pass, RuntimeError # Issue 33049
 reload_sources_test: Pass, Slow # Reload is slow on the bots
 valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
+validate_timer_port_behavior_test: Skip  # Issue 44166
 
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
