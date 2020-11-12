@@ -749,7 +749,15 @@ class KernelTarget extends TargetImplementation {
 
     Class cls = classBuilder.cls;
     Constructor constructor = memberBuilder.member;
-    bool isConst = constructor.isConst && mixin.fields.isEmpty;
+    bool isConst = constructor.isConst;
+    if (isConst && mixin.fields.isNotEmpty) {
+      for (Field field in mixin.fields) {
+        if (!field.isStatic) {
+          isConst = false;
+          break;
+        }
+      }
+    }
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     List<Expression> positional = <Expression>[];
