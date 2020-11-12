@@ -496,7 +496,7 @@ class MigrationCliOption {
 ///
 /// This class may be used directly by clients that with to run migration but
 /// provide their own command-line interface.
-class MigrationCliRunner {
+class MigrationCliRunner implements DartFixListenerClient {
   final MigrationCli cli;
 
   /// Logger instance we use to give feedback to the user.
@@ -613,6 +613,50 @@ class MigrationCliRunner {
         sdkPath: sdkPath);
   }
 
+  @override
+  void onException(String detail) {
+    if (_hasExceptions) return;
+    _hasExceptions = true;
+    if (options.ignoreExceptions) {
+      logger.stdout('''
+Exception(s) occurred during migration.  Attempting to perform
+migration anyway due to the use of --${CommandLineOptions.ignoreExceptionsFlag}.
+
+To see exception details, re-run without --${CommandLineOptions.ignoreExceptionsFlag}.
+''');
+    } else {
+      if (_hasAnalysisErrors) {
+        logger.stderr('''
+Aborting migration due to an exception.  This may be due to a bug in
+the migration tool, or it may be due to errors in the source code
+being migrated.  If possible, try to fix errors in the source code and
+re-try migrating.  If that doesn't work, consider filing a bug report
+at:
+''');
+      } else {
+        logger.stderr('''
+Aborting migration due to an exception.  This most likely is due to a
+bug in the migration tool.  Please consider filing a bug report at:
+''');
+      }
+      logger.stderr('https://github.com/dart-lang/sdk/issues/new');
+      logger.stderr('''
+To attempt to perform migration anyway, you may re-run with
+--${CommandLineOptions.ignoreExceptionsFlag}.
+
+Exception details:
+''');
+      logger.stderr(detail);
+      throw MigrationExit(1);
+    }
+  }
+
+  @override
+  void onFatalError(String detail) {
+    logger.stderr(detail);
+    throw MigrationExit(1);
+  }
+
   /// Runs the full migration process.
   ///
   /// If something goes wrong, a message is printed using the logger configured
@@ -636,10 +680,8 @@ class MigrationCliRunner {
 
     logger.stdout(ansi.emphasized('Analyzing project...'));
     _fixCodeProcessor = _FixCodeProcessor(context, this);
-    _dartFixListener = DartFixListener(
-        DriverProviderImpl(resourceProvider, context),
-        _exceptionReported,
-        _fatalErrorReported);
+    _dartFixListener =
+        DartFixListener(DriverProviderImpl(resourceProvider, context), this);
     nonNullableFix = createNonNullableFix(_dartFixListener, resourceProvider,
         _fixCodeProcessor.getLineInfo, computeBindAddress(),
         included: [options.directory],
@@ -805,48 +847,6 @@ When finished with the preview, hit ctrl-c to terminate this process.
         }
       }
     }
-  }
-
-  void _exceptionReported(String detail) {
-    if (_hasExceptions) return;
-    _hasExceptions = true;
-    if (options.ignoreExceptions) {
-      logger.stdout('''
-Exception(s) occurred during migration.  Attempting to perform
-migration anyway due to the use of --${CommandLineOptions.ignoreExceptionsFlag}.
-
-To see exception details, re-run without --${CommandLineOptions.ignoreExceptionsFlag}.
-''');
-    } else {
-      if (_hasAnalysisErrors) {
-        logger.stderr('''
-Aborting migration due to an exception.  This may be due to a bug in
-the migration tool, or it may be due to errors in the source code
-being migrated.  If possible, try to fix errors in the source code and
-re-try migrating.  If that doesn't work, consider filing a bug report
-at:
-''');
-      } else {
-        logger.stderr('''
-Aborting migration due to an exception.  This most likely is due to a
-bug in the migration tool.  Please consider filing a bug report at:
-''');
-      }
-      logger.stderr('https://github.com/dart-lang/sdk/issues/new');
-      logger.stderr('''
-To attempt to perform migration anyway, you may re-run with
---${CommandLineOptions.ignoreExceptionsFlag}.
-
-Exception details:
-''');
-      logger.stderr(detail);
-      throw MigrationExit(1);
-    }
-  }
-
-  void _fatalErrorReported(String detail) {
-    logger.stderr(detail);
-    throw MigrationExit(1);
   }
 
   void _logErrors(AnalysisResult analysisResult) {

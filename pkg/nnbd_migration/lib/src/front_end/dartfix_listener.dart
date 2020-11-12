@@ -15,14 +15,9 @@ class DartFixListener {
 
   final List<DartFixSuggestion> suggestions = [];
 
-  /// Add the given [detail] to the list of details to be returned to the
-  /// client.
-  final void Function(String detail) reportException;
+  final DartFixListenerClient client;
 
-  /// Callback that reports a fatal error to the client.
-  final void Function(String detail) reportFatalError;
-
-  DartFixListener(this.server, this.reportException, this.reportFatalError);
+  DartFixListener(this.server, this.client);
 
   /// Record an edit to be sent to the client.
   ///
@@ -58,6 +53,15 @@ class DartFixListener {
       ..selection = null
       ..id = null;
   }
+}
+
+abstract class DartFixListenerClient {
+  /// Add the given [detail] to the list of details to be returned to the
+  /// client.
+  void onException(String detail);
+
+  /// Callback that reports a fatal error to the client.
+  void onFatalError(String detail);
 }
 
 class DartFixSuggestion {

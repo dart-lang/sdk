@@ -17,8 +17,20 @@ import 'package:nnbd_migration/src/front_end/offset_mapper.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_abstract.dart';
 import '../utilities/test_logger.dart';
+import 'analysis_abstract.dart';
+
+class ListenerClient implements DartFixListenerClient {
+  @override
+  void onException(String detail) {
+    fail('Unexpected call to onException($detail)');
+  }
+
+  @override
+  void onFatalError(String detail) {
+    fail('Unexpected call to onFatalError($detail)');
+  }
+}
 
 @reflectiveTest
 class NnbdMigrationTestBase extends AbstractAnalysisTest {
@@ -201,8 +213,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     // Compute the analysis results.
     var server = DriverProviderImpl(resourceProvider, driver.analysisContext);
     // Run the migration engine.
-    var listener =
-        DartFixListener(server, _exceptionReported, _exceptionReported);
+    var listener = DartFixListener(server, ListenerClient());
     var instrumentationListener = InstrumentationListener();
     var adapter = NullabilityMigrationAdapter(listener);
     var migration = NullabilityMigration(adapter, getLineInfo,
@@ -230,9 +241,5 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     var builder = InfoBuilder(resourceProvider, includedRoot, info, listener,
         migration, nodeMapper, logger);
     infos = await builder.explainMigration();
-  }
-
-  void _exceptionReported(String detail) {
-    fail('Unexpected error during migration: $detail');
   }
 }

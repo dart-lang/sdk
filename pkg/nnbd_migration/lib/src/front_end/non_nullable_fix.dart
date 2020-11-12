@@ -330,7 +330,7 @@ environment:
   }
 
   void _processPubspecException(String action, String pubspecPath, error) {
-    listener.reportFatalError('''Failed to $action pubspec file
+    listener.client.onFatalError('''Failed to $action pubspec file
   $pubspecPath
   $error
 
@@ -449,7 +449,7 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   @override
   void reportException(
       Source source, AstNode node, Object exception, StackTrace stackTrace) {
-    listener.reportException('''
+    listener.client.onException('''
 $exception
 
 $stackTrace''');
