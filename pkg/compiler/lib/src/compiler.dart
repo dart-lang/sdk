@@ -142,7 +142,7 @@ abstract class Compiler {
     abstractValueStrategy = options.useTrivialAbstractValueDomain
         ? const TrivialAbstractValueStrategy()
         : const TypeMaskStrategy();
-    if (options.experimentalWrapped) {
+    if (options.experimentalWrapped || options.testMode) {
       abstractValueStrategy =
           WrappedAbstractValueStrategy(abstractValueStrategy);
     } else if (options.experimentalPowersets) {
