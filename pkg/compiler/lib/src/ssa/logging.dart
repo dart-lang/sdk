@@ -114,6 +114,10 @@ class OptimizationTestLog {
     _registerSpecializer(original, converted, 'Index');
   }
 
+  void registerRemoveLast(HInvokeDynamic original, HInvokeDynamic converted) {
+    _registerSpecializer(original, converted, 'RemoveLast');
+  }
+
   void registerBitNot(HInvokeDynamic original, HBitNot converted) {
     _registerSpecializer(original, converted, 'BitNot');
   }

@@ -1389,6 +1389,15 @@ abstract class HInstruction implements Spannable {
   String toString() => '${this.runtimeType}()';
 }
 
+/// An interface implemented by certain kinds of [HInstruction]. This makes it
+/// possible to discover which annotations were in force in the code from which
+/// the instruction originated.
+// TODO(sra): It would be easier to use a mostly-shared Map-like structure that
+// surfaces the ambient annotations at any point in the code.
+abstract class InstructionContext {
+  MemberEntity instructionContext;
+}
+
 /// The set of uses of [source] that are dominated by [dominator].
 class DominatedUses {
   final HInstruction _source;
@@ -1702,7 +1711,7 @@ abstract class HInvoke extends HInstruction {
   }
 }
 
-abstract class HInvokeDynamic extends HInvoke {
+abstract class HInvokeDynamic extends HInvoke implements InstructionContext {
   final InvokeDynamicSpecializer specializer;
 
   Selector _selector;
@@ -1727,6 +1736,9 @@ abstract class HInvokeDynamic extends HInvoke {
   // needs defaulted arguments, is `noSuchMethod` (legacy), or is a call-through
   // stub.
   MemberEntity element;
+
+  @override
+  MemberEntity instructionContext;
 
   HInvokeDynamic(Selector selector, this._receiverType, this.element,
       List<HInstruction> inputs, bool isIntercepted, AbstractValue resultType)
