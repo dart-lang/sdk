@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -153,6 +155,9 @@ A f() => A();
     // The test case currently drops the 'new' but does not convert the code to
     // use a set literal. The code is no longer mangled, but we need to run the
     // BulkFixProcessor iteratively to solve the second case.
+    if (Platform.isWindows) {
+      fail('Should not be passing on Windows, but it does');
+    }
     addAnalysisOptionsFile('''
 linter:
   rules:
