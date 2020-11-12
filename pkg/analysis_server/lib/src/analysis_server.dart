@@ -15,7 +15,6 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -601,8 +600,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 
 /// Various IDE options.
 class AnalysisServerOptions {
-  bool useAnalysisHighlight2 = false;
-
   String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
 
@@ -829,11 +826,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
-    if (analysisServer.options.useAnalysisHighlight2) {
-      return DartUnitHighlightsComputer2(unit).compute();
-    } else {
-      return DartUnitHighlightsComputer(unit).compute();
-    }
+    return DartUnitHighlightsComputer2(unit).compute();
   }
 
   server.AnalysisNavigationParams _computeNavigationParams(

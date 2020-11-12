@@ -13,7 +13,6 @@ import 'get_imported_elements_test.dart' as get_imported_elements_test;
 import 'get_library_dependencies_test.dart' as get_library_dependencies_test;
 import 'get_navigation_test.dart' as get_navigation_test;
 import 'get_reachable_sources_test.dart' as get_reachable_sources_test;
-import 'highlights2_test.dart' as highlights2_test;
 import 'highlights_test.dart' as highlights_test;
 import 'hint_sdk_version_async_exported_from_core_test.dart'
     as hint_sdk_version_async_exported_from_core_test;
@@ -44,7 +43,6 @@ void main() {
     get_imported_elements_test.main();
     get_navigation_test.main();
     get_reachable_sources_test.main();
-    highlights2_test.main();
     highlights_test.main();
     hint_sdk_version_async_exported_from_core_test.main();
     lint_test.main();
