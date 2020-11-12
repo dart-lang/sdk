@@ -745,15 +745,9 @@ int f() => null
         output,
         contains("error • Expected to find ';' at lib${sep}test.dart:1:12 • "
             '(expected_token)'));
-    expect(
-        output,
-        contains(
-            'analysis errors will result in erroneous migration suggestions'));
-    expect(output, contains('Please fix the analysis issues'));
-    expect(
-        output,
-        isNot(
-            contains('All files appear to have null safety already enabled')));
+    expect(output, contains('erroneous migration suggestions'));
+    expect(output, contains('We recommend fixing the analysis issues'));
+    expect(output, isNot(contains('Set the lower SDK constraint')));
   }
 
   test_lifecycle_ignore_errors_enable() async {
@@ -1488,17 +1482,10 @@ int f() => null;
     var output = logger.stdoutBuffer.toString();
     expect(output, contains('1 analysis issue found'));
     expect(output, contains('uri_does_not_exist'));
-    expect(
-        output,
-        contains(
-            'analysis errors will result in erroneous migration suggestions'));
-    expect(output,
-        contains('Unresolved URIs found.  Did you forget to run "pub get"?'));
-    expect(output, contains('Please fix the analysis issues'));
-    expect(
-        output,
-        isNot(
-            contains('All files appear to have null safety already enabled')));
+    expect(output, isNot(contains('erroneous migration suggestions')));
+    expect(output, contains('Run `dart pub get`'));
+    expect(output, contains('Try running `dart migrate` again'));
+    expect(output, isNot(contains('Set the lower SDK constraint')));
   }
 
   test_migrate_path_absolute() {
@@ -1912,9 +1899,7 @@ environment:
         errorOutput,
         contains("A value of type 'Null' can't be returned from function 'f' "
             "because it has a return type of 'int'"));
-    expect(errorOutput, contains('''
-All files appear to have null safety already enabled.  Did you update the
-language version prior to running "dart migrate"?'''));
+    expect(errorOutput, contains('Set the lower SDK constraint'));
   }
 
   String _getHelpText({@required bool verbose}) {
