@@ -1007,6 +1007,37 @@ Dart_CreateIsolateGroup(const char* script_uri,
                         void* isolate_group_data,
                         void* isolate_data,
                         char** error);
+/**
+ * Creates a new isolate inside the isolate group of [group_member].
+ *
+ * Requires there to be no current isolate.
+ *
+ * \param group_member An isolate from the same group into which the newly created
+ *   isolate should be born into. Other threads may not have entered / enter this
+ *   member isolate.
+ * \param name A short name for the isolate for debugging purposes.
+ * \param shutdown_callback A callback to be called when the isolate is being
+ *   shutdown (may be NULL).
+ * \param cleanup_callback A callback to be called when the isolate is being
+ *   cleaned up (may be NULL).
+ * \param isolate_data The embedder-specific data associated with this isolate.
+ * \param error Set to NULL if creation is successful, set to an error
+ *   message otherwise. The caller is responsible for calling free() on the
+ *   error message.
+ *
+ * \return The newly created isolate on success, or NULL if isolate creation
+ *   failed.
+ *
+ * If successful, the newly created isolate will become the current isolate.
+ */
+DART_EXPORT Dart_Isolate
+Dart_CreateIsolateInGroup(Dart_Isolate group_member,
+                          const char* name,
+                          Dart_IsolateShutdownCallback shutdown_callback,
+                          Dart_IsolateCleanupCallback cleanup_callback,
+                          void* child_isolate_data,
+                          char** error);
+
 /* TODO(turnidge): Document behavior when there is already a current
  * isolate. */
 
@@ -1483,6 +1514,31 @@ DART_EXPORT bool Dart_HasServiceMessages();
  *   error handle is returned.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_RunLoop();
+
+/**
+ * Lets the VM run message processing for the isolate.
+ *
+ * This function expects there to a current isolate and the current isolate
+ * must not have an active api scope. The VM will take care of making the
+ * isolate runnable (if not already), handles its message loop and will take
+ * care of shutting the isolate down once it's done.
+ *
+ * \param errors_are_fatal Whether uncaught errors should be fatal.
+ * \param on_error_port A port to notify on uncaught errors (or ILLEGAL_PORT).
+ * \param on_exit_port A port to notify on exit (or ILLEGAL_PORT).
+ * \param error A non-NULL pointer which will hold an error message if the call
+ *   fails. The error has to be free()ed by the caller.
+ *
+ * \return If successfull the VM takes owernship of the isolate and takes care
+ *   of its message loop. If not successful the caller retains owernship of the
+ *   isolate.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT bool Dart_RunLoopAsync(
+    bool errors_are_fatal,
+    Dart_Port on_error_port,
+    Dart_Port on_exit_port,
+    char** error);
+
 /* TODO(turnidge): Should this be removed from the public api? */
 
 /**

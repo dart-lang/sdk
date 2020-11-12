@@ -10,6 +10,7 @@
 #include <csignal>
 
 #include "platform/globals.h"
+#include "platform/memory_sanitizer.h"
 #if defined(HOST_OS_WINDOWS)
 #include <psapi.h>
 #include <windows.h>
@@ -46,6 +47,12 @@ namespace dart {
   }
 
 #define CHECK_EQ(X, Y) CHECK((X) == (Y))
+
+#define ENSURE(X)                                                              \
+  if (!(X)) {                                                                  \
+    fprintf(stderr, "%s:%d: %s\n", __FILE__, __LINE__, "Check failed: " #X);   \
+    exit(1);                                                                   \
+  }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Functions for stress-testing.
@@ -270,6 +277,89 @@ DART_EXPORT intptr_t TestCallbackWrongIsolate(void (*fn)()) {
 }
 
 #endif  // defined(TARGET_OS_LINUX)
+
+DART_EXPORT void IGH_MsanUnpoison(void* start, intptr_t length) {
+  MSAN_UNPOISON(start, length);
+}
+
+DART_EXPORT Dart_Isolate IGH_CreateIsolate(const char* name, void* peer) {
+  struct Helper {
+    static void ShutdownCallback(void* ig_data, void* isolate_data) {
+      char* string = reinterpret_cast<char*>(isolate_data);
+      ENSURE(string[0] == 'a');
+      string[0] = 'x';
+    }
+    static void CleanupCallback(void* ig_data, void* isolate_data) {
+      char* string = reinterpret_cast<char*>(isolate_data);
+      ENSURE(string[2] == 'c');
+      string[2] = 'z';
+    }
+  };
+
+  Dart_Isolate parent = Dart_CurrentIsolate();
+  Dart_ExitIsolate();
+
+  char* error = nullptr;
+  Dart_Isolate child =
+      Dart_CreateIsolateInGroup(parent, name, &Helper::ShutdownCallback,
+                                &Helper::CleanupCallback, peer, &error);
+  if (child == nullptr) {
+    Dart_EnterIsolate(parent);
+    Dart_Handle error_obj = Dart_NewStringFromCString(error);
+    free(error);
+    Dart_ThrowException(error_obj);
+    return nullptr;
+  }
+  Dart_ExitIsolate();
+  Dart_EnterIsolate(parent);
+  return child;
+}
+
+DART_EXPORT void IGH_StartIsolate(Dart_Isolate child_isolate,
+                                  int64_t main_isolate_port,
+                                  const char* library_uri,
+                                  const char* function_name,
+                                  bool errors_are_fatal,
+                                  Dart_Port on_error_port,
+                                  Dart_Port on_exit_port) {
+  Dart_Isolate parent = Dart_CurrentIsolate();
+  Dart_ExitIsolate();
+  Dart_EnterIsolate(child_isolate);
+  {
+    Dart_EnterScope();
+
+    Dart_Handle library_name = Dart_NewStringFromCString(library_uri);
+    ENSURE(!Dart_IsError(library_name));
+
+    Dart_Handle library = Dart_LookupLibrary(library_name);
+    ENSURE(!Dart_IsError(library));
+
+    Dart_Handle fun = Dart_NewStringFromCString(function_name);
+    ENSURE(!Dart_IsError(fun));
+
+    Dart_Handle port = Dart_NewInteger(main_isolate_port);
+    ENSURE(!Dart_IsError(port));
+
+    Dart_Handle args[] = {
+        port,
+    };
+
+    Dart_Handle result = Dart_Invoke(library, fun, 1, args);
+    if (Dart_IsError(result)) {
+      fprintf(stderr, "Failed to invoke %s/%s in child isolate: %s\n",
+              library_uri, function_name, Dart_GetError(result));
+    }
+    ENSURE(!Dart_IsError(result));
+
+    Dart_ExitScope();
+  }
+
+  char* error = nullptr;
+  ENSURE(
+      Dart_RunLoopAsync(errors_are_fatal, on_error_port, on_exit_port, &error));
+
+  Dart_EnterIsolate(parent);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Initialize `dart_api_dl.h`

@@ -18,6 +18,8 @@ import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
 
+export 'configuration.dart' show TestConfiguration;
+
 /// The directories that contain test suites which follow the conventions
 /// required by [StandardTestSuite]'s forDirectory constructor.
 ///
@@ -52,6 +54,7 @@ final testSuiteDirectories = [
   Path('utils/tests/peg'),
 ];
 
+// TODO(26372): Ensure that the returned future awaits on all started tasks.
 Future testConfigurations(List<TestConfiguration> configurations) async {
   var startTime = DateTime.now();
 

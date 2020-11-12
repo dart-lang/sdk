@@ -1644,6 +1644,8 @@ Isolate::Isolate(IsolateGroup* isolate_group,
           reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif  // !defined(PRODUCT)
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      on_shutdown_callback_(Isolate::ShutdownCallback()),
+      on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
       constant_canonicalization_mutex_(
@@ -2048,16 +2050,31 @@ void Isolate::DeleteReloadContext() {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Isolate::MakeRunnable() {
-  ASSERT(Isolate::Current() == nullptr);
-
   MutexLocker ml(&mutex_);
   // Check if we are in a valid state to make the isolate runnable.
   if (is_runnable() == true) {
     return "Isolate is already runnable";
   }
+  if (spawn_state() != nullptr) {
+    return "The embedder has to make the isolate runnable during isolate "
+           "creation / initialization callback.";
+  }
+  if (object_store()->root_library() == Library::null()) {
+    return "The embedder has to ensure there is a root library (e.g. by "
+           "calling Dart_LoadScriptFromKernel ).";
+  }
+  MakeRunnableLocked();
+  return nullptr;
+}
+
+void Isolate::MakeRunnableLocked() {
+  ASSERT(mutex_.IsOwnedByCurrentThread());
+  ASSERT(!is_runnable());
+  ASSERT(spawn_state() == nullptr);
+  ASSERT(object_store()->root_library() != Library::null());
+
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
-  ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
 #ifndef PRODUCT
   if (!Isolate::IsSystemIsolate(this)) {
@@ -2066,16 +2083,6 @@ const char* Isolate::MakeRunnable() {
     }
   }
 #endif  // !PRODUCT
-  IsolateSpawnState* state = spawn_state();
-  if (state != nullptr) {
-    // If the embedder does not make the isolate runnable during the
-    // `create_isolate_group`/`initialize_isolate` embedder callbacks but rather
-    // some time in the future, we'll hit this case.
-    // WARNING: This is currently untested - we might consider changing our APIs
-    // to disallow two different flows.
-    ASSERT(this == state->isolate());
-    Run();
-  }
 #if defined(SUPPORT_TIMELINE)
   TimelineStream* stream = Timeline::GetIsolateStream();
   ASSERT(stream != nullptr);
@@ -2092,7 +2099,6 @@ const char* Isolate::MakeRunnable() {
   }
   GetRunnableLatencyMetric()->set_value(UptimeMicros());
 #endif  // !PRODUCT
-  return nullptr;
 }
 
 bool Isolate::VerifyPauseCapability(const Object& capability) const {
@@ -2411,8 +2417,15 @@ void Isolate::SetStickyError(ErrorPtr sticky_error) {
   sticky_error_ = sticky_error;
 }
 
-void Isolate::Run() {
+void Isolate::RunViaSpawnApi() {
+  ASSERT(spawn_state() != nullptr);
   message_handler()->Run(group()->thread_pool(), RunIsolate, ShutdownIsolate,
+                         reinterpret_cast<uword>(this));
+}
+
+void Isolate::RunViaEmbedder() {
+  ASSERT(spawn_state() == nullptr);
+  message_handler()->Run(group()->thread_pool(), nullptr, ShutdownIsolate,
                          reinterpret_cast<uword>(this));
 }
 
@@ -2628,7 +2641,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // Cache these two fields, since they are no longer available after the
   // `delete this` further down.
   IsolateGroup* isolate_group = isolate->isolate_group_;
-  Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
+  Dart_IsolateCleanupCallback cleanup = isolate->on_cleanup_callback();
   auto callback_data = isolate->init_callback_data_;
 
   // From this point on the isolate is no longer visited by GC (which is ok,
