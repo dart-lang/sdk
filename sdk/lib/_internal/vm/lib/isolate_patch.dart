@@ -391,7 +391,8 @@ class Isolate {
     }
 
     const bool newIsolateGroup = false;
-    final RawReceivePort readyPort = new RawReceivePort();
+    final RawReceivePort readyPort =
+        new RawReceivePort(null, 'Isolate.spawn ready');
     try {
       spawnFunction(
           readyPort.sendPort,
@@ -468,7 +469,8 @@ class Isolate {
     // The VM will invoke [_startIsolate] and not `main`.
     final packageConfigString = packageConfig?.toString();
 
-    final RawReceivePort readyPort = new RawReceivePort();
+    final RawReceivePort readyPort =
+        new RawReceivePort(null, 'Isolate.spawnUri ready');
     try {
       _spawnUri(
           readyPort.sendPort,

@@ -452,7 +452,7 @@ class _Timer implements Timer {
     if (_receivePort == null) {
       assert(_receivePort == null);
       assert(_sendPort == null);
-      _receivePort = RawReceivePort(_handleMessage);
+      _receivePort = RawReceivePort(_handleMessage, 'Timer');
       _sendPort = _receivePort!.sendPort;
       _scheduledWakeupTime = 0;
     } else {

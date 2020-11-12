@@ -74,7 +74,7 @@ class _IOService {
 
   static void _ensureInitialize() {
     if (_receivePort == null) {
-      _receivePort = new RawReceivePort();
+      _receivePort = new RawReceivePort(null, 'IO Service');
       _replyToPort = _receivePort!.sendPort;
       _receivePort!.handler = (data) {
         assert(data is List && data.length == 2);
