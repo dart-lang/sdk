@@ -97,6 +97,9 @@ Updated the Linter to `0.1.124`, which includes:
   ```
 
   See [#44072][].
+
+  For legacy dependencies without an sdk constraint pub will now assume a
+  default language version of 2.7.
 * The top level `pub` executable has been deprecated. Use `dart pub` instead.
   See [dart tool][].
 * New command `dart pub add` that adds  new dependencies to your `pubspec.yaml`.
