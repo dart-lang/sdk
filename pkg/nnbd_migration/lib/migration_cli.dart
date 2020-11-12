@@ -807,11 +807,6 @@ When finished with the preview, hit ctrl-c to terminate this process.
     }
   }
 
-  void _fatalErrorReported(String detail) {
-    logger.stderr(detail);
-    throw MigrationExit(1);
-  }
-
   void _exceptionReported(String detail) {
     if (_hasExceptions) return;
     _hasExceptions = true;
@@ -847,6 +842,11 @@ Exception details:
       logger.stderr(detail);
       throw MigrationExit(1);
     }
+  }
+
+  void _fatalErrorReported(String detail) {
+    logger.stderr(detail);
+    throw MigrationExit(1);
   }
 
   void _logErrors(AnalysisResult analysisResult) {

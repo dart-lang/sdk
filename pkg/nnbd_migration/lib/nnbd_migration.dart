@@ -330,14 +330,14 @@ abstract class NullabilityMigration {
   /// Check if this migration is being run permissively.
   bool get isPermissive;
 
-  void finalizeInput(ResolvedUnitResult result);
-
-  void finish();
-
   /// Use this getter after any calls to [prepareInput] to obtain a list of URIs
   /// of unmigrated dependencies.  Ideally, this list should be empty before the
   /// user tries to migrate their package.
   List<String> get unmigratedDependencies;
+
+  void finalizeInput(ResolvedUnitResult result);
+
+  void finish();
 
   void prepareInput(ResolvedUnitResult result);
 
