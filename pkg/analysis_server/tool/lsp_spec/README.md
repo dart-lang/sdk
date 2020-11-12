@@ -94,7 +94,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/documentColor | | | | | |
 | textDocument/colorPresentation | | | | | |
 | textDocument/formatting | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/rangeFormatting | | | | | | requires support from dart_style?
+| textDocument/rangeFormatting | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/onTypeFormatting | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/rename | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/prepareRename | ✅ | ✅ | | ✅ | ✅ |

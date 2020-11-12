@@ -32,8 +32,8 @@ class FormatOnTypeHandler
       return success();
     }
 
-    return success(generateEditsForFormatting(
-        result, server.clientConfiguration.lineLength));
+    return generateEditsForFormatting(
+        result, server.clientConfiguration.lineLength);
   }
 
   @override

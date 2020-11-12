@@ -26,6 +26,16 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     return formatEdits;
   }
 
+  Future<List<TextEdit>> expectRangeFormattedContents(
+      Uri uri, String original, String expected) async {
+    final formatEdits =
+        await formatRange(uri.toString(), rangeFromMarkers(original));
+    final formattedContents =
+        applyTextEdits(withoutMarkers(original), formatEdits);
+    expect(formattedContents, equals(expected));
+    return formatEdits;
+  }
+
   Future<void> test_alreadyFormatted() async {
     const contents = '''main() {
   print('test');
@@ -90,6 +100,7 @@ ErrorOr<Pair<A, List<B>>> c(
     // By default, the formatters should have been registered.
     expect(registration(Method.textDocument_formatting), isNotNull);
     expect(registration(Method.textDocument_onTypeFormatting), isNotNull);
+    expect(registration(Method.textDocument_rangeFormatting), isNotNull);
 
     // Sending config updates causes the server to rebuild its list of registrations
     // which exposes a previous bug where we'd retain newly-built registrations
@@ -105,6 +116,7 @@ ErrorOr<Pair<A, List<B>>> c(
     );
     expect(registration(Method.textDocument_formatting), isNull);
     expect(registration(Method.textDocument_onTypeFormatting), isNull);
+    expect(registration(Method.textDocument_rangeFormatting), isNull);
   }
 
   Future<void> test_dynamicRegistration_forConfiguration() async {
@@ -131,6 +143,7 @@ ErrorOr<Pair<A, List<B>>> c(
     // By default, the formatters should have been registered.
     expect(registration(Method.textDocument_formatting), isNotNull);
     expect(registration(Method.textDocument_onTypeFormatting), isNotNull);
+    expect(registration(Method.textDocument_rangeFormatting), isNotNull);
 
     // They should be unregistered if we change the config to disabled.
     await monitorDynamicUnregistrations(
@@ -139,6 +152,7 @@ ErrorOr<Pair<A, List<B>>> c(
     );
     expect(registration(Method.textDocument_formatting), isNull);
     expect(registration(Method.textDocument_onTypeFormatting), isNull);
+    expect(registration(Method.textDocument_rangeFormatting), isNull);
 
     // They should be reregistered if we change the config to enabled.
     await monitorDynamicRegistrations(
@@ -147,6 +161,7 @@ ErrorOr<Pair<A, List<B>>> c(
     );
     expect(registration(Method.textDocument_formatting), isNotNull);
     expect(registration(Method.textDocument_onTypeFormatting), isNotNull);
+    expect(registration(Method.textDocument_rangeFormatting), isNotNull);
   }
 
   Future<void> test_formatOnType_simple() async {
@@ -170,6 +185,91 @@ ErrorOr<Pair<A, List<B>>> c(
     final formattedContents =
         applyTextEdits(withoutMarkers(contents), formatEdits);
     expect(formattedContents, equals(expected));
+  }
+
+  Future<void> test_formatRange_editsOverlapRange() async {
+    // Only ranges that are fully contained by the range should be applied,
+    // not those that intersect the start/end.
+    const contents = '''
+main()
+{
+    [[    print('test');
+        print('test');
+    ]]    print('test');
+}
+''';
+    final expected = '''
+main()
+{
+        print('test');
+  print('test');
+        print('test');
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    await expectRangeFormattedContents(mainFileUri, contents, expected);
+  }
+
+  Future<void> test_formatRange_invalidRange() async {
+    const contents = '''
+main()
+{
+        print('test');
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final formatRangeRequest = formatRange(
+      mainFileUri.toString(),
+      Range(
+          start: Position(line: 0, character: 0),
+          end: Position(line: 10000, character: 0)),
+    );
+    await expectLater(formatRangeRequest,
+        throwsA(isResponseError(ServerErrorCodes.InvalidFileLineCol)));
+  }
+
+  Future<void> test_formatRange_simple() async {
+    const contents = '''
+main  ()
+{
+
+    print('test');
+}
+
+[[main2  ()
+{
+
+    print('test');
+}]]
+
+main3  ()
+{
+
+    print('test');
+}
+''';
+    final expected = '''
+main  ()
+{
+
+    print('test');
+}
+
+main2() {
+  print('test');
+}
+
+main3  ()
+{
+
+    print('test');
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    await expectRangeFormattedContents(mainFileUri, contents, expected);
   }
 
   Future<void> test_invalidSyntax() async {

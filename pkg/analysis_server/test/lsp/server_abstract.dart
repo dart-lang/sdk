@@ -217,6 +217,7 @@ mixin ClientCapabilitiesHelperMixin {
       'documentSymbol': {'dynamicRegistration': true},
       'formatting': {'dynamicRegistration': true},
       'onTypeFormatting': {'dynamicRegistration': true},
+      'rangeFormatting': {'dynamicRegistration': true},
       'declaration': {'dynamicRegistration': true},
       'definition': {'dynamicRegistration': true},
       'implementation': {'dynamicRegistration': true},
@@ -330,6 +331,7 @@ mixin ClientCapabilitiesHelperMixin {
     return extendTextDocumentCapabilities(source, {
       'formatting': {'dynamicRegistration': true},
       'onTypeFormatting': {'dynamicRegistration': true},
+      'rangeFormatting': {'dynamicRegistration': true},
     });
   }
 
@@ -801,6 +803,21 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
             insertSpaces: true), // These currently don't do anything
         textDocument: TextDocumentIdentifier(uri: fileUri),
         position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(TextEdit.fromJson));
+  }
+
+  Future<List<TextEdit>> formatRange(String fileUri, Range range) {
+    final request = makeRequest(
+      Method.textDocument_rangeFormatting,
+      DocumentRangeFormattingParams(
+        options: FormattingOptions(
+            tabSize: 2,
+            insertSpaces: true), // These currently don't do anything
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+        range: range,
       ),
     );
     return expectSuccessfulResponseTo(

@@ -76,8 +76,11 @@ ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
   return ErrorOr.success(Pair(newContent, serverEdits));
 }
 
-List<TextEdit> generateEditsForFormatting(
-    ParsedUnitResult result, int lineLength) {
+ErrorOr<List<TextEdit>> generateEditsForFormatting(
+  ParsedUnitResult result,
+  int lineLength, {
+  Range range,
+}) {
   final unformattedSource = result.content;
 
   final code =
@@ -94,15 +97,15 @@ List<TextEdit> generateEditsForFormatting(
     // use seeing edits on every save with invalid code (if LSP gains the
     // ability to pass a context to know if the format was manually invoked
     // we may wish to change this to return an error for that case).
-    return null;
+    return success();
   }
   final formattedSource = formattedResult.text;
 
   if (formattedSource == unformattedSource) {
-    return null;
+    return success();
   }
 
-  return _generateMinimalEdits(result, formattedSource);
+  return _generateMinimalEdits(result, formattedSource, range: range);
 }
 
 List<TextEdit> _generateFullEdit(
@@ -122,17 +125,32 @@ List<TextEdit> _generateFullEdit(
 ///
 /// This allows editors to more easily track important locations (such as
 /// breakpoints) without needing to do their own diffing.
-List<TextEdit> _generateMinimalEdits(
-    ParsedUnitResult result, String formatted) {
+///
+/// If [range] is supplied, only whitespace edits that fall entirely inside this
+/// range will be included in the results.
+ErrorOr<List<TextEdit>> _generateMinimalEdits(
+  ParsedUnitResult result,
+  String formatted, {
+  Range range,
+}) {
   final unformatted = result.content;
   final lineInfo = result.lineInfo;
+  final rangeStart = range != null ? toOffset(lineInfo, range.start) : null;
+  final rangeEnd = range != null ? toOffset(lineInfo, range.end) : null;
+
+  if (rangeStart?.isError ?? false) {
+    return failure(rangeStart);
+  }
+  if (rangeEnd?.isError ?? false) {
+    return failure(rangeEnd);
+  }
 
   // It shouldn't be the case that we can't parse the code but if it happens
   // fall back to a full replacement rather than fail.
   final parsedFormatted = _parse(formatted, result.unit.featureSet);
   final parsedUnformatted = _parse(unformatted, result.unit.featureSet);
   if (parsedFormatted == null || parsedUnformatted == null) {
-    return _generateFullEdit(lineInfo, unformatted, formatted);
+    return success(_generateFullEdit(lineInfo, unformatted, formatted));
   }
 
   final unformattedTokens = _iterateAllTokens(parsedUnformatted).iterator;
@@ -149,6 +167,15 @@ List<TextEdit> _generateMinimalEdits(
     int formattedStart,
     int formattedEnd,
   ) {
+    if (rangeStart != null && rangeEnd != null) {
+      // If we're formatting only a range, skip over any segments that don't fall
+      // entirely within that range.
+      if (unformattedStart < rangeStart.result ||
+          unformattedEnd > rangeEnd.result) {
+        return;
+      }
+    }
+
     final unformattedWhitespace =
         unformatted.substring(unformattedStart, unformattedEnd);
     final formattedWhitespace =
@@ -207,7 +234,7 @@ List<TextEdit> _generateMinimalEdits(
       // If the token lexems do not match, there is a difference in the parsed
       // token streams (this should not ordinarily happen) so fall back to a
       // full edit.
-      return _generateFullEdit(lineInfo, unformatted, formatted);
+      return success(_generateFullEdit(lineInfo, unformatted, formatted));
     }
 
     addEditFor(
@@ -217,6 +244,12 @@ List<TextEdit> _generateMinimalEdits(
       formattedToken.offset,
     );
 
+    // When range formatting, if we've processed a token that ends after the
+    // range then there can't be any more relevant edits and we can return early.
+    if (rangeEnd != null && unformattedToken.end > rangeEnd.result) {
+      return success(edits);
+    }
+
     unformattedOffset = unformattedToken.end;
     formattedOffset = formattedToken.end;
   }
@@ -224,7 +257,7 @@ List<TextEdit> _generateMinimalEdits(
   // If we got here and either of the streams still have tokens, something
   // did not match so fall back to a full edit.
   if (unformattedHasMore || formattedHasMore) {
-    return _generateFullEdit(lineInfo, unformatted, formatted);
+    return success(_generateFullEdit(lineInfo, unformatted, formatted));
   }
 
   // Finally, handle any whitespace that was after the last token.
@@ -235,7 +268,7 @@ List<TextEdit> _generateMinimalEdits(
     formatted.length,
   );
 
-  return edits;
+  return success(edits);
 }
 
 /// Iterates over a token stream returning all tokens including comments.

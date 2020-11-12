@@ -115,6 +115,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.documentHighlightProvider, isNotNull);
     expect(initResult.capabilities.documentFormattingProvider, isNotNull);
     expect(initResult.capabilities.documentOnTypeFormattingProvider, isNotNull);
+    expect(initResult.capabilities.documentRangeFormattingProvider, isNotNull);
     expect(initResult.capabilities.definitionProvider, isNotNull);
     expect(initResult.capabilities.codeActionProvider, isNotNull);
     expect(initResult.capabilities.renameProvider, isNotNull);
@@ -164,6 +165,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.documentHighlightProvider, isNull);
     expect(initResult.capabilities.documentFormattingProvider, isNull);
     expect(initResult.capabilities.documentOnTypeFormattingProvider, isNull);
+    expect(initResult.capabilities.documentRangeFormattingProvider, isNull);
     expect(initResult.capabilities.definitionProvider, isNull);
     expect(initResult.capabilities.codeActionProvider, isNull);
     expect(initResult.capabilities.renameProvider, isNull);
