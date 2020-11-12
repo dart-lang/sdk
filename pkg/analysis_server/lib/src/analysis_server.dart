@@ -600,7 +600,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 
 /// Various IDE options.
 class AnalysisServerOptions {
-  String fileReadMode = 'as-is';
   String newAnalysisDriverLog;
 
   String clientId;

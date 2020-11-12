@@ -55,22 +55,13 @@ List<int> _pathsToTimes(List<String> paths) {
 
 /// A `dart:io` based implementation of [ResourceProvider].
 class PhysicalResourceProvider implements ResourceProvider {
-  static final String Function(String) NORMALIZE_EOL_ALWAYS =
-      (String string) => string.replaceAll(RegExp('\r\n?'), '\n');
-
-  static final PhysicalResourceProvider INSTANCE =
-      PhysicalResourceProvider(null);
+  static final PhysicalResourceProvider INSTANCE = PhysicalResourceProvider();
 
   /// The path to the base folder where state is stored.
   final String _stateLocation;
 
-  PhysicalResourceProvider(String Function(String) fileReadMode,
-      {String stateLocation})
-      : _stateLocation = stateLocation ?? _getStandardStateLocation() {
-    if (fileReadMode != null) {
-      FileBasedSource.fileReadMode = fileReadMode;
-    }
-  }
+  PhysicalResourceProvider({String stateLocation})
+      : _stateLocation = stateLocation ?? _getStandardStateLocation();
 
   @override
   Context get pathContext => context;
@@ -188,7 +179,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   String readAsStringSync() {
     _throwIfWindowsDeviceDriver();
     try {
-      return FileBasedSource.fileReadMode(_file.readAsStringSync());
+      return _file.readAsStringSync();
     } on io.FileSystemException catch (exception) {
       throw FileSystemException(exception.path, exception.message);
     }
