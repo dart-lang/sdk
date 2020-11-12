@@ -615,12 +615,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
 
     validateChangesCanBeApplied();
-    changes.sort(
-      (c1, c2) =>
-          positionCompare(c1.range.start, c2.range.start) *
-          -1, // Multiply by -1 to get descending sort.
-    );
-    for (final change in changes) {
+    final sortedChanges = changes.toList() // Don't mutate the original list.
+      ..sort(
+        // Multiply by -1 to get descending sort.
+        (c1, c2) => positionCompare(c1.range.start, c2.range.start) * -1,
+      );
+
+    for (final change in sortedChanges) {
       newContent = applyTextEdit(newContent, change);
     }
 

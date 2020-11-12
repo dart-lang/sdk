@@ -18,11 +18,12 @@ void main() {
 
 @reflectiveTest
 class FormatTest extends AbstractLspAnalysisServerTest {
-  Future<void> expectFormattedContents(
+  Future<List<TextEdit>> expectFormattedContents(
       Uri uri, String original, String expected) async {
     final formatEdits = await formatDocument(uri.toString());
     final formattedContents = applyTextEdits(original, formatEdits);
     expect(formattedContents, equals(expected));
+    return formatEdits;
   }
 
   Future<void> test_alreadyFormatted() async {
@@ -35,6 +36,32 @@ class FormatTest extends AbstractLspAnalysisServerTest {
 
     final formatEdits = await formatDocument(mainFileUri.toString());
     expect(formatEdits, isNull);
+  }
+
+  Future<void> test_complex() async {
+    const contents = '''
+ErrorOr<Pair<A, List<B>>> c(
+  String d,
+  List<
+          Either2<E,
+              F>>
+      g, {
+  h = false,
+}) {
+}
+
+
+    ''';
+    final expected = '''
+ErrorOr<Pair<A, List<B>>> c(
+  String d,
+  List<Either2<E, F>> g, {
+  h = false,
+}) {}
+''';
+    await initialize();
+    await openFile(mainFileUri, contents);
+    await expectFormattedContents(mainFileUri, contents, expected);
   }
 
   /// Ensures we use the same registration ID when unregistering even if the
@@ -140,7 +167,8 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     final formatEdits = await formatOnType(
         mainFileUri.toString(), positionFromMarker(contents), '}');
     expect(formatEdits, isNotNull);
-    final formattedContents = applyTextEdits(contents, formatEdits);
+    final formattedContents =
+        applyTextEdits(withoutMarkers(contents), formatEdits);
     expect(formattedContents, equals(expected));
   }
 
@@ -180,6 +208,186 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     await expectFormattedContents(mainFileUri, contents, expectedDefault);
     await updateConfig({'lineLength': 500});
     await expectFormattedContents(mainFileUri, contents, expectedLongLines);
+  }
+
+  Future<void> test_minimalEdits_addWhitespace() async {
+    // Check we only get one edit to add the required whitespace and not
+    // an entire document replacement.
+    const contents = '''
+main(){}
+''';
+    const expected = '''
+main() {}
+''';
+    await initialize();
+    await openFile(mainFileUri, contents);
+    final formatEdits =
+        await expectFormattedContents(mainFileUri, contents, expected);
+    expect(formatEdits, hasLength(1));
+    expect(formatEdits[0].newText, ' ');
+    expect(formatEdits[0].range.start, equals(Position(line: 0, character: 6)));
+  }
+
+  Future<void> test_minimalEdits_removeFileLeadingWhitespace() async {
+    // Check whitespace before the first token is handled.
+    const contents = '''
+
+
+
+main() {}
+''';
+    const expected = '''
+main() {}
+''';
+    await initialize();
+    await openFile(mainFileUri, contents);
+    final formatEdits =
+        await expectFormattedContents(mainFileUri, contents, expected);
+    expect(formatEdits, hasLength(1));
+    expect(formatEdits[0].newText, '');
+    expect(formatEdits[0].range.start, equals(Position(line: 0, character: 0)));
+    expect(formatEdits[0].range.end, equals(Position(line: 3, character: 0)));
+  }
+
+  Future<void> test_minimalEdits_removeFileTrailingWhitespace() async {
+    // Check whitespace after the last token is handled.
+    const contents = '''
+main() {}
+
+
+
+
+''';
+    const expected = '''
+main() {}
+''';
+    await initialize();
+    await openFile(mainFileUri, contents);
+    final formatEdits =
+        await expectFormattedContents(mainFileUri, contents, expected);
+    expect(formatEdits, hasLength(1));
+    expect(formatEdits[0].newText, '');
+    expect(formatEdits[0].range.start, equals(Position(line: 1, character: 0)));
+    expect(formatEdits[0].range.end, equals(Position(line: 5, character: 0)));
+  }
+
+  Future<void> test_minimalEdits_removePartialWhitespaceAfter() async {
+    // Check we get an edit only to remove the unnecessary trailing whitespace
+    // and not to replace the whole whitespace with a single space.
+    const contents = '''
+main()       {}
+''';
+    const expected = '''
+main() {}
+''';
+    await initialize();
+    await openFile(mainFileUri, contents);
+    final formatEdits =
+        await expectFormattedContents(mainFileUri, contents, expected);
+    expect(formatEdits, hasLength(1));
+    expect(
+        formatEdits[0],
+        equals(TextEdit(
+          range: Range(
+              start: Position(line: 0, character: 7),
+              end: Position(line: 0, character: 13)),
+          newText: '',
+        )));
+  }
+
+  Future<void> test_minimalEdits_removePartialWhitespaceBefore() async {
+    // Check we get an edit only to remove the unnecessary leading whitespace
+    // and not to replace the whole whitespace with a single space.
+    const contents = '''
+main()
+
+
+ {}
+''';
+    const expected = '''
+main() {}
+''';
+    await initialize();
+    await openFile(mainFileUri, contents);
+    final formatEdits =
+        await expectFormattedContents(mainFileUri, contents, expected);
+    expect(formatEdits, hasLength(1));
+    expect(
+        formatEdits[0],
+        equals(TextEdit(
+          range: Range(
+              start: Position(line: 0, character: 6),
+              end: Position(line: 3, character: 0)),
+          newText: '',
+        )));
+  }
+
+  Future<void> test_minimalEdits_removeWhitespace() async {
+    // Check we only get two edits to remove the unwanted whitespace and not
+    // an entire document replacement.
+    const contents = '''
+main( ) { }
+''';
+    const expected = '''
+main() {}
+''';
+    await initialize();
+    await openFile(mainFileUri, contents);
+    final formatEdits =
+        await expectFormattedContents(mainFileUri, contents, expected);
+    expect(formatEdits, hasLength(2));
+    expect(formatEdits[0].newText, isEmpty);
+    expect(formatEdits[0].range.start, equals(Position(line: 0, character: 5)));
+    expect(formatEdits[1].newText, isEmpty);
+    expect(formatEdits[1].range.start, equals(Position(line: 0, character: 9)));
+  }
+
+  Future<void> test_minimalEdits_withComments() async {
+    // Check we can get edits that span a comment (which does not appear in the
+    // main token list).
+    const contents = '''
+main() {
+        var a = 1;
+        // Comment
+        print(a);
+}
+''';
+    const expected = '''
+main() {
+  var a = 1;
+  // Comment
+  print(a);
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, contents);
+    final formatEdits =
+        await expectFormattedContents(mainFileUri, contents, expected);
+    expect(formatEdits, hasLength(3));
+    expect(
+        formatEdits[0],
+        equals(TextEdit(
+          range: Range(
+              start: Position(line: 1, character: 2),
+              end: Position(line: 1, character: 8)),
+          newText: '',
+        )));
+    expect(
+        formatEdits[1],
+        equals(TextEdit(
+          range: Range(
+              start: Position(line: 2, character: 2),
+              end: Position(line: 2, character: 8)),
+          newText: '',
+        )));
+    expect(
+        formatEdits[2],
+        equals(TextEdit(
+          range: Range(
+              start: Position(line: 3, character: 2),
+              end: Position(line: 3, character: 8)),
+          newText: '',
+        )));
   }
 
   Future<void> test_nonDartFile() async {
@@ -251,6 +459,23 @@ class FormatTest extends AbstractLspAnalysisServerTest {
 ''';
     newFile(mainFilePath, content: contents);
     await initialize();
+    await expectFormattedContents(mainFileUri, contents, expected);
+  }
+
+  Future<void> test_validSyntax_withErrors() async {
+    // We should still be able to format syntactically valid code even if it has analysis
+    // errors.
+    const contents = '''main() {
+       print(a);
+}
+''';
+    const expected = '''main() {
+  print(a);
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, contents);
+
     await expectFormattedContents(mainFileUri, contents, expected);
   }
 }

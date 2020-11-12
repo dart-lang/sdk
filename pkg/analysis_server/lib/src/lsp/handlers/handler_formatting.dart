@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 
 class FormattingHandler
     extends MessageHandler<DocumentFormattingParams, List<TextEdit>> {
@@ -26,9 +27,13 @@ class FormattingHandler
       return error(ServerErrorCodes.InvalidFilePath, 'Invalid file path', path);
     }
 
-    final unformattedSource = file.readAsStringSync();
+    final result = server.getParsedUnit(path);
+    if (result.state != ResultState.VALID || result.errors.isNotEmpty) {
+      return success();
+    }
+
     return success(generateEditsForFormatting(
-        unformattedSource, server.clientConfiguration.lineLength));
+        result, server.clientConfiguration.lineLength));
   }
 
   @override
