@@ -1694,6 +1694,101 @@ int f() => null;
     }
   }
 
+  test_pubspec_add_collection_dependency() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+dependencies:
+  foo: ^1.2.3
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(
+        logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  foo: ^1.2.3
+  collection: ^1.15.0-nullsafety.4
+'''));
+  }
+
+  test_pubspec_add_dependency_and_environment_sections() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''', pubspecText: '''
+name: test
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(
+        logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''',
+            // Note: section order is weird, but it's valid and this is a rare use
+            // case.
+            pubspecText: '''
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  collection: ^1.15.0-nullsafety.4
+name: test
+'''));
+  }
+
+  test_pubspec_add_dependency_section() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(
+        logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
+    // The Dart source code should still be migrated.
+    assertProjectContents(projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''',
+        // Note: `dependencies` section is in a weird place, but it's valid and
+        // this is a rare use case.
+        pubspecText: '''
+dependencies:
+  collection: ^1.15.0-nullsafety.4
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+'''));
+  }
+
   test_pubspec_does_not_exist() async {
     var projectContents = simpleProject()..remove('pubspec.yaml');
     var projectDir = createProjectDir(projectContents);
@@ -1801,7 +1896,6 @@ name: test
         '''
 environment:
   sdk: '>=2.12.0 <3.0.0'
-
 name: test
 '''));
   }
@@ -1815,6 +1909,72 @@ name: test
         cliRunner, () async => await cliRunner.run(),
         withUsage: false);
     expect(message, contains('Failed to parse pubspec file'));
+  }
+
+  test_pubspec_preserve_collection_dependency() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+dependencies:
+  collection: ^1.16.0
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(logger.stdoutBuffer.toString(),
+        isNot(contains('Please run `dart pub get`')));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  collection: ^1.16.0
+'''));
+  }
+
+  test_pubspec_update_collection_dependency() async {
+    var projectContents = simpleProject(sourceText: '''
+int firstEven(Iterable<int> x)
+    => x.firstWhere((x) => x.isEven, orElse: () => null);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.6.0 <3.0.0'
+dependencies:
+  collection: ^1.14.0
+''');
+    var projectDir = createProjectDir(projectContents);
+    var cliRunner = _createCli()
+        .decodeCommandLineArgs(_parseArgs(['--apply-changes', projectDir]));
+    await cliRunner.run();
+    expect(
+        logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
+    // The Dart source code should still be migrated.
+    assertProjectContents(
+        projectDir, simpleProject(migrated: true, sourceText: '''
+import 'package:collection/collection.dart' show IterableExtension;
+
+int? firstEven(Iterable<int> x)
+    => x.firstWhereOrNull((x) => x.isEven);
+''', pubspecText: '''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  collection: ^1.15.0-nullsafety.4
+'''));
   }
 
   test_pubspec_with_sdk_version_beta() async {

@@ -105,9 +105,9 @@ class NonNullableFix {
   }
 
   Future<MigrationState> finish() async {
-    migration.finish();
-    final state = MigrationState(
-        migration, includedRoot, listener, instrumentationListener);
+    var neededPackages = migration.finish();
+    final state = MigrationState(migration, includedRoot, listener,
+        instrumentationListener, neededPackages);
     await state.refresh(_logger);
     return state;
   }
@@ -120,7 +120,11 @@ class NonNullableFix {
   ///
   /// This means updating the pubspec.yaml file, the package_config.json
   /// file, and the analysis_options.yaml file, each only if necessary.
-  void processPackage(Folder pkgFolder) {
+  ///
+  /// [neededPackages] is a map whose keys are the names of packages that should
+  /// be dependend upon by the package's pubspec, and whose values are the
+  /// minimum required versions of those packages.
+  void processPackage(Folder pkgFolder, Map<String, Version> neededPackages) {
     var pubspecFile = pkgFolder.getChildAssumingFile('pubspec.yaml');
     if (!pubspecFile.exists) {
       // If the pubspec file cannot be found, we do not attempt to change the
@@ -139,7 +143,7 @@ class NonNullableFix {
       return;
     }
 
-    var updated = _processPubspec(pubspec);
+    var updated = _processPubspec(pubspec, neededPackages);
     if (updated) {
       _processConfigFile(pkgFolder, pubspec);
     }
@@ -280,7 +284,12 @@ class NonNullableFix {
 
   /// Updates the pubspec.yaml file to specify a minimum Dart SDK version which
   /// supports null safety.
-  bool _processPubspec(_YamlFile pubspec) {
+  ///
+  /// Return value indicates whether the user's `package_config.json` file
+  /// should be updated.
+  bool _processPubspec(_YamlFile pubspec, Map<String, Version> neededPackages) {
+    bool packageConfigNeedsUpdate = false;
+    bool packageDepsUpdated = false;
     var pubspecMap = pubspec.content;
     YamlNode environmentOptions;
     if (pubspecMap is YamlMap) {
@@ -291,42 +300,52 @@ class NonNullableFix {
       var content = '''
 environment:
   sdk: '$_intendedSdkVersionConstraint'
-
 ''';
       pubspec._insertAfterParent(
           SourceSpan(start, start, ''), content, listener);
+      packageConfigNeedsUpdate = true;
     } else if (environmentOptions is YamlMap) {
-      var sdk = environmentOptions.nodes['sdk'];
-      if (sdk == null) {
-        var content = """
-
-  sdk: '$_intendedSdkVersionConstraint'""";
-        pubspec._insertAfterParent(environmentOptions.span, content, listener);
-      } else if (sdk is YamlScalar) {
-        VersionConstraint currentConstraint;
-        if (sdk.value is String) {
-          currentConstraint = VersionConstraint.parse(sdk.value as String);
-          if (currentConstraint is VersionRange &&
-              currentConstraint.min >= _intendedMinimumSdkVersion) {
-            // The current SDK version constraint already enables Null Safety.
-            // Do not edit pubspec.yaml, nor package_config.json.
-            return false;
-          } else {
-            // TODO(srawlins): This overwrites the current maximum version. In
-            // the uncommon situation that the maximum is not '<3.0.0', it
-            // should not.
-            pubspec._replaceSpan(
-                sdk.span, "'$_intendedSdkVersionConstraint'", listener);
+      if (_updatePubspecConstraint(pubspec, environmentOptions, 'sdk',
+          "'$_intendedSdkVersionConstraint'", _intendedMinimumSdkVersion)) {
+        packageConfigNeedsUpdate = true;
+      }
+    } else {
+      // Odd malformed pubspec.  Leave it alone, but go ahead and update the
+      // package_config.json file.
+      packageConfigNeedsUpdate = true;
+    }
+    if (neededPackages.isNotEmpty) {
+      YamlNode dependencies;
+      if (pubspecMap is YamlMap) {
+        dependencies = pubspecMap.nodes['dependencies'];
+      }
+      if (dependencies == null) {
+        var depLines = [
+          for (var entry in neededPackages.entries)
+            '  ${entry.key}: ^${entry.value}'
+        ];
+        var start = SourceLocation(0, line: 0, column: 0);
+        var content = '''
+dependencies:
+${depLines.join('\n')}
+''';
+        pubspec._insertAfterParent(
+            SourceSpan(start, start, ''), content, listener);
+        packageDepsUpdated = true;
+      } else if (dependencies is YamlMap) {
+        for (var neededPackage in neededPackages.entries) {
+          if (_updatePubspecConstraint(pubspec, dependencies, neededPackage.key,
+              '^${neededPackage.value}', neededPackage.value)) {
+            packageDepsUpdated = true;
           }
-        } else {
-          // Something is odd with the SDK constraint we've found in
-          // pubspec.yaml; Best to leave it alone.
-          return false;
         }
       }
     }
+    if (packageDepsUpdated) {
+      listener.reportPubGetNeeded(neededPackages);
+    }
 
-    return true;
+    return packageConfigNeedsUpdate;
   }
 
   void _processPubspecException(String action, String pubspecPath, error) {
@@ -341,6 +360,48 @@ environment:
       sdk: '$_intendedSdkVersionConstraint';
 ''');
     throw StateError('listener.reportFatalError should never return');
+  }
+
+  /// Updates a constraint in the given [pubspec] file.  If [key] is found in
+  /// [map], and the corresponding value does has a minimum less than
+  /// [minimumVersion], it is updated to [fullVersionConstraint].  If it is not
+  /// found, then an entry is added.
+  ///
+  /// Return value indicates whether a change was made.
+  bool _updatePubspecConstraint(_YamlFile pubspec, YamlMap map, String key,
+      String fullVersionConstraint, Version minimumVersion) {
+    var node = map.nodes[key];
+    if (node == null) {
+      var content = '''
+
+  $key: $fullVersionConstraint''';
+      pubspec._insertAfterParent(map.span, content, listener);
+      return true;
+    } else if (node is YamlScalar) {
+      VersionConstraint currentConstraint;
+      if (node.value is String) {
+        currentConstraint = VersionConstraint.parse(node.value as String);
+        if (currentConstraint is VersionRange &&
+            currentConstraint.min >= minimumVersion) {
+          // The current version constraint is already up to date.  Do not edit.
+          return false;
+        } else {
+          // TODO(srawlins): This overwrites the current maximum version. In
+          // the uncommon situation that there is a special maximum, it should
+          // not.
+          pubspec._replaceSpan(node.span, fullVersionConstraint, listener);
+          return true;
+        }
+      } else {
+        // Something is odd with the constraint we've found in pubspec.yaml;
+        // Best to leave it alone.
+        return false;
+      }
+    } else {
+      // Something is odd with the format of pubspec.yaml; best to leave it
+      // alone.
+      return false;
+    }
   }
 
   /// Allows unit tests to shut down any rogue servers that have been started,

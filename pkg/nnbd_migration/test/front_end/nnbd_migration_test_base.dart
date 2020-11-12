@@ -30,6 +30,11 @@ class ListenerClient implements DartFixListenerClient {
   void onFatalError(String detail) {
     fail('Unexpected call to onFatalError($detail)');
   }
+
+  @override
+  void onMessage(String detail) {
+    fail('Unexpected call to onMessage($detail)');
+  }
 }
 
 @reflectiveTest

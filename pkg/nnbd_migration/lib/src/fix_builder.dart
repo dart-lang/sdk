@@ -40,6 +40,7 @@ import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/where_or_null_transformer.dart';
 import 'package:nnbd_migration/src/variables.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 bool _isIncrementOrDecrementOperator(TokenType tokenType) {
   switch (tokenType) {
@@ -129,6 +130,11 @@ class FixBuilder {
   @visibleForTesting
   bool needsIterableExtension = false;
 
+  /// Map of additional package dependencies that will be required by the
+  /// migrated code.  Keys are package names; values indicate the minimum
+  /// required version of each package.
+  final Map<String, Version> _neededPackages;
+
   factory FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
@@ -140,7 +146,8 @@ class FixBuilder {
       CompilationUnit unit,
       bool warnOnWeakCode,
       NullabilityGraph graph,
-      bool transformWhereOrNull) {
+      bool transformWhereOrNull,
+      Map<String, Version> neededPackages) {
     var migrationResolutionHooks = MigrationResolutionHooksImpl();
     return FixBuilder._(
         decoratedClassHierarchy,
@@ -156,7 +163,8 @@ class FixBuilder {
         migrationResolutionHooks,
         warnOnWeakCode,
         graph,
-        transformWhereOrNull);
+        transformWhereOrNull,
+        neededPackages);
   }
 
   FixBuilder._(
@@ -170,7 +178,8 @@ class FixBuilder {
       this.migrationResolutionHooks,
       this.warnOnWeakCode,
       this._graph,
-      bool transformWhereOrNull)
+      bool transformWhereOrNull,
+      this._neededPackages)
       : typeProvider = _typeSystem.typeProvider,
         _whereOrNullTransformer = transformWhereOrNull
             ? WhereOrNullTransformer(_typeSystem.typeProvider, _typeSystem)
@@ -644,6 +653,8 @@ class MigrationResolutionHooksImpl
       if (transformationInfo != null) {
         // We can fix this by dropping the node and changing the method call.
         _fixBuilder.needsIterableExtension = true;
+        _fixBuilder._neededPackages['collection'] =
+            Version.parse('1.15.0-nullsafety.4');
         var info = AtomicEditInfo(
             NullabilityFixDescription.changeMethodName(
                 transformationInfo.originalName,

@@ -23,6 +23,7 @@ import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/postmortem_file.dart';
 import 'package:nnbd_migration/src/variables.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Implementation of the [NullabilityMigration] public API.
 class NullabilityMigrationImpl implements NullabilityMigration {
@@ -70,6 +71,11 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   /// Indicates whether the client has used the [unmigratedDependencies] getter.
   bool _queriedUnmigratedDependencies = false;
+
+  /// Map of additional package dependencies that will be required by the
+  /// migrated code.  Keys are package names; values indicate the minimum
+  /// required version of each package.
+  final Map<String, Version> _neededPackages = {};
 
   /// Prepares to perform nullability migration.
   ///
@@ -169,7 +175,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         unit,
         warnOnWeakCode,
         _graph,
-        transformWhereOrNull);
+        transformWhereOrNull,
+        _neededPackages);
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       fixBuilder.visitAll();
@@ -196,7 +203,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     }
   }
 
-  void finish() {
+  Map<String, Version> finish() {
     if (!_propagated) {
       // [finalizeInput] sets this field to `true`, so if it's still false, that
       // means it was never called; this probably means that all the code fed
@@ -205,6 +212,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     }
     _postmortemFileWriter?.write();
     _instrumentation?.finished();
+    return _neededPackages;
   }
 
   void prepareInput(ResolvedUnitResult result) {

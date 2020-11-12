@@ -39,7 +39,7 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
     dartfixListener = DartFixListener(null, ListenerClient());
     resourceProvider = MemoryResourceProvider();
     final migrationInfo = MigrationInfo({}, {}, null, null);
-    state = MigrationState(null, null, dartfixListener, null);
+    state = MigrationState(null, null, dartfixListener, null, {});
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;
     site = PreviewSite(state, () async {
@@ -188,7 +188,7 @@ class PreviewSiteWithEngineTest extends NnbdMigrationTestBase
     super.setUp();
     dartfixListener = DartFixListener(null, ListenerClient());
     final migrationInfo = MigrationInfo({}, {}, null, null);
-    state = MigrationState(null, null, dartfixListener, null);
+    state = MigrationState(null, null, dartfixListener, null, {});
     nodeMapper = state.nodeMapper;
     state.pathMapper = PathMapper(resourceProvider);
     state.migrationInfo = migrationInfo;

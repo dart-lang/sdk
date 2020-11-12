@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 export 'package:nnbd_migration/src/utilities/hint_utils.dart' show HintComment;
 
@@ -337,7 +338,13 @@ abstract class NullabilityMigration {
 
   void finalizeInput(ResolvedUnitResult result);
 
-  void finish();
+  /// Finishes the migration.  Returns a map indicating packages that have been
+  /// newly imported by the migration; the caller should ensure that these
+  /// packages are properly imported by the package's pubspec.
+  ///
+  /// Keys of the returned map are package names; values indicate the minimum
+  /// required version of each package.
+  Map<String, Version> finish();
 
   void prepareInput(ResolvedUnitResult result);
 

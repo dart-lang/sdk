@@ -3539,7 +3539,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         scope.thisOrAncestorOfType<CompilationUnit>(),
         warnOnWeakCode,
         graph,
-        true);
+        true, {});
   }
 
   bool _isInScope(AstNode node, AstNode scope) {

@@ -657,6 +657,11 @@ Exception details:
     throw MigrationExit(1);
   }
 
+  @override
+  void onMessage(String detail) {
+    logger.stdout(detail);
+  }
+
   /// Runs the full migration process.
   ///
   /// If something goes wrong, a message is printed using the logger configured
@@ -912,6 +917,7 @@ get erroneous migration suggestions.
           _fixCodeProcessor._task.includedRoot,
           _dartFixListener,
           _fixCodeProcessor._task.instrumentationListener,
+          {},
           analysisResult);
     } else {
       logger.stdout(ansi.emphasized('Re-generating migration suggestions...'));
@@ -1044,9 +1050,6 @@ class _FixCodeProcessor extends Object {
   }
 
   Future<AnalysisResult> runFirstPhase() async {
-    // Process package
-    _task.processPackage(context.contextRoot.root);
-
     var analysisErrors = <AnalysisError>[];
 
     // All tasks should be registered; [numPhases] should be finalized.
@@ -1107,6 +1110,7 @@ class _FixCodeProcessor extends Object {
     _migrationCli.logger.stdout(_migrationCli.ansi
         .emphasized('Compiling instrumentation information...'));
     var state = await _task.finish();
+    _task.processPackage(context.contextRoot.root, state.neededPackages);
     if (_migrationCli.options.webPreview) {
       await _task.startPreviewServer(state, _migrationCli.applyHook);
     }
