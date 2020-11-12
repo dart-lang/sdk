@@ -122,7 +122,7 @@ class FixBuilder {
   final NullabilityGraph _graph;
 
   /// Helper that assists us in transforming Iterable methods to their "OrNull"
-  /// equivalents, or `null` if we are not doing such transformations.
+  /// equivalents.
   final WhereOrNullTransformer _whereOrNullTransformer;
 
   /// Indicates whether an import of package:collection's `IterableExtension`
@@ -146,7 +146,6 @@ class FixBuilder {
       CompilationUnit unit,
       bool warnOnWeakCode,
       NullabilityGraph graph,
-      bool transformWhereOrNull,
       Map<String, Version> neededPackages) {
     var migrationResolutionHooks = MigrationResolutionHooksImpl();
     return FixBuilder._(
@@ -163,7 +162,6 @@ class FixBuilder {
         migrationResolutionHooks,
         warnOnWeakCode,
         graph,
-        transformWhereOrNull,
         neededPackages);
   }
 
@@ -178,12 +176,10 @@ class FixBuilder {
       this.migrationResolutionHooks,
       this.warnOnWeakCode,
       this._graph,
-      bool transformWhereOrNull,
       this._neededPackages)
       : typeProvider = _typeSystem.typeProvider,
-        _whereOrNullTransformer = transformWhereOrNull
-            ? WhereOrNullTransformer(_typeSystem.typeProvider, _typeSystem)
-            : null {
+        _whereOrNullTransformer =
+            WhereOrNullTransformer(_typeSystem.typeProvider, _typeSystem) {
     migrationResolutionHooks._fixBuilder = this;
     assert(_typeSystem.isNonNullableByDefault);
     assert((typeProvider as TypeProviderImpl).isNonNullableByDefault);
@@ -649,7 +645,7 @@ class MigrationResolutionHooksImpl
         InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
     if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
       var transformationInfo =
-          _fixBuilder._whereOrNullTransformer?.tryTransformOrElseArgument(node);
+          _fixBuilder._whereOrNullTransformer.tryTransformOrElseArgument(node);
       if (transformationInfo != null) {
         // We can fix this by dropping the node and changing the method call.
         _fixBuilder.needsIterableExtension = true;

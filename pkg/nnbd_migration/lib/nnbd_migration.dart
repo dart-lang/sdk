@@ -315,18 +315,12 @@ abstract class NullabilityMigration {
   /// Optional parameter [warnOnWeakCode] indicates whether weak-only code
   /// should be warned about or removed (in the way specified by
   /// [removeViaComments]).
-  ///
-  /// Optional parameter [transformWhereOrNull] indicates whether Iterable
-  /// methods should be transformed to their "OrNull" equivalents when possible.
-  /// This feature is a work in progress, so by default they are not
-  /// transformed.
   factory NullabilityMigration(NullabilityMigrationListener listener,
       LineInfo Function(String) getLineInfo,
       {bool permissive,
       NullabilityMigrationInstrumentation instrumentation,
       bool removeViaComments,
-      bool warnOnWeakCode,
-      bool transformWhereOrNull}) = NullabilityMigrationImpl;
+      bool warnOnWeakCode}) = NullabilityMigrationImpl;
 
   /// Check if this migration is being run permissively.
   bool get isPermissive;

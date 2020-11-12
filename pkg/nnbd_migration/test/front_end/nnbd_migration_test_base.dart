@@ -225,8 +225,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         permissive: false,
         instrumentation: instrumentationListener,
         removeViaComments: removeViaComments,
-        warnOnWeakCode: warnOnWeakCode,
-        transformWhereOrNull: true);
+        warnOnWeakCode: warnOnWeakCode);
     Future<void> _forEachPath(
         void Function(ResolvedUnitResult) callback) async {
       for (var testPath in testPaths) {
