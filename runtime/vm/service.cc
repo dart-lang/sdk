@@ -3178,11 +3178,14 @@ static bool GetPorts(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "PortList");
   {
-    Instance& port = Instance::Handle(zone.GetZone());
+    ReceivePort& port = ReceivePort::Handle(zone.GetZone());
     JSONArray arr(&jsobj, "ports");
     for (int i = 0; i < ports.Length(); ++i) {
       port ^= ports.At(i);
-      arr.AddValue(port);
+      // Don't report inactive ports.
+      if (PortMap::IsLivePort(port.Id())) {
+        arr.AddValue(port);
+      }
     }
   }
   return true;

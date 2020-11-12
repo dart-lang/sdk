@@ -1927,7 +1927,7 @@ void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     visitor->VisitPointers(class_table, saved_num_cids_);
   }
   ClassPtr* saved_tlc_class_table =
-      saved_class_table_.load(std::memory_order_relaxed);
+      saved_tlc_class_table_.load(std::memory_order_relaxed);
   if (saved_tlc_class_table != NULL) {
     auto class_table =
         reinterpret_cast<ObjectPtr*>(&(saved_tlc_class_table[0]));

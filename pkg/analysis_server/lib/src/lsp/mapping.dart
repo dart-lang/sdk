@@ -62,13 +62,14 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
           _asMarkup(preferredFormats, content));
 }
 
-/// Builds an LSP snippet string that uses a $1 tabstop to set the selected text
-/// after insertion.
-String buildSnippetStringWithSelection(
+/// Builds an LSP snippet string with supplied ranges as tabstops.
+String buildSnippetStringWithTabStops(
   String text,
-  int selectionOffset,
-  int selectionLength,
+  List<int> offsetLengthPairs,
 ) {
+  text ??= '';
+  offsetLengthPairs ??= const [];
+
   String escape(String input) => input.replaceAllMapped(
         RegExp(r'[$}\\]'), // Replace any of $ } \
         (c) => '\\${c[0]}', // Prefix with a backslash
@@ -77,17 +78,29 @@ String buildSnippetStringWithSelection(
   // https://microsoft.github.io/language-server-protocol/specifications/specification-3-14/#snippet-syntax
   //
   // $1, $2, etc. are used for tab stops and ${1:foo} inserts a placeholder of foo.
-  // Since we only need to support a single tab stop, our string is constructed of three parts:
-  // - Anything before the selection
-  // - The selection (which may or may not include text, depending on selectionLength)
-  // - Anything after the selection
-  final prefix = escape(text.substring(0, selectionOffset));
-  final selectionText = escape(
-      text.substring(selectionOffset, selectionOffset + selectionLength));
-  final selection = '\${1:$selectionText}';
-  final suffix = escape(text.substring(selectionOffset + selectionLength));
 
-  return '$prefix$selection$suffix';
+  final output = [];
+  var offset = 0;
+  var tabStopNumber = 1;
+  for (var i = 0; i < offsetLengthPairs.length; i += 2) {
+    final pairOffset = offsetLengthPairs[i];
+    final pairLength = offsetLengthPairs[i + 1];
+
+    // Add any text that came before this tabstop to the result.
+    output.add(escape(text.substring(offset, pairOffset)));
+
+    // Add this tabstop
+    final tabStopText =
+        escape(text.substring(pairOffset, pairOffset + pairLength));
+    output.add('\${${tabStopNumber++}:$tabStopText}');
+
+    offset = pairOffset + pairLength;
+  }
+
+  // Add any remaining text that was after the last tabstop.
+  output.add(escape(text.substring(offset)));
+
+  return output.join('');
 }
 
 /// Note: This code will fetch the version of each document being modified so
@@ -769,6 +782,7 @@ lsp.CompletionItem toCompletionItem(
   int replacementOffset,
   int replacementLength, {
   @required bool includeCommitCharacters,
+  @required bool completeFunctionCalls,
 }) {
   // Build display labels and text to insert. insertText and filterText may
   // differ from label (for ex. if the label includes things like (…)). If
@@ -782,14 +796,24 @@ lsp.CompletionItem toCompletionItem(
     label = label.substring(0, label.length - 1);
   }
 
-  if (suggestion.displayText == null) {
-    switch (suggestion.element?.kind) {
-      case server.ElementKind.CONSTRUCTOR:
-      case server.ElementKind.FUNCTION:
-      case server.ElementKind.METHOD:
-        label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
-        break;
-    }
+  // isCallable is used to suffix the label with parens so it's clear the item
+  // is callable.
+  //
+  // isInvocation means the location at which it's used is an invocation (and
+  // therefore it is appropriate to include the parens/parameters in the
+  // inserted text).
+  //
+  // In the case of show combinators, the parens will still be shown to indicate
+  // functions but they should not be included in the completions.
+  final elementKind = suggestion.element?.kind;
+  final isCallable = elementKind == server.ElementKind.CONSTRUCTOR ||
+      elementKind == server.ElementKind.FUNCTION ||
+      elementKind == server.ElementKind.METHOD;
+  final isInvocation =
+      suggestion.kind == server.CompletionSuggestionKind.INVOCATION;
+
+  if (suggestion.displayText == null && isCallable) {
+    label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
   }
 
   final supportsDeprecatedFlag =
@@ -809,13 +833,33 @@ lsp.CompletionItem toCompletionItem(
           supportedCompletionItemKinds, suggestion.kind, label);
 
   var insertTextFormat = lsp.InsertTextFormat.PlainText;
-  if (supportsSnippets && suggestion.selectionOffset != 0) {
-    insertTextFormat = lsp.InsertTextFormat.Snippet;
-    insertText = buildSnippetStringWithSelection(
-      suggestion.completion,
-      suggestion.selectionOffset,
-      suggestion.selectionLength,
-    );
+
+  // If the client supports snippets, we can support completeFunctionCalls or
+  // setting a selection.
+  if (supportsSnippets) {
+    // completeFunctionCalls should only work if commit characters are disabled
+    // otherwise the editor may insert parens that we're also inserting.
+    if (!includeCommitCharacters &&
+        completeFunctionCalls &&
+        isCallable &&
+        isInvocation) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      final hasRequiredParameters =
+          (suggestion.defaultArgumentListTextRanges?.length ?? 0) > 0;
+      final functionCallSuffix = hasRequiredParameters
+          ? buildSnippetStringWithTabStops(
+              suggestion.defaultArgumentListString,
+              suggestion.defaultArgumentListTextRanges,
+            )
+          : '\${1:}'; // No required params still gets a tabstop in the parens.
+      insertText += '($functionCallSuffix)';
+    } else if (suggestion.selectionOffset != 0) {
+      insertTextFormat = lsp.InsertTextFormat.Snippet;
+      insertText = buildSnippetStringWithTabStops(
+        suggestion.completion,
+        [suggestion.selectionOffset, suggestion.selectionLength],
+      );
+    }
   }
 
   // Because we potentially send thousands of these items, we should minimise

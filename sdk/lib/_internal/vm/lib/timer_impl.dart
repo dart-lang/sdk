@@ -138,6 +138,7 @@ class _Timer implements Timer {
 
   static RawReceivePort? _receivePort;
   static SendPort? _sendPort;
+  static bool _receivePortActive = false;
   static int _scheduledWakeupTime = 0;
 
   static bool _handlingCallbacks = false;
@@ -262,12 +263,10 @@ class _Timer implements Timer {
   // Enqueue one message for each zero timer. To be able to distinguish from
   // EventHandler messages we send a _ZERO_EVENT instead of a _TIMEOUT_EVENT.
   static void _notifyZeroHandler() {
-    var port = _sendPort;
-    if (port == null) {
-      port = _createTimerHandler();
-      _sendPort = port;
+    if (!_receivePortActive) {
+      _createTimerHandler();
     }
-    port.send(_ZERO_EVENT);
+    _sendPort!.send(_ZERO_EVENT);
   }
 
   // Handle the notification of a zero timer. Make sure to also execute non-zero
@@ -314,7 +313,6 @@ class _Timer implements Timer {
       _cancelWakeup();
       return;
     }
-
     // Only send a message if the requested wakeup time differs from the
     // already scheduled wakeup time.
     var wakeupTime = _heap.first._wakeupTime;
@@ -433,12 +431,10 @@ class _Timer implements Timer {
 
   // Tell the event handler to wake this isolate at a specific time.
   static void _scheduleWakeup(int wakeupTime) {
-    var port = _sendPort;
-    if (port == null) {
-      port = _createTimerHandler();
-      _sendPort = port;
+    if (!_receivePortActive) {
+      _createTimerHandler();
     }
-    VMLibraryHooks.eventHandlerSendData(null, port, wakeupTime);
+    VMLibraryHooks.eventHandlerSendData(null, _sendPort, wakeupTime);
     _scheduledWakeupTime = wakeupTime;
   }
 
@@ -452,22 +448,23 @@ class _Timer implements Timer {
 
   // Create a receive port and register a message handler for the timer
   // events.
-  static SendPort _createTimerHandler() {
-    assert(_receivePort == null);
-    assert(_sendPort == null);
-    final port = new RawReceivePort(_handleMessage);
-    final sendPort = port.sendPort;
-    _receivePort = port;
-    _sendPort = sendPort;
-    _scheduledWakeupTime = 0;
-    return sendPort;
+  static void _createTimerHandler() {
+    if (_receivePort == null) {
+      assert(_receivePort == null);
+      assert(_sendPort == null);
+      _receivePort = RawReceivePort(_handleMessage);
+      _sendPort = _receivePort!.sendPort;
+      _scheduledWakeupTime = 0;
+    } else {
+      (_receivePort as _RawReceivePortImpl)._setActive(true);
+    }
+    _receivePortActive = true;
   }
 
   static void _shutdownTimerHandler() {
-    _sendPort = null;
     _scheduledWakeupTime = 0;
-    _receivePort!.close();
-    _receivePort = null;
+    (_receivePort as _RawReceivePortImpl)._setActive(false);
+    _receivePortActive = false;
   }
 
   // The Timer factory registered with the dart:async library by the embedder.

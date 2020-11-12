@@ -28,6 +28,8 @@ class PortMap : public AllStatic {
     kNewPort = 0,      // a newly allocated port
     kLivePort = 1,     // a regular port (has a ReceivePort)
     kControlPort = 2,  // a special control port (has a ReceivePort)
+    kInactivePort =
+        3,  // an inactive port (has a ReceivePort) not considered live.
   };
 
   // Allocate a port for the provided handler and return its VM-global id.
@@ -54,6 +56,9 @@ class PortMap : public AllStatic {
 
   // Returns whether a port is local to the current isolate.
   static bool IsLocalPort(Dart_Port id);
+
+  // Returns whether a port is live (e.g., is not new or inactive).
+  static bool IsLivePort(Dart_Port id);
 
   // Returns the owning Isolate for port 'id'.
   static Isolate* GetIsolate(Dart_Port id);
@@ -83,9 +88,6 @@ class PortMap : public AllStatic {
 
   // Allocate a new unique port.
   static Dart_Port AllocatePort();
-
-  static bool IsActivePort(Dart_Port id);
-  static bool IsLivePort(Dart_Port id);
 
   // Lock protecting access to the port map.
   static Mutex* mutex_;
