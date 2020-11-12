@@ -27,9 +27,6 @@ class CodeFragmentParser {
   /// The index in the [tokens] of the next token to be consumed.
   int currentIndex = 0;
 
-  /// The accessors that have been parsed.
-  List<Accessor> accessors = [];
-
   /// Initialize a newly created parser to report errors to the [errorReporter].
   CodeFragmentParser(this.errorReporter, {VariableScope scope})
       : variableScope = scope ?? VariableScope(null, {});
@@ -51,18 +48,29 @@ class CodeFragmentParser {
   ///
   /// <content> ::=
   ///   <accessor> ('.' <accessor>)*
-  List<Accessor> parse(String content, int delta) {
+  List<Accessor> parseAccessors(String content, int delta) {
     this.delta = delta;
     tokens = _CodeFragmentScanner(content, delta, errorReporter).scan();
     if (tokens == null) {
       // The error has already been reported.
       return null;
     }
-    var index = _parseAccessor(0);
-    while (index < tokens.length) {
-      var token = tokens[index];
+    currentIndex = 0;
+    var accessors = <Accessor>[];
+    var accessor = _parseAccessor();
+    if (accessor == null) {
+      return accessors;
+    }
+    accessors.add(accessor);
+    while (currentIndex < tokens.length) {
+      var token = currentToken;
       if (token.kind == _TokenKind.period) {
-        index = _parseAccessor(index + 1);
+        advance();
+        accessor = _parseAccessor();
+        if (accessor == null) {
+          return accessors;
+        }
+        accessors.add(accessor);
       } else {
         errorReporter.reportErrorForOffset(TransformSetErrorCode.wrongToken,
             token.offset + delta, token.length, ['.', token.kind.displayName]);
@@ -95,10 +103,9 @@ class CodeFragmentParser {
     return expression;
   }
 
-  /// Return the token at the given [index] if it exists and if it has one of
-  /// the [validKinds]. Report an error and return `null` if those conditions
-  /// aren't met.
-  _Token _expect(int index, List<_TokenKind> validKinds) {
+  /// Return the current token if it exists and has one of the [validKinds].
+  /// Report an error and return `null` if those conditions aren't met.
+  _Token _expect(List<_TokenKind> validKinds) {
     String validKindsDisplayString() {
       var buffer = StringBuffer();
       for (var i = 0; i < validKinds.length; i++) {
@@ -114,7 +121,8 @@ class CodeFragmentParser {
       return buffer.toString();
     }
 
-    if (index >= tokens.length) {
+    var token = currentToken;
+    if (token == null) {
       var offset = 0;
       var length = 0;
       if (tokens.isNotEmpty) {
@@ -126,7 +134,6 @@ class CodeFragmentParser {
           offset + delta, length, [validKindsDisplayString()]);
       return null;
     }
-    var token = tokens[index];
     if (!validKinds.contains(token.kind)) {
       errorReporter.reportErrorForOffset(
           TransformSetErrorCode.wrongToken,
@@ -142,23 +149,25 @@ class CodeFragmentParser {
   ///
   /// <accessor> ::=
   ///   <identifier> '[' (<integer> | <identifier>) ']'
-  int _parseAccessor(int index) {
-    var token = _expect(index, const [_TokenKind.identifier]);
+  Accessor _parseAccessor() {
+    var token = _expect(const [_TokenKind.identifier]);
     if (token == null) {
       // The error has already been reported.
-      return tokens.length;
+      return null;
     }
     var identifier = token.lexeme;
     if (identifier == 'arguments') {
-      token = _expect(index + 1, const [_TokenKind.openSquareBracket]);
+      advance();
+      token = _expect(const [_TokenKind.openSquareBracket]);
       if (token == null) {
         // The error has already been reported.
-        return tokens.length;
+        return null;
       }
-      token = _expect(index + 2, [_TokenKind.identifier, _TokenKind.integer]);
+      advance();
+      token = _expect(const [_TokenKind.identifier, _TokenKind.integer]);
       if (token == null) {
         // The error has already been reported.
-        return tokens.length;
+        return null;
       }
       ParameterReference reference;
       if (token.kind == _TokenKind.identifier) {
@@ -167,36 +176,40 @@ class CodeFragmentParser {
         var argumentIndex = int.parse(token.lexeme);
         reference = PositionalParameterReference(argumentIndex);
       }
-      token = _expect(index + 3, [_TokenKind.closeSquareBracket]);
+      advance();
+      token = _expect(const [_TokenKind.closeSquareBracket]);
       if (token == null) {
         // The error has already been reported.
-        return tokens.length;
+        return null;
       }
-      accessors.add(ArgumentAccessor(reference));
-      return index + 4;
+      advance();
+      return ArgumentAccessor(reference);
     } else if (identifier == 'typeArguments') {
-      token = _expect(index + 1, const [_TokenKind.openSquareBracket]);
+      advance();
+      token = _expect(const [_TokenKind.openSquareBracket]);
       if (token == null) {
         // The error has already been reported.
-        return tokens.length;
+        return null;
       }
-      token = _expect(index + 2, [_TokenKind.integer]);
+      advance();
+      token = _expect(const [_TokenKind.integer]);
       if (token == null) {
         // The error has already been reported.
-        return tokens.length;
+        return null;
       }
+      advance();
       var argumentIndex = int.parse(token.lexeme);
-      token = _expect(index + 3, [_TokenKind.closeSquareBracket]);
+      token = _expect(const [_TokenKind.closeSquareBracket]);
       if (token == null) {
         // The error has already been reported.
-        return tokens.length;
+        return null;
       }
-      accessors.add(TypeArgumentAccessor(argumentIndex));
-      return index + 4;
+      advance();
+      return TypeArgumentAccessor(argumentIndex);
     } else {
       errorReporter.reportErrorForOffset(TransformSetErrorCode.unknownAccessor,
           token.offset + delta, token.length, [identifier]);
-      return tokens.length;
+      return null;
     }
   }
 
