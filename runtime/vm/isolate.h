@@ -786,6 +786,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return thread == nullptr ? nullptr : thread->isolate();
   }
 
+  bool IsScheduled() { return scheduled_mutator_thread_ != nullptr; }
+
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
 #if defined(DEBUG)
@@ -857,6 +859,19 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     message_notify_callback_ = value;
   }
 
+  void set_on_shutdown_callback(Dart_IsolateShutdownCallback value) {
+    on_shutdown_callback_ = value;
+  }
+  Dart_IsolateShutdownCallback on_shutdown_callback() {
+    return on_shutdown_callback_;
+  }
+  void set_on_cleanup_callback(Dart_IsolateCleanupCallback value) {
+    on_cleanup_callback_ = value;
+  }
+  Dart_IsolateCleanupCallback on_cleanup_callback() {
+    return on_cleanup_callback_;
+  }
+
   void bequeath(std::unique_ptr<Bequest> bequest) {
     bequest_ = std::move(bequest);
   }
@@ -924,7 +939,15 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   const char* MakeRunnable();
   void MakeRunnableLocked();
-  void Run();
+
+  // Runs the isolate if it was created inside the VM as a response to
+  // invocation of Dart's `Isolate.spawn` api.
+  //
+  // It will wake up a potential await'er (e.g. `await Isolate.spawn()`).
+  void RunViaSpawnApi();
+
+  // Runs the isolate if it was created by the embedder.
+  void RunViaEmbedder();
 
   MessageHandler* message_handler() const { return message_handler_; }
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
@@ -1565,6 +1588,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // All other fields go here.
   int64_t start_time_micros_;
   Dart_MessageNotifyCallback message_notify_callback_ = nullptr;
+  Dart_IsolateShutdownCallback on_shutdown_callback_ = nullptr;
+  Dart_IsolateCleanupCallback on_cleanup_callback_ = nullptr;
   char* name_ = nullptr;
   Dart_Port main_port_ = 0;
   // Isolates created by Isolate.spawn have the same origin id.

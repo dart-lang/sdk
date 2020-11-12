@@ -420,7 +420,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
     child->set_origin_id(state_->origin_id());
     child->set_spawn_state(std::move(state_));
-    child->Run();
+    child->RunViaSpawnApi();
   }
 
   void FailedSpawn(const char* error) {

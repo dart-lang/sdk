@@ -1644,6 +1644,8 @@ Isolate::Isolate(IsolateGroup* isolate_group,
           reload_every_n_stack_overflow_checks_(FLAG_reload_every),
 #endif  // !defined(PRODUCT)
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      on_shutdown_callback_(Isolate::ShutdownCallback()),
+      on_cleanup_callback_(Isolate::CleanupCallback()),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
       constant_canonicalization_mutex_(
@@ -2048,8 +2050,6 @@ void Isolate::DeleteReloadContext() {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 const char* Isolate::MakeRunnable() {
-  ASSERT(Isolate::Current() == nullptr);
-
   MutexLocker ml(&mutex_);
   // Check if we are in a valid state to make the isolate runnable.
   if (is_runnable() == true) {
@@ -2417,8 +2417,15 @@ void Isolate::SetStickyError(ErrorPtr sticky_error) {
   sticky_error_ = sticky_error;
 }
 
-void Isolate::Run() {
+void Isolate::RunViaSpawnApi() {
+  ASSERT(spawn_state() != nullptr);
   message_handler()->Run(group()->thread_pool(), RunIsolate, ShutdownIsolate,
+                         reinterpret_cast<uword>(this));
+}
+
+void Isolate::RunViaEmbedder() {
+  ASSERT(spawn_state() == nullptr);
+  message_handler()->Run(group()->thread_pool(), nullptr, ShutdownIsolate,
                          reinterpret_cast<uword>(this));
 }
 
@@ -2634,7 +2641,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // Cache these two fields, since they are no longer available after the
   // `delete this` further down.
   IsolateGroup* isolate_group = isolate->isolate_group_;
-  Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
+  Dart_IsolateCleanupCallback cleanup = isolate->on_cleanup_callback();
   auto callback_data = isolate->init_callback_data_;
 
   // From this point on the isolate is no longer visited by GC (which is ok,

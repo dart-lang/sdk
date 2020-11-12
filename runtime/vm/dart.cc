@@ -1068,7 +1068,7 @@ void Dart::RunShutdownCallback() {
   Isolate* isolate = thread->isolate();
   void* isolate_group_data = isolate->group()->embedder_data();
   void* isolate_data = isolate->init_callback_data();
-  Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
+  Dart_IsolateShutdownCallback callback = isolate->on_shutdown_callback();
   if (callback != NULL) {
     TransitionVMToNative transition(thread);
     (callback)(isolate_group_data, isolate_data);

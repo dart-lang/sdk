@@ -1563,6 +1563,39 @@ Dart_CreateIsolateGroupFromKernel(const char* script_uri,
   return isolate;
 }
 
+DART_EXPORT Dart_Isolate
+Dart_CreateIsolateInGroup(Dart_Isolate group_member,
+                          const char* name,
+                          Dart_IsolateShutdownCallback shutdown_callback,
+                          Dart_IsolateCleanupCallback cleanup_callback,
+                          void* child_isolate_data,
+                          char** error) {
+  CHECK_NO_ISOLATE(Isolate::Current());
+  auto member = reinterpret_cast<Isolate*>(group_member);
+  if (member->IsScheduled()) {
+    FATAL("The given member isolate (%s) must not have been entered.",
+          member->name());
+  }
+
+  *error = nullptr;
+
+  Isolate* isolate;
+#if defined(DART_PRECOMPILED_RUNTIME)
+  isolate = CreateWithinExistingIsolateGroupAOT(member->group(), name, error);
+  if (isolate != nullptr) {
+    isolate->set_origin_id(member->origin_id());
+    isolate->set_init_callback_data(child_isolate_data);
+    isolate->set_on_shutdown_callback(shutdown_callback);
+    isolate->set_on_cleanup_callback(cleanup_callback);
+  }
+#else
+  *error = Utils::StrDup("Lightweight isolates are not yet ready in JIT mode.");
+  isolate = nullptr;
+#endif
+
+  return Api::CastIsolate(isolate);
+}
+
 DART_EXPORT void Dart_ShutdownIsolate() {
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
@@ -2088,6 +2121,53 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     I->class_table()->Print();
   }
   return Api::Success();
+}
+
+DART_EXPORT bool Dart_RunLoopAsync(bool errors_are_fatal,
+                                   Dart_Port on_error_port,
+                                   Dart_Port on_exit_port,
+                                   char** error) {
+  auto thread = Thread::Current();
+  auto isolate = thread->isolate();
+  CHECK_ISOLATE(isolate);
+  *error = nullptr;
+
+  if (thread->api_top_scope() != nullptr) {
+    *error = Utils::StrDup("There must not be an active api scope.");
+    return false;
+  }
+
+  if (!isolate->is_runnable()) {
+    const char* error_msg = isolate->MakeRunnable();
+    if (error_msg != nullptr) {
+      *error = Utils::StrDup(error_msg);
+      return false;
+    }
+  }
+
+  isolate->SetErrorsFatal(errors_are_fatal);
+
+  if (on_error_port != ILLEGAL_PORT || on_exit_port != ILLEGAL_PORT) {
+    auto thread = Thread::Current();
+    TransitionNativeToVM transition(thread);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    if (on_error_port != ILLEGAL_PORT) {
+      const auto& port =
+          SendPort::Handle(thread->zone(), SendPort::New(on_error_port));
+      isolate->AddErrorListener(port);
+    }
+    if (on_exit_port != ILLEGAL_PORT) {
+      const auto& port =
+          SendPort::Handle(thread->zone(), SendPort::New(on_exit_port));
+      isolate->AddExitListener(port, Instance::null_instance());
+    }
+  }
+
+  Dart_ExitIsolate();
+  isolate->RunViaEmbedder();
+  return true;
 }
 
 DART_EXPORT Dart_Handle Dart_HandleMessage() {
