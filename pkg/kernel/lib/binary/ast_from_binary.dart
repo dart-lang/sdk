@@ -2629,7 +2629,7 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   @override
   Supertype readSupertype() {
     final int nodeOffset = _byteOffset;
-    InterfaceType type = super.readDartType();
+    InterfaceType type = super.readDartType(forSupertype: true);
     return _associateMetadata(
         new Supertype.byReference(type.className, type.typeArguments),
         nodeOffset);
