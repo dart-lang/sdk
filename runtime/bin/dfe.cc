@@ -312,9 +312,6 @@ class KernelIRNode {
     }
 
     *p_bytes = reinterpret_cast<uint8_t*>(malloc(size));
-    if (*p_bytes == nullptr) {
-      OUT_OF_MEMORY();
-    }
     uint8_t* p = *p_bytes;
     KernelIRNode* node = head;
     while (node != nullptr) {

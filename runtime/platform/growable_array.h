@@ -240,12 +240,12 @@ class Malloc : public AllStatic {
  public:
   template <class T>
   static inline T* Alloc(intptr_t len) {
-    return reinterpret_cast<T*>(malloc(len * sizeof(T)));
+    return reinterpret_cast<T*>(dart::malloc(len * sizeof(T)));
   }
 
   template <class T>
   static inline T* Realloc(T* old_array, intptr_t old_len, intptr_t new_len) {
-    return reinterpret_cast<T*>(realloc(old_array, new_len * sizeof(T)));
+    return reinterpret_cast<T*>(dart::realloc(old_array, new_len * sizeof(T)));
   }
 
   template <class T>

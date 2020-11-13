@@ -270,7 +270,6 @@ BENCHMARK(KernelServiceCompileAll) {
   intptr_t kernel_buffer_size = file->Length();
   uint8_t* kernel_buffer =
       reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
-  EXPECT(kernel_buffer != NULL);
   bool read_fully = file->ReadFully(kernel_buffer, kernel_buffer_size);
   EXPECT(read_fully);
   Dart_Handle result =

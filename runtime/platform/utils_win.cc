@@ -6,6 +6,7 @@
 #if defined(HOST_OS_WINDOWS)
 
 #include <io.h>  // NOLINT
+#include "platform/allocation.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -19,9 +20,6 @@ char* Utils::StrNDup(const char* s, intptr_t n) {
     len = n;
   }
   char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (result == NULL) {
-    return NULL;
-  }
   result[len] = '\0';
   return reinterpret_cast<char*>(memmove(result, s, len));
 }

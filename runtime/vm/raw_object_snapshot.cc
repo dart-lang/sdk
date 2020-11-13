@@ -1461,9 +1461,6 @@ void TypedDataLayout::WriteTo(SnapshotWriter* writer,
     writer->Write<ObjectPtr>(length_);
     uint8_t* data = reinterpret_cast<uint8_t*>(this->data());
     void* passed_data = malloc(bytes);
-    if (passed_data == NULL) {
-      OUT_OF_MEMORY();
-    }
     memmove(passed_data, data, bytes);
     static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
         bytes,
@@ -1546,9 +1543,6 @@ void ExternalTypedDataLayout::WriteTo(SnapshotWriter* writer,
   writer->Write<ObjectPtr>(length_);
   uint8_t* data = reinterpret_cast<uint8_t*>(data_);
   void* passed_data = malloc(bytes);
-  if (passed_data == NULL) {
-    OUT_OF_MEMORY();
-  }
   memmove(passed_data, data, bytes);
   static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
       bytes,

@@ -842,11 +842,11 @@ void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
     if (forward_list_length_ == 0) {
       forward_list_length_ = 4;
       intptr_t new_size = forward_list_length_ * sizeof(object);
-      new_list = ::malloc(new_size);
+      new_list = dart::malloc(new_size);
     } else {
       forward_list_length_ *= 2;
       intptr_t new_size = (forward_list_length_ * sizeof(object));
-      new_list = ::realloc(forward_list_, new_size);
+      new_list = dart::realloc(forward_list_, new_size);
     }
     ASSERT(new_list != NULL);
     forward_list_ = reinterpret_cast<Dart_CObject**>(new_list);
@@ -1039,7 +1039,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteSmi(len);
       if (type == Utf8::kLatin1) {
         uint8_t* latin1_str =
-            reinterpret_cast<uint8_t*>(::malloc(len * sizeof(uint8_t)));
+            reinterpret_cast<uint8_t*>(dart::malloc(len * sizeof(uint8_t)));
         bool success =
             Utf8::DecodeToLatin1(utf8_str, utf8_len, latin1_str, len);
         ASSERT(success);
@@ -1049,7 +1049,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
         ::free(latin1_str);
       } else {
         uint16_t* utf16_str =
-            reinterpret_cast<uint16_t*>(::malloc(len * sizeof(uint16_t)));
+            reinterpret_cast<uint16_t*>(dart::malloc(len * sizeof(uint16_t)));
         bool success = Utf8::DecodeToUTF16(utf8_str, utf8_len, utf16_str, len);
         ASSERT(success);
         for (intptr_t i = 0; i < len; i++) {
