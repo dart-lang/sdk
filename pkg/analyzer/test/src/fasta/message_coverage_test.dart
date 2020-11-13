@@ -4,9 +4,9 @@
 
 import 'dart:io' as io;
 
-import 'package:analysis_tool/package_root.dart' as package_root;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

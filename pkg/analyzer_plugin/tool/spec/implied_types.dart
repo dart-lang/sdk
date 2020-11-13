@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Code for enumerating the set of types implied by the API.
-import 'package:analysis_tool/tools.dart';
+import 'package:analyzer_utilities/tools.dart';
 
 import 'api.dart';
 

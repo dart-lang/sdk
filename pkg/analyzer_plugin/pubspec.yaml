@@ -14,8 +14,8 @@ dependencies:
   pub_semver: '^1.3.2'
 
 dev_dependencies:
-  analysis_tool:
-    path: ../analysis_tool
+  analyzer_utilities:
+    path: ../analyzer_utilities
   html: '>=0.13.1 <0.15.0'
   path: '^1.4.1'
   test_reflective_loader: ^0.1.8

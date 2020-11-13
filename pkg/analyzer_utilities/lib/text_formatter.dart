@@ -7,7 +7,7 @@
  * analyzer and analysis server.
  */
 
-import 'package:analysis_tool/tools.dart';
+import 'package:analyzer_utilities/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 final RegExp whitespace = new RegExp(r'\s');

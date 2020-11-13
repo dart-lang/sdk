@@ -74,12 +74,6 @@
       "languageVersion": "2.8"
     },
     {
-      "name": "analysis_tool",
-      "rootUri": "../pkg/analysis_tool",
-      "packageUri": "lib/",
-      "languageVersion": "2.1"
-    },
-    {
       "name": "analyzer",
       "rootUri": "../pkg/analyzer",
       "packageUri": "lib/",
@@ -96,6 +90,12 @@
       "rootUri": "../pkg/analyzer_plugin",
       "packageUri": "lib/",
       "languageVersion": "2.3"
+    },
+    {
+      "name": "analyzer_utilities",
+      "rootUri": "../pkg/analyzer_utilities",
+      "packageUri": "lib/",
+      "languageVersion": "2.1"
     },
     {
       "name": "args",

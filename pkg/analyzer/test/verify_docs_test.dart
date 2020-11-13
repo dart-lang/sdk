@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:analysis_tool/package_root.dart' as package_root;
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:test/test.dart';
 
 main() async {

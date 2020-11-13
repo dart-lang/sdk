@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analysis_tool/tools.dart';
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 
 import 'codegen_analysis_server.dart' as codegen_analysis_server;

@@ -7,8 +7,8 @@
 /// in generated code.
 import 'dart:convert';
 
-import 'package:analysis_tool/html.dart';
-import 'package:analysis_tool/tools.dart';
+import 'package:analyzer_utilities/html.dart';
+import 'package:analyzer_utilities/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
